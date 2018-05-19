@@ -1,0 +1,55 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: newmdl.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+#ifdef THREAD1_FULL
+
+mpids_cmp	mpids_cmp.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -finish_mask=f-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+nfo_bit	nfo_bit.s -max_cycle=4000000
+tlb_dmp0	-midas_args=-allow_tsb_conflicts tlb_dmp0.s -max_cycle=4000000
+tlb_dmp1	-midas_args=-allow_tsb_conflicts tlb_dmp1.s -max_cycle=4000000
+tlb_dmp2	-midas_args=-allow_tsb_conflicts tlb_dmp2.s -max_cycle=4000000
+tlb_full	-midas_args=-allow_tsb_conflicts tlb_full.s -max_cycle=4000000
+tlb_rw0	-midas_args=-allow_tsb_conflicts tlb_rw0.s -max_cycle=4000000
+tlb_rw1	-midas_args=-allow_tsb_conflicts tlb_rw1.s -max_cycle=4000000
+tlb_rw2	-midas_args=-allow_tsb_conflicts tlb_rw2.s -max_cycle=4000000
+tlb_rw3	-midas_args=-allow_tsb_conflicts tlb_rw3.s -max_cycle=4000000
+real_non_real_pages -midas_args=-allow_tsb_conflicts real_non_real_pages.s -finish_mask=7-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+real_non_real_pgs_2t -midas_args=-allow_tsb_conflicts real_non_real_pgs_2t.s -finish_mask=3-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+real_red_mode	-midas_args=-allow_tsb_conflicts real_red_mode.s -finish_mask=7-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+
+#else
+mt_mmumix1  -midas_args=-allow_tsb_conflicts 	mt_mmumix1.s -max_cycle=4000000
+mpids_cmp	mpids_cmp.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -finish_mask=f-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+nfo_bit	nfo_bit.s -max_cycle=4000000
+nfo_bit1	-midas_args=-allow_tsb_conflicts nfo_bit1.s -max_cycle=4000000
+tlb_dmp0	-midas_args=-allow_tsb_conflicts tlb_dmp0.s -max_cycle=4000000
+tlb_dmp1	-midas_args=-allow_tsb_conflicts tlb_dmp1.s -max_cycle=4000000
+tlb_dmp2	-midas_args=-allow_tsb_conflicts tlb_dmp2.s -max_cycle=4000000
+tlb_full	-midas_args=-allow_tsb_conflicts tlb_full.s -max_cycle=4000000
+tlb_rw0	-midas_args=-allow_tsb_conflicts tlb_rw0.s -max_cycle=4000000
+tlb_rw1	-midas_args=-allow_tsb_conflicts tlb_rw1.s -max_cycle=4000000
+tlb_rw2	-midas_args=-allow_tsb_conflicts tlb_rw2.s -max_cycle=4000000
+tlb_rw3	-midas_args=-allow_tsb_conflicts tlb_rw3.s -max_cycle=4000000
+real_non_real_pages -midas_args=-allow_tsb_conflicts real_non_real_pages.s -finish_mask=7-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+real_non_real_pgs_2t -midas_args=-allow_tsb_conflicts real_non_real_pgs_2t.s -finish_mask=3-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+real_red_mode	-midas_args=-allow_tsb_conflicts real_red_mode.s -finish_mask=7-max_cycle=4000000 -sim_run_args=+tap_read_err_disb
+
+#endif

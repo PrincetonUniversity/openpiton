@@ -1,0 +1,105 @@
+#! /bin/sh
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: pal
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+#
+# .local_sets_wrapper
+#   SCCS Id: @(#).local_sets_wrapper	1.0 (mm) 07 Sep 2001 00:00:00
+#
+
+die () {
+    message="$1"
+    echo "$tool -> .local_tool_wrapper: $message Exiting ..."
+    exit 1 
+}
+
+############################ main ##############################
+
+tool=`basename $0`
+ARGV="$*"
+TRE_PROJECT=$DV_ROOT
+
+if [ -z "$TRE_PROJECT" ]; then
+    die "TRE_PROJECT not defined"
+fi
+
+TRE_ROOT=$TRE_PROJECT/tools
+TOOL_ROOT=$TRE_PROJECT/tools/local/$tool
+
+### Verify TRE_SEARCH and TRE_ENTRY are defined and non-null
+
+if [ -z "$TRE_SEARCH" ]; then
+    die "TRE_SEARCH not defined"
+fi
+if [ -z "$TRE_ENTRY" ]; then
+    die "TRE_ENTRY not defined"
+fi
+
+### Get version, based on tool invoked, and $TRE_ENTRY
+
+version=`configsrch $tool $TRE_ENTRY`
+if [ $? != 0 ] ; then
+    die "configsrch returned error code!"
+fi
+
+###  Verify configsrch delivered a non-null version
+
+if [ -z "$version" ]; then
+    die "No version set by configsrch"
+fi
+
+### Assemble directory-oriented executable ...
+### (eliminate the extra layer of shell redirection...)
+
+   exe=$TOOL_ROOT/$version/bin/$tool
+   if [ -x $exe ]; then
+      exec $exe "$@"
+   fi
+   
+
+###  Assemble do-file name. If it's there, execute and test status.
+
+   exe=$TRE_ROOT/$tool,$version.do
+   if [ -x $exe ]; then
+       $exe
+       dostat=$?
+       if [ $dostat != 0 ] ; then
+	   die "Error return from do file"
+       fi
+   fi
+   
+
+   exe=$TRE_ROOT/$tool,$version
+   if [ -x $exe ]; then
+       exec $exe "$@"
+   else
+       die "executable $exe not found!"
+   fi
+
+
+### If none of the above executable patterns hit, then die with errors...
+
+   echo "FATAL:  Couldn't find any executable form:"
+   echo "FATAL:      $TOOL_ROOT/$version/bin/$tool"
+   echo "FATAL:      $TRE_ROOT/$tool,$version.do"
+   echo "FATAL:      $TRE_ROOT/$tool,$version"
+   die  "FATAL:  $tool executable not found!"
+

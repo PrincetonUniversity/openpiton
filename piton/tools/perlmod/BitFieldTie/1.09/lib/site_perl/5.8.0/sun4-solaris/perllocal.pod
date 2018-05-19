@@ -1,0 +1,44 @@
+=head2 Thu Jan 23 11:51:58 2003: C<Module> L<BitFieldTie|BitFieldTie>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/BitFieldTie/1.09/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.09>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Jan 23 14:34:38 2003: C<Module> L<BitFieldTie|BitFieldTie>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/BitFieldTie/1.09/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.09>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

@@ -1,0 +1,77 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: cmp.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////////////////////////////
+// cmp
+////////////////////////////////////////////////////////////////////////////////
+
+<cmp sys=core1>
+#define GROUP_CMP
+
+// pll = 1250 MHz dram = 166 MHz
+<cmp_1250_166 name=cmp_1250_166>
+<runargs -sas -sim_run_args=+pll_freq=1250 -sim_run_args=+dram_div=15>
+#define CMP_FULL_REGR
+#include "cmp_basic.diaglist"
+#undef CMP_FULL_REGR
+</runargs>
+</cmp_1250_166>
+
+// pll = 1167 MHz dram = 166 MHz
+<cmp_1167_166 name=model_cmp>
+<runargs -sas>
+
+#define CMP_FULL_REGR
+#include "cmp_basic.diaglist"
+#undef CMP_FULL_REGR
+
+#define CMP_REGR_SIM
+<runargs -sas>
+#include "cmp_basic.diaglist"
+</runargs>
+#undef CMP_REGR_SIM
+
+#define CMP_CHECK
+#include "cmp_basic.diaglist"
+#undef CMP_CHECK
+
+#define CMP_REGR
+#include "cmp_basic.diaglist"
+#undef CMP_REGR
+
+</runargs>
+</cmp_1167_166>
+
+</cmp>
+#undef GROUP_CMP
+
+
+<cmp_cov sys=chip1 -vera_cov_obj=spu_coverage -vera_cov_obj=err_coverage -vera_cov_obj=exu_coverage -vera_cov_obj=ffu_coverage -vera_cov_obj=fpu_coverage -vera_cov_obj=ifu_coverage -vera_cov_obj=lsu_coverage -vera_cov_obj=mmu_coverage -vera_cov_obj=mt_coverage -vera_cov_obj=tlu_coverage -vera_cov_obj=tso_coverage -vera_cov_obj=cmpmss_coverage -vera_cov_obj=coreccx_coverage -vera_cov_obj=dram_coverage name=cmp_cov -vera_cov_obj=jbi_coverage>
+#define GROUP_CMP
+
+#define CMP_CHECK_COV
+<runargs -fast_boot -midas_args=-DSYNC_THREADS>
+#include "cmp_basic.diaglist"
+</runargs>
+#undef CMP_CHECK_COV
+
+</cmp_cov>
+#undef GROUP_CMP

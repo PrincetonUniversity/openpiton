@@ -1,0 +1,44 @@
+=head2 Fri May  7 19:31:57 2004: C<Module> L<AnalyzeDiag|AnalyzeDiag>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/AnalyzeDiag/1.07/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.07>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri May  7 19:39:35 2004: C<Module> L<AnalyzeDiag|AnalyzeDiag>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/AnalyzeDiag/1.07/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.07>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

@@ -1,0 +1,1756 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: master_diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////////////////////////////
+// master diag list for princeton
+////////////////////////////////////////////////////////////////////////////////
+
+<tile1 sys=manycore -x_tiles=1 -y_tiles=1>
+<cmp_default name=default>
+
+<all_tile1_passing>
+
+<tile1_mini>
+<princeton-test>
+    princeton-test-test     princeton-test-test.s
+</princeton-test>
+    bypass_win      bypass_win.s
+    //// fail_perf_chase_l1hit     chase.pal -midas_args=-pal_diag_args=-lenbytes=512 -midas_args=-pal_diag_args=-stride=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-expect_time=3 -midas_args=-pal_diag_args=-expect_string=L1_ld_hit
+    dmiss_imiss     Dmiss_imiss.s
+    done_retry_trap         done_retry_trap.s
+    exu_alu         exu_alu.s
+    hp_reg_rdwr             hp_reg_rdwr.s
+    ihit_sameset        Ihit_sameset.s
+    imiss_branches      Imiss_branches.s
+    imiss_oddeven       Imiss_oddeven.s
+    imiss_sameset       Imiss_sameset.s -max_cycle=50000
+    intr_basic2     intr_basic2.s
+    nop         nop.s
+    simple_br       ifu_simple_br.s -max_cycle=400000
+    tr_intr0            tr_intr0.s
+    tr_intr00           tr_intr00.pal
+    tr_intr1            tr_intr1.s
+    tr_intr2            tr_intr2.s
+    tr_tcc              tr_tcc.s     -max_cycle=500000 -midas_args=-DBUG6262
+    tr_tixcc0           tr_tixcc0.s  -max_cycle=50000
+    win_restore0        win_restore0.pal
+    dcache_falseraw     Dcache_falseraw.s
+    dcache_realraw      Dcache_realraw.s
+    dcache_partialraw   Dcache_partialraw.s
+    dcache_war      Dcache_war.s
+    fp_movixcc2         fp_movixcc2.s -rtl_timeout=50000 -max_cycle=500000
+    intr_basic1     intr_basic1.s
+    l2_access       l2_access.s
+    ldst_endiansign     ldst_endiansign.s
+    ldst_raw        ldst_raw.s
+    tr_sir0             tr_sir0.s
+    flush_pipe      flush_pipe.pal
+    lsu_stbar               lsu_stbar.s -midas_args=-allow_tsb_conflicts //-max_cycle=1200000 
+    l2_buf          l2_buf.s 
+    dexec_nf        dexec_nf.s -midas_args=-allow_tsb_conflicts
+
+    tr_intexc1      tr_intexc1.s -sim_run_args=+inst_check_off=1
+    ifetch_traps        ifetch_traps.s  -sim_run_args=+inst_check_off=1
+    lsu_ldx         lsu_ldx.s
+    lsu_mbar                -max_cycle=1500000 lsu_mbar.s -midas_args=-allow_tsb_conflicts
+    tr_asiintr0         tr_asiintr0.s
+    v9_allinst      v9_allinst.s    //-max_cycle=150000 
+    faddd_diff_sm_pinf  faddd_diff_sm_pinf.s //-max_cycle=100000    
+    fp_simple_all0      fp_simple_all0.s
+    v9_alu_mov       v9_alu_mov.s //  -rtl_timeout=50000 -max_cycle=500000
+    ssi_ldst    ssi_ldst.s -max_cycle=3000000 -rtl_timeout=50000 -nofast_boot // From ciop_basic
+</tile1_mini>
+
+//move to princeton_new_diag.diaglist
+//<tile1_l2_special_access>
+//    L2_new_CTRL_REG_test    L2_new_CTRL_REG_test.s                
+//    L2_new_SMC_flush_domain_test    L2_new_SMC_flush_domain_test.s         
+//    L2_new_State_Array_diag_lru_access_test      L2_new_State_Array_diag_lru_access_test.s
+//    L2_new_Data_Array_diag_access_test    L2_new_Data_Array_diag_access_test.s  
+//    L2_new_SMC_flush_one_test   L2_new_SMC_flush_one_test.s            
+//    L2_new_Tag_Array_diag_access_test   L2_new_Tag_Array_diag_access_test.s
+//    L2_new_Data_Array_diag_ecc_test     L2_new_Data_Array_diag_ecc_test.s     
+//    L2_new_SMC_tag_diag_access_test     L2_new_SMC_tag_diag_access_test.s      
+//    L2_new_dis_flush_test   L2_new_dis_flush_test.s
+//    L2_new_Dir_Array_diag_access_test   L2_new_Dir_Array_diag_access_test.s   
+//    L2_new_SMC_valid_diag_access_test   L2_new_SMC_valid_diag_access_test.s    
+//    L2_new_line_flush_test  L2_new_line_flush_test.s
+//    L2_new_SMC_data_diag_access_test    L2_new_SMC_data_diag_access_test.s    
+//    L2_new_SMT_BASE_REG_test     L2_new_SMT_BASE_REG_test.s
+//    L2_new_SMC_flush_all_test   L2_new_SMC_flush_all_test.s           
+//    L2_new_State_Array_diag_access_test     L2_new_State_Array_diag_access_test.s
+//</tile1_l2_special_access>
+
+<tile1_tlu_passing>
+<runargs -max_cycle=5000000>
+    tlu_intrp_trap_1        tlu_intrp_trap_1.s
+    tlu_thrd_intr_3    tlu_thrd_intr_3.s
+    tlu_pic_at_done_inst    -nosas  tlu_pic_at_done_inst.s
+    tlu_pic_at_retry_inst   -nosas  tlu_pic_at_retry_inst.s
+    tlu_pic_ovfl_0      -nosas  tlu_pic_ovfl_0.s
+    tlu_pic_ovfl_2      -nosas  tlu_pic_ovfl_2.s
+    tlu_pic_ovfl_4      -nosas  tlu_pic_ovfl_4.s
+    tlu_pic_ovfl_cpu_q_1    -nosas  tlu_pic_ovfl_cpu_q_1.s
+    tlu_pic_ovfl_dev_q_1    -nosas  tlu_pic_ovfl_dev_q_1.s
+    tlu_pic_ovfl_on_alu_1   -nosas  tlu_pic_ovfl_on_alu_1.s
+    tlu_pic_ovfl_res_q_1    -nosas  tlu_pic_ovfl_res_q_1.s
+    tlu_sftint_update_10    -sas    tlu_sftint_update_10.s
+    tlu_sftint_update_11    -sas    tlu_sftint_update_11.s
+    tlu_sftint_update_12    -sas    tlu_sftint_update_12.s
+    tlu_sftint_update_13    -sas    tlu_sftint_update_13.s
+    tlu_sftint_update_20    -sas    tlu_sftint_update_20.s
+    tlu_sftint_update_21    -sas    tlu_sftint_update_21.s
+    tlu_sftint_update_22    -sas    tlu_sftint_update_22.s
+    tlu_sftint_update_23    -sas    tlu_sftint_update_23.s
+    tlu_softint_1       -sas    tlu_softint_1.pal
+    tlu_softint_2       -sas    tlu_softint_2.pal
+    tlu_st_intl_extl_sync_1 -sas    tlu_st_intl_extl_sync_1.s
+    tlu_st_intl_extl_sync_2 -sas    tlu_st_intl_extl_sync_2.s
+    tlu_stb2b_trap_00   -sas    tlu_stb2b_trap_00.s
+    tlu_stb2b_trap_01   -sas    tlu_stb2b_trap_01.s
+    tlu_stb2b_trap_10   -sas    tlu_stb2b_trap_10.s
+    tlu_stb2b_trap_20   -sas    tlu_stb2b_trap_20.s
+    tlu_stb2b_trap_21   -nosas  tlu_stb2b_trap_21.s
+    tlu_stb2b_trap_30   -nosas  tlu_stb2b_trap_30.s
+    tlu_stb2b_trap_40   -nosas  tlu_stb2b_trap_40.s
+    tlu_stb2b_trap_41   -nosas  tlu_stb2b_trap_41.s
+    tlu_stb2b_trap_50   -nosas  tlu_stb2b_trap_50.s
+    tlu_stb2b_trap_60   -nosas  tlu_stb2b_trap_60.s
+    tlu_stb2b_trap_61   -nosas  tlu_stb2b_trap_61.s
+    tlu_stb2b_trap_70   -sas    tlu_stb2b_trap_70.s
+    tlu_stb2b_trap_71   -sas    tlu_stb2b_trap_71.s
+
+    tlu_stb2b_trap_90   -nosas  tlu_stb2b_trap_90.s
+    tlu_stb2b_trap_94   -nosas  tlu_stb2b_trap_94.s
+    tlu_stb2b_trap_95       tlu_stb2b_trap_95.s
+    tlu_stb2b_trap_97       tlu_stb2b_trap_97.s
+
+    tlu_stb2b_tsasr_00  -sas    tlu_stb2b_tsasr_00.s
+
+    tlu_wd_rst_1        -sas    tlu_wd_rst_1.s
+    tlu_wd_rst_2        -sas    tlu_wd_rst_2.s
+    tlu_wd_rst_3        -sas    tlu_wd_rst_3.s
+    tlu_wd_rst_4        -sas    tlu_wd_rst_4.s
+    tlu_wd_rst_5        -sas    tlu_wd_rst_5.s
+    tlu_wd_rst_6        -sas    tlu_wd_rst_6.s
+    wsr_pstate_in_br    -sas    wsr_pstate_in_br.s
+    wsr_pstate_in_jmpl  -sas    wsr_pstate_in_jmpl.s
+    tlu_tl_lvl_1        -sas    tlu_tl_lvl_1.s
+    tlu_thrd_fsm_xir_0  -sas    tlu_thrd_fsm_xir_0.s
+    tlu_thrd_fsm_xir_1  -sas    tlu_thrd_fsm_xir_1.s
+    tlu_thrd_fsm_xir_2  -sas    tlu_thrd_fsm_xir_2.s
+    tlu_thrd_fsm_xir_3  -sas    tlu_thrd_fsm_xir_3.s
+    tlu_thrd_fsm_xir_31 -sas    tlu_thrd_fsm_xir_31.s
+    tlu_thrd_intr_3     -sas    tlu_thrd_intr_3.s
+    tlu_test_ifu_tt     -sas    tlu_test_ifu_tt.s
+    tlu_thrd_fsm_sir_0  -sas    tlu_thrd_fsm_sir_0.s
+    dtlb_err_membar_sync    -nosas  dtlb_err_membar_sync.s
+    dtlb_err_on_alu_1   -nosas  dtlb_err_on_alu_1.s
+    dtlb_err_on_alu_2   -nosas  dtlb_err_on_alu_2.s
+    dtlb_err_on_sir     -nosas  dtlb_err_on_sir.s
+    dtlb_err_pic_ovfl_test  -nosas  dtlb_err_pic_ovfl_test.s
+    irf_err_pic_ovfl_test   -nosas  irf_err_pic_ovfl_test.s
+    hintp_on_halted_thrd    -sas    hintp_on_halted_thrd.s
+    tlu_lsu_defr_at_done_inst   -nosas  tlu_lsu_defr_at_done_inst.s
+    tlu_lsu_defr_at_retry_inst  -nosas  tlu_lsu_defr_at_retry_inst.s
+    tlu_lsu_tt_00       -nosas tlu_lsu_tt_00.s
+    tlu_mtb2b_tsasr_00  -sas    tlu_mtb2b_tsasr_00.s
+    tlu_multi_intl_00   -sas    tlu_multi_intl_00.s
+    tlu_multi_intl_01   -sas    tlu_multi_intl_01.s
+    tlu_multi_intl_02   -sas    tlu_multi_intl_02.s
+    tlu_multi_intl_03   -sas    tlu_multi_intl_03.s
+    tlu_multi_intl_04   -sas    tlu_multi_intl_04.s
+    tlu_multi_intl_05   -sas    tlu_multi_intl_05.s
+    tlu_multi_intl_06   -sas    tlu_multi_intl_06.s
+    tlu_multi_intl_10   -sas    tlu_multi_intl_10.s
+    tlu_multi_intl_11   -sas    tlu_multi_intl_11.s
+    tlu_multi_intl_12   -sas    tlu_multi_intl_12.s
+    tlu_multi_intl_13   -sas    tlu_multi_intl_13.s
+    tlu_multi_intl_14   -sas    tlu_multi_intl_14.s
+    tlu_multi_intl_15   -sas    tlu_multi_intl_15.s
+    tlu_multi_intl_16   -sas    tlu_multi_intl_16.s
+    tlu_multi_intl_20   -sas    tlu_multi_intl_20.s
+    tlu_multi_intl_21   -sas    tlu_multi_intl_21.s
+    tlu_multi_intl_22   -sas    tlu_multi_intl_22.s
+    tlu_multi_intl_23   -sas    tlu_multi_intl_23.s
+    tlu_multi_intl_31   -sas    tlu_multi_intl_31.s
+    tlu_multi_intl_32   -sas    tlu_multi_intl_32.s
+    tlu_multi_intl_33   -sas    tlu_multi_intl_33.s
+    tlu_multi_intl_90   -nosas  tlu_multi_intl_90.s
+    tlu_multi_intl_91   -nosas  tlu_multi_intl_91.s
+    tlu_gl_lvl_1        -sas    tlu_gl_lvl_1.s
+    tlu_intrp_trap_2    -sas    tlu_intrp_trap_2.s
+    tlu_asiacc_trap_1   -sas    tlu_asiacc_trap_1.s
+    tlu_asracc_trap_1   -sas    tlu_asracc_trap_1.s
+    halt_at_dtlb_dpa_err_on_st  -nosas  halt_at_dtlb_dpa_err_on_st.s
+
+    // Were failing w/ hintp error
+    tlu_hintp_update_1      tlu_hintp_update_1.s
+    tlu_stb2b_trap_80   -nosas  tlu_stb2b_trap_80.s
+</runargs>
+</tile1_tlu_passing>
+
+<tile1_err_passing>
+<runargs -midas_args=-ttefmt=sun4u -nosas>
+    err_dcache_tag_cecc           err_dcache_tag_cecc.s -sim_run_args=+l1_chkoff
+    err_dcache_data_cecc          err_dcache_data_cecc.s -sim_run_args=+l1_chkoff
+    err_dcache_data_asi_cecc      err_dcache_data_asi_cecc.s -sim_run_args=+l1_chkoff
+    err_dcache_data_atom_cecc     err_dcache_data_atom_cecc.s -sim_run_args=+l1_chkoff
+    err_dtlb_data_atom_dacc       err_dtlb_data_atom_dacc.s
+    err_dtlb_data_dacc            err_dtlb_data_dacc.s
+    err_dtlb_data_dacc_lock       err_dtlb_data_dacc_lock.s    
+    err_dtlb_data_st_dacc         err_dtlb_data_st_dacc.s
+    err_dtlb_data_lda_dacc        err_dtlb_data_lda_dacc.s
+    err_dtlb_tag_lda_dacc         err_dtlb_tag_lda_dacc.s
+    err_frf_uecc_dacc             err_frf_uecc_dacc.s
+    err_icache_tag_cecc           err_icache_tag_cecc.s -sim_run_args=+l1_chkoff
+    err_irf_cecc_cecc             err_irf_cecc_cecc.s
+    err_irf_uecc_dacc             err_irf_uecc_dacc.s
+    err_itlb_data_iacc            err_itlb_data_iacc.s
+    err_itlb_data_iacc_lock       err_itlb_data_iacc_lock.s
+    err_itlb_data_lda_dacc        err_itlb_data_lda_dacc.s
+    err_itlb_tag_lda_dacc         err_itlb_tag_lda_dacc.s
+
+    err_multierr_diag3            err_multierr_diag3.s -sim_run_args=+l1_chkoff
+    err_multierr_diag6            err_multierr_diag6.s
+    err_multierr_diag7            err_multierr_diag7.s
+
+    mulerr_irfue_dcache_data_ce     mulerr_irfue_dcache_data_ce.s -sim_run_args=+l1_chkoff
+    mulerr_irfue_dcache_tag_ce      mulerr_irfue_dcache_tag_ce.s -sim_run_args=+l1_chkoff
+    mulerr_irfue_dtlb_data_ld       mulerr_irfue_dtlb_data_ld.s
+    mulerr_irfue_dtlb_data_st       mulerr_irfue_dtlb_data_st.s
+    mulerr_irfue_dtlb_tag_lda       mulerr_irfue_dtlb_tag_lda.s
+    mulerr_irfue_dtlbue_irfce       mulerr_irfue_dtlbue_irfce.s
+    mulerr_irfue_frfue              mulerr_irfue_frfue.s
+    mulerr_irfue_icache_data_ce     mulerr_irfue_icache_data_ce.s -sim_run_args=+l1_chkoff
+    mulerr_irfue_icache_tag_ce      mulerr_irfue_icache_tag_ce.s -sim_run_args=+l1_chkoff
+    mulerr_irfue_irfce              mulerr_irfue_irfce.s
+    mulerr_irfue_irfue              mulerr_irfue_irfue.s
+    mulerr_irfue_itlb_data          mulerr_irfue_itlb_data.s
+    mulerr_irfue_itlb_tag           mulerr_irfue_itlb_tag.s
+
+    err_frf_cecc_cecc             err_frf_cecc_cecc.s
+    mulerr_frfce_dtlb_data_ld       mulerr_frfce_dtlb_data_ld.s
+    mulerr_frfce_dtlb_data_st       mulerr_frfce_dtlb_data_st.s
+    mulerr_frfce_dtlb_tag_lda       mulerr_frfce_dtlb_tag_lda.s
+    mulerr_frfce_frfue              mulerr_frfce_frfue.s
+    mulerr_frfce_irfue              mulerr_frfce_irfue.s
+    mulerr_frfce_itlb_data          mulerr_frfce_itlb_data.s
+    mulerr_frfce_itlb_tag           mulerr_frfce_itlb_tag.s
+    mulerr_irfue_frfce              mulerr_irfue_frfce.s
+
+    err_icache_data_cecc          err_icache_data_cecc.s -sim_run_args=+l1_chkoff
+</runargs>
+</tile1_err_passing>
+
+
+<tile1_ifu>
+<runargs -max_cycle=200000 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0>
+    icache_diag_asi     -nosas -fast_boot -max_cycle=100000000 -midas_args=-allow_tsb_conflicts -sim_run_args=+l1_chkoff asi_walker.pal
+    tlz_inst_acc_err    -finish_mask=1 -fast_boot tlz_inst_acc_err.s
+    priv_ch_dlyslt      -finish_mask=1 -fast_boot priv_ch_dlyslt.s
+    dtlb_err_frf_err    -finish_mask=1 -fast_boot dtlb_err_frf_err.s
+    dtlb_err_stb7       -finish_mask=1 -fast_boot dtlb_err_stb7.s
+    dtlb_err_stb8       -finish_mask=1 -fast_boot dtlb_err_stb8.s
+    tlberr_dlyslt       -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=1 tlberr_dlyslt.s -fast_boot -sim_run_args=+asm_err_en
+
+    bug3620    -sim_run_args=+asm_err_en -finish_mask=3 bug3620.s
+    bug3620_0  -sim_run_args=+asm_err_en -finish_mask=3 bug3620_0.s
+    bug3628    -sim_run_args=+asm_err_en -finish_mask=3 bug3628.s
+    bug3631    -sim_run_args=+asm_err_en -finish_mask=3 bug3631.s
+    bug3671    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3671.s  
+    bug3685    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3685.s  -sim_run_args=+l1_chkoff
+    bug3725    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3725.s  
+    bug3775    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3775.s  
+    bug3788    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3788.s   
+    thrfsm_cov2         -finish_mask=3 -fast_boot thrfsm_cov2.pal
+    thrfsm_cov      -finish_mask=3 -fast_boot thrfsm_cov.pal
+
+</runargs>
+</tile1_ifu>
+
+
+<tile1_other>
+    // these are general (non specific) tests for tile1
+    Asi_notused     Asi_notused.s      -max_cycle=600000 -midas_args=-allow_tsb_conflicts
+    Asi_notused_priv    Asi_notused_priv.s -max_cycle=600000 -midas_args=-allow_tsb_conflicts
+    ldst_quad2          ldst_quad2.s -max_cycle=100000   -finish_mask=1 -midas_args=-DTHREAD_COUNT=1
+    v9_alltrap      -max_cycle=150000 v9_alltrap.s
+    bug6113                 bug6113.s -sas -fast_boot
+    lsu_atomic              lsu_atomic.s -midas_args=-allow_tsb_conflicts -max_cycle=500000
+    v9_immudmp      v9_immudmp.s -max_cycle=800000 -sim_run_args=+turn_mmu_checks_off
+    v9_dmmudmp      v9_dmmudmp.s -max_cycle=800000 -sim_run_args=+turn_mmu_checks_off
+    lsu_align_rand      lsu_align_rand.s -midas_args=-allow_tsb_conflicts -max_cycle=500000 -midas_args=-ttefmt=sun4u
+    hp_dmmu_dmp             -max_cycle=400000       hp_dmmu_dmp.s
+    bypass1pal      exu_rs1_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    bypass1pal_a        exu_rs1_bypass_a.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    bypass1pal_b        exu_rs1_bypass_b.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    bypass1pal_c        exu_rs1_bypass_c.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    bypass2pal      exu_rs2_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    bypass3pal      exu_rs3_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+    hp_dmmu_zctx_ptr    -max_cycle=400000   hp_dmmu_zctx_ptr.s
+    hp_dmmu_zctx_ptr_ext    -max_cycle=400000   hp_dmmu_zctx_ptr_ext.s
+    hp_immu_zctx_ptr    -max_cycle=400000   hp_immu_zctx_ptr.s
+    hp_immu_zctx_ptr_ext    -max_cycle=400000   hp_immu_zctx_ptr_ext.s
+    v9_wmg1             -max_cycle=1000000 v9_wmg1.s
+    icache_modes            icache_modes.s -rtl_timeout=500000 -midas_args=-allow_tsb_conflicts
+    call_o7                 call_o7.s -midas_args=-allow_tsb_conflicts
+    isets           Isets.s
+    ldst_rand1      ldst_rand1.s
+    lsu_miss        lsu_misses.s
+    endian_cle      Endian_cle.s
+    endian_page     Endian_page.s
+    endian_asi      Endian_asi.s
+    endian_tle      Endian_tle.s
+    inv_cache       Inv_cache.s
+    cti_cc          cti_cc.s
+    simul_faults        lsu_simul_faults.s
+    v9_mmureg       v9_mmureg.s -midas_args=-allow_tsb_conflicts -max_cycle=1200000
+    dcti_couple     dcti_couple.s
+    int_ops         exu_int_ops.s
+    dly_slot        all_inst_dly_slot.s
+    move_cc         move_cc.s -max_cycle=50000
+    v9_allasi       -max_cycle=200000 v9_allasi.s
+    tlu_tdb         tlu_tdb.s
+    dtsb_directptr      dtsb_directptr.s -midas_args=-allow_tsb_conflicts
+    lsu_stb_rand            lsu_stb_rand.s -max_cycle=100000 -midas_args=-allow_tsb_conflicts -midas_args=-allow_illegal_page_sizes
+    dmmu_dexec_trap     -max_cycle=1000000 dmmu_dexcp.s
+    lsu_64kpg_mtest     lsu_64kpg_mtest.s -max_cycle=200000
+    tr_winexc0          tr_winexc0.s
+    tr_immumiss0        tr_immumiss0.s
+    tr_dctired0         tr_dctired0.s
+    tr_mmu2red      tr_mmu2red.s
+    tr_privop0          tr_privop0.s
+    tr_privact0         tr_privact0.s
+    tr_iaccexc0         tr_iaccexc0.s
+    tr_illegal0         tr_illegal0.s
+    mmu_trap        mmu_trap.s -max_cycle=500000    
+    lsu_align_dcacheoff -max_cycle=500000 lsu_align_dcacheoff.s -midas_args=-allow_tsb_conflicts -midas_args=-ttefmt=sun4u
+    tr_wpt          tr_wpt.s -max_cycle=300000
+    tr_tixcc1       -max_cycle=500000 tr_tixcc1.pal
+    tr_thrdstatus       tr_thrdstatus.s -sim_run_args=+turn_off_thread_monit -nosas
+    tr_intexc0          tr_intexc0.s
+    tr_illegal_asr      tr_illegal_asr.pal -nosas
+    tr_trapreg      tr_trapreg.pal
+    tr_trreg0           tr_trreg0.s    -max_cycle=200000 -sim_run_args=+inst_check_off=1
+    v9_bp                   v9_bp.s
+    v9_trap_sir_fp          v9_trap_sir_fp.s
+    v9_trap_illegal         v9_trap_illegal.s
+    v9_trap_ill_tag_zero    v9_trap_ill_tag_zero.s
+    v9_trap_mem             v9_trap_mem.s
+    v9_trap_priv            v9_trap_priv.s
+    v9_trap_unimp_win       v9_trap_unimp_win.s
+    v9_trap_ldstuba         v9_trap_ldstuba.s
+    add_corner              add_corner.s
+    sub_corner              sub_corner.s
+    mul_corner              mul_corner.s
+    div_corner              div_corner.s
+    mulscc_corner           mulscc_corner.s
+    shift_corner            shift_corner.s
+    logical_corner          logical_corner.s
+    tadd_corner             tadd_corner.s
+    tsub_corner             tsub_corner.s
+    mulx_corner             mulx_corner.s
+    divx_corner             divx_corner.s
+    add_imm_corner          add_imm_corner.s
+    tadd_imm_corner         tadd_imm_corner.s
+    sub_imm_corner          sub_imm_corner.s
+    tsub_imm_corner         tsub_imm_corner.s
+    and_imm_corner          and_imm_corner.s
+    andn_imm_corner         andn_imm_corner.s
+    or_imm_corner           or_imm_corner.s
+    xor_imm_corner          xor_imm_corner.s
+    xnor_imm_corner         xnor_imm_corner.s
+    mul_imm_corner          mul_imm_corner.s
+    mulx_imm_corner         mulx_imm_corner.s
+    mulscc_imm_corner       mulscc_imm_corner.s
+    div_imm_corner          div_imm_corner.s
+    divx_imm_corner         divx_imm_corner.s
+    shift_imm_corner        shift_imm_corner.s
+    muldivldx               muldivldx.s
+    wrrdcwp                 wrrdcwp.s
+    wrrdcwp_loop            wrrdcwp_loop.s
+    flushw_loop             flushw_loop.s
+    cons_save_restore       cons_save_restore.s
+    cons_saved_restored     cons_saved_restored.s
+    can_save_restore        can_save_restore.s
+    BPr_trap                BPr_trap.s
+    BPcc_trap               BPcc_trap.s
+    BPccall_trap            BPccall_trap.s
+    illtrap                 illtrap.s
+    jmpl_trap               jmpl_trap.s
+    MOVccall_trap           MOVccall_trap.s
+    MOVRall_trap            MOVRall_trap.s
+    popc_trap               popc_trap.s
+    Tcc_trap                Tcc_trap.s
+    fp_ld_trap              fp_ld_trap.s
+    fp_st_trap              fp_st_trap.s
+    priv_rs1        priv_rs1.s
+    privileged_registers    privileged_registers.s
+    saved_restored_trap     saved_restored_trap.s
+    user_wrprcwp            user_wrprcwp.s
+    asi_err_inject_reg  asi_err_inject_reg.s
+    asi_sparc_err_reg   asi_sparc_err_reg.s
+    fpop1_reserved_dis  fpop1_reserved_dis.s
+    exclusive_globals   exclusive_globals.s
+    change_globals      change_globals.s
+    cwp_globals     cwp_globals.s
+    braindead           braindead.s
+    hp_asi                  hp_asi.s
+    hp_hsp                  hp_hsp.s
+    hp_rdwrhpr              hp_rdwrhpr.s
+    hp_tlz                  hp_tlz.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
+    hp_tlz_real             hp_tlz_real.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
+    hp_trap                 hp_trap.s
+    hp_dmmu_nzctx_ptr   -max_cycle=400000   hp_dmmu_nzctx_ptr.s
+    hp_dmmu_ptr     -max_cycle=400000   hp_dmmu_ptr.s
+    hp_dmmu_nzctx_ptr_ext   -max_cycle=400000   hp_dmmu_nzctx_ptr_ext.s
+    hp_immu_nzctx_ptr   -max_cycle=400000   hp_immu_nzctx_ptr.s
+    hp_immu_nzctx_ptr_ext   -max_cycle=400000   hp_immu_nzctx_ptr_ext.s
+    blkldst_loop        -sim_run_args=+spc_pipe=0 blkldst_loop.s
+    v9_wmg              -max_cycle=1000000 v9_wmg.s
+    nop     nop.s
+    chase_dtlb      chase.pal -midas_args=-pal_diag_args=-lenbytes=32k -midas_args=-pal_diag_args=-stride=8192 -midas_args=-pal_diag_args=-offset=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-flush_dtlb 
+    itlb_repl_mix       itlb_repl_mix.s -max_cycle=800000
+    tlb_repl_exception      tlb_repl_exception.s
+    mmu_invldAll            mmu_invld.s -max_cycle=1000000
+    lsu_endian_rand1    -max_cycle=100000 lsu_endian_rand1.s -midas_args=-allow_tsb_conflicts -midas_args=-ttefmt=sun4u
+    lsu_endian_rand     -max_cycle=100000 lsu_endian_rand.s -midas_args=-allow_tsb_conflicts
+    dmmu_dmp_mix        dmmu_dmp_mix.s -max_cycle=800000
+    dtlb_repl_mix       dtlb_repl_mix.s  -max_cycle=800000
+    hp_dmmu_realpgdmp   -max_cycle=400000   hp_dmmu_realpgdmp.s
+    hp_immu_realpgdmp   -max_cycle=400000   hp_immu_realpgdmp.s
+    hp_immu_dmp     -max_cycle=400000   hp_immu_dmp.s
+    immu_demap_mix          immu_demap_mix.s -max_cycle=800000
+    itlb_repl_basic     itlb_repl_basic.s  -max_cycle=800000 -midas_args=-allow_tsb_conflicts
+
+    fp_mt_combo1        fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=3 -midas_args=-DPARALLEL_PROCESSOR
+    ffu_faligndata      ffu_faligndata.s
+
+    //Was in tile1_unused with message "diag store doesnt work now (not checked)"
+    lsu_diagasi         -nosas lsu_diagasi.s -sim_run_args=+l1_chkoff
+
+    //Was in tile1_unused, "tests ciop"
+    mmu_red         mmu_red.s -max_cycle=800000
+    tr_wdrred12         tr_wdrred12.s     -max_cycle=2000000
+    tr_wdrred1          tr_wdrred1.s
+
+    //Fixed as of issue #136? was in tile1_unused, "tests ciop"
+    tick_access     tick_access.s -nosas
+    tso_l15_flush   tso_l15_flush.s -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-allow_tsb_conflicts
+</tile1_other>
+
+<tile1_fpu>
+<runargs -rtl_timeout=50000 -max_cycle=500000 -midas_args=-DPARALLEL_PROCESSOR>
+    fp_fadd_align_save  fp_fadd_align_save.s
+    fp_fadd_mul_sticky_save fp_fadd_mul_sticky_save.s -max_cycle=3500000
+    fp_fadd_norm_save   fp_fadd_norm_save.s
+    fp_arth_exc0        fp_arth_exc0.s
+    fp_brfccn0          fp_brfccn0.s
+    fp_fccfbr0          fp_fccfbr0.s
+    fp_cmpmov0          fp_cmpmov0.s
+    fp_fprs0            fp_fprs0.s
+    fp_fprs_fpdis       fp_fprs_fpdis.s
+    fp_fsr0             fp_fsr0.s
+    fp_ldst_gen1        fp_ldst_gen1.s
+    fp_mov0             fp_mov0.s
+    fp_movixcc0         fp_movixcc0.s
+    fp_movixcc1         fp_movixcc1.s
+    fp_movr0            fp_movr0.s
+    fp_pstate_fpdis     fp_pstate_fpdis.s
+    fp_bug1623          fp_bug1623.s
+    fp_bug1624          fp_bug1624.s
+    ffu_fpaddsub        ffu_fpaddsub.s
+    ffu_fplogic         ffu_fplogic.s
+    faddd_diff_sm_near  faddd_diff_sm_near.s    
+    faddd_diff_sm_ninf  faddd_diff_sm_ninf.s    
+    faddd_ieee_ninf2    faddd_ieee_ninf2.s  
+    faddd_diff_sm_zero  faddd_diff_sm_zero.s    
+    faddd_ieee_near1    faddd_ieee_near1.s  
+    faddd_ieee_near2    faddd_ieee_near2.s  
+    faddd_ieee_ninf1    faddd_ieee_ninf1.s  
+    faddd_ieee_pinf1    faddd_ieee_pinf1.s  
+    faddd_ieee_pinf2    faddd_ieee_pinf2.s  
+    faddd_ieee_zero1    faddd_ieee_zero1.s  
+    faddd_ieee_zero2    faddd_ieee_zero2.s  
+    faddd_rnd_near      faddd_rnd_near.s        
+    faddd_rnd_ninf      faddd_rnd_ninf.s        
+    faddd_rnd_pinf      faddd_rnd_pinf.s        
+    faddd_rnd_zero      faddd_rnd_zero.s        
+    fadds_diff_sm_near  fadds_diff_sm_near.s    
+    fadds_diff_sm_ninf  fadds_diff_sm_ninf.s    
+    fadds_diff_sm_pinf  fadds_diff_sm_pinf.s    
+    fadds_diff_sm_zero  fadds_diff_sm_zero.s    
+    fadds_ieee_near1    fadds_ieee_near1.s  
+    fadds_ieee_near2    fadds_ieee_near2.s  
+    fadds_ieee_ninf1    fadds_ieee_ninf1.s  
+    fadds_ieee_ninf2    fadds_ieee_ninf2.s  
+    fadds_ieee_pinf1    fadds_ieee_pinf1.s  
+    fadds_ieee_pinf2    fadds_ieee_pinf2.s  
+    fadds_ieee_zero1    fadds_ieee_zero1.s  
+    fadds_ieee_zero2    fadds_ieee_zero2.s  
+    fadds_rnd_near      fadds_rnd_near.s        
+    fadds_rnd_ninf      fadds_rnd_ninf.s        
+    fadds_rnd_pinf      fadds_rnd_pinf.s        
+    fadds_rnd_zero      fadds_rnd_zero.s        
+    fcmpd_rnd_near      fcmpd_rnd_near.s        
+    fcmpd_rnd_ninf      fcmpd_rnd_ninf.s        
+    fcmpd_rnd_pinf      fcmpd_rnd_pinf.s        
+    fcmpd_rnd_zero      fcmpd_rnd_zero.s        
+    fcmped_rnd_near     fcmped_rnd_near.s       
+    fcmped_rnd_ninf     fcmped_rnd_ninf.s       
+    fcmped_rnd_pinf     fcmped_rnd_pinf.s       
+    fcmped_rnd_zero     fcmped_rnd_zero.s       
+    fcmpes_rnd_near     fcmpes_rnd_near.s       
+    fcmpes_rnd_ninf     fcmpes_rnd_ninf.s       
+    fcmpes_rnd_pinf     fcmpes_rnd_pinf.s       
+    fcmpes_rnd_zero     fcmpes_rnd_zero.s       
+    fcmps_rnd_near      fcmps_rnd_near.s        
+    fcmps_rnd_ninf      fcmps_rnd_ninf.s        
+    fcmps_rnd_pinf      fcmps_rnd_pinf.s        
+    fcmps_rnd_zero      fcmps_rnd_zero.s        
+    fdivd_ieee_near1    fdivd_ieee_near1.s  
+    fdivd_ieee_near2    fdivd_ieee_near2.s  
+    fdivd_ieee_ninf1    fdivd_ieee_ninf1.s  
+    fdivd_ieee_ninf2    fdivd_ieee_ninf2.s  
+    fdivd_ieee_pinf1    fdivd_ieee_pinf1.s  
+    fdivd_ieee_pinf2    fdivd_ieee_pinf2.s  
+    fdivd_ieee_zero1    fdivd_ieee_zero1.s  
+    fdivd_ieee_zero2    fdivd_ieee_zero2.s  
+    fdivd_rnd_near      fdivd_rnd_near.s    
+    fdivd_rnd_ninf      fdivd_rnd_ninf.s        
+    fdivd_rnd_pinf      fdivd_rnd_pinf.s        
+    fdivd_rnd_zero      fdivd_rnd_zero.s        
+    fdivs_ieee_near1    fdivs_ieee_near1.s  
+    fdivs_ieee_near2    fdivs_ieee_near2.s  
+    fdivs_ieee_ninf1    fdivs_ieee_ninf1.s  
+    fdivs_ieee_ninf2    fdivs_ieee_ninf2.s  
+    fdivs_ieee_pinf1    fdivs_ieee_pinf1.s  
+    fdivs_ieee_pinf2    fdivs_ieee_pinf2.s  
+    fdivs_ieee_zero1    fdivs_ieee_zero1.s  
+    fdivs_ieee_zero2    fdivs_ieee_zero2.s  
+    fdivs_rnd_near      fdivs_rnd_near.s        
+    fdivs_rnd_ninf      fdivs_rnd_ninf.s        
+    fdivs_rnd_pinf      fdivs_rnd_pinf.s        
+    fdivs_rnd_zero      fdivs_rnd_zero.s        
+    fdtoi_ld0_near      fdtoi_ld0_near.s        
+    fdtoi_ld0_ninf      fdtoi_ld0_ninf.s        
+    fdtoi_ld0_pinf      fdtoi_ld0_pinf.s        
+    fdtoi_ld0_zero      fdtoi_ld0_zero.s        
+    fdtoi_rnd_near      fdtoi_rnd_near.s        
+    fdtoi_rnd_ninf      fdtoi_rnd_ninf.s        
+    fdtoi_rnd_pinf      fdtoi_rnd_pinf.s        
+    fdtoi_rnd_zero      fdtoi_rnd_zero.s        
+    fdtos_rnd_near      fdtos_rnd_near.s        
+    fdtos_rnd_ninf      fdtos_rnd_ninf.s        
+    fdtos_rnd_pinf      fdtos_rnd_pinf.s        
+    fdtos_rnd_zero      fdtos_rnd_zero.s        
+    fdtox_ld0_near      fdtox_ld0_near.s        
+    fdtox_ld0_ninf      fdtox_ld0_ninf.s        
+    fdtox_ld0_pinf      fdtox_ld0_pinf.s        
+    fdtox_ld0_zero      fdtox_ld0_zero.s        
+    fdtox_rnd_near      fdtox_rnd_near.s        
+    fdtox_rnd_ninf      fdtox_rnd_ninf.s        
+    fdtox_rnd_pinf      fdtox_rnd_pinf.s        
+    fdtox_rnd_zero      fdtox_rnd_zero.s        
+    fitod_ld0_near      fitod_ld0_near.s        
+    fitod_ld0_ninf      fitod_ld0_ninf.s        
+    fitod_ld0_pinf      fitod_ld0_pinf.s        
+    fitod_ld0_zero      fitod_ld0_zero.s        
+    fitod_rnd_near      fitod_rnd_near.s        
+    fitod_rnd_ninf      fitod_rnd_ninf.s        
+    fitod_rnd_pinf      fitod_rnd_pinf.s        
+    fitod_rnd_zero      fitod_rnd_zero.s        
+    fitos_ld0_near      fitos_ld0_near.s        
+    fitos_ld0_ninf      fitos_ld0_ninf.s        
+    fitos_ld0_pinf      fitos_ld0_pinf.s        
+    fitos_ld0_zero      fitos_ld0_zero.s        
+    fitos_rnd_near      fitos_rnd_near.s        
+    fitos_rnd_ninf      fitos_rnd_ninf.s        
+    fitos_rnd_pinf      fitos_rnd_pinf.s        
+    fitos_rnd_zero      fitos_rnd_zero.s        
+    fmuld_ieee_near1    fmuld_ieee_near1.s  
+    fmuld_ieee_near2    fmuld_ieee_near2.s  
+    fmuld_ieee_near3    fmuld_ieee_near3.s  
+    fmuld_ieee_ninf1    fmuld_ieee_ninf1.s  
+    fmuld_ieee_ninf2    fmuld_ieee_ninf2.s  
+    fmuld_ieee_ninf3    fmuld_ieee_ninf3.s  
+    fmuld_ieee_pinf1    fmuld_ieee_pinf1.s  
+    fmuld_ieee_pinf2    fmuld_ieee_pinf2.s  
+    fmuld_ieee_pinf3    fmuld_ieee_pinf3.s  
+    fmuld_ieee_zero1    fmuld_ieee_zero1.s  
+    fmuld_ieee_zero2    fmuld_ieee_zero2.s  
+    fmuld_ieee_zero3    fmuld_ieee_zero3.s  
+    fmuld_msb_near      fmuld_msb_near.s        
+    fmuld_msb_ninf      fmuld_msb_ninf.s        
+    fmuld_msb_pinf      fmuld_msb_pinf.s        
+    fmuld_msb_zero      fmuld_msb_zero.s        
+    fmuld_rnd_near      fmuld_rnd_near.s        
+    fmuld_rnd_ninf      fmuld_rnd_ninf.s        
+    fmuld_rnd_pinf      fmuld_rnd_pinf.s        
+    fmuld_rnd_zero      fmuld_rnd_zero.s        
+    fmuls_ieee_near1    fmuls_ieee_near1.s  
+    fmuls_ieee_near2    fmuls_ieee_near2.s  
+    fmuls_ieee_near3    fmuls_ieee_near3.s  
+    fmuls_ieee_ninf1    fmuls_ieee_ninf1.s  
+    fmuls_ieee_ninf2    fmuls_ieee_ninf2.s  
+    fmuls_ieee_ninf3    fmuls_ieee_ninf3.s  
+    fmuls_ieee_pinf1    fmuls_ieee_pinf1.s  
+    fmuls_ieee_pinf2    fmuls_ieee_pinf2.s  
+    fmuls_ieee_pinf3    fmuls_ieee_pinf3.s  
+    fmuls_ieee_zero1    fmuls_ieee_zero1.s  
+    fmuls_ieee_zero2    fmuls_ieee_zero2.s  
+    fmuls_ieee_zero3    fmuls_ieee_zero3.s  
+    fmuls_msb_near      fmuls_msb_near.s        
+    fmuls_msb_ninf      fmuls_msb_ninf.s        
+    fmuls_msb_pinf      fmuls_msb_pinf.s        
+    fmuls_msb_zero      fmuls_msb_zero.s        
+    fmuls_rnd_near      fmuls_rnd_near.s        
+    fmuls_rnd_ninf      fmuls_rnd_ninf.s        
+    fmuls_rnd_pinf      fmuls_rnd_pinf.s        
+    fmuls_rnd_zero      fmuls_rnd_zero.s        
+    fsmuld_msb_near     fsmuld_msb_near.s       
+    fsmuld_msb_ninf     fsmuld_msb_ninf.s       
+    fsmuld_msb_pinf     fsmuld_msb_pinf.s       
+    fsmuld_msb_zero     fsmuld_msb_zero.s       
+    fsmuld_rnd_near     fsmuld_rnd_near.s       
+    fsmuld_rnd_ninf     fsmuld_rnd_ninf.s       
+    fsmuld_rnd_pinf     fsmuld_rnd_pinf.s       
+    fsmuld_rnd_zero     fsmuld_rnd_zero.s       
+    fstod_rnd_near      fstod_rnd_near.s        
+    fstod_rnd_ninf      fstod_rnd_ninf.s        
+    fstod_rnd_pinf      fstod_rnd_pinf.s        
+    fstod_rnd_zero      fstod_rnd_zero.s        
+    fstoi_ld0_near      fstoi_ld0_near.s        
+    fstoi_ld0_ninf      fstoi_ld0_ninf.s        
+    fstoi_ld0_pinf      fstoi_ld0_pinf.s        
+    fstoi_ld0_zero      fstoi_ld0_zero.s        
+    fstoi_rnd_near      fstoi_rnd_near.s        
+    fstoi_rnd_ninf      fstoi_rnd_ninf.s        
+    fstoi_rnd_pinf      fstoi_rnd_pinf.s        
+    fstoi_rnd_zero      fstoi_rnd_zero.s        
+    fstox_ld0_near      fstox_ld0_near.s        
+    fstox_ld0_ninf      fstox_ld0_ninf.s        
+    fstox_ld0_pinf      fstox_ld0_pinf.s        
+    fstox_ld0_zero      fstox_ld0_zero.s        
+    fstox_rnd_near      fstox_rnd_near.s        
+    fstox_rnd_ninf      fstox_rnd_ninf.s        
+    fstox_rnd_pinf      fstox_rnd_pinf.s        
+    fstox_rnd_zero      fstox_rnd_zero.s        
+    fsubd_diff_sm_near  fsubd_diff_sm_near.s    
+    fsubd_diff_sm_ninf  fsubd_diff_sm_ninf.s    
+    fsubd_diff_sm_pinf  fsubd_diff_sm_pinf.s    
+    fsubd_diff_sm_zero  fsubd_diff_sm_zero.s    
+    fsubd_ieee_near1    fsubd_ieee_near1.s  
+    fsubd_ieee_near2    fsubd_ieee_near2.s  
+    fsubd_ieee_ninf1    fsubd_ieee_ninf1.s  
+    fsubd_ieee_ninf2    fsubd_ieee_ninf2.s  
+    fsubd_ieee_pinf1    fsubd_ieee_pinf1.s  
+    fsubd_ieee_pinf2    fsubd_ieee_pinf2.s  
+    fsubd_ieee_zero1    fsubd_ieee_zero1.s  
+    fsubd_ieee_zero2    fsubd_ieee_zero2.s  
+    fsubd_rnd_near      fsubd_rnd_near.s        
+    fsubd_rnd_ninf      fsubd_rnd_ninf.s        
+    fsubd_rnd_pinf      fsubd_rnd_pinf.s        
+    fsubd_rnd_zero      fsubd_rnd_zero.s        
+    fsubs_diff_sm_near  fsubs_diff_sm_near.s    
+    fsubs_diff_sm_ninf  fsubs_diff_sm_ninf.s    
+    fsubs_diff_sm_pinf  fsubs_diff_sm_pinf.s    
+    fsubs_diff_sm_zero  fsubs_diff_sm_zero.s    
+    fsubs_ieee_near1    fsubs_ieee_near1.s  
+    fsubs_ieee_near2    fsubs_ieee_near2.s  
+    fsubs_ieee_ninf1    fsubs_ieee_ninf1.s  
+    fsubs_ieee_ninf2    fsubs_ieee_ninf2.s  
+    fsubs_ieee_pinf1    fsubs_ieee_pinf1.s  
+    fsubs_ieee_pinf2    fsubs_ieee_pinf2.s  
+    fsubs_ieee_zero1    fsubs_ieee_zero1.s  
+    fsubs_ieee_zero2    fsubs_ieee_zero2.s  
+    fsubs_rnd_near      fsubs_rnd_near.s        
+    fsubs_rnd_ninf      fsubs_rnd_ninf.s        
+    fsubs_rnd_pinf      fsubs_rnd_pinf.s        
+    fsubs_rnd_zero      fsubs_rnd_zero.s        
+    fxtod_ld0_near      fxtod_ld0_near.s        
+    fxtod_ld0_ninf      fxtod_ld0_ninf.s        
+    fxtod_ld0_pinf      fxtod_ld0_pinf.s        
+    fxtod_ld0_zero      fxtod_ld0_zero.s        
+    fxtod_rnd_near      fxtod_rnd_near.s        
+    fxtod_rnd_ninf      fxtod_rnd_ninf.s        
+    fxtod_rnd_pinf      fxtod_rnd_pinf.s        
+    fxtod_rnd_zero      fxtod_rnd_zero.s        
+    fxtos_ld0_near      fxtos_ld0_near.s        
+    fxtos_ld0_ninf      fxtos_ld0_ninf.s        
+    fxtos_ld0_pinf      fxtos_ld0_pinf.s        
+    fxtos_ld0_zero      fxtos_ld0_zero.s        
+    fxtos_rnd_near      fxtos_rnd_near.s        
+    fxtos_rnd_ninf      fxtos_rnd_ninf.s        
+    fxtos_rnd_pinf      fxtos_rnd_pinf.s        
+    fxtos_rnd_zero      fxtos_rnd_zero.s        
+
+    fpop1_reserved          fpop1_reserved.pal
+    fpop2_reserved          fpop2_reserved.pal
+
+    fp_simple_all1      fp_simple_all1.s
+</runargs>
+<runargs -rtl_timeout=50000 -max_cycle=500000>
+    fp_addsub0_a        fp_addsub0_a.s -max_cycle=2000000
+    fp_addsub0_b        fp_addsub0_b.s -max_cycle=2000000
+    fp_cmp0_a           fp_cmp0_a.s  -max_cycle=2000000
+    fp_cmp0_b           fp_cmp0_b.s  -max_cycle=2000000
+    fp_cmp1             fp_cmp1.s    -max_cycle=2000000
+    fp_cmp2             fp_cmp2.s    -max_cycle=2000000
+    fp_cmp3             fp_cmp3.s    -max_cycle=2000000
+    fp_cmp4             fp_cmp4.s    -max_cycle=2000000
+
+    fp_fxtox0           fp_fxtox0.s
+    fp_ieee_flags       fp_ieee_flags.s
+    fp_muldiv0_a        fp_muldiv0_a.s -max_cycle=2000000
+    fp_ldst_gen0        fp_ldst_gen0.s
+    fp_muldiv0_b        fp_muldiv0_b.s -max_cycle=2000000
+    fp_sqrt0            fp_sqrt0.s
+    muldivx_corner          muldivx_corner.s
+    v9_mov                  v9_mov.s
+    v9_div_fp               v9_div_fp.s
+    v9_add_bpr              v9_add_bpr.s
+    v9_mul_ldst             v9_mul_ldst.s -sim_run_args=+jmhz=194
+</runargs>
+</tile1_fpu>
+
+<tile1_cmp2>
+    braindead   braindead.s             -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    
+    <runargs -sim_run_args=+inst_check_off=1>
+    tso_self_mod1   tso_self_mod1.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod2   tso_self_mod2.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod3a  tso_self_mod3.s  -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=1
+    tso_self_mod4   tso_self_mod4.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod5   tso_self_mod5.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod6   tso_self_mod6.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod7   tso_self_mod7.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod8   tso_self_mod8.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod9   tso_self_mod9.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod10  tso_self_mod10.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod11  tso_self_mod11.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_cross_mod1  tso_cross_mod1.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_cross_mod1b tso_cross_mod1.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
+    tso_cross_mod2  tso_cross_mod2.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_cross_mod3  tso_cross_mod3.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    
+    
+    tso_cross_mod5  tso_cross_mod5.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    
+    tso_self_mod101   tso_self_mod101.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod102   tso_self_mod102.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod103a  tso_self_mod103.s  -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_self_mod104   tso_self_mod104.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod105   tso_self_mod105.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod106   tso_self_mod106.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod107   tso_self_mod107.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod108   tso_self_mod108.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod109   tso_self_mod109.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod110   tso_self_mod110.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod111   tso_self_mod111.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_cross_mod101  tso_cross_mod101.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_cross_mod101b tso_cross_mod101.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
+    tso_cross_mod102  tso_cross_mod102.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_cross_mod103  tso_cross_mod103.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    
+    tso_self_mod201   tso_self_mod201.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod202   tso_self_mod202.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+
+    tso_self_mod203a  tso_self_mod203.s  -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    
+    tso_self_mod206   tso_self_mod206.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_self_mod207   tso_self_mod207.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    
+    tso_cross_mod201  tso_cross_mod201.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    tso_cross_mod201b tso_cross_mod201.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
+    tso_cross_mod203  tso_cross_mod203.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+    
+    </runargs>
+    
+    tso_dekker1 tso_dekker1.s       -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
+    tso_dekker2 tso_dekker2.s       -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
+    tso_dekker10    tso_dekker10.s      -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
+    tso_dekker11    tso_dekker11.s      -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
+
+    tso_bstc_illegal tso_bstcommit_illegal.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    
+    tso_membar0  tso_membar0.s       -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_membar1  tso_membar1.s       -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    
+    tso_binit1   tso_binit1.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+    tso_binit2   tso_binit2.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+
+    tso_bcopy1   tso_bcopy1.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
+
+    
+    tso_ldd_quad1   tso_ldd_quad1.s     -finish_mask=1   -midas_args=-DTHREAD_COUNT=1
+
+    tso_prod_cons_intr1 tso_prod_cons_intr1.s   -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
+
+</tile1_cmp2>
+
+
+<tile1_ciop_pio_cov>
+<runargs -max_cycle=24000000 -rtl_timeout=500000 -sim_run_args=+sjm_timeout_scale10 -sim_run_args=+turn_off_exu_monitor -sim_run_args=+turn_off_thread_monitor -sim_run_args=+turn_off_nukeint_mon  -vera_cov_obj=DRAM_COVERAGE  -midas_args=-allow_tsb_conflicts  -fast_boot -sim_run_args=+stb_drain_to_max=30000>
+    
+    pio_rnd_basic1                 pio_rnd_basic1_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic1_rand_0_sjm -nosas
+    pio_rnd_basic2                 pio_rnd_basic2_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic2_rand_0_sjm -nosas
+    pio_rnd_basic3                 pio_rnd_basic3_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_rand_0_sjm -nosas
+    pio_rnd_basic3_1b                        pio_rnd_basic3_1b_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1b_rand_0_sjm -nosas
+    pio_rnd_basic3_1h_c_nc_mix                        pio_rnd_basic3_1h_c_nc_mix_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1h_c_nc_mix_rand_0_sjm -nosas
+    pio_rnd_basic3_1w_c_nc_mix                        pio_rnd_basic3_1w_c_nc_mix_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1w_c_nc_mix_rand_0_sjm -nosas
+    pio_rnd_basic3_1x_c_nc_mix                        pio_rnd_basic3_1x_c_nc_mix_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1x_c_nc_mix_rand_0_sjm -nosas
+    pio_rnd_basic3_byte_addr                        pio_rnd_basic3_byte_addr_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_byte_addr_rand_0_sjm -nosas
+    pio_rnd_basic3_mix_all                        pio_rnd_basic3_mix_all_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_mix_all_rand_0_sjm -nosas
+    pio_rnd_basic3_nc_all_token                        pio_rnd_basic3_nc_all_token_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_nc_all_token_rand_0_sjm -nosas
+    pio_rnd_basic4_diff_asis                        pio_rnd_basic4_diff_asis_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_diff_asis_rand_0_sjm -nosas
+    pio_rnd_basic4                        pio_rnd_basic4_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_rand_0_sjm -nosas
+    pio_rnd_basic4_spv_mode                        pio_rnd_basic4_spv_mode_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_spv_mode_rand_0_sjm -nosas
+    pio_rnd_basic4_usr_mode                        pio_rnd_basic4_usr_mode_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_rand_0_sjm -nosas
+    pio_rnd_basic4_usr_mode_sas1                        pio_rnd_basic4_usr_mode_sas1_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas1_rand_0_sjm -nosas
+    pio_rnd_basic4_usr_mode_sas2                        pio_rnd_basic4_usr_mode_sas2_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_rand_0_sjm -nosas
+    pio_rnd_basic4_usr_mode_sas3                        pio_rnd_basic4_usr_mode_sas3_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas3_rand_0_sjm -nosas
+    pio_rnd_basic4_usr_mode_sas                        pio_rnd_basic4_usr_mode_sas_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas_rand_0_sjm -nosas
+    pio_rnd_blk_stld2                        pio_rnd_blk_stld2_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_blk_stld2_rand_0_sjm -nosas
+
+    pio_rand_1_basic1                 pio_rnd_basic1_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic1_rand_1_sjm -nosas
+    pio_rand_1_basic2                 pio_rnd_basic2_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic2_rand_1_sjm -nosas
+    pio_rand_1_basic3                 pio_rnd_basic3_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_rand_1_sjm -nosas
+    pio_rand_1_basic3_1b                        pio_rnd_basic3_1b_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1b_rand_1_sjm -nosas
+    pio_rand_1_basic3_1h_c_nc_mix                        pio_rnd_basic3_1h_c_nc_mix_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1h_c_nc_mix_rand_1_sjm -nosas
+    pio_rand_1_basic3_1w_c_nc_mix                        pio_rnd_basic3_1w_c_nc_mix_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1w_c_nc_mix_rand_1_sjm -nosas
+    pio_rand_1_basic3_1x_c_nc_mix                        pio_rnd_basic3_1x_c_nc_mix_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_1x_c_nc_mix_rand_1_sjm -nosas
+    pio_rand_1_basic3_byte_addr                        pio_rnd_basic3_byte_addr_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_byte_addr_rand_1_sjm -nosas
+    pio_rand_1_basic3_mix_all                        pio_rnd_basic3_mix_all_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_mix_all_rand_1_sjm -nosas
+    pio_rand_1_basic3_nc_all_token                        pio_rnd_basic3_nc_all_token_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_nc_all_token_rand_1_sjm -nosas
+    pio_rand_1_basic4_diff_asis                        pio_rnd_basic4_diff_asis_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_diff_asis_rand_1_sjm -nosas
+    pio_rand_1_basic4                        pio_rnd_basic4_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_rand_1_sjm -nosas
+    pio_rand_1_basic4_spv_mode                        pio_rnd_basic4_spv_mode_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_spv_mode_rand_1_sjm -nosas
+    pio_rand_1_basic4_usr_mode                        pio_rnd_basic4_usr_mode_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_rand_1_sjm -nosas
+    pio_rand_1_basic4_usr_mode_sas1                        pio_rnd_basic4_usr_mode_sas1_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas1_rand_1_sjm -nosas
+    pio_rand_1_basic4_usr_mode_sas2                        pio_rnd_basic4_usr_mode_sas2_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_rand_1_sjm -nosas
+    pio_rand_1_basic4_usr_mode_sas3                        pio_rnd_basic4_usr_mode_sas3_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas3_rand_1_sjm -nosas
+    pio_rand_1_basic4_usr_mode_sas                        pio_rnd_basic4_usr_mode_sas_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas_rand_1_sjm -nosas
+    pio_rand_1_blk_stld1                        pio_rnd_blk_stld1_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_blk_stld1_rand_1_sjm -nosas
+    pio_rand_1_blk_stld2                        pio_rnd_blk_stld2_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_blk_stld2_rand_1_sjm -nosas
+    
+    pio_dma_basic                        pio_dma_basic.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic -nosas
+    pio_dma_basic1                        pio_dma_basic1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic1 -nosas
+    pio_dma_basic2                        pio_dma_basic2.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic2 -nosas
+    pio_dma_basic2_1                        pio_dma_basic2_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic2_1 -nosas
+    pio_dma_basic3                        pio_dma_basic3.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic3 -nosas
+    pio_dma_basic3_1                        pio_dma_basic3_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic3_1 -nosas
+    pio_dma_basic_cross                        pio_dma_basic_cross.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic_cross -nosas
+    pio_dma_basic_fake_dma                        pio_dma_basic_fake_dma.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic_fake_dma -nosas
+
+</runargs>
+</tile1_ciop_pio_cov>
+
+#include "princeton/princeton_rst.diaglist"
+#include "princeton/princeton_new_diag.diaglist"
+#include "princeton/princeton_c_tests.diaglist"
+
+</all_tile1_passing>
+
+<all_tile1_failing>
+
+<tile1_unused>
+
+    // not tested, adapted from cmp_basic.diaglist just for completeness
+    
+    // from tile1_passing, fix when possible because of performance
+    fail_perf_chase_l2hit      chase.pal -midas_args=-pal_diag_args=-lenbytes=2k -midas_args=-pal_diag_args=-stride=16 -midas_args=-pal_diag_args=-expect_time=22 -midas_args=-pal_diag_args=-expect_string=L2_ld_hit
+    fail_performance_chase_dram      chase.pal -midas_args=-pal_diag_args=-lenbytes=1k -midas_args=-pal_diag_args=-stride=64 -midas_args=-pal_diag_args=-warmup_loopback -midas_args=-pal_diag_args=-expect_time=133 -midas_args=-pal_diag_args=-expect_string=DRAM_ld -midas_args=-pal_diag_args=-tolerance=3
+
+    // Requires L2 direct mapped mode (See issue #58)
+    //err_multierr_diag1            err_multierr_diag1.s -sim_run_args=+l1_chkoff
+    //err_multierr_diag2            err_multierr_diag2.s -sim_run_args=+l1_chkoff
+    //err_multierr_diag8            err_multierr_diag8.s
+    //err_multierr_diag9            err_multierr_diag9.s -sim_run_args=+block_load_kill_off=1
+    //err_multierr_diag10           err_multierr_diag10.s
+    //err_multierr_diag11           err_multierr_diag11.s
+    
+    // l2 ecc
+    // fail_wontfix_err_l2cache_data_atom_cecc    err_l2cache_data_atom_cecc.s 
+    // fail_wontfix_err_l2cache_data_atom_dacc    err_l2cache_data_atom_dacc.s 
+    // fail_wontfix_err_l2cache_data_inst_cecc    err_l2cache_data_inst_cecc.s
+    // fail_wontfix_err_l2cache_data_inst_iacc    err_l2cache_data_inst_iacc.s
+    // fail_wontfix_err_l2cache_data_ld_cecc      err_l2cache_data_ld_cecc.s
+    // fail_wontfix_err_l2cache_data_ld_dacc      err_l2cache_data_ld_dacc.s
+    // fail_wontfix_err_l2cache_data_qbld_cecc    err_l2cache_data_qbld_cecc.s -sim_run_args=+block_load_kill_off=1
+    // fail_wontfix_err_l2cache_data_qbld_dacc    err_l2cache_data_qbld_dacc.s -sim_run_args=+block_load_kill_off=1
+    // fail_wontfix_err_l2cache_data_st_cecc      err_l2cache_data_st_cecc.s
+    // fail_wontfix_err_l2cache_data_st_dacc      err_l2cache_data_st_dacc.s
+    // fail_wontfix_err_l2cache_tag_ld_cecc       err_l2cache_tag_ld_cecc.s
+    // fail_wontfix_err_l2cache_data_asld_cecc    err_l2cache_data_asld_cecc.s
+    // fail_wontfix_err_l2cache_data_asld_cecc11  err_l2cache_data_asld_cecc11.s
+    // fail_wontfix_err_l2cache_data_asld_dacc00  err_l2cache_data_asld_dacc00.s
+    // fail_wontfix_err_l2cache_data_asld_dacc01  err_l2cache_data_asld_dacc01.s
+    // fail_wontfix_err_l2cache_data_asld_dacc10  err_l2cache_data_asld_dacc10.s
+    // fail_wontfix_err_l2cache_data_asld_dacc11  err_l2cache_data_asld_dacc11.s
+    
+    // these tests don't (and won't) pass because of dcache user event injection. See issue #57
+    //tlu_stb2b_trap_100  -nosas  -sim_run_args=+asm_err_en   tlu_stb2b_trap_100.s
+    //tlu_stb2b_trap_101  -nosas  -sim_run_args=+asm_err_en   tlu_stb2b_trap_101.s
+</tile1_unused>
+
+</all_tile1_failing>
+</cmp_default>
+</tile1>
+
+
+
+
+
+
+<tile2 sys=manycore -x_tiles=2 -y_tiles=1>
+<cmp_default name=default>
+
+<all_tile2_passing>
+<all_tile2_passing_no_enboff>
+    <tile2_mini>
+        exu_add                 exu_add.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000 
+        exu_sub                 exu_sub.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000 
+
+        ffu_faligndata      ffu_faligndata.s
+
+        lsu_atomic              lsu_atomic.s -midas_args=-allow_tsb_conflicts
+
+        v9_immudmp      v9_immudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000 
+        v9_dmmudmp      v9_dmmudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000 
+
+        fp_simple_all1      fp_simple_all1.s
+
+
+        mt_wrrdcwp      -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp.s -max_cycle=200000 
+        mt_wrrdcwp_loop     -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp_loop.s -max_cycle=200000 
+        mt_muldivldx        -rtl_timeout=50000 -finish_mask=3 mt_muldivldx.s -max_cycle=500000 
+        mt_isameline        -finish_mask=33 mt_Isameline.s
+        mt_dsameline        -finish_mask=33 mt_Dsameline.s
+        mt_dhit_sameset     -finish_mask=33 mt_Dhit_sameset.s
+        mt_dmiss_specload   -finish_mask=3 mt_Dmiss_specload.s  
+        mt_dhit_specload    -finish_mask=3 mt_Dhit_specload.s  -max_cycle=200000 
+        mt_dcache_falseraw  -finish_mask=33 mt_Dcache_falseraw.s
+        mt_alu_ldx      -rtl_timeout=50000 -finish_mask=13 mt_alu_ldx.s  -max_cycle=300000 
+        mtblkldst_loop      -sim_run_args=+spc_pipe=0 -finish_mask=33 mtblkldst_loop.s
+
+        fp_mt_combo0        fp_mt_combo0.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=33
+        fp_mt_combo1        fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=3
+        fp_mt_combo1        fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=11 -midas_args=-DTHREAD_STRIDE=2
+        mt_raw          -rtl_timeout=50000 -finish_mask=33 -sim_run_args="+coverage_on" mt_raw.s -max_cycle=200000 
+        bug3273         bug3273.s -finish_mask=33 -max_cycle=600000 
+    </tile2_mini>
+
+    <tile2_tlu>
+        //10 and 11 passing thanks to fix in issue #136
+        sus_res_10      -nosas    -finish_mask=33  sus_res_10.s  -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
+        sus_res_11      -nosas    -finish_mask=33  sus_res_11.s  -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
+        sus_res_20      -nosas    -finish_mask=33  sus_res_20.s -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
+        sus_res_23      -nosas    -finish_mask=33  sus_res_23.s -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
+        tlu_cmpr_intdis_1   -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  -sim_run_args=+softint_off=1  tlu_cmpr_intdis_1.s 
+        tlu_multi_tsasr_1   -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_multi_tsasr_1.s
+        tlu_pib_bug2820     -nosas  -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_bug2820.s
+        tlu_pib_picl_fp_1   -nosas  -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_picl_fp_1.s
+        tlu_pib_picl_fp_2   -nosas  -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_picl_fp_2.s
+        tlu_pib_wr_pic_1    -nosas  -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_wr_pic_1.s
+
+        tlu_tba_test        -nosas    -midas_args=-DTHREAD_COUNT=4 -finish_mask=33 tlu_tba_test.s
+        tlu_thrd_fsm_xir    -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_thrd_fsm_xir.s
+        tlu_tick_read_1     -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_tick_read_1.s
+        tlu_tick_read_2     -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_tick_read_2.s
+        tlu_tick_write_1    -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_tick_write_1.s
+        tlu_tlz_trap_1      -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_tlz_trap_1.s
+        tlu_tlz_trap_1_0    -nosas    -finish_mask=33  tlu_tlz_trap_1_0.s
+
+        tlu_multi_tsasr_2   -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_multi_tsasr_2.s
+        tlu_multi_tsasr_21  -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_multi_tsasr_21.s
+
+        tlu_intrp_trap_3    -nosas    -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_intrp_trap_3.s
+    </tile2_tlu>
+
+    <tile2_ifu>
+    <runargs -max_cycle=200000 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -rtl_timeout=500000>
+        tcc_ccr_checker     -finish_mask=33 -fast_boot tcc_ccr_checker.pal
+        br_ccr_checker      -finish_mask=33 -fast_boot br_ccr_checker.pal
+        fpbr_fcc_checker    -finish_mask=33 -fast_boot fpbr_fcc_checker.pal
+
+        pc_oor_dlyslt       -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=33 pc_oor_dlyslt.s -fast_boot
+
+        //These tests seem to need 2 tiles to pass (30/09/14)
+        thread_bug2445_1  bug2445.s
+        thread_bug2568_1  bug2568.s
+        thread_bug2868    bug2868.s
+        
+        //These tests were in tile1_ifu_failing, now need two tiles (02/10/14)
+        fpu_bug2416_2  -midas_args=-DSPEC_LD_OFF bug2416_1.s
+        fpu_bug2416_3  bug2416_1.s
+        
+        fpu_bug2416_4  -midas_args=-DSPEC_LD_OFF bug2416_2.s
+        
+        thread_bug2434_0  -midas_args=-DSPEC_LD_OFF bug2434.s
+        thread_bug2434_1  bug2434.s
+        thread_bug2880    bug2880.s
+        thread_bug2883    bug2883.s
+        thread_bug2943    bug2943.s
+        thread_bug3144    bug3144.s
+        thread_bug3155    bug3155.s
+        thread_bug3766    -max_cycle=200000  -midas_args=-DSPEC_LD_OFF  bug3766.s  
+        thread_bug2416_5  bug2416_2.s
+        thread_bug2426_1  bug2426.s
+        thread_bug2415_0  -midas_args=-DSPEC_LD_OFF bug2415.s
+        thread_bug2417_0  -midas_args=-DSPEC_LD_OFF bug2417.s
+        thread_bug2417_1  bug2417.s
+        thread_bug2426_0  -midas_args=-DSPEC_LD_OFF bug2426.s
+        thread_bug2948    bug2948.s
+        thread_bug3070    bug3070.s
+        thread_bug3071    bug3071.s
+        thread_bug3144_0  bug3144_0.s
+    
+        //These tests were in tile1_ifu_passing, now need two tiles (03/10/14)
+        thread_priv_dlyslt     -midas_args=-allow_tsb_conflicts -finish_mask=1 -fast_boot -sim_run_args=+inst_check_off=1 priv_dlyslt.s
+        thread_bug3701    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3701.s  
+        thread_bug4091    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4091.s  
+        thread_bug4411    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4411.s  
+        thread_bug3738    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3738.s
+        thread_bug3752    -max_cycle=200000   -sim_run_args=+rand_err_en  -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334594 bug3752.s 
+        thread_bug3773    -max_cycle=400000  -sim_run_args=+asm_err_en  -sim_run_args=+L1_INTQ_END_CHECK_OFF bug3773.s  
+        thread_bug2356_0  -midas_args=-DSPEC_LD_OFF bug2356.s
+        thread_bug2356_1  bug2356.s
+        thread_bug3289    bug3289.s -sim_run_args=+l1_chkoff
+        thread_bug3321    bug3321.s -sim_run_args=+l1_chkoff
+        thread_bug3085    -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1051765343 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3085.s
+        thread_bug3083    -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1051765342 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3083.s
+        thread_bug3176    -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1052780419 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3176.s
+        thread_bug3584    -sim_run_args=+asm_err_en bug3584.s -sim_run_args=+l1_chkoff
+        thread_bug3572    bug3572.s
+        thread_bug3576    bug3576.s
+        thread_bug3551    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806301 bug3551.s 
+        thread_bug3552    -midas_args=-DSPEC_LD_OFF -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055801447 bug3552.s
+        thread_bug3556    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806355 bug3556.s
+        thread_bug3928    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3928.s  
+        thread_bug4459    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err  -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=20031003  bug4459.s  
+        thread_bug3596    bug3596.s -sim_run_args=+l1_chkoff
+
+        fpu_bug2433_0  -midas_args=-DSPEC_LD_OFF bug2433.s
+        fpu_bug2433_1  bug2433.s
+
+        fpu_bug2415_1  bug2415.s
+        fpu_bug2416_1  bug2416_0.s
+        thread_bug2416_0  -midas_args=-DSPEC_LD_OFF bug2416_0.s
+        thread_bug2445_0  -midas_args=-DSPEC_LD_OFF bug2445.s
+        thread_bug2568_0  -midas_args=-DSPEC_LD_OFF bug2568.s
+        thread_bug3273    bug3273.s
+        thread_bug3753    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334745 bug3753.s
+        thread_bug4017    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4017.s 
+
+        // Tri: the following test simulates icache error, of which I'm not exactly sure if the cross-module references work. The main problem is that it runs 4 threads.
+        io_icerr         -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -sim_run_args=+asm_err_en -sim_run_args=+fast_boot -sas_run_args=-DFAST_BOOT -vcs_run -midas_args=-allow_tsb_conflicts -sim_run_args=+inst_check_off=1 io_icerr.s 
+
+        bug3846    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=13  -midas_args=-allow_tsb_conflicts  bug3846.s  // Jon: Was finish_mask=7
+
+        //Below were failing due to STB. Fixed as of 15/10/14 (Thanks Tri!)
+        thread_bug3688    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3688.s
+        thread_bug3761    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3761.s 
+        thread_bug3898    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3898.s
+        thread_bug3900    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3900.s 
+        thread_bug3901    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3901.s
+        thread_bug3932    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3932.s  
+        thread_bug4267    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4267.s 
+        thread_bug4330    -max_cycle=400000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+err_inj_dbg -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=92003826 bug4330.s 
+        thread_bug3138    -max_cycle=400000 bug3138.s 
+        thread_bug3212    -max_cycle=400000 bug3212.s
+        flush_order     -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=33 flush_order.s -fast_boot
+
+        //Passing thanks to issue #135 fix
+        thread_bug2543_0  -midas_args=-DSPEC_LD_OFF bug2543.s -sim_run_args=+l1_chkoff
+        thread_bug2543_1  bug2543.s -sim_run_args=+l1_chkoff
+
+        //Passing thanks to issue #136 fix
+        thread_bug4012    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4012.s 
+        bug4534    -max_cycle=400000 -finish_mask=33 -sim_run_args=+asm_err_en bug4534.s
+    </runargs>
+    </tile2_ifu>
+
+    <tile2_cmp2>
+    <runargs -sim_run_args=+inst_check_off=1>
+        tso_ld_csm tso_ld_csm.s -finish_mask=33  -midas_args=-DTHREAD_COUNT=4  -midas_args=-allow_tsb_conflicts
+        tso_self_mod3   tso_self_mod3.s  -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+
+        tso_cross_mod1a tso_cross_mod1.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod1c tso_cross_mod1.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -midas_args=-DFLUSH
+        tso_cross_mod2a tso_cross_mod2.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -rtl_timeout=500000
+        tso_cross_mod3a tso_cross_mod3.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod5a tso_cross_mod5.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+
+        tso_self_mod103 tso_self_mod103.s  -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+
+        tso_cross_mod101a tso_cross_mod101.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod101c tso_cross_mod101.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -midas_args=-DFLUSH
+        tso_cross_mod102a tso_cross_mod102.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod103a tso_cross_mod103.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod201a tso_cross_mod201.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod201c tso_cross_mod201.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -midas_args=-DFLUSH
+        tso_self_mod203   tso_self_mod203.s  -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+        tso_cross_mod203a tso_cross_mod203.s -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+
+        tso_cross_mod6_bug6372 tso_cross_mod6_bug6372.s -midas_args=-DTHREAD_COUNT=4 -finish_mask=1
+    </runargs>
+
+        tso_dekker1a    tso_dekker1.s       -finish_mask=11  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+FORCE_SNIPER_OFF
+        tso_dekker2a    tso_dekker2.s       -finish_mask=11  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+FORCE_SNIPER_OFF
+
+        tso_dekker10a   tso_dekker10.s      -finish_mask=11  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+FORCE_SNIPER_OFF
+        tso_dekker11a   tso_dekker11.s      -finish_mask=11  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+FORCE_SNIPER_OFF
+
+        tso_prod_cons_intr1a    tso_prod_cons_intr1.s   -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2
+
+        tso_starve0 tso_starve0.s   -finish_mask=1  -midas_args=-DTHREAD_COUNT=4
+        tso_starve1 tso_starve1.s   -finish_mask=1  -midas_args=-DTHREAD_COUNT=4
+    </tile2_cmp2>
+
+    <tile2_other>
+        mt_cle          -rtl_timeout=500000 -max_cycle=10000000 -finish_mask=33 mt_cle.s
+        mt_ldst1        -rtl_timeout=500000 -max_cycle=10000000 -midas_args=-allow_tsb_conflicts -finish_mask=33 mt_ldst1.s
+        mt_l1cache4     mt_l1cache4.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1
+        mt_imiss_sameset        -finish_mask=33 mt_Imiss_sameset.s
+        mt_ihit_sameset         -finish_mask=33 mt_Ihit_sameset.s
+        mt_ifill_l2             -finish_mask=33 mt_Ifill_L2.s
+        mt_dfault_specload      -finish_mask=3 mt_Dfault_specload.s
+        mt_dmiss_sameset        -finish_mask=33 mt_Dmiss_sameset.s
+        mt_asi_ldst         -rtl_timeout=500000 -max_cycle=10000000 -finish_mask=33 mt_asi_ldst.s
+        mt_cache1       -rtl_timeout=500000 -max_cycle=10000000 -finish_mask=33 mt_icache.s
+        th_sync         -midas_args="-DTHREAD_COUNT=2" -finish_mask=3 th_sync.s
+        ldst_quad           ldst_quad.s  -max_cycle=10000000 -finish_mask=3 -midas_args=-DTHREAD_COUNT=2
+        v9_mmu_ttebit       v9_mmu_ttebit.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -midas_args=-nocompress_image -midas_args=-DTHREAD_COUNT=4 -finish_mask=33 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -max_cycle=10000000
+        exu_win_traps       -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=600000 exu_win_traps.s
+        exu_muldiv_stress   -finish_mask=33 -max_cycle=1300000 -midas_args=-DTHREAD_STRIDE=1 exu_muldiv_stress_1.s
+        hp_sir                  hp_sir.s -nosas -finish_mask=33 -fast_boot
+        th1_lsu_ldx     -finish_mask=3 th1_lsu_ldx.s -max_cycle=300000
+        th_sync_moredelay   -midas_args="-DTHREAD_COUNT=2" -finish_mask=3 th_sync_moredelay.s
+        exu_add                 exu_add.s -max_cycle=500000 -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1
+        exu_sub                 exu_sub.s -max_cycle=500000 -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1
+
+        hp_intr_asi             hp_intr_asi.pal -midas_args=-pal_diag_args=-thrd_count=4 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS -finish_mask=33
+        self_mod1       self_mod1.s -finish_mask=33 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+inst_check_off=1
+
+        iointr_rdg11_18_00_10   iointr_rdg11_18_00_10.s -finish_mask=33 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -midas_args=-DSYNC_THREADS
+    
+        //Passing as of fix in issue #136
+        interthread_intr        interthread_intr.s -max_cycle=2100000 -finish_mask=20
+        //Unfinished
+        //IOB_intr                interrupt_IOB.pal -max_cycle=210000  -finish_mask=1
+        tlb_prefetch_starve     tlb_prefetch_starve.s -nosas  -finish_mask=20 -fast_boot // Jon: finish_mask=8?
+        lsu_noncache            lsu_noncache.s -midas_args=-allow_tsb_conflicts -sim_run_args=+l1_chkoff
+    </tile2_other>
+
+#include "princeton/princeton_exu_basic.diaglist"
+#include "princeton/princeton_newmdl.diaglist"
+#include "princeton/asi_basic.diaglist"
+#include "princeton/princeton_ldf_no_enboff.diaglist"
+#include "princeton/princeton_ldaf_no_enboff.diaglist"
+#include "princeton/princeton_ldst_no_enboff.diaglist"
+#include "princeton/princeton_tlu_extended.diaglist"
+
+</all_tile2_passing_no_enboff>
+
+#include "princeton/princeton_ldf_enboff.diaglist"
+#include "princeton/princeton_ldaf_enboff.diaglist"
+#include "princeton/princeton_ldst_enboff.diaglist"
+
+
+</all_tile2_passing>
+
+</cmp_default>
+</tile2>
+
+
+
+<tile4 name=default sys=manycore -x_tiles=4 -y_tiles=1>
+<runargs -rtl_timeout=500000>
+    tso_false_sharing1 tso_false_sharing1.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_l2_flush  tso_l2_flush.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4  -midas_args=-DTHREAD_STRIDE=2  -midas_args=-DSEQ_THREADS  -midas_args=-allow_tsb_conflicts
+    tso_dekker1_l2_flush tso_dekker1_l2_flush.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4  -midas_args=-DTHREAD_STRIDE=2  -midas_args=-DSEQ_THREADS  -midas_args=-allow_tsb_conflicts
+    tso_prod_cons2       tso_prod_cons2.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_mutex1       tso_mutex1.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_mutex5_swap_casx tso_mutex5_swap_casx.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    tso_false_sharing2 tso_false_sharing2.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_binit2_all   tso_binit2.s        -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8
+
+    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_COUNT=8
+
+    tso_dekker7 tso_dekker7.pal     -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+    tso_dekker8 tso_dekker8.pal     -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+    tso_dekker9 tso_dekker9.pal     -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+    tso_peterson1   tso_peterson1.pal   -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+    tso_peterson3   tso_peterson3.pal   -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+    tso_bcopy1_all   tso_bcopy1.s        -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tso_binit3   tso_binit3.s        -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+
+    tsotool_mustpass5_050903 tsotool_diag5_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
+    tsotool_mustpass7_060903 tsotool_diag7_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts 
+    tsotool_mustpass9_061003  tsotool_diag9_061003.s  -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tsotool_mustpass10_061003 tsotool_diag10_061003.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tsotool_mustpass11_071503 tsotool_diag11_071503.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
+
+    tsotool_diag12_int_071603 tsotool_diag12_int_071603.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    //sus_res_12 passing as of issue #136
+    sus_res_12      -nosas    -finish_mask=33  sus_res_12.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
+    sus_res_21      -nosas    -finish_mask=33  sus_res_21.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
+    sus_res_22      -nosas    -finish_mask=33  sus_res_22.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
+    
+    br_stress       -finish_mask=33 -fast_boot -max_cycle=5000000  -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -sim_run_args=+asm_err_en -midas_args=-allow_tsb_conflicts -sim_run_args=+softint_off=1 -sim_run_args=+inst_check_off=1 br_stress.s
+
+    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    tso_peterson2   tso_peterson2.pal   -finish_mask=3333  -midas_args=-DTHREAD_COUNT=8 -sim_run_args=+FORCE_SNIPER_OFF
+
+    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    mpgen_mustpass8_071503 mpgen_diag8_071503.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+
+    tsotool_mustpass1_042103 tsotool_diag1_042103.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tsotool_mustpass2_042103 tsotool_diag2_042103.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tsotool_mustpass3_042103 tsotool_diag3_042103.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+    tsotool_mustpass4_050903 tsotool_diag4_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
+    tsotool_mustpass6_050903 tsotool_diag6_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
+    tsotool_mustpass8_060903 tsotool_diag8_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts 
+
+    tsotool_diag13 tsotool_diag13_071903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
+</runargs>
+
+<runargs -max_cycle=24000000 -rtl_timeout=500000 -sim_run_args=+sjm_timeout_scale10 -sim_run_args=+turn_off_exu_monitor -sim_run_args=+turn_off_thread_monitor -sim_run_args=+turn_off_nukeint_mon  -vera_cov_obj=DRAM_COVERAGE  -midas_args=-allow_tsb_conflicts  -fast_boot -sim_run_args=+stb_drain_to_max=30000>
+    pio_rand_0_basic2_mul_cores                        pio_rnd_basic2_mul_cores_rand_0.s -midas_args=-DTHREAD_COUNT=8 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=3333   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic2_mul_cores_rand_0_sjm    -midas_args=-DSYNC_THREADS -nosas
+    pio_rand_1_basic2_mul_cores                        pio_rnd_basic2_mul_cores_rand_1.s -midas_args=-DTHREAD_COUNT=8 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=3333   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic2_mul_cores_rand_1_sjm    -midas_args=-DSYNC_THREADS -nosas
+</runargs>
+
+#include "princeton/princeton_ciop_tso.diaglist"
+</tile4>
+
+<tile8 name=default sys=manycore -x_tiles=8 -y_tiles=1>
+<runargs -rtl_timeout=500000>
+// <runargs -rtl_timeout=500000 -midas_args=-csm_en>
+    //These were in tile2_cmp2, but require 8 tiles to pass as they sends dummy interrupts to the 6th tile (see issue #78)
+    tso_prod_cons_intr3 tso_prod_cons_intr3.s   -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=1 -sim_run_args=+inst_check_off=1
+    tso_prod_cons_intr3a    tso_prod_cons_intr3.s   -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+inst_check_off=1
+    
+    tso_indirection1 tso_indirection1.s     -finish_mask=13  -midas_args=-DTHREAD_COUNT=3 -midas_args=-DPREFETCH // was finish_mask=7
+    tso_indirection2 tso_indirection2.s     -finish_mask=13  -midas_args=-DTHREAD_COUNT=3 -midas_args=-DPREFETCH // was finish_mask=7
+    
+    tso_indirection1a tso_indirection1.s    -finish_mask=1021  -midas_args=-DTHREAD_COUNT=3  -midas_args=-DZERO_THREE_SIX -midas_args=-DTHREAD_STRIDE=3 -midas_args=-DPREFETCH // was finish_mask=49
+    tso_indirection2a tso_indirection2.s    -finish_mask=1021  -midas_args=-DTHREAD_COUNT=3  -midas_args=-DZERO_THREE_SIX -midas_args=-DTHREAD_STRIDE=3 -midas_args=-DPREFETCH // was finish_mask=49
+      
+    tso_prod_cons_intr2 tso_prod_cons_intr2.s   -finish_mask=333  -midas_args=-DTHREAD_COUNT=6 // was finish_mask=3f
+      
+    // tried to generate a similar condition as the one in 6322. Got pretty close
+    // but does not fail.
+    tso_prod_cons_intr3b    tso_prod_cons_intr3b.s  -finish_mask=0101 -midas_args=-DTHREAD_COUNT=5 -sim_run_args=+inst_check_off=1 -sim_run_args=+L1_DIFFLIMIT=512
+
+    mpgen_mustpass1_041403 mpgen_diag1_041403.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
+    //mpgen_mustpass2_042103 mpgen_diag2_042103.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 -midas_args=-DCUSTOM_CP=0 // was finish_mask=55
+    mpgen_mustpass4_042103 mpgen_diag4_042103.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
+    mpgen_mustpass5_042103 mpgen_diag5_042103.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
+    mpgen_mustpass6_042103 mpgen_diag6_042103.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
+</runargs>
+</tile8>
+
+<tile16 name=default sys=manycore -x_tiles=8 -y_tiles=2>
+
+#include "princeton/princeton_ciop_basic.diaglist"
+#include "princeton/princeton_cmp8_tso.diaglist"
+#include "princeton/princeton_cmp8_basic.diaglist"
+
+//We don't need those dram tests because we don't have a dram controller
+//#include "princeton/princeton_dram_basic.diaglist"
+
+<runargs -max_cycle=24000000 -rtl_timeout=500000 -sim_run_args=+sjm_timeout_scale10 -sim_run_args=+turn_off_exu_monitor -sim_run_args=+turn_off_thread_monitor -sim_run_args=+turn_off_nukeint_mon  -vera_cov_obj=DRAM_COVERAGE  -midas_args=-allow_tsb_conflicts  -fast_boot -sim_run_args=+stb_drain_to_max=30000>
+
+<sjm_sas_tile1>
+//FAIL (HIT BAD TRAP)
+//    pio_rand_0_basic4_usr_mode_sas_int                        pio_rnd_basic4_usr_mode_sas_int_rand_0.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas_int_rand_0_sjm -nosas -finish_mask=1  -midas_args=-DTHREAD_COUNT=1     -midas_args=-DPART_0_BASE=0x0
+//    pio_rand_0_basic4_usr_mode_sas1_int                        pio_rnd_basic4_usr_mode_sas1_int_rand_0.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas1_int_rand_0_sjm -nosas -finish_mask=1  -midas_args=-DTHREAD_COUNT=1     -midas_args=-DPART_0_BASE=0x0
+//    pio_rand_1_basic4_usr_mode_sas_int                        pio_rnd_basic4_usr_mode_sas_int_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas_int_rand_1_sjm -nosas -finish_mask=1  -midas_args=-DTHREAD_COUNT=1     -midas_args=-DPART_0_BASE=0x0
+//    pio_rand_1_basic4_usr_mode_sas1_int                        pio_rnd_basic4_usr_mode_sas1_int_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas1_int_rand_1_sjm -nosas -finish_mask=1  -midas_args=-DTHREAD_COUNT=1     -midas_args=-DPART_0_BASE=0x0
+//    pio_dma_basic_fake_dma1                        pio_dma_basic_fake_dma1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic_fake_dma1 -nosas
+</sjm_sas_tile1>
+
+<sjm_sas_tile16>
+    pio_rand_0_basic4_usr_mode_sas2_mul_core                        pio_rnd_basic4_usr_mode_sas2_mul_core_rand_0.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_rand_0_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DSYNC_THREADS -nosas
+//    pio_rand_0_basic4_usr_mode_sas2_mul_core_int                        pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_0.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_0_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DPART_0_BASE=0x0   -midas_args=-DSYNC_THREADS -nosas
+
+    pio_rand_1_basic4_usr_mode_sas2_mul_core                        pio_rnd_basic4_usr_mode_sas2_mul_core_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_rand_1_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DSYNC_THREADS -nosas
+//    pio_rand_1_basic4_usr_mode_sas2_mul_core_int                        pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_1_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DPART_0_BASE=0x0   -midas_args=-DSYNC_THREADS -nosas
+</sjm_sas_tile16>
+    
+</runargs>
+</tile16>
+
+
+<tile36 name=default sys=manycore -x_tiles=6 -y_tiles=6 >
+<runargs -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -midas_args=-DSEQ_THREADS -rtl_timeout=5000000>
+
+    tso_false_sharing1 tso_false_sharing1.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+
+    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+
+    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_mutex1       tso_mutex1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+
+    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+
+    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+
+    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_binit2_all   tso_binit2.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+
+
+    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_binit3   tso_binit3.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+
+
+    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+
+    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+
+</runargs>
+</tile36>
+
+<tile64 name=default sys=manycore -x_tiles=8 -y_tiles=8 >
+<runargs -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -midas_args=-DSEQ_THREADS -rtl_timeout=5000000>
+
+    tso_false_sharing1 tso_false_sharing1.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+
+    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_mutex1       tso_mutex1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+
+    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_binit2_all   tso_binit2.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+
+
+    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_binit3   tso_binit3.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+
+
+    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+
+    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+</runargs>
+</tile64>
+
+
+<spu_tests sys=manycore -x_tiles=8 -y_tiles=2 name=default>
+    // Tests seem to require SPU (from tile1)
+    //mulerr_frfce_mamue            mulerr_frfce_mamue.s
+    //err_mamem_data                err_mamem_data.s
+    //err_mamem_data00              err_mamem_data00.s
+    //err_mamem_data10              err_mamem_data10.s
+    //err_mamem_data11              err_mamem_data11.s
+    //mulerr_irfue_mamue            mulerr_irfue_mamue.s
+
+<runargs -max_cycle=5000000>
+    // This diag tests the SPU, which we have removed by default
+    //tlu_spu_rsrv_illgl_0    -sas    tlu_spu_rsrv_illgl_0.s
+</runargs>
+    //TIMEOUT - No SPU
+    //tso_spu_ma_selfmod_test3 tso_spu_ma_selfmod_test3.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1 -midas_args=-allow_tsb_conflicts
+    // we dont have spu
+    //dtlb_spu_ma_mem_perr.s
+    //SPU timeout?
+    //dtlb_spu_ma_mem_perr    -nosas  -midas_args=-DTHREAD_COUNT=4    -finish_mask=33 dtlb_spu_ma_mem_perr.s
+<runargs -max_cycle=200000 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -rtl_timeout=500000>
+    // no spu
+    //spu_kill        -finish_mask=1 -fast_boot spu_kill.s
+    //spu_kill2       -finish_mask=1 -fast_boot spu_kill2.s
+</runargs>
+    //spu_mamul       -rtl_timeout=150000 spu_mamul.s
+    //spu_mamem       -rtl_timeout=150000 -max_cycle=150000 spu_mamem.s
+    //spu_mared       -rtl_timeout=1500000 -max_cycle=4000000  spu_mared.s
+    //spu_maexp       -rtl_timeout=2500000 -max_cycle=5000000 spu_maexp.s
+    //spu_maexp_mul       -rtl_timeout=1500000 -max_cycle=5000000 spu_maexp_mul.s
+    //spu_matest      -max_cycle=50000000 -rtl_timeout=25000000 spu_matest.s
+    //spu_rdg09_15_19_33      spu_rdg09_15_19_33.s -finish_mask=f -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -sim_run_args=+inst_check_off=1
+    //spu_ma_intr     -rtl_timeout=1500000 -max_cycle=500000 spu_ma_intr.s
+<runargs -rtl_timeout=500000>
+    //TIMEOUT due to no SPU?
+    //tso_spu_ma_test1 tso_spu_ma_test1.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -nosas
+    //tso_spu_ma_test2 tso_spu_ma_test2.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -nosas
+</runargs>
+
+</spu_tests>
+
+<more_fp sys=manycore -x_tiles=2 -y_tiles=1>
+<cmp_default name=default>
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=5000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=33 -fast_boot -midas_args=-DSYNC_THREADS -sim_run_args=+inst_check_off=1>
+<runargs >//-sim_run_args=+l2warm=1>//-midas_args=-pal_diag_args=+TIMEOUT=50000>
+fp_addsub_rd0           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=3
+fp_mov              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov"  
+fp_neg              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg"  
+fp_abs              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs"  
+fp_fp2int               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int"  
+fp_fp2fp            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp"  
+fp_int2fp               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp"  
+
+fp_paddsub              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub"
+fp_align                arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align"
+fp_fill                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill"
+fp_copy                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy"
+fp_not              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not"
+fp_or               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or"
+fp_and              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and"
+fp_xor              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor"
+fp_ornot                arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot"
+fp_andnot               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot"
+
+fp_cmp_fcc0_rd0             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_addsub_rd0_rand          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1_rand          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_rand          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_rand          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=3
+fp_mov_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_rand"  
+fp_neg_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_rand"  
+fp_abs_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_rand"  
+fp_fp2int_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rand"  
+fp_fp2fp_rand                   arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rand"
+fp_int2fp_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rand"
+
+fp_paddsub_rand                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub_rand"
+fp_align_rand               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align_rand"
+fp_fill_rand                arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill_rand"
+fp_copy_rand                arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy_rand"
+fp_not_rand                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not_rand"
+fp_or_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or_rand"
+fp_and_rand                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and_rand"
+fp_xor_rand                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor_rand"
+fp_ornot_rand               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot_rand"
+fp_andnot_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot_rand"
+
+fp_cmp_fcc0_rd0_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3_rand        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_addsub_rd0_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=3
+fp_mov_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_fpdis"  
+fp_neg_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_fpdis"  
+fp_abs_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_fpdis"  
+fp_fp2int_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_fpdis"  
+fp_fp2fp_fpdis                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_fpdis"
+fp_int2fp_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_fpdis"
+
+
+fp_paddsub_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub_fpdis"
+fp_align_fpdis          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align_fpdis"
+fp_fill_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill_fpdis"
+fp_copy_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy_fpdis"
+fp_not_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not_fpdis"
+fp_or_fpdis             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or_fpdis"
+fp_and_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and_fpdis"
+fp_xor_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor_fpdis"
+fp_ornot_fpdis          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot_fpdis"
+fp_andnot_fpdis             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot_fpdis"
+
+fp_cmp_fcc0_rd0_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_fp2int_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rsvd"  
+fp_fp2fp_rsvd             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rsvd"
+fp_int2fp_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rsvd"
+
+fp_addsub_rd0_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=3
+fp_addsub_rd0_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=3
+fp_addsub_rd0_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=0 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd1_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=1 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd2_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=2 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd3_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=3 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd0_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=3
+
+fp_cmp_fcc0_rd0_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+
+fp_fp2int_nv              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nv"
+fp_fp2int_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nx" 
+
+fp_fp2fp_of               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_of"
+fp_fp2fp_uf               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_uf"
+fp_fp2fp_nv               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nv"
+fp_fp2fp_nx               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nx"  -midas_args=-pal_diag_args=-tem=19
+
+fp_int2fp_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_nx" 
+
+fp_muldiv_rd0_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_uf      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_uf      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_uf      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_uf      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_dz      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_dz      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_dz      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_dz      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_nv      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_nv      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_nv      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_nv      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_nx      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=0  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd1_nx      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=1  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd2_nx      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=2  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd3_nx      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=3  -midas_args=-pal_diag_args=-tem=19
+
+</runargs>
+</runargs>
+</cmp_default>
+</more_fp>
+
+<more_alu sys=manycore -x_tiles=2 -y_tiles=1>
+<cmp_default name=default>
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=33> 
+<runargs -sim_run_args=+l2warm=1>
+alu_add                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add"
+alu_sub                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub"
+alu_div                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div"
+alu_mul32                   arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32"
+alu_mulstep                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep"
+alu_muldiv                  arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv"
+alu_shift                   arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift"
+alu_logical                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical"
+alu_tadd                    arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd"
+alu_tsub                    arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub"
+alu_add_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_rsvd"
+alu_sub_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_rsvd"
+alu_div_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_rsvd"
+alu_mul32_rsvd                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_rsvd"
+alu_mulstep_rsvd                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep_rsvd"
+alu_muldiv_rsvd                         arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv_rsvd"
+alu_shift_rsvd                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift_rsvd"
+alu_tadd_rsvd                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_rsvd"
+alu_tsub_rsvd                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_rsvd"
+
+alu_add_negative                    arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_negative"
+alu_add_zero                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_zero"
+alu_add_overflow                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_overflow"
+alu_add_carry                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_carry"
+
+alu_sub_negative                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_negative"
+alu_sub_zero                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_zero"
+alu_sub_overflow                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_overflow"
+alu_sub_carry                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_carry"
+
+alu_div_negative                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_negative"
+alu_div_zero                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_zero"
+alu_div_overflow                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_overflow"
+
+alu_logical_negative                    arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_negative"
+alu_logical_zero                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_zero"
+
+alu_mul32_negative                      arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_negative"
+alu_mul32_zero                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_zero"
+
+alu_tadd_negative                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_negative"
+alu_tadd_zero                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_zero"
+alu_tadd_overflow                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_overflow"
+alu_tadd_carry                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_carry"
+
+alu_tsub_negative                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_negative"
+alu_tsub_zero                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_zero"
+alu_tsub_overflow                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_overflow"
+alu_tsub_carry                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_carry"
+
+//alu_mulstep
+
+alu_add_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_rand"
+alu_sub_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_rand"
+alu_div_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_rand"
+alu_mul32_rand                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_rand"
+alu_mulstep_rand                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep_rand"
+alu_muldiv_rand                         arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv_rand"
+alu_shift_rand                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift_rand"
+alu_logical_rand                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_rand"
+alu_tadd_rand                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_rand"
+alu_tsub_rand                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_rand"
+</runargs>
+</runargs>
+</cmp_default>
+</more_alu>
+
+#include "princeton/princeton_asi.diaglist"
+#include "princeton/princeton_bicc.diaglist"
+#include "princeton/princeton_fbfcc.diaglist"
+
+
+<jtag sys=jtag_testbench -x_tiles=1 -y_tiles=1>
+<jtag_default name=JTAG>
+#include "princeton/princeton_jtag.diaglist"
+</jtag_default>
+</jtag>
+
+<jtag_pll sys=jtag_testbench -x_tiles=1 -y_tiles=1 -sim_pll>
+<jtag_default name=JTAG>
+<runargs -sim_run_args=+pll_en=1>
+#include "princeton/princeton_jtag.diaglist"
+</runargs>
+</jtag_default>
+</jtag_pll>
+
+<ed_directed sys=manycore -x_tiles=1 -y_tiles=1>
+<ed_directed_default name=ed_directed>
+<runargs -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=1 -ed_enable -nosas>
+    exec_draft_div_br_nt_t                  exec_draft_br_nt_t.s
+    exec_draft_div_br_t_nt                  exec_draft_br_t_nt.s
+    exec_draft_div_br_a_nt_t                exec_draft_br_a_nt_t.s
+    exec_draft_div_br_a_t_nt                exec_draft_br_a_t_nt.s
+</runargs>
+</ed_directed_default>
+</ed_directed>

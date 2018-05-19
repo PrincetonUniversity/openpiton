@@ -1,0 +1,477 @@
+=pod
+
+=head1 NAME
+
+goldfinger - Midas' evil partner for building diags
+
+=head1 SYNOPSIS
+
+  goldfinger [options]
+
+=head1 DESCRIPTION
+
+Once upon a time, there was L<midas>, which stands for I<M>idas I<I>s
+a I<D>iag I<A>ssembler.  It is a perl script that builds diags into a
+physically addressed memory image.  It worked just fine, but it as
+diags grew, it got to be too slow.  The main performance problem of
+midas is not perl itself, but it's because perl lacks a good interface
+to L<libelf>.  A secondary problem is that perl does not natively
+support 64-bit math.  As a result, L<midas> had to analyze each
+section of an ELF file separately with an external program
+(L<objdump>), parse the I<text> output, then do 64-bit math on the
+results.
+
+Goldfinger is midas' new partner.  It exists to do the evil deeds that
+midas doesn't want to get its hands dirty with.  Goldfinger is
+implemented in C and uses L<libelf> for efficient analysis of ELF
+files.  In the new regime, L<midas> builds a linked executable and a
+command file (i.e., a .goldfinger file), which are then processed by
+L<goldfinger>. The final output files are produced by L<goldfinger>.
+It is the intention that end users never invoke L<goldfinger>
+directly, but only through L<midas>.  Nevertheless, users may find a
+case whey they need to build a diag in a very non-standard way, and
+L<goldfinger> provides a lower-level interface.
+
+Goldfinger is typically used twice in a normal build process:
+
+=over 4
+
+=item Section splitting
+
+C<goldfinger -splitsec E<lt>diag_fileE<gt>> is used to split a diag into
+multiple assembly files, one per section.  All embedded L<midas>
+directives are written to a separate file.
+
+
+=item Extracting from executable file
+
+After the executable file is linked, L<midas> needs to extract a
+memory image and a symbol table.  The options C<goldfinger -in
+E<lt>cmd_fileE<gt> -genimage -gentsbs -gensymtab> will generate these
+files based on the directives in E<lt>cmd_fileE<gt>.
+
+=back
+
+=head2 Options
+
+The options recognized by goldfinger are:
+
+=over 4
+
+=item -h
+
+Show usage.
+
+=item -version
+
+Print version number and exit.
+
+=item -v or -verbose
+
+Make it more chatty.
+
+=item -d or -debug
+
+Make it very chatty.
+
+=item -silent
+
+Say nothing unless there's an error.
+
+=item -n or -nooutput
+
+Do not write any output files (for debugging only)
+
+=item -noprint_errors
+
+Don't print any error messages (usually used with -silent).  You can
+still tell there was an error by the exit status.
+
+=item -prefix E<lt>stringE<gt>
+
+Prepend E<lt>stringE<gt> to each line of normal output.
+
+=item -destdir E<lt>dirE<gt>
+
+All created files go in this directory (or a relative path from it).
+The directory specified can be absolute or relative from where
+goldfinger is invoked.
+
+=item -srcdir E<lt>dirE<gt>
+
+If any of the command files specify filenames with relative paths,
+start searching from this directory.  Note that the command files
+themselves are always specified absolutely or relative to where
+goldfinger is run.
+
+=back
+
+=head3 Section splitting options
+
+The following functions are meaningful when splitting sections.
+
+=over 4
+
+=item -splitsec E<lt>fileE<gt>
+
+Splits the specified file into sections and writes an assembly file
+for each.  Writes all midas directives into a file that must be
+specified by the -midasfile option.
+
+=item -midasfile E<lt>fileE<gt>
+
+When doing section splitting, write all midas directives into this file.
+
+=back
+
+
+=head3 Linked executable options
+
+The following options are meaningful when analyzing linked
+executables.
+
+=over 4
+
+=item -in E<lt>command_fileE<gt>
+
+Analyze linked executables based in the directives in
+E<lt>command_fileE<gt> (also referred to as a .goldfinger file.
+
+=item -genimage
+
+Generate a memory image based on the linked executable.  Goes to
+stdout unless -imagefile is also specified.
+
+=item -imagefile E<lt>fileE<gt>
+
+If -genimage is also specified, the redirect output here instead of stdout.
+
+=item -gensymtab
+
+Generate a symbol table from the linked executable.  Goes to stdout
+unless -symtabfile is also specified.
+
+=item -symtabfile E<lt>fileE<gt>
+
+If -gensymtab is also specified, then write the symbol table here
+instead of stdout.
+
+=item -gentsbs
+
+Generate TSB programming based on the object files.  It is in
+mem.image format.  It will go to stdout unless -imagefile is also
+specified.
+
+=item -allow_tsb_conflicts
+
+If -tsbgen is also provided, then don't cause a fatal error if there
+is a collision in the TSB.  Add to the TSB_LINK area instead.
+
+
+=item -allow_duplicate_tags
+
+If -allow_tsb_conflicts is enabled, you are adding elements to a
+TSB_LINK area, and you try to add the same tag more than once, it is
+normally an error.  This option disables the error check.  This option
+is not recommended, since the duplicate tag defines a translation that
+can never be used.
+
+=item -nocompress
+
+Don't do compression of mem.image sections for any sections,
+regardless of what is in the imagespec file.
+
+=item -noenvzero
+
+Do not use the backdoor environment initialization to zero during
+image compression.
+
+=back
+
+=head1 COMMAND FILE SYNTAX
+
+In the command file (i.e., the .goldfinger file), all keywords can be
+either all upper-case or all lower-case, but not mixed.  All numbers
+are 64-bit numbers. They can be written as decimal (first digit is
+1-9), octal (first digit is 0), or hex (begins with 0x).  A boolean
+option can be set to a nonzero number (true) or 0 (false).  If a
+boolean option is named, but not assigned to (e.g, "COMPRESS;" instead
+of "COMPRESS = 1;"), then it is assigned to 1.
+
+The attrs file is a list of 4 types of objects at the top level.  They
+can appear on any order:
+
+  PA_SIZE = num;
+
+  APP <name>
+    app_lines
+  END APP
+
+  TSB <name>
+     tsb_lines
+  END TSB
+
+  TSB_LINK <name>
+     tsb_link_lines
+  END TSB_LINK
+
+The PA_SIZE field is the only top-level attribute.  It defines the
+size of a physical address in bits.  The default is 40.
+
+All types of block contain two attributes:
+
+=over 4
+
+=item SRC_FILE = "file";
+
+File name where this block is originally defined.  Used for error and
+debugging output.
+
+=item SRC_LINE = num;
+
+Line nubmer in SRC_FILE where this block is originally defined.  Used
+for error and debugging output.
+
+=back
+
+=head2 APP
+
+An APP object contains a few parameters and a list of block objects.
+An APP names one linked executable (see ELF_FILE) and a list of blocks
+that describe what to do with that file.  The APP syntax is:
+
+  APP <appname>
+
+    SRC_FILE = "source file";
+    SRC_LINE = <num>;
+    ELF_FILE = "executable file";
+
+    BLOCK <name>
+       block_attrs
+    END BLOCK
+
+    BLOCK <another_name>
+       block_attrs
+       BLOCK_TSB <name>
+          block_tsb_attrs
+       END BLOCK_TSB
+    END BLOCK
+
+    ...
+
+  END APP
+
+=over 4
+
+=item ELF_FILE = "executable file";
+
+This names the linked executable file (relative to srcdir) that will
+be processed by this APP object.
+
+=back
+
+=head3 BLOCK
+
+A BLOCK defines a section of a linked executable that should be
+treated the same way.  It can take the following parameters:
+
+=over 4
+
+=item SECTION_NAME = "name";
+
+Name of the section (e.g., ".MAIN") where this block is defined (used
+for debugging and error reporting).  Used only for error reporting.
+
+=item SEGMENT_NAME = "name";
+
+Name of segment within the section (e.g., "text") for which this block
+is defined.  Used only for error reporting.
+
+=item LINK_SECTION = "name";
+
+ELF section name where this block should look in the executable.
+
+=item VA = E<lt>numE<gt>;
+
+=item START_LABEL = "label";
+
+Optionally specify that the block should start at a particular address
+or label.  You can specify one or the other, but not both.  If neither
+are specified, then the starting VA for the elf section is used.  The
+starting address, however it is specified, must be page aligned if it
+is to be added to a TSB.
+
+=item END_VA = E<lt>numE<gt>;
+
+=item END_LABEL = "label";
+
+Optionally specify that the block should end at a particular address
+or label.  You can specify one or the other, but not both.  If neither
+are specified, the the ending VA for the elf section is used.
+
+=item COMPRESS = num;
+
+Boolean.  If set, then compress the output of this block in the image.
+Compression means that if an entire line (i.e., aligned 32 bytes) are
+zero, the line is skipped.  If -noenvzero is enabled, the 32 bytes are
+simply uninitialized.  Otherwise, the backdoor '// zero_bytes' syntax
+is used to initialize the memory in the environment.  The backdoor
+syntax is specific to Niagara, so other projects should either adopt
+it or use -noenvzero.
+
+=item IN_IMAGE = E<lt>booleanE<gt>;
+
+If this is defined and num is zero, then don't write this block to the
+memory image.  It is still included in the symbol table.
+
+=item PA = E<lt>numE<gt>;
+
+Physical address to write to the image file.  Also used in symbol table.
+
+=item RA = E<lt>numE<gt>;
+
+Real address.  Used to write into the TSB and for the symbol table.
+Written as 'X' in the symbol table if this is not specified.
+
+=item RA_EQ_VA = E<lt>booleanE<gt>;
+
+Boolean.  If set, the set RA to VA (perhaps after VA is computed from
+a label).  It is illegal to set both RA and RA_EQ_VA.
+
+=item PA_EQ_VA = E<lt>booleanE<gt>;
+
+Boolean.  If set, the set PA to VA (perhaps after VA is computed from
+a label).  It is illegal to set both RA and PA_EQ_VA.
+
+=item NO_END_RANGE_CHECK =  E<lt>booleanE<gt>;
+
+If this is set to a nonzero value, then don't do an error check to
+make sure that end_va is not off the end of the segment.
+
+=item BLOCK_TSB E<lt>nameE<gt>
+
+A BLOCK may contain one or more BLOCK_TSB blocks (delimted by
+"BLOCK_TSB <name>" and "END BLOCK_TSB".  A BLOCK_TSB definition names
+a TSB (see TSB objects below) that the block shoudl add itself to.  It
+also defines parameters about how the block should add itself.
+
+=back
+
+=head3 BLOCK_TSB
+
+A BLOCK_TSB object defines how to add its containing block to a TSB.
+The name of the BLOCK_TSB object is the name of the TSB object (see
+below) that the block should add itself to.
+
+=over 4
+
+=item TAG_BASE = num;
+
+This is number to use as the basis for TSB tags in this attr block.
+The virtual address is OR'd into the proper bit range in this number
+(using TAG_ADDR_BITS) to form the TSB tags.
+
+=item DATA_BASE = num;
+
+This is the basis for the TSB data entries in this attr block.  The
+real addres is OR'd into the proper bit range in this number (using
+DATA_ADDR_BITS) to form the TSB data entries.
+
+=item START_RA = num;
+
+Starting real address for this attr block.  Must be page aligned.
+
+=item PAGE_SIZE = num;
+
+Page size used for computing number of TSB entries and for alignment checks.
+
+=item VA_INDEX_BITS = hi : lo;
+
+Bits of the virtual address used to index a TSB.  This is independant
+of the TSB size.  If the TSBs being used have non-zero size_bits, they
+will add the size_bits to the 'hi' value specified.
+
+=item TAG_ADDR_BITS = hi : lo;
+
+These are the bits of the TSB tag that should contain a portion of the
+virtual address.
+	
+=item TTE_TAG_ADDR_BITS = hi : lo;
+
+These are the bits in the TSB tag that contain the VA.
+
+=item DATA_ADDR_BITS = hi : lo;
+
+These are the bits of the TSB data that should contain a portion of
+the real address.
+
+
+=back
+
+
+
+=head2 TSB
+
+This defines a TSB.  The ATTR blocks define which TSBs they want to
+write to use, and this holds the address translations for them.
+
+=over 4
+
+=item START_ADDR = num;
+
+Physical address of where this TSB should live in memory.
+
+=item NUM_ENTRIES = num;
+
+Number of entries in the TSB.  This can be computed from SIZE_BITS for
+a particular MMU, but goldfinger doesn't want to get in the business
+of interpreting prcoessor-specific bit fields.
+
+=item SIZE_BITS = num;
+
+Size bits from the config register.  It is used in the index calculation.
+
+=item SPLIT = binary;
+
+If set and num is non-zero, then make this a split TSB.
+
+=item LINKAREA = name;
+
+If there is a collsion at any entry in the TSB, it can create a linked
+list.  This parameter names a TSB_LINK object (see below) that should
+contain the linked list.  If a collision occurs when
+-allow_tsb_conflicts is not set, however, a collision is a fatal
+error.
+
+=back
+
+=head2 TSB_LINK
+
+ This defines a link area.  If there is a collision in the TSB, a
+linked list can be used to track the multiple entries.  This is an
+object for containing that linked list.
+
+=over 4
+
+=item START_ADDR = num;
+
+Physical address where the linked list should live.
+
+=back
+
+
+=head1 EXIT STATUS
+
+The exit status will be 0 if the command succeeds.  If it fails, it
+will exit with a positive exit status.  The error codes are identical
+between L<goldfinger> and L<midas>.  See C<midas -h> for the most
+up-to-date description of the errors.
+
+=head1 AUTHOR
+
+Jeff Gibson E<lt>jeff.gibson@sun.comE<gt>
+
+=head1 SEE ALSO
+
+midas(1).
+

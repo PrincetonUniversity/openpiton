@@ -1,0 +1,4 @@
+// Flist for fpga_bridge_out testbench environment
+
+chip_bridge_rcv_top.t.v
+chip_bridge_rcv_top.v

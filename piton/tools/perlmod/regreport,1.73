@@ -1,0 +1,162 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: regreport,1.73
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+#======================================================
+
+use strict;
+use IO::Handle;
+use Getopt::Long;
+use TRELoad 'Regreport';
+
+my($PROG)       = ($0=~ m%([^/]+)$%);   # regreport real name
+
+# an initial sanity check.
+#-------------------------
+if(!(defined $ARGV[0])) {die " No arguments, bro. Try regreport -h\n"; }
+
+my %opt = ();
+my @Options = qw( vlog! debug sas_only regenerate regress 1 h simline=i full printpassed! summary emailaddr=s);
+$opt{vlog}      = 1;
+$opt{debug}     = 0;
+$opt{sas_only}  = 0;
+$opt{regenerate}= 0;
+$opt{regress}   = 0;
+$opt{h}         = 0;
+$opt{'1'}       = 0;
+$opt{simline}   = 1000;
+$opt{full}      = 0;
+$opt{printpassed}= 1;
+$opt{summary}	= 0;
+$opt{emailaddr}	= "";
+
+GetOptions(\%opt, @Options) or die "Error in arguments!\n";
+$vlog     	= $opt{vlog};
+$debug     	= $opt{debug};
+$sas_only  	= $opt{sas_only};
+$simline  	= $opt{simline};
+$full  		= $opt{full};
+$printpassed 	= $opt{printpassed};
+$summary 	= $opt{summary};
+$emailaddr	= $opt{emailaddr};
+
+my $regenerate	= $opt{regenerate};
+my $regress   	= $opt{regress};
+my $single    	= $opt{'1'};
+my $h         	= $opt{h};
+
+if($h){
+  &usage();
+  exit 0;
+}elsif($regenerate){
+  &regenerate();
+  exit 0;
+}elsif($regress) {
+  if((defined $ARGV[0]) && (defined $ARGV[1]) && (-d $ARGV[1])){
+  &wait_regression($ARGV[0], $ARGV[1]);
+  exit 0;
+  }
+  else{
+    die "-regress options not correct. needs file_name, dir_name, try regreport -h\n";
+  }
+}elsif($single) {     	#diag report for one diag
+  $rsfh = \*STDOUT;
+  if(defined $ARGV[0])	{ & chk_single_diag($ARGV[0]); }
+  else                	{ & chk_single_diag("."); }
+  exit 0;
+}
+# default action - check the regression dir.
+elsif((defined $ARGV[0]) && (-d $ARGV[0])) { 
+  if($emailaddr){	# will send email if emailaddr is defined
+			# and produce the result in regreport.temp
+    open(T, ">regreport.temp") or die "cannot open regreport.temp for write\n";
+    $rsfh = \*T;
+    & regress_stat(@ARGV);
+    close(T);
+    open(T, "regreport.temp") or die "cannot open regreport.temp for read\n";
+    $rsfh = \*T;
+    regreportsendmail();
+    close(T);
+  }
+  else{			# will print to STDOUT if emaiaddr is not defined
+    $rsfh = \*STDOUT;
+    & regress_stat(@ARGV);
+  }
+  print STDERR "\n";
+  STDERR->autoflush(1);
+  STDOUT->autoflush(1);
+}else{
+  print STDERR "Something went wrong. Probably cant chdir.Try regreport -h \n";
+  exit 1;
+}
+
+#=========================================================================
+
+sub	usage {
+     print <<EOH;
+---------------------------------------------------------------------------
+Usage: regreport <options> [<directory> [<list>]]
+
+<options>: [default]
+  -1 [<diag_dir>]:
+     	print report for the specified or current-directory diag
+  -regress <output_file> <directory>: 
+    	in regression mode, regreport writes summary status for finished
+    	diags to a file until all diags are finished. NOTE: if
+    	some diag doesn't produce status, $PROG will wait forever. 
+
+  -sas_only	vcs will not run, sas only.
+
+  -regenerate	will regenerate the status.log files in the diag directories.
+ 	Call it from the parent dir of all diag runs e.g. 2004_04_04/
+
+  <directory> [<list>]
+	print report for all diags under <directory>. <list> is
+      	0 or more of simulation 'system' names, such as 
+	'chip8', 'core1', etc. When nothing specified, all systems 
+       are included.
+
+  -simline typically only 1000 last lines of sim.log will be examined.
+	-simline=NNN can increase or decrease this number
+ 
+  -full	with this option the whole file will be processed in regreport -1 mode
+
+  -[no]printpassed does not print passed diags in detailed summary
+
+  -[no]vlog disable procvlog run on failing diags. Enabled by default
+  	If a diag fails we run procvlog on it.
+	This is good for automation.
+
+  -debug	debug
+
+  -summary 	prints only summary
+  -emailaddr=s  give an email address
+
+Function:
+	Examine all regression .log files for diags under
+	regression directory
+	and print reports. The most common use is
+
+	  	$0 <regress_dir>
+---------------------------------------------------------------------------
+EOH
+}
+

@@ -1,0 +1,364 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: tso_analyze,1.37
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+
+#----------------------------------------
+# note:
+# see the usage function for description
+#----------------------------------------
+
+use strict;
+use Cwd;
+use Getopt::Long;
+
+print "===============================================\n";
+print "=== tso_analyze                             ===\n";
+print "===============================================\n";
+system("date");
+
+my @Options = qw(debug help);
+my %opt = ();
+$opt{debug}    = 0;
+$opt{help}     = 0;
+
+GetOptions(\%opt, @Options) or die "Error in arguments!\n";
+my($debug)      = $opt{debug};
+
+if($opt{help}){
+  &usage;
+  exit 0;
+}
+
+#---------------------------------------------------------
+
+my $dirname = cwd();
+print "$dirname \n";
+
+$dirname =~ s/^.*\///;
+$dirname =~ s/:/_/g;
+print "$dirname \n";
+
+my $old = 0;
+my %agent_id;
+my $size = 64;
+
+print "Preparing the prop file.\n";
+open(DIAG,  "diag.s")  || die " BAD BAD diag.s";
+open(TEMP , ">prop") || die " BAD BAD prop";
+
+my($printit) = 0;
+my($found) = 0;
+while(<DIAG>){
+  if(/no tsotool postprocessing/){
+    $found = 0;
+    last;
+  }
+  if(/old tsotool postprocessing/){
+    $old = 1;
+  }
+  elsif(/\!\s+TSOTOOL.PROCESSOR/){
+    $printit = 1;
+    $found   = 1;
+  }
+  elsif(/_MEMBARS\s+N/){
+    $found = 0;
+    last;
+  }
+  elsif(/^\s*$/){
+    $printit = 0;
+    last;
+  }
+
+  if($printit){
+    if(/TSOTOOL.MODE/){
+      print TEMP "TSOTOOL.MODE ANALYZE\n";
+    }
+    else{
+      s/^\!\s+(.*)/$1/;
+      print TEMP $1, "\n";;
+    }
+  }
+}
+close(DIAG);
+close(TEMP);
+
+if($found){
+  print "Prepared the prop file.\n";
+  unlink("tsotool.log");
+  system("date");
+  print "Extracting\n";
+  system("date");
+  extract();
+
+  my $logfile= (-f "sim.log")    ? "sim.log" :
+               (-f "sim.log.gz") ? "sim.log.gz" :
+               die "Logfile not found\n";
+
+  print " Now will extract per location store order\n";
+
+  print "Finished Extracting\n";
+  system("date");
+
+  if ($logfile =~ /\.gz$/) {
+    open (LOG_TR, "gunzip -c $logfile | tail |");
+  }
+  else {
+    open (LOG_TR, "tail $logfile |");
+  }
+
+  my $fail = 0;
+
+  while (<LOG_TR>) {
+    if (/hit\s*good\s*trap/) {
+      $fail = 1;
+      last;
+    }
+  }
+
+  do {
+    system("touch diag.failure");
+    print "Simulation failed, results will NOT be analyzed\n";
+    exit;
+  } if $fail;
+
+  print "Now will run tsotool\n";
+  print "Finished running tsotool\n";
+
+  system("date");
+}
+else{
+  print "This diag is not a tsotool diag or is a tsotool diag which should not be analyzed.\n";
+}
+
+#========================================================================
+# extract - extract from sim.log whatever is relevant - FP regs, INT regs
+# as well as JBUS stuff.
+#========================================================================
+sub  extract{
+
+  my ($i, $k, $time, $spc, $thr, $proc, $reg, $val, $win);
+  my(@tl, @FPLINES, @INTLINES, %SJMLINES);
+  
+  for ($i = 0; $i < 32; $i++){
+    $tl[$i] = 5;
+  }
+  my $logfile= (-f "sim.log")    ? "sim.log" :
+          (-f "sim.log.gz") ? "sim.log.gz" :
+          die "Logfile not found\n";
+
+  if($logfile =~ /\.gz$/) {
+    open(VCS, "gunzip -c  $logfile | egrep 'jbus_mon|reg' |") || die "cannot open gunzip -c $logfile";
+  }else{
+    open(VCS, "egrep 'jbus_mon|reg' $logfile| ") || die "cannot open $logfile";
+  }
+
+  my $currtime = 0;
+  my $fatal    = "";
+  while(<VCS>) {
+    chop;
+    s/-MATCH/-updated/g;
+    if(/^(\d+):.*reg.updated\s*->\s*spc.(\d).\s*thread.(\d)/){
+      $time = $1;
+      $spc  = $2;
+      $thr  = $3;
+      $proc  = 4 * $spc + $thr;
+
+      if(/float_reg.updated.*reg#\((\w+)\).*val = (\w+)/){
+         $reg   = "%" . $1;
+         $val = $2;
+         if(!($reg =~ /f/)){
+           $reg =~ s/%/%f/;
+         }
+       
+         if($tl[$proc] == 0){
+           push @{$FPLINES[$proc]}, sprintf("%-4s %-4d %-20s\t\t\t %-30s\n",$reg,  $proc, $val, $time);
+         }
+      }
+      elsif(/window.(\w+).*reg#\((\w+)\).*val = (\w+)/){
+         $win = $1;
+         $reg = "%" . $2;
+         $val = &add0($3);
+         if($tl[$proc] == 0){
+            push @{$INTLINES[$proc]}, sprintf("%-4s %-4d %-20s\t\t\t%-20s\n", $reg, $proc, $val, $time);
+         }
+      }
+      elsif(/tl_reg.updated.*window.(\w+).*val = (\w+)/){
+        $tl[$proc] = $2;
+        printf "%-10s: C%dT%d\t\tTL REG UPDATE <TL = %d>\n", $time, $spc, $thr, $tl[$proc] if($debug);
+      }
+
+       $currtime = $time +0;
+    }
+#37275441: jbus_monitor(jbus_mon): started ReadToDiscard agent_id=12, transaction_id=0 address=01171800000, identifier=27
+#---------
+    elsif(/(\d+):\s*jbus_mon.*:\s*started ReadToDiscard\s*agent_id=(\d+).*identifier=(\d+)/){
+      $agent_id{$3} = $2;
+      print "agent id = $2 identifier = $3\n" if($debug);
+    }
+
+# alex, taking care of NCRD transactions
+#15905: jbus_monitor(jbus_mon): started NonCachedRead agent_id=12, transaction_id=0 address=7cf10800050, identifier=179, dbg=4
+#---------
+    elsif(/(\d+):\s*jbus_mon.*:\s*started NonCachedRead\s*agent_id=(\d+).*identifier=(\d+)/){
+      $agent_id{$3} = $2;
+      print "agent id = $2 identifier = $3\n" if($debug);
+    }
+
+#---------
+#37203537: jbus_monitor(jbus_mon): RDD    01170000000 data  driver=0 state = I identifier=23 start time=36782385
+#---------
+    elsif(/(\d+):\s*jbus_mon.*:\s*RDD\s*([\dabcdefABCDEF]+)\s*([\dabcdefABCDEF]+).*identifier=(\d+)/){
+      my $time = $1;
+      my $addr = $2;
+      my $data = $3;
+      my $identifier   = $4;
+
+      my @da = split '', $data;
+      my @dafinal = ();
+      $dafinal[0] = $da[0];
+      my $k = 1;
+      for(my $i = 1; $i <=$#da; $i++){
+        if( ($i % 16) == 0){
+          $dafinal[$k++] = ' ';
+        }
+        $dafinal[$k++] = $da[$i];
+      }
+
+      $data = join '', @dafinal;
+
+      if(! exists $agent_id{$identifier}) {
+        die "Could not find agent id for $identifier \n";
+      }
+      #push @SJMLINES, sprintf("%-20s %-2d %-20s %-2d %-128s\n", $time, $agent_id{$identifier}, $addr, $size, $data);
+      # alex - SJMLINES hashing lines by identifier
+      $SJMLINES{$identifier} = sprintf("%-20s %-2d %-20s %-2d %-128s\n", $time, $agent_id{$identifier}, $addr, $size, $data);
+    }
+#----------
+# alex - taking care of NCRD transactions
+# to make tsotool happy:
+# count number of -'s before data, adjust address
+# count data size, calculate size
+#113: jbus_monitor(jbus_mon): NCRD   7cf10800100 000186a3------------------------ driver=4 identifier=194 start time=17
+#----------    
+    elsif(/(\d+):\s*jbus_mon.*:\s*NCRD\s*([\dabcdefABCDEF]+)\s+(-*)([\dabcdefABCDEF]+)-*.*identifier=(\d+)/){
+      my $time = $1;
+      my $addr = $2;
+      my $data = $4;
+      my $ld_dashes = $3;
+      my $identifier   = $5;
+
+      # my is important - don't want to override global $size
+      my $size = length($data)/2;
+
+      if (length($ld_dashes) == 8) {
+        $addr =~ s/0$/4/;
+      }
+      elsif (length($ld_dashes) == 16) {
+        $addr =~ s/0$/8/;
+      }
+      elsif (length($ld_dashes) == 24) {
+        $addr =~ s/0$/c/;
+      }
+
+      if(! exists $agent_id{$identifier}) {
+        die "Could not find agent id for $identifier \n";
+      }
+      $SJMLINES{$identifier} = sprintf("%-20s %-2d %-20s %-2d %-128s\n", $time, $agent_id{$identifier}, $addr, $size, $data);
+    }
+
+} # while
+close(VCS);
+
+#--------------------------------------------------------------------
+
+  open(TSOINT, ">diag.load-values.int") || die " BAD BAD int";
+  open(TSOFP , ">diag.load-values.fp")  || die " BAD BAD fp";
+  open(TSOSJM, ">diag.load-values.sjm") || die " BAD BAD sjm";
+
+  my($writeout) = 0;
+  foreach $i (0..$#INTLINES){
+    my $tmp = $INTLINES[$i];
+    foreach $k (0..$#{$tmp}){
+      my $line = $tmp->[$k];
+      $line =~ /^(%\S+)\s+(\d+)\s+(.*)/;
+      print "$1 $writeout $3\n" if($debug);;
+      print TSOINT "$1 $writeout $3\n";
+    }
+    $writeout++ if($#{$tmp} >=0);
+  }
+
+  $writeout = 0;
+  foreach $i (0..$#FPLINES){
+    my $tmp = $FPLINES[$i];
+    foreach $k (0..$#{$tmp}){
+      my $line = $tmp->[$k];
+      $line =~ /^(%\S+)\s+(\d+)\s+(.*)/;
+      print TSOFP "$1 $writeout $3\n";
+    }
+    $writeout++ if($#{$tmp} >=0);
+  }
+
+# sorting SJM lines by identifier and output
+
+  foreach $i (sort {$a <=> $b} keys(%SJMLINES)){
+    print $SJMLINES{$i} if($debug);
+    print TSOSJM $SJMLINES{$i};
+  }
+
+  close(TSOINT);
+  close(TSOFP);
+  close(TSOSJM);
+}
+
+#====================================================================
+# not sure why the function came here in the first place
+# performs a simple check.
+#====================================================================
+sub add0{
+
+  my $pc = $_[0];
+  my($length) = length($pc);
+
+  if($length != 16){
+    die " tso_analyze: ERROR something is wrong with the datum length $length\n";
+  }
+  $pc;
+}
+
+
+#=========================================================================
+
+sub     usage {
+     print <<EOH;
+---------------------------------------------------------------------------
+Usage: tso_analyze 
+
+<options>: [default]
+
+  -debug        debug [off]
+
+Function:
+	Do a tsotool post-processing analysis.
+
+---------------------------------------------------------------------------
+EOH
+}

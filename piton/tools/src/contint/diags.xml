@@ -1,0 +1,477 @@
+<!--
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<bundles>
+
+<all_tile1_passing>
+    <asm_regress name="all_tile1_passing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>all_tile1_passing</group>
+    </asm_regress>
+</all_tile1_passing>
+<all_tile1_failing>
+    <asm_regress name="all_tile1_failing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>all_tile1_failing</group>
+    </asm_regress>
+</all_tile1_failing>
+<tile1>
+    <asm_regress name="tile1">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1</group>
+    </asm_regress>
+</tile1>
+<tile1_mini>
+    <asm_regress name="tile1_mini">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_mini</group>
+    </asm_regress>
+</tile1_mini>
+<tile1_l2_special_access>
+    <asm_regress name="tile1_l2_special_access">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_l2_special_access</group>
+    </asm_regress>
+</tile1_l2_special_access>
+<tile1_tlu_failing>
+    <asm_regress name="tile1_tlu_failing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_tlu_failing</group>
+    </asm_regress>
+</tile1_tlu_failing>
+<tile1_tlu_passing>
+    <asm_regress name="tile1_tlu_passing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_tlu_passing</group>
+    </asm_regress>
+</tile1_tlu_passing>
+<tile1_err_failing>
+    <asm_regress name="tile1_err_failing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_err_failing</group>
+    </asm_regress>
+</tile1_err_failing>
+<tile1_err_passing>
+    <asm_regress name="tile1_err_passing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_err_passing</group>
+    </asm_regress>
+</tile1_err_passing>
+<tile1_ifu>
+    <asm_regress name="tile1_ifu">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_ifu</group>
+    </asm_regress>
+</tile1_ifu>
+<tile1_other>
+    <asm_regress name="tile1_other">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_other</group>
+    </asm_regress>
+</tile1_other>
+<tile1_fpu>
+    <asm_regress name="tile1_fpu">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_fpu</group>
+    </asm_regress>
+</tile1_fpu>
+<tile1_cmp2>
+    <asm_regress name="tile1_cmp2">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_cmp2</group>
+    </asm_regress>
+</tile1_cmp2>
+<tile1_ciop_pio_cov>
+    <asm_regress name="tile1_ciop_pio_cov">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_ciop_pio_cov</group>
+    </asm_regress>
+</tile1_ciop_pio_cov>
+<tile1_unused>
+    <asm_regress name="tile1_unused">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile1_unused</group>
+    </asm_regress>
+</tile1_unused>
+<all_tile2_passing>
+    <asm_regress name="all_tile2_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>all_tile2_passing</group>
+    </asm_regress>
+</all_tile2_passing>
+<tile2>
+    <asm_regress name="tile2">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2</group>
+    </asm_regress>
+</tile2>
+<tile2_mini>
+    <asm_regress name="tile2_mini">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_mini</group>
+    </asm_regress>
+</tile2_mini>
+<tile2_tlu>
+    <asm_regress name="tile2_tlu">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_tlu</group>
+    </asm_regress>
+</tile2_tlu>
+<tile2_ifu>
+    <asm_regress name="tile2_ifu">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_ifu</group>
+    </asm_regress>
+</tile2_ifu>
+<tile2_cmp2>
+    <asm_regress name="tile2_cmp2">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_cmp2</group>
+    </asm_regress>
+</tile2_cmp2>
+<tile2_other>
+    <asm_regress name="tile2_other">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_other</group>
+    </asm_regress>
+</tile2_other>
+
+<tile2_unused>
+    <asm_regress name="tile2_unused">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile2_unused</group>
+    </asm_regress>
+</tile2_unused>
+
+<tile4>
+    <asm_regress name="tile4">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile4</group>
+    </asm_regress>
+</tile4>
+
+<tile8>
+    <asm_regress name="tile8">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile8</group>
+    </asm_regress>
+</tile8>
+
+<tile16>
+    <asm_regress name="tile16">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>tile16</group>
+        <slurm>-t 4:00:00</slurm>
+    </asm_regress>
+</tile16>
+
+<tile36>
+    <asm_regress name="tile36">
+        <sys>manycore</sys>
+        <x_tiles>6</x_tiles>
+		<y_tiles>6</y_tiles>
+        <group>tile36</group>
+        <slurm>-t 6:00:00</slurm>
+    </asm_regress>
+</tile36>
+
+
+<tile64>
+    <asm_regress name="tile64">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <group>tile64</group>
+        <slurm>-t 6:00:00</slurm>
+    </asm_regress>
+</tile64>
+
+
+<more_fp>
+    <asm_regress name="more_fp">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>more_fp</group>
+    </asm_regress>
+</more_fp>
+
+<more_alu>
+    <asm_regress name="more_alu">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>more_alu</group>
+    </asm_regress>
+</more_alu>
+
+<princeton_asi_arch_diags>
+    <asm_regress name="princeton_asi_arch_diags">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_asi_arch_diags</group>
+    </asm_regress>
+</princeton_asi_arch_diags>
+
+<princeton_ldf>
+    <asm_regress name="princeton_ldf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldf</group>
+    </asm_regress>
+</princeton_ldf>
+
+<princeton_ldaf>
+    <asm_regress name="princeton_ldaf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldaf</group>
+    </asm_regress>
+</princeton_ldaf>
+
+<princeton_ldst>
+    <asm_regress name="princeton_ldst">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldst</group>
+    </asm_regress>
+</princeton_ldst>
+
+<asi_basic_passing>
+    <asm_regress name="asi_basic_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>asi_basic_passing</group>
+    </asm_regress>
+</asi_basic_passing>
+
+<asi_basic_failing>
+    <asm_regress name="asi_basic_failing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>asi_basic_failing</group>
+    </asm_regress>
+</asi_basic_failing>
+
+<princeton_bicc>
+    <asm_regress name="princeton_bicc">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_bicc</group>
+    </asm_regress>
+</princeton_bicc>
+
+<princeton_fbfcc>
+    <asm_regress name="princeton_fbfcc">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_fbfcc</group>
+    </asm_regress>
+</princeton_fbfcc>
+
+<princeton_rst>
+    <asm_regress name="princeton_rst">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_rst</group>
+    </asm_regress>
+</princeton_rst>
+
+<princeton_dram_basic>
+    <asm_regress name="princeton_dram_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_dram_basic</group>
+    </asm_regress>
+</princeton_dram_basic>
+
+<princeton_cmp8_tso>
+    <asm_regress name="princeton_cmp8_tso">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_tso</group>
+    </asm_regress>
+</princeton_cmp8_tso>
+
+<princeton_ciop_tso>
+    <asm_regress name="princeton_ciop_tso">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ciop_tso</group>
+    </asm_regress>
+</princeton_ciop_tso>
+
+<princeton_ciop_tso_dma>
+    <asm_regress name="princeton_ciop_tso_dma">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ciop_tso_dma</group>
+    </asm_regress>
+</princeton_ciop_tso_dma>
+
+<princeton_cmp8_basic>
+    <asm_regress name="princeton_cmp8_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_basic</group>
+    </asm_regress>
+</princeton_cmp8_basic>
+
+<princeton_ciop_basic>
+    <asm_regress name="princeton_ciop_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_ciop_basic</group>
+    </asm_regress>
+</princeton_ciop_basic>
+
+<princeton_exu_basic>
+    <asm_regress name="princeton_exu_basic">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_exu_basic</group>
+    </asm_regress>
+</princeton_exu_basic>
+
+<princeton_tlu_extended>
+    <asm_regress name="princeton_tlu_extended">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_tlu_extended</group>
+    </asm_regress>
+</princeton_tlu_extended>
+
+<princeton_newmdl>
+    <asm_regress name="princeton_newmdl">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_newmdl</group>
+    </asm_regress>
+</princeton_newmdl>
+
+<princeton_new_diag>
+    <asm_regress name="princeton_new_diag">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_new_diag</group>
+    </asm_regress>
+</princeton_new_diag>
+
+<princeton_c_tests>
+    <asm_regress name="princeton_c_tests">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_c_tests</group>
+        <largest_regress/>
+    </asm_regress>
+</princeton_c_tests>
+
+
+
+<jtag>
+    <!--JTAG-->
+    <asm_regress name="jtag">
+        <sys>jtag_testbench</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>jtag</group>
+    </asm_regress>
+</jtag>
+
+</bundles>

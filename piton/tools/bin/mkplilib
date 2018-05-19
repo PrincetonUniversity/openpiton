@@ -1,0 +1,66 @@
+#!/bin/csh -f
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: mkplilib
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+if ($1 == "") then
+    echo "Usage: $0 vcs/ncverilog/clean"
+    echo "e.g. : $0 vcs"
+    exit
+endif
+
+if (`env | grep DV_ROOT` == "") then
+    echo "DV_ROOT not defined."
+    exit
+endif
+
+setenv OS `uname -s`
+setenv CPU `uname -p`
+
+if ( -f $DV_ROOT/tools/env/Makefile.$OS.$CPU ) then
+  \rm -f $DV_ROOT/tools/env/Makefile.system
+  ln -s $DV_ROOT/tools/env/Makefile.$OS.$CPU $DV_ROOT/tools/env/Makefile.system
+else
+  echo $DV_ROOT/tools/env/Makefile.$OS.$CPU not found. Exiting..
+  exit
+endif
+
+cd $DV_ROOT/tools/pli
+switch ($1)
+
+case vcs:
+    make vcspli
+    breaksw
+
+case ncverilog:
+    make ncvpli
+    breaksw
+
+case clean:
+    make clean
+    breaksw
+
+default:
+    echo $1 is not a valid parameter for $0.
+    breaksw
+
+endsw
+

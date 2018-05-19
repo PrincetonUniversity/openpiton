@@ -1,0 +1,93 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: tso_ciop_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+// tso_ciop_basic.diaglist
+
+#ifdef CIOP_CHECK
+<ciop_check -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS -nosas>
+#endif
+#ifdef CIOP_REGR_MINI
+<ciop_regr_mini -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS -nosas>
+#endif
+tso_dma1 	tso_dma1.s 	-sjm_diag_name=tso_dma1 -stub_mask=6
+tso_dma2 	tso_dma2.pal 	-sjm_diag_name=tso_dma2     -finish_mask=f  -midas_args=-DTHREAD_COUNT=4 -stub_mask=6
+tso_dma5 	tso_dma5_int.s 	-sjm_diag_name=tso_dma5_int -finish_mask=3 -midas_args=-DTHREAD_COUNT=2  -stub_mask=6
+
+tso_dma_template1 tso_dma_template1.s 	-sjm_diag_name=tso_dma_template1 -stub_mask=6
+
+tso_dmardr1 	tso_dmard1.s 	-sjm_diag_name=tso_dmard1  -stub_mask=6
+
+// SAS does not support CAS, SWAP, LDSTUb to IO space.
+// ncrdwr5 and 5a tests this. That's why - no sas.
+tso_ncrdwr1 tso_ncrdwr1.s -sjm_diag_name=tso_ncrdwr1 -sas
+tso_ncrdwr2 tso_ncrdwr2.s -sjm_diag_name=tso_ncrdwr2 -sas
+tso_ncrdwr3 tso_ncrdwr3.s -sjm_diag_name=tso_ncrdwr3 -sas
+tso_ncrdwr4 tso_ncrdwr4.s -sjm_diag_name=tso_ncrdwr4 -sas
+tso_ncrdwr5 tso_ncrdwr5.s -sjm_diag_name=tso_ncrdwr5 
+
+tso_ncrdwr1a tso_ncrdwr1a.s -sjm_diag_name=tso_ncrdwr1a -sas
+tso_ncrdwr2a tso_ncrdwr2a.s -sjm_diag_name=tso_ncrdwr2a -sas
+tso_ncrdwr3a tso_ncrdwr3a.s -sjm_diag_name=tso_ncrdwr3a -sas
+tso_ncrdwr4a tso_ncrdwr4a.s -sjm_diag_name=tso_ncrdwr4a -sas
+tso_ncrdwr5a tso_ncrdwr5a.s -sjm_diag_name=tso_ncrdwr5a 
+
+tso_ncrdwr6 tso_ncrdwr6.s -sjm_diag_name=tso_ncrdwr5 -sas
+tso_ncrdwr7 tso_ncrdwr7.s -sjm_diag_name=tso_ncrdwr7 -sas
+
+tso_prod_cons_dma1 	tso_prod_cons_dma1.s 	-sjm_diag_name=tso_prod_cons_dma1   -finish_mask=1  -midas_args=-DTHREAD_COUNT=4 -rtl_timeout=90000  -stub_mask=6
+tso_prod_cons_dma2 	tso_prod_cons_dma2.s 	-sjm_diag_name=tso_prod_cons_dma2   -finish_mask=1  -midas_args=-DTHREAD_COUNT=4 -rtl_timeout=90000  -stub_mask=6
+tso_prod_cons_dma3 	tso_prod_cons_dma3.s 	-sjm_diag_name=tso_prod_cons_dma3   -finish_mask=1  -midas_args=-DTHREAD_COUNT=4 -rtl_timeout=90000  -stub_mask=6
+
+#ifdef CIOP_REGR_MINI
+</ciop_regr_mini>
+#endif
+
+tso_prod_cons1_pioa tso_prod_cons1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3f -midas_args=-DTHREAD_COUNT=6 -midas_args=-DPIO1
+tso_prod_cons1_piob tso_prod_cons1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3f -midas_args=-DTHREAD_COUNT=6 -midas_args=-DPIO2
+tso_prod_cons1_pioc tso_prod_cons1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3f -midas_args=-DTHREAD_COUNT=6 -midas_args=-DPIO2 -midas_args=-DPIO1
+
+<runargs -midas_args=-DJBI_CONFIG>
+tso_prod_cons2_pioa tso_prod_cons2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO1
+tso_prod_cons2_piob tso_prod_cons2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO2
+tso_prod_cons2_pioc tso_prod_cons2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO2 -midas_args=-DPIO1
+
+tso_prod_cons_v1_pioa tso_prod_cons_variation1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO1
+tso_prod_cons_v1_piob tso_prod_cons_variation1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO2
+tso_prod_cons_v1_pioc tso_prod_cons_variation1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=ff -midas_args=-DTHREAD_COUNT=8 -midas_args=-DPIO2 -midas_args=-DPIO1
+
+tso_dekker1_pioa tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO1
+tso_dekker1_piob tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2
+tso_dekker1_pioc tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2  -midas_args=-DPIO1
+tso_dekker1_piod tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO1 -midas_args=-DTHREAD_STRIDE=4
+tso_dekker1_pioe tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2 -midas_args=-DTHREAD_STRIDE=4
+tso_dekker1_piof tso_dekker1_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2 -midas_args=-DPIO1 -midas_args=-DTHREAD_STRIDE=4
+
+tso_dekker2_pioa tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO1
+tso_dekker2_piob tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2
+tso_dekker2_pioc tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2  -midas_args=-DPIO1
+tso_dekker2_piod tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO1 -midas_args=-DTHREAD_STRIDE=4
+tso_dekker2_pioe tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2 -midas_args=-DTHREAD_STRIDE=4
+tso_dekker2_piof tso_dekker2_pio.s -sjm_diag_name=dummy_sjms -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DPIO2 -midas_args=-DPIO1 -midas_args=-DTHREAD_STRIDE=4
+</runargs>
+
+#ifdef CIOP_CHECK
+</ciop_check>
+#endif

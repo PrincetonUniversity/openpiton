@@ -1,0 +1,2 @@
+    -vcs_build_args=-V -lm -lc
+    -vcs_build_args=-lnsl

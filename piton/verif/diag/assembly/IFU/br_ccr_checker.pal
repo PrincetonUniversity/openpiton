@@ -1,0 +1,145 @@
+
+print "#define CIOP\n";
+print "#define THREAD_MASK 0x0000000f\n";
+print "#include \"boot.s\"\n";
+print ".global main\n";
+print "main:\n";
+print "\tmov 0x0, \%r1\n";
+
+@br_inst = ("ba \%icc,",
+           "bn \%icc,",
+           "bne \%icc,",
+           "be \%icc,",
+           "bg \%icc,",
+           "ble \%icc,",
+           "bge \%icc,",
+           "bl \%icc,",
+           "bgu \%icc,",
+           "bleu \%icc,",
+           "bcc \%icc,",
+           "bcs \%icc,",
+           "bpos \%icc,",
+           "bneg \%icc,",
+           "bvc \%icc,",
+           "bvs \%icc,",
+	   "ba,a \%icc,",
+           "bn,a \%icc,",
+           "bne,a \%icc,",
+           "be,a \%icc,",
+           "bg,a \%icc,",
+           "ble,a \%icc,",
+           "bge,a \%icc,",
+           "bl,a \%icc,",
+           "bgu,a \%icc,",
+           "bleu,a \%icc,",
+           "bcc,a \%icc,",
+           "bcs,a \%icc,",
+           "bpos,a \%icc,",
+           "bneg,a \%icc,",
+           "bvc,a \%icc,",
+           "bvs,a \%icc,");
+
+$cnt = 0;
+for $inst (@br_inst) {
+  for ($wrccr = 0; $wrccr < 16; $wrccr++) {
+    $xcc = (rand () * 100) % 10;
+    print "\twr \%g0,"; printf "0x%1x%1x,", $xcc, $wrccr; print "\%ccr\n";
+    $cnt++;
+    print "\t$inst br_label\_$cnt\n";
+    print "\tadd \%r1, 0x1, \%r1\n";
+    print "\tadd \%r1, 0x1, \%r1\n\n";
+    print "br_label\_$cnt:\n";
+  }
+}
+
+@br_inst = ("ba \%xcc,",
+           "bn \%xcc,",
+           "bne \%xcc,",
+           "be \%xcc,",
+           "bg \%xcc,",
+           "ble \%xcc,",
+           "bge \%xcc,",
+           "bl \%xcc,",
+           "bgu \%xcc,",
+           "bleu \%xcc,",
+           "bcc \%xcc,",
+           "bcs \%xcc,",
+           "bpos \%xcc,",
+           "bneg \%xcc,",
+           "bvc \%xcc,",
+           "bvs \%xcc,",
+	   "ba,a \%xcc,",
+           "bn,a \%xcc,",
+           "bne,a \%xcc,",
+           "be,a \%xcc,",
+           "bg,a \%xcc,",
+           "ble,a \%xcc,",
+           "bge,a \%xcc,",
+           "bl,a \%xcc,",
+           "bgu,a \%xcc,",
+           "bleu,a \%xcc,",
+           "bcc,a \%xcc,",
+           "bcs,a \%xcc,",
+           "bpos,a \%xcc,",
+           "bneg,a \%xcc,",
+           "bvc,a \%xcc,",
+           "bvs,a \%xcc,");
+
+for $inst (@br_inst) {
+  for ($wrccr = 0; $wrccr < 16; $wrccr++) {
+    $icc = (rand () * 100) % 10;
+    print "\twr \%g0,"; printf "0x%1x%1x,", $wrccr, $icc; print "\%ccr\n";
+    $cnt++;
+    print "\t$inst br_label\_$cnt\n";
+    print "\tadd \%r1, 0x1, \%r1\n";
+    print "\tadd \%r1, 0x1, \%r1\n\n";
+    print "br_label\_$cnt:\n";
+  }
+}
+
+@br_inst = ("ba",
+           "bn",
+           "bne",
+           "be",
+           "bg",
+           "ble",
+           "bge",
+           "bl",
+           "bgu",
+           "bleu",
+           "bcc",
+           "bcs",
+           "bpos",
+           "bneg",
+           "bvc",
+           "bvs",
+	   "ba,a",
+           "bn,a",
+           "bne,a",
+           "be,a",
+           "bg,a",
+           "ble,a",
+           "bge,a",
+           "bl,a",
+           "bgu,a",
+           "bleu,a",
+           "bcc,a",
+           "bcs,a",
+           "bpos,a",
+           "bneg,a",
+           "bvc,a",
+           "bvs,a");
+
+for $inst (@br_inst) {
+  for ($wrccr = 0; $wrccr < 16; $wrccr++) {
+    $xcc = (rand () * 100) % 10;
+    print "\twr \%g0,"; printf "0x%1x%1x,", $xcc, $wrccr; print "\%ccr\n";
+    $cnt++;
+    print "\t$inst br_label\_$cnt\n";
+    print "\tadd \%r1, 0x1, \%r1\n";
+    print "\tadd \%r1, 0x1, \%r1\n\n";
+    print "br_label\_$cnt:\n";
+  }
+}
+
+print "\tta T_GOOD_TRAP\n";

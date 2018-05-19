@@ -1,0 +1,44 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+//
+// OpenSPARC T1 Processor File: bwioj.tab
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+//
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+//
+// The above named program is distributed in the hope that it will be
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+//
+// ========== Copyright Header End ============================================
+//jbus model
+$init_jbus_model    call=init_jbus_model_call
+$jbus_snoop         call=jbus_snoop_call acc+=rw:%TASK
+$l2_snoop           call=l2_snoop_call
+//io bridge model
+$init_iob_model     call=init_iob_model_call
+$iob_cdriver        call=iob_cdrive_call  acc+=rw:%TASK
+$iob_jdriver        call=iob_jdrive_call  acc+=rw:%TASK
+//system level pli
+$ssi_drive          call=ssi_drive_call
+$bw_sys             call=bw_sys_call
+//l2 warm
+$l2_warm            call=l2_warm_call
+$l1_warm            call=l1_warm_call
+$l2_error_enjection call=l2_error_call
+$pc_trigger_event   call=pc_trigger_call
+$stale_dram         call=stale_dram_call
+$slam_cache         call=slam_call
+//$warm_reg           call=warm_call
+$read_64b            call=read_64b_call
+$write_64b           call=write_64b_call
+//oram init
+$init_oram          call=init_oram_call

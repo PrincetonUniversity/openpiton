@@ -1,0 +1,398 @@
+
+=head1 NAME
+
+Bit::Vector::String - Generic string import/export for Bit::Vector
+
+=head1 SYNOPSIS
+
+  use Bit::Vector::String;
+
+  to_Oct
+      $string = $vector->to_Oct();
+
+  from_Oct
+      $vector->from_Oct($string);
+
+  new_Oct
+      $vector = Bit::Vector->new_Oct($bits,$string);
+
+  String_Export
+      $string = $vector->String_Export($type);
+
+  String_Import
+      $type = $vector->String_Import($string);
+
+  new_String
+      $vector = Bit::Vector->new_String($bits,$string);
+      ($vector,$type) = Bit::Vector->new_String($bits,$string);
+
+=head1 DESCRIPTION
+
+=over 2
+
+=item *
+
+C<$string = $vector-E<gt>to_Oct();>
+
+Returns an octal string representing the given bit vector.
+
+Note that this method is not particularly efficient, since it
+is almost completely realized in Perl, and moreover internally
+operates on a Perl list of individual octal digits which it
+concatenates into the final string using "C<join('', ...)>".
+
+A benchmark reveals that this method is about 40 times slower
+than the method "C<to_Bin()>" (which is realized in C):
+
+ Benchmark: timing 10000 iterations of to_Bin, to_Hex, to_Oct...
+     to_Bin:  1 wallclock secs ( 1.09 usr +  0.00 sys =  1.09 CPU)
+     to_Hex:  1 wallclock secs ( 0.53 usr +  0.00 sys =  0.53 CPU)
+     to_Oct: 40 wallclock secs (40.16 usr +  0.05 sys = 40.21 CPU)
+
+Note that since an octal digit is always worth three bits,
+the length of the resulting string is always a multiple of
+three bits, regardless of the true length (in bits) of the
+given bit vector.
+
+Also note that the B<LEAST> significant octal digit is
+located at the B<RIGHT> end of the resulting string, and
+the B<MOST> significant digit at the B<LEFT> end.
+
+Finally, note that this method does B<NOT> prepend any uniquely
+identifying format prefix (such as "0o") to the resulting string
+(which means that the result of this method only contains valid
+octal digits, i.e., [0-7]).
+
+However, this can of course most easily be done as needed,
+as follows:
+
+  $string = '0o' . $vector->to_Oct();
+
+=item *
+
+C<$vector-E<gt>from_Oct($string);>
+
+Allows to read in the contents of a bit vector from an octal string,
+such as returned by the method "C<to_Oct()>" (see above).
+
+Note that this method is not particularly efficient, since it is
+almost completely realized in Perl, and moreover chops the input
+string into individual characters using "C<split(//, $string)>".
+
+Remember also that the least significant bits are always to the
+right of an octal string, and the most significant bits to the left.
+Therefore, the string is actually reversed internally before storing
+it in the given bit vector using the method "C<Chunk_List_Store()>",
+which expects the least significant chunks of data at the beginning
+of a list.
+
+A benchmark reveals that this method is about 40 times slower than
+the method "C<from_Bin()>" (which is realized in C):
+
+ Benchmark: timing 10000 iterations of from_Bin, from_Hex, from_Oct...
+   from_Bin:  1 wallclock secs ( 1.13 usr +  0.00 sys =  1.13 CPU)
+   from_Hex:  1 wallclock secs ( 0.80 usr +  0.00 sys =  0.80 CPU)
+   from_Oct: 46 wallclock secs (44.95 usr +  0.00 sys = 44.95 CPU)
+
+If the given string contains any character which is not an octal digit
+(i.e., [0-7]), a fatal syntax error ensues ("unknown string type").
+
+Note especially that this method does B<NOT> accept any uniquely
+identifying format prefix (such as "0o") in the given string; the
+presence of such a prefix will also lead to the fatal "unknown
+string type" error.
+
+If the given string contains less octal digits than are needed to
+completely fill the given bit vector, the remaining (most significant)
+bits all remain cleared (i.e., set to zero).
+
+This also means that, even if the given string does not contain
+enough digits to completely fill the given bit vector, the previous
+contents of the bit vector are erased completely.
+
+If the given string is longer than it needs to fill the given bit
+vector, the superfluous characters are simply ignored.
+
+This behaviour is intentional so that you may read in the string
+representing one bit vector into another bit vector of different
+size, i.e., as much of it as will fit.
+
+=item *
+
+C<$vector = Bit::Vector-E<gt>new_Oct($bits,$string);>
+
+This method is an alternative constructor which allows you to create
+a new bit vector object (with "C<$bits>" bits) and to initialize it
+all in one go.
+
+The method internally first calls the bit vector constructor method
+"C<new()>" and then stores the given string in the newly created
+bit vector using the same approach as the method "C<from_Oct()>"
+(described above).
+
+Note that this approach is not particularly efficient, since it
+is almost completely realized in Perl, and moreover chops the input
+string into individual characters using "C<split(//, $string)>".
+
+An exception will be raised if the necessary memory cannot be allocated
+(see the description of the method "C<new()>" in L<Bit::Vector(3)> for
+possible causes) or if the given string cannot be converted successfully
+(see the description of the method "C<from_Oct()>" above for details).
+
+Note especially that this method does B<NOT> accept any uniquely
+identifying format prefix (such as "0o") in the given string and that
+such a prefix will lead to a fatal "unknown string type" error.
+
+In case of an error, the memory occupied by the new bit vector is
+released again before the exception is actually thrown.
+
+If the number of bits "C<$bits>" given has the value "C<undef>",
+the method will automatically allocate a bit vector with a size
+(i.e., number of bits) of three times the length of the given string
+(since every octal digit is worth three bits).
+
+Note that this behaviour is different from that of the methods
+"C<new_Hex()>", "C<new_Bin()>", "C<new_Dec()>" and "C<new_Enum()>"
+(which are realized in C, internally); these methods will silently
+assume a value of 0 bits if "C<undef>" is given (and may warn
+about the "Use of uninitialized value" if warnings are enabled).
+
+=item *
+
+C<$string = $vector-E<gt>String_Export($type);>
+
+Returns a string representing the given bit vector in the
+format specified by "C<$type>":
+
+  1 | b | bin      =>  binary        (using "to_Bin()")
+  2 | o | oct      =>  octal         (using "to_Oct()")
+  3 | d | dec      =>  decimal       (using "to_Dec()")
+  4 | h | hex | x  =>  hexadecimal   (using "to_Hex()")
+  5 | e | enum     =>  enumeration   (using "to_Enum()")
+  6 | p | pack     =>  packed binary (using "Block_Read()")
+
+The case (lower/upper/mixed case) of "C<$type>" is ignored.
+
+If "C<$type>" is omitted or "C<undef>" or false ("0"
+or the empty string), a hexadecimal string is returned
+as the default format.
+
+If "C<$type>" does not have any of the values described
+above, a fatal "unknown string type" will occur.
+
+Beware that in order to guarantee that the strings can
+be correctly parsed and read in by the methods
+"C<String_Import()>" and "C<new_String()>" (described
+below), the method "C<String_Export()>" provides
+uniquely identifying prefixes (and, in one case,
+a suffix) as follows:
+
+  1 | b | bin      =>  '0b' . $vector->to_Bin();
+  2 | o | oct      =>  '0o' . $vector->to_Oct();
+  3 | d | dec      =>         $vector->to_Dec(); # prefix is [+-]
+  4 | h | hex | x  =>  '0x' . $vector->to_Hex();
+  5 | e | enum     =>  '{'  . $vector->to_Enum() . '}';
+  6 | p | pack     =>  ':'  . $vector->Size() .
+                       ':'  . $vector->Block_Read();
+
+This is necessary because certain strings can be valid
+representations in more than one format.
+
+All strings in binary format, i.e., which only contain "0"
+and "1", are also valid number representations (of a different
+value, of course) in octal, decimal and hexadecimal.
+
+Likewise, a string in octal format is also valid in decimal
+and hexadecimal, and a string in decimal format is also valid
+in hexadecimal.
+
+Moreover, if the enumeration of set bits (as returned by
+"C<to_Enum()>") only contains one element, this element could
+be mistaken for a representation of the entire bit vector
+(instead of just one bit) in decimal.
+
+Beware also that the string returned by format "6" ("packed
+binary") will in general B<NOT BE PRINTABLE>, because it will
+usually consist of many unprintable characters!
+
+=item *
+
+C<$type = $vector-E<gt>String_Import($string);>
+
+Allows to read in the contents of a bit vector from a string
+which has previously been produced by "C<String_Export()>",
+"C<to_Bin()>", "C<to_Oct()>", "C<to_Dec()>", "C<to_Hex()>",
+"C<to_Enum()>", "C<Block_Read()>" or manually or by another
+program.
+
+Beware however that the string must have the correct format;
+otherwise a fatal "unknown string type" error will occur.
+
+The correct format is the one returned by "C<String_Export()>"
+(see immediately above).
+
+The method will also try to automatically recognize formats
+without identifying prefix such as returned by the methods
+"C<to_Bin()>", "C<to_Oct()>", "C<to_Dec()>", "C<to_Hex()>"
+and "C<to_Enum()>".
+
+However, as explained above for the method "C<String_Export()>",
+due to the fact that a string may be a valid representation in
+more than one format, this may lead to unwanted results.
+
+The method will try to match the format of the given string
+in the following order:
+
+If the string consists only of [01], it will be considered
+to be in binary format (although it could be in octal, decimal
+or hexadecimal format or even be an enumeration with only
+one element as well).
+
+If the string consists only of [0-7], it will be considered
+to be in octal format (although it could be in decimal or
+hexadecimal format or even be an enumeration with only
+one element as well).
+
+If the string consists only of [0-9], it will be considered
+to be in decimal format (although it could be in hexadecimal
+format or even be an enumeration with only one element as well).
+
+If the string consists only of [0-9A-Fa-f], it will be considered
+to be in hexadecimal format.
+
+If the string only contains numbers in decimal format, separated
+by commas (",") or dashes ("-"), it is considered to be an
+enumeration (a single decimal number also qualifies).
+
+And if the string starts with ":[0-9]:", the remainder of the
+string is read in with "C<Block_Store()>".
+
+To avoid misinterpretations, it is therefore recommendable to
+always either use the method "C<String_Export()>" or to provide
+some uniquely identifying prefix (and suffix, in one case)
+yourself:
+
+  binary         =>  '0b' . $string;
+  octal          =>  '0o' . $string;
+  decimal        =>  '+'  . $string; # in case "$string"
+                 =>  '-'  . $string; # has no sign yet
+  hexadecimal    =>  '0x' . $string;
+                 =>  '0h' . $string;
+  enumeration    =>  '{'  . $string . '}';
+                 =>  '['  . $string . ']';
+                 =>  '<'  . $string . '>';
+                 =>  '('  . $string . ')';
+  packed binary  =>  ':'  . $vector->Size() .
+                     ':'  . $vector->Block_Read();
+
+Note that case (lower/upper/mixed case) is not important
+and will be ignored by this method.
+
+Internally, the method uses the methods "C<from_Bin()>",
+"C<from_Oct()>", "C<from_Dec()>", "C<from_Hex()>",
+"C<from_Enum()>" and "C<Block_Store()>" for actually
+importing the contents of the string into the given
+bit vector. See their descriptions here in this document
+and in L<Bit::Vector(3)> for any further conditions that
+must be met and corresponding possible fatal error messages.
+
+The method returns the number of the format that has been
+recognized:
+
+                1    =>    binary
+                2    =>    octal
+                3    =>    decimal
+                4    =>    hexadecimal
+                5    =>    enumeration
+                6    =>    packed binary
+
+=item *
+
+C<$vector = Bit::Vector-E<gt>new_String($bits,$string);>
+
+C<($vector,$type) = Bit::Vector-E<gt>new_String($bits,$string);>
+
+This method is an alternative constructor which allows you to create
+a new bit vector object (with "C<$bits>" bits) and to initialize it
+all in one go.
+
+The method internally first calls the bit vector constructor method
+"C<new()>" and then stores the given string in the newly created
+bit vector using the same approach as the method "C<String_Import()>"
+(described immediately above).
+
+An exception will be raised if the necessary memory cannot be allocated
+(see the description of the method "C<new()>" in L<Bit::Vector(3)> for
+possible causes) or if the given string cannot be converted successfully
+(see the description of the method "C<String_Import()>" above for details).
+
+In case of an error, the memory occupied by the new bit vector is
+released again before the exception is actually thrown.
+
+If the number of bits "C<$bits>" given has the value "C<undef>", the
+method will automatically determine this value for you and allocate
+a bit vector of the calculated size.
+
+Note that this behaviour is different from that of the methods
+"C<new_Hex()>", "C<new_Bin()>", "C<new_Dec()>" and "C<new_Enum()>"
+(which are realized in C, internally); these methods will silently
+assume a value of 0 bits if "C<undef>" is given (and may warn
+about the "Use of uninitialized value" if warnings are enabled).
+
+The necessary number of bits is calculated as follows:
+
+  binary         =>       length($string);
+  octal          =>   3 * length($string);
+  decimal        =>  int( length($string) * log(10) / log(2) + 1 );
+  hexadecimal    =>   4 * length($string);
+  enumeration    =>  maximum of values found in $string + 1
+  packed binary  =>  $string =~ /^:(\d+):/;
+
+If called in scalar context, the method returns the newly created
+bit vector object.
+
+If called in list context, the method additionally returns the
+number of the format which has been recognized, as explained
+above for the method "C<String_Import()>".
+
+=back
+
+=head1 SEE ALSO
+
+Bit::Vector(3), Bit::Vector::Overload(3).
+
+=head1 VERSION
+
+This man page documents "Bit::Vector::String" version 6.4.
+
+=head1 AUTHOR
+
+  Steffen Beyer
+  mailto:sb@engelschall.com
+  http://www.engelschall.com/u/sb/download/
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 by Steffen Beyer. All rights reserved.
+
+=head1 LICENSE
+
+This package is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself, i.e., under the
+terms of the "Artistic License" or the "GNU General Public License".
+
+The C library at the core of this Perl module can additionally
+be redistributed and/or modified under the terms of the "GNU
+Library General Public License".
+
+Please refer to the files "Artistic.txt", "GNU_GPL.txt" and
+"GNU_LGPL.txt" in this distribution for details!
+
+=head1 DISCLAIMER
+
+This package is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+See the "GNU General Public License" for more details.
+

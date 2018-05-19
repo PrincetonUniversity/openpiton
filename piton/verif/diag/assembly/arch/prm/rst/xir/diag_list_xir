@@ -1,0 +1,31 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: diag_list_xir
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+xir_wr_regs1 	xir_wr_regs1.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_wr_regs2 	xir_wr_regs2.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_ic_tag 	xir_ic_tag.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000 -sim_run_args=+l1_chkoff
+xir_ic_instr 	xir_ic_instr.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_ic_instr 	xir_ic_instr.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_dc_tag_no_par_check xir_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000 -sim_run_args=+l1_chkoff
+xir_l2_tag_data xir_l2_tag_data.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+xir_tlb 	xir_tlb.s         -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_err_en 	xir_err_en.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+xir_pcr_pic 	xir_pcr_pic.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000

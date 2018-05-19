@@ -1,0 +1,77 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: iob_tap_7.tap
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////////////////////
+//
+//  Diag Name:          iob_tap (iob tap read write)
+//  Description:        This diag contains register map which tap stub
+//                      would use to verify read and write access to   
+//                      registers in io space.
+//
+////////////////////////////////////////////////////////////////////////
+WRI 9800002000 0000000000000000
+RDC 9800002000 0000000000000000 000000000000016f
+WRI 9800002000 5555555555555555
+RDC 9800002000 5555555555555555 000000000000016f
+WRI 9800002000 aaaaaaaaaaaaaaaa
+RDC 9800002000 aaaaaaaaaaaaaaaa 000000000000016f
+WRI 9800002000 ffffffffffffffff
+RDC 9800002000 ffffffffffffffff 000000000000016f
+WRI 9800002008 0000000000000000
+RDC 9800002008 0000000000000000 000000ffffffffff
+WRI 9800002008 5555555555555555
+RDC 9800002008 5555555555555555 000000ffffffffff
+WRI 9800002008 aaaaaaaaaaaaaaaa
+RDC 9800002008 aaaaaaaaaaaaaaaa 000000ffffffffff
+WRI 9800002008 ffffffffffffffff
+RDC 9800002008 ffffffffffffffff 000000ffffffffff
+WRI 9800002140 0000000000000000
+RDC 9800002140 0000000000000000 00003fffffffffff
+WRI 9800002140 5555555555555555
+RDC 9800002140 5555555555555555 00003fffffffffff
+WRI 9800002140 aaaaaaaaaaaaaaaa
+RDC 9800002140 aaaaaaaaaaaaaaaa 00003fffffffffff
+WRI 9800002140 ffffffffffffffff
+RDC 9800002140 ffffffffffffffff 00003fffffffffff
+WRI 9800002160 0000000000000000
+RDC 9800002160 0000000000000000 00003fffffffffff
+WRI 9800002160 5555555555555555
+RDC 9800002160 5555555555555555 00003fffffffffff
+WRI 9800002160 aaaaaaaaaaaaaaaa
+RDC 9800002160 aaaaaaaaaaaaaaaa 00003fffffffffff
+WRI 9800002160 ffffffffffffffff
+RDC 9800002160 ffffffffffffffff 00003fffffffffff
+WRI 9800002180 0000000000000000
+RDC 9800002180 0000000000000000 00003fffffffffff
+WRI 9800002180 5555555555555555
+RDC 9800002180 5555555555555555 00003fffffffffff
+WRI 9800002180 aaaaaaaaaaaaaaaa
+RDC 9800002180 aaaaaaaaaaaaaaaa 00003fffffffffff
+WRI 9800002180 ffffffffffffffff
+RDC 9800002180 ffffffffffffffff 00003fffffffffff
+WRI 98000021a0 0000000000000000
+RDC 98000021a0 0000000000000000 00003fffffffffff
+WRI 98000021a0 5555555555555555
+RDC 98000021a0 5555555555555555 00003fffffffffff
+WRI 98000021a0 aaaaaaaaaaaaaaaa
+RDC 98000021a0 aaaaaaaaaaaaaaaa 00003fffffffffff
+WRI 98000021a0 ffffffffffffffff
+RDC 98000021a0 ffffffffffffffff 00003fffffffffff

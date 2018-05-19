@@ -1,0 +1,1147 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: procvlog,1.99
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+
+use strict;
+use IO::Handle;
+use Getopt::Long;
+
+sub update_regs;
+sub print_regs;
+sub error;
+sub b2h;
+sub format_time;
+
+$SIG{__WARN__} = sub {die $_[0]};
+
+# Initialize and defines all kinds of variables
+#----------------------------------------------
+$| = 1; 				# autoflush
+my(@gl);				# global register level per thread
+my(@tl);				# trap level per thread
+my(@cwp);				# current window pointer per thread
+my($logfile);				# what file to read
+
+# global, FP, integer,  asi registers
+my(@gregs, @fpregs, @regs, @asi_reg);
+
+my($pc, $inst);				# program counter, instructions
+my(%diag_code, %label);			# disassembled diag code and labels
+my($time, $spc, $thr, $proc, $reg, $val, $win, $instr, $tmp);
+my(@instr_list);			# instruction list
+my($PROG)       = ($0=~ m%([^/]+)$%);   # regreport real name
+
+my(%miss);				# additional info - less important
+my(%notintlb);				# additional info - less important 
+
+my($i, $k);
+my $version =  '1.99';
+
+print "===============================================\n";
+print "=== OpenSPARC T1 ProcVlog Version $version      ===\n";
+print "===============================================\n";
+
+my @Options = qw( debug sas mom h help ccx l2 dram cycles sort! perf);
+my %opt = ();
+$opt{debug}	= 0;
+$opt{sas}	= 0;
+$opt{mom}	= 0;
+$opt{h}		= 0;
+$opt{help}	= 0;
+$opt{ccx}	= 0;
+$opt{l2}	= 0;
+$opt{dram}	= 0;
+$opt{cycles}	= 0;
+$opt{sort}	= 1;
+$opt{perf}	= 0;
+
+GetOptions(\%opt, @Options) or die "Error in arguments!\n";
+my($debug) 	= $opt{debug};
+my($sas) 	= $opt{sas};
+my($mom) 	= $opt{mom};
+my($ccx) 	= $opt{ccx};
+my($l2) 	= $opt{l2};
+my($dram) 	= $opt{dram};
+my($h) 		= $opt{h};
+my($help)	= $opt{help};
+my($cycles)	= $opt{cycles};
+my($sorti)	= $opt{sort};
+my($perf)	= $opt{perf};
+
+
+if($h || $help) {
+    print "===============================================\n";
+    print "=== Version $PROG ===\n";
+    print "Usage:   procvlog [logfilename|path_to_sim.log] [-debug -h -ccx -l2 -dram -cycles -[no]sort] [-perf] \n";
+    print "-ccx  	prints ccx related messages\n";
+    print "-l2  	prints l2 related messages\n";
+    print "-dram  	prints dram related messages\n";
+    print "-h       	prints out this screen\n";
+    print "-debug   	is for  script debug\n";
+    print "           	It will probably be obsoleted in the future \n";
+    print "-cycles 	prints the cycles and not the time             \n";
+    print "-sort 	will sort sim.log according to time stamps first [default is on]\n";
+    print "-perf 	will print all kinds of performance data - I, D miss e.t.c.\n";
+    print "-mom 	Special mom sas.log file processing\n";
+    print "===============================================\n";
+    print "Examples:\n";
+    print "procvlog -ccx -l2 -dram 	>! procvlog.log\n";
+    print "procvlog         		>! procvlog.log\n";
+    print "procvlog <my_path>/sim.log  	>! procvlog.log\n";
+    print "===============================================\n";
+    exit 0;
+  }
+
+if($debug)	{ print "Debug mode on\n"; }
+if($sas)	{ print "sas mode\n"; }
+if($mom)	{ print "mom mode\n"; }
+if($sorti)	{ print "sort mode\n"; }
+if($perf)	{ print "perf mode\n"; }
+
+#==========================================
+# initialize register hashes.
+#==========================================
+for ($i = 0; $i < 32; $i++){
+  $tl[$i] = 5;
+  $gl[$i] = 3;
+  $cwp[$i] = 0;
+  $asi_reg[$i] = "x";
+  for ($k = 0; $k < 32; $k++){
+    $gregs[$i][$k] = "x";
+  }
+  $gregs[$i][0]  = 0x0;
+  $gregs[$i][8]  = 0x0;
+  $gregs[$i][16] = 0x0;
+  $gregs[$i][24] = 0x0;
+
+  for ($k = 0; $k < 64; $k++){
+    $fpregs[$i][$k] = "x";
+  }
+
+  for ($k = 0; $k < 256; $k++){
+    $regs[$i][$k] = "x";
+  }
+}
+
+
+#==========================================
+# figure out logfile to read
+#==========================================
+my $logfilename = $mom ? "sas.log" : "sim.log";
+
+if($#ARGV >= 0){
+
+  my @pathname = split '/' , $ARGV[0];
+  if($pathname[$#pathname] =~ /$logfilename/){
+    $#pathname--;
+  }
+  if(scalar(@pathname)){
+    chdir join '/', @pathname or die "cannot change dir\n";
+    print "changed dir to ";
+  }else{
+    print "current dir is ";
+  }
+  my $temp = `pwd`;
+  print "$temp\n";
+}
+
+$logfile= (-f $logfilename)    ? $logfilename :
+          (-f "$logfilename.gz") ? "$logfilename.gz" :
+          &error("Logfile $logfilename or $logfilename.gz not found");
+
+
+print "\n===== Opening $logfile ======\n";
+#-------------------------------------
+# log file in N1 is unsorted mess. 
+# sort it unless soritng is disabled.
+# sort by forking a sorting process.
+#-------------------------------------
+if($sorti && !$mom){
+  my $pid = open(VCS, "-|");
+  unless (defined $pid){die "cannot fork $!\n"}
+  if(!$pid){sorti();}
+}
+else{
+  if($logfile =~ /\.gz$/) {
+    open(VCS, "gunzip -c  $logfile |") || die "cannot open gunzip -c $logfile";
+  }else{
+    open(VCS, "< $logfile") || die "cannot open $logfile";
+  }
+}
+
+#============================================================
+
+# get the labels inside the diag.s
+if((! -f "symbol.tbl") &&(-f "symbol.tbl.gz")){
+  system("gunzip symbol.tbl.gz");
+}
+
+if(! -f "symbol.tbl") {print "no symbol.tbl\n"; exit 0;}
+open(SYM , "symbol.tbl")  || die " BAD BAD symbol.tbl opening";
+while(<SYM>){
+  chop;
+  s/\.\w+\.//g;
+  my @symline = split /\s+/;
+  if($#symline != 3){die "something is wrong with symbol.tbl\n";}
+
+  my $pc = truncate_len($symline[1]);
+  if(exists $label{$pc} and $label{$pc} eq 'main'){
+    next;
+  }
+  $label{$pc} = $symline[0];
+  print "label $label{$pc}, $pc\n" if($debug);
+}
+
+# disassemble the diag.
+#---------------------
+my(@diag_exe_files) = `ls diag*.exe*`;
+if(!(@diag_exe_files)){ 
+  print "Warning: No diag.\*exe files!!!\n";
+}
+else{
+  my($exe_file, $exe_file_gz);
+  foreach $exe_file (@diag_exe_files){
+    chop $exe_file;
+    $exe_file_gz = $exe_file . ".gz";
+    if(!(-e $exe_file) && (-e $exe_file_gz)){ system("gunzip $exe_file_gz"); }
+    print "Will extract instruction info from:  $exe_file \n";
+
+    open(DIS, "g_objdump -m sparc:v9B -d $exe_file | ") || die "BAD objdump";
+    while(<DIS>){
+      s/^\s+//;
+      if(/^([a-f\d]+):\s+.. .. .. ..\s+(.*)$/) {
+        $pc = truncate_len($1);
+        $inst = $2;
+
+        $inst =~ s/\s*!.*$//;
+        if($inst =~ /\((\d+)\)/){	# convert from decimal to hex.
+	  my $inst_left  = $` . '(0x'; 
+	  my $inst_cent  = sprintf("%lx",$1);
+	  my $inst_right  = ')' . $';
+          my $asi_str = asi_mnem($inst_cent);
+          $inst = $inst_left . $inst_cent . ' ' . $asi_str . $inst_right;
+        }
+        $diag_code{$pc}= $inst;
+      }
+
+    }	### of while...
+    close(DIS);
+
+  } ### of foreach
+} # of if
+
+
+$| = 0; 	# autoflush
+#============================================================
+my $found_ctime = 0;
+my $pll_freq    = 0;
+my $cmp_clk_divider    = 0;
+my($ctime) 	= 0;
+
+# the main loop:
+#---------------
+while(<VCS>) {
+  chop;
+
+  s/-MATCH/-updated/g;
+
+  if(/MISMATCH/)	{ print ;print "\n"; next;}
+  elsif(/timeout/i)	{ print ;print "\n"; next;}
+  elsif(/error/i)	{ print ;print "\n"; next;}
+  elsif(/fail/i)	{ print ;print "\n"; next;}
+  elsif(/wrong/i)	{ print ;print "\n"; next;}
+  elsif(/good trap/i)	{ print ;print "\n"; next;}
+
+# some messing around needed to calculate the clock period.
+#----------------------------------------------------------
+  elsif(/cmp_clk period\s*=\s*(\d+)/){
+    $ctime = $1;
+    print "cycle time is $ctime\n";
+    die "Found clock period of 0!\n" unless $ctime;
+    $found_ctime = 1;
+  }
+  elsif(!$found_ctime && /cmp_clk divider\s*=\s*(\d+)/){
+    $cmp_clk_divider = $1;
+    print "cmp_clk_divider is $cmp_clk_divider\n";
+  }
+  elsif(!$found_ctime && /pll_clk frequency\s*=\s*(\d+)/i){
+    $pll_freq = $1;
+    print "pll_freq time is $pll_freq\n";
+  }
+  elsif(!$found_ctime && /Selected Core Clock Frequency\s(\d+)\s*MHz/){
+    if($pll_freq && $cmp_clk_divider){
+      my $pll_period;
+      my %pll_periods = (	# HACK!  These are periods hardcoded from cmp_clk.v.
+               2000 => 250,	# Hopefully, we're using a version of hte model that has the
+               2200 => 227,	# "cmp_period" defined, so we don't have to use this.
+               2333 => 214,
+	       2334 => 214,
+               2400 => 208,
+               2550 => 196,
+               2600 => 192,
+               2800 => 179,
+               default => 208,
+              );
+      $pll_period = exists $pll_periods{$pll_freq} ? $pll_periods{$pll_freq} : $pll_periods{default};
+      $ctime = $pll_period * 2 * $cmp_clk_divider;
+      print "Computed cycle_period from PLL ($pll_freq) and div ".  "($cmp_clk_divider): $ctime\n";
+    } else {
+# Couldn't find anything but the frequency message.  Use that.
+#------------------------------------------------------------
+      my $freq = $1;
+      $ctime = int(1 / $freq * 1000000);
+      print "Guessed at cycle_period from frequency ($freq): $ctime\n";
+    }
+    $found_ctime = 1;
+  }
+#=============================
+# example line:
+#567: [th02] <v:0x0000000000134000> <    not in tlb    >
+# this is not very important`. It was nice to the perofrmace
+# debuggers.
+#=============================
+  elsif(/th([\dabcdef]+)\]\s+\<v:0x(\w+)>.*not in tlb/i){
+    $spc  = $1 / 4;
+    $thr  = $1 % 4;
+    $val  = truncate_len($2);
+    $notintlb{$spc}{$thr}{$val} = 1;
+    print "switch on tlb message $_\n" if($debug);
+  }
+# this is VERY IMPORTANT - the register updates:
+  elsif(/^(\d+):.*reg.updated\s*->\s*spc.(\d).\s*thread.(\d)/){
+    $time = format_time($1, $ctime, $cycles);
+    $spc  = $2;
+    $thr  = $3;
+    $proc  = 4 * $spc + $thr;
+
+    if(/float_reg.updated.*reg#\((\w+)\).*val = (\w+)/){
+       $reg   = "%" . $1;
+       $val = $2;
+       
+       printf "%-10s: C%dT%d\t\tFPREG UPDATE <%s = %s>\n", $time, $spc, $thr, $reg, $val;
+       update_regs;
+
+       my @chars = split //, $val;
+       if($#chars > 7){
+         if($reg =~ /%[df](\d+)/){
+           my $newreg =  $1 + 1;
+           $reg   = "%f" . $newreg;
+           $val   = substr $val, 8;
+           update_regs;
+         }
+         else{
+           die " $time:  something is wrong with FP updates\n";
+         }
+       }
+    }
+    elsif(/window.(\w+).*reg#\((\w+)\).*val = (\w+)/){
+       $win = $1;
+       $reg = "%" . $2;
+       $val = $3;
+       printf          "%-10s: C%dT%d\t\tREG UPDATE <%s = %s> in window %s\n", $time, $spc, $thr, $reg, $val, $win;
+       update_regs;
+    }
+    elsif(/asi_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      $asi_reg[$proc] = $2;
+      printf "%-10s: C%dT%d\t\tASI REG UPDATE <ASI = $2> in window %s\n", $time, $spc, $thr, $1;
+    }
+    elsif(/canrestore_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      printf "%-10s: C%dT%d\t\tCANRESTORE REG UPDATE <CANRESTORE = $2> in window %s\n", $time, $spc, $thr, $1;
+    }
+    elsif(/cansave_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      printf "%-10s: C%dT%d\t\tCANSAVE REG UPDATE <CANSAVE = $2> in window %s\n", $time, $spc, $thr, $1;
+    }
+    elsif(/ccr_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      printf "%-10s: C%dT%d\t\tCCR REG UPDATE <CCR = $2> in window %s\n", $time, $spc, $thr, $1;
+    }
+    elsif(/cleanwin_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      printf "%-10s: C%dT%d\t\tCLEANWIN REG UPDATE <CLEANWIN = $2> in window %s\n", $time, $spc, $thr, $1;
+    }
+    elsif(/cwp_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tCWP REG UPDATE <CWP = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+      $cwp[$proc] = $1;
+    }
+    elsif(/hpstate_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tHPSTATE REG UPDATE <HPSTATE = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/htba_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tHTBA REG UPDATE <HTBA = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/hstate2_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tHSTATE2 REG UPDATE <HSTATE2 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/hstate3_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tHSTATE3 REG UPDATE <HSTATE3 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/otherwin_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tOTHERWIN REG UPDATE <OTHERWIN = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/pil_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tPIL REG UPDATE <PIL = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/pstate_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tPSTATE REG UPDATE <PSTATE = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/tba_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTBA REG UPDATE <TBA = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/tl_reg.updated.*window.(\w+).*val = (\w+)/){
+      $tl[$proc] = $2;
+      printf "%-10s: C%dT%d\t\tTL REG UPDATE <TL = %d>\n", $time, $spc, $thr, $tl[$proc];
+    }
+    elsif(/gl_reg.updated.*window.(\w+).*val = 0*(\w+)/){
+      $gl[$proc] = $2;
+      printf "%-10s: C%dT%d\t\tGL REG UPDATE <GL = $2>\n", $time, $spc, $thr;
+    }
+    elsif(/tstate1_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTSTATE1 REG UPDATE <TSTATE1 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/tstate2_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTSTATE2 REG UPDATE <TSTATE2 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/ttype1_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTTYPE1 REG UPDATE <TTYPE1 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/ttype2_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTTYPE2 REG UPDATE <TTYPE2 = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/wstate_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tWSTATE REG UPDATE <WSTATE = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/hstick_cmpr_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tHSTICK_CMPR REG UPDATE <TICK_CMPR = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/stick_cmpr_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tSTICK_CMPR REG UPDATE <TICK_CMPR = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/tick_cmpr_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tTICK_CMPR REG UPDATE <TICK_CMPR = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    elsif(/y_reg.updated.*window.(\w+).*val = (\w+)/){
+      printf "%-10s: C%dT%d\t\tY REG UPDATE <Y = %s> in window %s\n", $time, $spc, $thr, $2, $1;
+    }
+    else{
+      print  "$_ - an undetected register\n" if ($debug);
+    }
+  }
+#================================
+# VERY IMPORTANT - PC extraction
+# the notintlb and miss info
+# is just nice to have.
+# everything else is crucial.
+#================================
+  elsif(!$sas && /info-perm/i){
+    if(/^.(\d+).info-perm\s+thread.([\dabcdef]+).\s+pc.(\w+)/i){
+      $time = format_time($1, $ctime, $cycles);
+      $proc = hex ($2);
+      $spc  = int ($proc / 4);
+      $thr  = $proc % 4 ;
+      $val  = truncate_len($3);
+    }
+    else{
+      die "See this\n$_\nsomething is wrong with the PC extraction\n";
+    }
+
+    $instr = $diag_code{$val};
+    if($label{$val}){
+       printf "%-10s: C%dT%d ======================================\n", $time, $spc, $thr;
+       printf "%-10s: C%dT%d LABEL <%s>:\n", $time, $spc, $thr, $label{$val};
+    }
+
+    if($instr){
+       my($notintlb, $imiss, $dmiss, $short_val);
+       $val =~ /(\w{8})$/;
+       $short_val = $1;
+       if((exists $miss{I}{$spc}{$thr}{$short_val}) && ( $miss{I}{$spc}{$thr}{$short_val} == 1) && $perf){
+         $imiss = 'IMISS';
+         $miss{I}{$spc}{$thr}{$short_val} = 0;
+       }
+       else{
+         $imiss = '';
+       }
+
+       if((exists $miss{D}{$spc}{$thr}{$short_val}) && ( $miss{D}{$spc}{$thr}{$short_val} == 1) && $perf){
+         $dmiss = 'DMISS';
+         $miss{D}{$spc}{$thr}{$short_val} = 0;
+       }
+       else{
+         $dmiss = '';
+       }
+
+       if(exists $notintlb{$spc}{$thr}{$val} && $notintlb{$spc}{$thr}{$val} && $perf){
+         $notintlb = "not in tlb";
+         $notintlb{$spc}{$thr}{$val} = 0;
+        print "switch off tlb message $_\n" if($debug);
+       }
+       else{
+         $notintlb = '';
+       }
+       if($instr =~ /%asi/){
+          my $asi_str = asi_mnem($asi_reg[$proc]); 
+          $instr =~ s/%asi/%asi ($asi_reg[$proc] $asi_str)/;
+       }
+
+       printf "%-10s: C%dT%d v%-12s \t%-30s $notintlb $imiss $dmiss\n", $time, $spc, $thr,  $val, $instr;
+       $instr =~ s/[,\[\]]//g;
+       if($instr =~ /%fp\W|%sp\W|%fp$|%sp$/){
+         $instr =~ s/%fp/%i6/g;
+         $instr =~ s/%sp/%o6/g;
+       }
+
+       @instr_list = split /\s+/, $instr;
+       print_regs;
+    }
+    else{
+      printf "%-10s: C%dT%d v%-12s \tWARNING probably illegal instruction - could not translate\n", $time, $spc, $thr,  $val;
+    }
+  }
+
+#====================================
+# also very important - SAS only runs
+#====================================
+  elsif($sas && /^\((\d+)\):sas>\s+\d+:\s+\[th([\dabcdef]+)\]\s+<v:0x(\w+)>\s+<p:0*(\w+)>\s(.*)/){
+    $time = format_time($1, $ctime, $cycles);
+    $proc = hex ($2);
+    $spc  = $proc / 4;
+    $thr  = $2 % 4;
+    $val  = truncate_len($3);
+    my($pa) = $4;
+    $instr = $5;
+
+    if(exists $label{$val}){
+      printf "%-10s: C%dT%d ======================================\n", $time, $spc, $thr;
+      printf "%-10s: C%dT%d LABEL <%s>:\n", $time, $spc, $thr, $label{$val};
+    }
+
+    printf "%-10s: C%dT%d v%-12s \t%-30s \(pa=%-12s\)\n", $time, $spc, $thr,  $val, $instr, $pa;
+    $instr =~ s/[,\[\]]//g;
+    @instr_list = split /\s+/, $instr;
+    print_regs;
+  }
+
+# example line:
+#@1101: 0000.pc=00000000000400ac inst[lstore] in switch stage /wo speculation, latency=0
+  elsif($mom && /^\@(\d+):\s+(\d+)\.pc=(\w+)\s+inst/){
+    $time = format_time($1, $ctime, $cycles);
+    my $proc  =  $2 + 0;
+    $spc  = $proc / 4;
+    $thr  = $proc % 4;
+    $val  = truncate_len($3);
+
+    if(exists $diag_code{$val}){
+      $instr = $diag_code{$val};
+    }
+    else{
+      $instr = "Instruction not found";
+    }
+    if($label{$val}){
+      printf "%-10s: C%dT%d ======================================\n", $time, $spc, $thr;
+      printf "%-10s: C%dT%d LABEL <%s>:\n", $time, $spc, $thr, $label{$val};
+    }
+
+    printf "%-10s: C%dT%d v%-12s \t%-30s\n", $time, $spc, $thr,  $val, $instr;
+  }
+
+
+#=============================
+# print CCX info.
+#=============================
+  elsif($ccx && (/^(\d+):Info cpu.(\d). cpx.*->\s*(\w+)/)) {
+    $time = format_time($1, $ctime, $cycles);
+    $spc  = $2;
+    my($rawpkt) = $3;
+
+    my($pkt) = process_cpx_pkt($rawpkt);
+    print "debug cpx: $_\n" if($debug);
+    printf "%-10s: C${spc}T$pkt\n", $time;
+    next;
+  }
+  elsif(/^(\d+):Info cpu.(\d). pcx.*->\s*(\w+)/) {
+    $time = format_time($1, $ctime, $cycles);
+    $spc= $2;
+    my($rawpkt) = $3;
+
+    my($pkt) = process_pcx_pkt($rawpkt);
+    print "debug pcx: $_\n" if($debug);
+    if($ccx){
+      printf "%-10s: C$spc$pkt\n", $time;
+    }
+    if($pkt =~ /^T(\d).*([id])fill_req.*addr\s+\w*(\w{8})\s/i){
+      my $thr   = $1;
+      my $iord  = $2;
+      my $addr  = $3;
+      $miss{$iord}{$spc}{$thr}{$addr} = 1;
+      print " setting $iord $spc $thr $addr miss \n" if($debug);
+    }
+   
+    next;
+  }
+# l2 bank info
+#==============
+  elsif($l2 && /^(\d+):\s+(L2 bank.*)/) {
+    $time = format_time($1, $ctime, $cycles);
+    my $rawpkt = $2;
+    if($rawpkt =~ /core\s+(\d+),\s+thread\s+(\d+)/){
+      $spc  = $1;
+      $thr  = $2;
+      printf "%-10s: C${spc}T${thr}\t$rawpkt\n", $time;
+    }
+    else{
+      printf "%-10s:     \t$rawpkt\n", $time;
+    }
+    next;
+  }
+# dram info
+  elsif($dram && /^(\d+):\s*(DRAM.*)/) {
+    $time = format_time($1, $ctime, $cycles);
+    my $rawpkt = $2;
+    printf "%-10s: $rawpkt\n", $time;
+    next;
+  }
+  elsif($dram && /^(\d+):\s*(L2_DRAM.*)/) {
+    $time = format_time($1, $ctime, $cycles);
+    my $rawpkt = $2;
+    printf "%-10s: $rawpkt\n", $time;
+    next;
+  }
+  elsif(/bad/i)		{ print "$_\n"; }
+} # while
+
+close(VCS);
+print "\nBye\n";
+
+#==========================
+
+sub     error {
+   my($msg)= @_;
+   STDOUT->autoflush(1);
+   STDERR->autoflush(1);
+   print STDERR "ERR: $msg!\n";
+   exit(1);
+}
+
+#==========================
+# updates the register values
+# this is per thread.
+# I am modeling all registers per thread as one big flat
+# register file, index by register window number * N + register number
+# where N = 8 for globals and 16 for others
+#==========================
+sub update_regs {
+
+  my($reg_num);
+
+  if($reg =~ /%r(\d+)/){
+    if($1 < 8){ 			# global reg.
+      $reg_num = 8 *$win + $1;
+      $gregs[$proc][$reg_num] = $val;
+      print "C${spc}T${thr} debug updating global $reg to $gregs[$proc][$1] reg num = $reg_num\n" if($debug);
+    }
+    else{ 				# not a global reg.
+      $reg_num = $win*16 + 31 - $1;
+      $regs[$proc][$reg_num] = $val;
+      print "C${spc}T${thr} debug updating $reg to $regs[$proc][$reg_num] reg_num = $reg_num\n" if($debug);
+    }
+  }
+  elsif($reg =~ /%g(\d+)/){		# global reg
+    $reg_num = 8 * $win + $1;
+    $gregs[$proc][$reg_num] = $val;
+    print "C${spc}T${thr} debug updating $reg to $gregs[$proc][$reg_num] reg_num: $reg_num\n" if($debug);
+  }
+  elsif($reg =~ /%i(\d+)/){		# input reg
+    $reg_num = $win*16  + $1;
+    $regs[$proc][$reg_num] = $val;
+    print "C${spc}T${thr} debug updating $reg to $regs[$proc][$reg_num] reg_num: $reg_num\n" if($debug);
+  }
+  elsif($reg =~ /%l(\d+)/){		# local reg
+    $reg_num = $win*16  + 8 + $1;
+    $regs[$proc][$reg_num] = $val;
+    print "C${spc}T${thr} debug updating $reg to $regs[$proc][$reg_num] reg_num: $reg_num\n" if($debug);
+  }
+  elsif($reg =~ /%o(\d+)/){		# output reg
+    $reg_num = $win*16  + 16 + $1;
+    $regs[$proc][$reg_num] = $val;
+    print "C${spc}T${thr} debug updating $reg to $regs[$proc][$reg_num] reg_num: $reg_num\n" if($debug);
+  }
+  elsif($reg =~ /%f(\d+)/){		# FP reg.
+    $reg_num = $1;
+    $fpregs[$proc][$reg_num] = $val;
+    print "C${spc}T${thr} debug updating $reg to $fpregs[$proc][$reg_num] reg_num: $reg_num\n" if($debug);
+  }
+  elsif($reg =~ /%d(\d+)/){		# should not come here.
+    print "%d stuff, man, don't know what to do yet.\n";
+    exit 1;
+  }
+}
+
+#-----------------------------------------------------------------
+
+# prints the relevant registers for the instruction/PC which found it.
+sub print_regs{
+
+  my($needs_print) = 0;
+  my($e, $reg_num);
+
+  if($instr =~ /%(r|g|l|i|o|f|d)\d+/){
+    $needs_print = 1;
+    printf "            C%dT%d\t\told reg values: ", $spc, $thr;
+  }
+  if($needs_print){
+    foreach $e (@instr_list){
+
+      if($e =~ /%r(\d+)/){
+        my $rnumh =  $1;
+        if($rnumh < 8)				{ $e =~ s/%r/%g/; }
+        elsif(($rnumh >= 8)  && ($rnumh < 16))	{ $e =~ s/%r/%o/; }
+        elsif(($rnumh >= 16) && ($rnumh < 24))	{ $e =~ s/%r/%l/; }
+        elsif(($rnumh >= 24) && ($rnumh < 32))	{ $e =~ s/%r/%i/; }
+        else					{ die "something is wrong with register number $rnumh\n";}
+      }
+
+      if($e =~ /%g(\d+)/){
+        $reg_num = $gl[$proc] * 8 + $1;
+        printf "%s= %s ", $e, $gregs[$proc][$reg_num];
+      }
+      elsif($e =~ /%i(\d+)/){
+        $reg_num = $cwp[$proc]*16  + $1;
+        printf "%s= %s ", $e, $regs[$proc][$reg_num];
+      }
+      elsif($e =~ /%l(\d+)/){
+        $reg_num = $cwp[$proc]*16  + 8 + $1;
+        printf "%s= %s ", $e, $regs[$proc][$reg_num];
+      }
+      elsif($e =~ /%o(\d+)/){
+        $reg_num = $cwp[$proc]*16  + 16 + $1;
+        printf "%s= %s ", $e, $regs[$proc][$reg_num];
+      }
+      elsif($e =~ /%f(\d+)/){
+        $reg_num = $1;
+        printf "%s= %s ", $e, $fpregs[$proc][$reg_num];
+      }
+      elsif($e =~ /%d(\d+)/){
+        print "%d stuff, man, don't know what to do yet.\n";
+        exit 1;
+      }
+    }
+    print "\n";
+  }
+}
+
+
+#====================================================================
+# makes sense of the PCX packet
+#====================================================================
+sub process_pcx_pkt{
+
+my %ReqTyps =
+  (
+   '00000'  => 'Dfill_Req',
+   '10000'  => 'Ifill_Req',
+   '00001'  => 'ST',
+   '00111'  => 'STQ(1)',
+   '00010'  => 'CAS(1)',
+   '00011'  => 'CAS(2)',
+   '00110'  => 'SWP_Ldstb',
+   '00100'  => 'Stream_loads',
+   '00101'  => 'Stream_store',
+   '01001'  => 'Int',
+   '01010'  => 'FP(1)',
+   '01011'  => 'FP(2)',
+   '01100'  => 'blank',
+   '01101'  => 'Fwd_req',
+   '01110'  => 'Fwd_reply'
+  );
+
+  my $rawpkt = shift @_;
+  my $vld 	= substr $rawpkt, 0, 1;
+  my $rawtype 	= substr $rawpkt, 1, 5;
+  my $nc 	= substr $rawpkt, 6, 1;
+  my $cpuid 	= substr $rawpkt, 7, 3;
+  my $thrid 	= substr $rawpkt, 10, 2;
+  my $inv 	= substr $rawpkt, 12, 1;
+  my $pf 	= substr $rawpkt, 13, 1;
+  my $binit 	= substr $rawpkt, 14, 1;
+  my $repl 	= substr $rawpkt, 15, 2;
+  my $size 	= substr $rawpkt, 17, 3;
+  my $rawaddr 	= substr $rawpkt, 20, 40;
+  my $rawdata 	= substr $rawpkt, 60, 64;
+ 
+  my $addr 	= b2h($rawaddr);
+  my $data 	= b2h($rawdata);
+
+  my $type 	= "illegal";
+     $type	= $ReqTyps{$rawtype} if (defined $ReqTyps{$rawtype});
+
+  my $reqid = 'TX';
+  if   ($thrid eq '00'){ $reqid = 'T0'; }
+  elsif($thrid eq '01'){ $reqid = 'T1'; }
+  elsif($thrid eq '10'){ $reqid = 'T2'; }
+  elsif($thrid eq '11'){ $reqid = 'T3'; }
+
+  my $pkt = "$reqid\tPCX: $type nc $nc cpuid $cpuid thrid $thrid inv $inv pf $pf binit $binit repl $repl size $size addr $addr data $data";
+  return $pkt;
+}
+#====================================================================
+# makes sense of the CPX packet
+#====================================================================
+sub process_cpx_pkt{
+
+my %RtnTyps =
+  (
+   '0000'   => 'Dfill',
+   '0001'   => 'Ifill',
+   '0010'   => 'Strm_Load',
+   '0011'   => 'Evict_Inv',
+   '0100'   => 'Store_Ack',
+   '0101'   => 'Flush',
+   '0110'   => 'Strm_Store_Ack',
+   '0111'   => 'Int',
+   '1000'   => 'FP',
+   '1001'   => 'blank',
+   '1010'   => 'Fwd_req',
+   '1011'   => 'Fwd_Reply',
+   '1100'   => 'Err',
+  );
+
+  my $rawpkt = shift @_;
+  my $vld 	= substr $rawpkt, 0,  1;
+  my $rawtype 	= substr $rawpkt, 1,  4;
+  my $l2miss 	= substr $rawpkt, 5,  1;
+  my $err 	= substr $rawpkt, 6,  2;
+  my $nc 	= substr $rawpkt, 8,  1;
+  my $shared 	= substr $rawpkt, 9,  7;
+  my $thrbits	= substr $rawpkt, 9,  2;
+  my $rsvd 	= substr $rawpkt, 16, 1;
+  my $rawdata 	= substr $rawpkt, 17, 128;
+
+  my $type 	= "illegal";
+     $type	= $RtnTyps{$rawtype} if (defined $RtnTyps{$rawtype});
+ 
+  my $data 	= b2h($rawdata);
+
+  my $thread = 'x'; 
+  if($thrbits eq '00'){
+     $thread = '0'; 
+  }
+  elsif($thrbits eq '01'){
+     $thread = '1'; 
+  }
+  elsif($thrbits eq '10'){
+     $thread = '2'; 
+  }
+  elsif($thrbits eq '11'){
+     $thread = '3'; 
+  }
+  
+
+  my $pkt = "$thread\t\tCPX: $type l2miss $l2miss err $err nc $nc shared $shared rsvd $rsvd data $data";
+  return $pkt;
+}
+#====================================================================
+# binary to hex.
+#====================================================================
+sub b2h{
+
+  my $in = shift @_;
+
+  if($in =~ /x/i){ 
+    return "xxxxxxxx";
+  }
+
+  my @inlist = split //, $in;
+
+  my ($res, $i, $digit, @num, $strres);
+
+  while (@inlist){
+   $res = 0;
+   $i   = shift @inlist;
+   $res = 2 * $res + $i; 
+   $i   = shift @inlist;
+   $res = 2 * $res + $i; 
+   $i   = shift @inlist;
+   $res = 2 * $res + $i; 
+   $i   = shift @inlist;
+   $res = 2 * $res + $i; 
+
+   $digit =  sprintf "%lx", $res;
+   push @num, $digit;
+  }
+
+  $strres = join '', @num;
+
+  return $strres;
+
+}
+
+#====================================================================
+#truncate PC length from the MSB zeroes (or FF-s)
+#====================================================================
+sub truncate_len{
+
+  my $pc = $_[0];
+  my($length) = length($pc);
+  my($va_length) = 12;
+
+  if($length>$va_length){
+      $pc =~ /(.{$va_length})$/;
+      $pc = $1;
+  }       
+  elsif($pc=~ /^f/i) {
+    $pc= 'f' x ($va_length-$length) . $pc;     
+  }
+  else {
+    $pc= '0' x ($va_length-$length) . $pc;       
+  }
+  print "pc= $pc\n" if($debug);
+  $pc;
+}
+
+#====================================================================
+
+#====================================================================
+# sorti: sorts the input file in a special way.
+# very simple - the RTL messages are ordered and the SAS
+# messages are ordered, so all we need is merge sorting.
+# Notes:
+#-------
+# disambiguate lines on the same timetick. - register updates,
+# and info-perm messages
+#====================================================================
+sub sorti{
+
+  if($logfile =~ /\.gz$/) {
+    open(VCSRAW1, "gunzip -c  $logfile | egrep 'sas|MAT|trig' | ") || die "cannot open gunzip -c $logfile";
+    open(VCSRAW2, "gunzip -c  $logfile | egrep -v 'sas|MAT|trig' | ") || die "cannot open gunzip -c $logfile";
+  }else{
+    open(VCSRAW1, "egrep 'sas|MAT|trig' $logfile | ") || die "cannot open $logfile";
+    open(VCSRAW2, "egrep -v 'sas|MAT|trig' $logfile | ") || die "cannot open $logfile";
+  }
+
+  my $curtime1 = 0;
+  my $curtime2 = 0;
+  my $gets1 = 1;
+  my $gets2 = 1;
+  my $s1line;
+  my $s2line;
+
+  while(1) {
+
+# get the vcsraw1
+#----------------
+    if($gets1){
+      $s1line = <VCSRAW1>;
+      if(!$s1line){
+        if($s2line){
+          print $s2line;
+        }
+        while(<VCSRAW2>){
+          print;
+        }
+        last;
+      }
+      else{
+        if($s1line =~ /^(\d+)\s*:.*(gl|tl|pstate)_reg-M/) {
+          $curtime1 = $1 + 3;
+        }elsif($s1line =~ /^(\d+)\s*:.*reg-M/) {
+          $curtime1 = $1 + 10;
+        }elsif($s1line =~ /^(\d+)\s*:/) {
+          $curtime1 = $1 + 0;
+        }elsif($s1line =~ /^\((\d+)\)\s*:/) {
+          $curtime1 = $1 + 0;
+        }
+      }
+    }
+ 
+# get the vcsraw2
+#----------------
+    if($gets2){
+      $s2line = <VCSRAW2>;
+      if(!$s2line){
+        if($s1line){
+          print $s1line;
+        }
+        while(<VCSRAW1>){
+          print;
+        }
+        last;
+      }
+      else{
+        if($s2line =~ /^\((\d+)\)Info-p/) {
+          $curtime2 = $1 + 5;
+        }elsif($s2line =~ /^(\d+)\s*:/) {
+          $curtime2 = $1 + 0;
+        }elsif($s2line =~ /^\((\d+)\)\s*:/) {
+          $curtime2 = $1 + 0;
+        }
+      }
+    }
+
+    if($curtime1 < $curtime2){
+      print $s1line;
+      $gets2 = 0;
+      $gets1 = 1;
+    }
+    else{
+      print $s2line;
+      $gets2 = 1;
+      $gets1 = 0;
+    }
+  }
+
+  close(VCSRAW1);
+  close(VCSRAW2);
+
+  exit;
+
+}
+
+#=======================================================
+# print ASI mnemonics to make debugging more pleasurable.
+#=======================================================
+sub asi_mnem{
+my %asis = (
+"4", "ASI_NUCLEUS", 
+"c", "ASI_NUCLEUS_LITTLE", 
+"10", "ASI_AS_IF_USER_PRIMARY", 
+"11", "ASI_AS_IF_USER_SECONDARY", 
+"14", "ASI_REAL_MEM", 
+"15", "ASI_REAL_IO", 
+"16", "ASI_BLOCK_AS_IF_USER_PRIMARY", 
+"17", "ASI_BLOCK_AS_IF_USER_SECONDARY", 
+"18", "ASI_AS_IF_USER_PRIMARY_LITTLE", 
+"19", "ASI_AS_IF_USER_SECONDARY_LITTLE", 
+"1c", "ASI_REAL_MEM_LITTLE", 
+"1d", "ASI_REAL_IO_LITTLE", 
+"1e", "ASI_BLOCK_AS_IF_USER_P_LITTLE", 
+"1f", "ASI_BLOCK_AS_IF_USER_S_LITTLE", 
+"20", "ASI_SCRATCHPAD", 
+"21", "ASI_MMU", 
+"22", "ASI_AS_IF_USER_BLK_INIT_ST_QUAD_LDD_P", 
+"23", "ASI_AS_IF_USER_BLK_INIT_ST_QUAD_LDD_S", 
+"24", "ASI_QUAD_LDD", 
+"25", "ASI_QUEUE", 
+"26", "ASI_QUAD_LDD_REAL", 
+"27", "ASI_NUCLEUS_BLK_INIT_ST_QUAD_LDD", 
+"2a", "ASI_AS_IF_USER_BLK_INIT_ST_QUAD_LDD_P_LITTLE", 
+"2b", "ASI_AS_IF_USER_BLK_INIT_ST_QUAD_LDD_S_LITTLE", 
+"2c", "ASI_QUAD_LDD_LITTLE", 
+"2e", "ASI_QUAD_LDD_REAL_LITTLE", 
+"2f", "ASI_NUCLEUS_BLK_INIT_ST_QUAD_LDD_P_LITTLE", 
+"30", "UNDEFINED", 
+"31", "ASI_DMMU_CTXT_ZERO_TSB_BASE_PS0", 
+"32", "ASI_DMMU_CTXT_ZERO_TSB_BASE_PS1", 
+"33", "ASI_DMMU_CTXT_ZERO_CONFIG", 
+"35", "ASI_IMMU_CTXT_ZERO_TSB_BASE_PS0", 
+"36", "ASI_IMMU_CTXT_ZERO_TSB_BASE_PS1", 
+"37", "ASI_IMMU_CTXT_ZERO_CONFIG", 
+"38", "ASI_DTSB_TAG_TARGET", 
+"39", "ASI_DMMU_CTXT_NONZERO_TSB_BASE_PS0", 
+"3a", "ASI_DMMU_CTXT_NONZERO_TSB_BASE_PS1", 
+"3b", "ASI_DMMU_CTXT_NONZERO_CONFIG", 
+"3d", "ASI_IMMU_CTXT_NONZERO_TSB_BASE_PS0", 
+"3e", "ASI_IMMU_CTXT_NONZERO_TSB_BASE_PS1", 
+"3f", "ASI_IMMU_CTXT_NONZERO_CONFIG", 
+"40", "ASI_STREAM_MA", 
+"42", "ASI_SPARC_BIST_CONTROL_OR_INST_MASK_REG_OR_LSU_DIAG_REG", 
+"43", "ASI_ERROR_INJECT_REG", 
+"44", "ASI_STM_CTL_REG", 
+"45", "ASI_LSU_CTL_REG", 
+"46", "ASI_DCACHE_DATA", 
+"47", "ASI_DCACHE_TAG", 
+"48", "ASI_INTR_DISPATCH_STATUS_OBSOLETE", 
+"49", "ASI_INTR_RECEIVE_OBSOLETE", 
+"4a", "ASI_OBSOLETE", 
+"4b", "ASI_SPARC_ERROR_EN_REG", 
+"4c", "ASI_SPARC_ERROR_STAT_REG", 
+"4d", "ASI_SPARC_ERROR_ADDR_REG", 
+"4e", "ASI_ECACHE_TAG_DATA", 
+"4f", "ASI_HYP_SCRATCHPAD", 
+"50", "ASI_IMMU", 
+"51", "ASI_IMMU_TSB_8KB_PTR_REG", 
+"52", "ASI_IMMU_TSB_64KB_PTR_REG", 
+"54", "ASI_ITLB_DATA_IN_REG", 
+"55", "ASI_ITLB_DATA_ACCESS_REG", 
+"56", "ASI_ITLB_TAG_READ_REG", 
+"57", "ASI_IMMU_DEMAP", 
+"58", "ASI_DMMU", 
+"59", "ASI_DMMU_TSB_8KB_PTR_REG", 
+"5a", "ASI_DMMU_TSB_64KB_PTR_REG", 
+"5b", "ASI_DMMU_TSB_DIRECT_PTR_REG", 
+"5c", "ASI_DTLB_DATA_IN_REG", 
+"5d", "ASI_DTLB_DATA_ACCESS_REG", 
+"5e", "ASI_DTLB_TAG_READ_REG", 
+"5f", "ASI_DMMU_DEMAP", 
+"60", "ASI_TLB_INVALIDATE_ALL", 
+"66", "ASI_ICACHE_INSTR", 
+"67", "ASI_ICACHE_TAG", 
+"72", "ASI_SWVR_INTR_RECEIVE", 
+"73", "ASI_SWVR_UDB_INTR_W", 
+"74", "ASI_SWVR_UDB_INTR_R", 
+"80", "ASI_PRIMARY", 
+"81", "ASI_SECONDARY", 
+"82", "ASI_PRIMARY_NO_FAULT", 
+"83", "ASI_SECONDARY_NO_FAULT", 
+"88", "ASI_PRIMARY_LITTLE", 
+"89", "ASI_SECONDARY_LITTLE",
+"8a", "ASI_PRIMARY_NOFAULT_LITTLE", 
+"8b", "ASI_SECONDARY_NOFAULT_LITTLE",
+"e2", "ASI_BLK_INIT_ST_QUAD_LDD_P", 
+"e3", "ASI_BLK_INIT_ST_QUAD_LDD_S",
+"ea", "ASI_BLK_INIT_ST_QUAD_LDD_P_LITTLE", 
+"eb", "ASI_BLK_INIT_ST_QUAD_LDD_S_LITTLE",
+"f0", "ASI_BLK_P", 
+"f1", "ASI_BLK_S",
+"f8", "ASI_BLK_P_LITTLE", 
+"f9", "ASI_BLK_S_LITTLE"
+);
+
+my $mykey = $_[0];
+
+if(exists  $asis{$mykey}){
+  return $asis{$mykey};
+}
+else {
+  return "";
+}
+
+}
+#============================================
+
+# print cycles or timeticks.
+#============================================
+sub format_time
+{
+  my $time   = $_[0];
+  my $ctime  = $_[1];
+  my $cycles = $_[2];
+
+  if($cycles){
+    if($ctime){
+      $time = int ($time /$ctime);
+      $time = 'c' . $time;
+    }
+    else { die "something is wrong with ctime\n" }
+  }
+  $time;
+}
+
+#============================================

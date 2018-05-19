@@ -1,0 +1,195 @@
+// Modified by Princeton University on June 9th, 2015
+/*
+* ========== Copyright Header Begin ==========================================
+* 
+* OpenSPARC T1 Processor File: cross_module.h
+* Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+* 
+* The above named program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License version 2 as published by the Free Software Foundation.
+* 
+* The above named program is distributed in the hope that it will be 
+* useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public
+* License along with this work; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+* 
+* ========== Copyright Header End ============================================
+*/
+
+`ifndef CROSS_MODULE_H
+`define CROSS_MODULE_H
+
+<%
+    import os
+    
+    #MAX_THREAD = 128;
+    MAX_TILE = 64;
+
+    NUM_TILES = int(os.environ.get('PTON_NUM_TILES', '-1'))
+    #print "//num_tiles:", num_tiles
+    
+    if NUM_TILES == -1:
+        print "//num_tile not defined!"
+        NUM_TILES = MAX_TILE
+%>
+
+`define MONITOR_SIGNAL                 155
+`define FLOAT_X                        154
+`define FLOAT_I                        153
+`define REG_WRITE_BACK                 152
+`define PLI_QUIT                1    /* None */
+`define PLI_SSTEP               2    /* %1 th id */
+`define PLI_READ_TH_REG         3    /* %1 th id, %2 win num, %3 reg num */
+`define PLI_READ_TH_CTL_REG     4    /* %1 th id, %2 reg num */
+`define PLI_READ_TH_FP_REG_I    5    /* %1 th id, %2 reg num */
+`define PLI_READ_TH_FP_REG_X    6    /* %1 th id, %2 reg num */
+`define PLI_RTL_DATA            7
+`define PLI_RTL_CYCLE           8  
+`define PLI_WRITE_TH_XCC_REG    9
+`define PLI_FORCE_TRAP_TYPE            15
+`define PLI_RESET_TLB_ENTRY     16
+`define PLI_RETRY               30
+`define PLI_WRITE_TH_REG_HI     10
+`define PLI_WRITE_TH_REG        11
+`define PLI_WRITE_TH_CTL_REG    12    /* %1 th id, %2 reg num, %3-%10 value */
+`define CMD_BUFSIZE 10240
+
+//define all cross module
+
+// trin: defines for jtag test bench
+
+`ifdef JTAG_TB_XMODULE
+`define TOP_MOD      jtag_testbench_top.helper
+`else
+`define TOP_MOD      cmp_top
+`endif
+
+`define TOP_SHELL    cmp_top_shell
+`define TOP_MOD_INST `TOP_MOD.chip
+`define CHIP         `TOP_MOD.chip
+`define TOP_DESIGN   `TOP_MOD.chip
+// `define TOP_MEMORY   `TOP_MOD.cmp
+
+`define JTAG_CTAP    `TOP_MOD.chip.jtag_port.ctap
+`define MONITOR_PATH `TOP_MOD.monitor
+`define PC_CMP       `TOP_MOD.monitor.pc_cmp
+`define SAS_SEND     `TOP_MOD.sas_tasks.send_cmd
+`define SAS_DEF      `TOP_MOD.sas_tasks.sas_def
+`define SAS_TASKS    `TOP_MOD.sas_tasks
+`define CPX_INVALID_TIME 1000
+
+// Note that the belows were generated through the template file and pyhp
+
+<%
+for i in range(NUM_TILES):
+    printstring = """
+    `define TILE%d           `CHIP.tile%d
+    `define SPARC_CORE%d     `TILE%d.core
+    `define L15_TOP%d        `TILE%d.l15.l15
+    `define L15_PIPE%d       `TILE%d.l15.l15.pipeline
+    `define DMBR%d           `TILE%d.dmbr_ins
+    `define L2_TOP%d         `TILE%d.l2
+    `define SPARC_REG%d      `SPARC_CORE%d.sparc0.exu.exu.irf.irf
+`ifndef RTL_SPU
+    `define FLOATPATH%d      `SPARC_CORE%d.sparc0.ffu.ffu
+`else
+    `define FLOATPATH%d      `SPARC_CORE%d.sparc0.ffu
+`endif
+`ifndef RTL_SPU
+    `define TLUPATH%d        `SPARC_CORE%d.sparc0.tlu.tlu
+    `define DTLBPATH%d       `SPARC_CORE%d.sparc0.lsu.lsu.dtlb
+`else
+    `define TLUPATH%d        `SPARC_CORE%d.sparc0.tlu
+    `define DTLBPATH%d       `SPARC_CORE%d.sparc0.lsu.dtlb
+`endif
+    `define PCXPATH%d        `SPARC_CORE%d.sparc0
+`ifndef RTL_SPU
+    `define ICVPATH%d        `SPARC_CORE%d.sparc0.ifu.ifu.icv
+    `define IFUPATH%d        `SPARC_CORE%d.sparc0.ifu.ifu
+    `define TNUM%dS          `SPARC_CORE%d.sparc0.ifu.ifu.swl
+    `define TPC%dS           `SPARC_CORE%d.sparc0.ifu.ifu.fdp
+`else
+    `define ICVPATH%d        `SPARC_CORE%d.sparc0.ifu.icv
+    `define IFUPATH%d        `SPARC_CORE%d.sparc0.ifu
+    `define TNUM%dS          `SPARC_CORE%d.sparc0.ifu.swl
+    `define TPC%dS           `SPARC_CORE%d.sparc0.ifu.fdp
+`endif
+`ifndef RTL_SPU
+    `define TDPPATH%d        `SPARC_CORE%d.sparc0.tlu.tlu.tdp
+`else
+    `define TDPPATH%d        `SPARC_CORE%d.sparc0.tlu.tdp
+`endif
+`ifndef RTL_SPU
+    `define DTUPATH%d        `SPARC_CORE%d.sparc0.ifu.ifu.fdp
+`else
+    `define DTUPATH%d        `SPARC_CORE%d.sparc0.ifu.fdp
+`endif
+    `define ALUPATH%d        `SPARC_CORE%d.sparc0.exu.exu.alu
+    `define SPCPATH%d        `SPARC_CORE%d.sparc0
+    `define REGPATH%d        `SPARC_CORE%d.sparc0.exu.exu.irf.irf
+    `define CCRPATH%d        `SPARC_CORE%d.sparc0.exu.exu.ecl.ccr
+    `define EXUPATH%d        `SPARC_CORE%d.sparc0.exu.exu
+`ifndef RTL_SPU
+    `define TLPATH%d         `SPARC_CORE%d.sparc0.tlu.tlu.tcl
+    `define TS0PATH%d        `SPARC_CORE%d.sparc0.tlu.tlu.tsa0
+    `define TS1PATH%d        `SPARC_CORE%d.sparc0.tlu.tlu.tsa1
+    `define INTPATH%d        `SPARC_CORE%d.sparc0.tlu.tlu.intdp
+    `define ASIPATH%d        `SPARC_CORE%d.sparc0.lsu.lsu.dctl
+    `define ASIDPPATH%d      `SPARC_CORE%d.sparc0.lsu.lsu.dctldp
+    `define ICTPATH%d        `SPARC_CORE%d.sparc0.ifu.ifu.ict
+    `define DCACHE%d         `SPARC_CORE%d.sparc0.lsu.lsu.dcache
+    `define INSTPATH%d       `SPARC_CORE%d.sparc0.ifu.ifu.fcl
+    `define PCPATH%d         `SPARC_CORE%d.sparc0.ifu.ifu
+    `define DVLD%d           `SPARC_CORE%d.sparc0.lsu.lsu.dva
+    `define DTAG%d           `SPARC_CORE%d.sparc0.lsu.lsu.dtag
+    `define SDTAG%d          `SPARC_CORE%d.sparc0.lsu.lsu.dtag
+    `define SDVLD%d          `SPARC_CORE%d.sparc0.lsu.lsu.dva
+    `define FFUPATH%d        `SPARC_CORE%d.sparc0.ffu.ffu
+    `define TLU_HYPER%d      `SPARC_CORE%d.sparc0.tlu.tlu.tlu_hyperv
+    `define IFQDP%d          `SPARC_CORE%d.sparc0.ifu.ifu.ifqdp
+    `define ITLBPATH%d       `SPARC_CORE%d.sparc0.ifu.ifu.itlb
+`else
+    `define TLPATH%d         `SPARC_CORE%d.sparc0.tlu.tcl
+    `define TS0PATH%d        `SPARC_CORE%d.sparc0.tlu.tsa0
+    `define TS1PATH%d        `SPARC_CORE%d.sparc0.tlu.tsa1
+    `define INTPATH%d        `SPARC_CORE%d.sparc0.tlu.intdp
+    `define ASIPATH%d        `SPARC_CORE%d.sparc0.lsu.dctl
+    `define ASIDPPATH%d      `SPARC_CORE%d.sparc0.lsu.dctldp
+    `define ICTPATH%d        `SPARC_CORE%d.sparc0.ifu.ict
+    `define DCACHE%d         `SPARC_CORE%d.sparc0.lsu.dcache
+    `define INSTPATH%d       `SPARC_CORE%d.sparc0.ifu.fcl
+    `define PCPATH%d         `SPARC_CORE%d.sparc0.ifu
+    `define DVLD%d           `SPARC_CORE%d.sparc0.lsu.dva
+    `define DTAG%d           `SPARC_CORE%d.sparc0.lsu.dtag
+    `define SDTAG%d          `SPARC_CORE%d.sparc0.lsu.dtag
+    `define SDVLD%d          `SPARC_CORE%d.sparc0.lsu.dva
+    `define FFUPATH%d        `SPARC_CORE%d.sparc0.ffu
+    `define TLU_HYPER%d      `SPARC_CORE%d.sparc0.tlu.tlu_hyperv
+    `define IFQDP%d          `SPARC_CORE%d.sparc0.ifu.ifqdp
+    `define ITLBPATH%d       `SPARC_CORE%d.sparc0.ifu.itlb
+`endif
+    `define CFG_ASI_PATH%d   `SPARC_CORE%d.sparc0.cfg_asi
+    """ 
+    printstring = printstring.replace("%d", str(i))
+    print printstring
+%>
+
+`define ITAG0           `TOP_MOD.monitor.l_cache_mon0
+`define IVLD0           `TOP_MOD.monitor.l_cache_mon0
+`define SAS_INTER `TOP_MOD.sas_intf
+`ifndef RTL_SPU
+`define STNUM `SPARC_CORE0.sparc0.ifu.ifu.dtu.swl
+`define STPC  `SPARC_CORE0.sparc0.ifu.ifu.fdp
+`else
+`define STNUM `SPARC_CORE0.sparc0.ifu.dtu.swl
+`define STPC  `SPARC_CORE0.sparc0.ifu.fdp
+`endif
+`define MONITOR `TOP_MOD.monitor
+
+`endif

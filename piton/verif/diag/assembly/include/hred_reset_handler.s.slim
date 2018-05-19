@@ -1,0 +1,204 @@
+// Modified by Princeton University on June 9th, 2015
+/*
+* ========== Copyright Header Begin ==========================================
+* 
+* OpenSPARC T1 Processor File: hred_reset_handler.s
+* Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+* 
+* The above named program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License version 2 as published by the Free Software Foundation.
+* 
+* The above named program is distributed in the hope that it will be 
+* useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public
+* License along with this work; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+* 
+* ========== Copyright Header End ============================================
+*/
+! slam init now works for MT diags
+#ifdef NO_SLAM_INIT_CMP
+#include "hboot_init.s"
+#endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! set csm config reg
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    setx    0x8000000000000000, %g1, %l2
+    mov     0x10, %g1
+    stxa    %l2, [%g1] 0x1a
+    nop
+    nop
+    mov     0x18, %g1
+    stxa    %l2, [%g1] 0x1a
+
+
+
+
+	! set lsu control reg. enable dcache, icache
+ 	setx	(CREGS_LSU_CTL_REG_IC | (CREGS_LSU_CTL_REG_DC << 1)), %g1, %l1
+	stxa	%l1, [%g0] ASI_LSU_CTL_REG
+
+	! set hpstate.red = 0 and hpstate.enb = 1
+	rdhpr	%hpstate, %l1 
+	wrhpr	%l1, 0x820, %hpstate
+
+
+	! initialize queue registers
+	wr %g0, 0x25, %asi
+	stxa %g0, [0x3c0] %asi
+	stxa %g0, [0x3c8] %asi
+	stxa %g0, [0x3d0] %asi
+	stxa %g0, [0x3d8] %asi
+	stxa %g0, [0x3e0] %asi
+	stxa %g0, [0x3e8] %asi
+	stxa %g0, [0x3f0] %asi
+	stxa %g0, [0x3f8] %asi
+	wrpr	0, %tl
+	wrpr	0, %g0, %gl
+!	wrhpr	cregs_hpstate_imm, %hpstate
+	wr	%g0, cregs_fprs_imm, %fprs
+	wr	%g0, cregs_ccr_imm, %ccr
+	wr	%g0, cregs_asi_imm, %asi
+	setx	cregs_tick_r64, %g1, %g2
+	! FIXME set other ticks also
+	wrpr	%g2, %tick
+	setx	cregs_stick_r64, %g1, %g2
+	wr	%g2, %g0, %sys_tick
+	mov     0x1, %g2
+	sllx    %g2, 63, %g2
+	wr	%g2, %g0, %tick_cmpr
+	wr	%g2, %g0, %sys_tick_cmpr
+	wrhpr	%g2, %g0, %hsys_tick_cmpr
+	!mov	%g0, %y
+    nop
+	wrpr	cregs_pil_imm, %pil
+	wrpr	cregs_cwp_imm, %cwp
+	wrpr	cregs_cansave_imm, %cansave
+	wrpr	cregs_canrestore_imm, %canrestore
+	wrpr	cregs_otherwin_imm, %otherwin
+	wrpr	cregs_cleanwin_imm, %cleanwin
+	wrpr	cregs_wstate_imm, %wstate
+	! load partition id
+
+    setx     0xba00000000, %l1, %g1
+    ldx     [%g1], %g1            ! has coreid
+    srlx    %g1, 5, %l1
+    add     %l1, %g1, %g1        ! translate from x,y coordinates to coreid
+    set     0x3f, %l1           ! get the lowest 6 bits
+    and     %g1, %l1, %g1
+    sllx    %g1, 1, %g1
+
+	rd	%asr26, %l1
+    srlx    %l1, 8, %l1
+    add     %l1, %g1, %l1
+        set     0x007f, %g1
+    and     %l1, %g1, %l1     ! %l1 has thread ID
+
+	setx	part_id_list, %g1, %g2
+        sllx    %l1, 3, %l1             ! offset - partition list
+        ldx     [%g2 + %l1], %g2	! %g2 contains partition ID
+	mov	0x80, %g1
+	stxa	%g2, [%g1] 0x58
+
+	! set hyper trap base addr
+	setx HV_TRAP_BASE_PA, %l0, %l7
+	wrhpr %l7, %g0, %htba
+
+    ! ta 0
+
+	! load tsb config/base from memory
+	! and write to corresponding ASI's
+	! set tsb-reg (4 at present) for one partition
+	! 2 i-config, 2-dconfig
+	setx	tsb_config_base_list, %l0, %g1
+	sllx	%g2, 7, %g2		! %g2 contains offset to tsb_config_base_list
+	add	%g1, %g2, %g1		! %g1 contains pointer to tsb_config_base_list
+
+	! IMMU_CXT_Z_CONFIG   (0x37, VA=0x00)
+	ldx	[%g1], %l1
+	stxa	%l1, [%g0] 0x37
+
+	! IMMU_CXT_NZ_CONFIG  (0x3f, VA=0x00)
+	ldx	[%g1+8], %l1
+	stxa	%l1, [%g0] 0x3f
+
+	! old:	 IMMU_CXT_Z_PS0_TSB  (0x50, VA=0x60)
+	! IMMU_CXT_Z_PS0_TSB  (0x35, VA=0x0)
+	! IMMU_CXT_Z_PS1_TSB  (0x36, VA=0x0)
+	ldx	[%g1+16], %l1
+	stxa	%l1, [%g0] 0x35
+	ldx	[%g1+32], %l1
+	stxa	%l1, [%g0] 0x36
+
+	! old:	 IMMU_CXT_NZ_PS0_TSB (0x50, VA=0x70)
+	! IMMU_CXT_NZ_PS0_TSB (0x3d, VA=0x00)
+	! IMMU_CXT_NZ_PS1_TSB (0x3e, VA=0x00)
+	ldx	[%g1+24], %l1
+	stxa	%l1, [%g0] 0x3d
+	ldx	[%g1+40], %l1
+	stxa	%l1, [%g0] 0x3e
+		
+	! DMMU_CXT_Z_CONFIG   (0x33, VA=0x00)
+	ldx	[%g1+64], %l1
+	stxa	%l1, [%g0] 0x33
+
+	! DMMU_CXT_NZ_CONFIG  (0x3b, VA=0x00)
+	ldx	[%g1+72], %l1
+	stxa	%l1, [%g0] 0x3b
+
+	! old:	DMMU_CXT_Z_PS0_TSB  (0x58, VA=0x60)
+	! DMMU_CXT_Z_PS0_TSB  (0x31, VA=0x00)
+	! DMMU_CXT_Z_PS1_TSB  (0x32, VA=0x00)
+	ldx	[%g1+80], %l1
+	stxa	%l1, [%g0] 0x31
+	ldx	[%g1+96], %l1
+	stxa	%l1, [%g0] 0x32
+	
+	! old:	DMMU_CXT_NZ_PS0_TSB (0x58, VA=0x70)
+	! DMMU_CXT_NZ_PS0_TSB (0x39, VA=0x00)
+	! DMMU_CXT_NZ_PS0_TSB (0x3a, VA=0x00)
+	ldx	[%g1+88], %l1
+	stxa	%l1, [%g0] 0x39
+	ldx	[%g1+104], %l1
+	stxa	%l1, [%g0] 0x3a
+
+	! demap all itlb and dtlb
+	mov	0x80, %o2
+	stxa	%g0, [ %o2 ] 0x57
+	stxa	%g0, [ %o2 ] 0x5f
+
+	! zero out all itlb and dtlb tag/data
+	! entries if needed by diag
+	! init primary context reg 
+	mov 0x8, %l1
+	stxa %g0, [%l1] 0x21
+	! init sec context reg						
+	mov 0x10, %l1
+	stxa %g0, [%l1] 0x21	
+
+
+	setx	cregs_lsu_ctl_reg_r64, %g1, %l1
+	stxa	%l1, [%g0] ASI_LSU_CTL_REG
+
+        setx	HPriv_Reset_Handler, %g1, %g2
+	rdhpr	%hpstate, %g3
+!	mov	0x804, %g4
+!	mov	0x5, %g4
+	wrpr	1, %tl
+	setx	cregs_htstate_r64, %g1, %g4
+	wrhpr	%g4, %g0, %htstate
+	wrpr	0, %tl
+	mov     0x0, %o0	/* please don't delete this , used in customized IMMU miss trap */
+        jmp	%g2
+	wrhpr	%g0, 0x800, %hpstate
+        nop
+        nop
+
+

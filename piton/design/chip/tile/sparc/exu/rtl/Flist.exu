@@ -1,0 +1,55 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: Flist.exu
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+sparc_exu_wrap.v
+sparc_exu.v
+sparc_exu_alu.v
+sparc_exu_aluadder64.v
+sparc_exu_aluaddsub.v
+sparc_exu_alulogic.v
+sparc_exu_aluor32.v
+sparc_exu_aluspr.v
+sparc_exu_aluzcmp64.v
+sparc_exu_alu_16eql.v
+sparc_exu_byp.v
+sparc_exu_byp_eccgen.v
+sparc_exu_div.v
+sparc_exu_div_yreg.v
+sparc_exu_div_32eql.v
+sparc_exu_ecc.v
+sparc_exu_ecc_dec.v
+sparc_exu_ecl.v
+sparc_exu_eclbyplog.v
+sparc_exu_eclbyplog_rs1.v
+sparc_exu_eclccr.v
+sparc_exu_eclcomp7.v
+sparc_exu_ecl_cnt6.v
+sparc_exu_ecl_divcntl.v
+sparc_exu_ecl_eccctl.v
+sparc_exu_ecl_mdqctl.v
+sparc_exu_ecl_wb.v
+sparc_exu_reg.v
+sparc_exu_rml.v
+sparc_exu_rml_cwp.v
+sparc_exu_rml_inc3.v
+sparc_exu_rndrob.v
+sparc_exu_shft.v
+

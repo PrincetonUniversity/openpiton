@@ -1,0 +1,51 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: ciop_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+// ciop_basic.diaglist
+<princeton_ciop_basic>
+
+lsu_ldx  	lsu_ldx.s -nosas -rtl_timeout=10000 -max_cycle=3000000 -nofast_boot
+ssi_ldst	ssi_ldst.s -max_cycle=3000000 -rtl_timeout=50000 -nofast_boot
+
+
+bug7117_0               bug7117_0.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -fast_boot -nosas
+bug7117_1               bug7117_1.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -fast_boot -nosas
+bug7117_2               bug7117_2.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -fast_boot -nosas
+bug7117_3               bug7117_3.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -fast_boot -nosas
+bug7117_4               bug7117_4.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -fast_boot -nosas
+bug7018_0               bug7018_0.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -fast_boot -nosas
+bug7018_1               bug7018_1.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -fast_boot -nosas
+bug7018_2               bug7018_2.s -finish_mask=1 -max_cycle=1000000 -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -fast_boot -nosas
+
+//Unfinished (look at all those arguments! Probably not worth chasing)
+//full_rst_seq    lsu_ldx.s -sas -rtl_timeout=500000 -max_cycle=10000000000 -sim_run_args=+no_ctu_efc_row_addr_slam -sim_run_args=+no_fast_pll_lock -sim_run_args=+no_slam_clken -sim_run_args=+no_fast_dram_rst -sim_run_args=+no_slam_efc_rd -sim_run_args=+no_bisi_init -sim_run_args=+no_slam_init -sim_run_args=+no_dram_slam_init -sim_run_args=+NO_BYPASS_POR_WAIT -midas_args=-DNO_SLAM_INIT_DRAMCTL -midas_args=-DNO_SLAM_INIT_CMP -sim_run_args=+turn_off_exu_monitor=1 -vcs_use_initreg -sim_run_args=+l1_chkoff -sim_run_args=+no_ctu_reg_slam -sim_run_args=+freq_change -sim_run_args=+dram_div=14 -sim_run_args=+jbus_div=12 -sim_run_args=+cmp_div=2 -midas_args=-DENABLE_WARM_RESET -midas_args=-DCDIV=2 -midas_args=-DDDIV=14 -midas_args=-DJDIV=12 -sim_run_args=+jmhz=194 -nofast_boot -sim_run_args=+inst_check_off=1 -nosas
+
+//Unfinished (look at all those arguments! Probably not worth chasing)
+//pll_byp_tap    lsu_ldx.s -sas pll_byp.tap -rtl_timeout=500000 -max_cycle=10000000 -sim_run_args=+no_ctu_efc_row_addr_slam -sim_run_args=+no_fast_pll_lock -sim_run_args=+no_slam_clken -sim_run_args=+no_fast_dram_rst -sim_run_args=+no_slam_efc_rd -sim_run_args=+no_bisi_init -sim_run_args=+no_slam_init -sim_run_args=+no_dram_slam_init -sim_run_args=+NO_BYPASS_POR_WAIT -midas_args=-DNO_SLAM_INIT_DRAMCTL -midas_args=-DNO_SLAM_INIT_CMP -sim_run_args=+turn_off_exu_monior=1 -vcs_use_initreg -sim_run_args=+l1_chkoff -sim_run_args=+no_ctu_reg_slam -sim_run_args=+freq_change -sim_run_args=+dram_div=4 -sim_run_args=+jbus_div=4 -sim_run_args=+cmp_div=1 -midas_args=-DENABLE_WARM_RESET -midas_args=-DCDIV=1 -midas_args=-DDDIV=4 -midas_args=-DJDIV=4 -nofast_boot -sim_run_args=+inst_check_off=1 -sim_run_args=+pll_freq=800 -sim_run_args=+jmhz=199 -sim_run_args=+pll_bypass -sim_run_args=+ctu_mon_off -sim_run_args=+disable_lock_check -nosas
+
+<runargs  -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_tsb_conflicts -max_cycle=2000000>
+//Unfinished (requires jbus stuff)
+//iob_jbusint_4th iob_jbusint_4th.s -nosas -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/arch/iob -sjm_diag_name=iob_jbusint_4th  -midas_args=-DSYNC_THREADS -rtl_timeout=90000 
+dram_mt_4th_loads_attrib_many 	dram_mt_4th_loads_attrib_many.s  -rtl_timeout=150000 -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1
+dram_mt_4th_stores 		dram_mt_4th_stores.s -rtl_timeout=150000 -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1 
+</runargs>
+
+</princeton_ciop_basic>

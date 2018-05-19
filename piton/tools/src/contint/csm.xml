@@ -1,0 +1,170 @@
+<!--
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<bundles>
+<tile2_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>all_tile2_passing_no_enboff</include>
+</tile2_csm>
+
+<tile4_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>tile4</include>
+</tile4_csm>
+
+<tile8_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>tile8</include>
+</tile8_csm>
+
+<tile16_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>tile16</include>
+</tile16_csm>
+
+<tile36_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>tile36</include>
+</tile36_csm>
+
+
+
+<tile64_csm>
+    <sims_run_args>
+        <midas_args>-csm_en</midas_args>
+    </sims_run_args>
+    <include>tile64</include>
+</tile64_csm>
+
+
+
+<csm>
+    <asm_regress name="princeton_new_diag">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_new_diag</group>
+    </asm_regress>
+    <asm_regress name="all_tile2_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>all_tile2_passing_no_enboff</group>
+    </asm_regress>
+    <asm_regress name="tile4">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile4</group>
+    </asm_regress>
+    <asm_regress name="tile8">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile8</group>
+    </asm_regress>
+    <asm_regress name="tile16">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile16</group>
+        <slurm>-t 6:00:00</slurm>
+    </asm_regress>
+    <asm_regress name="tile64">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile64</group>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+    </asm_regress>
+
+</csm>
+<csm_dmbr>
+    <asm_regress name="all_tile2_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <dmbr/>
+        <group>all_tile2_passing_no_enboff</group>
+    </asm_regress>
+    <asm_regress name="tile4">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <dmbr/>
+        <group>tile4</group>
+    </asm_regress>
+    <asm_regress name="tile8">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile8</group>
+    </asm_regress>
+    <asm_regress name="tile16">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <dmbr/>
+        <group>tile16</group>
+        <slurm>-t 6:00:00</slurm>
+    </asm_regress>
+    <asm_regress name="tile64">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile64</group>
+        <dmbr/>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+    </asm_regress>
+
+</csm_dmbr>
+
+
+
+</bundles>

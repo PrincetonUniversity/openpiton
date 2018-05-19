@@ -1,0 +1,152 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: tapasm,1.4
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+
+################################################################################
+#
+# tap diag assembler for OpenSPARC T1
+#
+################################################################################
+
+  # compile the tap diag
+  open (TAP_IN, "< diag.tap") or die ("DIE. could not open diag.tap") ;
+  open (TAP_OUT, "> tap.cmd") or die ("DIE. could not open tap.cmd") ;
+
+  my $count = 0 ;
+
+  while (<TAP_IN>)
+  {
+    $count++ ;
+    my $line = $_ ;
+    $line =~ s/\/\/.*?$// ;
+    $line =~ s/^\s+// ;
+    $line =~ s/\s+$// ;
+
+    if ($line =~ /^\s*$/) { next ; }
+    elsif ($line =~ /^rd/i)
+    {
+      $line =~ s/^rdo/1/i ;
+      $line =~ s/^rdc/2/i ;
+      $line =~ s/^rdm/3/i ;
+
+      my ($code, $addr, $data, $mask) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+      die ("DIE. Tap cmd mask must be 64 bits wide at line $count") if (length ($mask) != 16) ;
+      $line = "${code}_${addr}_${data}_${mask}" ;
+    }
+    elsif ($line =~ /^wri/i)
+    {
+      $line =~ s/^wri/4/i ;
+
+      my ($code, $addr, $data) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+
+      $line = "${code}_${addr}_${data}_ffffffffffffffff" ;
+    }
+    elsif ($line =~ /^ssc/i)
+    {
+      $line =~ s/^ssc/8/i ;
+
+      my ($code, $addr, $data, $mask) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+      die ("DIE. Tap cmd mask must be 64 bits wide at line $count") if (length ($mask) != 16) ;
+      $line = "${code}_${addr}_${data}_${mask}" ;
+    }
+    elsif ($line =~ /^sid/i)
+    {
+      $line =~ s/^sid/9/i ;
+
+      my ($code, $addr, $data, $mask) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+      die ("DIE. Tap cmd mask must be 64 bits wide at line $count") if (length ($mask) != 16) ;
+      $line = "${code}_${addr}_${data}_${mask}" ;
+    }
+    elsif ($line =~ /^shs/i)
+    {
+      $line =~ s/^shs/a/i ;
+
+      my ($code, $addr, $data, $mask) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+      die ("DIE. Tap cmd mask must be 64 bits wide at line $count") if (length ($mask) != 16) ;
+      $line = "${code}_${addr}_${data}_${mask}" ;
+    }
+    elsif ($line =~ /^tpb/i)
+    {
+      $line = "b_0000000000_0000000000000000_0000000000000000" ;
+    }
+    elsif ($line =~ /^efc_byp/i)
+    {
+      $line =~ s/^efc_byp/c/i ;
+
+      my ($code, $addr, $data, $mask) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+      die ("DIE. Tap cmd data must be 64 bits wide at line $count") if (length ($data) != 16) ;
+      die ("DIE. Tap cmd mask must be 64 bits wide at line $count") if (length ($mask) != 16) ;
+      $line = "${code}_${addr}_${data}_${mask}" ;
+    }
+    elsif ($line =~ /^bis_abrt/i)
+    {
+      $line = "d_0000000000_0000000000000000_0000000000000000" ;
+    }
+    elsif ($line =~ /^end/i) { $line = "5_0000000000_0000000000000000_0000000000000000" ; }
+    elsif ($line =~ /^del/i)
+    {
+      $line =~ s/^del/7/i ;
+
+      my ($code, $addr) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+
+      $line = "${code}_${addr}_0000000000000000_0000000000000000" ;
+    }
+    elsif ($line =~ /^stc/i) ## clk stretch
+    {
+      $line =~ s/^stc/6/i ;
+
+      my ($code, $addr) = split (/\s+/, $line) ;
+
+      die ("DIE. Tap cmd address must be 40 bits wide at line $count") if (length ($addr) != 10) ;
+
+      $line = "${code}_${addr}_0000000000000000_0000000000000000" ;
+    }
+    else { die ("DIE. Illegal command in diag.tap at line $count") ; }
+
+    $line =~ s/\s+/_/g ;
+    print TAP_OUT "$line\n" ;
+  }
+
+  # force the end command
+  print TAP_OUT "5_0000000000_0000000000000000_0000000000000000\n" ;
+
+  close (TAP_IN) ;
+  close (TAP_OUT) ;

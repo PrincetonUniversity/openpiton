@@ -1,0 +1,254 @@
+:
+:#define PCONTEXT	0x10
+:#define SCONTEXT	0x10
+:
+:#define MAIN_PAGE_NUCLEUS_ALSO
+:#define MAIN_PAGE_HV_ALSO
+:
+@vector = ("0x41", "0x42", "0x43", "0x44", "0x45", 
+	   "0x46", "0x47", "0x48", "0x49", "0x4a", 
+	   "0x4b", "0x4c", "0x4d", "0x4e", "0x4f"
+          );
+$std_header = "#define H_T0_Interrupt_Level_";
+$my_header = "#define My_T0_Interrupt_Level_";
+$delimiter = "_";
+:
+for ($i = 1; $i < 16; $i++) {
+:$std_header$i$delimiter$vector[$i-1]
+:$my_header$i$delimiter$vector[$i-1] \
+:	rd	%softint, %g1; \
+:	wr	%g1, %g1, %softint; \
+:	retry; \
+:	nop; \
+:	nop; \
+:	nop; \
+:	nop; \
+:	nop
+:
+}
+:
+:#include "enable_traps.h"
+:#include "boot.s"
+:
+:.text
+:.global main
+:
+:main:
+:	th_fork(main_th)
+:main_th_0:
+:	ta	T_CHANGE_PRIV	! macro
+:	nop
+:	setx	0x1, %g1, %g1
+:	wrpr	%g0, 13, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 14, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 15, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x2, %g1, %g1
+:	wrpr	%g0, 0, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 1, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 2, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x4, %g1, %g1
+:	wrpr	%g0, 1, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 2, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 3, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x8, %g1, %g1
+:	wrpr	%g0, 2, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 3, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 4, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x10, %g1, %g1
+:	wrpr	%g0, 3, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 4, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 5, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x20, %g1, %g1
+:	wrpr	%g0, 4, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 5, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 6, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x40, %g1, %g1
+:	wrpr	%g0, 5, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 6, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 7, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x80, %g1, %g1
+:	wrpr	%g0, 6, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 7, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 8, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x100, %g1, %g1
+:	wrpr	%g0, 7, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 8, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 9, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x200, %g1, %g1
+:	wrpr	%g0, 8, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 9, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 10, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x400, %g1, %g1
+:	wrpr	%g0, 9, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 10, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 11, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x800, %g1, %g1
+:	wrpr	%g0, 10, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 11, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 12, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x1000, %g1, %g1
+:	wrpr	%g0, 11, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 12, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 13, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x2000, %g1, %g1
+:	wrpr	%g0, 12, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 13, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 14, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x4000, %g1, %g1
+:	wrpr	%g0, 13, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 14, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 15, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x8000, %g1, %g1
+:	wrpr	%g0, 14, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 15, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 16, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	setx	0x10000, %g1, %g1
+:	wrpr	%g0, 13, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 14, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wrpr	%g0, 15, %pil
+:	wr	%g1, 0, %set_softint
+:	nop
+:	wr	%g0, 0, %softint
+:	nop
+:	nop
+:	nop
+:	nop
+:diag_pass:
+:	ta	T_GOOD_TRAP
+:	nop
+:
+:.data
+:	.xword 0x1234567887654321
+:

@@ -1,0 +1,76 @@
+// Copyright (c) 2017 Princeton University
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+<runargs -rtl_timeout=500000>
+    stalling            test_fail.s \
+    -sim_run_args=+test_case_base=jtag_stall
+
+    shadowscan          test_fail.s \
+    -sim_run_args=+test_case_base=jtag_shadowscan \
+
+    // basic_sram_write    jtag_infinite_loop.s \
+
+    interrupt_packet    test.s \
+    -sim_run_args=+test_case_base=jtag_thread_start_manual -sim_run_args=+jtag_iob_send_wakeup=0 \
+
+    pc_write            jtag_infinite_loop1.s \
+    -sim_run_args=+test_case_base=jtag_pc_write
+
+    reset_vector_set    test.s \
+    -sim_run_args=+test_case_base=jtag_reset_vector -sim_run_args=+jtag_iob_send_wakeup=0 \
+
+    no_noc              test.s \
+    -sim_run_args=+test_case_base=jtag_manual_program -sim_run_args=+jtag_iob_send_wakeup=0 \
+    -sim_run_args=+jtag_timeout=2000000000 -sim_run_args=+force_cache=1
+    // currently this test does not achieve 100% no NOC activity because I'm too lazy to eliminate the last
+    // 3 dcache loads but it is entirely possible
+
+    oram_read           test.s \
+    -sim_run_args=+test_case_base=jtag_oram_read -sim_run_args=+jtag_iob_send_wakeup=0 -oram
+
+    jtag_rw_configregs           test.s \
+    -sim_run_args=+test_case_base=jtag_rw_configregs -sim_run_args=+jtag_iob_send_wakeup=0
+
+    jtag_sram_write_frf           test.s \
+    -sim_run_args=+test_case_base=jtag_sram_write_frf -sim_run_args=+jtag_iob_send_wakeup=0
+
+    jtag_read_irf           jtag_infinite_loop.s \
+    -sim_run_args=+test_case_base=jtag_read_irf 
+
+    jtag_test_clk_gating           test_fail.s \
+    -sim_run_args=+test_case_base=jtag_test_clk_gating  \
+
+    jtag_test_oram_clk_gating_on           test.s \
+    -sim_run_args=+test_case_base=jtag_test_oram_clk_gating_on 
+
+    jtag_test_oram_clk_gating_off           test.s \
+    -sim_run_args=+test_case_base=jtag_test_oram_clk_gating_off 
+
+    jtag_pc_breakpoint           test_fail.s \
+    -sim_run_args=+test_case_base=jtag_pc_breakpoint \
+
+    jtag_pc_breakpoint_resume           test.s \
+    -sim_run_args=+test_case_base=jtag_pc_breakpoint_resume 
+</runargs>

@@ -1,0 +1,112 @@
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+/******************************************************************************
+* Filename		: 	dmbr_mon.v
+* Author		:	Alexey Lavrov
+* Created		:	08/11/2014
+* Company		:	Princeton University
+* Email			: 	alavrov@pirnceton.edu
+* Description	:	provides a set of simple monitors and checkers for dmbr
+*******************************************************************************/
+`include "dmbr_define.v"
+
+module dmbr_mon (
+	input	clk
+);
+
+localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing in width
+
+<%
+    from pyhplib import *
+    
+    BIN_NUMBER = 10
+%>
+
+<%
+	# declaration of wires and registers
+	for i in xrange(NUM_TILES):
+		print "    wire [TOTAL_CREDIT_WIDTH - 1 : 0]	total_credit_num%d;" % i
+		print "	   reg	[TOTAL_CREDIT_WIDTH - 1 : 0]	used_credits%d;" % i
+		print "    reg 	[`REPLENISH_WIDTH - 1 : 0]		rep_cnt%d;" % i
+		print "	   wire									rst_credits%d;" % i
+	#print "\n\n\n"
+
+	# calculation of total number of credits for each tile
+	for i in xrange(NUM_TILES):
+		print "    assign total_credit_num%d = " % i,
+		for j in xrange(BIN_NUMBER):
+			if j != 0:
+				print " + ",
+			print "`DMBR%d.creditIn_%d" % (i,j),
+		print ";"
+		print "assign rst_credits%d = rep_cnt%d == `DMBR%d.replenishCyclesIn;" % (i,i,i)
+%>
+
+
+	<%
+		for i in range(NUM_TILES):
+			print """
+			always @(posedge `DMBR%d.clk)
+			begin
+			if (`DMBR%d.rst)
+				used_credits%d <= {TOTAL_CREDIT_WIDTH{1'b0}};
+			else
+				used_credits%d <= `DMBR%d.l1missIn													? used_credits%d + 1 :
+								  `DMBR%d.l2responseIn & ~`DMBR%d.l2missIn & (used_credits%d > 0)	? used_credits%d - 1 :
+								  rst_credits%d														? {TOTAL_CREDIT_WIDTH{1'b0}} :
+								  																	  used_credits%d 	;""" \
+			% (i,i,i,i,i,i,i,i,i,i,i,i)
+			print
+			print """if(`DMBR%d.rst)
+			    rep_cnt%d <= {`REPLENISH_WIDTH{1'b0}};
+			else
+				rep_cnt%d <= rst_credits%d	? {`REPLENISH_WIDTH{1'b0}} : rep_cnt%d + 1'b1;""" \
+			% (i,i,i,i,i)
+			print "end"
+	%>
+
+
+// Checker #1: check that the total number of credits in all
+// bins isn't exceeded
+`ifdef DMBR_CHECKER
+<%
+for i in range(NUM_TILES):
+	print """
+	always @*
+	begin
+		if ((used_credits%d > (total_credit_num%d + 1) ) & `DMBR%d.l1missIn)
+		//if (used_credits%d > total_credit_num%d)
+		begin
+			$display("\\n***********************************************************");
+			$display("DMBR%d: checker error! Must present a stall signal!");
+			$display("***********************************************************\\n");
+			$stop;
+		end
+	end""" % (i,i,i,i,i,i)
+%>
+`endif
+
+endmodule

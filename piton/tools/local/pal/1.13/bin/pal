@@ -1,0 +1,580 @@
+# Modified by Princeton University on June 9th, 2015
+# -*- perl -*-
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: pal
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+eval 'exec $PERL_CMD -S $0 ${1+"$@"}'
+  if 0;
+
+use FindBin;
+use File::Spec;
+
+#
+# PAL: Perl Augmented Language.
+#
+
+$VERSION= '1.13';
+$COMBINE_CONTINUATION= 0;	#lines ended with \ printed as it is
+
+$prog= &basename($0);
+($PROG= $prog)=~ tr/a-z/A-Z/;
+$PROG = "PAL";
+
+$PERL = $ENV{PERL_CMD};
+if(not defined $PERL) {
+  $PERL= "/usr/perl5/bin/perl";	#path for perl5; site dependent
+  warn "WARNING: PERL_CMD not defined, using $PERL.\n";
+}
+$BASE=     "$FindBin::Bin/..";		#released path
+$RUNTIME= "${PROG}_runtime.pl";
+
+my $os_cpu = `uname -s`;
+$os_cpu =~ s/\n//g;
+if ($os_cpu eq "SunOS") {
+  $os_cpu .= "/";
+  $os_cpu .= `uname -p`;
+} else {
+  $os_cpu .= "/";
+  $os_cpu .= `uname -m`;
+}
+$os_cpu =~ s/\n//g;
+$INCLUDE_CMD= $ENV{DV_ROOT};
+$INCLUDE_CMD .= "/tools/";
+$INCLUDE_CMD .= $os_cpu;
+$INCLUDE_CMD .= "/include,";
+$INCLUDE_CMD .= $VERSION;
+
+$OUTPUT_DIR=  ".";			# default output directory
+
+$,= ' ';
+$USER= $ENV{'USER'} || getlogin() || (getpwuid($<))[0] ;
+
+
+@ARGV_save= @ARGV;
+& initialize();				#may change BASE
+
+if(! $QUIET) {
+#	$cmd=  "echo \"`date +%m/%d/%y:%H`: $prog @ARGV\" >> $BASE/Log/$USER";
+#	$cmd.= "; chmod 660 $BASE/Log/$USER" ;
+#	system( $cmd );
+	}
+
+#Run cpp on the input file to expand #includes and __LINE__.
+#The reason we can't use the perl option that runs cpp before running perl
+#is because after running cpp, we have to do some massaging on output file.
+
+### process only '#inc' as include directive :
+
+if(1) {		#direct pipe.
+$cmd= "$INCLUDE_CMD -i '#inc' -pal $include_string $infile ";
+open(PP_FILE, " $cmd |") or die "Can't open pipe from '$cmd' $!\n";	#preprocessed file as input
+}else{		#write to a file first.
+$cmd= "$INCLUDE_CMD -i '#inc' -pal $include_string $infile > $infile_pp";
+& EXIT2(1, $cmd)	if( system("$cmd") ) ;
+open(PP_FILE, "< $infile_pp") or die "Can't open '$infile_pp' $!\n";	#preprocessed file as input
+}
+
+open(PL_FILE, "> $infile_pl") or die "Can't write '$infile_pl' $!\n";	#translated (perl) output
+
+print PL_FILE "#! $PERL \n";		#make perl code executable
+print PL_FILE "# Translated Perl code from '$0 @ARGV_save'\n\n";
+
+for($i= 0; $i< @INCLUDE; $i++) {
+	print PL_FILE "unshift(\@INC, '$INCLUDE[$i]');\n";
+	}
+print PL_FILE "srand($SEED);\n"	  if($SEED);
+print PL_FILE "\$BASE= '$BASE';\n";
+print PL_FILE "use lib '$FindBin::Bin/../lib';\n";
+print PL_FILE "require \'$RUNTIME';\n";
+
+& LINES_TO_PERL ();
+
+close(PP_FILE);
+close(PL_FILE);
+chmod(0750, $infile_pl);
+
+if($keep_tmpFile != 2) {
+  if ( $outputFile ) {
+      $attach= " > $outputFile"	if($outputFile);
+      # Make sure current dir is writable, since we'll be generating temp files.
+      & EXIT2(1, "Output directory '$OUTPUT_DIR' must be writable")
+		if(! -w $OUTPUT_DIR);
+  }
+  # print STDERR "execute: $infile_pl @ARGV $attach \n";
+  if( system("$PERL $infile_pl @ARGV $attach") ) {
+	&EXIT2(1, "Can't execute $infile_pl @ARGV $attach");
+	}
+}
+
+&cleanup();
+
+
+
+################################################################################
+# initialize & process cmd-line arguments
+################################################################################
+sub	process_cmdline {
+my($PERLOPTIONS) = '';
+my $ofile;
+
+while(substr($ARGV[0],0,1) eq '-' || $ARGV[0]=~ /^([A-Za-z_]\w*=)(.*)/) {
+	my($arg)= shift(@ARGV);
+
+	# [Viranjit 11/21/03]
+	if ( $arg =~ /^(-\S+)=(.+)/ ) {		# handle -<opt>=<val>
+	    $arg	= $1;			# convert to -<opt> <val>
+	    unshift @ARGV, $2;
+	}
+	
+	if( substr($arg,0,1) ne '-') {		#set var from cmd-line
+		$EVAL_STR .= "\$$1$2;\n";		# process "foo= bar"
+	}elsif($arg eq '-base') {		#change base to non-default place
+		$BASE= shift(@ARGV);		# for experimenting new version.
+	}elsif($arg eq '-h' || $arg eq '-help') {
+		& EXIT(0);
+	}elsif($arg eq '-H' || $arg eq '-HELP') {
+		& EXIT(0);
+		# & INFO();	exit(0);
+	}elsif($arg eq '-I') {
+		@INCLUDE= (@INCLUDE, shift(@ARGV));	
+	}elsif($arg eq '-k' || $arg eq '-keep') {
+		$keep_tmpFile= 1;
+	}elsif($arg eq '-ko' || $arg eq '-keeponly') {
+		$keep_tmpFile= 2;
+	}elsif($arg eq '-o') {
+		$outputFile= shift(@ARGV);		#user-given output file
+		(undef, $OUTPUT_DIR, $ofile) =
+			    File::Spec->splitpath( $outputFile );
+		$OUTPUT_DIR = "." if $OUTPUT_DIR eq "";
+	}elsif($arg eq '-q' || $arg eq '-quiet') {
+		$QUIET= 1;
+	}elsif($arg eq '-R' || $arg eq '-REVERSE') {
+		$REVERSE= shift(@ARGV);		#user-def reverse char
+	}elsif($arg eq '-r' || $arg eq '-reverse') {
+		$REVERSE= "\\\.";		#default reverse char: '.'
+	}elsif($arg eq '-s' || $arg eq '-seed') {
+		$SEED= shift(@ARGV);		#set random seed
+	}elsif($arg eq '-w') {
+		$PERLOPTIONS .= ' -w';
+        }elsif($arg eq '-perl') {
+		my($newperl)= shift(@ARGV);
+		if (-x $newperl) {
+		    $PERL = $newperl;
+		}
+	}
+    }
+	$PERL .= $PERLOPTIONS if ($PERLOPTIONS ne '');
+}
+
+sub	EXIT2 { & EXIT(@_, 'NoUsage'); }
+
+sub	EXIT {
+	my($errCode, $errStr, $NoUsage)= @_;
+	print STDERR "$PROG ERR (line $.): $errStr\n"  if($errStr);
+	& usage()				 if(! $NoUsage);
+	& cleanup();
+	exit($errCode);
+}
+
+sub initialize {
+   #reset all control variables :
+    @INCLUDE= ();
+    $REVERSE= '';			#default: no reverse mode
+
+    & EXIT(1)	if($#ARGV == -1);
+
+    & process_cmdline();		#process argv before input file
+
+    & EXIT(0, "Missing input file")	if($#ARGV < 0);
+
+    $infile=	 shift(@ARGV);
+    my($name)= &basename($infile);
+    $infile_pp=  "/usr/tmp/$name.$$.pp";	#after preprocess
+    $infile_pl=  "/usr/tmp/$name.$$.pl";	#after xlating to perl
+
+##  & process_cmdline()	if($#ARGV >= 0);	#after input file
+#   & EXIT(1, "Cmd-Line error")	if($#ARGV >= 0) ;
+
+    # Check suffix of input file and make sure it exists.
+    if($infile !~ /\.[^\.]*(pal|pm|tg)$/i &&		#no .pal|.pm|.tg suffix, and
+	    ! $REVERSE) {   			# not start w/ reverse mode
+		& EXIT2(1, "$infile must be ended with '.*(pal|pm|tg)'");
+		}
+    & EXIT2(1, "$infile does not exist")	if(! -r $infile);
+
+    # Make sure include directories exist.
+    for($i= 0; $i < @INCLUDE; $i++) {
+	if(! -d $INCLUDE[$i]) {
+		& EXIT2(1, "Directory $INCLUDE[$i] does not exist");
+	}else{
+		$include_string = $include_string . " -I $INCLUDE[$i]";
+		}
+	}
+
+}
+
+
+sub	LINES_TO_PERL {			#translate all lines to perl
+my($REVERSE_save);
+
+$curr_linenum= 0;
+$REVERSE_save= $REVERSE;
+
+$INIT= 1;
+$line=         '';
+$currLineType= '';
+while(<PP_FILE>) {		#read input file, and do some filtering
+    if(/^# line (\d+) (.*)/) {
+	$curr_linenum= $1 - 1;	# -1 because the line itself is following
+	$curr_file=    $2;
+	print PL_FILE $_;
+	next;
+    }else{
+	++ $curr_linenum;
+	}
+    if(/^$REVERSE#+\s*(END_INIT|ENDINIT)/ && $INIT) {	# put "foo=bar" after #END_INIT
+	s/^$REVERSE//;
+	print PL_FILE "$_";
+	print PL_FILE $EVAL_STR;
+	$INIT= 0;
+	next;
+	}
+    if($line ne '') {		#this is a continued line: strip its prefix
+	if( $currLineType ne &lineType($_) ) {
+	    &EXIT2(1, "prefix of continued line doesn't match previous line");
+	    }
+	s/^://;
+	s/^$REVERSE//	if($REVERSE ne '');
+	}
+     if($COMBINE_CONTINUATION==1 && s/\\\s*$// ) {
+      #line ended w/ \, cat to previous line
+	$currLineType= &lineType($_)	if(! $currLineType);
+        $line.= $_;
+	next;
+    }elsif($COMBINE_CONTINUATION==2 &&
+    	   ((! /#define/) && s/\\\s*$/\n/) ) {
+      #ended w/ \, and not #define
+	$currLineType= &lineType($_)	if(! $currLineType);
+	$line.= $_;
+	next;
+    }
+
+
+    $line.= $_;				#concate w/ potential previous lines
+    $line_save= $line;
+    & line_to_perl(*line);		#change :-lines to perl print stmt
+    if($line_save ne $line) {
+	$line=~ s/\n(.)/\n# line $curr_linenum $curr_file\n$1/g;
+#	print PL_FILE "# line $curr_linenum $curr_file\n"   if($line =~ /\n./);
+	}
+    print PL_FILE "$line";
+    $line=    	   '';			#reset only after a 'line' is complete
+    $currLineType= '';
+    }
+}
+
+
+sub	lineType {
+my($line)= @_;
+my($prefix)= substr($line,0,1);
+my($typ)=
+    ($prefix eq ':') && ($MODE eq 'PLAIN' || $REVERSE eq '') ?	':' :
+    ($prefix eq $REVERSE) && ($REVERSE ne '') ?			$REVERSE :
+								'x'       ;
+$typ;
+}
+
+
+#
+# Massage the cpp output file to 
+#   replace lines beginning with ":" with print statements
+#   replace single quote with backslash quote
+#   replace '\n' with '\\n'
+#   massage some of the spacing.
+
+sub  line_to_perl {			#translate 1 line to perl stmt
+local(*line) = @_;
+my($print_linenum)= 1;
+my($i);
+
+   if($MODE eq 'PLAIN') {	#===> complete_as_is (plain) TEXT mode:
+	# if($line =~ s/^[ \t]*://) {			#text stuff
+	if($line =~ s/^://) {				#text stuff
+		$line= & PASS_AS_IS( $line );
+	}elsif($REVERSE ne '' && $line =~ s/^$REVERSE//) {	#perl stmt
+		& check_mode_switch(*line);
+#    	}elsif($line =~ /^#/) {			#cpp-generated stuff: pass
+#			;		 	# unchanged as perl comment
+	}elsif($line =~ s/^\\#/#/) {		#text escaped comment: put back
+		$line= & pass_as_is( $line ) ;		#plain text
+	}else{	$line= & pass_as_is( $line ) ; }	#plain text
+
+   }elsif($REVESE ne ';' && $line =~ s/^;//) {	#===> complete_as_is TEXT mode:
+	## ';' in first column: NOT even perl variable will be evaluated
+	## Note that: perl variables still evaluated in ordinary TEXT mode
+		$line= & pass_as_is( $line ) ;
+
+   }elsif($REVERSE eq '') {	#==> PERL mode: text needs prefix w/ ':'
+	if($line =~ s/^://) {			#rm text-prefix up to ':'
+		$line= & PASS_AS_IS( $line );	#text
+	}else{
+		& check_mode_switch(*line);	#perl stmt
+		}
+   }else {			#==> TEXT mode: perl code prefixed w/ $REVERSE
+	if($line =~ s/^$REVERSE//) {	#perl stmt: remove prefix
+	   & check_mode_switch(*line);
+
+#   	}elsif($line =~ /^\s*#/) {		#cpp-generated stuff: pass
+#   		;		 		# unchanged as perl comment
+	}elsif($line =~ s/^\\#/#/) {	#text escaped comment: put back
+		$line= & PASS_AS_IS( $line ) ;	#AS_IS line
+	}else{	$line= & PASS_AS_IS( $line ) ; 	#AS_IS line
+		}
+	}
+}
+
+sub	check_mode_switch {		#mode-switch command: start_perl, and
+local(*line)= @_;			# start_text[(reverse_string)]
+
+if($line=~ /^\s*#/) {			#comment at the begin:
+	;
+}elsif($line=~ /^\s*start_plain/) {		#switch to pure text mode
+	$MODE= 'PLAIN';
+	$line= '';				#nullify the line
+}elsif($line=~ /^\s*start_perl/) {		#switch to perl mode
+	$REVERSE_save= $REVERSE;		#save prev REVERSE char
+	$REVERSE= '';				#clear REVERSE
+	$MODE= '';
+	$line= '';				#nullify the line
+}elsif($line=~ s/^\s*start_text//) {
+    if($line=~ s/\s*\((.*)\)//) {	#switch to text mode
+	   $REVERSE= "$1";			#use specified $REVERSE
+    }elsif($REVERSE_save ne '') {
+	   $REVERSE= $REVERSE_save; 		#use prev $REVERSE
+    }else{
+	   $REVERSE= "\\\.";			#use default $REVERSE
+	   }
+    $line= '';					#nullify the line
+    $MODE= '';
+}else{	my($prefix_stmt)= & proc_SELECTION(*line);
+	$line= $prefix_stmt . $line;
+	}
+$line;
+}
+
+
+sub	pass_as_is {		#COMPLETELY as is: nothing will be evaluated
+my($line)= @_ ;
+
+$line =~ s/\n$//;			# get rid of \n, if any.
+$line =~ s/\\/\\\\/g;			# change \ to \\; to print as \
+$line =~ s/'/\\'/g;			# replace quote w/ 'backslash quote'
+#$line = "print \"\\n\", \'$line\';\n"; #enclose $line w/ ': no escaped needed
+$line = "print \'$line\', \"\\n\";\n";	#enclose $line w/ ', so no escaped needed
+}
+
+
+sub	PASS_AS_IS {		#everything EXCEPT PERL $ variables appear as is
+local($line)= @_;		#perl variable is evaluated to its value;
+				#so only $ need be escaped by programmer.
+
+$line=~ s/\n$//;			# get rid of \n
+
+my($prefix_stmt)= & proc_SELECTION(*line, 1);
+
+### only '\' and " need be escaped !!
+$line =~ s/\\/\\\\/g;			# change \ to \\ for printing as \
+$line =~ s/"/\\"/g;			# change " to \" for printing as "
+
+### preseve $  as $;  so when printed, it is perl variable.
+### preseve \$ as \$; so when printed, it is '$' . {...}.
+### preseve $$ as $$; so when printed, it is process id.
+$line =~ s/\\\\([\[\$\@\]])/\\$1/g;	# put \\$ back to \$; to print as $
+
+#$line = $prefix_stmt . "print \"\\n$line\";\n";	
+$line = $prefix_stmt . "print \"$line\\n\";\n";	
+
+}
+
+#------------------- [[....]] is selection list which randomly choose element
+#------------------- [e[...]] is enumeration list which choose elements in order
+#------------------- [l[...]] return the number of elements in the list
+
+sub	proc_SELECTION {	#process selection list [e?[...]]
+local(*string, $func_sub)= @_;		#string is either text or perl stmt.
+my($list, $cmd);			#list is stuff within [e?[ and ]]
+my($sel_stmt, $fun_stmt);
+my($acc);
+
+$acc= '';
+########## selection list replacement:
+while( 1 ) {		###--replace next [..[..]] to a $variable
+	last	if($string !~ /\[([\w ,:]*)\[([^\]]*)\]\]/) ;
+###########			[ cmd       [ .list.  ] ]
+	++ $list_idx;			#GLOBAL: increment after done with it
+	$acc    .= $` . "\$\{_PARAM$list_idx\}";	#become a variable
+	$string = $';					#process rest later
+
+	$cmd=   $1;
+	$list= "$2";
+	$list=~ s/([^\\])"/$1\\"/g;		# escape non-escaped "
+	$list=~ s/^"/\\"/;
+	$list=~ s/\n//g;			# remove all new-line char
+
+	my($ln)= $curr_linenum - 1;
+  ##--- $_PARAMn is delay-evaluated until the last run, where all
+  ##----- $perl variables in [[..]] list are evaluated else where.
+	$sel_stmt .= "\$_PARAM$list_idx= &proc_SEL($list_idx, \"[$list]\", \"$cmd\", \"$curr_file:$ln\");\n";
+	}
+
+$string= $acc . $string;
+$acc=    '';
+########## function call replacement in 'text string':
+if( $func_sub ) {
+ while(1) {
+   last	if($string !~ /(.)?\&\s*([a-zA-Z_]\w*\s*\([^\)]*\))/ );
+###                            &   ---funcName--    ( ..... )
+   $match= $&;
+   if($1 eq '\\') {
+	$string= $';			#set before another substitute.
+	$acc  .= $`;
+	$match =~ s/^.//;		#un-escape \& to &.
+	$acc  .= $match;
+	next;
+	}
+   ++ $func_idx;
+   $acc      .= $` . "$1\$\{_RETURN$func_idx\}";
+   $string    = $';					#remaining part
+   $fun_stmt .= "\$_RETURN$func_idx= & $2;\n";
+   }
+ }
+# $fun_stmt=~ s/\\"/"/g;			#un-escape \"
+# $fun_stmt=~ s/\\\\/\\/g;		#un-escape \\
+
+$string= "$acc" . "$string";		# substitute orignal stmt
+
+$sel_stmt . $fun_stmt;		#### return prefix stmt: proc_SEL() + func-call
+}
+
+
+################################################################################
+# cleanup
+################################################################################
+sub cleanup {			# remove .pp and .pl files when no -k option
+if($keep_tmpFile) {
+	my($targ)= &basename($infile_pl);
+	$targ=~ s/$$\.//;
+	$targ= File::Spec->catfile( $OUTPUT_DIR, $targ) if $OUTPUT_DIR ne ".";
+	system("mv $infile_pl $targ");
+}else{
+	unlink($infile_pp)	if(-f $infile_pp);
+	unlink($infile_pl)	if(-f $infile_pl);
+	}
+}
+
+
+################################################################################
+# usage		and 	    INFO
+################################################################################
+sub	usage {
+my(@version)= split(' ', $VERSION);
+print	<<EOF;
+Usage: $prog [options] {file.$prog} [{\@ARGV for file.$prog}]
+    options:
+      {var}={expr}	 will set ${var} to {expr} after "^#END_INIT", before
+			 which is the place to give default values.
+      -h(elp)            print usage information.
+      -I <include_dir>   add <include_dir> to search path for #includes.
+      -k(eep)            keep temporary files after run.
+      -ko|-keeponly      generate temporary files and exit.
+      -o <outfile>       output assembly language to <outfile>.
+      -perl <file>	 Change the default perl version use to <file>.
+      -r(everse)         reverse to TEXT mode by treating lines prefixed w/ '.'
+                         as perl stmt, the rest are output unchanged.
+      -R '{prefix}'      same as -r except perl-prefix set to {prefix};
+                         char special to regular expression need be escaped.
+      -s(eed) {number}   set random number seed by calling 'srand({number})'.
+'$PROG', Perl extended Language, is a macro language based on Perl.
+Version: 1.00.
+EOF
+
+#     -H(ELP)            more info about $PROG extension: reverse mode,
+#                        string/number selection/enumeration, etc.
+#end of print <<EOF;
+}
+
+sub	INFO {
+print <<EOF;
+    List substitution: same as what CHAOS accepted
+	1. [[....]]:	selection; replace the whole thing with a randomly
+				selected element from the ... list.
+	2. [e[...]]:	enumeration; replace the while thing with the NEXT
+				element from the ... list.
+	3. [l[...]]:	length; replace the whole thing with the number of
+				elements of the ... list.
+	4. Type of list:
+		a. number list: [[0, 2, 4-9, 11-13]]
+		b. string list: [[bc1f, bc1t, bc1fl, bc1tl]]
+    About MODE: perl, text, and plain-text";
+          The original testgen is always in perl mode where all lines are perl
+          stmt by default. Only those prefixed with ':' are output as is with
+          perl variables evaluated. $PROG can switch mode bewteen perl and
+          text. In perl mode, text needs be prefixed with ':' just like in
+          testgen. In text mode, all lines are text by default. Perl stmt
+          need be started with perl-prefix, whose default is '.'. It can
+          be set to something else by using -R option. To make life more
+          versatile (or complicated :-), $PROG can switch modes on the fly.
+          Two pseudo perl functions are added for the purpose:
+                start_perl and start_text[({new_perl_prefix})]
+          Start_perl switches to perl mode and to comply with testgen, the
+          text-prefix is always ':'. Start_text switches to text mode with
+          perl-prefix set to either previous perl-prefix or {new_perl_prefix}
+          if specified. NOTE: perl-prefix is to process as regular expression.
+          Appropriate escape is needed. Here are Examples to set . and []
+          as perl-prefix:
+                 $prog -R '\\.'  and $prog -R '\\[\\]' on the command line, and
+                 start_text(\\.) and start_text(\\[\\]) on your .tg file.
+          In text mode, perl variables are still evaluated. To prevent that,
+          a pure text mode is added which must always be prefixed with ';'
+          if it is not used as perl_prefix.
+    Other differences in TEXT lines:
+          '\$': In testgen, '\$' if not for perl variables is escaped with \$\$;
+                in $PROG, it is escaped with more conventional \\\$.
+          '#': .tg file is first fed to cpp for macro processing.
+                So, '#' can't appear in the 1st column even in text
+                mode unless it is escaped with \\.
+          leading spaces: In testgen, spaces following ':' are replaced with
+                1 blank; in $PROG, they survive to maintain original indent.
+EOF
+	# end of prnt <<EOF;
+}
+
+
+sub basename {
+        my($name) = @_;
+	my( $basename ) = "";
+        split(/\//, $name);
+	$basename = pop @_;
+##	$basename =~ s/,.*$//;
+        return($basename);
+	}
+
+1;
+

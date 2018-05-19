@@ -1,0 +1,5 @@
+// Flist for ifu_esl testbench environment
+
++incdir+$DV_ROOT/design/include
+
+ifu_esl_top.v

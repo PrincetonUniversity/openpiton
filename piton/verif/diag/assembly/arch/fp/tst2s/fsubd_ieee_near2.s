@@ -1,0 +1,1376 @@
+// Modified by Princeton University on June 9th, 2015
+/*
+* ========== Copyright Header Begin ==========================================
+* 
+* OpenSPARC T1 Processor File: fsubd_ieee_near2.s
+* Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+* 
+* The above named program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License version 2 as published by the Free Software Foundation.
+* 
+* The above named program is distributed in the hope that it will be 
+* useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public
+* License along with this work; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+* 
+* ========== Copyright Header End ============================================
+*/
+/***********************************************************************
+* Name:   fsubd_ieee_near2.s
+* Date:   11/6/02
+*
+*
+**********************************************************************/
+
+#define ENABLE_T0_Fp_disabled_0x20
+#include "boot.s"
+
+.global sam_fast_immu_miss
+.global sam_fast_dmmu_miss
+
+.text
+.global main
+
+! Testing fsubd with rounding mode near
+
+
+
+main:
+
+	! Common code
+
+	wr		%g0, 0x4, %fprs		! make sure fef is 1 
+	setx		source1, %l0, %l1
+	setx		source2, %l0, %l2
+	setx		result, %l0, %l3
+	setx		fcc_result, %l0, %l4
+	setx		cexc_flag, %l0, %l5
+	setx		fsr_rounding_mode, %l0, %l6
+	setx		scratch, %l0, %l7
+
+
+	set		305, %g1		! Set loop count
+	set		0x0, %g2		! Set loop iterator
+
+
+fsubd_loop:
+	ldx		[%l6+0x0], %fsr
+
+
+	! instruction specific code
+
+	sll		%g2, 0x3, %g3
+
+	ldx		[%l6], %fsr		! Load fsr with rounding mode
+	ldd		[%l1+%g3], %f0		! Load source 1
+	ldd		[%l2+%g3], %f2		! Load source 2
+	fsubd		%f0, %f2, %f4		! Perform the operation
+	std		%f4, [%l7+0x0]		! Store the result for comparison
+	stx		%fsr, [%l7+0x8]		! Store the fsr for comparison
+	ldx		[%l7+0x0], %g4		! Load result from memory for comparison
+
+        ldx     [%l7+0x8], %g5   ! Load fsr from memory for comparison
+        sll     %g2, 0x3, %g3
+        ldx     [%l5+%g3], %g6   ! Load fsr with expected cexc mode
+        mov     0x0f, %g3              ! Mask for nv
+        and     %g3, %g6, %g7          ! Mask off nv
+        srl     %g7, 0x3, %g7          ! Shift to get of
+        or      %g7, %g6, %g6          ! Generate correct nx with of
+        mov     0x01, %g3              ! Mask to get nx
+        and     %g3, %g6, %g7          ! Mask off all but nx
+        sll     %g7, 0x2, %g7          ! Shift to align nx and uf
+        or      %g7, 0x1b, %g7         ! Mask for all cexc bits
+        and     %g7, %g6, %g6          ! Generate correct uf for denorm
+	      sll     %g6, 0x5, %g7          ! Generate aexc
+	      or      %g6, %g7, %g7          ! Generate expected fsr
+	      ldx     [%l6], %g6        ! Load fsr with rounding mode
+	      or      %g6, %g7, %g7          ! Generate expected fsr
+
+	sll		%g2, 0x3, %g3
+	ldx		[%l3+%g3], %g6		! Load expected result
+
+	subcc		%g4, %g6, %g0		! Compare
+	bne,a		test_fail		! If not equal, test failed
+	nop
+	subcc		%g5, %g7, %g0		! Compare
+	bne,a		test_fail		! If not equal, test failed
+	nop
+
+
+	add		%g2, 0x1, %g2		! Increment loop iterator
+	subcc		%g2, %g1, %g0		! Compare
+	bne,a		fsubd_loop		! Loop
+	nop
+
+
+/*******************************************************
+ * Exit code
+ *******************************************************/
+
+test_pass:
+	ta		T_GOOD_TRAP
+
+test_fail:
+	ta		T_BAD_TRAP
+
+
+
+
+/*******************************************************
+* Data section
+*******************************************************/
+.data
+
+
+fsr_rounding_mode:
+	.xword		0x0000000000000000
+
+
+source1:
+	.xword		0x8000000000000001
+	.xword		0x7fefffffffffffff
+	.xword		0xffefffffffffffff
+	.xword		0x3ff0000000000001
+	.xword		0xbff0000000000000
+	.xword		0x7fe0000000000001
+	.xword		0xffe0000000000000
+	.xword		0x0010000000000001
+	.xword		0x8010000000000000
+	.xword		0xc000000000000000
+	.xword		0x4000000000000001
+	.xword		0xffd0000000000000
+	.xword		0x7fd0000000000001
+	.xword		0xbff0000000000001
+	.xword		0x3ff0000000000000
+	.xword		0xffe0000000000001
+	.xword		0x7fe0000000000000
+	.xword		0x8010000000000001
+	.xword		0x0010000000000000
+	.xword		0x4000000000000000
+	.xword		0xc000000000000001
+	.xword		0x7fd0000000000000
+	.xword		0xffd0000000000001
+	.xword		0x0000000000000002
+	.xword		0x8000000000000001
+	.xword		0xbff0000000000001
+	.xword		0x3ff0000000000002
+	.xword		0xffe0000000000001
+	.xword		0x7fe0000000000002
+	.xword		0x8010000000000001
+	.xword		0x0010000000000002
+	.xword		0x8000000000000002
+	.xword		0x0000000000000001
+	.xword		0x3ff0000000000001
+	.xword		0xbff0000000000002
+	.xword		0x7fe0000000000001
+	.xword		0xffe0000000000002
+	.xword		0x0010000000000001
+	.xword		0x8010000000000002
+	.xword		0x8000000000000003
+	.xword		0x0000000000000002
+	.xword		0x0000000000000003
+	.xword		0x8000000000000002
+	.xword		0x4000000000000004
+	.xword		0xc000000000000003
+	.xword		0x7fd0000000000004
+	.xword		0xffd0000000000003
+	.xword		0xc000000000000004
+	.xword		0x4000000000000003
+	.xword		0xffd0000000000004
+	.xword		0x7fd0000000000003
+	.xword		0x400fffffffffffff
+	.xword		0xc00ffffffffffffe
+	.xword		0x7fcfffffffffffff
+	.xword		0xffcffffffffffffe
+	.xword		0x000fffffffffffff
+	.xword		0x800ffffffffffffe
+	.xword		0xffeffffffffffffe
+	.xword		0x7fefffffffffffff
+	.xword		0xc00fffffffffffff
+	.xword		0x400ffffffffffffe
+	.xword		0xffcfffffffffffff
+	.xword		0x7fcffffffffffffe
+	.xword		0x800fffffffffffff
+	.xword		0x000ffffffffffffe
+	.xword		0x7feffffffffffffe
+	.xword		0xffefffffffffffff
+	.xword		0x000ffffffffffffd
+	.xword		0x800ffffffffffffe
+	.xword		0x800ffffffffffffd
+	.xword		0x000ffffffffffffe
+	.xword		0x3ffffffffffffffc
+	.xword		0xbffffffffffffffd
+	.xword		0xbffffffffffffffc
+	.xword		0x3ffffffffffffffd
+	.xword		0x000fffffffffffff
+	.xword		0x8010000000000000
+	.xword		0x3fffffffffffffff
+	.xword		0xc000000000000000
+	.xword		0x002fffffffffffff
+	.xword		0x8030000000000000
+	.xword		0x7fdfffffffffffff
+	.xword		0xffe0000000000000
+	.xword		0x001fffffffffffff
+	.xword		0x8020000000000000
+	.xword		0xffd0000000000000
+	.xword		0x7fcfffffffffffff
+	.xword		0x4000000000000000
+	.xword		0xbfffffffffffffff
+	.xword		0x7fd0000000000000
+	.xword		0xffcfffffffffffff
+	.xword		0x0020000000000000
+	.xword		0x801fffffffffffff
+	.xword		0x0030000000000000
+	.xword		0x802fffffffffffff
+	.xword		0x800fffffffffffff
+	.xword		0x0010000000000000
+	.xword		0xffdfffffffffffff
+	.xword		0x7fe0000000000000
+	.xword		0x400fffffffffffff
+	.xword		0xc010000000000001
+	.xword		0xffb0000000000001
+	.xword		0x7fafffffffffffff
+	.xword		0x8020000000000001
+	.xword		0x001fffffffffffff
+	.xword		0x8030000000000001
+	.xword		0x002fffffffffffff
+	.xword		0xc00fffffffffffff
+	.xword		0x4010000000000001
+	.xword		0x7fb0000000000001
+	.xword		0xffafffffffffffff
+	.xword		0x0020000000000001
+	.xword		0x801fffffffffffff
+	.xword		0x0030000000000001
+	.xword		0x802fffffffffffff
+	.xword		0x400fffffffffffff
+	.xword		0xc010000000000002
+	.xword		0x7fcfffffffffffff
+	.xword		0xffd0000000000002
+	.xword		0x001fffffffffffff
+	.xword		0x8020000000000002
+	.xword		0xc00fffffffffffff
+	.xword		0x4010000000000002
+	.xword		0xffcfffffffffffff
+	.xword		0x7fd0000000000002
+	.xword		0x801fffffffffffff
+	.xword		0x0020000000000002
+	.xword		0x001fffffffffffff
+	.xword		0x8020000000000004
+	.xword		0x801fffffffffffff
+	.xword		0x0020000000000004
+	.xword		0x4000000000000001
+	.xword		0xbff0000000000001
+	.xword		0x0020000000000001
+	.xword		0x8010000000000001
+	.xword		0xc000000000000001
+	.xword		0x3ff0000000000001
+	.xword		0x8020000000000001
+	.xword		0x0010000000000001
+	.xword		0xffd0000000000001
+	.xword		0x7fe0000000000001
+	.xword		0x7fd0000000000001
+	.xword		0xffe0000000000001
+	.xword		0x4000000000000002
+	.xword		0xbff0000000000001
+	.xword		0x7fe0000000000002
+	.xword		0xffd0000000000001
+	.xword		0x0020000000000002
+	.xword		0x8010000000000001
+	.xword		0xc000000000000002
+	.xword		0x3ff0000000000001
+	.xword		0xffe0000000000002
+	.xword		0x7fd0000000000001
+	.xword		0x8020000000000002
+	.xword		0x0010000000000001
+	.xword		0x4000000000000002
+	.xword		0xbff0000000000003
+	.xword		0x7fd0000000000002
+	.xword		0xffc0000000000003
+	.xword		0x0030000000000002
+	.xword		0x8020000000000003
+	.xword		0xc000000000000002
+	.xword		0x3ff0000000000003
+	.xword		0xffd0000000000002
+	.xword		0x7fc0000000000003
+	.xword		0x8030000000000002
+	.xword		0x0020000000000003
+	.xword		0x3ff0000000000002
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000002
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000004
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000004
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000008
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000008
+	.xword		0x3ff0000000000000
+	.xword		0x4031000000000000
+	.xword		0xc030000000000000
+	.xword		0xc031000000000000
+	.xword		0x4030000000000000
+	.xword		0x4030000000000000
+	.xword		0xc031000000000000
+	.xword		0x4022000000000000
+	.xword		0xc020000000000000
+	.xword		0xc022000000000000
+	.xword		0x4020000000000000
+	.xword		0x4014000000000000
+	.xword		0xc010000000000000
+	.xword		0xc014000000000000
+	.xword		0x4010000000000000
+	.xword		0x4008000000000000
+	.xword		0xc000000000000000
+	.xword		0xc008000000000000
+	.xword		0x4000000000000000
+	.xword		0x4000000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4024000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4033000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4040000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4050400000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4060a00000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4070400000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4080a80000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4090140000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40a0000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40b0010000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40c0008000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40d0000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40e0018000000000
+	.xword		0x3ff0000000000001
+	.xword		0x40f0013000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4100000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x41100d6000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4120059000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4130059000000000
+	.xword		0x3ff0000000000001
+	.xword		0x413fee9c00000000
+	.xword		0x3ff0000000000001
+	.xword		0x4150000040000000
+	.xword		0x3ff0000000000001
+	.xword		0x4160000020000000
+	.xword		0x3ff0000000000001
+	.xword		0x4340000000000000
+	.xword		0x4010000000000001
+	.xword		0x4340000000000000
+	.xword		0x4000000000000001
+	.xword		0xc000000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc340000000000000
+	.xword		0xc010000000000001
+	.xword		0xc340000000000000
+	.xword		0xc000000000000001
+	.xword		0x40dfffc000000000
+	.xword		0x3ff0000000000000
+	.xword		0xc0dfffc000000000
+	.xword		0xbff0000000000000
+	.xword		0x433fffffffffffff
+	.xword		0x3ff0000000000000
+	.xword		0xc33fffffffffffff
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x402e000000000000
+	.xword		0xbff0000000000000
+	.xword		0xc02e000000000000
+	.xword		0x4000000000000000
+	.xword		0x433ffffffffffffb
+	.xword		0xc000000000000000
+	.xword		0xc33ffffffffffffb
+	.xword		0x000fffffffffffff
+	.xword		0x0000000000000001
+	.xword		0x800fffffffffffff
+	.xword		0x8000000000000001
+	.xword		0x000e000000000000
+	.xword		0x0002000000000000
+	.xword		0x800e000000000000
+	.xword		0x8002000000000000
+	.xword		0x4000000000000000
+	.xword		0x40dfff4000000000
+	.xword		0xc000000000000000
+	.xword		0xc0dfff4000000000
+	.xword		0x3ff0000000000000
+	.xword		0x433ffffffffffffe
+	.xword		0xbff0000000000000
+	.xword		0xc33ffffffffffffe
+	.xword		0x4008000000000000
+	.xword		0x433ffffffffffffa
+	.xword		0xc008000000000000
+	.xword		0xc33ffffffffffffa
+	.xword		0x3ff0000000000000
+	.xword		0x402c000000000000
+	.xword		0xbff0000000000000
+	.xword		0xc02c000000000000
+	.xword		0x4000000000000000
+	.xword		0x402a000000000000
+	.xword		0xc000000000000000
+	.xword		0xc02a000000000000
+	.xword		0x000ffffffffffffe
+	.xword		0x0000000000000001
+	.xword		0x800ffffffffffffe
+	.xword		0x8000000000000001
+	.xword		0x000c000000000000
+	.xword		0x0002000000000000
+	.xword		0x800c000000000000
+	.xword		0x8002000000000000
+	.xword		0xffdfffffffffffff
+	.xword		0xbff0000000000000
+.align 8
+
+
+source2:
+	.xword		0x8000000000000001
+	.xword		0x7fefffffffffffff
+	.xword		0xffefffffffffffff
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000001
+	.xword		0x7fe0000000000000
+	.xword		0xffe0000000000001
+	.xword		0x0010000000000000
+	.xword		0x8010000000000001
+	.xword		0xc000000000000001
+	.xword		0x4000000000000000
+	.xword		0xffd0000000000001
+	.xword		0x7fd0000000000000
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000001
+	.xword		0xffe0000000000000
+	.xword		0x7fe0000000000001
+	.xword		0x8010000000000000
+	.xword		0x0010000000000001
+	.xword		0x4000000000000001
+	.xword		0xc000000000000000
+	.xword		0x7fd0000000000001
+	.xword		0xffd0000000000000
+	.xword		0x0000000000000001
+	.xword		0x8000000000000002
+	.xword		0xbff0000000000002
+	.xword		0x3ff0000000000001
+	.xword		0xffe0000000000002
+	.xword		0x7fe0000000000001
+	.xword		0x8010000000000002
+	.xword		0x0010000000000001
+	.xword		0x8000000000000001
+	.xword		0x0000000000000002
+	.xword		0x3ff0000000000002
+	.xword		0xbff0000000000001
+	.xword		0x7fe0000000000002
+	.xword		0xffe0000000000001
+	.xword		0x0010000000000002
+	.xword		0x8010000000000001
+	.xword		0x8000000000000002
+	.xword		0x0000000000000003
+	.xword		0x0000000000000002
+	.xword		0x8000000000000003
+	.xword		0x4000000000000003
+	.xword		0xc000000000000004
+	.xword		0x7fd0000000000003
+	.xword		0xffd0000000000004
+	.xword		0xc000000000000003
+	.xword		0x4000000000000004
+	.xword		0xffd0000000000003
+	.xword		0x7fd0000000000004
+	.xword		0x400ffffffffffffe
+	.xword		0xc00fffffffffffff
+	.xword		0x7fcffffffffffffe
+	.xword		0xffcfffffffffffff
+	.xword		0x000ffffffffffffe
+	.xword		0x800fffffffffffff
+	.xword		0xffefffffffffffff
+	.xword		0x7feffffffffffffe
+	.xword		0xc00ffffffffffffe
+	.xword		0x400fffffffffffff
+	.xword		0xffcffffffffffffe
+	.xword		0x7fcfffffffffffff
+	.xword		0x800ffffffffffffe
+	.xword		0x000fffffffffffff
+	.xword		0x7fefffffffffffff
+	.xword		0xffeffffffffffffe
+	.xword		0x000ffffffffffffe
+	.xword		0x800ffffffffffffd
+	.xword		0x800ffffffffffffe
+	.xword		0x000ffffffffffffd
+	.xword		0x3ffffffffffffffd
+	.xword		0xbffffffffffffffc
+	.xword		0xbffffffffffffffd
+	.xword		0x3ffffffffffffffc
+	.xword		0x0010000000000000
+	.xword		0x800fffffffffffff
+	.xword		0x4000000000000000
+	.xword		0xbfffffffffffffff
+	.xword		0x0030000000000000
+	.xword		0x802fffffffffffff
+	.xword		0x7fe0000000000000
+	.xword		0xffdfffffffffffff
+	.xword		0x0020000000000000
+	.xword		0x801fffffffffffff
+	.xword		0xffcfffffffffffff
+	.xword		0x7fd0000000000000
+	.xword		0x3fffffffffffffff
+	.xword		0xc000000000000000
+	.xword		0x7fcfffffffffffff
+	.xword		0xffd0000000000000
+	.xword		0x001fffffffffffff
+	.xword		0x8020000000000000
+	.xword		0x002fffffffffffff
+	.xword		0x8030000000000000
+	.xword		0x8010000000000000
+	.xword		0x000fffffffffffff
+	.xword		0xffe0000000000000
+	.xword		0x7fdfffffffffffff
+	.xword		0x4010000000000001
+	.xword		0xc00fffffffffffff
+	.xword		0xffafffffffffffff
+	.xword		0x7fb0000000000001
+	.xword		0x801fffffffffffff
+	.xword		0x0020000000000001
+	.xword		0x802fffffffffffff
+	.xword		0x0030000000000001
+	.xword		0xc010000000000001
+	.xword		0x400fffffffffffff
+	.xword		0x7fafffffffffffff
+	.xword		0xffb0000000000001
+	.xword		0x001fffffffffffff
+	.xword		0x8020000000000001
+	.xword		0x002fffffffffffff
+	.xword		0x8030000000000001
+	.xword		0x4010000000000002
+	.xword		0xc00fffffffffffff
+	.xword		0x7fd0000000000002
+	.xword		0xffcfffffffffffff
+	.xword		0x0020000000000002
+	.xword		0x801fffffffffffff
+	.xword		0xc010000000000002
+	.xword		0x400fffffffffffff
+	.xword		0xffd0000000000002
+	.xword		0x7fcfffffffffffff
+	.xword		0x8020000000000002
+	.xword		0x001fffffffffffff
+	.xword		0x0020000000000004
+	.xword		0x801fffffffffffff
+	.xword		0x8020000000000004
+	.xword		0x001fffffffffffff
+	.xword		0x3ff0000000000001
+	.xword		0xc000000000000001
+	.xword		0x0010000000000001
+	.xword		0x8020000000000001
+	.xword		0xbff0000000000001
+	.xword		0x4000000000000001
+	.xword		0x8010000000000001
+	.xword		0x0020000000000001
+	.xword		0xffe0000000000001
+	.xword		0x7fd0000000000001
+	.xword		0x7fe0000000000001
+	.xword		0xffd0000000000001
+	.xword		0x3ff0000000000001
+	.xword		0xc000000000000002
+	.xword		0x7fd0000000000001
+	.xword		0xffe0000000000002
+	.xword		0x0010000000000001
+	.xword		0x8020000000000002
+	.xword		0xbff0000000000001
+	.xword		0x4000000000000002
+	.xword		0xffd0000000000001
+	.xword		0x7fe0000000000002
+	.xword		0x8010000000000001
+	.xword		0x0020000000000002
+	.xword		0x3ff0000000000003
+	.xword		0xc000000000000002
+	.xword		0x7fc0000000000003
+	.xword		0xffd0000000000002
+	.xword		0x0020000000000003
+	.xword		0x8030000000000002
+	.xword		0xbff0000000000003
+	.xword		0x4000000000000002
+	.xword		0xffc0000000000003
+	.xword		0x7fd0000000000002
+	.xword		0x8020000000000003
+	.xword		0x0030000000000002
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000002
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000002
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000004
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000004
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000008
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000008
+	.xword		0x4030000000000000
+	.xword		0xc031000000000000
+	.xword		0xc030000000000000
+	.xword		0x4031000000000000
+	.xword		0x4031000000000000
+	.xword		0xc030000000000000
+	.xword		0x4020000000000000
+	.xword		0xc022000000000000
+	.xword		0xc020000000000000
+	.xword		0x4022000000000000
+	.xword		0x4010000000000000
+	.xword		0xc014000000000000
+	.xword		0xc010000000000000
+	.xword		0x4014000000000000
+	.xword		0x4000000000000000
+	.xword		0xc008000000000000
+	.xword		0xc000000000000000
+	.xword		0x4008000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc000000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc024000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc033000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc040000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc050400000000000
+	.xword		0xbff0000000000001
+	.xword		0xc060a00000000000
+	.xword		0xbff0000000000001
+	.xword		0xc070400000000000
+	.xword		0xbff0000000000001
+	.xword		0xc080a80000000000
+	.xword		0xbff0000000000001
+	.xword		0xc090140000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0a0000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0b0010000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0c0008000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0d0000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0e0018000000000
+	.xword		0xbff0000000000001
+	.xword		0xc0f0013000000000
+	.xword		0xbff0000000000001
+	.xword		0xc100000000000000
+	.xword		0xbff0000000000001
+	.xword		0xc1100d6000000000
+	.xword		0xbff0000000000001
+	.xword		0xc120059000000000
+	.xword		0xbff0000000000001
+	.xword		0xc130059000000000
+	.xword		0xbff0000000000001
+	.xword		0xc13fee9c00000000
+	.xword		0xbff0000000000001
+	.xword		0xc150000040000000
+	.xword		0xbff0000000000001
+	.xword		0xc160000020000000
+	.xword		0xc010000000000001
+	.xword		0xc340000000000000
+	.xword		0xc000000000000001
+	.xword		0xc340000000000000
+	.xword		0x3ff0000000000001
+	.xword		0x4000000000000000
+	.xword		0x4010000000000001
+	.xword		0x4340000000000000
+	.xword		0x4000000000000001
+	.xword		0x4340000000000000
+	.xword		0xbff0000000000000
+	.xword		0xc0dfffc000000000
+	.xword		0x3ff0000000000000
+	.xword		0x40dfffc000000000
+	.xword		0xbff0000000000000
+	.xword		0xc33fffffffffffff
+	.xword		0x3ff0000000000000
+	.xword		0x433fffffffffffff
+	.xword		0xc02e000000000000
+	.xword		0xbff0000000000000
+	.xword		0x402e000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xc33ffffffffffffb
+	.xword		0xc000000000000000
+	.xword		0x433ffffffffffffb
+	.xword		0x4000000000000000
+	.xword		0x8000000000000001
+	.xword		0x800fffffffffffff
+	.xword		0x0000000000000001
+	.xword		0x000fffffffffffff
+	.xword		0x8002000000000000
+	.xword		0x800e000000000000
+	.xword		0x0002000000000000
+	.xword		0x000e000000000000
+	.xword		0xc0dfff4000000000
+	.xword		0xc000000000000000
+	.xword		0x40dfff4000000000
+	.xword		0x4000000000000000
+	.xword		0xc33ffffffffffffe
+	.xword		0xbff0000000000000
+	.xword		0x433ffffffffffffe
+	.xword		0x3ff0000000000000
+	.xword		0xc33ffffffffffffa
+	.xword		0xc008000000000000
+	.xword		0x433ffffffffffffa
+	.xword		0x4008000000000000
+	.xword		0xc02c000000000000
+	.xword		0xbff0000000000000
+	.xword		0x402c000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xc02a000000000000
+	.xword		0xc000000000000000
+	.xword		0x402a000000000000
+	.xword		0x4000000000000000
+	.xword		0x8000000000000001
+	.xword		0x800ffffffffffffe
+	.xword		0x0000000000000001
+	.xword		0x000ffffffffffffe
+	.xword		0x8002000000000000
+	.xword		0x800c000000000000
+	.xword		0x0002000000000000
+	.xword		0x000c000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x7fdfffffffffffff
+.align 8
+
+
+result:
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x7ca0000000000000
+	.xword		0x7ca0000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x3cc0000000000000
+	.xword		0x3cc0000000000000
+	.xword		0x7c90000000000000
+	.xword		0x7c90000000000000
+	.xword		0xbcb0000000000000
+	.xword		0xbcb0000000000000
+	.xword		0xfca0000000000000
+	.xword		0xfca0000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0xbcc0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xfc90000000000000
+	.xword		0xfc90000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x3cb0000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x7ca0000000000000
+	.xword		0x7ca0000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0xbcb0000000000000
+	.xword		0xbcb0000000000000
+	.xword		0xfca0000000000000
+	.xword		0xfca0000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x3cc0000000000000
+	.xword		0x3cc0000000000000
+	.xword		0x7c90000000000000
+	.xword		0x7c90000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xfc90000000000000
+	.xword		0xfc90000000000000
+	.xword		0x3cc0000000000000
+	.xword		0x3cc0000000000000
+	.xword		0x7c80000000000000
+	.xword		0x7c80000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x7ca0000000000000
+	.xword		0x7ca0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xfc80000000000000
+	.xword		0xfc80000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0xfca0000000000000
+	.xword		0xfca0000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0xbcb0000000000000
+	.xword		0xbcb0000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0xbcb0000000000000
+	.xword		0xbcb0000000000000
+	.xword		0x8000000000000002
+	.xword		0x8000000000000002
+	.xword		0xfc90000000000000
+	.xword		0xfc90000000000000
+	.xword		0x8000000000000001
+	.xword		0x8000000000000001
+	.xword		0xfc80000000000000
+	.xword		0xfc80000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x3cb0000000000000
+	.xword		0x7c80000000000000
+	.xword		0x7c80000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000002
+	.xword		0x0000000000000002
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x7c90000000000000
+	.xword		0x7c90000000000000
+	.xword		0xbcd8000000000000
+	.xword		0xbcd8000000000000
+	.xword		0xfc78000000000000
+	.xword		0xfc78000000000000
+	.xword		0x8000000000000003
+	.xword		0x8000000000000003
+	.xword		0x8000000000000006
+	.xword		0x8000000000000006
+	.xword		0x3cd8000000000000
+	.xword		0x3cd8000000000000
+	.xword		0x7c78000000000000
+	.xword		0x7c78000000000000
+	.xword		0x0000000000000003
+	.xword		0x0000000000000003
+	.xword		0x0000000000000006
+	.xword		0x0000000000000006
+	.xword		0xbce4000000000000
+	.xword		0xbce4000000000000
+	.xword		0xfca4000000000000
+	.xword		0xfca4000000000000
+	.xword		0x8000000000000005
+	.xword		0x8000000000000005
+	.xword		0x3ce4000000000000
+	.xword		0x3ce4000000000000
+	.xword		0x7ca4000000000000
+	.xword		0x7ca4000000000000
+	.xword		0x0000000000000005
+	.xword		0x0000000000000005
+	.xword		0x8000000000000009
+	.xword		0x8000000000000009
+	.xword		0x0000000000000009
+	.xword		0x0000000000000009
+	.xword		0x3ff0000000000001
+	.xword		0x3ff0000000000001
+	.xword		0x0010000000000001
+	.xword		0x0010000000000001
+	.xword		0xbff0000000000001
+	.xword		0xbff0000000000001
+	.xword		0x8010000000000001
+	.xword		0x8010000000000001
+	.xword		0x7fd0000000000001
+	.xword		0x7fd0000000000001
+	.xword		0xffd0000000000001
+	.xword		0xffd0000000000001
+	.xword		0x3ff0000000000003
+	.xword		0x3ff0000000000003
+	.xword		0x7fd0000000000003
+	.xword		0x7fd0000000000003
+	.xword		0x0010000000000003
+	.xword		0x0010000000000003
+	.xword		0xbff0000000000003
+	.xword		0xbff0000000000003
+	.xword		0xffd0000000000003
+	.xword		0xffd0000000000003
+	.xword		0x8010000000000003
+	.xword		0x8010000000000003
+	.xword		0x3ff0000000000001
+	.xword		0x3ff0000000000001
+	.xword		0x7fc0000000000001
+	.xword		0x7fc0000000000001
+	.xword		0x0020000000000001
+	.xword		0x0020000000000001
+	.xword		0xbff0000000000001
+	.xword		0xbff0000000000001
+	.xword		0xffc0000000000001
+	.xword		0xffc0000000000001
+	.xword		0x8020000000000001
+	.xword		0x8020000000000001
+	.xword		0x3cc0000000000000
+	.xword		0x3cc0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0xbcc0000000000000
+	.xword		0x3cd0000000000000
+	.xword		0x3cd0000000000000
+	.xword		0xbcd0000000000000
+	.xword		0xbcd0000000000000
+	.xword		0x3ce0000000000000
+	.xword		0x3ce0000000000000
+	.xword		0xbce0000000000000
+	.xword		0xbce0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0x3ff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0xbff0000000000000
+	.xword		0x4008000000000000
+	.xword		0x4008000000000000
+	.xword		0x4026000000000000
+	.xword		0x4026000000000000
+	.xword		0x4034000000000000
+	.xword		0x4034000000000000
+	.xword		0x4040800000000000
+	.xword		0x4040800000000000
+	.xword		0x4050800000000000
+	.xword		0x4050800000000000
+	.xword		0x4060c00000000000
+	.xword		0x4060c00000000000
+	.xword		0x4070500000000000
+	.xword		0x4070500000000000
+	.xword		0x4080b00000000000
+	.xword		0x4080b00000000000
+	.xword		0x4090180000000000
+	.xword		0x4090180000000000
+	.xword		0x40a0020000000000
+	.xword		0x40a0020000000000
+	.xword		0x40b0020000000000
+	.xword		0x40b0020000000000
+	.xword		0x40c0010000000000
+	.xword		0x40c0010000000000
+	.xword		0x40d0004000000000
+	.xword		0x40d0004000000000
+	.xword		0x40e001a000000000
+	.xword		0x40e001a000000000
+	.xword		0x40f0014000000000
+	.xword		0x40f0014000000000
+	.xword		0x4100000800000000
+	.xword		0x4100000800000000
+	.xword		0x41100d6400000000
+	.xword		0x41100d6400000000
+	.xword		0x4120059200000000
+	.xword		0x4120059200000000
+	.xword		0x4130059100000000
+	.xword		0x4130059100000000
+	.xword		0x413fee9d00000000
+	.xword		0x413fee9d00000000
+	.xword		0x4150000080000000
+	.xword		0x4150000080000000
+	.xword		0x4160000040000000
+	.xword		0x4160000040000000
+	.xword		0x4340000000000002
+	.xword		0x4340000000000002
+	.xword		0x4340000000000001
+	.xword		0x4340000000000001
+	.xword		0xc008000000000000
+	.xword		0xc008000000000000
+	.xword		0xc340000000000002
+	.xword		0xc340000000000002
+	.xword		0xc340000000000001
+	.xword		0xc340000000000001
+	.xword		0x40e0000000000000
+	.xword		0x40e0000000000000
+	.xword		0xc0e0000000000000
+	.xword		0xc0e0000000000000
+	.xword		0x4340000000000000
+	.xword		0x4340000000000000
+	.xword		0xc340000000000000
+	.xword		0xc340000000000000
+	.xword		0x4030000000000000
+	.xword		0x4030000000000000
+	.xword		0xc030000000000000
+	.xword		0xc030000000000000
+	.xword		0x433ffffffffffffd
+	.xword		0x433ffffffffffffd
+	.xword		0xc33ffffffffffffd
+	.xword		0xc33ffffffffffffd
+	.xword		0x0010000000000000
+	.xword		0x0010000000000000
+	.xword		0x8010000000000000
+	.xword		0x8010000000000000
+	.xword		0x0010000000000000
+	.xword		0x0010000000000000
+	.xword		0x8010000000000000
+	.xword		0x8010000000000000
+	.xword		0x40dfffc000000000
+	.xword		0x40dfffc000000000
+	.xword		0xc0dfffc000000000
+	.xword		0xc0dfffc000000000
+	.xword		0x433fffffffffffff
+	.xword		0x433fffffffffffff
+	.xword		0xc33fffffffffffff
+	.xword		0xc33fffffffffffff
+	.xword		0x433ffffffffffffd
+	.xword		0x433ffffffffffffd
+	.xword		0xc33ffffffffffffd
+	.xword		0xc33ffffffffffffd
+	.xword		0x402e000000000000
+	.xword		0x402e000000000000
+	.xword		0xc02e000000000000
+	.xword		0xc02e000000000000
+	.xword		0x402e000000000000
+	.xword		0x402e000000000000
+	.xword		0xc02e000000000000
+	.xword		0xc02e000000000000
+	.xword		0x000fffffffffffff
+	.xword		0x000fffffffffffff
+	.xword		0x800fffffffffffff
+	.xword		0x800fffffffffffff
+	.xword		0x000e000000000000
+	.xword		0x000e000000000000
+	.xword		0x800e000000000000
+	.xword		0x800e000000000000
+	.xword		0xffdfffffffffffff
+	.xword		0xffdfffffffffffff
+.align 8
+fcc_result:
+
+
+cexc_flag:
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000004
+	.xword		0x0000000000000001
+	.xword		0x0000000000000001
+.align 8
+
+
+scratch:
+	.xword		0x0000000000000000
+	.xword		0x0000000000000000
+
+

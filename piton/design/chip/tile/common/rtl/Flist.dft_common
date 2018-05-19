@@ -1,0 +1,34 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: Flist.dft_common
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+-v cluster_header.v
+-v cluster_header_sync.v
+-v cluster_header_dup.v
+-v cluster_header_ctu.v
+//-v ../../analog/bw_clk/rtl/bw_clk_cclk_sync.v
+//-v ../../analog/bw_clk/rtl/bw_clk_cclk_scanlasr_2x.v
+//-v dftlib.v
+//-v test_stub_bist.v
+//-v test_stub_scan.v
+-v synchronizer_asr.v
+-v synchronizer_asr_dup.v
+-v sync_pulse_synchronizer.v
+-v clk_gating_latch.v

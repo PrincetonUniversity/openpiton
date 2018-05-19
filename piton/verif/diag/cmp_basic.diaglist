@@ -1,0 +1,866 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: cmp_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////////////////////////////
+// cmp
+////////////////////////////////////////////////////////////////////////////////
+
+
+<runargs -sas>
+
+#ifdef CMP_FULL_REGR
+<cmp_full_regr >
+#endif
+
+
+#ifdef CMP_REGR
+<core1_full >
+#define CORE1_FULL
+#endif
+
+#ifdef CMP_REGR
+<thread4_full >
+#define THREAD4_FULL
+#endif
+
+#ifdef CMP_REGR
+<thread1_full >
+#define THREAD1_FULL
+#endif
+
+#ifdef CMP_CHECK
+<core1_mini >
+<thread1_mini >
+#endif
+
+#ifdef CMP_CHECK_COV
+<cmp_check_cov -vera_cov_obj=spu_coverage -vera_cov_obj=err_coverage -vera_cov_obj=exu_coverage -vera_cov_obj=ffu_coverage -vera_cov_obj=fpu_coverage -vera_cov_obj=ifu_coverage -vera_cov_obj=lsu_coverage -vera_cov_obj=mmu_coverage -vera_cov_obj=mt_coverage -vera_cov_obj=tlu_coverage -vera_cov_obj=tso_coverage -vera_cov_obj=cmpmss_coverage -vera_cov_obj=coreccx_coverage -vera_cov_obj=dram_coverage -vera_cov_obj=jbi_coverage>
+#endif
+
+#ifdef CIOP_REGR_MINI
+<ciop_regr_mini >
+#endif
+
+bypass_win		bypass_win.s
+ihit_sameset		Ihit_sameset.s
+imiss_sameset		Imiss_sameset.s -max_cycle=50000
+ifetch_traps		ifetch_traps.s  -max_cycle=80000 -sim_run_args=+inst_check_off=1
+
+#ifndef PERF_REGR
+// Diag is so small that one benign miss throws off the performance compare
+intr_basic1		intr_basic1.s
+#endif
+intr_basic2		intr_basic2.s
+#ifndef PERF_REGR
+// Don't need to match SIR
+tr_sir0         	tr_sir0.s
+#endif
+tr_intr00       	tr_intr00.pal
+tr_intr1        	tr_intr1.s
+#ifndef PERF_REGR
+// tick interrupts are never going to match
+tr_intr0        	tr_intr0.s
+tr_intr2        	tr_intr2.s
+#endif
+
+
+lsu_mbar                -max_cycle=1500000 lsu_mbar.s -midas_args=-allow_tsb_conflicts
+lsu_stbar               -max_cycle=1200000 lsu_stbar.s -midas_args=-allow_tsb_conflicts
+
+
+l2_buf			l2_buf.s
+dcache_war		Dcache_war.s
+imiss_branches		Imiss_branches.s
+imiss_oddeven		Imiss_oddeven.s
+dmiss_imiss		Dmiss_imiss.s
+dcache_falseraw		Dcache_falseraw.s
+dcache_realraw		Dcache_realraw.s
+dcache_partialraw	Dcache_partialraw.s
+
+
+flush_pipe		flush_pipe.pal -max_cycle=100000
+
+exu_alu			exu_alu.s
+lsu_ldx			lsu_ldx.s
+simple_br		ifu_simple_br.s -max_cycle=400000
+l2_access		l2_access.s
+ldst_raw		ldst_raw.s
+#ifndef PERF_REGR
+// no endianness prediction in MOM
+// remove from perf regression since we don't care about little-endian perf
+ldst_endiansign		ldst_endiansign.s
+#endif
+done_retry_trap         done_retry_trap.s
+
+win_restore0		win_restore0.pal
+
+tr_tixcc0       	tr_tixcc0.s  -max_cycle=50000
+tr_tcc       		tr_tcc.s     -max_cycle=500000 -midas_args=-DBUG6262
+#ifndef PERF_REGR
+// writing hpstate causes bogus ifetch in mom (bug 5052)
+// don't bother in performance run since it's not performance-critical
+tr_intexc1		tr_intexc1.s -sim_run_args=+inst_check_off=1
+#endif
+
+fp_simple_all0  	fp_simple_all0.s
+faddd_diff_sm_pinf	faddd_diff_sm_pinf.s -max_cycle=100000 	
+
+v9_alu_mov              v9_alu_mov.s  -rtl_timeout=50000 -max_cycle=500000
+fp_movixcc2     	fp_movixcc2.s -rtl_timeout=50000 -max_cycle=500000
+dexec_nf		dexec_nf.s -midas_args=-allow_tsb_conflicts
+v9_allinst		-max_cycle=150000 v9_allinst.s 	
+
+
+hp_reg_rdwr             hp_reg_rdwr.s
+
+
+chase_l1hit	 	chase.pal -midas_args=-pal_diag_args=-lenbytes=512 -midas_args=-pal_diag_args=-stride=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-expect_time=3 -midas_args=-pal_diag_args=-expect_string=L1_ld_hit
+
+nop			nop.s
+
+princeton-test-test     princeton-test-test.s -finish_mask=3 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=1
+
+#ifdef CIOP_REGR_MINI
+</ciop_regr_mini>
+#endif
+
+#ifdef CMP_CHECK_COV
+</cmp_check_cov>
+#endif
+
+#ifdef CMP_CHECK
+</thread1_mini>
+#endif
+
+
+#ifdef CMP_CHECK
+</core1_mini>
+#endif
+
+#ifndef PERF_REGR
+Asi_notused		Asi_notused.s      -max_cycle=600000 -midas_args=-allow_tsb_conflicts
+#endif
+
+#ifndef PERF_REGR
+lsu_diagasi 		-nosas lsu_diagasi.s -sim_run_args=+l1_chkoff
+#endif
+
+isets			Isets.s
+ldst_rand1		ldst_rand1.s
+lsu_miss		lsu_misses.s
+
+endian_cle		Endian_cle.s
+endian_page		Endian_page.s
+endian_asi		Endian_asi.s
+endian_tle		Endian_tle.s
+inv_cache		Inv_cache.s
+
+cti_cc			cti_cc.s
+
+simul_faults		lsu_simul_faults.s
+v9_mmureg		v9_mmureg.s -midas_args=-allow_tsb_conflicts -max_cycle=1200000
+
+dcti_couple		dcti_couple.s
+int_ops			exu_int_ops.s
+
+dly_slot		all_inst_dly_slot.s
+
+move_cc			move_cc.s -max_cycle=50000
+
+v9_allasi		-max_cycle=200000 v9_allasi.s
+
+tlu_tdb			tlu_tdb.s
+dtsb_directptr		dtsb_directptr.s -midas_args=-allow_tsb_conflicts
+
+ldst_quad2    		ldst_quad2.s -max_cycle=100000   -finish_mask=1 -midas_args=-DTHREAD_COUNT=1
+lsu_stb_rand            lsu_stb_rand.s -max_cycle=100000 -midas_args=-allow_tsb_conflicts -midas_args=-allow_illegal_page_sizes
+
+dmmu_dexec_trap		-max_cycle=1000000 dmmu_dexcp.s
+
+lsu_64kpg_mtest		lsu_64kpg_mtest.s -max_cycle=200000
+#ifndef CIOP_MODEL
+mmu_red			mmu_red.s -max_cycle=800000
+#endif
+mmu_trap		mmu_trap.s -max_cycle=500000	
+lsu_align_dcacheoff	-max_cycle=500000 lsu_align_dcacheoff.s -midas_args=-allow_tsb_conflicts -midas_args=-ttefmt=sun4u
+tr_wpt			tr_wpt.s -max_cycle=300000
+
+
+tr_winexc0      	tr_winexc0.s
+tr_immumiss0    	tr_immumiss0.s
+tr_asiintr0     	tr_asiintr0.s
+tr_dctired0     	tr_dctired0.s
+#ifndef PERF_REGR
+tr_mmu2red		tr_mmu2red.s
+#endif
+tr_privact0     	tr_privact0.s
+tr_privop0      	tr_privop0.s
+#ifndef PERF_REGR
+// Very short diag, instruction access exceptions not supposed to match
+// performance for MOM, so don't bother running the diag
+tr_iaccexc0     	tr_iaccexc0.s
+#endif
+tr_illegal0     	tr_illegal0.s
+
+#ifndef CIOP_MODEL
+#ifndef PERF_REGR
+// RED mode stuff will never match MOM, and who cares anyway
+tr_wdrred12      	tr_wdrred12.s     -max_cycle=2000000
+tr_wdrred1      	tr_wdrred1.s
+#endif
+#endif
+#ifndef PERF_REGR
+tick_access		tick_access.s -nosas
+#endif
+
+tr_tixcc1		-max_cycle=500000 tr_tixcc1.pal
+#ifndef PERF_REGR
+tr_thrdstatus		tr_thrdstatus.s -sim_run_args=+turn_off_thread_monit -nosas
+#endif
+tr_intexc0      	tr_intexc0.s
+#ifndef PERF_REGR
+tr_illegal_asr  	tr_illegal_asr.pal -nosas
+#endif
+tr_trapreg		tr_trapreg.pal
+tr_trreg0       	tr_trreg0.s    -max_cycle=200000 -sim_run_args=+inst_check_off=1
+
+
+<runargs -rtl_timeout=50000 -max_cycle=500000>
+
+fp_fadd_align_save	fp_fadd_align_save.s
+fp_fadd_mul_sticky_save	fp_fadd_mul_sticky_save.s -max_cycle=3500000
+fp_fadd_norm_save	fp_fadd_norm_save.s
+
+fp_arth_exc0    	fp_arth_exc0.s
+fp_brfccn0      	fp_brfccn0.s
+fp_fccfbr0      	fp_fccfbr0.s
+fp_cmpmov0      	fp_cmpmov0.s
+fp_fprs0        	fp_fprs0.s
+fp_fprs_fpdis   	fp_fprs_fpdis.s
+fp_fsr0         	fp_fsr0.s
+fp_ldst_gen1    	fp_ldst_gen1.s
+fp_mov0         	fp_mov0.s
+fp_movixcc0     	fp_movixcc0.s
+fp_movixcc1     	fp_movixcc1.s
+fp_movr0        	fp_movr0.s
+fp_pstate_fpdis 	fp_pstate_fpdis.s
+fp_bug1623      	fp_bug1623.s
+fp_bug1624      	fp_bug1624.s
+ffu_fpaddsub    	ffu_fpaddsub.s
+ffu_fplogic     	ffu_fplogic.s
+
+faddd_diff_sm_near	faddd_diff_sm_near.s 	
+
+faddd_diff_sm_ninf	faddd_diff_sm_ninf.s 	
+faddd_ieee_ninf2	faddd_ieee_ninf2.s	
+faddd_diff_sm_zero	faddd_diff_sm_zero.s	
+faddd_ieee_near1	faddd_ieee_near1.s 	
+faddd_ieee_near2	faddd_ieee_near2.s	
+faddd_ieee_ninf1	faddd_ieee_ninf1.s	
+faddd_ieee_pinf1	faddd_ieee_pinf1.s	
+faddd_ieee_pinf2	faddd_ieee_pinf2.s	
+faddd_ieee_zero1	faddd_ieee_zero1.s	
+faddd_ieee_zero2	faddd_ieee_zero2.s	
+faddd_rnd_near		faddd_rnd_near.s		
+faddd_rnd_ninf		faddd_rnd_ninf.s		
+faddd_rnd_pinf		faddd_rnd_pinf.s		
+faddd_rnd_zero		faddd_rnd_zero.s		
+fadds_diff_sm_near	fadds_diff_sm_near.s 	
+fadds_diff_sm_ninf	fadds_diff_sm_ninf.s	
+fadds_diff_sm_pinf	fadds_diff_sm_pinf.s	
+fadds_diff_sm_zero	fadds_diff_sm_zero.s	
+fadds_ieee_near1	fadds_ieee_near1.s 	
+fadds_ieee_near2	fadds_ieee_near2.s 	
+fadds_ieee_ninf1	fadds_ieee_ninf1.s 	
+fadds_ieee_ninf2	fadds_ieee_ninf2.s 	
+fadds_ieee_pinf1	fadds_ieee_pinf1.s 	
+fadds_ieee_pinf2	fadds_ieee_pinf2.s 	
+fadds_ieee_zero1	fadds_ieee_zero1.s 	
+fadds_ieee_zero2	fadds_ieee_zero2.s 	
+fadds_rnd_near		fadds_rnd_near.s		
+fadds_rnd_ninf		fadds_rnd_ninf.s		
+fadds_rnd_pinf		fadds_rnd_pinf.s		
+fadds_rnd_zero		fadds_rnd_zero.s		
+fcmpd_rnd_near		fcmpd_rnd_near.s		
+fcmpd_rnd_ninf		fcmpd_rnd_ninf.s		
+fcmpd_rnd_pinf		fcmpd_rnd_pinf.s		
+fcmpd_rnd_zero		fcmpd_rnd_zero.s		
+fcmped_rnd_near		fcmped_rnd_near.s		
+fcmped_rnd_ninf		fcmped_rnd_ninf.s		
+fcmped_rnd_pinf		fcmped_rnd_pinf.s		
+fcmped_rnd_zero		fcmped_rnd_zero.s		
+fcmpes_rnd_near		fcmpes_rnd_near.s		
+fcmpes_rnd_ninf		fcmpes_rnd_ninf.s		
+fcmpes_rnd_pinf		fcmpes_rnd_pinf.s		
+fcmpes_rnd_zero		fcmpes_rnd_zero.s		
+fcmps_rnd_near		fcmps_rnd_near.s		
+fcmps_rnd_ninf		fcmps_rnd_ninf.s		
+fcmps_rnd_pinf		fcmps_rnd_pinf.s		
+fcmps_rnd_zero		fcmps_rnd_zero.s		
+fdivd_ieee_near1	fdivd_ieee_near1.s	
+fdivd_ieee_near2	fdivd_ieee_near2.s 	
+fdivd_ieee_ninf1	fdivd_ieee_ninf1.s 	
+fdivd_ieee_ninf2	fdivd_ieee_ninf2.s	
+fdivd_ieee_pinf1	fdivd_ieee_pinf1.s	
+fdivd_ieee_pinf2	fdivd_ieee_pinf2.s	
+fdivd_ieee_zero1	fdivd_ieee_zero1.s	
+fdivd_ieee_zero2	fdivd_ieee_zero2.s	
+fdivd_rnd_near		fdivd_rnd_near.s	
+fdivd_rnd_ninf		fdivd_rnd_ninf.s		
+fdivd_rnd_pinf		fdivd_rnd_pinf.s		
+fdivd_rnd_zero		fdivd_rnd_zero.s		
+fdivs_ieee_near1	fdivs_ieee_near1.s 	
+fdivs_ieee_near2	fdivs_ieee_near2.s 	
+fdivs_ieee_ninf1	fdivs_ieee_ninf1.s	
+fdivs_ieee_ninf2	fdivs_ieee_ninf2.s	
+fdivs_ieee_pinf1	fdivs_ieee_pinf1.s	
+fdivs_ieee_pinf2	fdivs_ieee_pinf2.s	
+fdivs_ieee_zero1	fdivs_ieee_zero1.s	
+fdivs_ieee_zero2	fdivs_ieee_zero2.s	
+fdivs_rnd_near		fdivs_rnd_near.s		
+fdivs_rnd_ninf		fdivs_rnd_ninf.s		
+fdivs_rnd_pinf		fdivs_rnd_pinf.s		
+fdivs_rnd_zero		fdivs_rnd_zero.s		
+fdtoi_ld0_near		fdtoi_ld0_near.s		
+fdtoi_ld0_ninf		fdtoi_ld0_ninf.s		
+fdtoi_ld0_pinf		fdtoi_ld0_pinf.s		
+fdtoi_ld0_zero		fdtoi_ld0_zero.s		
+fdtoi_rnd_near		fdtoi_rnd_near.s		
+fdtoi_rnd_ninf		fdtoi_rnd_ninf.s		
+fdtoi_rnd_pinf		fdtoi_rnd_pinf.s		
+fdtoi_rnd_zero		fdtoi_rnd_zero.s		
+fdtos_rnd_near		fdtos_rnd_near.s		
+fdtos_rnd_ninf		fdtos_rnd_ninf.s		
+fdtos_rnd_pinf		fdtos_rnd_pinf.s		
+fdtos_rnd_zero		fdtos_rnd_zero.s		
+fdtox_ld0_near		fdtox_ld0_near.s		
+fdtox_ld0_ninf		fdtox_ld0_ninf.s		
+fdtox_ld0_pinf		fdtox_ld0_pinf.s		
+fdtox_ld0_zero		fdtox_ld0_zero.s		
+fdtox_rnd_near		fdtox_rnd_near.s		
+fdtox_rnd_ninf		fdtox_rnd_ninf.s		
+fdtox_rnd_pinf		fdtox_rnd_pinf.s		
+fdtox_rnd_zero		fdtox_rnd_zero.s		
+fitod_ld0_near		fitod_ld0_near.s		
+fitod_ld0_ninf		fitod_ld0_ninf.s		
+fitod_ld0_pinf		fitod_ld0_pinf.s		
+fitod_ld0_zero		fitod_ld0_zero.s		
+fitod_rnd_near		fitod_rnd_near.s		
+fitod_rnd_ninf		fitod_rnd_ninf.s		
+fitod_rnd_pinf		fitod_rnd_pinf.s		
+fitod_rnd_zero		fitod_rnd_zero.s		
+fitos_ld0_near		fitos_ld0_near.s		
+fitos_ld0_ninf		fitos_ld0_ninf.s		
+fitos_ld0_pinf		fitos_ld0_pinf.s		
+fitos_ld0_zero		fitos_ld0_zero.s		
+fitos_rnd_near		fitos_rnd_near.s		
+fitos_rnd_ninf		fitos_rnd_ninf.s		
+fitos_rnd_pinf		fitos_rnd_pinf.s		
+fitos_rnd_zero		fitos_rnd_zero.s		
+fmuld_ieee_near1	fmuld_ieee_near1.s 	
+fmuld_ieee_near2	fmuld_ieee_near2.s 	
+fmuld_ieee_near3	fmuld_ieee_near3.s 	
+fmuld_ieee_ninf1	fmuld_ieee_ninf1.s 	
+fmuld_ieee_ninf2	fmuld_ieee_ninf2.s	
+fmuld_ieee_ninf3	fmuld_ieee_ninf3.s 	
+fmuld_ieee_pinf1	fmuld_ieee_pinf1.s	
+fmuld_ieee_pinf2	fmuld_ieee_pinf2.s	
+fmuld_ieee_pinf3	fmuld_ieee_pinf3.s	
+fmuld_ieee_zero1	fmuld_ieee_zero1.s	
+fmuld_ieee_zero2	fmuld_ieee_zero2.s	
+fmuld_ieee_zero3	fmuld_ieee_zero3.s	
+fmuld_msb_near		fmuld_msb_near.s		
+fmuld_msb_ninf		fmuld_msb_ninf.s		
+fmuld_msb_pinf		fmuld_msb_pinf.s		
+fmuld_msb_zero		fmuld_msb_zero.s		
+fmuld_rnd_near		fmuld_rnd_near.s		
+fmuld_rnd_ninf		fmuld_rnd_ninf.s		
+fmuld_rnd_pinf		fmuld_rnd_pinf.s		
+fmuld_rnd_zero		fmuld_rnd_zero.s		
+fmuls_ieee_near1	fmuls_ieee_near1.s	
+fmuls_ieee_near2	fmuls_ieee_near2.s	
+fmuls_ieee_near3	fmuls_ieee_near3.s	
+fmuls_ieee_ninf1	fmuls_ieee_ninf1.s	
+fmuls_ieee_ninf2	fmuls_ieee_ninf2.s 	
+fmuls_ieee_ninf3	fmuls_ieee_ninf3.s	
+fmuls_ieee_pinf1	fmuls_ieee_pinf1.s	
+fmuls_ieee_pinf2	fmuls_ieee_pinf2.s 	
+fmuls_ieee_pinf3	fmuls_ieee_pinf3.s 	
+fmuls_ieee_zero1	fmuls_ieee_zero1.s 	
+fmuls_ieee_zero2	fmuls_ieee_zero2.s	
+fmuls_ieee_zero3	fmuls_ieee_zero3.s	
+fmuls_msb_near		fmuls_msb_near.s		
+fmuls_msb_ninf		fmuls_msb_ninf.s		
+fmuls_msb_pinf		fmuls_msb_pinf.s		
+fmuls_msb_zero		fmuls_msb_zero.s		
+fmuls_rnd_near		fmuls_rnd_near.s		
+fmuls_rnd_ninf		fmuls_rnd_ninf.s		
+fmuls_rnd_pinf		fmuls_rnd_pinf.s		
+fmuls_rnd_zero		fmuls_rnd_zero.s		
+fsmuld_msb_near		fsmuld_msb_near.s		
+fsmuld_msb_ninf		fsmuld_msb_ninf.s		
+fsmuld_msb_pinf		fsmuld_msb_pinf.s		
+fsmuld_msb_zero		fsmuld_msb_zero.s		
+fsmuld_rnd_near		fsmuld_rnd_near.s		
+fsmuld_rnd_ninf		fsmuld_rnd_ninf.s		
+fsmuld_rnd_pinf		fsmuld_rnd_pinf.s		
+fsmuld_rnd_zero		fsmuld_rnd_zero.s		
+fstod_rnd_near		fstod_rnd_near.s		
+fstod_rnd_ninf		fstod_rnd_ninf.s		
+fstod_rnd_pinf		fstod_rnd_pinf.s		
+fstod_rnd_zero		fstod_rnd_zero.s		
+fstoi_ld0_near		fstoi_ld0_near.s		
+fstoi_ld0_ninf		fstoi_ld0_ninf.s		
+fstoi_ld0_pinf		fstoi_ld0_pinf.s		
+fstoi_ld0_zero		fstoi_ld0_zero.s		
+fstoi_rnd_near		fstoi_rnd_near.s		
+fstoi_rnd_ninf		fstoi_rnd_ninf.s		
+fstoi_rnd_pinf		fstoi_rnd_pinf.s		
+fstoi_rnd_zero		fstoi_rnd_zero.s		
+fstox_ld0_near		fstox_ld0_near.s		
+fstox_ld0_ninf		fstox_ld0_ninf.s		
+fstox_ld0_pinf		fstox_ld0_pinf.s		
+fstox_ld0_zero		fstox_ld0_zero.s		
+fstox_rnd_near		fstox_rnd_near.s		
+fstox_rnd_ninf		fstox_rnd_ninf.s		
+fstox_rnd_pinf		fstox_rnd_pinf.s		
+fstox_rnd_zero		fstox_rnd_zero.s		
+fsubd_diff_sm_near	fsubd_diff_sm_near.s	
+fsubd_diff_sm_ninf	fsubd_diff_sm_ninf.s	
+fsubd_diff_sm_pinf	fsubd_diff_sm_pinf.s	
+fsubd_diff_sm_zero	fsubd_diff_sm_zero.s	
+fsubd_ieee_near1	fsubd_ieee_near1.s 	
+fsubd_ieee_near2	fsubd_ieee_near2.s 	
+fsubd_ieee_ninf1	fsubd_ieee_ninf1.s 	
+fsubd_ieee_ninf2	fsubd_ieee_ninf2.s 	
+fsubd_ieee_pinf1	fsubd_ieee_pinf1.s 	
+fsubd_ieee_pinf2	fsubd_ieee_pinf2.s 	
+fsubd_ieee_zero1	fsubd_ieee_zero1.s	
+fsubd_ieee_zero2	fsubd_ieee_zero2.s	
+fsubd_rnd_near		fsubd_rnd_near.s		
+fsubd_rnd_ninf		fsubd_rnd_ninf.s		
+fsubd_rnd_pinf		fsubd_rnd_pinf.s		
+fsubd_rnd_zero		fsubd_rnd_zero.s		
+fsubs_diff_sm_near	fsubs_diff_sm_near.s	
+fsubs_diff_sm_ninf	fsubs_diff_sm_ninf.s	
+fsubs_diff_sm_pinf	fsubs_diff_sm_pinf.s	
+fsubs_diff_sm_zero	fsubs_diff_sm_zero.s	
+fsubs_ieee_near1	fsubs_ieee_near1.s 	
+fsubs_ieee_near2	fsubs_ieee_near2.s 	
+fsubs_ieee_ninf1	fsubs_ieee_ninf1.s 	
+fsubs_ieee_ninf2	fsubs_ieee_ninf2.s 	
+fsubs_ieee_pinf1	fsubs_ieee_pinf1.s 	
+fsubs_ieee_pinf2	fsubs_ieee_pinf2.s 	
+fsubs_ieee_zero1	fsubs_ieee_zero1.s 	
+fsubs_ieee_zero2	fsubs_ieee_zero2.s 	
+fsubs_rnd_near		fsubs_rnd_near.s		
+fsubs_rnd_ninf		fsubs_rnd_ninf.s		
+fsubs_rnd_pinf		fsubs_rnd_pinf.s		
+fsubs_rnd_zero		fsubs_rnd_zero.s		
+fxtod_ld0_near		fxtod_ld0_near.s		
+fxtod_ld0_ninf		fxtod_ld0_ninf.s		
+fxtod_ld0_pinf		fxtod_ld0_pinf.s		
+fxtod_ld0_zero		fxtod_ld0_zero.s		
+fxtod_rnd_near		fxtod_rnd_near.s		
+fxtod_rnd_ninf		fxtod_rnd_ninf.s		
+fxtod_rnd_pinf		fxtod_rnd_pinf.s		
+fxtod_rnd_zero		fxtod_rnd_zero.s		
+fxtos_ld0_near		fxtos_ld0_near.s		
+fxtos_ld0_ninf		fxtos_ld0_ninf.s		
+fxtos_ld0_pinf		fxtos_ld0_pinf.s		
+fxtos_ld0_zero		fxtos_ld0_zero.s		
+fxtos_rnd_near		fxtos_rnd_near.s		
+fxtos_rnd_ninf		fxtos_rnd_ninf.s		
+fxtos_rnd_pinf		fxtos_rnd_pinf.s		
+fxtos_rnd_zero		fxtos_rnd_zero.s		
+
+
+fpop1_reserved          fpop1_reserved.pal
+fpop2_reserved          fpop2_reserved.pal
+
+v9_mul_ldst             v9_mul_ldst.s -sim_run_args=+jmhz=194
+v9_mov                  v9_mov.s
+v9_div_fp               v9_div_fp.s
+v9_bp                   v9_bp.s
+v9_add_bpr              v9_add_bpr.s
+
+v9_trap_sir_fp          v9_trap_sir_fp.s
+v9_trap_illegal         v9_trap_illegal.s
+v9_trap_ill_tag_zero    v9_trap_ill_tag_zero.s
+v9_trap_mem             v9_trap_mem.s
+v9_trap_priv            v9_trap_priv.s
+v9_trap_unimp_win       v9_trap_unimp_win.s
+v9_trap_ldstuba         v9_trap_ldstuba.s
+
+add_corner              add_corner.s
+sub_corner              sub_corner.s
+mul_corner              mul_corner.s
+div_corner              div_corner.s
+mulscc_corner           mulscc_corner.s
+shift_corner            shift_corner.s
+logical_corner          logical_corner.s
+
+tadd_corner             tadd_corner.s
+tsub_corner             tsub_corner.s
+mulx_corner             mulx_corner.s
+divx_corner             divx_corner.s
+
+add_imm_corner          add_imm_corner.s
+tadd_imm_corner         tadd_imm_corner.s
+sub_imm_corner          sub_imm_corner.s
+tsub_imm_corner         tsub_imm_corner.s
+and_imm_corner          and_imm_corner.s
+andn_imm_corner         andn_imm_corner.s
+or_imm_corner           or_imm_corner.s
+xor_imm_corner          xor_imm_corner.s
+xnor_imm_corner         xnor_imm_corner.s
+mul_imm_corner          mul_imm_corner.s
+mulx_imm_corner         mulx_imm_corner.s
+mulscc_imm_corner       mulscc_imm_corner.s
+div_imm_corner          div_imm_corner.s
+divx_imm_corner         divx_imm_corner.s
+shift_imm_corner        shift_imm_corner.s
+muldivldx               muldivldx.s
+
+</runargs>
+
+call_o7                 call_o7.s -midas_args=-allow_tsb_conflicts
+wrrdcwp                 wrrdcwp.s
+wrrdcwp_loop            wrrdcwp_loop.s
+flushw_loop             flushw_loop.s
+cons_save_restore       cons_save_restore.s
+cons_saved_restored     cons_saved_restored.s
+can_save_restore        can_save_restore.s
+
+BPr_trap                BPr_trap.s
+BPcc_trap               BPcc_trap.s
+BPccall_trap            BPccall_trap.s
+illtrap                 illtrap.s
+jmpl_trap               jmpl_trap.s
+MOVccall_trap           MOVccall_trap.s
+MOVRall_trap            MOVRall_trap.s
+popc_trap               popc_trap.s
+Tcc_trap                Tcc_trap.s
+fp_ld_trap              fp_ld_trap.s
+fp_st_trap              fp_st_trap.s
+priv_rs1		priv_rs1.s
+privileged_registers    privileged_registers.s
+saved_restored_trap     saved_restored_trap.s
+user_wrprcwp            user_wrprcwp.s
+asi_err_inject_reg	asi_err_inject_reg.s
+asi_sparc_err_reg	asi_sparc_err_reg.s
+fpop1_reserved_dis	fpop1_reserved_dis.s
+
+exclusive_globals	exclusive_globals.s
+
+change_globals		change_globals.s
+cwp_globals		cwp_globals.s
+
+braindead        	braindead.s
+
+hp_asi                  hp_asi.s
+hp_hsp                  hp_hsp.s
+hp_rdwrhpr              hp_rdwrhpr.s
+hp_tlz                  hp_tlz.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
+hp_tlz_real             hp_tlz_real.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
+hp_trap                 hp_trap.s
+
+icache_modes            icache_modes.s -rtl_timeout=500000 -midas_args=-allow_tsb_conflicts
+
+hp_dmmu_nzctx_ptr	-max_cycle=400000	hp_dmmu_nzctx_ptr.s
+#ifndef PERF_REGR
+// Put this back in when the diag is fixed to use cacheable pages
+hp_dmmu_zctx_ptr_ext	-max_cycle=400000	hp_dmmu_zctx_ptr_ext.s
+hp_dmmu_ptr		-max_cycle=400000	hp_dmmu_ptr.s
+#endif
+
+#ifndef PERF_REGR
+// Put this back in when the diag is fixed to use cacheable pages
+hp_dmmu_zctx_ptr	-max_cycle=400000	hp_dmmu_zctx_ptr.s
+#endif
+hp_dmmu_nzctx_ptr_ext	-max_cycle=400000	hp_dmmu_nzctx_ptr_ext.s
+hp_immu_nzctx_ptr	-max_cycle=400000	hp_immu_nzctx_ptr.s
+#ifndef PERF_REGR
+// Put this back in when the diag is fixed to use cacheable pages
+hp_immu_zctx_ptr_ext	-max_cycle=400000	hp_immu_zctx_ptr_ext.s
+#endif
+
+#ifndef PERF_REGR
+// Put this back in when the diag is fixed to use cacheable pages
+hp_immu_zctx_ptr	-max_cycle=400000	hp_immu_zctx_ptr.s
+#endif
+hp_immu_nzctx_ptr_ext	-max_cycle=400000	hp_immu_nzctx_ptr_ext.s
+
+blkldst_loop		-sim_run_args=+spc_pipe=0 blkldst_loop.s
+
+bypass1pal		exu_rs1_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+bypass1pal_a		exu_rs1_bypass_a.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+bypass1pal_b		exu_rs1_bypass_b.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+bypass1pal_c		exu_rs1_bypass_c.pal -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+bypass2pal		exu_rs2_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+bypass3pal		exu_rs3_bypass.pal   -midas_args=-pal_args=-seed=1234 -max_cycle=100000000 -midas_args=-allow_tsb_conflicts
+v9_wmg	        	-max_cycle=1000000 v9_wmg.s
+v9_wmg1	        	-max_cycle=1000000 v9_wmg1.s
+
+#include "perf_basic.diaglist"
+
+#ifdef CIOP_MODEL
+<runargs -midas_args=-DSYNC_THREADS>
+#endif
+
+#include "tlu_basic.diaglist"
+
+#ifdef CIOP_MODEL
+</runargs>
+#endif
+
+#ifndef PERF_REGR
+#include "cmp_err_basic.diaglist"
+#endif
+#include "ifu_basic.diaglist"
+#include "exu_basic.diaglist"
+#include "assembly/arch/prm/asi/diagnostic/basic.diaglist"
+#include "mmu/newmdl.diaglist"
+
+
+#ifdef CMP_REGR
+#undef THREAD1_FULL
+</thread1_full>
+#endif
+
+hp_dmmu_dmp             -max_cycle=400000       hp_dmmu_dmp.s
+
+#ifndef THREAD4_FULL
+v9_alltrap		-max_cycle=150000 v9_alltrap.s
+
+#ifndef PERF_REGR
+Asi_notused_priv	Asi_notused_priv.s -max_cycle=600000 -midas_args=-allow_tsb_conflicts
+#endif
+
+bug6113                 bug6113.s -sas -fast_boot
+#endif
+
+<runargs -rtl_timeout=50000 -max_cycle=500000>
+
+fp_addsub0_a    	fp_addsub0_a.s -max_cycle=2000000
+fp_addsub0_b    	fp_addsub0_b.s -max_cycle=2000000
+fp_cmp0_a       	fp_cmp0_a.s  -max_cycle=2000000
+fp_cmp0_b       	fp_cmp0_b.s  -max_cycle=2000000
+fp_cmp1         	fp_cmp1.s    -max_cycle=2000000
+fp_cmp2         	fp_cmp2.s    -max_cycle=2000000
+fp_cmp3         	fp_cmp3.s    -max_cycle=2000000
+fp_cmp4         	fp_cmp4.s    -max_cycle=2000000
+
+fp_fxtox0       	fp_fxtox0.s
+fp_ieee_flags   	fp_ieee_flags.s
+fp_muldiv0_a    	fp_muldiv0_a.s -max_cycle=2000000
+#ifndef THREAD4_FULL
+fp_ldst_gen0    	fp_ldst_gen0.s
+fp_muldiv0_b    	fp_muldiv0_b.s -max_cycle=2000000
+
+fp_sqrt0        	fp_sqrt0.s
+
+muldivx_corner          muldivx_corner.s
+#endif
+
+</runargs>
+
+#ifdef CIOP_MODEL
+<runargs -midas_args=-DSYNC_THREADS>
+#endif
+
+#include "tlu_basic.diaglist"
+#ifndef THREAD4_FULL
+#include "tlu_extended.diaglist"
+#endif
+
+#ifdef CIOP_MODEL
+</runargs>
+#endif
+
+#ifndef PERF_REGR
+#include "cmp_err_basic.diaglist"
+#endif
+#include "ifu_basic.diaglist"
+#include "exu_basic.diaglist"
+#include "assembly/arch/prm/asi/diagnostic/basic.diaglist"
+#include "mmu/newmdl.diaglist"
+
+#ifdef CMP_CHECK
+<core1_mini >
+#endif
+
+exu_add                 exu_add.s -max_cycle=500000 -finish_mask=f -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1
+exu_sub                 exu_sub.s -max_cycle=500000 -finish_mask=f -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1
+ffu_faligndata  	ffu_faligndata.s
+bug3273			bug3273.s -finish_mask=f -max_cycle=600000
+
+lsu_atomic              lsu_atomic.s -midas_args=-allow_tsb_conflicts -max_cycle=500000
+
+v9_immudmp		v9_immudmp.s -max_cycle=800000 -sim_run_args=+turn_mmu_checks_off
+v9_dmmudmp		v9_dmmudmp.s -max_cycle=800000 -sim_run_args=+turn_mmu_checks_off
+
+lsu_align_rand		lsu_align_rand.s -midas_args=-allow_tsb_conflicts -max_cycle=500000 -midas_args=-ttefmt=sun4u
+
+fp_simple_all1  	fp_simple_all1.s
+#ifdef CMP_CHECK
+</core1_mini >
+#endif
+
+itlb_repl_mix		itlb_repl_mix.s -max_cycle=800000
+tlb_repl_exception      tlb_repl_exception.s
+mmu_invldAll            mmu_invld.s -max_cycle=1000000
+lsu_endian_rand1	-max_cycle=100000 lsu_endian_rand1.s -midas_args=-allow_tsb_conflicts -midas_args=-ttefmt=sun4u
+lsu_endian_rand		-max_cycle=100000 lsu_endian_rand.s -midas_args=-allow_tsb_conflicts
+dmmu_dmp_mix		dmmu_dmp_mix.s -max_cycle=800000
+dtlb_repl_mix		dtlb_repl_mix.s  -max_cycle=800000
+#ifndef USE_MOM
+hp_dmmu_realpgdmp	-max_cycle=400000	hp_dmmu_realpgdmp.s
+#endif
+hp_immu_realpgdmp	-max_cycle=400000	hp_immu_realpgdmp.s
+hp_immu_dmp		-max_cycle=400000	hp_immu_dmp.s
+immu_demap_mix          immu_demap_mix.s -max_cycle=800000
+itlb_repl_basic 	itlb_repl_basic.s  -max_cycle=800000 -midas_args=-allow_tsb_conflicts
+
+self_mod1		self_mod1.s -finish_mask=f -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+inst_check_off=1
+
+#ifndef PERF_REGR
+iointr_rdg11_18_00_10   iointr_rdg11_18_00_10.s -finish_mask=f -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1
+#endif
+
+v9_mmu_ttebit		v9_mmu_ttebit.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -midas_args=-nocompress_image -midas_args=-DTHREAD_COUNT=4 -finish_mask=f -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -max_cycle=10000000
+
+exu_win_traps		-finish_mask=f -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=600000 exu_win_traps.s
+#ifndef CIOP_MODEL
+exu_muldiv_stress	-finish_mask=f -max_cycle=1300000 -midas_args=-DTHREAD_STRIDE=1 exu_muldiv_stress_1.s
+#endif
+
+#ifndef THREAD4_FULL
+tlb_prefetch_starve     tlb_prefetch_starve.s -nosas  -finish_mask=8 -fast_boot
+hp_sir                  hp_sir.s -sas -finish_mask=f -fast_boot
+#endif
+
+fp_mt_combo0		fp_mt_combo0.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=f
+fp_mt_combo1		fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=3
+
+th1_lsu_ldx		-finish_mask=3 th1_lsu_ldx.s -max_cycle=300000
+
+th_sync_moredelay	-midas_args="-DTHREAD_COUNT=2" -finish_mask=3 th_sync_moredelay.s
+
+#ifndef PERF_REGR
+spu_rdg09_15_19_33      spu_rdg09_15_19_33.s -finish_mask=f -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -sim_run_args=+inst_check_off=1
+spu_ma_intr		-rtl_timeout=1500000 -max_cycle=500000 spu_ma_intr.s
+#endif
+
+#ifndef CIOP_MODEL
+#ifndef PERF_REGR
+interthread_intr	interthread_intr.s -max_cycle=2100000 -finish_mask=8
+IOB_intr         	interrupt_IOB.pal -max_cycle=210000  -finish_mask=1
+#endif
+#endif
+
+ldst_quad    		ldst_quad.s  -max_cycle=10000000 -finish_mask=3 -midas_args=-DTHREAD_COUNT=2
+
+#ifdef CMP_CHECK
+<core1_mini >
+#endif
+
+#ifndef USE_MOM
+#ifndef PERF_REGR
+spu_mamul		-rtl_timeout=150000 spu_mamul.s
+spu_mamem		-rtl_timeout=150000 -max_cycle=150000 spu_mamem.s
+spu_mared		-rtl_timeout=1500000 -max_cycle=4000000  spu_mared.s
+spu_maexp		-rtl_timeout=2500000 -max_cycle=5000000 spu_maexp.s
+spu_maexp_mul		-rtl_timeout=1500000 -max_cycle=5000000 spu_maexp_mul.s
+#endif
+#endif
+#ifdef CMP_CHECK
+</core1_mini >
+#endif
+
+#ifndef PERF_REGR
+spu_matest		-max_cycle=50000000 -rtl_timeout=25000000 spu_matest.s
+#endif
+
+th_sync			-midas_args="-DTHREAD_COUNT=2" -finish_mask=3 th_sync.s
+
+#ifndef PERF_REGR
+// MOM doesn't model uncacheable accesses, so don't bother
+lsu_noncache            lsu_noncache.s -midas_args=-allow_tsb_conflicts -sim_run_args=+l1_chkoff
+#endif
+
+#ifdef CMP_CHECK
+<core1_mini >
+#endif
+
+mt_raw			-rtl_timeout=50000 -max_cycle=200000 -finish_mask=f -sim_run_args="+coverage_on" mt_raw.s
+mt_wrrdcwp		-rtl_timeout=50000 -max_cycle=200000 -finish_mask=3 mt_wrrdcwp.s
+mt_wrrdcwp_loop		-rtl_timeout=50000 -max_cycle=200000 -finish_mask=3 mt_wrrdcwp_loop.s
+mt_muldivldx		-rtl_timeout=50000 -max_cycle=500000 -finish_mask=3 mt_muldivldx.s
+mt_isameline		-finish_mask=f mt_Isameline.s
+mt_dsameline		-finish_mask=f mt_Dsameline.s
+mt_dhit_sameset		-finish_mask=f mt_Dhit_sameset.s
+mt_dmiss_specload	-finish_mask=3 mt_Dmiss_specload.s	
+mt_dhit_specload	-finish_mask=3 mt_Dhit_specload.s  -max_cycle=200000
+mt_dcache_falseraw	-finish_mask=f mt_Dcache_falseraw.s
+mt_alu_ldx		-rtl_timeout=50000 -max_cycle=300000 -finish_mask=7 mt_alu_ldx.s
+mtblkldst_loop		-sim_run_args=+spc_pipe=0 -finish_mask=f mtblkldst_loop.s
+
+#ifdef CMP_CHECK
+</core1_mini >
+#endif
+
+
+mt_l1cache4		mt_l1cache4.s -finish_mask=f -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1
+
+hp_intr_asi             hp_intr_asi.pal -midas_args=-pal_diag_args=-thrd_count=4 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS -finish_mask=f
+
+mt_imiss_sameset        -finish_mask=f mt_Imiss_sameset.s
+mt_ihit_sameset         -finish_mask=f mt_Ihit_sameset.s
+mt_ifill_l2             -finish_mask=f mt_Ifill_L2.s
+mt_dfault_specload      -finish_mask=3 mt_Dfault_specload.s
+mt_dmiss_sameset        -finish_mask=f mt_Dmiss_sameset.s
+mt_cle			-rtl_timeout=500000 -max_cycle=10000000 -finish_mask=f mt_cle.s
+#ifndef THREAD4_FULL
+mt_asi_ldst 		-rtl_timeout=500000 -max_cycle=10000000 -finish_mask=f mt_asi_ldst.s
+#endif
+mt_cache1		-rtl_timeout=500000 -max_cycle=10000000 -finish_mask=f mt_cache1.s
+mt_icache		-rtl_timeout=500000 -max_cycle=10000000 -finish_mask=f mt_icache.s
+mt_ldst1		-rtl_timeout=500000 -max_cycle=10000000 -midas_args=-allow_tsb_conflicts -finish_mask=f mt_ldst1.s
+
+#ifdef CMP_REGR
+#undef THREAD4_FULL
+</thread4_full>
+#endif
+
+#ifdef CMP_REGR
+#undef CORE1_FULL
+</core1_full>
+#endif
+
+
+#ifdef CMP_FULL_REGR
+</cmp_full_regr>
+#endif
+
+</runargs>
+
+

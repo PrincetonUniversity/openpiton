@@ -1,0 +1,44 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: Flist.srams
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+//ffu
+-v bw_r_frf.v
+sram_wrappers/sram_1rw_128x78.v
+
+//ifu
+-v bw_r_icd.v
+sram_wrappers/sram_1rw_256x272.v
+
+//lsu
+-v bw_r_scm.v
+-v bw_r_dcd.v
+sram_wrappers/sram_1rw_128x288.v
+-v bw_r_rf32x152b.v
+
+//lsu+ifu
+// -v ../../../common/rtl/cmp_sram_redhdr.v
+-v bw_r_rf16x32.v
+
+//lsu+ifu+spu
+-v bw_r_idct.v
+
+//lsu+tlu
+-v bw_r_rf32x80.v

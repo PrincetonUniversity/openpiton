@@ -1,0 +1,98 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+//==================================================================================================
+//  Filename      : l15_priority_encoder.v
+//  Created On    : 2014-07-09
+//  Last Modified : 2014-07-09
+//  Revision      :
+//  Author        : Yaosheng Fu
+//  Company       : Princeton University
+//  Email         : yfu@princeton.edu
+//
+//  Description   : The priority encoder for pipeline1 in the L15 cache
+//
+//
+//==================================================================================================
+
+
+`include "l15.vh"
+`include "define.vh"
+
+<% 
+L15_HMC_INDEX_WIDTH = 4
+L15_HMC_ENTRIES = 16
+%>
+
+<%
+def gen_priority_encoder(num_bits):
+    print '''
+module l15_priority_encoder_%d(
+    input wire [%d:0] data_in,
+    output wire [%d:0] data_out,
+    output wire [%d:0] data_out_mask,
+    output wire nonzero_out
+);''' % (num_bits, 2**num_bits-1, num_bits-1, 2**num_bits-1)
+    if num_bits == 1:
+        print '''
+assign data_out = data_in[0] ? 1'b0 : 1'b1;
+assign data_out_mask = data_in[0] ? 2'b10 : 2'b01;
+assign nonzero_out = | (data_in[%d:0]);''' %(2**num_bits-1)
+    else:
+        print '''
+wire [%d:0] data_low;''' % (num_bits-2)
+        print '''
+wire [%d:0] data_high;''' % (num_bits-2)
+        print '''
+wire [%d:0] data_low_mask;''' % (2**(num_bits-1)-1)
+        print '''
+wire [%d:0] data_high_mask;''' % (2**(num_bits-1)-1)
+        print '''
+wire nonzero_low;'''
+        print '''
+wire nonzero_high;'''
+        print '''
+l15_priority_encoder_%d encoder_high_%d (.data_in(data_in[%d:%d]), .data_out(data_high), .data_out_mask(data_high_mask), .nonzero_out(nonzero_high));''' % (num_bits-1,num_bits-1, 2**num_bits-1, 2**(num_bits-1))
+        print '''
+l15_priority_encoder_%d encoder_low_%d(.data_in(data_in[%d:%d]), .data_out(data_low), .data_out_mask(data_low_mask), .nonzero_out(nonzero_low));''' % (num_bits-1, num_bits-1, 2**(num_bits-1)-1, 0)
+        print '''
+assign data_out = nonzero_low ? {1'b0, data_low} : {1'b1, data_high};'''
+        print '''
+assign data_out_mask = nonzero_low ? {{%d{1'b1}}, data_low_mask} : {data_high_mask,{%d{1'b1}}};''' % (2**(num_bits-1), 2**(num_bits-1))
+        print '''
+assign nonzero_out = nonzero_low | nonzero_high;'''
+
+    print '''endmodule'''
+
+
+for i in range(L15_HMC_INDEX_WIDTH):
+    gen_priority_encoder(i+1)
+
+%>
+
+
+

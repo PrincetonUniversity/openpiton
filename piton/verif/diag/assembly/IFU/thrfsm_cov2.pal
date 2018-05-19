@@ -1,0 +1,32 @@
+
+:#define CIOP
+:#define MAIN_PAGE_HV_ALSO	
+:#define THREAD_MASK 0x00000003	
+:#include "hboot.s"
+:.global main
+:main:
+:	ta T_CHANGE_HPRIV
+:th_fork(th_main)
+
+:th_main_0:
+:!Thread is in the halt state after hitting good trap
+:   ta T_GOOD_TRAP
+
+:th_main_1:
+
+for ($i = 0;  $i < 500; $i++) {
+   print "	nop\n";
+}
+
+:!Rstint when thread is in Halt state
+	
+    $type = "1";
+    $type = $type << 16;
+    $thrid = 0			; 
+    $ttype = "1";
+    $data = $type | $thrid | $ttype;
+    printf "\tsetx 0x%016x, %r3, %r2\n", $data;
+    print "\tsetx 0x9800000800, %r3, %r1\n";
+    print "\tstx %r2, [%r1]\n";
+
+:	ta T_GOOD_TRAP		

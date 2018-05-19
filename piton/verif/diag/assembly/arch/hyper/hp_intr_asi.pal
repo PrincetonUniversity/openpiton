@@ -1,0 +1,196 @@
+
+use Getopt::Long;
+
+my %opt     = (
+               thrd_count => 1
+              );
+
+my @options =
+   qw(
+      thrd_count=i
+     );
+
+GetOptions(\%opt, @options);
+
+:#define ASI_Q         0x25
+:#define CPU_MONDO_QH  0x3c0
+:#define CPU_MONDO_QT  0x3c8
+:#define DEV_MONDO_QH  0x3d0
+:#define DEV_MONDO_QT  0x3d8
+:#define RES_MONDO_QH  0x3e0
+:#define RES_MONDO_QT  0x3e8
+:#define NRES_MONDO_QH 0x3f0
+:#define NRES_MONDO_QT 0x3f8
+:
+:#define FN_TEST_ASI   0x0
+:
+:#define H_HT0_HTrap_Instruction_0
+:#define My_HT0_HTrap_Instruction_0 setx hpv_code, %g1, %g2;  jmpl %g2, %o7; nop; done;
+:
+:#define H_HT0_Data_Access_Exception_0x30 my_data_access_exception
+:	
+:#include "boot.s"
+:
+:.text
+:.global main  
+:	
+:main:
+
+:th_fork(th_main,%l0)            ! start up to four threads.
+
+for($i=0; $i < $opt{thrd_count}; $i++) {
+:th_main_$i:    
+}
+
+:! Once a thread is up, it increments counter to register
+:	setx wakeup_counter, %l1, %l0	
+:wait_for_inc:
+:	ldstub [%l0], %l1
+:	cmp    %l1, 0xff
+:	be     wait_for_inc
+:	nop
+:       inc    %l1	
+:	stub   %l1, [%l0]
+:
+:wait_for_sync_all:
+:	ldub   [%l0], %l1
+:	cmp    %l1, $opt{thrd_count}
+:	bne    wait_for_sync_all
+:	nop
+
+:	mov FN_TEST_ASI, %o0 ! test q-asi
+:	ta T_HTRAP_INST0        
+:	nop
+:
+:	call sup_test_q_asi
+:	nop
+:
+:pass:
+:	ta		T_GOOD_TRAP
+:
+:fail:
+:	ta		T_BAD_TRAP
+:
+:
+:sup_test_q_asi:
+:	save
+:
+:	ta     T_CHANGE_PRIV
+:	rdpr   %pstate, %l0
+:	xor    %l0, 0x2, %l0
+:	wrpr   %l0, %pstate
+:
+:	setx   0xffffffffffffffff, %l5, %l7 ! test-pattern 	
+:	setx   0x0000000000003fc0, %l5, %l6 ! check-pattern	
+:
+
+@q_hasi = ("CPU_MONDO_QH", "DEV_MONDO_QH", "RES_MONDO_QH", "RES_MONDO_QH");
+@q_tasi = ("CPU_MONDO_QT", "DEV_MONDO_QT", "RES_MONDO_QT", "RES_MONDO_QT");
+
+foreach $asi (@q_hasi) {
+:	mov    $asi, %l0
+:	stxa   %l7, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %l6
+:	tne    T_BAD_TRAP
+:	stxa   %g0, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %g0
+:	tne    T_BAD_TRAP
+}
+
+foreach $asi (@q_tasi) {
+:	mov    CPU_MONDO_QT, %l0
+:	stxa   %l7, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %g0
+:	tne    T_BAD_TRAP
+:	stxa   %g0, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %g0
+:	tne    T_BAD_TRAP
+}
+
+:	rdpr   %pstate, %l0
+:	xor    %l0, 0x2, %l0
+:	wrpr   %l0, %pstate
+:	ta     T_CHANGE_NONPRIV
+:
+:	return %i7+8	
+:	nop
+
+
+:.data
+:wakeup_counter:
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+:	.word 0x00000000
+
+
+:SECTION .HYP_MODE TEXT_VA=0x3008000
+:attr_text {
+:        Name = .HYP_MODE,
+:        hypervisor
+:        }
+:
+:! i0 -- function, i7 -- return addr
+:.global hpv_code
+:hpv_code:
+:	save 
+:test1:
+:	cmp    %i0, FN_TEST_ASI
+:	bne    test2
+:	nop
+:
+:	call   hpv_test_q_asi
+:	nop
+:
+:test2:
+:	return %i7+8
+:	nop
+:
+:
+:!i7 -- return addr
+:.global hpv_test_q_asi
+:hpv_test_q_asi:
+:	save
+:	setx   0xffffffffffffffff, %l5, %l7 ! test-pattern 	
+:	setx   0x0000000000003fc0, %l5, %l6 ! check-pattern	
+:
+
+foreach $asi (@q_hasi) {
+:	mov    $asi, %l0
+:	stxa   %l7, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %l6
+:	tne    T_BAD_TRAP
+:	stxa   %g0, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %g0
+:	tne    T_BAD_TRAP
+}
+
+foreach $asi (@q_tasi) {
+:	mov    $asi, %l0
+:	stxa   %l7, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %l6
+:	tne    T_BAD_TRAP
+:	stxa   %g0, [%l0]ASI_Q
+:	ldxa   [%l0]ASI_Q,   %l1
+:	cmp    %l1, %g0
+:	tne    T_BAD_TRAP
+}
+
+:	return %i7+8	
+:	nop
+
+
+:.global my_data_access_exception
+:my_data_access_exception:
+:        done

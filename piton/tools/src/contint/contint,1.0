@@ -1,0 +1,1635 @@
+#!/usr/bin/python
+# Copyright (c) 2015 Princeton University
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+import sys, os, stat, socket, getopt
+from datetime import datetime
+import re
+import xml.etree.ElementTree as ET
+import subprocess
+from time import sleep
+import gzip
+import shutil
+
+class BundleItemType:
+    AssemblyRegression = 0
+    AssemblyTest = 1
+    Other = 2
+    Aggregate = 3
+    @staticmethod
+    def to_str(type) :
+        if type == 0 :
+            return "AssemblyRegression"
+        elif type == 1:
+            return "AssemblyTest"
+        elif type == 2:
+            return "Other"
+        else :
+            return "Unknown"
+
+class BundleItem(object):
+    type = BundleItemType.AssemblyRegression
+    run_command = ""
+    build_command = ""
+    sim_q_command = ""
+    sys = ""
+    name = ""
+    model_name = ""
+    build_passed = False
+    run_passed = False
+    stats = None
+    def __repr__(self):
+        return self.__str__(self)
+    def __str__(self):
+        return "BundleItem:\n\tType="+BundleItemType.to_str(self.type)+\
+                          "\n\tRun Command='"+str(self.run_command)+\
+                          "'\n\tBuild Command='"+str(self.build_command)+"'"+\
+                          "\n\tSim Q Command='"+str(self.sim_q_command)+"'"+\
+                          "\n\tSys="+str(self.sys)+\
+                          "\n\tName="+str(self.name)+\
+                          "\n\tModel Name="+str(self.model_name)+\
+                          "\n\tBuild Passed="+str(self.build_passed)+\
+                          "\n\tRun Passed="+str(self.run_passed)+\
+                          "\n\tStats="+str(self.stats)
+
+STATUS_NAME = {"pass": "PASS", \
+               "fail": "FAIL", \
+               "diag": "Diag Problem", \
+               "lcns": "License Problem", \
+               "maxc": "MaxCycles Hit", \
+               "sckt": "Socket Problem", \
+               "timo": "Timeout", \
+               "lessthr": "LessThreads", \
+               "simx": "Simics Probem", \
+               "perf": "Performance", \
+               "jobq": "Killed By Job Q", \
+               "flex": "flexlm error", \
+               "unkn": "Unknown", \
+               "unfi": "UnFinished"}
+
+def init_header () :
+    # Get the program name
+    prog = re.sub(",.*", "", os.path.basename(sys.argv[0]))
+
+    # Print a header
+    print prog + " " + ' '.join(str(s) for s in sys.argv[1:])
+    print prog + ": ====================================================="
+    print prog + ":   Continuous Integration Script for OpenPiton"
+    print prog + ":   Copyright (c) 2015 Princeton University"
+    print prog + ":   All rights reserved."
+    print prog + ": ====================================================="
+
+    # Get start datetime and version
+    sim_start = datetime.now()
+    version = re.findall(",.*", os.path.basename(sys.argv[0]))[0][1:]
+
+    print prog + ": start_time " + sim_start.strftime("%a %b %d %H:%M:%S %Z %Y")
+    print prog + ": running on " + socket.gethostname()
+    print prog + ": uname is " + ' '.join(str(s)  for s in os.uname())
+    print prog + ": version " + version
+
+    # Get relevant environment variables
+    dv_root = os.environ.get("DV_ROOT")
+    if dv_root == None :
+        print prog + ": Error: DV_ROOT environment variable not set."
+        sys.exit(1)
+    model_dir = os.environ.get("MODEL_DIR")
+    if model_dir == None :
+        print prog + ": Error: MODEL_DIR environment variable not set."
+        sys.exit(1)
+
+    print prog + ": dv_root " + dv_root
+    print prog + ": model_dir " + model_dir
+
+    return prog, sim_start, version, dv_root, model_dir 
+
+def usage (prog) :
+    print prog + ": Usage: " + prog + " --bundle=<continuous integration bundle> [options]"
+    print prog + ": Options:"
+    print prog + ":      -h, --help              Print this usage message"
+    print prog + ":      --dryrun                Don't actually run, print commands"
+    print prog + ":      --check_results         Do not run simulations, just check results"
+    print prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory"
+    print prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass"
+
+def parse_cmd_args (prog) :
+    try :
+        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "bundle=", "dryrun", \
+                                                       "check_results", "contint_dir=", \
+                                                       "cleanup", "inverse"])
+    except getopt.GetoptError :
+        usage (prog)
+        sys.exit(1)
+    
+    bundle = None
+    dryrun = False
+    check_results = False
+    contint_dir = None
+    cleanup = False
+    inverse = False
+
+    for opt, arg in opts :
+        if opt in ("-h", "--help") :
+            usage (prog)
+            sys.exit()
+        elif opt == "--bundle" :
+             bundle = arg
+        elif opt == "--dryrun" :
+            dryrun = True
+        elif opt == "--check_results" :
+            check_results = True
+        elif opt == "--contint_dir" :
+            contint_dir = arg
+        elif opt == "--cleanup" :
+            cleanup = True
+        elif opt == "--inverse" :
+            inverse = True
+        else :
+            print prog + ": Unprocessed argument '" + opt + "'."
+            usage (prog)
+            sys.exit(1)
+   
+    if bundle == None :
+        print prog + ": No bundle specified."
+        sys.exit(1)
+
+    if check_results and contint_dir is None :
+        print prog + ": Must specify --contint_dir with --check_results option"
+        sys.exit(1)        
+
+    if check_results and dryrun :
+        print prog + ": Cannot specify both check_results and dryrun"
+        sys.exit(1)
+
+    return bundle, dryrun, check_results, contint_dir, cleanup, inverse
+
+def parse_config (prog, config) :
+    try :
+        fp = open(config, "r")
+    except IOError :
+        print prog + ": Error: Unable to open config file at " + config
+        sys.exit(1)
+
+    xml_files = []
+    for line in fp :
+        if not (re.match("\A#.*", line) or re.match ("\A//.*", line) or line.isspace()) :
+            xml_files.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), re.sub("\n", "", line)))
+
+    fp.close()
+
+    return xml_files
+
+def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bundle) :
+    # List of bundle items and global arguments
+    bundle_items = []
+    sims_build_args = []
+    sims_run_args = []
+
+    # Loop over all children, which can be asm_regress,
+    # asm_test, or other
+    for child in bundle_root :
+        if child.tag == "asm_regress" or child.tag == "asm_test" or child.tag == "other":
+            is_largest = False
+
+            # Get name attribute for the child
+            if "name" in child.attrib :
+                if parent_bundle != "" :
+                    name = parent_bundle + "_" + bundle + "_" + child.attrib["name"]
+                else :
+                    name = bundle + "_" + child.attrib["name"]
+            else :
+                if parent_bundle != "" :
+                    name = parent_bundle + "_" + bundle + "_" + bundle_root.tag
+                else :
+                    name = bundle + "_" + bundle_root.tag
+
+            # Construct build command
+            build_command = "sims -vcs_build"
+            found_sys = False
+            sys_val = ""
+            for args in child :
+                # if args.tag == "sys" or args.tag == "vcs_build_args" or args.tag == "num_tile" or args.tag == "x_tiles" or args.tag == "y_tiles":
+                if args.tag in ["sys", "vcs_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
+                    build_command += " -" + args.tag + "=" + args.text
+                    if args.tag == "sys" :
+                        sys_val = args.text
+                        found_sys = True
+                elif args.tag in ["vcs_use_cm", "sim_pll"]:
+                    build_command += " -" + `args.tag`
+                elif args.tag == "largest_regress":
+                    is_largest = True
+            if not found_sys :
+                print prog + ": Error: No -sys argument for bundle item, skipping..."
+                continue
+
+            # Construct run command
+            run_command = ""
+            if child.tag == "asm_regress" :
+                run_command = "sims -sim_type=vcs -nobuild"
+            else :
+                run_command = "sims -vcs_run"
+            sim_q_command = "sbatch"
+            for args in child :
+                if args.tag == "slurm" :
+                    sim_q_command += " " + args.text
+                elif args.tag == "largest_regress":
+                    print "This is the largest regression, not adding this tag to run_command"
+                elif args.text == None :
+                    run_command += " -" + args.tag
+                elif args.tag != "vcs_build_args" :
+                    run_command += " -" + args.tag + "=" + args.text
+
+            # Add flags to commands to wait for license
+            build_command += " -vcs_build_args=+vcs+lic+wait"
+            run_command += " -sim_run_args=+vcs+lic+wait"
+
+            # Create new bundle item
+            bundle_item = BundleItem()
+            if child.tag == "asm_regress" :
+                bundle_item.type = BundleItemType.AssemblyRegression
+            elif child.tag == "asm_test" :
+                bundle_item.type = BundleItemType.AssemblyTest
+            else :
+                bundle_item.type = BundleItemType.Other
+            bundle_item.run_command = run_command
+            bundle_item.build_command = build_command
+            bundle_item.sim_q_command = sim_q_command
+            bundle_item.sys = sys_val
+            bundle_item.name = name
+            bundle_item.is_largest = is_largest
+            bundle_items.append(bundle_item)
+        elif child.tag == "include" :
+            print prog + ": Parsing included bundle '" + child.text + "'..."
+            # Find and parse the included bundle
+            if parent_bundle != "" :
+                include_bundle_items = find_bundle (prog, xml_files, child.text, parent_bundle + "_" + bundle)
+            else :
+                include_bundle_items = find_bundle (prog, xml_files, child.text, bundle)
+            
+            # Check that we found the bundle
+            if include_bundle_items == None :
+                print prog + ": Error: Unable to find included bundle '" + child.text + "'....skipping."
+            else :
+                print prog + ": Successfully parsed include bundle '" + child.text + "'."
+                bundle_items.extend(include_bundle_items)
+        elif child.tag == "sims_build_args" :
+            for args in child :
+                if args.text == None :
+                    sims_build_args.append("-" + args.tag)
+                else :
+                    sims_build_args.append("-" + args.tag + "=" + args.text)
+        elif child.tag == "sims_run_args" :
+            for args in child :
+                if args.text == None :
+                    sims_run_args.append("-" + args.tag)
+                else :
+                    sims_run_args.append("-" + args.tag + "=" + args.text)
+        else :
+            print prog + ": Error: Unknown tag '" + child.tag + "' in " + xml_file + " skipping tag..."
+
+    # Apply global sims build and run args to each element in bundle
+    for bundle_item in bundle_items :
+        for arg in sims_build_args :
+            bundle_item.build_command += " " + arg
+        for arg in sims_run_args :
+            bundle_item.run_command += " " + arg
+
+    return bundle_items
+
+def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle) :
+    # Parse the XML tree
+    try :
+        tree = ET.parse(xml_file)
+    except IOError :
+        print prog + ": Error: Unable to open XML bundle file at " + xml_file
+        return None
+
+    # Get the root element
+    root = tree.getroot()
+
+    # Check if we found a root corresonding to what we expect
+    if root.tag == "bundles" :
+        # Look for the bundle tag corresponding to the bundle
+        # requested on the command line
+        for child in root :
+            if child.tag == bundle :
+                # Parse this bundle tree to get commands
+                bundle_items = parse_bundle_tree (prog, xml_file, child, bundle, xml_files, parent_bundle)
+                return bundle_items
+    else :
+        print prog + ": Error: Could not find bundles tag in " + xml_file
+        return None
+
+def find_bundle (prog, xml_files, bundle, parent_bundle) :
+    # Search for bundle in XML files 
+    bundle_items = None
+    for xml_file in xml_files :
+        bundle_items_tmp = parse_bundle(prog, xml_file, bundle, xml_files, parent_bundle)
+        if bundle_items_tmp != None :
+            bundle_items = bundle_items_tmp
+            break
+    
+    return bundle_items   
+
+def create_contint_dir (sim_start, model_dir, bundle) :
+    # Create unique continuous integration run directory
+    count = 0
+    contint_name = "contint_" + bundle + "_" + sim_start.strftime("%Y_%m_%d") + "_" + str(count)
+    contint_dir = os.path.join(model_dir, contint_name)
+    while os.path.isdir(contint_dir) :
+        count += 1
+        contint_name = "contint_" + bundle + "_" + sim_start.strftime("%Y_%m_%d") + "_" + str(count)
+        contint_dir = os.path.join(model_dir, contint_name)
+
+    return contint_dir
+
+def create_model_name (sim_start, model_dir, item) :
+    # Create unique model name
+    model_name = "contint_" + item.name + "_" +  sim_start.strftime("%Y_%m_%d")
+    sys_dir = os.path.join(model_dir, item.sys)
+    if not os.path.isdir(sys_dir) :
+        model_name += "_0"
+    else :
+        count = 0
+        model_name_tmp = model_name + "_" + str(count)
+        model_sys_dir = os.path.join(sys_dir, model_name_tmp)
+        while os.path.isdir(model_sys_dir) :
+            count += 1
+            model_name_tmp = model_name + "_" + str(count)
+            model_sys_dir = os.path.join(sys_dir, model_name_tmp)
+        model_name = model_name_tmp
+
+    return model_name
+
+def find_model_name (contint_dir, item) :
+    # Look at folders in contint dir to find the model name
+    model_name = None
+    regex = "contint_" + item.name + "_\d{4}_\d{2}_\d{2}_\d+"
+    for file in os.listdir(contint_dir) :
+        if os.path.isdir(file) and re.match(regex, file) :
+            model_name = file
+            break
+
+    return model_name
+
+def build_item (dryrun, item) :
+    # Run the build and check the status
+    if not dryrun :
+        status = os.system(item.build_command)
+        if status == 0 :
+            item.build_passed = True
+        else :
+            item.build_passed = False
+        os.rename("sims.log", item.model_name + "_build_sims.log")
+    else :
+        print "Running build command: " + item.build_command
+        item.build_passed = True
+
+def parse_job_ids (batch_log) :
+    fp = open(batch_log, "r")
+
+    job_ids = []
+    for line in fp :
+        if "Submitted batch job" in line :
+            job_ids.append(line[20:-1])
+
+    fp.close()
+
+    return job_ids
+
+def run_item (dryrun, contint_dir, item) :
+    # Run the regression or test if the build passed
+    slurm_job_ids = []
+    if item.type == BundleItemType.AssemblyRegression :
+        # Add a regress ID so we know what sims is creating
+        item.run_command += " -regress_id=" + item.model_name
+        # Add arguments to have sims submit individual tests as SLURM jobs
+        item.run_command += " -slurm -sim_q_command=\"" + item.sim_q_command + "\" " + \
+                            "-jobcommand_name=contint_" + item.name
+        # Run the regression
+        if not dryrun :
+            status = os.system(item.run_command)
+            if status == 0 :
+                item.run_passed = True
+            else :
+                item.run_passed = False
+            # Rename log file
+            sim_log_path = os.path.join(contint_dir, item.model_name)
+            os.rename(os.path.join(sim_log_path, "sims.log"), \
+                      os.path.join(sim_log_path, "sim_batch.log"))
+            sim_log = os.path.join(sim_log_path, "sim_batch.log")
+
+            # Collect SLURM job ids
+            slurm_job_ids.extend(parse_job_ids(sim_log))
+        else :
+            print "Running run command: " + item.run_command
+            item.run_passed = True
+    else :
+        # Create a directory to run test in (model name) and go to it
+        try:
+            os.makedirs (item.model_name)
+        except:
+            print "%s is already exists!" % item.model_name
+            print "Continuing..."
+        os.chdir (item.model_name)
+        # Create a SLURM batch script for this test
+        fp = open("contint_" + item.name, "w")
+        fp.write("#!/bin/sh\n")
+        fp.write("#SBATCH -N 1                   # nodes=1\n")
+
+        if (os.environ.get('PTON_HANOI', -1) == -1):
+            fp.write("#SBATCH --ntasks-per-node=1    # ppn=1\n")
+            fp.write("#SBATCH --mem=1024              # mem=1GB\n")
+            fp.write("#SBATCH -t 2:06:00               # walltime=1hr6mins\n")
+        else:
+            fp.write("#SBATCH -t 3:00:00               # walltime=1hr6mins\n")
+
+        fp.write("#SBATCH -J contint_" + item.name + "   # jobname\n\n")
+        fp.write(item.run_command)
+        fp.close()
+        os.chmod("contint_" + item.name, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
+        # Submit the SLURM job to run the test
+        if not dryrun :
+            slurm_script_path = os.path.join(contint_dir, item.model_name)
+            slurm_script_path = os.path.join(slurm_script_path, "contint_" + item.name)
+            sim_log = os.path.join(contint_dir, item.model_name)
+            sim_log = os.path.join(sim_log, "sim_batch.log")
+            status = os.system(item.sim_q_command + " " + slurm_script_path + " > " + sim_log)
+
+            while status != 0:
+                print "Submit failed"
+                sleep(30)
+                status = os.system(item.sim_q_command + " " + slurm_script_path + " > " + sim_log)
+            if status == 0 :
+                item.run_passed = True
+            else :
+                item.run_passed = False
+
+            # Collect SLURM job ids
+            slurm_job_ids.extend(parse_job_ids(sim_log))
+        else :
+            print "Running run command: " + item.run_command
+            item.run_passed = True
+
+        # Change back to contint directory
+        os.chdir(contint_dir)
+    
+    return slurm_job_ids
+
+def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bundle_items) :
+    # Build and run all
+    slurm_job_ids = []
+    for item in bundle_items :
+        # Create unique model name
+        model_name = create_model_name(sim_start, model_dir, item)
+ 
+        # Set the model name and add the model name to build and run command
+        item.model_name = model_name
+        item.build_command += " -vcs_rel_name=" + item.model_name
+        item.run_command += " -vcs_rel_name=" + item.model_name
+
+        # If item is other, put highest verbosity
+        if item.type == BundleItemType.Other :
+            item.build_command += " -vcs_build_args=+define+VERBOSITY=1"
+
+
+        is_dmbr_source_sink = re.search(r'dmbr_source_sink', item.name)
+        if is_dmbr_source_sink != None:
+            print 'Generating source and sink for DMBR unit testing...'
+            prev_dir = os.getcwd()
+            os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
+            os.system('./gen_source_sink.py')
+            os.chdir(prev_dir)
+            os.system('mkdir -p %s' % item.model_name)
+            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/env/dmbr_test/test_cases/simple_sink.vmh"), item.model_name))
+            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/env/dmbr_test/test_cases/simple_src.vmh"), item.model_name))
+            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/env/dmbr_test/test_cases/model.log"), item.model_name))
+
+        # Run the build and check the status
+        build_item(dryrun, item)
+
+
+        # Generate an assembly test before running a test
+        is_dmbr_assembly_gen = re.search(r'dmbr_assembly_gen', item.name)
+        if is_dmbr_assembly_gen != None:
+            print 'Running an assembly test generator for DMBR...'
+            prev_dir = os.getcwd()
+            os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
+            os.system('./gen_assembly.py')
+            os.chdir(prev_dir)
+            
+
+        # Run the regression or test if the build passed
+        if item.build_passed == True :
+            new_slurm_job_ids = run_item (dryrun, contint_dir, item)
+            slurm_job_ids.extend(new_slurm_job_ids)
+
+        # Save an assembly test for DMBR in case if it fails
+        if is_dmbr_assembly_gen != None:
+            os.system('mkdir -p %s' % item.model_name) # TODO: check if a directory is ALWAYS created earlier by a slurm jobs
+            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/diag/assembly/princeton/dmbr_assembly.s"), item.model_name))
+    
+    return slurm_job_ids
+ 
+def wait_for_jobs (job_ids) :
+    user = os.environ.get("USER")
+    while (len(job_ids) > 0) :
+        # Find finished jobs
+        remove_jobs = []
+        for job in job_ids :
+            squeue_proc = subprocess.Popen(["squeue", "-u", user, "-j", job], \
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            wc_proc = subprocess.Popen(["wc", "-l"], stdin=squeue_proc.stdout, \
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = wc_proc.communicate()
+            if out == "1\n" or out == "0\n":
+                remove_jobs.append(job)
+
+        # Remove finished jobs from list we are waiting on
+        for job in remove_jobs :
+            job_ids.remove(job)
+
+        # Sleep for a bit
+        sleep(30)
+       
+def get_status (line) :
+    status = "unkn"
+    for st in STATUS_NAME :
+        if STATUS_NAME[st] in line :
+            status = st
+            break
+    return status
+        
+def check_status_log (prog, diag) :
+    templist = []
+    found_wall_sec = False
+    found_sim_cyc = False
+    wall_sec = 0
+    sim_cyc = 0
+    last_sas = "non known"
+    errline_num = 0
+
+    status = "unfi"
+
+    # Figure out diag directory
+    curr_dir = os.getcwd()
+    if not os.path.isdir(diag) :
+        print prog + ": Error: No such diag directory: " + diag
+        return status, templist, sim_cyc, wall_sec
+    else :
+        os.chdir(diag)
+
+    # Extract key info from prev generated file - status.log
+    stat_file = "status.log"
+    fp = None
+    if os.path.isfile(stat_file) :
+        fp = open(stat_file, "r")
+    elif os.path.isfile(stat_file + ".gz") :
+        fp = gzip.open(stat_file + ".gz", "r")
+
+    if not fp is None :
+        status = "unkn"
+        for line in fp :
+            diag_match = re.match("^Diag", line)
+            stat_match = re.match("cyc=\s+([\.\d]+),\s+sec=\s+([\.\d]+)", line, re.IGNORECASE)
+            if diag_match :
+                status = get_status (line)
+            elif stat_match :
+                sim_cyc = float(stat_match.group(1))
+                wall_sec = float(stat_match.group(2))
+            templist.append(line)
+        fp.close()
+
+        # Also check sims.log
+        fp = None
+        if os.access("sims.log", os.R_OK) :
+            fp = open("sims.log", "r")
+        elif os.access("sims.log.gz", os.R_OK) :
+            fp = gzip.open("sims.log.gz", "r")
+
+        if not fp is None :
+            for line in fp :
+                if re.search("Chronologic VCS simulator", line) or re.search("SIMICS STEP", line) :
+                    break
+                elif re.search("midas: fatal error|no diag", line, re.IGNORECASE) :
+                    status = "diag"
+                    tmp = "Diag: " + diag + "\t\t\t Diag Problem\n"
+                    if len(templist) > 0 :
+                        templist[0] = tmp
+                    templist.append(line)
+                    break
+                elif re.search("error.*performance\s+mismatch", line, re.IGNORECASE) :
+                    status = "perf"
+                    tmp = "Diag: " + diag + "\t\t\t Performance Problem\n"
+                    if len(templist) > 0 :
+                        templist[0] = tmp
+                    templist.append(line)
+                    break
+                # Need to special case the license problem, as we normally will see
+                # a SIGDIE with a failed to obtain license issue
+                elif (re.search("no space left on device", line, re.IGNORECASE) or \
+                     re.search("caught a sig", line, re.IGNORECASE)) and status != "lcns":
+                    status = "jobq"
+                    tmp = "Diag: " + diag + "\t\t\t Possible Job Q Manager, disk or SIG Problem\n"
+                    if len(templist) > 0 :
+                        templist[0] = tmp
+                    templist.append(line)
+                elif re.search("Will build in directory|midas: mkdir|Found diag under|redefines previous macro|-max_error|exit_on_error|stop_on_error|-no-warn-mismatch|vcs_run|ERROR_EN_REG", line) :
+                    continue
+                elif re.search("mismatch|error|fail|wrong_trigger|undefined reference to", line, re.IGNORECASE) :
+                    templist.append(line)
+                elif re.search("regress_date", line, re.IGNORECASE) :
+                    templist.append(line)
+                elif re.search("regress_time", line, re.IGNORECASE) :
+                    templist.append(line)
+                elif re.search("group_name", line, re.IGNORECASE) :
+                    templist.append(line)
+                elif re.search("L1_", line, re.IGNORECASE) :
+                    templist.append(line)
+            fp.close()
+        templist.append(("=" * 10) + "\n")
+    else :        
+        templist.append(diag + "unfinished")
+        templist.append(("=" * 10) + "\n")
+    
+    os.chdir(curr_dir)
+    return status, templist, sim_cyc, wall_sec
+
+def check_asmregress_results (prog, contint_dir, item) :
+    # Check results for each test in regression
+    # Mimic what regreport does
+    
+    # Go to regression directory
+    regress_dir = os.path.join(contint_dir, item.model_name)
+    curr_dir = os.getcwd()
+
+    if os.path.isdir(regress_dir) :
+        os.chdir (regress_dir)
+    else :
+        print prog + ": Error: Cannot chdir into regression directory at '" + regress_dir + "'"
+        print prog + ":        Skipping checking results for this bundle item..."
+        return
+    
+    group_count = dict()
+    group_count_stat = dict()
+    pass_fail_count = dict()
+    pass_fail_cyc = dict()
+    pass_fail_sec = dict()
+    stats = dict()
+    stat_details = dict()
+
+    # Figure out the different groups
+    regress_dir_list = os.listdir(regress_dir)
+    for diag in regress_dir_list :
+        if os.path.isdir(diag) and diag != "coverage" and diag != "tre" :
+            diag_name_parts = diag.split(":")
+            # Diag group is in position 2
+            if len(diag_name_parts) > 2 :
+                group_count[diag_name_parts[2]] = 0
+ 
+    group_count["ALL"] = 0
+    group_list = sorted(group_count.keys(), reverse=True)
+    
+    # Initialize some variables 
+    for group in group_list :
+        group_count[group] = 0
+        group_count_stat[group] = dict()
+        pass_fail_count[group] = 0
+        pass_fail_cyc[group] = 0
+        pass_fail_sec[group] = 0
+        for status in STATUS_NAME :
+            group_count_stat[group][status] = 0
+
+    # Walk-thru all diag dir and collect info
+    index = 0
+    for diag in regress_dir_list :
+        group = None
+        if os.path.isdir(diag) and diag != "coverage" and diag != "tre" :
+            diag_name_parts = diag.split(":")
+            # Diag group is in position 2
+            if len(diag_name_parts) > 2 :
+                group = diag_name_parts[2]
+                if group in group_count :
+                    group_count[group] += 1
+                else :
+                    print prog + ": Error: Something is wrong at walk-thru group is " + group
+                    print prog + ": Skipping diag..."
+            group_count["ALL"] += 1
+
+            # Print processed diag name
+            index += 1
+            diag_name = "%s:        %-65s %4d" % (prog, diag, index)
+            sys.stdout.write(diag_name)
+            sys.stdout.flush()
+
+            status, status_details, cyc, sec = check_status_log(prog, diag)
+            stats[diag] = status
+            stat_details[diag] = status_details
+        
+            if group :
+                group_count_stat[group][status] += 1
+            group_count_stat["ALL"][status] += 1
+
+            # To calculate cycles per second
+            if sec != 0 and (status == "pass" or status == "fail") :
+                if group :
+                    pass_fail_count[group] += 1
+                    pass_fail_cyc[group] += cyc
+                    pass_fail_sec[group] += sec
+                pass_fail_count["ALL"] += 1
+                pass_fail_cyc["ALL"] += cyc
+                pass_fail_sec["ALL"] += sec
+
+            sys.stdout.write("\b" * len(diag_name))
+            sys.stdout.flush()
+
+    print "%s:        %-65s %4d" % (prog, "Total diags:", group_count["ALL"])
+
+    # Store stats collected into item
+    item.stats = dict()
+    item.stats["group_count"] = group_count
+    item.stats["group_count_stat"] = group_count_stat
+    item.stats["pass_fail_count"] = pass_fail_count
+    item.stats["pass_fail_cyc"] = pass_fail_cyc
+    item.stats["pass_fail_sec"] = pass_fail_sec
+    item.stats["diags_status"] = stats
+    item.stats["diags_status_details"] = stat_details
+
+    os.chdir(curr_dir)
+
+def check_asmtest_results (prog, item) :
+    # Check results for the assembly test
+    # Mimic what regreport does
+
+    # Print out name of diag
+    diag_name = "%s:        %-65s %4d" % (prog, item.name, 1)
+    sys.stdout.write(diag_name)
+    sys.stdout.flush()
+
+    # Check status of status and log file
+    status, status_details, cyc, sec = check_status_log(prog, item.model_name)
+
+    # Clear diag name
+    sys.stdout.write("\b" * len(diag_name))
+    sys.stdout.flush()
+
+    print "%s:        %-65s %4d" % (prog, "Total diags:", 1)
+
+    # Store stats collected into item
+    item.stats = dict()
+    item.stats["status"] = status
+    item.stats["status_details"] = status_details
+    item.stats["cyc"] = cyc
+    item.stats["sec"] = sec
+
+def grep_sim_log (fp) :
+    found_wall_sec = False
+    found_sim_cyc = False
+    wall_sec = 0
+    sim_cyc = 0
+    errlines = []
+    errline_num = 0 
+
+    in_diag_match = False
+    diag_match_err_string = ""
+    for line in fp :
+        fail_match = re.search("\[FAILED\] Test \((.*)\) failed", line)
+        diag_match = re.search("Warning-\[.*\] Cannot open file", line)
+        error_match = re.search("error", line, re.IGNORECASE)
+        error_match_except_async_fifo = re.search("^DRC Error : .*\b(Reset|RESET)\b.*", line)
+        pass_match = re.search("pass", line, re.IGNORECASE)
+        lcns_match = re.search("Failed to obtain license", line)
+        sig_match = re.search("Caught a SIG", line, re.IGNORECASE)
+        sim_match = re.search("Time: (\d+) ps", line)
+        wall_match = re.search("CPU Time:\s*(\d+\.\d+)", line)
+        if in_diag_match :
+            if line == "\n" :
+                errlines.append(diag_match_err_string)
+                errline_num += 1
+                in_diag_match = False
+                diag_match_err_string = ""
+            else :
+                diag_match_err_string += "sim.log: " + line
+        elif fail_match :
+            errlines.append("sim.log: " + line)
+            errline_num += 1
+        elif diag_match :
+            in_diag_match = True
+            diag_match_err_string = "sim.log: " + line
+        elif error_match and not error_match_except_async_fifo is None :
+            in_diag_match = True
+            diag_match_err_string = "sim.log: " + line
+        elif pass_match :
+            errlines.append("sim.log: " + line)
+            errline_num += 1
+        elif lcns_match :
+            errlines.append("sim.log: " + line)
+            errline_num += 1
+        elif sig_match :
+            errlines.append("sim.log: " + line)
+            errline_num += 1
+        elif sim_match :
+            # Assume 1 Ghz cycle time
+            sim_cyc = int(float(sim_match.group(1)) / 1000.0)
+            found_sim_cyc = True
+        elif wall_match :
+            wall_sec = float(wall_match.group(1))
+            found_wall_sec = True 
+
+    return found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num
+
+def analyze_failure (errlines) :
+    # Analyze failure
+    long_stat = STATUS_NAME["unkn"] + " (No Status)"
+    status = "unkn"
+    fail = False
+    for curr_line in errlines :
+        fail_eq_match = re.search("\[FAILED\] Test \((.*)\) failed, (\[.*\])", curr_line)
+        fail_match = re.search("\[FAILED\] Test \((.*)\) failed", curr_line)
+        no_simlog_match = re.search("ERROR: (No sim.log)", curr_line)
+        simv_match = re.search("simv run exited with error: (.*)", curr_line)
+        if fail_eq_match :
+            why = fail_eq_match.group(1)
+            eq = fail_eq_match.group(2)
+            status = "fail"
+            long_stat = STATUS_NAME["fail"] + " (" + why + ", " + eq + ")"
+            fail = True
+        elif fail_match :
+            why = fail_match.group(1)
+            if re.search("timeout", why, re.IGNORECASE) :
+                status = "timo"
+                long_stat = STATUS_NAME["timo"] + " (" + why + ")"
+            else :
+                status = "fail"
+                long_stat = STATUS_NAME["fail"] + " (" + why + ")"
+            fail = True
+        elif re.search("Warning-\[.*\] Cannot open file", curr_line) :
+            status = "diag"
+            long_stat = STATUS_NAME["diag"] + " (" + curr_line + ")"
+            fail = True
+            break
+        elif re.search("Failed to obtain license", curr_line) :
+            status = "lcns"
+            long_stat = STATUS_NAME["lcns"]
+            fail = True
+            break
+        elif re.search("Caught a SIG", curr_line) :
+            status = "jobq"
+            long_stat = STATUS_NAME["jobq"] + " (Exceed Job Q Manager Time Limit?)"
+            fail = True
+            break
+        elif no_simlog_match :
+            status = "unkn"
+            long_stat = STATUS_NAME["unkn"] + " (" + no_simlog_match.group(1) + ")"
+            fail = True
+            break
+        elif simv_match :
+            status = "unkn"
+            long_stat = STATUS_NAME["unkn"] + " (" + simv_match.group(1) + ")"
+            fail = True
+            break
+
+    # If there was no indication of failure, look for at least one indication of a pass
+    if not fail :
+        for curr_line in errlines :
+            if re.search("\[PASSED\] Test \(.*\) succeeded", curr_line) :
+                status = "pass"
+                long_stat = STATUS_NAME["pass"]
+                break
+
+    return long_stat, status
+
+def generate_status_log (sim_start, item, diag_dir) :
+    found_wall_sec = False
+    found_sim_cyc = False
+    wall_sec = 0
+    sim_cyc = 0
+    errline_num = 0
+    errlines = []
+    status = "unkn"
+
+    # Try to open simulation file
+    fp = None
+    if os.access("sim.log", os.R_OK) :
+        fp = open("sim.log", "r")
+    elif os.access("sim.log.gz", os.R_OK) :
+        fp = gzip.open("sim.log.gz", "r")
+
+    # If we were successful, grep the sim.log
+    something = False
+    if not fp is None :
+        found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num = grep_sim_log(fp)
+        fp.close()
+        something = True
+    else :
+        # Find job q file
+        jobq_file = None
+        for file in os.listdir(diag_dir) :
+            if re.match("slurm-\d+.out", file) :
+                jobq_file = file
+                break
+
+        if not jobq_file is None :
+            fp = None
+            if os.access(jobq_file, os.R_OK) :
+                fp = open(jobq_file, "r")
+
+            if not fp is None :
+                found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num = grep_sim_log(fp)
+                fp.close ()
+                something = True
+    
+    # Open status.log file
+    try :
+        fp = open("status.log", "w")
+    except IOError :
+        print prog + ": Error: Unable to open 'status.log' file for bundle item '" + item.name + "'"
+        print prog + ":        Skipping checking results for this bundle item..."
+        return
+
+    # If we didn't find any files to give us information as to what happened
+    # just report unknown
+    if not something :
+        fp.write("Diag: %-40s   %s\n" % (item.name, STATUS_NAME["unkn"]))
+        return
+
+    # Analyze failure
+    long_stat, status = analyze_failure(errlines)
+
+    fp.write("Diag: %-40s   %s\n" % (item.name, long_stat))
+    date = sim_start.strftime("%a %b %d %H:%M:%S %Z %Y")
+    fp.write(date + "\n")
+
+    # print first n-line error message, maxing out at 10 lines
+    count = 0
+    for line in errlines :
+        if count >= 10 :
+            break
+        elif line[-1] == "\n" :
+            fp.write(line)
+        else :
+            fp.write(line + "\n")
+        count += 1
+
+    if (status == "pass" or status == "fail") and found_sim_cyc and found_wall_sec :
+        fp.write("Cyc= %10s, Sec=%10s, C/S=%4.1f\n" % (sim_cyc, wall_sec, sim_cyc/wall_sec))
+
+    fp.close()
+
+def check_other_results (prog, sim_start, contint_dir, item) :
+    # Check results for non-assembly tests
+
+    # Figure out diag directory
+    diag_dir = os.path.join(contint_dir, item.model_name)
+    curr_dir = os.getcwd()
+
+    if os.path.isdir(diag_dir) :
+        os.chdir(diag_dir)
+    else :
+        print prog + ": Error: Cannot chdir into diag directory at '" + diag_dir + "'"
+        print prog + ":        Skipping checking results for this bundle item..."
+        return
+
+    # Generate a status.log file
+    generate_status_log (sim_start, item, diag_dir)
+        
+    os.chdir(curr_dir)
+
+    # Print out name of diag
+    diag_name = "%s:        %-65s %4d" % (prog, item.name, 1)
+    sys.stdout.write(diag_name)
+    sys.stdout.flush()
+
+    # Check status of status and log file
+    status, status_details, cyc, sec = check_status_log(prog, item.model_name) 
+
+    # Clear diag name
+    sys.stdout.write("\b" * len(diag_name))
+    sys.stdout.flush()
+
+    print "%s:        %-65s %4d" % (prog, "Total diags:", 1)
+
+    # Store stats collected into item
+    item.stats = dict()
+    item.stats["status"] = status
+    item.stats["status_details"] = status_details
+    item.stats["cyc"] = cyc
+    item.stats["sec"] = sec
+
+def check_bundle_results (prog, sim_start, contint_dir, bundle_items) :
+    # Loop over items and check results based on
+    # type of bundle item if the build passed (i.e. we ran the run)
+    for item in bundle_items :
+        if item.build_passed :
+            print prog + ":     Checking results for bundle item '" + item.name + "'"
+            if item.type == BundleItemType.AssemblyRegression :
+                check_asmregress_results (prog, contint_dir, item)     
+            elif item.type == BundleItemType.AssemblyTest :
+                check_asmtest_results (prog, item) 
+            else :
+                check_other_results (prog, sim_start, contint_dir, item)
+
+def create_aggregate_bundle_item (name, build_passed, run_passed, stats) :
+    # Create a bundle item with passed in parameters
+    new_item = BundleItem ()
+    new_item.type = BundleItemType.Aggregate
+    new_item.name = name
+    new_item.build_passed = build_passed
+    new_item.run_passed = run_passed
+    new_item.stats = stats
+    
+    return new_item
+
+def aggregate_results (bundle_items) :
+    asm_regress_build_passed = True
+    asm_regress_run_passed = True
+    asm_regress_stats = dict()
+    asm_regress_stats["bundle_item_count"] = 0
+    asm_regress_stats["build_and_run_pass_count"] = 0
+    asm_regress_stats["build_fail_count"] = 0
+    asm_regress_stats["run_fail_count"] = 0
+    asm_regress_stats["stat_count"] = dict()
+    asm_regress_stats["diag_count"] = 0
+    asm_regress_stats["pass_fail_count"] = 0
+    asm_regress_stats["pass_fail_cyc"] = 0
+    asm_regress_stats["pass_fail_sec"] = 0
+    asm_test_build_passed = True
+    asm_test_run_passed = True
+    asm_test_stats = dict()
+    asm_test_stats["bundle_item_count"] = 0
+    asm_test_stats["build_and_run_pass_count"] = 0
+    asm_test_stats["build_fail_count"] = 0
+    asm_test_stats["run_fail_count"] = 0
+    asm_test_stats["stat_count"] = dict()
+    asm_test_stats["diag_count"] = 0
+    asm_test_stats["pass_fail_count"] = 0
+    asm_test_stats["pass_fail_cyc"] = 0
+    asm_test_stats["pass_fail_sec"] = 0
+    other_build_passed = True
+    other_run_passed = True
+    other_stats = dict()
+    other_stats["bundle_item_count"] = 0
+    other_stats["build_and_run_pass_count"] = 0
+    other_stats["build_fail_count"] = 0
+    other_stats["run_fail_count"] = 0
+    other_stats["stat_count"] = dict()
+    other_stats["diag_count"] = 0
+    other_stats["pass_fail_count"] = 0
+    other_stats["pass_fail_cyc"] = 0
+    other_stats["pass_fail_sec"] = 0
+    all_build_passed = True
+    all_run_passed = True
+    all_stats = dict()
+    all_stats["bundle_item_count"] = 0
+    all_stats["build_and_run_pass_count"] = 0
+    all_stats["build_fail_count"] = 0
+    all_stats["run_fail_count"] = 0
+    all_stats["stat_count"] = dict()
+    all_stats["diag_count"] = 0
+    all_stats["pass_fail_count"] = 0
+    all_stats["pass_fail_cyc"] = 0
+    all_stats["pass_fail_sec"] = 0
+
+    # Initialize status counts
+    for status in STATUS_NAME :
+        asm_regress_stats["stat_count"][status] = 0
+        asm_test_stats["stat_count"][status] = 0
+        other_stats["stat_count"][status] = 0
+        all_stats["stat_count"][status] = 0
+
+    for item in bundle_items :
+        if item.type == BundleItemType.AssemblyRegression :
+            if not item.build_passed :
+                asm_regress_build_passed = False
+                all_build_passed = False
+            if not item.run_passed :
+                asm_regress_run_passed = False
+                all_run_passed = False
+            asm_regress_stats["bundle_item_count"] += 1
+            all_stats["bundle_item_count"] += 1
+            if item.build_passed and item.run_passed :
+                asm_regress_stats["build_and_run_pass_count"] += 1
+                all_stats["build_and_run_pass_count"] += 1
+            elif item.build_passed and not item.run_passed :
+                asm_regress_stats["run_fail_count"] += 1
+                all_stats["run_fail_count"] += 1
+            else :
+                asm_regress_stats["build_fail_count"] += 1
+                all_stats["build_fail_count"] += 1
+            if item.build_passed and item.run_passed :
+                for status in STATUS_NAME :
+                    asm_regress_stats["stat_count"][status] += item.stats["group_count_stat"]["ALL"][status]
+                    all_stats["stat_count"][status] += item.stats["group_count_stat"]["ALL"][status]
+                asm_regress_stats["diag_count"] += item.stats["group_count"]["ALL"]
+                all_stats["diag_count"] += item.stats["group_count"]["ALL"]
+                asm_regress_stats["pass_fail_count"] += item.stats["pass_fail_count"]["ALL"]
+                all_stats["pass_fail_count"] += item.stats["pass_fail_count"]["ALL"]
+                asm_regress_stats["pass_fail_cyc"] += item.stats["pass_fail_cyc"]["ALL"]
+                all_stats["pass_fail_cyc"] += item.stats["pass_fail_cyc"]["ALL"]
+                asm_regress_stats["pass_fail_sec"] += item.stats["pass_fail_sec"]["ALL"]
+                all_stats["pass_fail_sec"] += item.stats["pass_fail_sec"]["ALL"] 
+        elif item.type == BundleItemType.AssemblyTest :
+            if not item.build_passed :
+                asm_test_build_passed = False
+                all_build_passed = False
+            if not item.run_passed :
+                asm_test_run_passed = False
+                all_run_passed = False
+            asm_test_stats["bundle_item_count"] += 1
+            all_stats["bundle_item_count"] += 1
+            if item.build_passed and item.run_passed :
+                asm_test_stats["build_and_run_pass_count"] += 1
+                all_stats["build_and_run_pass_count"] += 1
+            elif item.build_passed and not item.run_passed :
+                asm_test_stats["run_fail_count"] += 1
+                all_stats["run_fail_count"] += 1
+            else :
+                asm_test_stats["build_fail_count"] += 1
+                all_stats["build_fail_count"] += 1
+            if item.build_passed and item.run_passed :
+                asm_test_stats["stat_count"][item.stats["status"]] += 1
+                all_stats["stat_count"][item.stats["status"]] += 1
+                asm_test_stats["diag_count"] += 1
+                all_stats["diag_count"] += 1
+                if item.stats["status"] == "pass" or item.stats["status"] == "fail" :
+                    asm_test_stats["pass_fail_count"] += 1
+                    all_stats["pass_fail_count"] += 1
+                    asm_test_stats["pass_fail_cyc"] += item.stats["cyc"]
+                    all_stats["pass_fail_cyc"] += item.stats["cyc"]
+                    asm_test_stats["pass_fail_sec"] += item.stats["sec"]
+                    all_stats["pass_fail_sec"] += item.stats["sec"]
+        elif item.type == BundleItemType.Other :
+            if not item.build_passed :
+                other_build_passed = False
+                all_build_passed = False
+            if not item.run_passed :
+                other_run_passed = False
+                all_run_passed = False
+            other_stats["bundle_item_count"] += 1
+            all_stats["bundle_item_count"] += 1
+            if item.build_passed and item.run_passed :
+                other_stats["build_and_run_pass_count"] += 1
+                all_stats["build_and_run_pass_count"] += 1
+            elif item.build_passed and not item.run_passed :
+                other_stats["run_fail_count"] += 1
+                all_stats["run_fail_count"] += 1
+            else :
+                other_stats["build_fail_count"] += 1
+                all_stats["build_fail_count"] += 1
+            if item.build_passed and item.run_passed :
+                other_stats["stat_count"][item.stats["status"]] += 1
+                all_stats["stat_count"][item.stats["status"]] += 1
+                other_stats["diag_count"] += 1
+                all_stats["diag_count"] += 1
+                if item.stats["status"] == "pass" or item.stats["status"] == "fail" :
+                    other_stats["pass_fail_count"] += 1
+                    all_stats["pass_fail_count"] += 1
+                    other_stats["pass_fail_cyc"] += item.stats["cyc"]
+                    all_stats["pass_fail_cyc"] += item.stats["cyc"]
+                    other_stats["pass_fail_sec"] += item.stats["sec"]
+                    all_stats["pass_fail_sec"] += item.stats["sec"]
+
+    # Create a bundle item representing all
+    # assembly regression bundle items
+    bundle_items.append(create_aggregate_bundle_item("ASM_REGRESS", \
+                                                     asm_regress_build_passed, \
+                                                     asm_regress_run_passed, \
+                                                     asm_regress_stats))
+
+    # Create a bundle item representing all
+    # assembly test bundle items
+    bundle_items.append(create_aggregate_bundle_item("ASM_TEST", \
+                                                     asm_test_build_passed, \
+                                                     asm_test_run_passed, \
+                                                     asm_test_stats))
+    
+    # Create a bundle item representing all
+    # other test bundle items
+    bundle_items.append(create_aggregate_bundle_item("OTHER", \
+                                                     other_build_passed, \
+                                                     other_run_passed, \
+                                                     other_stats))
+
+    # Create a bundle item representing
+    # all bundle items
+    bundle_items.append(create_aggregate_bundle_item("ALL", all_build_passed, all_run_passed, all_stats))
+
+
+    non_pass_total = 0
+    for status in STATUS_NAME :
+        if status != "pass" :
+            non_pass_total += all_stats["stat_count"][status]
+
+    #print non_pass_total, all_stats["diag_count"], all_stats["stat_count"]["pass"]
+
+    return (all_build_passed and all_run_passed and (all_stats["diag_count"] == all_stats["stat_count"]["pass"])), ((all_stats["stat_count"]["pass"] == 0) and (all_stats["diag_count"] == non_pass_total))
+    #((all_stats["run_fail_count"] == all_stats["diag_count"]) and (all_stats["stat_count"]["pass"] == 0))
+
+def print_results (contint_dir, bundle_items) :
+    ###########################################
+    # Print summary for aggregate bundle items
+    ###########################################
+    # Print header for build and run summary
+    print "\nSummary for builds and runs"
+    print ("=" * 80)
+    sys.stdout.write("%15s:" % "Status")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11s |" % item.name)
+    print "\n" + "-" * 80
+
+    # Print build pass fail counts
+    sys.stdout.write("%15s:" % "Both PASS")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["build_and_run_pass_count"])
+    sys.stdout.write("\n")
+    sys.stdout.write("%15s:" % "Build FAIL")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["build_fail_count"])
+    sys.stdout.write("\n")
+    sys.stdout.write("%15s:" % "Run FAIL")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["run_fail_count"])
+    sys.stdout.write("\n")
+
+    print "-" * 80
+    sys.stdout.write("%15s:" % "Item Count")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["bundle_item_count"])
+    sys.stdout.write("\n")
+
+    print "=" * 80
+
+    # Print header
+    print "\nSummary for " + contint_dir + " by bundle item types"
+    print ("=" * 80)
+    sys.stdout.write("%15s:" % "Status")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11s |" % item.name)
+    print "\n" + '-' * 80
+    
+    # Print status counts
+    ordered_types = ["pass", "fail", "diag", "lcns", "maxc", "sckt", "timo", \
+                     "lessthr", "simx", "perf", "jobq", "unkn", "unfi", "flex"]
+    for type in ordered_types :
+        sys.stdout.write("%15s:" % STATUS_NAME[type])
+        for item in bundle_items :
+            if item.type == BundleItemType.Aggregate :
+                sys.stdout.write("%11d |" % item.stats["stat_count"][type])
+        sys.stdout.write("\n")
+    
+    print "-" * 80
+    sys.stdout.write("%15s:" % "Diag Count")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["diag_count"])
+    sys.stdout.write("\n")
+
+    # Print cycles per second
+    print "-" * 80
+    sys.stdout.write("%15s:" % "Cycles/Sec")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            if item.stats["pass_fail_sec"] :
+                sys.stdout.write("%11s |" % int(item.stats["pass_fail_cyc"] / item.stats["pass_fail_sec"]))
+            else :
+                sys.stdout.write("%11s |" % "-NA-")
+    sys.stdout.write("\n")
+
+    # Total cycles
+    sys.stdout.write("%15s:" % "K Cycles")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % int(item.stats["pass_fail_cyc"] / 1000))
+    sys.stdout.write("\n")
+
+    # Diags counted for cycles/second
+    sys.stdout.write("%15s:" % "#Diags Used")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            sys.stdout.write("%11d |" % item.stats["pass_fail_count"])
+    sys.stdout.write("\n")
+
+    print "=" * 80
+
+    ############################################
+    # Print summary for regression bundle items
+    ############################################
+    all_regress_build_run_pass = True
+    regress_bundle_item_count = 0
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate and item.name == "ASM_REGRESS" :
+            all_regress_build_run_pass = item.build_passed and item.run_passed
+            regress_bundle_item_count = item.stats["bundle_item_count"]
+            break
+    if all_regress_build_run_pass and regress_bundle_item_count > 0 :
+        # Print header
+        print "\nSummary for " + contint_dir + " assembly regressions only"
+        print ("=" * 80)
+        sys.stdout.write("%15s:" % "Status")
+        for item in bundle_items :
+            if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
+                num_cols = 0
+                for group in item.stats["group_count"] :
+                    num_cols += len("%11s |" % group)
+                num_cols -= 2
+                spacing = (num_cols - len(item.name)) / 2
+                spacing_str = ""
+                if spacing > 0 :
+                    spacing_str = spacing * " "
+                sys.stdout.write(("%" + str(num_cols) + "s |") % (spacing_str + item.name + spacing_str))
+        sys.stdout.write("\n")
+        sys.stdout.write("%15s " % "")
+        for item in bundle_items :
+            if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
+                for group in item.stats["group_count"] :
+                    if group != "ALL" :
+                        sys.stdout.write("%11s |" % group) 
+                sys.stdout.write("%11s |" % "ALL")
+        print "\n" + '-' * 80
+
+        # Print status counts
+        for type in ordered_types :
+            sys.stdout.write("%15s:" % STATUS_NAME[type])
+            for item in bundle_items :
+                if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed:
+                    for group in item.stats["group_count"] :
+                        if group != "ALL" :
+                            sys.stdout.write("%11d |" % item.stats["group_count_stat"][group][type])
+                    sys.stdout.write("%11d |" % item.stats["group_count_stat"]["ALL"][type])
+            sys.stdout.write("\n")
+
+        # Print cycles per second
+        print "-" * 80
+        sys.stdout.write("%15s:" % "Cycles/Sec")
+        for item in bundle_items :
+            if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
+                for group in item.stats["group_count"] :
+                    if group != "ALL" :
+                        if item.stats["pass_fail_sec"][group] :
+                            sys.stdout.write("%11s |" % \
+                                int(item.stats["pass_fail_cyc"][group] / item.stats["pass_fail_sec"][group]))
+                        else :
+                            sys.stdout.write("%11s |" % "-NA-") 
+                if item.stats["pass_fail_sec"]["ALL"] :
+                    sys.stdout.write("%11s |" % \
+                        int(item.stats["pass_fail_cyc"]["ALL"] / item.stats["pass_fail_sec"]["ALL"]))
+                else :
+                    sys.stdout.write("%11s |" % "-NA-")
+        sys.stdout.write("\n")
+
+        # Total cycles
+        sys.stdout.write("%15s:" % "K Cycles")
+        for item in bundle_items :
+            if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
+                for group in item.stats["group_count"] :
+                    if group != "ALL" :
+                        sys.stdout.write("%11d |" % int(item.stats["pass_fail_cyc"][group] / 1000))
+                sys.stdout.write("%11d |" % int(item.stats["pass_fail_cyc"]["ALL"] / 1000))
+        sys.stdout.write("\n")
+
+        # Diags counted for cycles/second
+        sys.stdout.write("%15s:" % "#Diags Used")
+        for item in bundle_items :
+            if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
+                for group in item.stats["group_count"] :
+                    if group != "ALL" :
+                        sys.stdout.write("%11d |" % item.stats["pass_fail_count"][group])
+                sys.stdout.write("%11d |" % item.stats["pass_fail_count"]["ALL"])
+        sys.stdout.write("\n")
+
+        print "=" * 80
+
+    ######################################
+    # Print details for each failing test
+    ######################################
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            continue
+        elif item.type == BundleItemType.AssemblyRegression :
+            # Print something if build failed
+            if not item.build_passed :
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                print "BUILD FAILED"
+            # Print something if run failed
+            elif not item.run_passed :  
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                print "RUN FAILED"
+            # Only print something if it failed
+            elif item.stats["group_count_stat"]["ALL"]["pass"] != item.stats["group_count"]["ALL"] :
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                for group in item.stats["group_count"] :
+                    if group != "ALL" :
+                        print "Details for " + group + " group"
+                        print "=" * 40
+                        for type in ordered_types :
+                            if type != "pass" and item.stats["group_count_stat"][group][type] > 0 :
+                                print_header = 1
+                                for diag in item.stats["diags_status"] :
+                                    diag_name_parts = diag.split(":")
+                                    # Group position in name is 2    
+                                    if item.stats["diags_status"][diag] == type and \
+                                       len(diag_name_parts) > 2 and group == diag_name_parts[2]:
+                                        if print_header :
+                                            print STATUS_NAME[type] + ":"
+                                            print "=" * 20
+                                            print_header = 0
+                                        sys.stdout.write("".join(item.stats["diags_status_details"][diag]))
+                                if print_header == 0 :
+                                    print "=" * 20
+                print "Details for ALL not in other groups"
+                print "=" * 40
+                for type in ordered_types :
+                    if type != "pass" and item.stats["group_count_stat"]["ALL"][type] > 0 :
+                        print_header = 1
+                        for diag in item.stats["diags_status"] :
+                            diag_name_parts = diag.split(":")
+                            # Group position in name is 2
+                            if item.stats["diags_status"][diag] == type and len(diag_name_parts) <= 2 :
+                                if print_header :
+                                    print STATUS_NAME[type] + ":"
+                                    print "=" * 20
+                                    print_header = 0
+                                sys.stdout.write("".join(item.stats["diags_status_details"][diag]))
+                        if print_header == 0 :
+                            print "=" * 20
+        elif item.type == BundleItemType.AssemblyTest or item.type == BundleItemType.Other:
+            # Print something if build failed
+            if not item.build_passed :
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                print "BUILD FAILED"
+            # Print something if run failed
+            elif not item.run_passed :
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                print "RUN FAILED"
+            # Only print something if it fails
+            elif item.stats["status"] != "pass" :
+                print "=" * 80
+                print "\n\nDetails for " + item.name
+                print "=" * 80
+                print STATUS_NAME[item.stats["status"]] + ":"
+                print "=" * 20
+                sys.stdout.write("".join(item.stats["status_details"]))
+
+def contint_main () :
+    # Initialize some variables and print header
+    prog, sim_start, version, dv_root, model_dir = init_header()
+    
+    # Parse the command line arguments
+    bundle, dryrun, check_results, spec_contint_dir, cleanup, inverse = parse_cmd_args (prog)
+
+    print prog + ": processing bundle " + bundle
+
+    # Get config file
+    contint_config = os.path.join(os.path.dirname(os.path.realpath(__file__)), "contint.config")
+    print prog + ": using config file " + contint_config
+
+    # Parse the config file to get a list of XML files
+    xml_files = parse_config(prog, contint_config)
+
+    # Search for bundle in XML files and parse bundle items
+    bundle_items = find_bundle (prog, xml_files, bundle, "")
+
+    # Check that we found the bundle
+    if bundle_items == None :
+        print prog + ": Error: Unable to find bundle '" + bundle + "'."
+        sys.exit(1)
+
+    
+
+    # Create unique continuous integration run directory or use one
+    # specified at the command line
+    if spec_contint_dir is None :
+        contint_dir = create_contint_dir (sim_start, model_dir, bundle)
+    else :
+        contint_dir = spec_contint_dir
+        if (not check_results) and os.path.isdir(contint_dir) :
+            shutil.rmtree(contint_dir)
+
+    # Here we should have a unique directory to run in, lets make it and cd to it
+    saved_cwd = os.getcwd()
+    if not check_results :
+        os.makedirs(contint_dir)
+    else :
+        if not os.path.isdir(contint_dir) :
+            print prog + ": Error: Specified contint_dir does not exist and check results was specified."
+            sys.exit(1)
+    os.chdir(contint_dir)
+
+    for item in bundle_items:
+        if item.is_largest:
+            ##open file
+            ##write name
+            fp = open("largest_regress.txt", "w")
+            fp.write(item.name)
+            fp.close()
+            
+    # Build and run all bundle items
+    slurm_job_ids = []
+    if not check_results :
+        slurm_job_ids = build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bundle_items)
+    else :
+        for item in bundle_items :
+            model_name = find_model_name (contint_dir, item)
+            if model_name is None :
+                print prog + ": Error: Unable to find directory corresponding to bundle item " + item.name
+                item.build_passed = False
+                item.run_passed = False
+            else :
+                item.model_name = model_name
+                item.build_passed = True
+                item.run_passed = True
+
+    # Wait for all SLURM jobs to finish
+    print prog + ": Waiting for simulation jobs to finish..."
+    wait_for_jobs(slurm_job_ids)
+
+    # Check results for each bundle item
+    print prog + ": Checking simulation results..."
+    if not dryrun :
+        check_bundle_results (prog, sim_start, contint_dir, bundle_items)
+
+    # Aggregate all results
+    if not dryrun :
+        all_pass, all_fail = aggregate_results (bundle_items);
+
+    # Print summary of results and details for failing tests only
+    if not dryrun :
+        print_results (contint_dir, bundle_items)
+
+    # Switch back to original script execution directory
+    os.chdir(saved_cwd)
+
+    # Cleanup
+    if cleanup and all_pass and not dryrun:
+        print "Cleaning up...."
+        # Remove run directory
+        shutil.rmtree(contint_dir)
+        # Remove model directories
+        for item in bundle_items :
+            if (not item.type == BundleItemType.Aggregate) and \
+               (item.sys != "") and \
+               (item.model_name != "") :
+                sys_dir = os.path.join(model_dir, item.sys)
+                build_dir = os.path.join(sys_dir, item.model_name)
+                if os.path.isdir(build_dir) :
+                    shutil.rmtree(build_dir)
+                # If sys dir is empty, remove it
+                if os.listdir(sys_dir) == [] :
+                    shutil.rmtree(sys_dir)
+
+    if not dryrun :
+        if not inverse:
+            if all_pass :
+                sys.exit(0)
+            else :
+                sys.exit(1)
+        else :
+            if all_fail :
+                sys.exit(0)
+            else :
+                sys.exit(1)
+    else :
+        sys.exit(0)
+            
+if __name__ == "__main__" :
+    contint_main()

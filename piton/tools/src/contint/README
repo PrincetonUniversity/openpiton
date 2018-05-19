@@ -1,0 +1,102 @@
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+README for contint script
+
+Different runs for continuous integration are called bundles and can include :
+    - Assembly regressions
+    - Assembly tests
+    - Other tests
+
+#######################
+# Adding a new bundle #
+#######################
+
+1. Figure out where you want to define your bundle.  This can be done in an already
+   existing XML file or in a new XML file.  If you are adding a new XML file, you must
+   add the filename to the list in contint.config.
+2. All bundles must be defined within <bundles></bundles> tags, of which there should
+   only be one in each XML file (You can define more than one bundle within these tags tho).
+   You can define your bundle using a tag with the name you want to give it.  For example, 
+   if you want to define a bundle called "git_push", you would define it between 
+   <git_push></git_push> tags.
+3. Follow instructions to add items to a bundle
+4. Run the bundle with the --bundle argument: contint --bundle=git_push
+
+######################
+# Add item to bundle #
+######################
+
+1. You first need a bundle.  If you are not adding an item to an existing bundle,
+   you should follow the instructions to create one above
+2. There are three types of bundle items and the corresponding tags to define
+   which type you are adding are:
+        Type                        Definition Tag
+        ===================================================
+        Assembly Regression         <asm_regress></asm_regress>
+        Assembly Test               <asm_test></asm_test>
+        Other test                  <other></other>
+   
+   It is generally good practice to give bundle items a name attribute, for example:
+        <asm_regress name="thread1_mini"></asm_regress>
+   Add these tags within the bundle name tags (i.e. <git_push></git_push>) to define
+   different bundle items.
+3. Now you can define different arguments to the item within the bundle item tags.
+   Every item needs <sys></sys> tags (even regressions).  So you need to always
+   define something within <sys></sys> tags, contint will throw an error if not.
+   An example of this is:
+        <sys>core1</sys>
+   Pretty much all other tags are optional, but they need to fully define a
+   sims command.  Thus, for assembly regression items, you need <group></group>
+   tags.  For the most part, all tags correspond to sims arguments, for example
+   <sim_run_args></sim_run_args> will pass whatever is in the tags to the vcs
+   simulation run command line (as this is what the sims argument does).
+   Below are examples of the barebone essentials of what you need for each type
+   of bundle item:
+
+   <asm_regress name="thread1_mini">
+        <sys>core1</sys>
+        <group>thread1_mini</group>
+   </asm_regress>
+
+   <asm_test name="princeton_test_test">
+        <sys>core1</sys>
+        <asm_diag_name>princeton-test-test.s</asm_diag_name>
+   </asm_test>
+
+   <other name="ifu_esl_lfsr_exhaust">
+        <sys>ifu_esl_lfsr</sys>
+        <sim_run_args>+test_case=test_exhaust</sim_run_args>
+   </other>
+
+   Note that only <vcs_build_args></vcs_build_args> tags/arguments are passed
+   to the command to build the model, while all other tags are passed to the
+   command to run the simulation.
+
+   You can also pass arguments to the SLURM submission command using
+   <slurm></slurm> tags.  This allows you to add more walltime or memory
+   to tests that need it. An example of this is :
+        <slurm>-t 20:00</slurm>
+4. Run the bundle and make sure your bundle item is run!

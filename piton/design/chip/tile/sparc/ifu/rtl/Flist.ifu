@@ -1,0 +1,62 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: Flist.ifu
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+sparc_ifu_nospu_wrap.v
+sparc_ifu.v
+sparc_ifu_cmp35.v
+sparc_ifu_ctr5.v
+sparc_ifu_dcl.v
+sparc_ifu_dec.v
+sparc_ifu_errctl.v
+sparc_ifu_errdp.v
+sparc_ifu_fcl.v
+sparc_ifu_fdp.v
+sparc_ifu_wseldp.v
+//sparc_ifu_icd.v
+//sparc_ifu_icd_arr_bist.v
+//sparc_ifu_mbist.v
+sparc_ifu_sscan.v
+//sparc_ifu_ict.v
+//sparc_ifu_icv.v
+sparc_ifu_ifqctl.v
+sparc_ifu_ifqdp.v
+sparc_ifu_imd.v
+sparc_ifu_incr46.v
+sparc_ifu_invctl.v
+//sparc_ifu_itlb.v
+sparc_ifu_lfsr5.v
+sparc_ifu_lru4.v
+sparc_ifu_milfsm.v
+sparc_ifu_par16.v
+sparc_ifu_par32.v
+sparc_ifu_par34.v
+sparc_ifu_swl.v
+sparc_ifu_swpla.v
+sparc_ifu_thrcmpl.v
+sparc_ifu_thrfsm.v
+sparc_ifu_esl.v
+sparc_ifu_esl_fsm.v
+sparc_ifu_esl_stsm.v
+sparc_ifu_esl_rtsm.v
+sparc_ifu_esl_htsm.v
+sparc_ifu_esl_counter.v
+sparc_ifu_esl_lfsr.v
+sparc_ifu_esl_shiftreg.v

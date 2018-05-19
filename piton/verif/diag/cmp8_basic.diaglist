@@ -1,0 +1,83 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: cmp8_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+//----------------------------------------------------------------------------
+<runargs -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS>
+bug3348_mustpass		bug3348_0.s   -max_cycle=60000000 -sim_run_args=+turn_off_exu_monitor -sim_run_args=+slam_value=0  -finish_mask=ffffffff 
+dram_mt_32th_loads 		dram_mt_32th_loads.s 		-finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -rtl_timeout=150000 -max_cycle=2000000 -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1   -midas_args=-DSYNC_THREADS
+dram_mt_32th_stores 		dram_mt_32th_stores.s 		-finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -rtl_timeout=150000 -max_cycle=2000000 -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1 
+dram_mt_32th_loads_attrib 	dram_mt_32th_loads_attrib.s 	-finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -rtl_timeout=150000 -max_cycle=2000000 -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1 
+
+fp_paul_rand_7_save    -max_cycle=1200000 fp_paul_rand_7_save.s
+fp_paul_rand_15_save   -max_cycle=1200000 fp_paul_rand_15_save.s
+fp_paul_rand_26_save   -max_cycle=1200000 fp_paul_rand_26_save.s
+fp_paul_rand_34_save   -max_cycle=1200000 fp_paul_rand_31_save.s
+fp_paul_rand_34_save   -max_cycle=1200000 fp_paul_rand_34_save.s
+fp_paul_rand_42_save   -max_cycle=1200000 fp_paul_rand_42_save.s
+fp_paul_rand_48_save   -max_cycle=1200000 fp_paul_rand_48_save.s
+fp_paul_rand_59_save   -max_cycle=1200000 fp_paul_rand_56_save.s
+fp_paul_rand_59_save   -max_cycle=1200000 fp_paul_rand_59_save.s
+fp_paul_rand_63_save   -max_cycle=1200000 fp_paul_rand_63_save.s
+fp_paul_rand_63_save   -max_cycle=1200000 fp_paul_rand_66_save.s
+fp_paul_rand_69_save   -max_cycle=1200000 fp_paul_rand_69_save.s
+fp_paul_rand_78_save   -max_cycle=1200000 fp_paul_rand_78_save.s
+fp_paul_rand_99_save   -max_cycle=1200000 fp_paul_rand_99_save.s
+
+fp_fadd_align_sv        -max_cycle=1200000 fp_fadd_align_sv.s
+fp_fadd_mul_sticky_sv   -max_cycle=3333333 fp_fadd_mul_sticky_sv.s
+fp_fdiv_man1_sv         -max_cycle=1200000 fp_fadd_norm_sv.s
+fp_fdiv_man1_sv         -max_cycle=1200000 fp_fdiv_man1_sv.s
+fp_fdiv_man_sv          -max_cycle=3333333 fp_fdiv_man_sv.s
+fp_paul_rand_15_sv      -max_cycle=1200000 fp_paul_rand_15_sv.s
+fp_paul_rand_20_sv      -max_cycle=1200000 fp_paul_rand_20_sv.s
+fp_paul_rand_26_sv      -max_cycle=1200000 fp_paul_rand_26_sv.s
+fp_paul_rand_31_sv      -max_cycle=1200000 fp_paul_rand_31_sv.s
+fp_paul_rand_34_sv      -max_cycle=1200000 fp_paul_rand_34_sv.s
+fp_paul_rand_42_sv      -max_cycle=1200000 fp_paul_rand_42_sv.s
+fp_paul_rand_48_sv      -max_cycle=1200000 fp_paul_rand_48_sv.s
+fp_paul_rand_56_sv      -max_cycle=1200000 fp_paul_rand_56_sv.s
+fp_paul_rand_59_sv      -max_cycle=1200000 fp_paul_rand_59_sv.s
+fp_paul_rand_63_sv      -max_cycle=1200000 fp_paul_rand_63_sv.s
+fp_paul_rand_66_sv      -max_cycle=1200000 fp_paul_rand_66_sv.s
+fp_paul_rand_69_sv      -max_cycle=1200000 fp_paul_rand_69_sv.s
+fp_paul_rand_78_sv      -max_cycle=1200000 fp_paul_rand_78_sv.s
+fp_paul_rand_7_sv       -max_cycle=1200000 fp_paul_rand_7_sv.s
+fp_paul_rand_99_sv      -max_cycle=1200000 fp_paul_rand_99_sv.s
+fp_paul_rand_aa         -max_cycle=1200000 fp_paul_rand_aa.s
+fp_paul_rand_ab         -max_cycle=1200000 fp_paul_rand_ab.s
+fp_paul_rand_ac         -max_cycle=1200000 fp_paul_rand_ac.s
+fp_paul_rand_ad         -max_cycle=1200000 fp_paul_rand_ad.s
+fp_paul_rand_ae         -max_cycle=1200000 fp_paul_rand_ae.s
+fp_paul_rand_af         -max_cycle=1200000 fp_paul_rand_af.s
+fp_paul_rand_ag         -max_cycle=1200000 fp_paul_rand_ag.s
+fp_paul_rand_ah         -max_cycle=1200000 fp_paul_rand_ah.s
+fp_paul_rand_ai         -max_cycle=1200000 fp_paul_rand_ai.s
+fp_paul_rand_aj         -max_cycle=1200000 fp_paul_rand_aj.s
+fp_walking_ones         -max_cycle=3333333 fp_walking_ones.s
+paul_bug4135            -max_cycle=1200000 paul_bug4135.s
+paul_bug4135_1          -max_cycle=1200000 paul_bug4135_1.s
+
+
+#ifdef CIOP_MODEL
+bug6662                 bug6662.s -sas -fast_boot -rtl_timeout=10000
+#endif
+
+</runargs>

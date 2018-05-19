@@ -1,0 +1,4 @@
+// Flist for bridge_out_tb testbench environment
+
+chip_bridge_send_top.v
+chip_bridge_send_top.t.v

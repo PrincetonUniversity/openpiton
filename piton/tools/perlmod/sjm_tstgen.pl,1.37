@@ -1,0 +1,2155 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: sjm_tstgen.pl,1.37
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+###############################################################
+##
+## Copyright (c) 2003 by Sun Microsystem Inc.
+##
+## All rights reserved. No part of this design may be reproduced stored
+## in a retrieval system, or transmitted, in any form or by any means,
+## electronic, mechanical, photocopying, recording, or otherwise, without
+## prior written permission of Sun Microsystems, Inc.
+##
+## Sun Proprietary/Confidential
+##
+## Module Name:    sjm_tstgen.pl
+## Description:
+## Generates random JBUS transactions for SJM instances 4 and 5
+##
+##############################################################
+
+use Getopt::Long;
+use Math::BigInt;
+
+# default opts
+my $opt_sjm4       = 1;
+my $opt_sjm5       = 1;
+my $opt_tm4       = 0;
+my $opt_tm5       = 0;
+my $opt_seed       = 0;
+my $opt_debug      = 0;
+my $opt_help       = 0;
+my $opt_max_num_txns   = 100;
+my $opt_max_num_cycles   = 10000;
+my $opt_max_mem = 0x80;
+my $max_mem = "0x20_00000000"; 
+my $opt_align_rd_64b = 0;
+my $opt_align_wr_64b = 1;
+my $opt_num_mem_addrs = 20;
+my $opt_num_nc_addrs = 20;
+my $opt_num_dma_blks = 8;
+my $opt_dma_min_size = 0x40;
+my $opt_dma_max_size = 0x400;
+my $opt_mem_default = 0;
+my $opt_nc_default = 0;
+my @opt_config_id;
+$opt_config_id[4] = "28";
+$opt_config_id[5] = "30";
+my @opt_config_iosyncadr;
+$opt_config_iosyncadr[4] = "0x7CF00BEEF00";
+$opt_config_iosyncadr[5] = "0x7EF00BEEF00";
+my $opt_timeout     = "10000";
+my $opt_init_mem = 1;
+my $opt_init_nc = 1;
+my $opt_init_dma = 0;
+my $opt_data_rand = 1;
+my $opt_data_pattern = 0xffffffff;
+my $opt_txn_default = 1;
+my %default_wt_txn = ("NCRD" => 40,
+		  "NCWR" => 40,
+		  "NCBRD" => 40,
+		  "NCBWR" => 40,
+		  "WRI" => 40,
+		  "WRIS" => 20,
+		  "WRM" => 20,
+		  "RDD" => 40,
+		  "RDS" => 10,
+		  "INT" => 10,
+		 );
+my %wt_txn = ("IDLE" => 1);
+my $opt_min_wait = 10;
+my $opt_max_wait = 20;
+my $opt_rpt_wt = 0;
+my $opt_rpt_min = 2;
+my $opt_rpt_max = 10;
+my $opt_burst = 1;
+my $opt_burst_min_wait = 0;
+my $opt_burst_max_wait = 4;
+my $opt_burst_min_duration = 5;
+my $opt_burst_max_duration = 10;
+my $opt_burst_min_interval = 10;
+my $opt_burst_max_interval = 20;
+my %opt_wt_nc_be = ("ZERO" =>10,
+		 "ALIGN" => 60,
+		 "CONT" => 20,
+		 "RAND" => 10);
+my %opt_wt_wrm_be = ("ZERO" =>10,
+                 "ALT" => 10,
+		 "CONT" => 60,
+		 "RAND" => 20);
+my %opt_wt_nc_size = ("1" => 20,
+		   "2" => 20,
+		   "4" => 20,
+		   "8" => 20,
+		   "16" => 20);
+my %nc_size_align = ("1" => 0,
+		     "2" => 1,
+		     "4" => 2,
+		     "8" => 3,
+		     "16" => 4);
+my @opt_wt_l2_bank = (10,10,10,10);
+my @opt_int_max;
+$opt_int_max[4] = 20;
+$opt_int_max[5] = 20;
+my $opt_int_num_rand_tgt = 8;
+my $opt_int_en = 1;
+my $opt_int_only = 0;
+my @int_cnt;
+$int_cnt[4] = 0;
+$int_cnt[5] = 0;
+my $opt_wt_mem_ue_err = 0;
+my $opt_wt_nc_ue_err = 0;
+
+# RSVD09 = CWR in jbus_mon? exclude
+#my @rsvd_ttypes = (0x00,0x01,0x09,0x18,0x19,0x1B,0x1C,0x1D,0x1E);
+my @rsvd_ttypes = (0x00,0x01,0x18,0x19,0x1B,0x1C,0x1D,0x1E);
+
+# process command line arguments
+Getopt::Long::Configure ('prefix=-') ;
+Getopt::Long::Configure ('no_ignore_case') ;
+Getopt::Long::Configure ('permute') ;
+
+# Subroutines
+sub print_config {
+  $OUT=$_[0];
+  print $OUT "#--------------------------------------------------------- \n";
+  print $OUT "# print_config():\n";
+  print $OUT "#\topt_sjm4: $opt_sjm4\n";
+  print $OUT "#\topt_sjm5: $opt_sjm5\n";
+  print $OUT "#\topt_tm4: $opt_tm4\n";
+  print $OUT "#\topt_tm5: $opt_tm5\n";
+  print $OUT "#\topt_seed: $opt_seed\n";
+  print $OUT "#\topt_debug: $opt_debug\n";
+  print $OUT "#\topt_max_num_txns: $opt_max_num_txns\n";
+  print $OUT "#\topt_max_num_cycles: $opt_max_num_cycles\n";
+  print $OUT "#\topt_min_wait: $opt_min_wait\n";
+  print $OUT "#\topt_max_wait: $opt_max_wait\n";
+  print $OUT "#\topt_rpt_wt: $opt_rpt_wt\n";
+  print $OUT "#\topt_rpt_min: $opt_rpt_min\n";
+  print $OUT "#\topt_rpt_max: $opt_rpt_max\n";
+  print $OUT "#\topt_burst: $opt_burst\n";
+  print $OUT "#\topt_burst_min_wait: $opt_burst_min_wait\n";
+  print $OUT "#\topt_burst_max_wait: $opt_burst_max_wait\n";
+  print $OUT "#\topt_burst_min_duration: $opt_burst_min_duration\n";
+  print $OUT "#\topt_burst_max_duration: $opt_burst_max_duration\n";
+  print $OUT "#\topt_burst_min_interval: $opt_burst_min_interval\n";
+  print $OUT "#\topt_burst_max_interval: $opt_burst_max_interval\n";
+  print $OUT "#\topt_max_mem: $opt_max_mem\n";
+  print $OUT "#\tmax_mem: $max_mem\n";
+  print $OUT "#\topt_align_rd_64b: $opt_align_rd_64b\n";
+  print $OUT "#\topt_align_wr_64b: $opt_align_wr_64b\n";
+  print $OUT "#\topt_mem_default: $opt_mem_default\n";
+  print $OUT "#\topt_nc_default: $opt_nc_default\n";
+  print $OUT "#\topt_num_mem_addrs: $opt_num_mem_addrs\n";
+  print $OUT "#\topt_num_nc_addrs: $opt_num_nc_addrs\n";
+  print $OUT "#\topt_num_dma_blks: $opt_num_dma_blks\n";
+  print $OUT "#\topt_dma_min_size: $opt_dma_min_size\n";
+  print $OUT "#\topt_dma_max_size: $opt_dma_max_size\n";
+  print $OUT "#\topt_mem_*: \n";
+  for ($i=0;$i<@opt_mem_base;$i++) {
+    printf $OUT "#\topt_mem_*[%d]: label: %s  base: %s size: %s weight: %s\n",
+      $i,$opt_mem_label[$i],$opt_mem_base[$i],$opt_mem_size[$i],$opt_mem_wt[$i];
+  }
+  print $OUT "#\topt_nc_*: \n";
+  for ($i=0;$i<@opt_nc_base;$i++) {
+    printf $OUT "#\topt_nc_*[%d]: label: %s  base: %s size: %s weight: %s\n",
+      $i,$opt_nc_label[$i],$opt_nc_base[$i],$opt_nc_size[$i],$opt_nc_wt[$i];
+  }
+  for ($i=4;$i<=5;$i++) {
+    print $OUT "#\topt_config_id[$i]: $opt_config_id[$i] \n";
+    print $OUT "#\topt_config_iosyncadr[$i]: $opt_config_iosyncadr[$i] \n";
+  }
+  print $OUT "#\topt_timeout: $opt_timeout\n";
+  print $OUT "#\topt_init_mem: $opt_init_mem\n";
+  print $OUT "#\topt_init_nc: $opt_init_nc\n";
+  print $OUT "#\topt_init_dma: $opt_init_dma\n";
+  print $OUT "#\topt_data_rand: $opt_data_pattern\n";
+  print $OUT "#\topt_txn_default: $opt_txn_default\n";
+  while (($key,$value) = each(%opt_wt_txn)) {
+    if (defined $value) {
+      print $OUT "#\topt_wt_txn_$key: \t$value \n";
+    }
+  }
+  while (($key,$value) = each(%wt_txn)) {
+    print $OUT "#\t\twt_txn_$key: \t$value \n";
+  }
+  while (($key,$value) = each(%opt_wt_nc_be)) {
+    if (defined $value) {
+      print $OUT "#\topt_nc_be_$key: \t$value \n";
+    }
+  }
+  while (($key,$value) = each(%opt_wt_wrm_be)) {
+    if (defined $value) {
+      print $OUT "#\topt_wrm_be_$key: \t$value \n";
+    }
+  }
+  while (($key,$value) = each(%opt_wt_nc_size)) {
+    if (defined $value) {
+      print $OUT "#\topt_nc_size$key: \t$value \n";
+    }
+  }
+  for ($i=0;$i<@opt_wt_l2_bank;$i++) {
+    print $OUT "#\topt_wt_l2_bank[$i]: $opt_wt_l2_bank[$i]\n";
+  }
+  for ($i=0;$i<@opt_int_tgt;$i++) {
+    print $OUT "#\topt_int_tgt[$i]: $opt_int_tgt[$i]\n";
+  }
+  print $OUT "#\topt_int_num_rand_tgt: $opt_int_num_rand_tgt\n";
+  for ($i=4;$i<=5;$i++) {
+    print $OUT "#\topt_int_max$i: $opt_int_max[$i]\n";
+  }
+  print $OUT "#\topt_wt_mem_ue_err: $opt_wt_mem_ue_err \n";
+  print $OUT "#\topt_wt_nc_ue_err: $opt_wt_mem_ue_err \n";
+  print $OUT "#\topt_help: $opt_help\n";
+  print $OUT "#--------------------------------------------------------- \n\n";
+}
+
+sub usage() {
+  print "\nUsage: $PROG_NAME <options> \n";
+  print "  Options: [default]\n";
+  print "\t-seed=<arg>                 - Set random seed to <arg> [required]\n";
+  print "\t-f=<file>                   - Read in options from <file>\n";
+  print "\t-sjm4/-nosjm4               - Generate file for SJM 4 [on]\n";
+  print "\t-sjm5/-nosjm5               - Generate file for SJM 5 [on]\n";
+  print "\t-tm4/-notm4                 - I/O Bridge in slot 4 - do not generate sjm_4.cmd [off]\n";
+  print "\t-tm5/-notm5                 - I/O Bridge in slot 5 - do not generate sjm_5.cmd [off]\n";
+  print "\t-debug                      - Print debug and option info [off]\n";
+  print "\t-max_num_txns=<num>         - Max number of txns per SJM file [50]\n";
+  print "\t-max_num_cycles=<num>       - Max number of cycles per SJM file [10000]\n";
+  print "\t-min_wait=<num>             - Min WAIT cycles between txns [10]\n";
+  print "\t-max_wait=<num>             - Max WAIT cycles between txns [20]\n";
+  print "\t-rpt_wt=<num>               - Repeat txn type <num>% [0]\n";
+  print "\t-rpt_min=<num>              - Min number of repeat txn type[2]\n";
+  print "\t-rpt_max=<num>              - Max number of repeat txn type[10]\n";
+  print "\t-burst/-noburst             - Enable Burst mode [on]\n";
+  print "\t-burst_min_wait=<num>       - Min WAIT cycles between txns during burst[0]\n";
+  print "\t-burst_max_wait=<num>       - Max WAIT cycles between txns during burst[0]\n";
+  print "\t-burst_min_duration=<num>   - Min number of txns in burst [5] \n";
+  print "\t-burst_max_duration=<num>   - Max number of txns in burst [10] \n";
+  print "\t-burst_min_interval=<num>   - Min number of txns between bursts [10] \n";
+  print "\t-burst_max_interval=<num>   - Max number of txns between bursts [20] \n";
+  print "\t-max_mem=<num>              - Max memory size (GB) for default mem space [128]\n";
+  print "\t-align_rd_64b/-noalign_rd_64b  - Force 64B alignment for memory read/NCBRD addrs [off]\n";
+  print "\t-align_wr_64b/-noalign_wr_64b  - Force 64B alignment for memory write/NCBWR addrs [on]\n";
+  print "\t-mem_default/-nomem_default - Use default memory space [off]\n";
+  print "\t-nc_default/-nonc_default   - Use default NC spaces [off] \n";
+  print "\t-num_mem_addrs=<num>        - Number of random memory addrs per SJM file [20]\n";
+  print "\t-num_nc_addrs=<num>         - Number of random NC addrs per SJM file [20]\n";
+  print "\t-num_dma_blks=<num>         - Number of random DMA blocks per SJM file [8]\n";
+  print "\t-dma_min_size=<num>         - Minimum size (in bytes) of DMA Block [0x40]\n";
+  print "\t-dma_max_size=<num>         - Maximum size (in bytes) of DMA Block [0x400]\n";
+  print "\t-mem_label=<name>           - Define mem space <name>\n";
+  print "\t-mem_wt=<num>               - Weight for mem space\n";
+  print "\t-mem_base=<addr>            - Base address for mem space\n";
+  print "\t-mem_size=<size>            - Size of mem space\n";
+  print "\t\tMultiple mem spaces may be defined.\n";
+  print "\t\tIf no mem spaces defined, use default mem space\n";
+  print "\t-nc_label=<name>            - Define NC space <name>\n";
+  print "\t-nc_wt=<num>                - Weight for NC space\n";
+  print "\t-nc_base=<addr>             - Base address for NC space\n";
+  print "\t-nc_size=<size>             - Size of NC space\n";
+  print "\t\tMultiple NC spaces may be defined.\n";
+  print "\t\tIf no NC spaces defined, use default NC spaces:\n";
+  print "\t\t\tFAKE_DMA   \n";
+  print "\t\t\tAID<N>_NC_8MB  for sjm4 AID (if -sjm4) \n";
+  print "\t\t\tAID<N>_NC_64GB for sjm4 AID (if -sjm4) \n";
+  print "\t\t\tAID<N>_NC_8MB  for sjm5 AID (if -sjm5) \n";
+  print "\t\t\tAID<N>_NC_64GB for sjm5 AID (if -sjm5) \n";
+  print "\t-config_id4/5=<aid>         - Set config AID for SJM 4/5 [1c/1e]\n";
+  print "\t-config_iosyncadr4/5=<addr> - Set config iosyncadr for SJM 4/5 [0x7CF00BEEF00/0x7EF00BEEF00]\n";
+  print "\t-timeout=<num>              - Set SJM Timeout value [10000]\n";
+  print "\t-init_mem/-noinit_mem       - Initialize all mem addrs [on]\n";
+  print "\t-init_nc/-noinit_nc         - Initialize all  NC addrs [on]\n";
+  print "\t-init_dma/-noinit_dma       - Initialize all DMA blocks [off]\n";
+  print "\t-data_rand/-nodata_rand     - Use random data patterns for write data [on]\n";
+  print "\t-data_pattern=<data>        - Use <data> for write data (if -norand_data) [0xffffffff]\n";
+  print "\t-txn_default/-notxn_default - Use default txn weights [on]\n";
+  print "\t\tDefault Txn Weights:\n";
+  while (($key,$value) = each(%default_wt_txn)) {
+    if (defined $value) {
+      print "\t\t\t$key: \t$value \n";
+    }
+  }  
+  print "\t-wt_txn_<type>=<num>        - Set weight for txn type <type> overrides defaults\n";
+  print "\t-wt_nc_be_zero/align/cont/rand=<num> - Set weights for NCRD/NCWR Byte Mask types [10/60/20/10]\n";
+  print "\t-wt_nc_size1/2/4/8/16=<num> - Set weights for NCRD/NCWR sizes (for wt_nc_be_align) [20/20/20/20/20]\n";
+  print "\t-wt_nc_wrm_zero/cont/rand=<num> - Set weights for WRM Byte Mask types [10/60/30]\n";
+  print "\t-wt_l2_bank0/1/2/3=<num>    - Set weights for L2 Banks 0/1/2/3 (addr[7:6]) [10/10/10/10]\n";
+  print "\t-int_tgt=<num>              - Add thread <num> as INT target\n";
+  print "\t-int_num_rand_tgt=<num>     - # of random INT target threads (if no -int_tgt) [8]\n";
+  print "\t-int_max4=<num>             - Maximum # if INT commands in SJM4 command file [20]\n";
+  print "\t-int_max5=<num>             - Maximum # if INT commands in SJM5 command file [20]\n";
+  print "\t                              (# of outstanding INTs controlled by -int_tgt/-int_num_rand_tgs)\n";
+  print "\t-wt_mem_ue_err=<num>        - Set weight for UE err on mem Writes [0]\n";
+  print "\t-wt_nc_ue_err=<num>         - Set weight for UE err on NC Writes [0]\n";
+  print "\t-h|u|help                 - Print this usage info\n";
+  print "\n\tFor backwards compatibility with older versions of this script:\n";
+  print "\t        -t                  - Same as -tm5 \n";
+  print "\t        -n=<num>            - Same as -max_num_txns=<num>\n";
+  print "\t        -int_en=<0 or 1>    - Enable INT txns [1] \n";
+  print "\t        -int_only           - Generate only INT txns [off] \n";
+
+
+  if ($opt_debug) {
+    print_config(STDOUT);
+  }
+  exit;
+}
+
+sub wt_random {
+  local @wt_array;
+  local $i;
+  local $total_wt;
+  $total_wt = 0;
+  for ($i=0;$i<@_;$i++) {
+    if (not defined $_[$i]) {
+      $_[$i] = 0;
+    }
+    $total_wt += $_[$i];
+  }
+  $wt_array[0] = ($_[0] * 1000)/$total_wt ;
+  for ($i=1;$i<@_;$i++) {
+    $wt_array[$i] = $wt_array[$i-1] + ($_[$i] * 1000)/$total_wt;
+  }
+  $rnd = rand(1000);
+  for ($i=0;$i<@wt_array;$i++) {
+    if ($rnd <= $wt_array[$i]) {
+      last;
+    }
+  }
+  return $i;
+}
+
+sub wt_random_hash {
+  local %hash = @_;
+  local @hash_keys = keys(%hash);
+  local @hash_values = values(%hash);
+
+  return $hash_keys[wt_random(@hash_values)];
+}
+
+sub alignAddr {
+  local $addr = $_[0];
+  local $align = $_[1];
+  
+  local $mask = 0xffffffff << $align;
+  return ($addr & $mask);
+}
+
+sub genRandAddr {
+  local $base;
+  local $size;
+  local $addr;
+  local $align;
+  local $bank;
+
+  $base = Math::BigInt->new($_[0]);
+  $size = Math::BigInt->new($_[1]);
+  if (defined $_[2]) {
+    $align = $_[2];
+  } else {
+    $align = 0;
+  }
+
+  $size_hi = $size >> 32;
+  $size_lo = $size & 0xffffffff;
+
+  if ($size_hi == 0) {
+    $offset_hi = 0;
+    $offset_lo = int(rand($size_lo));
+  } else {
+    $offset_hi = Math::BigInt->new(int(rand($size_hi)));
+    $offset_lo = Math::BigInt->new(int(rand(0xffffffff)));
+  }
+
+  $bank = wt_random(@opt_wt_l2_bank);
+  $offset_lo = ($offset_lo & 0xffffff3f) | ($bank<<6 & 0x000000c0);
+  $offset = ($offset_hi << 32) + $offset_lo;
+
+  $addr = $base + $offset;
+  $addr_hi = $addr >> 32;
+  #$addr_lo = $addr & 0xffffffff;
+  $addr_lo = alignAddr($addr & 0xffffffff,$align);
+
+  if ($opt_debug) {
+    printf "base: %03x_%08x  size: %03x_%08x  offset: %03x_%08x  addr: %03x_%08x\n",
+      $base>>32,($base & 0x000ffffffff),$size_hi,$size_lo,$offset_hi,$offset_lo,$addr_hi,$addr_lo;
+  }
+  return ($addr_hi,$addr_lo);
+}
+
+sub getRandData {
+  local $size = $_[0];
+  local $i;
+  local $mask;
+  local $data;
+  local $data_str = "";
+
+  if ($size == 1) {
+    $mask=0xff;
+  } elsif ($size == 2) {
+    $mask=0xffff;
+  } else {
+    $mask=0xffffffff;
+  }
+
+  for ($i=0;$i<$size;$i=$i+4) {
+    if ($opt_data_rand) {
+      $data = rand(0xffffffff);
+    } else {
+      $data = $opt_data_pattern;
+    }
+    $data = $data & $mask;
+
+    $data_str = sprintf("%s 0x%x",$data_str,$data);
+  }
+
+  return $data_str;
+}
+# Hack
+@posByteMask = (0xffffffff,0xfffffffe,0xfffffffc,0xfffffff8,
+		0xfffffff0,0xffffffe0,0xffffffc0,0xffffff80,
+		0xffffff00,0xfffffe00,0xfffffc00,0xfffff800,
+		0xfffff000,0xffffe000,0xffffc000,0xffff8000,
+		0xffff0000,0xfffe0000,0xfffc0000,0xfff80000,
+		0xfff00000,0xffe00000,0xffc00000,0xff800000,
+		0xff000000,0xfe000000,0xfc000000,0xf8000000,
+		0xf0000000,0xe0000000,0xc0000000,0x80000000,
+	        0x00000000);
+sub byteMask {
+  local $start = $_[0];
+  local $end = $_[1];
+  local $be_hi;
+  local $be_lo;
+  local $be_hir;
+  local $be_lor;
+
+  if ($start < 32) {
+    $be_hi = 0xffffffff;
+    $be_lo = $posByteMask[$start];
+  } else {
+    $be_hi = $posByteMask[$start-32];
+    $be_lo = 0x00000000;
+  }
+  if ($end < 32) {
+    $be_hi = 0x00000000;
+    $be_lo &= ~$posByteMask[$end];
+  } else {
+    $be_hi &= ~$posByteMask[$end-32];
+  } 
+  $be_hir = reverseMask($be_hi);
+  $be_lor = reverseMask($be_lo);
+  return ($be_lor,$be_hir);
+}
+sub reverseMask {
+  local $mask = $_[0];
+  local $i;
+  local $tmpmask;
+
+  $tmpmask = 0;
+  for ($i=0;$i<32;$i++) {
+    $tmpmask <<= 1;
+    $tmpmask |= $mask & 0x1;
+    $mask >>=1;
+  }
+  return $tmpmask;
+}
+# Generate SJM Commands for each TTYPE
+sub genCmdRD {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "READ 0x%03x%08x nosnoop\n",$addr_hi,$addr_lo;
+  return (1,5);
+}
+sub genCmdRDD {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "READBLK 0x%03x%08x\n",$addr_hi,$addr_lo;
+  return (1,5);
+}
+sub genCmdRDS {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "READ 0x%03x%08x \n",$addr_hi,$addr_lo;
+  return (1,5);
+}
+sub genCmdRDSA {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "IFETCH 0x%03x%08x \n",$addr_hi,$addr_lo;
+  return (1,5);
+}
+sub genCmdRDO {
+  local $ttype = 0x06;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 | 0xa << 2 | rand(4);
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  # RDO can be generated by SJM w/ WRITE or OWN command.
+  # But Niagara will ignore causing SJM Timeout.
+  # Use BUSERROR instead to fake it
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+    $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdOWN {
+  local $ttype = 0x07;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  0xb << 2 | rand(4);
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  # OWN can be generated by SJM w/ OWN command.
+  # But Niagara will ignore causing SJM Timeout.
+  # Use BUSERROR instead to fake it
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+    $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdINV {
+  local $aid = $_[0];
+  local $ttype = 0x08;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+    $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+
+  return (1,1);
+}
+sub checkSjmAddr {
+  local $aid = $_[0];
+  local $addr_hi = $_[1];
+  local $addr_lo = $_[2];
+
+  if ((($addr_hi == 0x400) && (($addr_lo >> 23) == ($aid & 0x1f))) ||
+      (($addr_hi >> 4) == (0x60 | ($aid & 0x1f)))) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+sub genCmdNCWRC {
+  # NCWRC not allowed to SJM addrs (Bug2376)
+  local @ok_addr_lo;
+  local @ok_addr_hi;
+  local $ok_addr_cnt = 0;
+  for ($i=0;$i<@nc_addr_lo;$i++) {
+      checkSjmAddr($opt_config_id[4],$nc_addr_hi[$i],$nc_addr_lo[$i]),
+      checkSjmAddr($opt_config_id[5],$nc_addr_hi[$i],$nc_addr_lo[$i]);
+    if (not (($opt_sjm4 && checkSjmAddr($opt_config_id[4],$nc_addr_hi[$i],$nc_addr_lo[$i])) ||
+	     ($opt_sjm5 && checkSjmAddr($opt_config_id[5],$nc_addr_hi[$i],$nc_addr_lo[$i])))) {
+      $ok_addr_hi[$ok_addr_cnt] = $nc_addr_hi[$i];
+      $ok_addr_lo[$ok_addr_cnt] = $nc_addr_lo[$i];
+      $ok_addr_cnt++;
+    }
+  }
+  # otherwise same as NCWR + "compress"
+  local $idx = int(rand(@ok_addr_lo));
+  local $addr_hi = $ok_addr_hi[$idx];
+  local $addr_lo = $ok_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+  local $be = 0;
+  local $start = 0;
+  local $end = 0;
+
+  if ($opt_debug) {
+    printf SJM "# NCWRC type: %s \n",$type;
+  }
+  if      ($type eq "ZERO") {
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s compress\n",$addr_hi,$addr_lo,0,getRandData(16);
+  } elsif ($type eq "ALIGN") {
+    printf SJM "WRITEIO 0x%03x%08x %d %s compress\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size,getRandData($size);
+  } elsif ($type eq "CONT") {
+    $start = $addr_lo & 0xf;
+    $end   = $start+int(rand(16-$start))+1;
+    $be = (0xffff << (16-$end)) & (0xffff >> $start); 
+    if ($opt_debug) {
+      printf SJM "# NCWRC type: %s addr: 0x%03x_%08x start: %0d end: %0d be: 0x%04x\n",
+	$type,$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s compress\n",$addr_hi,$addr_lo,$be,getRandData(16);
+  } elsif ($type eq "RAND") {
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s compress\n",$addr_hi,$addr_lo,rand(0x10000),getRandData(16);
+  }
+  return (1,2);
+}
+sub genCmdWRM {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_wrm_be);
+  local $be_hi = 0;
+  local $be_lo = 0;
+  local $start = 0;
+  local $end = 0;
+
+  if      ($type eq "ZERO") {
+    $be_hi = 0;
+    $be_lo = 0;
+  } elsif ($type eq "ALT") {
+    $be_hi = (rand()%2 == 0) ? 0x55555555 : 0xaaaaaaaa;
+    $be_lo = $be_hi;
+  } elsif ($type eq "CONT") {
+    #$start = int(rand(2)) ? ($addr_lo & 0x3f) : 0;
+    $start = (rand()%2 == 0) ? ($addr_lo & 0x3f) : 0;
+    $end   = (rand()%2 == 0) ? $start+int(rand(64-$start)) : 64;
+    ($be_hi,$be_lo) = byteMask($start,$end);
+  } elsif ($type eq "RAND") {
+    $be_hi = rand(0xffffffff);
+    $be_lo = rand(0xffffffff);
+  }
+
+  if ($opt_debug) {
+    printf SJM "# WRM type: %s addr_hi: %03x addr_lo %08x start: %0d end: %0d be_hi: %08x be_lo: %08x\n",
+      $type,$addr_hi,$addr_lo,$start,$end,$be_hi,$be_lo;
+  }
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "WRITEMSK 0x%03x%08x 0x%08x%08x +\n",$addr_hi,$addr_lo,$be_hi,$be_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s  \n",getRandData(16);
+
+  return (1,5);
+} 
+sub genCmdWRB {
+  local $aid = $_[0];
+  local $ttype = 0x0C;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  # WRB Address
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # WRB Data
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+
+  return (1,5);
+}
+sub genCmdWRBC {
+  local $aid = $_[0];
+  local $ttype = 0x0D;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  # WRBC Address
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # WRBC Data
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+    0xff,0xfff,0xffffffff,0xffff,0x00;
+  return (1,1);
+}
+sub genCmdWRI {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+
+  printf SJM "WRITEBLK 0x%03x%08x +\n",$addr_hi,$addr_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s  \n",getRandData(16);
+  return (1,5);
+}
+sub genCmdWRIS {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  # RDS to get line in cache
+  printf SJM "READ 0x%03x%08x \n",$addr_hi,$addr_lo;
+  # WRIS
+  printf SJM "WRITEBLK 0x%03x%08x +\n",$addr_hi,$addr_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s  \n",getRandData(16);
+  return (2,10);
+}
+sub genCmdNCRD {
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+  local $be = 0;
+  local $start = 0;
+  local $end = 0;
+
+  if ($opt_debug) {
+    printf SJM "# NCRD type: %s \n",$type;
+  }
+  if      ($type eq "ZERO") {
+    printf SJM "READMSKIO 0x%03x%08x %04x\n",$addr_hi,$addr_lo,0;
+  } elsif ($type eq "ALIGN") {
+    printf SJM "READIO 0x%03x%08x %d\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size;
+  } elsif ($type eq "CONT") {
+    $start = $addr_lo & 0xf;
+    $end   = $start+int(rand(16-$start))+1;
+    $be = (0xffff << (16-$end)) & (0xffff >> $start); 
+    if ($opt_debug) {
+      printf SJM "# NCRD type: %s addr: 0x%03x_%08x start: %0d end: %0d be: 0x%04x\n",
+	$type,$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "READMSKIO 0x%03x%08x %04x\n",$addr_hi,$addr_lo,$be;
+  } elsif ($type eq "RAND") {
+    printf SJM "READMSKIO 0x%03x%08x %04x\n",$addr_hi,$addr_lo,rand(0x10000);
+  }
+  return (1,2);
+}
+sub genCmdNCBRD {
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "READBLKIO 0x%03x%08x\n",$addr_hi,$addr_lo;
+  return (1,5);
+}
+sub genCmdNCWR {
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+  local $be = 0;
+  local $start = 0;
+  local $end = 0;
+
+  if ($opt_debug) {
+    printf SJM "# NCWR type: %s \n",$type;
+  }
+  if      ($type eq "ZERO") {
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s\n",$addr_hi,$addr_lo,0,getRandData(16);
+  } elsif ($type eq "ALIGN") {
+    printf SJM "WRITEIO 0x%03x%08x %d %s\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size,getRandData($size);
+  } elsif ($type eq "CONT") {
+    $start = $addr_lo & 0xf;
+    $end   = $start+int(rand(16-$start))+1;
+    $be = (0xffff << (16-$end)) & (0xffff >> $start); 
+    if ($opt_debug) {
+      printf SJM "# NCWR type: %s addr: 0x%03x_%08x start: %0d end: %0d be: 0x%04x\n",
+	$type,$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s\n",$addr_hi,$addr_lo,$be,getRandData(16);
+  } elsif ($type eq "RAND") {
+    printf SJM "WRITEMSKIO 0x%03x%08x %04x %s\n",$addr_hi,$addr_lo,rand(0x10000),getRandData(16);
+  }
+  return (1,2);
+}
+sub genCmdNCBWR {
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+
+  if ($opt_align_wr_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+
+  printf SJM "WRITEBLKIO 0x%03x%08x +\n",$addr_hi,$addr_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s  \n",getRandData(16);
+  return (1,5);
+}
+sub genCmdINT {
+  local $aid = $_[0];
+  local $tgt = rand(32);
+  local $addr_hi; # 15 bits [42:28]
+  local $addr_lo; # 28 bits [27:0]
+
+  $threadID = $int_tgt[int(rand(@int_tgt))];
+  $addr_hi = ($threadID << 8) | ($aid << 3);
+  $addr_lo = 0;
+
+  printf SJM "INT 0x%04x%07x +\n",$addr_hi,$addr_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s  \n",getRandData(16);
+
+  return (1,6);
+}
+sub genCmdINTACK {
+  local $aid = $_[0];
+  local $ttype = 0x15;
+  local $addr = 0;
+  local $mask = 0;
+  local $adtype = 0xc0 | $aid << 2 | 0x0;
+
+  printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x \n",
+    $ttype,$addr,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdINTNACK {
+  local $aid = $_[0];
+  local $ttype = 0x16;
+  local $addr = 0;
+  local $mask = 0;
+  local $adtype = 0xc0 | $aid << 2 | 0x0;
+
+  printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x \n",
+    $ttype,$addr,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdXIR {
+  local $aid = $_[0];
+  local $ttype = 0x17;
+  local $addr = 0;
+  local $mask = 0;
+  local $adtype = 0xc0 | $aid << 2 | 0x0;
+
+  #printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x \n",
+  #  $ttype,$addr,$mask,$adtype;
+  printf SJM "XIR \n";
+
+  return (1,1);
+}
+sub genCmdCHANGE {
+  local $aid = $_[0];
+  local $ttype = 0x1a;
+  local $addr = 0;
+  local $mask = 0;
+  local $adtype = 0xc0 | $aid << 2 | 0x0;
+  local $i;
+
+  printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x multi\n",
+    $ttype,$addr,$mask,$adtype;
+  # Force IDLE Cycles after CHANGE
+  for ($i=0;$i<32;$i++) {
+    printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x %s\n",0x1f,0x0,0x0,0xff,($i<31) ? "multi " : "";
+  }
+
+  return (1,33);
+}
+sub genCmdRSVD {
+  local $aid = $_[0];
+  local $ttype = $rsvd_ttypes[rand(@rsvd_ttypes)];
+  local $addr = 0;
+  local $mask = 0;
+  local $adtype = 0xc0 | $aid << 2 | 0x0;
+
+  printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x \n",
+    $ttype,$addr,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdIDLE {
+  local $ttype = 0x1f;
+  local $addr = 0;
+  local $mask = 0;
+  #local $adtype = 0xff;
+  local $adtype = 0xc0 | int(rand(64));
+
+  printf SJM "BUSERROR 0x%02x 0x%011x 0x%04x 0x%02x \n",
+    $ttype,$addr,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdDMA_WR {
+  local $idx = int(rand(@dma_size));
+  local $size = $dma_size[$idx];
+  local $addr_hi = $dma_addr_hi[$idx];
+  local $addr_lo = $dma_addr_lo[$idx];
+  local $be_hi;
+  local $be_lo;
+  local $start;
+  local $end;
+  local $txn_cnt = 0;
+  local $cyc_cnt = 0;
+
+  printf SJM "# DMA_WR addr: 0x%03x%08x  size: %0x\n",$addr_hi,$addr_lo,$size;
+  $start = $addr_lo & 0x3f;
+  $end = 64;
+  if ($start != 0) {
+    ($be_hi,$be_lo) = byteMask($start,$end);
+    printf SJM "WRITEMSK 0x%03x%08x 0x%08x%08x +\n",$addr_hi,$addr_lo,$be_hi,$be_lo;
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s  \n",getRandData(16);
+    $size -= (64-$start);
+    $addr_lo += (64-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  while ($size >= 64) {
+    printf SJM "WRITEBLK 0x%03x%08x +\n", $addr_hi,$addr_lo;
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s \n",getRandData(16);
+    $size -= 64;
+    $addr_lo += 64;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  $start = 0;
+  $end = $size;
+  if ($end != 0) {
+    ($be_hi,$be_lo) = byteMask($start,$end);
+    printf SJM "WRITEMSK 0x%03x%08x 0x%08x%08x +\n",$addr_hi,$addr_lo,$be_hi,$be_lo;
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s  \n",getRandData(16);
+    $size -= $end;
+    $addr_lo += $end;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+  }
+
+  push @init_dma_size, $dma_size[$idx];
+  push @init_dma_addr_hi, $dma_addr_hi[$idx];
+  push @init_dma_addr_lo, $dma_addr_lo[$idx];
+
+  return ($txn_cnt,$cyc_cnt);
+}
+sub genCmdDMA_RD {
+  local $txn_cnt = 0;
+  local $cyc_cnt = 0;
+  if (@init_dma_size == 0) {
+    ($txn_cnt,$cyc_cnt) = genCmdDMA_WR();
+  }
+  local $idx = int(rand(@init_dma_size));
+  local $size = $init_dma_size[$idx];
+  local $addr_hi = $init_dma_addr_hi[$idx];
+  local $addr_lo = $init_dma_addr_lo[$idx];
+  local $start;
+  local $end;
+
+  printf SJM "# DMA_RD addr: 0x%03x%08x  size: %0x\n",$addr_hi,$addr_lo,$size;
+  $start = $addr_lo & 0x3f;
+  $end = 64;
+  if ($start != 0) {
+    ($be_hi,$be_lo) = byteMask($start,$end);
+    printf SJM "RDBLK 0x%03x%08x \n",$addr_hi,$addr_lo;
+    $size -= (64-$start);
+    $addr_lo += (64-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  while ($size >= 64) {
+    printf SJM "RDBLK 0x%03x%08x \n", $addr_hi,$addr_lo;
+    $size -= 64;
+    $addr_lo += 64;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  $start = 0;
+  $end = $size;
+  if ($end != 0) {
+    printf SJM "RDBLK 0x%03x%08x \n",$addr_hi,$addr_lo;
+    $size -= $end;
+    $addr_lo += $end;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+  }
+  return ($txn_cnt,$cyc_cnt);
+}
+sub genCmdNCDMA_WR {
+  local $idx = int(rand(@dma_size));
+  local $size = $dma_size[$idx];
+  local $addr_hi = $dma_addr_hi[$idx];
+  local $addr_lo = $dma_addr_lo[$idx];
+  local $be;
+  local $start;
+  local $end;
+  local $txn_cnt = 0;
+  local $cyc_cnt = 0;
+
+  printf SJM "# NCDMA_WR addr: 0x%03x%08x  size: %0x\n",$addr_hi,$addr_lo,$size;
+  # Prologue - NCWR
+  while (($addr_lo & 0x3f) != 0) {
+    if ((($addr_lo & 0xf) == 0) && ($size > 16)) {
+      $start = 0;
+      $end = 16;
+    } else {
+      $start = $addr_lo & 0xf;
+      $end = ($start >= 8) ? 16 : 8;
+    }
+    $be = (0xffff << (16-$end)) & (0xffff >> $start);
+    if ($opt_debug) {
+      printf SJM "# NCDMA_WR: addr: 0x%03x_%08x  start: %0d end: %0d  be: 0x%04x\n",
+	$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "WRITEMSKIO 0x%03x%08x 0x%04x +\n",$addr_hi,$addr_lo,$be;
+    printf SJM "    %s \n",getRandData(16);
+    $size -= ($end-$start);
+    $addr_lo += ($end-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 2;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  # Body - NCBWR
+  while ($size >= 64) {
+    printf SJM "WRITEBLKIO 0x%03x%08x +\n", $addr_hi,$addr_lo;
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s \n",getRandData(16);
+    $size -= 64;
+    $addr_lo += 64;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  # Epilogue - NCWR
+  while ($size > 0) {
+    if ((($addr_lo & 0xf) == 0) && ($size > 16)) {
+      $start = 0;
+      $end = 16;
+    } else {
+      $start = $addr_lo & 0xf;
+      $end = ($size > 8) ? $start + 8 : $start + $size;
+    }
+    $be = (0xffff << (16-$end)) & (0xffff >> $start);
+    if ($opt_debug) {
+      printf SJM "# NCDMA_WR: addr: 0x%03x_%08x  start: %0d end: %0d  be: 0x%04x\n",
+	$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "WRITEMSKIO 0x%03x%08x 0x%04x +\n",$addr_hi,$addr_lo,$be;
+    printf SJM "    %s  \n",getRandData(16);
+    $size -= ($end-$start);
+    $addr_lo += ($end-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 2;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+
+  push @init_dma_size, $dma_size[$idx];
+  push @init_dma_addr_hi, $dma_addr_hi[$idx];
+  push @init_dma_addr_lo, $dma_addr_lo[$idx];
+
+  return ($txn_cnt,$cyc_cnt);
+}
+sub genCmdNCDMA_RD {
+  local $txn_cnt = 0;
+  local $cyc_cnt = 0;
+  if (@init_dma_size == 0) {
+    ($txn_cnt,$cyc_cnt) = genCmdNCDMA_WR();
+  }
+  local $idx = int(rand(@init_dma_size));
+  local $size = $init_dma_size[$idx];
+  local $addr_hi = $init_dma_addr_hi[$idx];
+  local $addr_lo = $init_dma_addr_lo[$idx];
+  local $be;
+  local $start;
+  local $end;
+  local $txn_cnt = 0;
+  local $cyc_cnt = 0;
+
+  printf SJM "# NCDMA_RD addr: 0x%03x%08x  size: %0x\n",$addr_hi,$addr_lo,$size;
+  # Prologue - NCRD
+  while (($addr_lo & 0x3f) != 0) {
+    if ((($addr_lo & 0xf) == 0) && ($size > 16)) {
+      $start = 0;
+      $end = 16;
+    } else {
+      $start = $addr_lo & 0xf;
+      $end = ($start >= 8) ? 16 : 8;
+    }
+    $be = (0xffff << (16-$end)) & (0xffff >> $start);
+    if ($opt_debug) {
+      printf SJM "# NCDMA_RD: addr: 0x%03x_%08x  start: %0d end: %0d  be: 0x%04x\n",
+	$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "READMSKIO 0x%03x%08x 0x%04x \n",$addr_hi,$addr_lo,$be;
+    $size -= ($end-$start);
+    $addr_lo += ($end-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 2;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  # Body - NCBRD
+  while ($size >= 64) {
+    printf SJM "READBLKIO 0x%03x%08x \n", $addr_hi,$addr_lo;
+    $size -= 64;
+    $addr_lo += 64;
+    $txn_cnt += 1;
+    $cyc_cnt += 5;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  # Epilogue - NCRD
+  while ($size > 0) {
+    if ((($addr_lo & 0xf) == 0) && ($size > 16)) {
+      $start = 0;
+      $end = 16;
+    } else {
+      $start = $addr_lo & 0xf;
+      $end = ($size > 8) ? $start + 8 : $start + $size;
+    }
+    $be = (0xffff << (16-$end)) & (0xffff >> $start);
+    if ($opt_debug) {
+      printf SJM "# NCDMA_RD: addr: 0x%03x_%08x  start: %0d end: %0d  be: 0x%04x\n",
+	$addr_hi,$addr_lo,$start,$end,$be;
+    }
+    printf SJM "READMSK 0x%03x%08x 0x%04x +\n",$addr_hi,$addr_lo,$be;
+    printf SJM "    %s  \n",getRandData(16);
+    $size -= ($end-$start);
+    $addr_lo += ($end-$start);
+    $txn_cnt += 1;
+    $cyc_cnt += 2;
+
+    $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+  return ($txn_cnt,$cyc_cnt);
+}
+sub genCmdNCWR_UE {
+  local $aid = $_[0];
+  local $ttype = 0x12;
+  local $mask = 0;
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+  local $start = 0;
+  local $end = 0;
+
+  if      ($type eq "ZERO") {
+    $mask = 0;
+  } elsif ($type eq "ALIGN") {
+    $addr_lo = alignAddr($addr_lo,$nc_size_align{$size});
+    $start = $addr_lo & 0xf;
+    $end   = $start+$size;
+    $mask = (0xffff << (16-$end)) & (0xffff >> $start); 
+  } elsif ($type eq "CONT") {
+    $start = $addr_lo & 0xf;
+    $end   = $start+int(rand(16-$start))+1;
+    $mask = (0xffff << (16-$end)) & (0xffff >> $start); 
+  } elsif ($type eq "RAND") {
+    $mask = int(rand(0x10000));
+  }
+  if ($opt_debug) {
+    printf SJM "# NCWR_UE type: %s addr: 0x%03x_%08x size: %0d start: %0d end: %0d be: 0x%04x\n",
+      $type,$addr_hi,$addr_lo,$size,$start,$end,$mask;
+  }
+  # NCWR Addr
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # NCWR Data
+  $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+  $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+  $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+  $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+  $adtype = 0x10;
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x \n",
+   $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+
+  return (1,2);
+}
+sub genCmdNCBWR_UE {
+  local $aid = $_[0];
+  local $ttype = 0x13;
+  local $mask = 0;
+  local $idx = int(rand(@nc_addr_lo));
+  local $addr_hi = $nc_addr_hi[$idx];
+  local $addr_lo = $nc_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+  local $i;
+
+  # NCBWR Addr
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # NCBWR Data
+  $ue_err_cyc = int(rand(4));
+  for ($i=0;$i<4;$i++) {
+    $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+    $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+    $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+    $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+    $adtype = (($i == $ue_err_cyc) || (int(rand(10)) == 0)) ? 0x10 : 0x00;
+    printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x %s\n",
+      $ttype,$addr_hi,$addr_lo,$mask,$adtype,($i==3) ? " " : "multi";
+  }
+
+  return (1,5);
+}
+sub genCmdWRI_UE {
+  local $aid = $_[0];
+  local $ttype = 0x0e;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+  local $i;
+
+  # WRI Addr
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # WRI Data
+  $ue_err_cyc = int(rand(4));
+  for ($i=0;$i<4;$i++) {
+    $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+    $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+    $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+    $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+    $adtype = (($i == $ue_err_cyc) || (int(rand(10)) == 0)) ? 0x10 : 0x00;
+    printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x %s\n",
+      $ttype,$addr_hi,$addr_lo,$mask,$adtype,($i==3) ? " " : "multi";
+  }
+
+  return (1,5);
+}
+sub genCmdWRIS_UE {
+  local $aid = $_[0];
+  local $ttype = 0x0f;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+  local $i;
+
+  # WRIS Addr
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # WRIS Data
+  $ue_err_cyc = int(rand(4));
+  for ($i=0;$i<4;$i++) {
+    $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+    $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+    $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+    $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+    $adtype = (($i == $ue_err_cyc) || (int(rand(10)) == 0)) ? 0x10 : 0x00;
+    printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x %s\n",
+      $ttype,$addr_hi,$addr_lo,$mask,$adtype,($i==3) ? " " : "multi";
+  }
+
+  return (1,5);
+}
+sub genCmdWRM_UE {
+  local $aid = $_[0];
+  local $ttype = 0x0b;
+  local $mask = 0;
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $adtype = 0xc0 |  $aid << 2 | 0x0;
+  local $i;
+
+  # WRM Addr
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  # WRM Data
+  $ue_err_cyc = int(rand(4));
+  for ($i=0;$i<4;$i++) {
+    $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+    $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+    $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+    $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+    $adtype = (($i == $ue_err_cyc) || (int(rand(10)) == 0)) ? 0x10 : 0x00;
+    printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x %s\n",
+      $ttype,$addr_hi,$addr_lo,$mask,$adtype,($i==3) ? " " : "multi";
+  }
+
+  return (1,5);
+}
+sub genCmdUNEXP_DR16 {
+  local $aid = int(rand(4));
+  local $tid = int(rand(4));
+  local $adtype = 0x80 |  $aid << 2 | $tid;
+  local $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+  local $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0x1f);
+  local $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+  local $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+
+  # UNEXP_DR16 (Read16)
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+
+  return (1,1);
+}
+sub genCmdUNEXP_DR64 {
+  local $aid = int(rand(4));
+  local $tid = int(rand(4));
+  local $adtype = 0x40 |  $aid << 2 | $tid;
+  local $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+  local $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0x1f);
+  local $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+  local $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+
+  # UNEXP_DR64 (Read64)
+  printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x multi\n",
+     $ttype,$addr_hi,$addr_lo,$mask,$adtype;
+  for ($i=1;$i<4;$i++) {
+    $adtype = 0x00;
+    $ttype = ($opt_data_rand) ? int(rand(0x100)) : ($opt_data_pattern & 0xff);
+    $addr_hi = ($opt_data_rand) ? int(rand(0x1000)) : ($opt_data_pattern & 0xfff);
+    $addr_lo = ($opt_data_rand) ? int(rand(0xffffffff)) : ($opt_data_pattern & 0xffffffff);
+    $mask = ($opt_data_rand) ? int(rand(0x10000)) : ($opt_data_pattern & 0xffff);
+    printf SJM "BUSERROR 0x%02x 0x%03x%08x 0x%04x 0x%02x %s\n",
+      $ttype,$addr_hi,$addr_lo,$mask,$adtype,($i==3) ? " " : "multi";
+  }
+  return (1,4);
+}
+sub genCmdNONEX_RD {
+  local $nonex_rd_type = int(rand(4));
+
+  if ($nonex_rd_type == 0) {
+    genCmdNONEX_RD_MEM_NC();
+  } elsif ($nonex_rd_type == 1) {
+    genCmdNONEX_RD_NC_MEM();
+  } else {
+    genCmdNONEX_RD_MEMSIZE();
+  }
+}
+sub genCmdNONEX_WR {
+  local $nonex_wr_type = int(rand(4));
+
+  if ($nonex_wr_type == 0) {
+    genCmdNONEX_WR_MEM_NC();
+  } elsif ($nonex_wr_type == 1) {
+    genCmdNONEX_WR_NC_MEM();
+  } else {
+    genCmdNONEX_WR_MEMSIZE();
+  }
+}
+sub genCmdNONEX_RD_MEMSIZE {
+  local $offset = int(rand(128-$opt_max_mem)) + $opt_max_mem;
+  local $addr_hi = $offset >> 2;
+  local $addr_lo = ($offset & 0x3) << 30 | int(rand(0x3fffffff));
+  local $nc_mem = int(rand(2));
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+
+  # NONEX_RD (addr > MEMSIZE)
+  if ($nc_mem == 0) {
+    if ($opt_align_rd_64b) {
+      $addr_lo = alignAddr($addr_lo,6);
+    }
+    printf SJM "READBLK 0x%03x%08x\n",$addr_hi,$addr_lo;
+  } else {
+    $addr_hi = $addr_hi | 0x600;
+    printf SJM "READIO 0x%03x%08x %d\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size;
+  }
+
+  return (1,2);
+}
+sub genCmdNONEX_RD_NC_MEM {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+
+  # NONEX_RD (NCRD to MEM Space)
+  printf SJM "READIO 0x%03x%08x %d\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size;
+
+  return (1,2);
+}
+sub genCmdNONEX_RD_MEM_NC {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  #local $nctype = int(rand(3));
+  local $nctype = int(rand(2));
+  local $aid = int(rand(4));
+
+  # NONEX_RD (RD* to NC Space)
+  # nctype = 0: Fake DMA
+  # nctype = 1: 64GB NC
+  # nctype = 2: 8MB NC
+  # Workaround for Bug5391 - exclude 8MB NC space
+  if ($nctype == 0) {
+    $addr_hi = $addr_hi | 0x600;
+  } elsif ($nctype == 1) {
+    $addr_hi = $addr_hi | 0x600 | $aid << 4;
+  #} elsif ($nctype == 2) {
+  #  $addr_lo = ($addr_lo & 0x7fffff) | $aid << 23;
+  #  $addr_hi = 0x400;
+  }
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "READBLK 0x%03x%08x\n",$addr_hi,$addr_lo;
+  return (1,2);
+}
+sub genCmdNONEX_WR_MEMSIZE {
+  local $offset = int(rand(128-$opt_max_mem)) + $opt_max_mem;
+  local $addr_hi = $offset >> 2;
+  local $addr_lo = ($offset & 0x3) << 30 | int(rand(0x3fffffff));
+  local $nc_mem = int(rand(2));
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+
+  # NONEX_WR (addr > MEMSIZE)
+  if ($nc_mem == 0) {
+    $addr_lo = alignAddr($addr_lo,6);
+    printf SJM "WRITEBLK 0x%03x%08x +\n",$addr_hi,$addr_lo;
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s +\n",getRandData(16);
+    printf SJM "    %s \n",getRandData(16);
+    return (1,5);
+  } else {
+    $addr_hi = $addr_hi | 0x600;
+    printf SJM "WRITEIO 0x%03x%08x %d %s\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size,getRandData($size);
+    return (1,2);
+  }
+
+}
+sub genCmdNONEX_WR_NC_MEM {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $type = wt_random_hash(%opt_wt_nc_be);
+  local $size = wt_random_hash(%opt_wt_nc_size);
+
+  # NONEX_WR (NCWR to MEM Space)
+  printf SJM "WRITEIO 0x%03x%08x %d %s\n",$addr_hi,alignAddr($addr_lo,$nc_size_align{$size}),$size,getRandData($size);
+
+  return (1,2);
+}
+sub genCmdNONEX_WR_MEM_NC {
+  local $idx = int(rand(@mem_addr_lo));
+  local $addr_hi = $mem_addr_hi[$idx];
+  local $addr_lo = $mem_addr_lo[$idx];
+  local $nctype = int(rand(3));
+  local $aid = int(rand(4));
+
+  # NONEX_WR (WR* to NC Space)
+  # nctype = 0: Fake DMA
+  # nctype = 1: 8MB NC
+  # nctype = 2: 64GB NC
+  if ($nctype == 0) {
+    $addr_hi = $addr_hi | 0x600;
+  } elsif ($nctype == 1) {
+    $addr_lo = ($addr_lo & 0x7fffff) | $aid << 23;
+    $addr_hi = 0x400;
+  } elsif ($nctype == 2) {
+    $addr_hi = $addr_hi | 0x600 | $aid << 4;
+  }
+
+  if ($opt_align_rd_64b) {
+    $addr_lo = alignAddr($addr_lo,6);
+  }
+  printf SJM "WRITEBLK 0x%03x%08x +\n",$addr_hi,$addr_lo;
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s +\n",getRandData(16);
+  printf SJM "    %s \n",getRandData(16);
+  return (1,5);
+}
+sub genCmdFATAL {
+  local $count;
+
+  if (int(rand(2)) == 1) {
+    $count = 4;
+  } else {
+    $count = int(rand(3)) + 1;
+  }
+  printf SJM "DOK ON %d\n",$count;
+
+  return (1,$count);
+}
+# Generate SJM Command File
+sub genSjmFile  {
+  local $mem_space_cnt;
+  local $nc_space_cnt;
+
+  $sjm_num = $_[0];
+  $sjm_fname = "sjm_".$sjm_num.".cmd";
+  open (SJM,">$sjm_fname") || die "Unable to open file $sjm_fname";
+
+  print "Generating SJM Command File $sjm_fname \n";
+
+  # Generate addresses
+  print "Generating Addresses\n";
+  if (@mem_base > 0) {
+    for ($i=0;$i<$opt_num_mem_addrs;$i++) {
+      $mem_space = wt_random(@mem_wt);
+      $mem_space_cnt[$mem_space]++;
+      ($mem_addr_hi[$i],$mem_addr_lo[$i]) = genRandAddr($mem_base[$mem_space],$mem_size[$mem_space]);
+    }
+  }
+  if (@nc_base > 0) {
+    for ($i=0;$i<$opt_num_nc_addrs;$i++) {
+      $nc_space = wt_random(@nc_wt);
+      $nc_space_cnt[$nc_space]++;
+      ($nc_addr_hi[$i],$nc_addr_lo[$i]) = genRandAddr($nc_base[$nc_space],$nc_size[$nc_space]);
+    }
+  }
+
+  # Generate DMA Blocks
+  print "Generating DMA Blocks\n";
+  if (@mem_base > 0) {
+    for ($i=0;$i<$opt_num_dma_blks;$i++) {
+      $dma_size[$i] = $opt_dma_min_size + int(rand($opt_dma_max_size-$opt_dma_min_size));
+      $mem_space = wt_random(@mem_wt);
+      $size = Math::BigInt->new($mem_size[$mem_space]);
+      if ($size > $dma_size[$i]) {
+	($dma_addr_hi[$i],$dma_addr_lo[$i]) = genRandAddr($mem_base[$mem_space],($size-$dma_size[$i]));
+      } else {
+	$dma_size[$i] = $size;
+	($dma_addr_hi[$i],$dma_addr_lo[$i]) = genRandAddr($mem_base[$mem_space],0);
+      }
+    }
+  }
+
+  # Generate file
+  # Common Header
+  print SJM "CONFIG id=$opt_config_id[$sjm_num] iosyncadr=$opt_config_iosyncadr[$sjm_num] \n";
+  print SJM "\# SJM Command File $sjm_fname \n";
+  print SJM "\# Seed: $opt_seed \n";
+  print SJM "\# Memory Spaces: \n";
+  for ($i=0;$i<@mem_base;$i++) {
+    printf SJM "#\tMEM%0d: label: %-16s  base: %15s size: %15s weight: %s\n",
+      $i,$mem_label[$i],$mem_base[$i],$mem_size[$i],$mem_wt[$i];
+  }
+  print SJM "\# NC Spaces: \n";
+  for ($i=0;$i<@nc_base;$i++) {
+    printf SJM "#\tNC%0d:  label: %-16s  base: %15s size: %15s weight: %s\n",
+      $i,$nc_label[$i],$nc_base[$i],$nc_size[$i],$nc_wt[$i];
+  }
+  print SJM "\# TXN weights: \n";
+  while (($key,$value) = each(%wt_txn)) {
+    printf SJM "#\t %6s : %0d \n",$key,$value;
+  }
+  print SJM "\# INT targets: @int_tgt \n";
+  if ($opt_debug) {
+    print_config(SJM);
+    for ($i=0;$i<@mem_addr_lo;$i++) {
+      printf SJM "#  mem_addr[%02d] = 0x%03x_%08x\n",$i,$mem_addr_hi[$i],$mem_addr_lo[$i];
+    }
+  }
+  print SJM "TIMEOUT $opt_timeout \n";
+  print SJM "IOSYNC \n";
+  print SJM "\n";
+
+  #ECCERROR commands for UE errors
+  if ($opt_wt_mem_ue_err > 0) {
+    print "Generating Memory ECCERRORs\n";
+    for ($i=0;$i<@mem_addr_lo;$i++) {
+      if ($opt_wt_mem_ue_err > int(rand(100))) {
+	printf SJM "ECCERROR 0x%03x%08x uncorrect enable rand\n",$mem_addr_hi[$i],alignAddr($mem_addr_lo[$i],6);
+      }
+    }
+    print SJM "\n";
+  }
+  if ($opt_wt_nc_ue_err > 0) {
+    print "Generating NC ECCERRORs\n";
+    for ($i=0;$i<@nc_addr_lo;$i++) {
+      if ($opt_wt_nc_ue_err > int(rand(100))) {
+	printf SJM "ECCERROR 0x%03x%08x uncorrect enable rand\n",$nc_addr_hi[$i],$nc_addr_lo[$i];
+      }
+    }
+    print SJM "\n";
+  }
+
+  #Init Mem/NC addrs
+  if ($opt_init_mem) {
+    print "Generating Memory Space Initialization\n";
+    for ($i=0;$i<@mem_addr_lo;$i++) {
+      printf SJM "WRITEBLK 0x%03x%08x +\n", $mem_addr_hi[$i],alignAddr($mem_addr_lo[$i],6);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s \n",getRandData(16);
+    }
+  }
+
+  if ($opt_init_nc) {
+    print "Generating NC Space Initialization\n";
+    for ($i=0;$i<@nc_addr_lo;$i++) {
+      printf SJM "WRITEBLKIO 0x%03x%08x +\n", $nc_addr_hi[$i],alignAddr($nc_addr_lo[$i],6);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s +\n",getRandData(16);
+      printf SJM "    %s \n",getRandData(16);
+    }
+  }
+
+  @init_dma_size = ();
+  @init_dma_addr_hi = ();
+  @init_dma_size = ();
+  if ($opt_init_dma) {
+    print "Generating DMA Block Initialization\n";
+    for ($i=0;$i<@dma_addr_lo;$i++) {
+      $addl = $dma_addr_lo[$i];
+      $size = $dma_size[$i];
+      while ($size > 0) {
+	printf SJM "WRITEBLK 0x%03x%08x +\n", $dma_addr_hi[$i],$addl;
+	printf SJM "    %s +\n",getRandData(16);
+	printf SJM "    %s +\n",getRandData(16);
+	printf SJM "    %s +\n",getRandData(16);
+	printf SJM "    %s \n",getRandData(16);
+	$size -= (64-($addl & 0x3f));
+        $addl = alignAddr($addl,6) + 64;
+      }
+      push @init_dma_size, $dma_size[$i];
+      push @init_dma_addr_hi, $dma_addr_hi[$i];
+      push @init_dma_addr_lo, $dma_addr_lo[$i];
+    }
+  }
+  # Generate JBUS TXN Commands
+  print "Generating Transactions\n";
+  $txn_cnt = 0;
+  $cyc_cnt = 0;
+  $rpt_cnt = 0;
+  $burst_mode = 0;
+  $burst_cnt = 0;
+  while (($txn_cnt < $opt_max_num_txns) && ($cyc_cnt < $opt_max_num_cycles)) {
+    # Repeat txn_type w/ -rpt_* switches
+    if ($rpt_cnt == 0) {
+      $txn_type = wt_random_hash(%wt_txn);
+      if ($opt_rpt_wt > int(rand(100))) {
+	$rpt_cnt = $opt_rpt_min + int(rand($opt_rpt_max-$opt_rpt_min));
+      } else {
+	$rpt_cnt = 0;
+      }
+    } else {
+      $rpt_cnt--;
+    }
+    # Burst mode
+    if ($opt_burst) {
+      if ($burst_cnt == 0) {
+	if ($burst_mode) {
+	  $burst_cnt = $opt_burst_min_interval + int(rand($opt_burst_max_interval-$opt_burst_min_interval));
+	  $burst_mode = 0;
+	} else {
+	  $burst_cnt = $opt_burst_min_duration + int(rand($opt_burst_max_duration-$opt_burst_min_duration));
+	  $burst_mode = 1;
+	}
+      } else {
+	$burst_cnt--; 
+     }
+    } else {
+      $burst_mode = 0;
+    }
+
+    print SJM "# JBUS TXN: $txn_type \n";
+
+    $_ = $txn_type;
+    $aid = $opt_config_id[$sjm_num];
+    SWITCH: {
+	/^RD$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRD($aid); last SWITCH};
+	/^RDD$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRDD($aid); last SWITCH};
+	/^RDS$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRDS($aid); last SWITCH};
+	/^RDSA$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRDSA($aid); last SWITCH};
+	/^RDO$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRDO($aid); last SWITCH};
+	/^OWN$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdOWN($aid); last SWITCH};
+	/^INV$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdINV($aid); last SWITCH};
+	/^NCWRC$/  && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCWRC($aid); last SWITCH};
+	/^WRM$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRM($aid); last SWITCH};
+	/^WRB$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRB($aid); last SWITCH};
+	/^WRBC$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRBC($aid); last SWITCH};
+	/^WRI$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRI($aid); last SWITCH};
+	/^WRIS$/   && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRIS($aid); last SWITCH};
+	/^NCRD$/  && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCRD($aid); last SWITCH};
+	/^NCBRD$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCBRD($aid); last SWITCH};
+	/^NCWR$/  && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCWR($aid); last SWITCH};
+	/^NCBWR$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCBWR($aid); last SWITCH};
+	/^INT$/   && do {
+	  if ($int_cnt[$sjm_num] < $opt_int_max[$sjm_num]) {
+	    ($inc_txn_cnt,$inc_cyc_cnt) = genCmdINT($aid);
+	    $int_cnt[$sjm_num]++;
+	    last SWITCH;
+	  } else {
+	    $inc_txn_cnt = 0; $inc_cyc_cnt = 0;
+	  }
+	};
+	/^INTACK$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdINTACK($aid); last SWITCH};
+	/^INTNACK$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdINTNACK($aid); last SWITCH};
+	/^XIR$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdXIR($aid); last SWITCH};
+	/^CHANGE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdCHANGE($aid); last SWITCH};
+	/^RSVD$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdRSVD($aid); last SWITCH};
+	/^IDLE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdIDLE($aid); last SWITCH};
+	/^DMA_WR$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdDMA_WR($aid); last SWITCH};
+	/^DMA_RD$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdDMA_RD($aid); last SWITCH};
+	/^NCDMA_WR$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCDMA_WR($aid);last SWITCH};
+	/^NCDMA_RD$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCDMA_RD($aid);last SWITCH};
+	/^NCWR_UE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCWR_UE($aid); last SWITCH};
+	/^NCBWR_UE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNCBWR_UE($aid); last SWITCH};
+	/^WRI_UE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRI_UE($aid); last SWITCH};
+	/^WRIS_UE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRIS_UE($aid); last SWITCH};
+	/^WRM_UE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdWRM_UE($aid); last SWITCH};
+	/^UNEXP_DR16$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdUNEXP_DR16($aid); last SWITCH};
+	/^UNEXP_DR64$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdUNEXP_DR64($aid); last SWITCH};
+	/^NONEX_RD_MEMSIZE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_RD_MEMSIZE($aid); last SWITCH};
+	/^NONEX_RD_NC_MEM$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_RD_NC_MEM($aid); last SWITCH};
+	/^NONEX_RD_MEM_NC$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_RD_MEM_NC($aid); last SWITCH};
+	/^NONEX_RD$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_RD($aid); last SWITCH};
+	/^NONEX_WR_MEMSIZE$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_WR_MEMSIZE($aid); last SWITCH};
+	/^NONEX_WR_NC_MEM$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_WR_NC_MEM($aid); last SWITCH};
+	/^NONEX_WR_MEM_NC$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_WR_MEM_NC($aid); last SWITCH};
+	/^NONEX_WR$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdNONEX_WR($aid); last SWITCH};
+	/^FATAL$/ && do {($inc_txn_cnt,$inc_cyc_cnt) = genCmdFATAL($aid); last SWITCH};
+	{$inc_txn_cnt = 0; $inc_cyc_cnt = 0;}
+      }
+    $txn_cnt += $inc_txn_cnt;
+    $cyc_cnt += $inc_cyc_cnt;
+
+    if ($burst_mode) {
+      $wait = $opt_burst_min_wait + int(rand($opt_burst_max_wait-$opt_burst_min_wait));
+    } else {
+      $wait = $opt_min_wait + int(rand($opt_max_wait-$opt_min_wait));
+    }
+    printf SJM "WAIT $wait \n\n";
+    $cyc_cnt += $wait;
+  }
+
+  # Sanity Check Weights
+  if ($opt_debug) {
+    #for ($i=0;$i<@mem_space_cnt;$i++) {
+    #  print SJM "# $opt_mem_label[$i] opt_mem_wt[$i]: $opt_mem_wt[$i]   mem_space_cnt[$i]: $mem_space_cnt[$i] \n";
+    #}
+    #for ($i=0;$i<@nc_space_cnt;$i++) {
+    #  print SJM "# $opt_nc_label[$i] opt_nc_wt[$i]: $opt_nc_wt[$i]   nc_space_cnt[$i]: $nc_space_cnt[$i] \n";
+    #}
+    #for ($i=0;$i<@mem_addr_lo;$i++) {
+    #  printf "# mem_addr[$i]: %03x%08x \n", $mem_addr_hi[$i],$mem_addr_lo[$i];
+    #}
+    #for ($i=0;$i<@nc_addr_lo;$i++) {
+    #  printf "nc_addr[$i]: %03x_%08x \n", $nc_addr_hi[$i],$nc_addr_lo[$i];
+    #}
+  }
+
+  close (SJM);
+
+  print "SJM Command File $sjm_fname - Done\n\n";
+}
+
+#main program
+
+$PROG_NAME	= $0;
+
+print "$PROG_NAME @ARGV \n";
+
+# include any -f=<file> options - append to ARGV
+  for ($i = 0; $i < @ARGV; $i++) {
+    if ($ARGV[$i] =~ /-f=.*/) {
+      $fname = $ARGV[$i];
+      $fname =~ s/-f=//;
+      print "reading $fname: \n";
+      open(INFILE,"$fname") || die "Unable to open file $fname";
+      while (<INFILE>) {
+	chomp;
+	print "$_ \n";
+	if ((/^[ \t]*\#/) || (/^[ \t]*$/)) {
+	   #ignore comment or blank lines
+	} else {
+	  s/\.*$//;
+          @NEWARGS=split(" ",$_);
+	  @ARGV=(@ARGV,@NEWARGS);
+	}
+      }
+      close (INFILE);
+    }
+  }
+
+$rc = GetOptions (
+	    "sjm4!", \$opt_sjm4,
+	    "sjm5!", \$opt_sjm5,
+	    "tm4!", \$opt_tm4,
+	    "t|tm5!", \$opt_tm5,
+	    "seed=s", \$opt_seed,
+	    "debug", \$opt_debug,
+            "n|max_num_txns=i", \$opt_max_num_txns,
+            "max_num_cycles=i", \$opt_max_num_cycles,
+            "min_wait=i", \$opt_min_wait,
+            "max_wait=i", \$opt_max_wait,
+            "rpt_wt=i", \$opt_rpt_wt,
+            "rpt_min=i", \$opt_rpt_min,
+            "rpt_max=i", \$opt_rpt_max,
+	    "burst!", \$opt_burst,
+            "burst_min_wait=i", \$opt_burst_min_wait,
+            "burst_max_wait=i", \$opt_burst_max_wait,
+            "burst_min_duration=i", \$opt_burst_min_duration,
+            "burst_max_duration=i", \$opt_burst_max_duration,
+            "burst_min_interval=i", \$opt_burst_min_interval,
+            "burst_max_interval=i", \$opt_burst_max_interval,
+            "max_mem=i", \$opt_max_mem,
+            "align_rd_64b!", \$opt_align_rd_64b,
+	    "align_wr_64b!", \$opt_align_wr_64b,
+            "mem_default!", \$opt_mem_default,
+            "nc_default!", \$opt_nc_default,
+            "num_mem_addrs=i", \$opt_num_mem_addrs,
+            "num_nc_addrs=i", \$opt_num_nc_addrs,
+            "num_dma_blks=i", \$opt_num_dma_blks,
+            "dma_min_size=i", \$opt_dma_min_size,
+            "dma_max_size=i", \$opt_dma_max_size,
+	    "mem_label=s@",
+            "mem_wt=s@",
+            "mem_base=s@",
+            "mem_size=s@",
+	    "nc_label=s@",
+            "nc_wt=s@",
+            "nc_base=s@",
+            "nc_size=s@",
+            "config_id4=s", \$opt_config_id[4],
+            "config_id5=s", \$opt_config_id[5],
+            "config_iosyncadr4=s", \$opt_config_iosyncadr[4],
+            "config_iosyncadr5=s", \$opt_config_iosyncadr[5],
+            "timeout=s", \$opt_timeout,
+            "init_mem!", \$opt_init_mem,
+            "init_nc!", \$opt_init_nc,
+            "data_rand!", \$opt_data_rand,
+            "data_pattern=s", \$opt_data_pattern,
+            "txn_default!", \$opt_txn_default,
+	    "wt_txn_rd|wt_txn_RD=i", \$opt_wt_txn{RD},
+	    "wt_txn_rdd|wt_txn_RDD=i", \$opt_wt_txn{RDD},
+	    "wt_txn_rds|wt_txn_RDS=i", \$opt_wt_txn{RDS},
+	    "wt_txn_rdsa|wt_txn_RDSA=i", \$opt_wt_txn{RDSA},
+	    "wt_txn_rdo|wt_txn_RDO=i", \$opt_wt_txn{RDO},
+	    "wt_txn_own|wt_txn_OWN=i", \$opt_wt_txn{OWN},
+	    "wt_txn_inv|wt_txn_INV=i", \$opt_wt_txn{INV},
+	    "wt_txn_ncwrc|wt_txn_NCWRC=i", \$opt_wt_txn{NCWRC},
+	    "wt_txn_wrm|wt_txn_WRM=i", \$opt_wt_txn{WRM},
+	    "wt_txn_wrb|wt_txn_WRB=i", \$opt_wt_txn{WRB},
+	    "wt_txn_wrbc|wt_txn_WRBC=i", \$opt_wt_txn{WRBC},
+	    "wt_txn_wri|wt_txn_WRI=i", \$opt_wt_txn{WRI},
+	    "wt_txn_wris|wt_txn_WRIS=i", \$opt_wt_txn{WRIS},
+	    "wt_txn_ncrd|wt_txn_NCRD=i", \$opt_wt_txn{NCRD},
+	    "wt_txn_ncbrd|wt_txn_NCBRD=i", \$opt_wt_txn{NCBRD},
+	    "wt_txn_ncwr|wt_txn_NCWR=i", \$opt_wt_txn{NCWR},
+	    "wt_txn_ncbwr|wt_txn_NCBWR=i", \$opt_wt_txn{NCBWR},
+	    "wt_txn_int|wt_txn_INT=i", \$opt_wt_txn{INT},
+	    "wt_txn_intackk|wt_txn_INTACK=i", \$opt_wt_txn{INTACK},
+	    "wt_txn_intnack|wt_txn_INTNACK=i", \$opt_wt_txn{INTNACK},
+	    "wt_txn_xir|wt_txn_XIR=i", \$opt_wt_txn{XIR},
+	    "wt_txn_change|wt_txn_CHANGE=i", \$opt_wt_txn{CHANGE},
+	    "wt_txn_rsvd|wt_txn_RSVD=i", \$opt_wt_txn{RSVD},
+	    "wt_txn_idle|wt_txn_IDLE=i", \$opt_wt_txn{IDLE},
+	    "wt_txn_dma_wr|wt_txn_DMA_WR=i", \$opt_wt_txn{DMA_WR},
+	    "wt_txn_dma_rd|wt_txn_DMA_RD=i", \$opt_wt_txn{DMA_RD},
+	    "wt_txn_ncdma_wr|wt_txn_NCDMA_WR=i", \$opt_wt_txn{NCDMA_WR},
+	    "wt_txn_ncdma_rd|wt_txn_NCDMA_RD=i", \$opt_wt_txn{NCDMA_RD},
+	    "wt_txn_ncwr_ue|wt_txn_NCWR_UE=i", \$opt_wt_txn{NCWR_UE},
+	    "wt_txn_ncbwr_ue|wt_txn_NCBWR_UE=i", \$opt_wt_txn{NCBWR_UE},
+	    "wt_txn_wri_ue|wt_txn_WRI_UE=i", \$opt_wt_txn{WRI_UE},
+	    "wt_txn_wris_ue|wt_txn_WRIS_UE=i", \$opt_wt_txn{WRIS_UE},
+	    "wt_txn_wrm_ue|wt_txn_WRM_UE=i", \$opt_wt_txn{WRM_UE},
+	    "wt_txn_unexp_dr16|wt_txn_UNEXP_DR16=i", \$opt_wt_txn{UNEXP_DR16},
+	    "wt_txn_unexp_dr64|wt_txn_UNEXP_DR64=i", \$opt_wt_txn{UNEXP_DR64},
+	    "wt_txn_nonex_rd_memsize|wt_txn_NONEX_RD_MEMSIZE=i", \$opt_wt_txn{NONEX_RD_MEMSIZE},
+	    "wt_txn_nonex_rd_nc_mem|wt_txn_NONEX_RD_NC_MEM=i", \$opt_wt_txn{NONEX_RD_NC_MEM},
+	    "wt_txn_nonex_rd_mem_nc|wt_txn_NONEX_RD_MEM_NC=i", \$opt_wt_txn{NONEX_RD_MEM_NC},
+	    "wt_txn_nonex_rd|wt_txn_NONEX_RD=i", \$opt_wt_txn{NONEX_RD},
+	    "wt_txn_nonex_wr_memsize|wt_txn_NONEX_WR_MEMSIZE=i", \$opt_wt_txn{NONEX_WR_MEMSIZE},
+	    "wt_txn_nonex_wr_nc_mem|wt_txn_NONEX_WR_NC_MEM=i", \$opt_wt_txn{NONEX_WR_NC_MEM},
+	    "wt_txn_nonex_wr_mem_nc|wt_txn_NONEX_WR_MEM_NC=i", \$opt_wt_txn{NONEX_WR_MEM_NC},
+	    "wt_txn_nonex_wr|wt_txn_NONEX_WR=i", \$opt_wt_txn{NONEX_WR},
+	    "wt_txn_fatal|wt_txn_FATAL=i", \$opt_wt_txn{FATAL},
+            "wt_nc_be_zero=i",  \$opt_wt_nc_be{ZERO},
+            "wt_nc_be_align=i", \$opt_wt_nc_be{ALIGN},
+            "wt_nc_be_cont=i",  \$opt_wt_nc_be{CONT},
+	    "wt_nc_be_rand=i",  \$opt_wt_nc_be{RAND},
+	    "wt_nc_size1=i", \$opt_wt_nc_size{1},
+	    "wt_nc_size2=i", \$opt_wt_nc_size{2},
+	    "wt_nc_size4=i", \$opt_wt_nc_size{4},
+	    "wt_nc_size8=i", \$opt_wt_nc_size{8},
+	    "wt_nc_size16=i", \$opt_wt_nc_size{16},
+            "wt_wrm_be_zero=i",  \$opt_wt_wrm_be{ZERO},
+            "wt_wrm_be_alt=i",  \$opt_wt_wrm_be{ALT},
+            "wt_wrm_be_cont=i",  \$opt_wt_wrm_be{CONT},
+	    "wt_wrm_be_rand=i",  \$opt_wt_wrm_be{RAND},
+	    "wt_l2_bank0=i", \$opt_wt_l2_bank[0],
+	    "wt_l2_bank1=i", \$opt_wt_l2_bank[1],
+	    "wt_l2_bank2=i", \$opt_wt_l2_bank[2],
+	    "wt_l2_bank3=i", \$opt_wt_l2_bank[3],
+            "int_tgt=i@",
+            "int_num_rand_tgt=i", \$opt_int_num_rand_tgt,
+            "int_max4=i", \$opt_int_max[4],
+            "int_max5=i", \$opt_int_max[5],
+            "int_en=i", \$opt_int_en,
+            "int_only!", \$opt_int_only,
+            "wt_mem_ue_err=i", \$opt_wt_mem_ue_err,
+            "wt_nc_ue_err=i", \$opt_wt_nc_ue_err,
+            "h|u|help", \$opt_help,
+            "f=s",
+	   );
+
+if (($opt_help) || ($rc == 0)) {
+  usage();
+}
+
+# Modify Options
+# If I/O Bridge, no SJM
+if ($opt_tm4) {
+  $opt_sjm4 = 0;
+}
+if ($opt_tm5) {
+  $opt_sjm5 = 0;
+}
+
+# opt_max_mem -> max_mem
+$max_mem = sprintf("0x%02x_%08x",$opt_max_mem >> 2,($opt_max_mem & 0x3)<<30);
+
+# Setup Memory Ranges
+if (@opt_mem_base != @opt_mem_size)  {
+  die ("Mismatch in mem_base / mem_size \n");
+} else {
+  for ($i=0;$i<@opt_mem_base;$i++) {
+    if (not defined $opt_mem_label[$i])  {$opt_mem_label[$i] = "MEM_space$i";}
+    if (not defined $opt_mem_wt[$i])  {$opt_mem_wt[$i] = 100;}
+  }
+}
+if ((@opt_mem_base == 0) || ($opt_mem_default)) {
+  $mem_base[0] = 0;
+  $mem_size[0] = $max_mem;
+  $mem_label[0] = "DEFAULT";
+  $mem_wt[0] = 100;
+} else {
+  @mem_base = @opt_mem_base;
+  @mem_size = @opt_mem_size;
+  @mem_label = @opt_mem_label;
+  @mem_wt = @opt_mem_wt;
+}
+# Setup IO Ranges
+if (@opt_nc_base != @opt_nc_size) {
+  die ("Mismatch in nc_base / nc_size \n");
+} else {
+  for ($i=0;$i<@opt_nc_base;$i++) {
+    if (not defined $opt_nc_label[$i])  {$opt_nc_label[$i] = "NC_space$i";}
+    if (not defined $opt_nc_wt[$i])  {$opt_nc_wt[$i] = 100;}
+  }
+}
+if ((@opt_nc_base == 0) || ($opt_nc_default)) {
+  $i=0;
+  $nc_base[$i] = "0x600_00000000";
+  $nc_size[$i] = $max_mem;
+  $nc_label[$i] = "FAKE_DMA";
+  $nc_wt[$i++] = 200;
+  if ($opt_sjm4) {
+    $nc_base[$i] = sprintf "0x400_0%07X",$opt_config_id[4]<<23;
+    $nc_size[$i] = "0x800000";
+    $nc_label[$i] = sprintf "AID%X_NC_8MB",$opt_config_id[4];
+    $nc_wt[$i++] = 20;
+    $nc_base[$i] = sprintf "0x%03X_00000000",(0x60 + $opt_config_id[4])<<4;
+    $nc_size[$i] = "0x10_00000000";
+    $nc_label[$i] = sprintf "AID%X_NC_64GB",$opt_config_id[4];
+    $nc_wt[$i++] = 80;
+  }
+  if ($opt_sjm5) {
+    $nc_base[$i] = sprintf "0x400_0%07X",$opt_config_id[5]<<23;
+    $nc_size[$i] = "0x800000";
+    $nc_label[$i] = sprintf "AID%X_NC_8MB",$opt_config_id[5];
+    $nc_wt[$i++] = 20;
+    $nc_base[$i] = sprintf "0x%03X_00000000",(0x60 + $opt_config_id[5])<<4;
+    $nc_size[$i] = "0x10_00000000";
+    $nc_label[$i] = sprintf "AID%X_NC_64GB",$opt_config_id[5];
+    $nc_wt[$i++] = 80;
+  }
+} else {
+  @nc_base = @opt_nc_base;
+  @nc_size = @opt_nc_size;
+  @nc_label = @opt_nc_label;
+  @nc_wt = @opt_nc_wt;
+}
+
+# Setup wt_txn
+if ($opt_txn_default) {
+ while (($key,$value) = each(%default_wt_txn)) {
+   $wt_txn{$key} = $value;
+  }
+}
+while (($key,$value) = each(%opt_wt_txn)) {
+  if (defined $value) {
+    $wt_txn{$key} = $value;
+  }
+}
+# Legacy int options
+if ($opt_int_en == 0) {
+  $wt_txn{INT} = 0;
+}
+if ($opt_int_only) {
+  %wt_txn = ("INT" => 100);
+  $opt_init_mem = 0;
+  $opt_init_nc = 0;
+}
+
+
+# Print config options
+if ($opt_debug) {
+  print_config(STDOUT);
+}
+
+# set random seed
+if($opt_seed == 0){
+  die ("sjm_tstgen.pl: No seed specified!  Try -h option for usage.\n");
+}else{
+  if($opt_debug > 0)  {
+    print "Setting seed = $opt_seed\n";
+  }
+  srand($opt_seed);
+}
+
+# Set up INT Targets
+print "Generating Interrupt Targets\n";
+if (@opt_int_tgt > 0) {
+  @int_tgt = @opt_int_tgt;
+} else {
+  # generate random int tgt list
+  for ($i=0;$i<32;$i++) {
+    $int_list[$i] = $i;
+  }
+  for ($i=0;$i<$opt_int_num_rand_tgt;$i++) {
+    $idx = int(rand(@int_list));
+    $tgt = $int_list[$idx];
+    $int_tgt[$i] = $tgt;
+    splice @int_list,$idx,1;
+    #print "idx: $idx tgt: $tgt  int_tgt: @int_tgt  int_list: @int_list\n";
+  }
+}
+if ($opt_debug) {
+  print "INT tgts: @int_tgt \n";
+}
+
+# Generate SJM Command Files
+if ($opt_sjm4) {
+  genSjmFile(4);
+}
+
+if ($opt_sjm5) {
+  genSjmFile(5);
+}
+
+print "Instruction Generation Complete\n";
+

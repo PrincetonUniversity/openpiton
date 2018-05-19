@@ -1,0 +1,345 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: perf,1.13
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+################################################################################
+# returns the cycles per second of a cmp simulation run
+# usage: perf [directory]
+# 
+# perf - expect one sim.log in the current directory
+# perf dir - expect a regression to have been run in dir
+#            and average out all the sim.logs 
+# perf dir -group=<GROUP> - only select the diags from <GROUP>
+#                           in the run directory
+################################################################################
+
+use Getopt::Long ;
+use Cwd;
+use Cwd 'chdir';
+
+my $reg_dir ;
+my $force = 0 ;
+my $group ;
+my $total_cycles = 0 ;
+my $total_delta = 0 ;
+my $total_cps = 0 ;
+my $total_cpu_cps = 0 ;
+my $total_diags = 0 ;
+
+foreach my $argv (@ARGV)
+{
+  if ($argv =~ /-force/)
+  {
+    $force = 1 ;
+  }
+  elsif ($argv =~ /-group/)
+  {
+    $group = $argv ;
+    $group =~ s/-group=(.*)/$1/ ;
+  }
+  elsif (($argv =~ /-h/) or ($argv =~ /-help/))
+  {
+    &usage ;
+    exit (0) ;
+  }
+  else
+  {
+    $reg_dir = $argv ;
+  }
+}
+
+# open the directory where the diags are
+
+if (defined $reg_dir)
+{
+  opendir (DIR, "$reg_dir") ;
+  my @dir = readdir (DIR) ;
+  close (DIR) ;
+
+  chdir $reg_dir ;
+
+  foreach my $dir (@dir)
+  {
+    next if (($dir eq ".") or ($dir eq "..")) ;
+    next if ((defined $group) and ($dir !~ /:$group:/)) ;
+    next if (! -d $dir) ;
+
+    chdir "$dir" ;
+
+    if (((-f "perf.log") or (-f "perf.log.gz")) and (!$force))
+    {
+      print "Accumulating in $dir\n" ;
+      $total_diags++ if (&accumulate (\$total_cycles, \$total_delta, \$total_cps, \$total_cpu_cps, $dir)) ;
+    }
+    elsif ((-f "sim.log") or ( -f "sim.log.gz"))
+    {
+      print "Calculating in $dir\n" ;
+      $total_diags++ if (&calculate (\$total_cycles, \$total_delta, \$total_cps, \$total_cpu_cps, $dir)) ;
+    }
+
+    chdir ".." ;
+  }
+
+  chdir ".." ;
+
+  print "Total Cycles = $total_cycles\tTotal Seconds = $total_delta\n" ;
+  # my $hz = $total_cycles / $total_delta ;
+  # print "Hz=$hz\n" ;
+  print "Total Cycles per Second= $total_cps\tTotal CPU Cycles per Second= $total_cpu_cps\t\tTotal Diags = $total_diags\n" ;
+  my $cps = 0 ;
+  $cps = $total_cps / $total_diags if ($total_diags != 0) ;
+  printf ("Wall Time CPS=%.2f\n", $cps) ;
+  my $cpu_cps = 0 ;
+  $cpu_cps = $total_cpu_cps / $total_diags if ($total_diags != 0) ;
+  printf ("CPU Time CPS=%.2f\n", $cpu_cps) ;
+}
+else
+{
+  my $dir = $ENV{PWD} ;
+  $dir =~ s/.*\/// ;
+
+  $total_diags++ if (&calculate (\$total_cycles, \$total_delta, \$total_cps, \$total_cpu_cps, $dir)) ;
+}
+
+exit (0) ;
+  
+sub usage
+{
+  print <<EOF;
+  
+  Calculates the cycles per second of a simulation run from the wall 
+  time of a simulation run and the simulation cycles reported by simulation.
+
+  perf
+     report the performance of diag run in current directory
+
+  perf <DIR>
+     report average performance of diags run in regression directory <DIR>
+
+  perf -group=<GROUP> <DIR>
+     report average performance of diags from group <GROUP>
+     run in regression directory <DIR>
+
+  perf -force <DIR>
+     force recalculation of perf for each diag of a regression directory <DIR>
+     even if perf.log is present.
+
+  perf -help
+     this
+
+EOF
+}
+
+sub accumulate
+{
+  my $total_cycles = shift ;
+  my $total_delta = shift ;
+  my $total_cps = shift ;
+  my $total_cpu_cps = shift ;
+  my $dir = shift ;
+
+  open (IN, "perf.log") or open (IN, "gzcat perf.log.gz |") or die "Could not open perf.log" ;
+  $log = <IN> ;
+  close (IN) ;
+
+  return 0 if (! defined $log) ;
+
+  my ($dummy, $start, $stop, $num_cycles, $delta, $cps, $cpu_cps, $cpu_freq) = ($log =~ /^(\S*)\s+(\S*)\s+(\S*)\s+(\S*)\s+(\S*)\s+(\S*)\s+(\S*)\s+(\S*)\s+/) ;
+
+  if (    (defined $dir) and (defined $start) 
+      and (defined $stop) and (defined $num_cycles)
+      and (defined $delta) and (defined $cps) and (defined $cpu_cps))
+  {
+    print "$dir\t$start\t$stop\t$num_cycles\t$delta\t$cps\t$cpu_cps\t$cpu_freq\n" ;
+    ${$total_cycles} += $num_cycles ;
+    ${$total_delta} += $delta ;
+    ${$total_cps} += $cps ;
+    ${$total_cpu_cps} += $cpu_cps ;
+    return 1 ;
+  }
+
+  return 0 ;
+}
+
+sub calculate
+{
+  my $total_cycles = shift ;
+  my $total_delta = shift ;
+  my $total_cps = shift ;
+  my $total_cpu_cps = shift ;
+  my $dir = shift ;
+
+  if (-e "sims.log") { open (IN, "sims.log") ; }
+  elsif (-e "sims.log.gz") { open (IN, "gzcat sims.log.gz |") ; }
+  elsif (-e "sim.perf.log") { open (IN, "sim.perf.log") ; }
+  elsif (-e "sim.perf.log.gz") {  open (IN, "gzcat sim.perf.log.gz |") ; }
+  else { return 0 ; }
+
+  my @log = <IN> ;
+  close (IN) ;
+
+  my ($start) = grep (/\ssim_start\s/, @log) ;
+  my ($stop) = grep (/\ssim_stop\s/, @log) ;
+
+  if (-e "sim.log") {open (IN, "head -500 sim.log |") or die "Could not open sim.log" ;}
+  elsif (-e "sim.log.gz") {open (IN, "gzcat sim.log.gz | head -500 |") or die "Could not open sim.log.gz" ;}
+  else {return 0 ;}
+  @log = <IN> ;
+  close (IN) ;
+
+  my ($freq) = grep (/Selected\sCore\sClock\sFrequency\s\d+\sMHz/, @log) ;
+
+  if (-e "sim.log") {open (IN, "tail -500 sim.log |") or die "Could not open sim.log" ;}
+  elsif (-e "sim.log.gz") {open (IN, "gzcat sim.log.gz | tail -500 |") or die "Could not open sim.log.gz" ;}
+  else {return 0 ;}
+  @log = <IN> ;
+  close (IN) ;
+
+  my ($cycles) = grep (/Time:\s\d+\sps/, @log) ;
+  my ($cpu_time) = grep (/CPU\sTime:\s+[.\d]+\sseconds/, @log) ;
+
+  if ($start && $stop && $cycles && $freq && $cpu_time)
+  {
+    $start =~ s/.*?(\d+:\d+:\d+).*/$1/ ;
+    $stop =~ s/.*?(\d+:\d+:\d+).*/$1/ ;
+    $cycles =~ s/Time:\s(\d+)\sps/$1/ ;
+    $freq =~ s/.*?(\d+).*/$1/ ;
+    $cpu_time =~ s/CPU\sTime:\s+([.\d]+)\sseconds.*/$1/ ;
+    $period = (1000000/$freq) ;
+    $num_cycles = $cycles / $period ;
+    chomp ($start) ;
+    chomp ($stop) ;
+    chomp ($cycles) ;
+    chomp ($freq) ;
+    chomp ($cpu_time) ;
+    my ($hr, $min, $sec) = $start =~ /(\d+):(\d+):(\d+)/ ;
+    my $start_sec = $hr * 60 * 60 + $min * 60 + $sec ;
+    ($hr, $min, $sec) = $stop =~ /(\d+):(\d+):(\d+)/ ;
+    my $stop_sec = $hr * 60 * 60 + $min * 60 + $sec ;
+    my $delta ;
+
+    if ($stop_sec >= $start_sec)
+    {
+      $delta = $stop_sec - $start_sec ;
+    }
+    else
+    {
+       $delta = $stop_sec + (86400 - $start_sec) ;
+    }
+
+    {
+      use integer ;
+      $hr = $delta / (60 * 60) ;
+      $min = ($delta - ($hr * 60 * 60)) / 60 ;
+      $sec = ($delta - ($hr * 60 * 60) - ($min * 60)) ;
+    }
+
+    my $cps = $num_cycles / $delta ;
+    my $cpu_cps = $num_cycles / $cpu_time ;
+    my $cpu_freq = cpuFreq () ;
+    print "$dir\t$start\t$stop\t$num_cycles\t$delta\t$cps\t$cpu_cps\t$cpu_freq\n" ;
+    ${$total_cycles} += $num_cycles ;
+    ${$total_delta} += $delta ;
+    ${$total_cps} += $cps ;
+    ${$total_cpu_cps} += $cpu_cps ;
+    return 1 ;
+  }
+
+  return 0 ;
+}
+
+sub cpuFreq {
+  my @psrinfo = `psrinfo -v` ;
+  my $val = 0 ;
+
+  foreach my $x (@psrinfo)
+  {
+    if ($x =~ /processor\soperates\sat/)
+    {
+      $val = $x ;
+      $val =~ s/.*?\sat\s(\d+)\sMHz,/$1/ ;
+      chomp $val ;
+      last ;
+    }
+  }
+
+  return $val ;
+}
+
+
+sub cpuFreq2 {
+
+    my $PRTDIAG_CMD     = '/usr/platform/sun4u/sbin/prtdiag';
+
+    if ( ! -x $PRTDIAG_CMD ) {
+        return -1;
+    }
+    my @lines = `$PRTDIAG_CMD`;
+    my $inCpu =  0;
+    my $fpos  = -1;
+    my $cpos  = -1;
+    my $parse =  0;
+    my $freq  =  0;
+    my $cpu   =  "";
+    foreach my $line ( @lines ) {
+
+        if ( $line =~ /== CPUs ===/ ) {
+            $inCpu      = 1;
+            next;
+        }
+
+        if ( $inCpu && $line =~ /MHz/ ) {
+            # find position of frequency
+            my @words = split /\s+/, $line;
+            for ( my $i = 0; $i < scalar @words; $i++ ) {
+                if ( $words[$i] eq "MHz" ) {
+                    $fpos = $i;
+                } elsif ( $words[$i] =~ /Impl/ ) {
+                    $cpos = $i;
+                }
+            }
+            # fix case of a well-known multi-word title
+            if ( $words[0] eq "FRU" && $words[1] eq "Name" ) {
+                $fpos--;
+                $cpos--;
+            }
+            next;
+        }
+
+        if ( $inCpu && ( $line =~ /^---/ ) ) {
+            $parse      = 1;
+            next;
+        }
+
+        if ( $parse && ( $line =~ /\S+\s*\d+\s+(\d+)\s+\S+\s+(\S+)\s+\S+/ ) ) {
+            $line       =~ s/^\s*//;            # skip any leading space
+            my @words   = split /\s+/, $line;
+            $freq       = $words[$fpos]         if $fpos >= 0;
+            $cpu        = $words[$cpos]         if $cpos >= 0;
+            last;
+        }
+    }
+
+    # printf "CPU: %s, frequency = %d MHz\n", $cpu, $freq;
+    return $freq;
+
+} # cpuFreq
+

@@ -1,0 +1,631 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+//==================================================================================================
+//  Filename      : l2_smc.v
+//  Created On    : 2014-06-07
+//  Revision      :
+//  Author        : Yaosheng Fu
+//  Company       : Princeton University
+//  Email         : yfu@princeton.edu
+//
+//  Description   : The SMC in the L2 cache
+//
+//
+//==================================================================================================
+
+`include "l2.vh"
+`include "define.vh"
+
+module l2_smc(
+
+    input wire clk,
+    input wire rst_n,
+
+    //Read enable
+    input wire rd_en,
+
+    //Write enable
+    input wire wr_en,
+
+    //Diagnostic read enable
+    input wire rd_diag_en,
+
+    //Diagnostic write enable
+    input wire wr_diag_en,
+
+    //Flush enable
+    input wire flush_en,
+
+    input wire [`L2_ADDR_OP_WIDTH-1:0] addr_op,
+
+    //address
+    input wire [`L2_SMC_ADDR_WIDTH-1:0] rd_addr_in,
+    input wire [`L2_SMC_ADDR_WIDTH-1:0] wr_addr_in,
+
+    //Write data
+    input wire [`L2_SMC_DATA_IN_WIDTH-1:0] data_in,
+
+    output reg hit,
+    
+    //Read output
+    output reg [`L2_SMC_DATA_OUT_WIDTH-1:0] data_out,
+    output reg [`L2_SMC_VALID_WIDTH-1:0] valid_out,
+    output reg [`L2_SMC_TAG_WIDTH-1:0] tag_out
+);
+
+<%
+L2_SMC_ENTRIES = 16
+L2_SMC_INDEX_WIDTH = 4
+L2_SMC_DATA_IN_WIDTH = 128
+L2_SMC_DATA_OUT_WIDTH = 30
+L2_SMC_DATA_NUM = 4
+%>
+
+reg [`L2_SMC_ENTRIES-1:0] entry_used_f;
+reg [`L2_SMC_ENTRIES-1:0] entry_used_next;
+reg [`L2_SMC_ENTRIES-1:0] entry_used_and_mask;
+reg [`L2_SMC_ENTRIES-1:0] entry_used_or_mask;
+reg [`L2_SMC_ENTRIES-1:0] entry_locked_f;
+reg [`L2_SMC_ENTRIES-1:0] entry_locked_next;
+reg [`L2_SMC_ENTRIES-1:0] entry_locked_and_mask;
+reg [`L2_SMC_ENTRIES-1:0] entry_locked_or_mask;
+reg [`L2_SMC_ARRAY_WIDTH-1:0] data_mem_f [`L2_SMC_ENTRIES-1:0];
+
+reg [`L2_SMC_TAG_WIDTH-1:0] smc_tag [`L2_SMC_ENTRIES-1:0];
+reg [`L2_SMC_VALID_WIDTH-1:0] smc_valid [`L2_SMC_ENTRIES-1:0];
+reg [`L2_SMC_DATA_WIDTH-1:0] smc_data [`L2_SMC_ENTRIES-1:0];
+reg [`MSG_SDID_WIDTH-1:0] smc_sdid [`L2_SMC_ENTRIES-1:0];
+reg [`L2_SMC_TAG_WIDTH-1:0] rd_tag_in;
+reg [`L2_SMC_TAG_WIDTH-1:0] wr_tag_in;
+reg [`L2_SMC_INDEX_WIDTH-1:0] rd_index_in;
+reg [`L2_SMC_INDEX_WIDTH-1:0] wr_index_in;
+reg [`L2_SMC_OFFSET_WIDTH-1:0] rd_offset_in;
+reg [`L2_SMC_OFFSET_WIDTH-1:0] wr_offset_in;
+reg [`MSG_SDID_WIDTH-1:0] wr_sdid_in;
+reg [`L2_SMC_VALID_WIDTH-1:0] smc_valid_in;
+reg [`L2_SMC_DATA_WIDTH-1:0] smc_data_in;
+reg [`L2_SMC_INDEX_WIDTH-1:0] hit_index;
+reg [`L2_SMC_INDEX_WIDTH-1:0] replace_index;
+reg wr_hit;
+reg [`L2_SMC_INDEX_WIDTH-1:0] wr_hit_index;
+reg [`L2_SMC_INDEX_WIDTH-1:0] wr_index;
+
+
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "    smc_tag[%d] = data_mem_f[%d][`L2_SMC_TAG];" % (i,i)
+%>
+end
+
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "    smc_valid[%d] = data_mem_f[%d][`L2_SMC_VALID];" % (i,i)
+%>
+end
+
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "    smc_data[%d] = data_mem_f[%d][`L2_SMC_DATA];" % (i,i)
+%>
+end
+
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "    smc_sdid[%d] = data_mem_f[%d][`L2_SMC_SDID];" % (i,i)
+%>
+end
+
+
+always @ *
+begin
+    rd_tag_in = rd_addr_in[`L2_SMC_ADDR_TAG];
+    rd_offset_in = rd_addr_in[`L2_SMC_ADDR_OFFSET];
+    rd_index_in = rd_addr_in[`L2_SMC_ADDR_INDEX];
+end
+
+always @ *
+begin
+    wr_tag_in = wr_addr_in[`L2_SMC_ADDR_TAG];
+    wr_offset_in = wr_addr_in[`L2_SMC_ADDR_OFFSET];
+    wr_index_in = wr_addr_in[`L2_SMC_ADDR_INDEX];
+    wr_sdid_in = wr_addr_in[`L2_SMC_ADDR_SDID];
+end
+
+
+always @ *
+begin
+<%
+print("    smc_valid_in = {"),
+for i in xrange(L2_SMC_DATA_NUM-1,-1,-1):
+    if i == 0:
+        print("data_in[%d]" % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1)),
+    else:
+        print("data_in[%d]," % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1)),
+print "};"
+print("    smc_data_in = {"),
+for i in xrange(L2_SMC_DATA_NUM-1,-1,-1):
+    if i == 0:
+        print("data_in[%d:%d]" % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM))),
+    else:
+        print("data_in[%d:%d]," % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM))),
+print "};"
+%>
+end
+
+
+wire [`L2_SMC_INDEX_WIDTH-1:0] tag_hit_index;
+wire tag_hit;
+
+<%
+print '''
+reg [%d:0] smc_tag_cmp;''' % (L2_SMC_ENTRIES-1)
+%>
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print '''
+    smc_tag_cmp[%d] = (smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in];''' % (i,i,i)
+%>
+end
+
+<%
+
+print '''
+l2_priority_encoder_%d priority_encoder_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+%>
+    .data_in        (smc_tag_cmp),
+    .data_out       (tag_hit_index),
+    .data_out_mask  (),
+    .nonzero_out    (tag_hit)
+);
+
+
+
+always @ *
+begin
+    if (rd_en && rd_diag_en)
+    begin
+        hit = 1'b0;
+        hit_index = rd_index_in;
+    end
+    else
+    begin
+        if(rd_en)
+        begin
+            hit = tag_hit;
+            hit_index = tag_hit_index;
+        end
+        else
+        begin
+            hit = 1'b0;
+            hit_index = 0;
+        end
+    end
+end
+/*
+    <%
+print "    if(rd_en)"
+print "    begin"
+for i in range(L2_SMC_ENTRIES):
+    if i == 0:
+        print "        if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i)
+        print "        begin"
+        print "            hit = 1'b1;"
+        print "            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "        end"
+    else:
+        print "        else if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i)
+        print "        begin"
+        print "            hit = 1'b1;"
+        print "            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "        end"
+
+print "        else"
+print "        begin"
+print "            hit = 1'b0;"
+print "            hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
+print "        end"
+print "    end"
+print "    else"
+print "    begin"
+print "        hit = 1'b0;"
+print "        hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
+print "    end"
+
+    %>
+    end
+end
+*/
+
+
+wire [`L2_SMC_INDEX_WIDTH-1:0] tag_wr_hit_index;
+wire tag_wr_hit;
+
+<%
+print '''
+reg [%d:0] smc_tag_wr_cmp;''' % (L2_SMC_ENTRIES-1)
+%>
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print '''
+    smc_tag_wr_cmp[%d] = (smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0);''' % (i,i,i)
+%>
+end
+
+
+<%
+
+print '''
+l2_priority_encoder_%d priority_encoder_wr_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+%>
+    .data_in        (smc_tag_wr_cmp),
+    .data_out       (tag_wr_hit_index),
+    .data_out_mask  (),
+    .nonzero_out    (tag_wr_hit)
+);
+
+
+
+
+
+//avoid redundant entries
+always @ *
+begin
+    if(wr_en || (flush_en && (addr_op == 2'd1)))
+    begin
+        wr_hit = tag_wr_hit;
+        wr_hit_index = tag_wr_hit_index;
+    end
+    else
+    begin
+        wr_hit = 1'b0;
+        wr_hit_index = 0;
+    end
+end
+
+
+/*
+always @ *
+begin
+<%
+print "    if(wr_en || (flush_en && (addr_op == 2'd1)))"
+print "    begin"
+for i in range(L2_SMC_ENTRIES):
+    if i == 0:
+        print "        if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i)
+        print "        begin"
+        print "            wr_hit = 1'b1;"
+        print "            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "        end"
+    else:
+        print "        else if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i)
+        print "        begin"
+        print "            wr_hit = 1'b1;"
+        print "            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "        end"
+
+print "        else"
+print "        begin"
+print "            wr_hit = 1'b0;"
+print "            wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
+print "        end"
+print "    end"
+print "    else"
+print "    begin"
+print "        wr_hit = 1'b0;"
+print "        wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
+print "    end"
+
+%>
+end
+*/
+
+always @ *
+begin
+    data_out = smc_data[hit_index]>>(rd_offset_in * `L2_SMC_DATA_OUT_WIDTH);
+    valid_out = smc_valid[hit_index];
+    tag_out = smc_tag[hit_index];
+end
+
+
+always @ *
+begin
+    entry_locked_and_mask = {`L2_SMC_ENTRIES{1'b1}};
+    entry_locked_or_mask = {`L2_SMC_ENTRIES{1'b0}};
+    if (!rst_n)
+    begin
+        entry_locked_and_mask = {`L2_SMC_ENTRIES{1'b0}};
+    end
+    else if (wr_en && ~wr_diag_en)
+    begin
+        if(smc_valid_in)
+        begin
+            entry_locked_or_mask[wr_index] = 1'b1;
+        end
+        else
+        begin
+            entry_locked_and_mask[wr_index] = 1'b0;
+        end
+        if (rd_en && ~rd_diag_en && hit && (wr_index != hit_index) && entry_locked_f[hit_index])
+        begin
+            entry_locked_and_mask[hit_index] = 1'b0;
+        end 
+    end
+    else if (rd_en && ~rd_diag_en && hit && entry_locked_f[hit_index])
+    begin
+        entry_locked_and_mask[hit_index] = 1'b0;
+    end
+end
+
+always @ *
+begin
+    entry_locked_next = (entry_locked_f & entry_locked_and_mask) | entry_locked_or_mask;
+end
+
+
+always @ (posedge clk)
+begin
+    entry_locked_f <= entry_locked_next;
+end
+
+
+always @ *
+begin
+    entry_used_and_mask = {`L2_SMC_ENTRIES{1'b1}};
+    entry_used_or_mask = {`L2_SMC_ENTRIES{1'b0}};
+    if (!rst_n)
+    begin
+        entry_used_and_mask = {`L2_SMC_ENTRIES{1'b0}};
+    end
+    else if (wr_en && ~wr_diag_en)
+    begin
+        if(smc_valid_in)
+        begin
+            entry_used_or_mask[wr_index] = 1'b1;
+        end
+        else
+        begin
+            entry_used_and_mask[wr_index] = 1'b0;
+        end
+        if (rd_en && ~rd_diag_en && hit && (wr_index != hit_index))
+        begin
+            entry_used_or_mask[hit_index] = 1'b1;
+        end 
+    end
+    else if (rd_en && ~rd_diag_en && hit)
+    begin
+        entry_used_or_mask[hit_index] = 1'b1;
+    end
+end
+
+always @ *
+begin
+    entry_used_next = (entry_used_f & entry_used_and_mask) | entry_used_or_mask;
+    if (entry_used_next == {`L2_SMC_ENTRIES{1'b1}})
+    begin
+        entry_used_next = {`L2_SMC_ENTRIES{1'b0}};
+    end
+end
+
+
+always @ (posedge clk)
+begin
+    entry_used_f <= entry_used_next;
+end
+
+
+wire [`L2_SMC_INDEX_WIDTH-1:0] entry_replace_index;
+wire replace_hit;
+
+<%
+print '''
+reg [%d:0] replace_cmp;''' % (L2_SMC_ENTRIES-1)
+%>
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print '''
+    replace_cmp[%d] = (~entry_used_f[%d] && ~entry_locked_f[%d]);''' % (i,i,i)
+%>
+end
+
+<%
+
+print '''
+l2_priority_encoder_%d priority_encoder_replace_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+%>
+    .data_in        (replace_cmp),
+    .data_out       (entry_replace_index),
+    .data_out_mask  (),
+    .nonzero_out    (replace_hit)
+);
+
+
+always @ *
+begin
+    if (replace_hit)
+    begin
+        replace_index = entry_replace_index;
+    end
+    else
+    begin
+        replace_index = {`L2_SMC_INDEX_WIDTH{1'b0}};
+    end
+
+end
+
+/*
+always @ *
+begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    if i == 0:
+        print "    if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i)
+        print "    begin"
+        print "        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "    end"
+    else:
+        print "    else if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i)
+        print "    begin"
+        print "        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
+        print "    end"
+print "    else"
+print "    begin"
+print "        replace_index = %d\'dx;" % (L2_SMC_INDEX_WIDTH)
+print "    end"
+%>
+end
+*/
+
+always @ *
+begin
+    if (wr_en && wr_diag_en)
+    begin
+        wr_index = wr_index_in;
+    end
+    else if ((flush_en || wr_en) && wr_hit)
+    begin
+        wr_index = wr_hit_index;
+    end
+    else
+    begin
+        wr_index = replace_index;
+    end
+end
+
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "        data_mem_f[%d] <= {`L2_SMC_ARRAY_WIDTH{1'b0}};" % (i)
+%>
+    end
+    else if (flush_en)
+    begin
+        case (addr_op)
+        2'd0:
+        begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "            data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i)
+%>
+        end
+        2'd1:
+        begin
+            if (wr_hit)
+            begin
+                data_mem_f[wr_index][`L2_SMC_DATA_WIDTH+wr_offset_in] <= 1'b0;
+                
+            end
+        end
+        2'd2:
+        begin
+<%
+for i in range(L2_SMC_ENTRIES):
+    print "            if ((smc_sdid[%d] == wr_sdid_in) && (smc_valid[%d] != 0))" % (i,i)
+    print "                data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i)
+%>
+        end
+        default:
+        begin
+            data_mem_f[wr_index] <= data_mem_f[wr_index];
+        end
+        endcase
+    end
+    else if (wr_en)
+    begin
+        if (wr_diag_en)
+        begin
+            case (addr_op)
+            2'd0:
+            begin
+                case (wr_offset_in)
+                2'd0:
+                begin
+                    data_mem_f[wr_index][`L2_SMC_DATA_OUT_WIDTH-1:0] <= 
+                    data_in[`L2_SMC_DATA_OUT_WIDTH-1:0];
+                end
+                2'd1:
+                begin
+                    data_mem_f[wr_index][`L2_SMC_DATA_OUT_WIDTH*2-1:`L2_SMC_DATA_OUT_WIDTH] <= 
+                    data_in[`L2_SMC_DATA_OUT_WIDTH-1:0];
+                end
+                2'd2:
+                begin
+                    data_mem_f[wr_index][`L2_SMC_DATA_OUT_WIDTH*3-1:`L2_SMC_DATA_OUT_WIDTH*2] <= 
+                    data_in[`L2_SMC_DATA_OUT_WIDTH-1:0];
+                end
+                2'd3:
+                begin
+                    data_mem_f[wr_index][`L2_SMC_DATA_OUT_WIDTH*4-1:`L2_SMC_DATA_OUT_WIDTH*3] <= 
+                    data_in[`L2_SMC_DATA_OUT_WIDTH-1:0];
+                end
+                default:
+                begin
+                    data_mem_f[wr_index] <= data_mem_f[wr_index];
+                end
+                endcase
+            end
+            2'd1:
+            begin
+                data_mem_f[wr_index][`L2_SMC_VALID] <= data_in[`L2_SMC_VALID_WIDTH-1:0];
+            end
+            2'd2: 
+            begin
+                data_mem_f[wr_index][`L2_SMC_TAG] <= data_in[`L2_SMC_TAG_WIDTH-1:0];
+            end
+            default:
+            begin
+                data_mem_f[wr_index] <= data_mem_f[wr_index];
+            end
+            endcase
+        end
+        else
+        begin
+            data_mem_f[wr_index] <= {wr_tag_in, smc_valid_in, smc_data_in};
+        end
+    end
+end
+
+
+endmodule

@@ -1,0 +1,117 @@
+#! /bin/sh
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: midas
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+#
+# .local_perlmod_wrapper
+#
+
+
+die () {
+    message="$1"
+    echo "$tool -> .local_perlmod_wrapper: $message Exiting ..."
+    exit 1 
+}
+
+############################ main ##############################
+
+tool=`basename $0`
+ARGV="$*"
+TRE_ROOT=$PERL_MODULE_BASE
+TRE_TOOL2TOOLSET=${TRE_TOOL2TOOLSET:=$TRE_ROOT/tool2toolset}
+
+### Get toolset (a.k.a. package) name from the "tool2toolset" file
+
+toolset=`awk '{if($1 == var)print $2}' var=$tool $TRE_TOOL2TOOLSET`
+if [ -z "$toolset" ] ; then
+    die "flow not found!" 
+else 
+    TOOLSET=`echo $toolset |tr '[a-z]' '[A-Z]'`
+fi
+
+### Version may be set either by TRE or by environment variable 
+### 'VERSION_$TOOLSET', if case TRE_ENTRY is set to '/'. 
+### Either way, the version MUST be set.
+
+eval vers=\$VERSION_$TOOLSET
+
+if [ ! -z "$vers" ] && [ "$TRE_ENTRY" = '/' ] ; then
+    version=$vers
+elif [ ! -z "$TRE_SEARCH" ] && [ ! -z "$TRE_ENTRY" ] ; then
+    version=`configsrch $toolset $TRE_ENTRY` || die "configsrch failed!"
+    version=`echo $version |awk '{print $1}'`
+    eval VERSION_$TOOLSET=\$version
+    eval export VERSION_$TOOLSET
+else
+    die "TRE_SEARCH & TRE_ENTRY are not set."
+fi    
+
+###  VERSION_$TOOLSET **MUST** be set, even if TRE is not used.
+
+if [ -z "$version" ] ; then
+    die "No version set for flow '$toolset'."
+fi
+
+###  try to execute the toolset member tool 
+### (the version is passed in VERSION_$TOOLSET)
+
+# necessary for the moment
+tool=midas
+
+# For versions at or before 3.09, use DiagBuild as the toolset
+major=`echo $version | sed 's/\..*//'`
+minor=`echo $version | sed 's/^.*\.//'`
+if [ $major -le 3 ] && [ $minor -le 9 ] ; then
+  toolset='DiagBuild'
+fi
+
+
+
+exe=$TRE_ROOT/$toolset/$version/bin/$tool
+libpath=$TRE_ROOT/$toolset/$version/lib/site_perl/5.8.0
+
+if [ -z "$PERL5LIB" ] ; then
+  PERL5LIB=$libpath
+else
+  PERL5LIB=$libpath:$PERL5LIB
+fi
+export PERL5LIB
+
+OS=`uname -s`
+if [ $OS = "SunOS" ] ; then
+    CPU=`uname -p`
+fi
+if [ $OS = "Linux" ]; then
+    CPU=`uname -m`
+fi
+
+if [ -z "$PERL5OPT" ] ; then
+  PERL5OPT="-I$PERL_MODULE_BASE -I$PERL_MODULE_BASE/$OS-$CPU -I$PERL5_PATH/$PERL_VER -I$PERL5_PATH/$PERL_VER/sun4-solaris"
+else
+  PERL5OPT="-I$PERL_MODULE_BASE -I$PERL_MODULE_BASE/$OS-$CPU -I$PERL5_PATH/$PERL_VER -I$PERL5_PATH/$PERL_VER/sun4-solaris $PERL5OPT"
+fi
+export PERL5OPT
+
+if [ -x $exe ] ; then
+    exec $PERL_CMD $exe "$@"
+else
+    die "Executable $exe not found!"
+fi

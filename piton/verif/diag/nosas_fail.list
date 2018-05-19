@@ -1,0 +1,28 @@
+---------------------------------------------------------------
+Test status when running without SAS (-nosas option).
+---------------------------------------------------------------
+Group: core1_mini 
+
+	Following 1 test failed for performance without SAS.
+
+	chase_l1hit
+
+---------------------------------------------------------------
+Group: core1_full
+
+	Following 3 tests failed for performance without SAS.
+
+	 1. chase_dram
+	 2. chase_l1hit
+	 3. chase_l2hit
+
+---------------------------------------------------------------
+Group: chip8_mini
+
+	Status without SAS is not yet available.
+
+---------------------------------------------------------------
+Group: chip8_full
+
+	Status without SAS is not yet available.
+---------------------------------------------------------------

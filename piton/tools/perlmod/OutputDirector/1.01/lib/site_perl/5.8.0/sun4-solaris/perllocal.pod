@@ -1,0 +1,22 @@
+=head2 Mon Oct 28 16:38:50 2002: C<Module> L<OutputDirector|OutputDirector>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/OutputDirector/1.01/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.01>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

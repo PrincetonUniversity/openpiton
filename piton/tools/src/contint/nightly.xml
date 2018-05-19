@@ -1,0 +1,855 @@
+<!--
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<bundles>
+
+<nightly>
+    <!-- Execution drafting --> 
+    <include>ed_all_tests</include>
+
+    <!-- Chip/FPGA Bridge -->
+    <other name="chip_fpga_bridge">
+        <sys>chip_fpga_bridge</sys>
+        <vcs_cm_name>chip_fpga_bridge</vcs_cm_name>
+        <vcs_use_cm/>
+    </other>
+    <other name="fpga_chip_bridge">
+        <sys>fpga_chip_bridge</sys>
+        <vcs_cm_name>fpga_chip_bridge</vcs_cm_name>
+        <vcs_use_cm/>
+    </other>
+    <other name="fpga_fpga_hpc_bridge">
+        <sys>fpga_fpga_hpc_bridge</sys>
+        <vcs_cm_name>fpga_fpga_hpc_bridge</vcs_cm_name>
+        <vcs_use_cm/>
+    </other>
+    <!--TODO: This test needs to be fixed for FPGA-->                                                                   
+    <!--<other name="fpga_fpga_lpc_bridge">
+        <sys>fpga_fpga_lpc_bridge</sys>
+        <vcs_cm_name>fpga_fpga_lpc_bridge</vcs_cm_name>
+    </other>-->
+    <asm_regress name="all_tile1_passing">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <config_rtl>SYNC_MUX</config_rtl>
+        <group>all_tile1_passing</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="all_tile2_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>all_tile2_passing</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile4">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile4</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile8">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>tile8</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile16">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>tile16</group>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile64">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <group>tile64</group>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+    </asm_regress>
+
+
+    <asm_regress name="princeton_new_diag">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_new_diag</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="all_tile2_passing_csm">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>all_tile2_passing_no_enboff</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="tile4_csm">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile4</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="tile8_csm">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile8</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="tile16_csm">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile16</group>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="tile64_csm">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <midas_args>-csm_en</midas_args>
+        <group>tile64</group>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+        <largest_regress/>
+    </asm_regress>
+
+
+
+
+    <!--<asm_regress name="princeton_ciop_tso">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ciop_tso</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ciop_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_ciop_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_cmp8_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_cmp8_tso">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_tso</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_rst">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_rst</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_dram_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_dram_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_exu_basic">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_exu_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_newmdl">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_newmdl</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="asi_basic_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>asi_basic_passing</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldf</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldaf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldaf</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldst">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldst</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_tlu_extended">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_tlu_extended</group>
+        <vcs_use_cm/>
+    </asm_regress>-->
+
+    <!--JTAG-->
+    <asm_regress name="jtag">
+        <sys>jtag_testbench</sys>
+        <group>jtag</group>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="jtag_pll">
+        <sys>jtag_testbench</sys>
+        <group>jtag_pll</group>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <vcs_use_cm/>
+        <sim_pll/>
+    </asm_regress>
+
+    <!--DMBR ASM TESTS-->
+    <!-- <include>tile2_dmbr</include>-->
+
+    <include>tile4_dmbr</include>
+    <!--
+    <asm_test name="dmbr_assembly_0_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_0_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    -->
+    <asm_test name="dmbr_assembly_1_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_1_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_2_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_2_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_3_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_3_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_4_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_4_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_5_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_5_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_6_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_6_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <rtl_timeout>500000</rtl_timeout>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_7_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_7_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_8_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_8_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_9_one_bin">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_9_one_bin.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_0_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_0_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_1_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_1_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_2_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_2_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_3_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_3_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_4_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_4_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_5_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_5_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_6_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_6_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_7_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_7_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_8_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_8_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_9_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_9_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_10_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_10_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_11_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_11_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_12_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_12_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_13_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_13_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_14_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_14_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_15_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_15_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_16_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_16_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_17_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_17_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_18_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_18_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_19_random">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly_19_random.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    
+    <asm_test name="dmbr_assembly_gen_1">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_2">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_3">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_4">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_5">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_6">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_7">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_8">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_9">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_10">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_11">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_12">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_13">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_14">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_15">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_16">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_17">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_18">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_19">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_assembly_gen_20">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_assembly.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+    <asm_test name="dmbr_config_regs_test">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <asm_diag_name>dmbr_config_regs_test.s</asm_diag_name>
+        <dmbr/>
+        <vcs_use_cm/>
+    </asm_test>
+
+    <!--DMBR SOURCE/SINK TESTS-->
+    <other name="dmbr_source_sink_1">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_2">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_3">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_4">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_5">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_6">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_7">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_8">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_9">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_10">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_11">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_12">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_13">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_14">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_15">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_16">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_17">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_18">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_19">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+    <other name="dmbr_source_sink_20">
+        <sys>dmbr_source_sink</sys>
+        <x_tiles>1</x_tiles>
+        <y_tiles>1</y_tiles>
+        <dmbr/>
+        <vcs_use_cm/>
+        <nouse_oolm/>
+    </other>
+
+</nightly>
+
+</bundles>

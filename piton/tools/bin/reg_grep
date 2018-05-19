@@ -1,0 +1,109 @@
+#!/usr/bin/python
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# This script parses out individual spc and 
+# thread register update traces from a simulation trace for 
+# debugging purposes
+# Author: mmckeown
+
+import sys, os
+import re
+
+def usage():
+    print "Usage: " + re.sub(",.*", "", os.path.basename(sys.argv[0])) + " <sim log> [additional sim logs]"
+
+def main():
+    # Check cmd args
+    if len(sys.argv) < 2 :
+        usage ()
+        sys.exit(1)
+    
+    # Parse cmd args
+    simlogs = sys.argv[1:];
+
+    # Check cmd args
+    for simlog in simlogs :
+        if not os.path.isfile(simlog):
+            print "Error: Simulation log '" + simlog + "' does not exist."
+            sys.exit(1)
+        if simlog[-4:] != ".log" :
+            print "Error: Simulation log '" + simlog + "' does not have the .log suffix...invalid input"
+            sys.exit(1)
+
+    # Reg logs
+    simreglogs = [(log[:-4] + "_reg.log") for log in simlogs]
+
+    # Grep out reg updated statements
+    for i in range(len(simlogs)):
+        os.system("grep \":reg_updated ->\" " + simlogs[i] + " > " + simreglogs[i])
+
+    # Get the maximum number of spcs and threads
+    max_spc = 0
+    max_thr = 0
+    for reglog in simreglogs:
+        fp = open(reglog, "r")
+        for line in fp :
+            match = re.match("\d+:reg_updated -> spc\((\d+)\) thread\((\d+)\) window\(\d+\) rs1\([0-9a-fx]{2}\)->[0-9a-f]{16} rs2\([0-9a-fx]{2}\)->[0-9a-f]{16} reg#\([lgio][0-7]\) val = [0-9a-f]{16}", 
+                             line)
+            if match is None :
+                print "Error: Reg log '" + reglog + "' either has no reg updates or invalid simulation log input"
+                fp.close()
+                sys.exit(1)
+            max_spc = max(max_spc, int(match.group(1)))
+            max_thr = max(max_thr, int(match.group(2)))
+        fp.close()
+    
+    # Generate individual spc and thread traces
+    for reglog in simreglogs:
+        for spc in range(max_spc + 1) :
+            spclog = reglog[:-4] + "_spc" + str(spc) + ".log"
+            os.system("grep \":reg_updated -> spc(" + str(spc) + ")\" " + reglog + " > " + spclog)
+            spclog_stripped = spclog[:-4] + ".stripped.log"
+            fp_spc = open(spclog, "r")
+            fp_spc_strpd = open(spclog_stripped, "w")
+            for line in fp_spc :
+                match = re.match("\d+:(.*)", line)
+                if not match is None :
+                    fp_spc_strpd.write(match.group(1) + "\n")
+            fp_spc_strpd.close()
+            fp_spc.close()
+            for thr in range(max_thr + 1) :
+                thrlog = spclog[:-4] + "_thr" + str(thr) + ".log"
+                os.system("grep \":reg_updated -> spc(" + str(spc) + ") thread(" + str(thr) + ")\" " + \
+                          spclog + " > " + thrlog)
+                thrlog_stripped = thrlog[:-4] + ".stripped.log"
+                fp_thr = open(thrlog, "r")
+                fp_thr_strpd = open(thrlog_stripped, "w")
+                for line in fp_thr :
+                    match = re.match("\d+:(.*)", line)
+                    if not match is None :
+                        fp_thr_strpd.write(match.group(1) + "\n")
+                fp_thr_strpd.close()
+                fp_thr.close()
+
+if __name__ == "__main__" :
+    main() 

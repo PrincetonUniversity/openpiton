@@ -1,0 +1,232 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+//
+// OpenSPARC T1 Processor File: jtag_mon.v
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+//
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+//
+// The above named program is distributed in the hope that it will be
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+//
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////
+
+`include "sys.h"
+`include "iop.h"
+`include "cross_module.h.tmp"
+`include "jtag.vh"
+
+module jtag_mon (
+    input wire clk
+    );
+
+<%
+MAX_CORE_COUNT = 64
+%>
+
+// jtag ctap mon
+
+always @ (negedge clk)
+begin
+    if (`JTAG_CTAP.jtag_req_val)
+    begin
+        $display("");
+        $display($time, " JTAG CTAP mon:");
+        $write("Request: ");
+        case (`JTAG_CTAP.jtag_req[`JTAG_REQ_OP_MASK])
+            `JTAG_REQ_OP_CLEAR_INTERRUPT:
+            begin
+                $write("JTAG_REQ_OP_CLEAR_INTERRUPT");
+            end
+            `JTAG_REQ_OP_READ_ORAM:
+            begin
+                $write("JTAG_REQ_OP_READ_ORAM");
+            end
+            `JTAG_REQ_OP_READ_RTAP:
+            begin
+                $write("JTAG_REQ_OP_READ_RTAP");
+            end
+            `JTAG_REQ_OP_WRITE_RTAP:
+            begin
+                $write("JTAG_REQ_OP_WRITE_RTAP");
+            end
+            `JTAG_REQ_OP_READ_SRAM:
+            begin
+                $write("JTAG_REQ_OP_READ_SRAM");
+            end
+            `JTAG_REQ_OP_WRITE_SRAM:
+            begin
+                $write("JTAG_REQ_OP_WRITE_SRAM");
+            end
+            // `JTAG_REQ_OP_CPX_INTERRUPT:
+            // begin
+            //     $write("JTAG_REQ_OP_CPX_INTERRUPT");
+            // end
+            `JTAG_REQ_OP_WRITE_CLK_EN:
+            begin
+                $write("JTAG_REQ_OP_WRITE_CLK_EN");
+            end
+            `JTAG_REQ_OP_WRITE_ORAM_CLK_EN:
+            begin
+                $write("JTAG_REQ_OP_WRITE_ORAM_CLK_EN");
+            end
+            default:
+            begin
+                $write("UNKNOWN CTAP REQ: %0d", `JTAG_CTAP.jtag_req[`JTAG_REQ_OP_MASK]);
+                $display("");
+                repeat(5)@(posedge clk);
+                `MONITOR_PATH.fail("JTAG CTAP mon: error jtag request");
+            end
+        endcase
+        $display("");
+    end // ctap req
+
+    if (`JTAG_CTAP.capture_ucb_data_en)
+    begin
+        $display("");
+        $display($time, " JTAG CTAP mon:");
+        $write("Received RTAP return");
+        $write("Data: 0x%x", `JTAG_CTAP.rtap_packet);
+        $display("");
+    end // ctap ret
+
+    if (`JTAG_CTAP.capture_oram_response)
+    begin
+        $display("");
+        $display($time, " JTAG CTAP mon:");
+        $write("Received ORAM read return");
+        $write("Data: 0x%x", `JTAG_CTAP.oram_ctap_res_data);
+        $display("");
+    end // ctap ret
+
+    // if (`JTAG_CTAP.capture_sram_response)
+    // begin
+    //     $display("");
+    //     $display($time, " JTAG CTAP mon:");
+    //     $write("Received ORAM SRAMs return");
+    //     $write("Data: 0x%x", `JTAG_CTAP.sram_res_data);
+    //     $display("");
+    // end // ctap ret
+end
+
+<%
+text = r'''
+`ifdef RTL_SPARC0
+
+always @ (negedge clk)
+begin
+    if (`TILE0.rtap.req_val)
+    begin
+        $display("");
+        $display($time, " JTAG RTAP TILE0 mon:");
+        $write("Request: ");
+        case (`TILE0.rtap.req_op)
+            `JTAG_REQ_OP_READ_SRAM:
+            begin
+                $write("JTAG_REQ_OP_READ_SRAM");
+                $display("  TileID: %0d", `TILE0.rtap.req_tileid);
+                $display("  ThreadID: %0d", `TILE0.rtap.req_threadid);
+                $display("  Address Index: %0d", `TILE0.rtap.req_address_index);
+                $display("  Address SRAMID: %0d", `TILE0.rtap.req_address_sramid);
+                $display("  Address BSEL: %0d", `TILE0.rtap.req_address_bsel);
+            end
+            `JTAG_REQ_OP_WRITE_SRAM:
+            begin
+                $write("JTAG_REQ_OP_WRITE_SRAM");
+                $display("  TileID: %0d", `TILE0.rtap.req_tileid);
+                $display("  ThreadID: %0d", `TILE0.rtap.req_threadid);
+                $display("  Address Index: %0d", `TILE0.rtap.req_address_index);
+                $display("  Address SRAMID: %0d", `TILE0.rtap.req_address_sramid);
+                $display("  Address BSEL: %0d", `TILE0.rtap.req_address_bsel);
+                $display("  Wr Data: 0x%0x", `TILE0.rtap.req_data);
+            end
+            `JTAG_REQ_OP_READ_RTAP:
+            begin
+                $write("JTAG_REQ_OP_READ_RTAP");
+            end
+            `JTAG_REQ_OP_WRITE_RTAP:
+            begin
+                $write("JTAG_REQ_OP_WRITE_RTAP");
+            end
+            default:
+            begin
+                $write("UNKNOWN RTAP TILE0 REQ %0d", `TILE0.rtap.req_op);
+                $display("");
+                // repeat(5)@(posedge clk);
+                // `MONITOR_PATH.fail("JTAG RTAP TILE0 mon: error request");
+            end
+        endcase
+        $display("");
+
+        if (`TILE0.rtap.req_op == `JTAG_REQ_OP_READ_RTAP || `TILE0.rtap.req_op == `JTAG_REQ_OP_WRITE_RTAP)
+        begin
+            case (`TILE0.rtap.req_misc)
+                `JTAG_RTAP_ID_PC_REG:
+                begin
+                    $write("JTAG_RTAP_ID_PC_REG");
+                end
+                `JTAG_RTAP_ID_THREADSTATE_REG:
+                begin
+                    $write("JTAG_RTAP_ID_THREADSTATE_REG");
+                end
+                `JTAG_RTAP_ID_SHADOWSCAN_REG:
+                begin
+                    $write("JTAG_RTAP_ID_SHADOWSCAN_REG");
+                end
+                `JTAG_RTAP_ID_CPX_INTERRUPT:
+                begin
+                    $write("JTAG_RTAP_ID_CPX_INTERRUPT");
+                end
+                `JTAG_RTAP_ID_STALL_REG:
+                begin
+                    $write("JTAG_RTAP_ID_STALL_REG");
+                end
+                default:
+                begin
+                    $write("UNKNOWN RTAP READ/WRITE %0d", `TILE0.rtap.req_op);
+                    $display("");
+                    // repeat(5)@(posedge clk);
+                    // `MONITOR_PATH.fail("JTAG RTAP TILE0 mon: error request");
+                end
+            endcase
+        end
+        $display("  TileID: %0d", `TILE0.rtap.req_tileid);
+        $display("  ThreadID: %0d", `TILE0.rtap.req_threadid);
+        $display("  Wr Data: 0x%0x", `TILE0.rtap.req_data);
+        $display("");
+    end // ctap req
+
+    // if (`TILE0.rtap.core_stall_en)
+    // begin
+    //     $display("");
+    //     $display($time, " JTAG RTAP TILE0 mon:");
+    //     $write("Core stall is set to: %0d", `TILE0.rtap.core_stall_value);
+    //     $display("");
+    // end // ctap req
+end
+
+`endif
+'''
+
+for i in range (MAX_CORE_COUNT):
+    text2 = text;
+    text2 = text2.replace("L15_PIPE0", "L15_PIPE" + `i`);
+    text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + `i`);
+    text2 = text2.replace("TILE0", "TILE" + `i`);
+    text2 = text2.replace("TOP0", "TOP" + `i`);
+    text2 = text2.replace("CORE0", "CORE" + `i`);
+    print text2;
+%>
+
+
+endmodule

@@ -1,0 +1,733 @@
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+/*
+ * This is a test bench for the jtag_testbench module
+ *
+ * Author: Tri Nguyen
+ */
+
+`include "test_infrstrct.v"
+
+`include "sys.h"
+`include "iop.h"
+`include "cross_module.h.tmp"
+`include "ifu.h"
+`include "define.vh"
+
+
+<%
+    from pyhplib import *
+%>
+
+`define VERBOSITY 1    // Can override from the command line
+
+`default_nettype none
+`timescale 1ps/1ps
+// Testbench helper module
+module jtag_testbench_top_helper
+(
+    input       core_ref_clk,
+    input       jtag_clk,
+    input       jtag_rst_l,
+    input       chip_rst_n,
+    input       pll_rst_n,
+    input       clk_en,
+    input       io_clk,
+    input       fpga_clk,
+    output reg  done
+);
+
+    localparam SRC_BIT_WIDTH = 4;
+    localparam SINK_BIT_WIDTH = 1;
+    localparam SINK_ENTRIES = 4096*64;
+    localparam SINK_LOG2_ENTRIES = 18;
+    localparam SRC_ENTRIES = 4096*64;
+    localparam SRC_LOG2_ENTRIES = 18;
+    //
+    // Signal Declarations
+    //
+    localparam JTAG_CHECKDATAOUT_MASK = 3;
+    localparam JTAG_RST_MASK = 0;
+    localparam JTAG_SEL_MASK = 1;
+    localparam JTAG_DATAIN_MASK = 2;
+    localparam JTAG_DATAOUT_MASK = 0;
+
+    wire [SRC_BIT_WIDTH-1:0]    src_bits;
+    wire                        src_val;
+    wire                        src_done;
+
+    // only 1 bit output: data out
+    wire [SINK_BIT_WIDTH-1:0]   sink_bits;
+    wire                        sink_rdy;
+    wire                        sink_done;
+
+    //
+    // Combinational Logic
+    //
+
+    always @ *
+        done = src_done & sink_done;
+
+    //
+    // Module Instantiations
+    //
+
+    // Source module
+    test_source
+    #(
+        .BIT_WIDTH (SRC_BIT_WIDTH),
+        .ENTRIES (SRC_ENTRIES),
+        .LOG2_ENTRIES (SRC_LOG2_ENTRIES)
+    ) src
+    (
+        .clk (jtag_clk),
+        .rst_n (jtag_rst_l),
+        .rdy (jtag_rst_l), // TODO: If your DUT has a val/rdy interface hook it up here
+        .bits (src_bits),
+        .val (src_val), // TODO: if your DUT as a val/rdy interface hook it up here
+        .done (src_done)
+    );
+
+    // Sink module
+    test_sink
+    #(
+        .VERBOSITY (`VERBOSITY),
+        .BIT_WIDTH (SINK_BIT_WIDTH),
+        .ENTRIES (SINK_ENTRIES),
+        .LOG2_ENTRIES (SINK_LOG2_ENTRIES)
+    ) sink
+    (
+        .clk (jtag_clk),
+        .rst_n (jtag_rst_l),
+        .bits (sink_bits),
+        .val (src_bits[JTAG_CHECKDATAOUT_MASK]), // val is driven by input
+        .rdy (sink_rdy), 
+        .out_data_popped (),
+        .done (sink_done)
+    );
+
+    // Initialize source and sink random delay values
+    initial
+    begin
+        src.RANDOM_DELAY = 0;
+        sink.RANDOM_DELAY = 0;
+    end
+
+    // Design under test (DUT)
+    // start copying from manycore_top.v
+
+////////////////////////////////////////////////////////
+// SYNTHESIZABLE CHIP
+////////////////////////////////////////////////////////
+    wire [31:0]  intf_chip_data;
+    wire [1:0]   intf_chip_channel;
+    wire [2:0]   intf_chip_credit_back;
+
+    wire [31:0]  chip_intf_data;
+    wire [1:0]   chip_intf_channel;
+    wire [2:0]   chip_intf_credit_back;
+
+    wire         pll_lock;
+    reg          pll_bypass;
+    reg [4:0]    pll_rangea;
+    reg [1:0]    clk_mux_sel;
+    // wire         pll_clk;
+    reg          async_mux;
+    chip chip
+    (
+        .core_ref_clk(core_ref_clk),
+        .io_clk(io_clk),
+        .rst_n(chip_rst_n),
+        .pll_rst_n(pll_rst_n),
+        .clk_en(clk_en),
+        .pll_bypass (pll_bypass),
+        .async_mux (async_mux),
+
+        .pll_lock (pll_lock),
+        .pll_bypass (pll_bypass),
+        .pll_rangea (pll_rangea),
+        .clk_mux_sel (clk_mux_sel),
+        // .pll_clk (pll_clk),
+
+        // JTAG pins
+        .jtag_clk(jtag_clk),
+        .jtag_rst_l(src_bits[JTAG_RST_MASK]),
+        .jtag_modesel(src_bits[JTAG_SEL_MASK]),
+        .jtag_datain(src_bits[JTAG_DATAIN_MASK]),
+        .jtag_dataout(sink_bits[JTAG_DATAOUT_MASK]),
+
+        .intf_chip_data(intf_chip_data),
+        .intf_chip_channel(intf_chip_channel),
+        .intf_chip_credit_back(intf_chip_credit_back),
+
+        .chip_intf_data(chip_intf_data),
+        .chip_intf_channel(chip_intf_channel),
+        .chip_intf_credit_back(chip_intf_credit_back)
+    );
+
+////////////////////////////////////////////////////////
+// fpga to chip bridge
+////////////////////////////////////////////////////////
+
+    wire                         fpga_offfpga_noc1_valid = 1'b0;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_offfpga_noc1_data = 64'b0;
+    wire                         fpga_offfpga_noc1_yummy;
+    wire                         fpga_offfpga_noc2_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_offfpga_noc2_data;
+    wire                         fpga_offfpga_noc2_yummy;
+    wire                         fpga_offfpga_noc3_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_offfpga_noc3_data;
+    wire                         fpga_offfpga_noc3_yummy = 1'b0;
+
+    wire                         offfpga_fpga_noc1_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   offfpga_fpga_noc1_data;
+    wire                         offfpga_fpga_noc1_yummy;
+    wire                         offfpga_fpga_noc2_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   offfpga_fpga_noc2_data;
+    wire                         offfpga_fpga_noc2_yummy;
+    wire                         offfpga_fpga_noc3_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   offfpga_fpga_noc3_data;
+    wire                         offfpga_fpga_noc3_yummy;
+
+    wire                         fpga_intf_noc1_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_intf_noc1_data;
+    wire                         fpga_intf_noc1_rdy;
+    wire                         fpga_intf_noc2_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_intf_noc2_data;
+    wire                         fpga_intf_noc2_rdy;
+    wire                         fpga_intf_noc3_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   fpga_intf_noc3_data;
+    wire                         fpga_intf_noc3_rdy;
+
+    wire                         intf_fpga_noc1_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   intf_fpga_noc1_data;
+    wire                         intf_fpga_noc1_rdy;
+    wire                         intf_fpga_noc2_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   intf_fpga_noc2_data;
+    wire                         intf_fpga_noc2_rdy;
+    wire                         intf_fpga_noc3_valid;
+    wire [`NOC_DATA_WIDTH-1:0]   intf_fpga_noc3_data;
+    wire                         intf_fpga_noc3_rdy;
+
+    wire [31:0]                  intf_fpga_data;
+    wire [1:0]                   intf_fpga_channel;
+    wire [2:0]                   intf_fpga_credit_back;
+
+    wire [31:0]                  fpga_intf_data;
+    wire [1:0]                   fpga_intf_channel;
+    wire [2:0]                   fpga_intf_credit_back;
+
+    assign intf_chip_data = fpga_intf_data;
+    assign intf_chip_channel = fpga_intf_channel;
+    assign chip_intf_credit_back = intf_fpga_credit_back;
+
+    assign intf_fpga_data = chip_intf_data;
+    assign intf_fpga_channel = chip_intf_channel;
+    assign fpga_intf_credit_back = intf_chip_credit_back;
+
+    //assign intf_chip_noc1_valid = fpga_intf_noc1_valid;
+    //assign intf_chip_noc1_data = fpga_intf_noc1_data;
+    //assign intf_chip_noc1_rdy = fpga_intf_noc1_rdy;
+    //assign intf_chip_noc2_valid = fpga_intf_noc2_valid;
+    //assign intf_chip_noc2_data = fpga_intf_noc2_data;
+    //assign intf_chip_noc2_rdy = fpga_intf_noc2_rdy;
+    //assign intf_chip_noc3_valid = fpga_intf_noc3_valid;
+    //assign intf_chip_noc3_data = fpga_intf_noc3_data;
+    //assign intf_chip_noc3_rdy = fpga_intf_noc3_rdy;
+
+    //assign intf_fpga_noc1_valid = chip_intf_noc1_valid;
+    //assign intf_fpga_noc1_data = chip_intf_noc1_data;
+    //assign intf_fpga_noc1_rdy = chip_intf_noc1_rdy;
+    //assign intf_fpga_noc2_valid = chip_intf_noc2_valid;
+    //assign intf_fpga_noc2_data = chip_intf_noc2_data;
+    //assign intf_fpga_noc2_rdy = chip_intf_noc2_rdy;
+    //assign intf_fpga_noc3_valid = chip_intf_noc3_valid;
+    //assign intf_fpga_noc3_data = chip_intf_noc3_data;
+    //assign intf_fpga_noc3_rdy = chip_intf_noc3_rdy;
+
+
+
+
+    valrdy_to_credit #(4, 3) fpga_to_intf_noc1_v2c(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(intf_fpga_noc1_data),
+        .valid_in(intf_fpga_noc1_valid),
+        .ready_in(fpga_intf_noc1_rdy),
+
+        .data_out(offfpga_fpga_noc1_data),           // Data
+        .valid_out(offfpga_fpga_noc1_valid),       // Val signal
+        .yummy_out(fpga_offfpga_noc1_yummy)    // Yummy signal
+    );
+
+    credit_to_valrdy fpga_from_intf_noc1_c2v(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(fpga_offfpga_noc1_data),
+        .valid_in(fpga_offfpga_noc1_valid),
+        .yummy_in(offfpga_fpga_noc1_yummy),
+
+        .data_out(fpga_intf_noc1_data),           // Data
+        .valid_out(fpga_intf_noc1_valid),       // Val signal from dynamic network to processor
+        .ready_out(intf_fpga_noc1_rdy)    // Rdy signal from processor to dynamic network
+    );
+
+    valrdy_to_credit #(4, 3) fpga_to_intf_noc2_v2c(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(intf_fpga_noc2_data),
+        .valid_in(intf_fpga_noc2_valid),
+        .ready_in(fpga_intf_noc2_rdy),
+
+        .data_out(offfpga_fpga_noc2_data),           // Data
+        .valid_out(offfpga_fpga_noc2_valid),       // Val signal
+        .yummy_out(fpga_offfpga_noc2_yummy)    // Yummy signal
+    );
+
+    credit_to_valrdy fpga_from_intf_noc2_c2v(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(fpga_offfpga_noc2_data),
+        .valid_in(fpga_offfpga_noc2_valid),
+        .yummy_in(offfpga_fpga_noc2_yummy),
+
+        .data_out(fpga_intf_noc2_data),           // Data
+        .valid_out(fpga_intf_noc2_valid),       // Val signal from dynamic network to processor
+        .ready_out(intf_fpga_noc2_rdy)    // Rdy signal from processor to dynamic network
+    );
+
+    valrdy_to_credit #(4, 3) fpga_to_intf_noc3_v2c(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(intf_fpga_noc3_data),
+        .valid_in(intf_fpga_noc3_valid),
+        .ready_in(fpga_intf_noc3_rdy),
+
+        .data_out(offfpga_fpga_noc3_data),           // Data
+        .valid_out(offfpga_fpga_noc3_valid),       // Val signal
+        .yummy_out(fpga_offfpga_noc3_yummy)    // Yummy signal
+    );
+
+    credit_to_valrdy fpga_from_intf_noc3_c2v(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(fpga_offfpga_noc3_data),
+        .valid_in(fpga_offfpga_noc3_valid),
+        .yummy_in(offfpga_fpga_noc3_yummy),
+
+        .data_out(fpga_intf_noc3_data),           // Data
+        .valid_out(fpga_intf_noc3_valid),       // Val signal from dynamic network to processor
+        .ready_out(intf_fpga_noc3_rdy)    // Rdy signal from processor to dynamic network
+    );
+
+    fpga_bridge fpga_intf(
+        .rst_n                  (chip_rst_n),
+        .fpga_clk               (fpga_clk),
+        .intcnct_clk            (io_clk),
+        .network_out_1          (fpga_intf_noc1_data),
+        .network_out_2          (fpga_intf_noc2_data),
+        .network_out_3          (fpga_intf_noc3_data),
+        .data_out_val_1         (fpga_intf_noc1_valid),
+        .data_out_val_2         (fpga_intf_noc2_valid),
+        .data_out_val_3         (fpga_intf_noc3_valid),
+        .data_out_rdy_1         (intf_fpga_noc1_rdy),
+        .data_out_rdy_2         (intf_fpga_noc2_rdy),
+        .data_out_rdy_3         (intf_fpga_noc3_rdy),
+        .intcnct_data_in        (intf_fpga_data),
+        .intcnct_channel_in     (intf_fpga_channel),
+        .intcnct_credit_back_in (intf_fpga_credit_back),
+        .network_in_1           (intf_fpga_noc1_data),
+        .network_in_2           (intf_fpga_noc2_data),
+        .network_in_3           (intf_fpga_noc3_data),
+        .data_in_val_1          (intf_fpga_noc1_valid),
+        .data_in_val_2          (intf_fpga_noc2_valid),
+        .data_in_val_3          (intf_fpga_noc3_valid),
+        .data_in_rdy_1          (fpga_intf_noc1_rdy),
+        .data_in_rdy_2          (fpga_intf_noc2_rdy),
+        .data_in_rdy_3          (fpga_intf_noc3_rdy),
+        .intcnct_data_out       (fpga_intf_data),
+        .intcnct_channel_out    (fpga_intf_channel),
+        .intcnct_credit_back_out(fpga_intf_credit_back)
+    );
+
+////////////////////////////////////////////////////////
+// fake memory controller
+////////////////////////////////////////////////////////
+    // input: noc2
+    // output: noc3
+    // Memory controller val/rdy interface
+    wire mem_noc2_valid_in;
+    wire mem_noc2_ready_in;
+    wire [`NOC_DATA_WIDTH-1:0] mem_noc2_data_in;
+    wire mem_noc3_valid_out;
+    wire mem_noc3_ready_out;
+    wire [`NOC_DATA_WIDTH-1:0] mem_noc3_data_out;
+
+    valrdy_to_credit #(4, 3) cgno_blk_mem(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(mem_noc3_data_out),
+        .valid_in(mem_noc3_valid_out),
+        .ready_in(mem_noc3_ready_out),
+
+        .data_out(fpga_offfpga_noc3_data),           // Data
+        .valid_out(fpga_offfpga_noc3_valid),       // Val signal
+        .yummy_out(offfpga_fpga_noc3_yummy)    // Yummy signal
+    );
+    credit_to_valrdy cgni_blk_mem(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(offfpga_fpga_noc2_data),
+        .valid_in(offfpga_fpga_noc2_valid),
+        .yummy_in(fpga_offfpga_noc2_yummy),
+
+        .data_out(mem_noc2_data_in),           // Data
+        .valid_out(mem_noc2_valid_in),       // Val signal from dynamic network to processor
+        .ready_out(mem_noc2_ready_in)    // Rdy signal from processor to dynamic network
+    );
+    fake_mem_ctrl fake_mem_ctrl(
+        .clk                (fpga_clk),
+        .rst_n              (chip_rst_n),
+        .noc_valid_in       (mem_noc2_valid_in),
+        .noc_data_in        (mem_noc2_data_in),
+        .noc_ready_in       (mem_noc2_ready_in),
+        .noc_valid_out      (mem_noc3_valid_out),
+        .noc_data_out       (mem_noc3_data_out),
+        .noc_ready_out      (mem_noc3_ready_out)
+    );
+
+////////////////////////////////////////////////////////
+// iobridge rtl/stub
+////////////////////////////////////////////////////////
+    // input: noc1
+    // output: noc2
+    // Iob val/rdy interface
+    wire iob_noc1_valid_in;
+    wire iob_noc1_ready_in;
+    wire [`NOC_DATA_WIDTH-1:0] iob_noc1_data_in;
+    wire iob_noc2_valid_out;
+    wire iob_noc2_ready_out;
+    wire [`NOC_DATA_WIDTH-1:0] iob_noc2_data_out;
+
+    valrdy_to_credit #(4, 3) cgno_blk_iob(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(iob_noc2_data_out),
+        .valid_in(iob_noc2_valid_out),
+        .ready_in(iob_noc2_ready_out),
+        .data_out(fpga_offfpga_noc2_data),           // Data
+        .valid_out(fpga_offfpga_noc2_valid),       // Val signal
+        .yummy_out(offfpga_fpga_noc2_yummy)    // Yummy signal
+    );
+    credit_to_valrdy cgni_blk_iob(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(offfpga_fpga_noc1_data),
+        .valid_in(offfpga_fpga_noc1_valid),
+        .yummy_in(fpga_offfpga_noc1_yummy),
+        .data_out(iob_noc1_data_in),           // Data
+        .valid_out(iob_noc1_valid_in),       // Val signal from dynamic network to processor
+        .ready_out(iob_noc1_ready_in)    // Rdy signal from processor to dynamic network
+    );
+
+    ciop_iob ciop_iob(
+        .noc_in_val        (iob_noc1_valid_in),
+        .noc_in_rdy        (iob_noc1_ready_in),
+        .noc_in_data       (iob_noc1_data_in),
+
+        .noc_out_val       (iob_noc2_valid_out),
+        .noc_out_rdy       (iob_noc2_ready_out),
+        .noc_out_data      (iob_noc2_data_out),
+
+        <%
+            text = r'''
+            .spc0_inst_done    (`TOP_MOD.monitor.pc_cmp.spc0_inst_done),
+            .pc_w0             (`PCPATH0.fdp.pc_w),
+            '''
+
+            for i in range (NUM_TILES): # extend this later
+            #for i in range (8):
+                text2 = text;
+                text2 = text2.replace("spc0_inst_done", "spc" + `i` + "_inst_done");
+                text2 = text2.replace("pc_w0", "pc_w" + `i`);
+                text2 = text2.replace("PCPATH0", "PCPATH" + `i`);
+                print text2;
+        %>
+        .clk               (fpga_clk),
+        .rst_n             (`SPARC_CORE0.reset_l)
+        );
+
+////////////////////////////////////////////////////////
+// MONITOR STUFF
+////////////////////////////////////////////////////////
+    reg diag_done;
+    reg fail_flag;
+    reg [3:0] stub_done;
+    reg [3:0] stub_pass;
+    reg init_done;
+    integer j;
+
+    // Tri: slam init is taken out because it's too complicated to extend to 64 cores
+    // slam_init slam_init () ;
+
+    // The only thing that we will "slam init" is the integer register file
+    //  and it is randomized. For some reason if we left it as X's some tests will fail
+    <%
+        t = '''
+        initial begin
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register01.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register02.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register03.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register04.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register05.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register06.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register07.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register08.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register09.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register10.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register11.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register12.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register13.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register14.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register15.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register16.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register17.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register18.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register19.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register20.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register21.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register22.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register23.bw_r_irf_register.window, 16, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register24.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register25.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register26.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register27.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register28.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register29.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register30.bw_r_irf_register.window, 8, 0);
+            $slam_random(`SPARC_REG0.bw_r_irf_core.register31.bw_r_irf_register.window, 8, 0);
+        end
+        '''
+
+        for i in range(NUM_TILES) :
+            tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
+            print tt
+    %>
+
+
+    // this is the T1 sparc core monitor
+    monitor   monitor(
+        .clk    (chip.clk_muxed),
+        .cmp_gclk  (chip.clk_muxed),
+        .rst_l     (`SPARC_CORE0.reset_l)
+        );
+
+    jtag_mon jtag_mon(
+        .clk (chip.clk_muxed)
+        );
+
+    cmp_l15_messages_mon l15_messages_mon(
+        .clk (chip.clk_muxed)
+        );
+
+    // l2_mon l2_mon(
+    //     .clk (clk)
+    // );
+    // initialize client to communicate with ref model through socket
+
+    integer   vsocket, i, list_handle;
+    initial begin
+        //list_handle = $bw_list(list_handle, 0);chin's change
+         //if not use sas, list should not be called
+        if($test$plusargs("use_sas_tasks"))begin
+            list_handle = $bw_list(list_handle, 0);
+                $bw_socket_init();
+        end
+    end
+
+endmodule
+
+// Top-level testbench module
+module jtag_testbench_top;
+
+    reg [8*1024:1] test_cases_path;
+    reg [8*1024:1] test_case_base;
+    reg [1023:0] test_case_num = 0;
+    always @ *
+    if (test_case_num == 0)
+    begin
+        #10000;
+        test_case_num = test_case_num + 1;
+    end
+    reg send_wakeup;
+    reg [31:0] jtag_timeout = 100000000;
+    reg force_cache = 0;
+    initial
+    begin
+        test_case_base = "debug";
+        send_wakeup = 1'b1;
+        $display ("");
+        $display (" Entering Test Suite: JTAG");
+        $value$plusargs("test_cases_path=%s", test_cases_path);
+        $value$plusargs("test_case_base=%s", test_case_base);
+        $value$plusargs("jtag_iob_send_wakeup=%d", send_wakeup);
+        $value$plusargs("jtag_timeout=%d", jtag_timeout);
+        $value$plusargs("force_cache=%d", force_cache);
+    end
+
+    reg core_ref_clk;
+    reg io_clk;
+    reg fpga_clk;
+    reg jtag_clk;
+    reg jtag_rst_l;
+    reg          chip_rst_n;
+    reg          pll_rst_n;
+    wire done;
+    integer i;
+    reg clk_en;
+
+`ifndef NO_SIM_PLL
+    always #5000 core_ref_clk = ~core_ref_clk;     // 100MHz
+`else
+    always #500 core_ref_clk = ~core_ref_clk;    // 1000MHz
+`endif
+
+    always #5000 io_clk = ~io_clk;                 // 100MHz
+    always #2500 fpga_clk = ~fpga_clk;           // 200MHz
+    //assign fpga_clk = pin_clk;                // 
+    always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
+
+
+    jtag_testbench_top_helper helper
+    (
+        .core_ref_clk (core_ref_clk),
+        .jtag_clk (jtag_clk),
+        .chip_rst_n (chip_rst_n),
+        .pll_rst_n (pll_rst_n),
+        .clk_en (clk_en),
+        .io_clk (io_clk),
+        .fpga_clk (fpga_clk),
+        .jtag_rst_l (jtag_rst_l),
+        .done (done)
+    );
+
+    initial
+    begin
+        chip_rst_n = 1'b0;
+        pll_rst_n = 1'b0;
+        clk_en = 1'b0;          // turn on clock for all tiles
+        core_ref_clk = 0;
+        io_clk = 0;
+        fpga_clk = 0;
+        jtag_clk = 0;
+    end
+
+
+    `TEST_CASE_BEGIN(1, "jtag_testbench")
+    begin
+
+        helper.src.RANDOM_DELAY = 0;
+        helper.sink.RANDOM_DELAY = 0;
+
+        $readmemb({test_cases_path, test_case_base, "_in.vmh"}, helper.src.m_f);
+        $readmemb({test_cases_path, test_case_base, "_out.vmh"}, helper.sink.m_f);
+
+        helper.fail_flag = 0;
+        helper.stub_done = 0;
+        helper.stub_pass = 0;
+        helper.init_done = 0;
+
+        //`ifdef ORAM_ON
+        if ($test$plusargs("oram"))
+        begin
+            $init_jbus_model("mem.image", 1);
+            force chip.ctap_oram_clk_en = 1'b1;
+        //`else
+        end
+        else
+        begin
+            $init_jbus_model("mem.image", 0);
+        //`endif
+        end
+
+        if (force_cache)
+            force helper.chip.tile0.core.sparc0.lsu.lsu.lsu_ifu_icache_en = 4'b1111;
+
+        pll_rst_n = 0;           // reset is held low upon boot up
+        chip_rst_n = 0;
+        jtag_rst_l = 0;
+        core_ref_clk = 0;
+        io_clk = 0;
+        fpga_clk = 0;
+        jtag_clk = 0;
+        helper.async_mux = 1;
+        helper.pll_bypass = 1'b0;
+        // assign rangeA = x10 ? 5'b1 : x5 ? 5'b11110 : x2 ? 5'b10100 : x1 ? 5'b10010 : x20 ? 5'b0 : 5'b1;
+        helper.pll_rangea = 5'b00001; // 10x ref clock
+        // pll_rangea = 5'b11110; // 5x ref clock
+        // pll_rangea = 5'b00000; // 20x ref clock
+
+        if ($test$plusargs("pll_en"))
+        begin
+            // PLL is disabled by default
+            helper.pll_bypass = 1'b0; // trin: pll_bypass is a switch in the pll; not reliable
+            helper.clk_mux_sel[1:0] = 2'b10; // selecting pll
+            // clk_mux_sel[1:0] = 2'b01; // selecting pll
+        end
+        else
+        begin
+            helper.pll_bypass = 1'b1; // trin: pll_bypass is a switch in the pll; not reliable
+            helper.clk_mux_sel[1:0] = 2'b00; // selecting ref clock
+        end
+
+        repeat(100)@(posedge core_ref_clk);
+        pll_rst_n = 1;           // deassert reset
+
+        $display("Waiting for pll lock");
+        wait( helper.pll_lock == 1'b1 );   // wait for PLL
+        $display("Done for pll lock");
+
+        repeat(10)@(posedge helper.chip.clk_muxed);
+        clk_en = 1;          // turn on clock for all tiles
+        repeat(100)@(posedge helper.chip.clk_muxed);
+        chip_rst_n = 1;
+        jtag_rst_l = 1'b1;
+
+        $display("Waiting for SRAM");
+        repeat(5000)@(posedge helper.chip.clk_muxed);     // wait for sram wrappers; trin: 5000 cycles is about the lowest
+
+        helper.diag_done = 1;       // ???
+        helper.ciop_iob.ok_iob = send_wakeup;    // send wake up packet to first tile
+        helper.init_done = 1;       // ???
+
+        $display("Running tests");
+        #jtag_timeout `TEST_CHECK("Timeout check", done, 1)
+    end
+    `TEST_CASE_END
+
+    `TEST_INFRSTRCT_END(1)
+
+endmodule

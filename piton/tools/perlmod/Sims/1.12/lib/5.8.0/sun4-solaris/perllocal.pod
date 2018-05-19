@@ -1,0 +1,22 @@
+=head2 Thu May  5 11:41:12 2005: C<Module> L<Sims|Sims>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/Sims/1.12/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.12>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

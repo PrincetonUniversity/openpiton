@@ -1,0 +1,65 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<runargs -midas_args=-DSYNC_THREADS>
+
+#ifdef THREAD1_FULL
+
+L2_VUAD_diag_accesses_test      L2_VUAD_diag_accesses_test.s -nosas -sim_run_args=+l1_chkoff -max_cycle=600000
+DCIC_BISI_test                  DCIC_BISI_test.s -nosas -sim_run_args=+l1_chkoff -max_cycle=900000
+L1_BIST_ASI_test                L1_BIST_ASI_test.s -sim_run_args=+l1_chkoff -max_cycle=600000 -rtl_timeout=550000 -nosas
+L2_CTRL_REG_DMM_test            L2_CTRL_REG_DMM_test.s -nosas
+
+#else
+
+ASI_LSU_DIAG_ASI42_VA10_test_0 	ASI_LSU_DIAG_ASI42_VA10_test_0.s -sim_run_args=+l1_chkoff -finish_mask=f -nosas
+ASI_LSU_DIAG_ASI42_VA10_test_1 	ASI_LSU_DIAG_ASI42_VA10_test_1.s -sim_run_args=+l1_chkoff -finish_mask=f -nosas
+ASI_LSU_DIAG_ASI42_VA10_test_2 	ASI_LSU_DIAG_ASI42_VA10_test_2.s -sim_run_args=+l1_chkoff -finish_mask=f -nosas
+ASI_LSU_DIAG_ASI42_VA10_test_3 	ASI_LSU_DIAG_ASI42_VA10_test_3.s -sim_run_args=+l1_chkoff -finish_mask=f -nosas
+DC_ASI-46-47_test_0 		DC_ASI-46-47_test_0.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=3000000
+DC_ASI-46-47_test_1 		DC_ASI-46-47_test_1.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=3000000
+DC_ASI-46-47_test_2 		DC_ASI-46-47_test_2.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=3000000
+DC_ASI-46-47_test_3 		DC_ASI-46-47_test_3.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=3000000
+D_cache_ASI_ctrl_test_0 	D_cache_ASI_ctrl_test_0.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+D_cache_ASI_ctrl_test_1 	D_cache_ASI_ctrl_test_1.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+D_cache_ASI_ctrl_test_2 	D_cache_ASI_ctrl_test_2.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+D_cache_ASI_ctrl_test_3 	D_cache_ASI_ctrl_test_3.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+I_cache_ASI_ctrl_test_0 	I_cache_ASI_ctrl_test_0.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+I_cache_ASI_ctrl_test_1 	I_cache_ASI_ctrl_test_1.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+I_cache_ASI_ctrl_test_2 	I_cache_ASI_ctrl_test_2.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+I_cache_ASI_ctrl_test_3 	I_cache_ASI_ctrl_test_3.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f
+ASI_LSU_CTRL_MMUs_enable_disable_test ASI_LSU_CTRL_MMUs_enable_disable_test.s 
+L2_Data_Array_diag_access_test_4T L2_Data_Array_diag_access_test_4T.s -nosas -sim_run_args=+l1_chkoff -max_cycle=9000000 -finish_mask=f
+L2_VUAD_diag_accesses_test      L2_VUAD_diag_accesses_test.s -nosas -sim_run_args=+l1_chkoff -max_cycle=600000
+L2_Tag_Array_diag_access_test_4T L2_Tag_Array_diag_access_test_4T.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=4000000 
+L2_VUAD_diag_accesses_test_4T   L2_VUAD_diag_accesses_test_4T.s -nosas -sim_run_args=+l1_chkoff -finish_mask=f -max_cycle=1000000
+DCIC_BISI_test                  DCIC_BISI_test.s -nosas -sim_run_args=+l1_chkoff -max_cycle=900000
+L1_BIST_ASI_test                L1_BIST_ASI_test.s -sim_run_args=+l1_chkoff -max_cycle=600000 -rtl_timeout=550000 -nosas
+L2_CTRL_REG_DMM_test            L2_CTRL_REG_DMM_test.s -nosas
+ASI_INST_MASK_REG-test_0        ASI_INST_MASK_REG-test_0.s -finish_mask=f -max_cycle=4000000 -sim_run_args=+inst_check_off=1
+ASI_STM_CTRL_REG                ASI_STM_CTRL_REG.s -nosas
+Msl_regs_1_walk                 Msl_regs_1_walk.s -sas -finish_mask=f 
+IO_AddrSpc_known_addr_test      IO_AddrSpc_known_addr_test.s -finish_mask=f -max_cycle=1000000 -vcs_use_initreg -sim_run_args=+sjm_timeout_scale20 -sim_run_args=+monnum1 -sim_run_args=+unit\[0\]jbus_mon_mem_port -sim_run_args=+monenable\[0\]off -sim_run_args=+tage\[0\]49 -sim_run_args=+tags\[0\]49
+
+#endif
+
+</runargs>
+

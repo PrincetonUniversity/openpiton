@@ -1,0 +1,914 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+`include "dmbr_define.v"
+`include "define.vh"
+`include "l15.vh"
+<%
+DMBR_BIN_NUM = 10
+MAX_TAG = 16
+%>
+
+module dmbr(
+    input clk,
+    input rst,
+    input func_en, // resgiter enable
+    input stall_en, // stall signal enable
+   // input dmbr_en,
+    //configuration signal from co-processor
+    input proc_ld,
+    //credit bin configuration
+    input [`CREDIT_WIDTH-1:0] creditIn_0,
+    input [`CREDIT_WIDTH-1:0] creditIn_1,
+    input [`CREDIT_WIDTH-1:0] creditIn_2,
+    input [`CREDIT_WIDTH-1:0] creditIn_3,
+    input [`CREDIT_WIDTH-1:0] creditIn_4,
+    input [`CREDIT_WIDTH-1:0] creditIn_5,
+    input [`CREDIT_WIDTH-1:0] creditIn_6,
+    input [`CREDIT_WIDTH-1:0] creditIn_7,
+    input [`CREDIT_WIDTH-1:0] creditIn_8,
+    input [`CREDIT_WIDTH-1:0] creditIn_9,
+
+    input [`REPLENISH_WIDTH-1:0] replenishCyclesIn,
+    input [`SCALE_WIDTH-1:0] binScaleIn,
+    //l1.5 miss && l2 response
+    input                     l1missIn,
+    input [`DMBR_TAG_WIDTH-1:0] l1missTag,
+    input                     l2responseIn,
+    input                     l2missIn,
+    input [`DMBR_TAG_WIDTH-1:0] l2missTag,
+
+    <%
+    for i in range(DMBR_BIN_NUM):
+        print "output reg [`CREDIT_WIDTH-1:0] curr_cred_bin_%d," % i
+    %>
+   
+    //output to L1.5
+    output reg stallOut
+);
+
+reg rep_en;
+reg add_counter_reset;
+reg [`COUNTER_WIDTH-1:0] sat_counter;
+reg [`COUNTER_WIDTH-1:0] add_counter;
+reg [`COUNTER_WIDTH:0] curInterval;
+reg [`REPLENISH_WIDTH-1:0] stall_cycles;
+reg [`REPLENISH_WIDTH-1:0] total_stall_cycles;
+
+
+<%
+for i in range(DMBR_BIN_NUM):
+    print "reg [`CREDIT_WIDTH-1:0] curCredit_%d;" % i
+    print "reg [`CREDIT_WIDTH-1:0] next_credit_%d;" % i
+    print "reg [`CREDIT_WIDTH-1:0] repCredit_%d;" % i
+    print "reg req_en_%d;" % i
+    print "reg add_en_%d;" % i
+%>
+
+<%
+for i in range(MAX_TAG):
+    print "reg [3:0] bin_used_%d;" % i      # why the width is not defined ??? @alavrov
+    print "reg [`COUNTER_WIDTH:0] interval_%d;" % i      # why not defined ???
+    print "reg [`COUNTER_WIDTH-1:0] bin_number_%d;" % i    # why not defined ???
+    print "reg [`COUNTER_WIDTH:0] sum_counter_%d;" % i   # why not defined ???
+%>
+
+reg [`CREDIT_WIDTH-1:0] curCredit_mux;
+reg [`CREDIT_WIDTH-1:0] repCredit_mux;
+reg [`CREDIT_WIDTH-1:0] curCredit_mux2;
+reg [`CREDIT_WIDTH-1:0] repCredit_mux2;
+
+reg [`COUNTER_WIDTH:0] add_interval;
+reg [`SCALE_WIDTH-1:0] binScale;
+
+wire [`COUNTER_WIDTH-1:0] max_interval = (`TOTAL_BIN_NUM << binScale) + 1'b1;
+
+wire [`COUNTER_WIDTH-1:0] next_sat_counter = l1missIn ? {`COUNTER_WIDTH{1'b0}} : (sat_counter < max_interval) ? sat_counter + 1'b1 : sat_counter;
+
+wire [`COUNTER_WIDTH-1:0] add_interval2 = add_interval > max_interval ? max_interval : add_interval[`COUNTER_WIDTH-1:0];
+
+wire [`COUNTER_WIDTH-1:0] next_add_counter = (l2responseIn && add_counter_reset) ? add_interval2 : (l2responseIn && !l2missIn) ? 
+                          ((add_counter + add_interval2 < max_interval) ? add_counter + add_interval2 : max_interval) :  
+                              add_counter_reset ? {`COUNTER_WIDTH{1'b0}}  : add_counter;
+
+reg [`REPLENISH_WIDTH-1:0] repInterval;
+reg rep_reset;
+
+wire [`REPLENISH_WIDTH-1:0] next_repInterval = rep_reset ?  {`REPLENISH_WIDTH{1'b0}} : repInterval + 1'b1;
+
+reg [`REPLENISH_WIDTH-1:0] replenishCycles;
+
+
+reg stall;
+reg [3:0]  bin_number;
+reg [3:0]  add_bin;
+
+//reg [`COUNTER_WIDTH-1:0] stall_cycles;
+//reg [10:0] total_stall_cycles;
+
+wire [`REPLENISH_WIDTH-1:0] next_total_stall_cycles = stall_cycles > 0  ? total_stall_cycles + stall_cycles :
+                                      total_stall_cycles > 0 ? total_stall_cycles - 1'b1 : {`REPLENISH_WIDTH{1'b0}};
+
+wire [`CREDIT_WIDTH-1:0] cur_credit_minus_one = curCredit_mux > 0 ? curCredit_mux - 1 : curCredit_mux;
+wire [`CREDIT_WIDTH-1:0] input2 = rep_en ? repCredit_mux2 : curCredit_mux2;
+wire [`COUNTER_WIDTH:0] sum_counter = sat_counter + add_counter;
+wire [`CREDIT_WIDTH-1:0] req_out = rep_en ? repCredit_mux : cur_credit_minus_one;
+wire [`CREDIT_WIDTH-1:0] add_out = input2 < {`CREDIT_WIDTH{1'b1}} ? input2 + 1'b1 : input2;
+
+always @*
+begin
+
+    rep_en = 1'b0;
+    req_en_0 = 1'b0;
+    req_en_1 = 1'b0; 
+    req_en_2 = 1'b0;
+    req_en_3 = 1'b0;
+    req_en_4 = 1'b0;
+    req_en_5 = 1'b0;
+    req_en_6 = 1'b0;
+    req_en_7 = 1'b0;
+    req_en_8 = 1'b0;
+    req_en_9 = 1'b0;
+
+
+
+    stall = 1'b0;
+    rep_reset = 1'b0;
+    stall_cycles = 0;
+//    minus_cycles = 0;
+    curInterval = {`COUNTER_WIDTH+1{1'b0}} ;
+    bin_number = 4'b0;
+
+    stallOut = 1'b0;
+    if (stall_en && total_stall_cycles > 0) begin
+        stallOut = 1'b1;
+    end
+    if (repInterval == replenishCycles)
+    begin
+        rep_en = 1'b1;
+        rep_reset = 1'b1;
+    end
+
+    if (l1missIn) begin
+        curInterval = sum_counter;
+        add_counter_reset = 1'b1;
+    end
+    else begin
+        add_counter_reset = 1'b0;
+        curInterval = 0;
+    end
+            
+
+    if (l1missIn) begin
+        if (curInterval >= `REPLENISH9 << binScale && curCredit_9 > 0)
+        begin
+            req_en_9 = 1'b1;
+            stall = 1'b0;
+            bin_number = 9;
+        end
+        else if (curInterval >= `REPLENISH8 << binScale && curCredit_8 > 0)
+        begin
+            req_en_8 = 1'b1;
+            stall = 1'b0;
+            bin_number = 8;
+        end
+        else if (curInterval >= `REPLENISH7 << binScale && curCredit_7 > 0)
+        begin
+            req_en_7 = 1'b1;
+            stall = 1'b0;
+            bin_number = 7;
+        end
+        else if (curInterval >= `REPLENISH6 << binScale && curCredit_6 > 0)
+        begin
+            req_en_6 = 1'b1;
+            stall = 1'b0;
+            bin_number = 6;
+        end
+        else if (curInterval >= `REPLENISH5 << binScale && curCredit_5 > 0)
+        begin
+            req_en_5 = 1'b1;
+            stall = 1'b0;
+            bin_number = 5;
+        end
+        else if (curInterval >= `REPLENISH4 << binScale && curCredit_4 > 0)
+        begin
+            req_en_4 = 1'b1;
+            stall = 1'b0;
+            bin_number = 4;
+        end
+        else if (curInterval >= `REPLENISH3 << binScale && curCredit_3 > 0)
+        begin
+            req_en_3 = 1'b1;
+            stall = 1'b0;
+            bin_number = 3;
+        end
+        else if (curInterval >= `REPLENISH2 << binScale && curCredit_2 > 0)
+        begin
+            req_en_2 = 1'b1;
+            stall = 1'b0;
+            bin_number = 2;
+        end
+        else if (curInterval >= `REPLENISH1 << binScale && curCredit_1 > 0)
+        begin
+            req_en_1 = 1'b1;
+            stall = 1'b0;
+            bin_number = 1;
+        end
+        else if (curCredit_0 > 0)
+        begin
+            req_en_0 = 1'b1;
+            stall = 1'b0;
+            bin_number = 0;
+        end
+    
+        else begin
+            stall = 1'b1;
+            if (curCredit_1 > 0)
+            begin
+                req_en_1 = 1'b1;
+                stall_cycles = (`REPLENISH1 << binScale) - curInterval;
+                bin_number = 1;
+            end
+            else if (curCredit_2 > 0)
+            begin
+                req_en_2 = 1'b1;
+                stall_cycles = (`REPLENISH2 << binScale) - curInterval;
+                bin_number = 2;
+            end
+            else if (curCredit_3 > 0)
+            begin
+                req_en_3 = 1'b1;
+                stall_cycles = (`REPLENISH3 << binScale) - curInterval;
+                bin_number = 3;
+            end
+            else if (curCredit_4 > 0)
+            begin
+                req_en_4 = 1'b1;
+                stall_cycles = (`REPLENISH4 << binScale) - curInterval;
+                bin_number = 4;
+            end
+            else if (curCredit_5 > 0)
+            begin
+                req_en_5 = 1'b1;
+                stall_cycles = (`REPLENISH5 << binScale) - curInterval;
+                bin_number = 5;
+            end
+            else if (curCredit_6 > 0)
+            begin
+                req_en_6 = 1'b1;
+                stall_cycles = (`REPLENISH6 << binScale) - curInterval;
+                bin_number = 6;
+            end
+            else if (curCredit_7 > 0)
+            begin
+                req_en_7 = 1'b1;
+                stall_cycles = (`REPLENISH7 << binScale) - curInterval;
+                bin_number = 7;
+            end
+            else if (curCredit_8 > 0)
+            begin
+                req_en_8 = 1'b1;
+                stall_cycles = (`REPLENISH8 << binScale) - curInterval;
+                bin_number = 8;
+            end
+            else if (curCredit_9 > 0)
+            begin
+                req_en_9 = 1'b1;
+                stall_cycles = (`REPLENISH9 << binScale) - curInterval;
+                bin_number = 9;
+            end
+            else
+            begin
+                req_en_0 = 1'b1;
+                stall_cycles = replenishCycles - repInterval;
+                bin_number = 10;
+            end
+        end
+    end
+
+
+end
+always @ *
+begin
+    bin_number_0 = bin_used_0;
+    bin_number_1 = bin_used_1;
+    bin_number_2 = bin_used_2;
+    bin_number_3 = bin_used_3;
+    bin_number_4 = bin_used_4;
+    bin_number_5 = bin_used_5;
+    bin_number_6 = bin_used_6;
+    bin_number_7 = bin_used_7;
+    bin_number_8 = bin_used_8;
+    bin_number_9 = bin_used_9;
+    bin_number_10 = bin_used_10;
+    bin_number_11 = bin_used_11;
+    bin_number_12 = bin_used_12;
+    bin_number_13 = bin_used_13;
+    bin_number_14 = bin_used_14;
+    bin_number_15 = bin_used_15;
+
+
+    sum_counter_0 = interval_0;
+    sum_counter_1 = interval_1;
+    sum_counter_2 = interval_2;
+    sum_counter_3 = interval_3;
+    sum_counter_4 = interval_4;
+    sum_counter_5 = interval_5;
+    sum_counter_6 = interval_6;
+    sum_counter_7 = interval_7;
+    sum_counter_8 = interval_8;
+    sum_counter_9 = interval_9;
+    sum_counter_10 = interval_10;
+    sum_counter_11 = interval_11;
+    sum_counter_12 = interval_12;
+    sum_counter_13 = interval_13;
+    sum_counter_14 = interval_14;
+    sum_counter_15 = interval_15;
+
+
+
+    if (l1missIn) begin
+        case (l1missTag) 
+            4'd0: begin
+                bin_number_0 = bin_number;
+                sum_counter_0 = sum_counter;
+            end
+            4'd1: begin 
+                bin_number_1 = bin_number;
+                sum_counter_1 = sum_counter;
+            end
+            4'd2: begin
+                bin_number_2 = bin_number;
+                sum_counter_2 = sum_counter;
+            end
+            4'd3: begin
+                bin_number_3 = bin_number;
+                sum_counter_3 = sum_counter;
+            end
+            4'd4: begin
+                bin_number_4 = bin_number;
+                sum_counter_4 = sum_counter;
+            end
+            4'd5: begin 
+                bin_number_5 = bin_number;
+                sum_counter_5 = sum_counter;
+            end
+            4'd6: begin
+                bin_number_6 = bin_number;
+                sum_counter_6 = sum_counter;
+            end
+            4'd7: begin
+                bin_number_7 = bin_number;
+                sum_counter_7 = sum_counter;
+            end
+            4'd8: begin
+                bin_number_8 = bin_number;
+                sum_counter_8 = sum_counter;
+            end
+            4'd9: begin 
+                bin_number_9 = bin_number;
+                sum_counter_9 = sum_counter;
+            end
+            4'd10: begin
+                bin_number_10 = bin_number;
+                sum_counter_10 = sum_counter;
+            end
+            4'd11: begin
+                bin_number_11 = bin_number;
+                sum_counter_11 = sum_counter;
+            end
+            4'd12: begin
+                bin_number_12 = bin_number;
+                sum_counter_12 = sum_counter;
+            end
+            4'd13: begin 
+                bin_number_13 = bin_number;
+                sum_counter_13 = sum_counter;
+            end
+            4'd14: begin
+                bin_number_14 = bin_number;
+                sum_counter_14 = sum_counter;
+            end
+            4'd15: begin
+                bin_number_15 = bin_number;
+                sum_counter_15 = sum_counter;
+            end
+
+            default:;
+        endcase
+    end
+end
+always @ *
+begin
+    add_bin = 0;
+    add_interval = 0;
+    if (l2responseIn) begin
+        if (!l2missIn) begin
+            case (l2missTag)
+                4'd0: begin
+                    add_bin = bin_used_0;
+                    add_interval = interval_0;
+                end
+                4'd1: begin
+                    add_bin = bin_used_1;
+                    add_interval = interval_1;
+                end
+                4'd2: begin
+                    add_bin = bin_used_2;
+                    add_interval = interval_2;
+                end
+                4'd3: begin
+                    add_bin = bin_used_3;
+                    add_interval = interval_3;
+                end
+                4'd4: begin
+                    add_bin = bin_used_4;
+                    add_interval = interval_4;
+                end
+                4'd5: begin
+                    add_bin = bin_used_5;
+                    add_interval = interval_5;
+                end
+                4'd6: begin
+                    add_bin = bin_used_6;
+                    add_interval = interval_6;
+                end
+                4'd7: begin
+                    add_bin = bin_used_7;
+                    add_interval = interval_7;
+                end
+                4'd8: begin
+                    add_bin = bin_used_8;
+                    add_interval = interval_8;
+                end
+                4'd9: begin
+                    add_bin = bin_used_9;
+                    add_interval = interval_9;
+                end
+                4'd10: begin
+                    add_bin = bin_used_10;
+                    add_interval = interval_10;
+                end
+                4'd11: begin
+                    add_bin = bin_used_11;
+                    add_interval = interval_11;
+                end
+                4'd12: begin
+                    add_bin = bin_used_12;
+                    add_interval = interval_12;
+                end
+                4'd13: begin
+                    add_bin = bin_used_13;
+                    add_interval = interval_13;
+                end
+                4'd14: begin
+                    add_bin = bin_used_14;
+                    add_interval = interval_14;
+                end
+                4'd15: begin
+                    add_bin = bin_used_15;
+                    add_interval = interval_15;
+                end
+
+                default: begin
+                    add_bin = 10;
+                    add_interval = 0;
+                end
+            endcase
+        end
+    end
+end
+always @ *
+begin
+    add_en_0 = 1'b0;
+    add_en_1 = 1'b0; 
+    add_en_2 = 1'b0;
+    add_en_3 = 1'b0;
+    add_en_4 = 1'b0;
+    add_en_5 = 1'b0;
+    add_en_6 = 1'b0;
+    add_en_7 = 1'b0;
+    add_en_8 = 1'b0;
+    add_en_9 = 1'b0;
+
+    if (l2responseIn) begin
+        if (!l2missIn) begin
+            case (add_bin)
+               4'd0: add_en_0 = 1'b1;
+               4'd1: add_en_1 = 1'b1;
+               4'd2: add_en_2 = 1'b1;
+               4'd3: add_en_3 = 1'b1;
+               4'd4: add_en_4 = 1'b1;
+               4'd5: add_en_5 = 1'b1;
+               4'd6: add_en_6 = 1'b1;
+               4'd7: add_en_7 = 1'b1;
+               4'd8: add_en_8 = 1'b1;
+               4'd9: add_en_9 = 1'b1;
+
+               default: begin
+                    add_en_0 = 1'b0;
+                    add_en_1 = 1'b0; 
+                    add_en_2 = 1'b0;
+                    add_en_3 = 1'b0;
+                    add_en_4 = 1'b0;
+                    add_en_5 = 1'b0;
+                    add_en_6 = 1'b0;
+                    add_en_7 = 1'b0;
+                    add_en_8 = 1'b0;
+                    add_en_9 = 1'b0;
+               end
+           endcase
+        end
+    end 
+
+end
+always @ *
+begin
+    curCredit_mux = ({`CREDIT_WIDTH{req_en_0}} & curCredit_0) | ({`CREDIT_WIDTH{req_en_1}} & curCredit_1) | ({`CREDIT_WIDTH{req_en_2}} & curCredit_2) | ({`CREDIT_WIDTH{req_en_3}} & curCredit_3) | ({`CREDIT_WIDTH{req_en_4}} & curCredit_4) | ({`CREDIT_WIDTH{req_en_5}} & curCredit_5) | ({`CREDIT_WIDTH{req_en_6}} & curCredit_6) | ({`CREDIT_WIDTH{req_en_7}} & curCredit_7) | ({`CREDIT_WIDTH{req_en_8}} & curCredit_8) | ({`CREDIT_WIDTH{req_en_9}} & curCredit_9);
+    repCredit_mux = ({`CREDIT_WIDTH{req_en_0}} & repCredit_0) | ({`CREDIT_WIDTH{req_en_1}} & repCredit_1) | ({`CREDIT_WIDTH{req_en_2}} & repCredit_2) | ({`CREDIT_WIDTH{req_en_3}} & repCredit_3) | ({`CREDIT_WIDTH{req_en_4}} & repCredit_4) | ({`CREDIT_WIDTH{req_en_5}} & repCredit_5) | ({`CREDIT_WIDTH{req_en_6}} & repCredit_6) | ({`CREDIT_WIDTH{req_en_7}} & repCredit_7) | ({`CREDIT_WIDTH{req_en_8}} & repCredit_8) | ({`CREDIT_WIDTH{req_en_9}} & repCredit_9);
+
+end
+
+always @ *
+begin
+
+    curCredit_mux2 = ({`CREDIT_WIDTH{add_en_0}} & curCredit_0) | ({`CREDIT_WIDTH{add_en_1}} & curCredit_1) | ({`CREDIT_WIDTH{add_en_2}} & curCredit_2) | ({`CREDIT_WIDTH{add_en_3}} & curCredit_3) | ({`CREDIT_WIDTH{add_en_4}} & curCredit_4) | ({`CREDIT_WIDTH{add_en_5}} & curCredit_5) | ({`CREDIT_WIDTH{add_en_6}} & curCredit_6) | ({`CREDIT_WIDTH{add_en_7}} & curCredit_7) | ({`CREDIT_WIDTH{add_en_8}} & curCredit_8) | ({`CREDIT_WIDTH{add_en_9}} & curCredit_9);
+    repCredit_mux2 = ({`CREDIT_WIDTH{add_en_0}} & repCredit_0) | ({`CREDIT_WIDTH{add_en_1}} & repCredit_1) | ({`CREDIT_WIDTH{add_en_2}} & repCredit_2) | ({`CREDIT_WIDTH{add_en_3}} & repCredit_3) | ({`CREDIT_WIDTH{add_en_4}} & repCredit_4) | ({`CREDIT_WIDTH{add_en_5}} & repCredit_5) | ({`CREDIT_WIDTH{add_en_6}} & repCredit_6) | ({`CREDIT_WIDTH{add_en_7}} & repCredit_7) | ({`CREDIT_WIDTH{add_en_8}} & repCredit_8) | ({`CREDIT_WIDTH{add_en_9}} & repCredit_9);
+
+end
+
+always @ *
+begin
+    next_credit_0 = curCredit_0;
+    case({req_en_0, rep_en, add_en_0})
+        3'b001: next_credit_0  = add_out;
+        3'b010: next_credit_0 = repCredit_0;
+        3'b011: next_credit_0 = add_out;
+        3'b100: next_credit_0 = req_out;
+        3'b110: next_credit_0 = req_out;
+        3'b111: next_credit_0 = repCredit_0;
+        3'b000: next_credit_0 = curCredit_0;
+        3'b101: next_credit_0 = curCredit_0;
+        default:;
+
+    endcase
+end
+
+always @ *
+begin
+    next_credit_1 = curCredit_1;
+    case({req_en_1, rep_en, add_en_1})
+        3'b001: next_credit_1 = add_out;
+        3'b010: next_credit_1 = repCredit_1;
+        3'b011: next_credit_1 = add_out;
+        3'b100: next_credit_1 = req_out;
+        3'b110: next_credit_1 = req_out;
+        3'b111: next_credit_1 = repCredit_1;
+        3'b000: next_credit_1 = curCredit_1;
+        3'b101: next_credit_1 = curCredit_1;
+        default:;
+
+    endcase
+end
+always @ *
+begin
+    next_credit_2 = curCredit_2;
+    case({req_en_2, rep_en, add_en_2})
+        3'b001: next_credit_2  = add_out;
+        3'b010: next_credit_2 = repCredit_2;
+        3'b011: next_credit_2 = add_out;
+        3'b100: next_credit_2 = req_out;
+        3'b110: next_credit_2 = req_out;
+        3'b111: next_credit_2 = repCredit_2;
+        3'b000: next_credit_2 = curCredit_2;
+        3'b101: next_credit_2 = curCredit_2;
+        default:;
+
+    endcase
+end
+
+always @ *
+begin
+    next_credit_3 = curCredit_3;
+    case({req_en_3, rep_en, add_en_3})
+        3'b001: next_credit_3  = add_out;
+        3'b010: next_credit_3 = repCredit_3;
+        3'b011: next_credit_3 = add_out;
+        3'b100: next_credit_3 = req_out;
+        3'b110: next_credit_3 = req_out;
+        3'b111: next_credit_3 = repCredit_3;
+        3'b000: next_credit_3 = curCredit_3;
+        3'b101: next_credit_3 = curCredit_3;
+        default:;
+
+    endcase
+end
+always @ *
+begin
+    next_credit_4 = curCredit_4;
+    case({req_en_4, rep_en, add_en_4})
+        3'b001: next_credit_4  = add_out;
+        3'b010: next_credit_4 = repCredit_4;
+        3'b011: next_credit_4 = add_out;
+        3'b100: next_credit_4 = req_out;
+        3'b110: next_credit_4 = req_out;
+        3'b111: next_credit_4 = repCredit_4;
+        3'b000: next_credit_4 = curCredit_4;
+        3'b101: next_credit_4 = curCredit_4;
+        default:;
+
+    endcase
+end
+
+always @ *
+begin
+    next_credit_5 = curCredit_5;
+    case({req_en_5, rep_en, add_en_5})
+        3'b001: next_credit_5 = add_out;
+        3'b010: next_credit_5 = repCredit_5;
+        3'b011: next_credit_5 = add_out;
+        3'b100: next_credit_5 = req_out;
+        3'b110: next_credit_5 = req_out;
+        3'b111: next_credit_5 = repCredit_5;
+        3'b000: next_credit_5 = curCredit_5;
+        3'b101: next_credit_5 = curCredit_5;
+        default:;
+
+    endcase
+end
+always @ *
+begin
+    next_credit_6 = curCredit_6;
+    case({req_en_6, rep_en, add_en_6})
+        3'b001: next_credit_6 = add_out;
+        3'b010: next_credit_6 = repCredit_6;
+        3'b011: next_credit_6 = add_out;
+        3'b100: next_credit_6 = req_out;
+        3'b110: next_credit_6 = req_out;
+        3'b111: next_credit_6 = repCredit_6;
+        3'b000: next_credit_6 = curCredit_6;
+        3'b101: next_credit_6 = curCredit_6;
+        default:;
+
+    endcase
+end
+
+always @ *
+begin
+    next_credit_7 = curCredit_7;
+    case({req_en_7, rep_en, add_en_7})
+        3'b001: next_credit_7 = add_out;
+        3'b010: next_credit_7 = repCredit_7;
+        3'b011: next_credit_7 = add_out;
+        3'b100: next_credit_7 = req_out;
+        3'b110: next_credit_7 = req_out;
+        3'b111: next_credit_7 = repCredit_7;
+        3'b000: next_credit_7 = curCredit_7;
+        3'b101: next_credit_7 = curCredit_7;
+        default:;
+
+    endcase
+end
+always @ *
+begin
+    next_credit_8 = curCredit_8;
+    case({req_en_8, rep_en, add_en_8})
+        3'b001: next_credit_8 = add_out;
+        3'b010: next_credit_8 = repCredit_8;
+        3'b011: next_credit_8 = add_out;
+        3'b100: next_credit_8 = req_out;
+        3'b110: next_credit_8 = req_out;
+        3'b111: next_credit_8 = repCredit_8;
+        3'b000: next_credit_8 = curCredit_8;
+        3'b101: next_credit_8 = curCredit_8;
+        default:;
+
+    endcase
+end
+always @ *
+begin
+    next_credit_9 = curCredit_9;
+    case({req_en_9, rep_en, add_en_9})
+        3'b001: next_credit_9 = add_out;
+        3'b010: next_credit_9 = repCredit_9;
+        3'b011: next_credit_9 = add_out;
+        3'b100: next_credit_9 = req_out;
+        3'b110: next_credit_9 = req_out;
+        3'b111: next_credit_9 = repCredit_9;
+        3'b000: next_credit_9 = curCredit_9;
+        3'b101: next_credit_9 = curCredit_9;
+        default:;
+
+    endcase
+end
+
+always @*
+begin
+    <%
+    for i in range(DMBR_BIN_NUM):
+        print "curr_cred_bin_%d = curCredit_%d;" % (i,i)
+    %> 
+end
+
+
+always @ (posedge clk)
+begin
+    if (rst)
+    begin
+        repCredit_0 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_1 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_2 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_3 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_4 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_5 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_6 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_7 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_8 <= {`CREDIT_WIDTH{1'b0}};
+        repCredit_9 <= {`CREDIT_WIDTH{1'b0}};
+
+        repInterval <= {`REPLENISH_WIDTH{1'b0}};
+        total_stall_cycles <= {`REPLENISH_WIDTH{1'b0}};
+
+        interval_0 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_1 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_2 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_3 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_4 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_5 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_6 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_7 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_8 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_9 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_10 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_11 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_12 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_13 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_14 <= {`COUNTER_WIDTH+1{1'b0}};
+        interval_15 <= {`COUNTER_WIDTH+1{1'b0}};
+
+        bin_used_0 <= 4'b0;
+        bin_used_1 <= 4'b0;
+        bin_used_2 <= 4'b0;
+        bin_used_3 <= 4'b0;
+        bin_used_4 <= 4'b0;
+        bin_used_5 <= 4'b0;
+        bin_used_6 <= 4'b0;
+        bin_used_7 <= 4'b0;
+        bin_used_8 <= 4'b0;
+        bin_used_9 <= 4'b0;
+        bin_used_10 <= 4'b0;
+        bin_used_11 <= 4'b0;
+        bin_used_12 <= 4'b0;
+        bin_used_13 <= 4'b0;
+        bin_used_14 <= 4'b0;
+        bin_used_15 <= 4'b0;
+
+        sat_counter <= {`COUNTER_WIDTH{1'b0}};
+
+        add_counter <= {`COUNTER_WIDTH{1'b0}};
+
+        replenishCycles <= {`REPLENISH_WIDTH{1'b0}};
+        binScale <= {`SCALE_WIDTH{1'b0}};
+    end
+    else if (func_en)
+    begin
+        if (proc_ld) begin
+            repCredit_0 <= creditIn_0;
+            repCredit_1 <= creditIn_1;
+            repCredit_2 <= creditIn_2;
+            repCredit_3 <= creditIn_3;
+            repCredit_4 <= creditIn_4;
+            repCredit_5 <= creditIn_5;
+            repCredit_6 <= creditIn_6;
+            repCredit_7 <= creditIn_7;
+            repCredit_8 <= creditIn_8;
+            repCredit_9 <= creditIn_9;
+            replenishCycles <= replenishCyclesIn;
+            binScale <= binScaleIn;
+
+        end
+
+        sat_counter <= next_sat_counter; 
+        add_counter <= next_add_counter;
+        bin_used_0 <= bin_number_0;
+        bin_used_1 <= bin_number_1;
+        bin_used_2 <= bin_number_2;
+        bin_used_3 <= bin_number_3;
+        bin_used_4 <= bin_number_4;
+        bin_used_5 <= bin_number_5;
+        bin_used_6 <= bin_number_6;
+        bin_used_7 <= bin_number_7;
+        bin_used_8 <= bin_number_8;
+        bin_used_9 <= bin_number_9;
+        bin_used_10 <= bin_number_10;
+        bin_used_11 <= bin_number_11;
+        bin_used_12 <= bin_number_12;
+        bin_used_13 <= bin_number_13;
+        bin_used_14 <= bin_number_14;
+        bin_used_15 <= bin_number_15;
+
+
+        interval_0 <= sum_counter_0;
+        interval_1 <= sum_counter_1;
+        interval_2 <= sum_counter_2;
+        interval_3 <= sum_counter_3;
+        interval_4 <= sum_counter_4;
+        interval_5 <= sum_counter_5;
+        interval_6 <= sum_counter_6;
+        interval_7 <= sum_counter_7;
+        interval_8 <= sum_counter_8;
+        interval_9 <= sum_counter_9;
+        interval_10 <= sum_counter_10;
+        interval_11 <= sum_counter_11;
+        interval_12 <= sum_counter_12;
+        interval_13 <= sum_counter_13;
+        interval_14 <= sum_counter_14;
+        interval_15 <= sum_counter_15;
+
+
+
+        total_stall_cycles <= next_total_stall_cycles;
+        repInterval <= next_repInterval;
+        
+    end
+end
+always @ (posedge clk)
+begin
+    if (rst) begin 
+        curCredit_0 <= 1;
+        curCredit_1 <= 1;
+        curCredit_2 <= 1;
+        curCredit_3 <= 1;
+        curCredit_4 <= 1;
+        curCredit_5 <= 1;
+        curCredit_6 <= 1;
+        curCredit_7 <= 1;
+        curCredit_8 <= 1;
+        curCredit_9 <= 1;
+/*        curCredit_0 <= 2;
+        curCredit_1 <= 2;
+        curCredit_2 <= 2;
+        curCredit_3 <= 2;
+        curCredit_4 <= 2;
+        curCredit_5 <= 2;
+        curCredit_6 <= 2;
+        curCredit_7 <= 2;
+        curCredit_8 <= 2;
+        curCredit_9 <= 2;*/
+
+
+
+    end
+    else if (proc_ld && func_en) begin
+        curCredit_0 <= creditIn_0;
+        curCredit_1 <= creditIn_1;
+        curCredit_2 <= creditIn_2;
+        curCredit_3 <= creditIn_3;
+        curCredit_4 <= creditIn_4;
+        curCredit_5 <= creditIn_5;
+        curCredit_6 <= creditIn_6;
+        curCredit_7 <= creditIn_7;
+        curCredit_8 <= creditIn_8;
+        curCredit_9 <= creditIn_9;
+
+    end
+    else if (func_en) begin
+        curCredit_0 <= next_credit_0;
+        curCredit_1 <= next_credit_1;
+        curCredit_2 <= next_credit_2;
+        curCredit_3 <= next_credit_3;
+        curCredit_4 <= next_credit_4;
+        curCredit_5 <= next_credit_5;
+        curCredit_6 <= next_credit_6;
+        curCredit_7 <= next_credit_7;
+        curCredit_8 <= next_credit_8;
+        curCredit_9 <= next_credit_9;
+
+    end
+end
+    
+endmodule

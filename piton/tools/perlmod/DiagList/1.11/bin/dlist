@@ -1,0 +1,130 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: dlist
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+
+eval 'exec $DV_ROOT/tools/perl-5.8.7/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage;
+use File::Spec;
+use File::Basename;
+use File::Find;
+
+use lib '.';
+use DiagList ':script';
+
+
+dlist(@ARGV);
+
+exit(0);
+
+
+__END__
+
+=head1 NAME
+
+dlist - tool for locating diags
+
+=head1 SYNOPSIS
+
+  dlist [options] [<diag_name>]
+
+=head1 DESCRIPTION
+
+This script queries the specified diag list and prints information.
+If a diag name is specified, then the results are displayed only for
+that particular diag.  It first runs the diag list through cpp, unless
+the -nocpp option is given.  The E<lt>diag_nameE<gt> can either be a
+diag alias or the E<lt>aliasE<gt>:E<lt>nametagE<gt> syntax.  If a diag
+name is not given, and no -group is given, then a list of all groups
+is displayed.
+
+=head2 Options
+
+The following options are recognized:
+
+=over 4
+
+=item -h
+
+Display man page.
+
+=item -q
+
+Quiet.  Do not print much.
+
+=item -find
+
+Find a full path for files.  Uses diag_root (default is
+$DV_ROOT/verif/diag) as search root.  Implies -q.
+
+=item -group E<lt>groupE<gt>
+
+Filter results to only display the specified group.
+
+=item -buildtag [E<lt>buildtagE<gt>]
+
+If a E<lt>buildtagE<gt> is specified, print the build arguments for
+the tag and exit.  If -buildtag is given with no argument, then the
+build arguments for all buildtags are printed, and then the program exits.
+
+=item -nocpp
+
+Do not preprocess the diaglist
+
+=item -cpp E<lt>cmdnameE<gt>
+
+Use E<lt>cmdnameE<gt> as the preprocessor.  Default = bw_cpp.
+
+=item -cpp_args E<lt>argsE<gt>
+
+Use E<lt>argsE<gt> as arguments to the preprocessor.  Default = "-undef -B".
+
+=item -nostdinc
+
+Do not use standard include path with preprocessor.  The standard
+include path is the directory containing the diaglist.
+
+=item -IE<lt>pathE<gt>  -DE<lt>defineE<gt>
+
+Pass these arguments to the preprocessor.
+
+=item -diag_root E<lt>diag_rootE<gt>
+
+Default diaglist (if -diaglist is not specified) is
+E<lt>diag_rootE<gt>/master_diaglist.  Default is $DV_ROOT/verif/diag.
+
+=item -diaglist E<lt>diaglistE<gt>
+
+Use this as the diaglist.  Deafult is
+E<lt>diag_rootE<gt>/master_diaglist where
+E<lt>diag_rootE<gt> defaults to $DV_ROOT/verif/diag.
+
+=back
+
+=head1 SEE ALSO
+
+DiagList(3).

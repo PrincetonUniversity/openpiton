@@ -1,0 +1,85 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: dram_ciop8_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<princeton_dram_basic>
+<runargs -nosas -max_cycle=92000000 -vera_cov_obj=dram_coverage  -rtl_timeout=44850000>
+
+//FAIL(HIT BAD TRAP)
+//dram_reg_ack_nack              dram_reg_ack_nack.s 
+//dram_secc_err                  dram_secc_err.s  
+//dram_secc_err_all              dram_secc_err_all.s  
+//err_dram_ld_cecc_in             err_dram_ld_cecc_in.s
+//err_dram_ld_cecc_out            err_dram_ld_cecc_out.s
+//err_dram_rdd_cecc               err_dram_rdd_cecc.s -sjm_diag_root=$DV_ROOT/verif/diag/assembly/arch/error/err_dram_rdd_cecc -sjm_diag_name=err_dram_rdd_cecc -sim_run_args=+sjm_timeout_scale10
+//err_dram_st_dacc                err_dram_st_dacc.s
+
+//Unfinished
+//err_dram_st_cecc                err_dram_st_cecc.s
+
+//FAIL(HIT BAD TRAP)
+//err_dram_scrub_cecc             err_dram_scrub_cecc.s
+//err_dram_scrub_uecc             err_dram_scrub_uecc.s
+//err_dram_inst_cecc              err_dram_inst_cecc.s
+//err_dram_ld_dacc_in             err_dram_ld_dacc_in.s
+//dram_scb_secc_err              dram_scb_secc_err.s  
+//dram_scb_secc_err_sshot        dram_scb_secc_err_sshot.s  
+//dram_scb_mecc_err_sshot        dram_scb_mecc_err_sshot.s  
+
+//PASS
+dram_OOB_mecc_err              dram_OOB_mecc_err.s  
+dram_dummy_OOB_mecc_err        dram_OOB_dummy_mecc_err.s  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts 
+
+//LessThreads/Unfinished
+//dram_ffu_blkst_stall           dram_ffu_blkst_stall.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4    -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS
+//dram_ffu_blkst_stall_2         dram_ffu_blkst_stall_2.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4    -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS
+
+//FAIL(HIT BAD TRAP)
+//dram_mecc_err                  dram_mecc_err.s  
+//dram_scb_mecc_err              dram_scb_mecc_err.s  
+
+//PASS
+dram_secc_env                  dram_secc_env.s -sim_run_args=+CMP_DRAM_ENB_ERROR   
+dram_mecc_env                  dram_mecc_env.s -sim_run_args=+CMP_DRAM_ENB_ERROR   
+dram_err_intr_trig_en          dram_err_intr_trig_en.s  -sim_run_args=+vcs+finish+125841185  -sim_run_args=+clk_stop=1  -sim_run_args=+clk_stop_simult=1  -sim_run_args=+ctu_mon_on -sim_run_args=+DISABLE_RST_CKEN_CHK
+
+//FAIL(HIT BAD TRAP)
+//dram_err_intr_ucb_trig         dram_err_intr_ucb_trig.s  
+//dram_err_intr_ucb_trig_multiple_intr         dram_err_intr_ucb_trig_multiple_intr.s  
+
+//LessThreads
+//dram_mt_32th_loads             dram_mt_32th_loads.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000
+//dram_mt_32th_loads_attrib      dram_mt_32th_loads_attrib.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000
+//dram_mt_32th_loads_attrib_many      dram_mt_32th_loads_attrib_many.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000
+//dram_mt_32th_loads_attrib_many_scrb_en      dram_mt_32th_loads_attrib_many_scrb_en.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000
+//dram_mt_32th_stores            dram_mt_32th_stores.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000
+//dram_mt_32th_stores_4            dram_mt_32th_stores.s -finish_mask=ffffffff -midas_args=-DTHREAD_COUNT=32  -midas_args=-DCREGS_L2_CTL_REG_ASSOCDIS=1  -midas_args=-allow_tsb_conflicts  -midas_args=-DSYNC_THREADS  -sim_run_args=+stb_drain_to_max=9128000   -sim_run_args=+force_cas_latency=4
+//PASS
+dram_OOB_mecc_err_7              dram_OOB_mecc_err.s    -sim_run_args=+force_cas_latency=7 
+dram_scb_dbginit                 dram_scb_dbginit.s  -fast_boot   -sim_run_args=+ctu_mon_off
+
+//FAIL(HIT BAD TRAP)
+//dram_err_warm_rst_reg_chk      dram_err_warm_rst_reg_chk.s  
+//dram_err_warm_rst_reg_chk_SR   dram_err_warm_rst_reg_chk_SR.s  
+
+//PASS
+dram_warm_rst              dram_warm_rst.s     -sim_run_args=+off_random_sys=1 core0.dat -finish_mask=01 -sim_run_args=+turn_off_tlu_monitor
+</runargs>
+</princeton_dram_basic>

@@ -1,0 +1,38 @@
+// Flist for jtag_testbench testbench environment
+
+$DV_ROOT/verif/env/manycore/cross_module.h
+
+jtag_testbench_top.v
+$DV_ROOT/verif/env/manycore/jtag_mon.v
+$DV_ROOT/verif/env/manycore/initializer.v
+
+// Tile & core monitors
+-v $DV_ROOT/verif/env/manycore/monitor.v
+-v $DV_ROOT/verif/env/manycore/sas_intf.v
+-v $DV_ROOT/verif/env/manycore/monitor.v
+-v $DV_ROOT/verif/env/manycore/sas_tasks.v
+-v $DV_ROOT/verif/env/manycore/pc_cmp.v
+-v $DV_ROOT/verif/env/manycore/sas_task.v
+-v $DV_ROOT/verif/env/manycore/l_cache_mon.v
+-v $DV_ROOT/verif/env/manycore/thrfsm_mon.v // monitors for X's in the processor states
+-v $DV_ROOT/verif/env/manycore/sparc_pipe_flow.v
+-v $DV_ROOT/verif/env/manycore/multicycle_mon.v
+-v $DV_ROOT/verif/env/manycore/dmbr_mon.v
+-v $DV_ROOT/verif/env/manycore/cmp_pcxandcpx.v
+-v $DV_ROOT/verif/env/manycore/tso_mon.v
+-v $DV_ROOT/verif/env/manycore/lsu_mon.v
+-v $DV_ROOT/verif/env/manycore/lsu_mon2.v
+-v $DV_ROOT/verif/env/manycore/exu_mon.v
+-v $DV_ROOT/verif/env/manycore/mask_mon.v
+-v $DV_ROOT/verif/env/manycore/pc_muxsel_mon.v
+-v $DV_ROOT/verif/env/manycore/nukeint_mon.v
+-v $DV_ROOT/verif/env/manycore/stb_ovfl_mon.v
+-v $DV_ROOT/verif/env/manycore/icache_mutex_mon.v
+-v $DV_ROOT/verif/env/manycore/nc_inv_chk.v
+-v $DV_ROOT/verif/env/manycore/tlu_mon.v
+-v $DV_ROOT/verif/env/manycore/softint_mon.v
+-v $DV_ROOT/verif/env/manycore/slam_init.v
+-v $DV_ROOT/verif/env/manycore/ciop_iob.v
+-v $DV_ROOT/verif/env/manycore/cmp_l15_messages_mon.v
+-v $DV_ROOT/verif/env/manycore/l2_mon.v
+-v $DV_ROOT/verif/env/manycore/iob_mon.v

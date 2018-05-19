@@ -1,0 +1,593 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: midas
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+eval 'exec $PERL_CMD  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+use strict;
+use warnings;
+
+use Midas;
+use Midas::Error;
+
+my $status = midas(@ARGV);
+
+if($status == M_ARGERR) {
+
+  my $code = qq{
+		use Pod::Usage;
+
+		pod2usage(-exitval => $status,
+			  -verbose => 1);
+
+	       };
+
+  eval $code;
+  if($@) {
+    print STDERR "Midas having trouble reporting argument error.\n";
+    exit -1;
+  }
+}
+
+exit($status);
+
+##############################################################################
+
+__END__
+
+=pod
+
+=head1 NAME
+
+midas - assembles diags (Midas Is a Diag ASsembler)
+
+=head1 SYNOPSIS
+
+midas [options] <diag_name>
+
+=head1 DESCRIPTION
+
+This program builds assembly diags.  It is substantially more involved
+than simply assembling the diag because it also has to link the diag,
+program the MMU, and generate several output files.
+
+The diag specified on the command line will be built.  Pretty much
+everything else is configurable.
+
+=head2 Options
+
+The following are the options you need to get started:
+
+=over 4
+
+=item -h
+
+Display man page.
+
+=item -verbose [level] / -noverbose (abbreviated -v / -nov)
+
+Sets verbosity level (default=2).  -noverbose (or -nov) is a synonym
+for -verbose 0, which means to generate no output in the absence of
+errors.  The highest level of verbosity currently defined is 3.
+
+=item -version
+
+Return version information and exit.
+
+=item -format
+
+Display help on the diag format and exit.
+
+=item -config E<lt>fileE<gt>
+
+Use this file as the config file instead of the one that is
+distributed with Midas.
+
+=item -project E<lt>projectE<gt>
+
+Use this project for project-specific configuration.  Default is the
+environment variable $PROJECT.  Legal value is OpenSPARCT1 or OpenPiton.
+
+=back
+
+=head2 Common Options
+
+The following are the commonly-used options:
+
+=over 4
+
+=item -diag_root E<lt>pathE<gt>
+
+Use the specified path as a base for finding standard include files.
+Default is $DV_ROOT.
+
+=item -build_dir E<lt>pathE<gt>
+
+Path (absolute or relative to where command is invoked) to directory
+where temporary files are generated and the build is done.  Default is
+'./build'.
+
+=item -dest_dir E<lt>pathE<gt>
+
+Path (absolute or relative to where command is invoked) of where to
+store output files.  Default is '.'.
+
+=item -find_root E<lt>dirE<gt>
+
+Interpret the diag on the command-line as the name of a diag to search
+for.  It does a breadth-first search under the specified directory.
+The default behavior is not to do any search, but to assume that the
+specified diag is a full or relative path to the file.
+
+=item -find
+
+This is a shortcut for "-find_root E<lt>diag_rootE<gt>/verif/diag".
+
+=item -mmu E<lt>mmu_typeE<gt>
+
+Generate programming for the specified MMU.  Recognized options are
+"niagara".  Default is "niagara".
+
+=item -ttefmt E<lt>tte_formatE<gt>
+
+Specifies TTE format for those MMUs that require it.  May be "sun4u"
+or "sun4v".  Default is project-specific: "sun4v" for Niagara.
+
+=item -tsbtagfmt E<lt>tsbtagfmtE<gt>
+
+Specifies the format of the TSB tag.  Legal values are 'tagaccess' and
+'tagtarget'.  Default is project-specific: 'tagaccess' for Niagara.
+
+=item -force_build or -f
+
+Build the diag, even if it looks like we have the same input as before
+and the same args as before.
+
+=item -copy_products / -nocopy_products
+
+By default, the product files generated in the build directory are
+hard-linked to the destination directory.  The reason they are
+hard-linked and not copied is for speed.  If the hard link fails, it
+will fall back to a copy in case the directories are on different
+physical disks.  If -copy_products is given, however, it will always
+do a copy, not a hard link.  Default is project-specific:
+-nocopy_products for Niagara.
+
+=item -E
+
+Stop after the preprocessing stage.
+
+=item -cleanup / -nocleanup
+
+If -cleanup is enabled, then after a successful build, the build
+directory is erased if and only if the build directory was created by
+this invocation of midas.  Default is project-specific: -cleanup for
+Niagara.
+
+=item -force_cleanup / -noforce_cleanup
+
+If -cleanup is enabled, but this invocation of midas did not create
+the build directory, -force_cleanup will remove the build directory
+anyway.  Default is project-specific: -noforce_cleanup for Niagara.
+
+=item -DE<lt>symbolE<gt> or -DE<lt>symbolE<gt>=E<lt>valueE<gt>
+
+Add a define to the preprocessing line.  Option may be repeated.
+
+=item -stddef / -nostddef
+
+Include standard preprocessor definitions on command-line.  -nostddef
+disables these.  Default is -stddef, but no standard symbols are
+currently defined.
+
+=item -IE<lt>dirE<gt>
+
+Add a directory to the include path used by cpp and m4.  Path should
+be absolute or relative to the directory where midas was invoked.
+Option may be repeated.
+
+=item -stdinc / -nostdinc
+
+With -stdinc, the standard include paths are used during preprocessing
+(both cpp and m4).  -nostdinc disables these.  Default is -stdinc.
+The standard include directories are the directory where midas was
+invoked, the build directory and
+E<lt>diag_rootE<gt>/verif/diag/assembly/include (keep in mind that
+E<lt>diag_rootE<gt> defaults to $DV_ROOT).
+
+=item -include_build / -noinclude_build
+
+This option is only meaningful with -nostdinc.  If standard includes
+are switched off, -include_build will add the build directory back to
+the include path.  Default is -noinclude_build.
+
+=item -include_start / -noinclude_start
+
+This option is only meaningful with -nostdinc.  If standard includes
+are switched off, -include_start will add the start directory (the
+directory where midas was invoked) back to the include path.
+Default is -noinclude_start.
+
+=item -LE<lt>dirE<gt>
+
+Add a directory to the search path when looking for object files in a
+MIDAS_OBJ directive.  Option may be repeated.
+
+=item -CE<lt>dirE<gt>
+
+Add a directory to the search path when looking for C source files in
+a MIDAS_CC directive.  Option may be repeated.
+
+=item -pal_diag_args E<lt>argsE<gt>
+
+If the diag is run through pal, give these arguments to the pal diag.
+Option may be repeated.  Note that these arguements are given to the
+diag, not pal itself.  For instance, "midas -pal_args -abc mydiag.pal
+-pal_diag_args def -pal_diag_args ghi" will run the pal command-line
+"pal -abc mydiag.pal def ghi".
+
+
+=item -build_threads E<lt>num_threadsE<gt>
+
+When doing work that can be done in parallel (such as assembling a
+bunch of files), use E<lt>num_threadsE<gt> to do it.  Default is
+project-specific: 3 for Niagara.
+
+=item -print_errors / -noprint_errors
+
+If -noprint_errors is defined, then generation of error messages is
+turned off.  When used with -verbose 0, midas is completly silent.
+This is probalby only useful for the test harness (which is why the
+switch is there).
+
+=item -copy_products / -nocopy_products
+
+If this is set, then copy files from the build directory to the
+starting directory.  With -nocopy_products, the files are hard linked
+instead.  If it tries to create a hard link and fails, it will fall
+back to a copy.  Default is -nocopy_products.
+
+=item -compress_image / -nocompress_image
+
+If -compress_image is enabled (as it is by default), then allow
+compressed mem.images to be generated.  By default, all MMU-generated
+blocks are compressed when written to mem.image, meaning that instead
+of initializing unused sections to zero, they are simply
+uninitialized.  The -nocompress_image is equivalent to explicitly
+putting a 'compressimage=0' in all attr_text/attr_data blocks.
+
+=item -env_zero / -noenv_zero
+
+When compressing blocks, if -env_zero is enabled the blocks will
+contain '// zero_image' directives to the environment.  These
+directives are supported only by Niagara, and they are used to
+backdoor initialize large tracts of memory to zero.  If -noenv_zero is
+used, then compression will simply leave the data uninitialized.
+
+
+=item -default_radix E<lt>decimal|hexE<gt>
+
+Radix to assume for all parameters that do not explicitly start with
+'0x'.  Default is 'decimal'.
+
+=item -gen_all_tsbs / -nogen_all_tsbs
+
+If -gen_all_tsbs is given, then all TSBs that are defined are written
+to the memory image.  If -nogen_all_tsbs, then generate only the TSBs
+that are used.  Default is project-specific: -nogen_all_tsbs for
+Niagara.
+
+=item -allow_tsb_conflicts / -noallow_tsb_conflicts
+
+If -allow_tsb_conflicts is enabled, then it is legal to have mutiple
+virtual address map to the same entry in a TSB.  A linked-list will be
+created to hold all entries.  With -noallow_tsb_conflicts (which is
+the default for N1), collisions in the TSB can only happen with the
+save VA but different contexts.  Default is project-specific.
+
+=item -allow_empty_sections / -noallow_empty_sections
+
+If TEXT_VA is specified, then at least one attr_text block for the
+section has to be specified, and the same is true for DATA_VA and
+attr_data blocks.  If -allow_empty_sections is specified, then midas
+will allow you to specify a TEXT_VA(DATA_VA) for the section, even if
+the section has no attr_text(attr_data) blocks.  Of course, any
+text(data) in such a section will be ignored.  Default is
+project-specific: -noallow_empty_sections for Niagara.
+
+=item -allow_duplicate_tags / -noallow_duplicate_tags
+
+When adding to a TSB link list, it is an error to add the same tag
+twice.  -allow_duplicate_tags suspends the error check.  Default is
+project-specific: -noallow_duplicate_tags for Niagara.
+
+=item -allow_illegal_page_sizes / -noallow_illegal_page_sizes
+
+If -allow_illegal_page_sizes, then tte_size attributes are not checked
+for valid values, though they are still checked against the width of
+the field.  For instance, in the Niagara MMU, there are 3 page bits,
+so values can be specified 0-7.  However, the only legal values for
+Niagara are 0, 1, 3, and 5, and unless -allow_illegal_page_sizes is in
+effect, setting page bits of 2, 4, 6, or 7 will cause an error.  The
+default is project-specific: -noallow_illegal_page_sizes for
+Niagara.
+
+=item -allow_misalgined_tsb_base / -noallow_misaligned_tsb_base
+
+If -allow_misaligned_tsb_base is set, then a TSB base address need not
+be aligned with the TSB size.  Real software will never do this, but I
+want it to be possible in diags.  If an unalgined address is specified
+as the base and -allow_misaligned_tsb_base is specified, then midas
+will forcibly align the address.  Default should be
+-noallow_misaligned_tsb_base for all projects.
+
+
+=item -errcode E<lt>error_codeE<gt>
+
+Prints a one-line description for the midas error code.  Then exits
+with status 0.
+
+=back
+
+=head2 Configuring Commands
+
+midas runs several commands in the course of its operation.  Several
+of these can be configured.  The configurable commands are: pal, cpp,
+m4, gcc, as, and ld.  Each configurable command has 3 associated options:
+
+=over 4
+
+=item -std_E<lt>commandE<gt>_args / -nostd_E<lt>commandE<gt>_args
+
+When -std_E<lt>commandE<gt>_args is enabled, the standard set of
+arguments for E<lt>commandE<gt> are used.  Default is
+-std_E<lt>commandE<gt>_args
+
+=item -E<lt>commandE<gt>_args E<lt>argsE<gt>
+
+Add E<lt>argsE<gt> to the argument list for the specified E<lt>commandE<gt>.
+
+=item -E<lt>commandE<gt>_cmd E<lt>custom_commandE<gt>
+
+Use E<lt>custom_commandE<gt> to run the specifed E<lt>commandE<gt>
+instead of the standard version.
+
+=back
+
+=head3 Example
+
+For instance, to add -foo to the link line, use my_cpp to preprocess, and
+not use any standard assembler options, use:
+
+  midas -ld_args -foo -cpp_cmd my_cpp -nostd_as_args mydiag.s
+
+
+=head2 Configuring Filenames
+
+There are several generated files, and they all have default names.
+You can configure the names of many of the files with the following
+option.
+
+=over 4
+
+=item -file E<lt>tagE<gt>=E<lt>nameE<gt>
+
+Cause midas to name the file whose tag is E<lt>tagE<gt> to be named
+E<lt>nameE<gt> instead of the default.  E<lt>nameE<gt> is treated as
+the name of a file in the build directory.
+
+=back
+
+The list of valid tags for the -file option are:
+
+=over 4
+
+=item src
+
+Local version of the original source code for the diag.  Default is 'diag.src'.
+
+=item s
+
+Assembly portion of diag before any preprocessing.  Default is 'diag.s'.
+
+=item pl
+
+Perl portion of the diag.  Deafult is 'diag.pl'.
+
+=item cpp
+
+Output of the C preprocessor.  Deafult is 'diag.cpp'.
+
+=item m4
+
+Output of the m4 preprocessor.  Default is 'diag.m4'.
+
+=item ldscr
+
+Linker script.  Default is 'diag.ls_scr'.
+
+=item exe
+
+Linked executable.  Default is 'diag*.exe' where * is
+application name.
+
+=item image
+
+Verilog memory image.  Default is 'mem.image'.
+
+=item events
+
+Events file.  Default is 'diag.ev'.
+
+=item symtab
+
+Symbol table.  Default is 'symbol.tbl'.
+
+=item goldfinger
+
+Specification to goldfinger on how to create memory image.  Default is
+'diag.goldfinger'.
+
+=item directives
+
+File to contain midas directives after section splitting.  Default is
+'diag.midas'.
+
+=item cmdfile
+
+File to stash the midas command-line.  Default is '.midas_args'.
+
+=item oldcmdfile
+
+File to move old command-line options.  Default is '.midas_args.old'.
+
+=item oldm4
+
+File to stash m4 output of previous run.  Default is '.midas.diag.m4.old'.
+
+=back
+
+=head2 Running Specific Phases
+
+The build process is broken into phases: setup, preprocess,
+sectioning, assemble, link, postprocess, copydest, cleanup.  The
+default behavior is to run all phases.  You can, however, restrict
+operation to a selected set of phases.
+
+=over 4
+
+=item -start_phase E<lt>phase_nameE<gt>
+
+Start with the named phase and run all subsequent phase.
+
+=item -phase E<lt>phase_nameE<gt>
+
+Run the specified phase.  If any -phase or -start_phase option exists,
+then by default all phases are off (except for the ones that -phase
+and -start_phase switch on).  You can have multiple -phase options.
+
+=item -E
+
+This option (mentioned above, which runs the preprocessor only) is just a
+shortcut for "-phase setup -phase preprocess").
+
+=back
+
+Keep in mind that running selected phases is caveat emptor.  There are
+cases where phases expect data or files from previous phases.  You may
+get lucky, but don't blame me if it doesn't work.
+
+=head2 Errors
+
+When midas is unable to run correctly it will exit with one of the
+folllowing error codes.
+
+=over 4
+
+
+=item M_NOERROR (#0): No error.
+
+
+=item M_MISC (#1): Miscellaneous error
+
+=item M_CODE (#2): Error in midas code.
+
+=item M_DIR (#3): Directory error.
+
+=item M_FILE (#4): File error.
+
+=item M_CMDFAIL (#5): Command failed.
+
+=item M_SECSYNTAX (#6): Error in section syntax.
+
+=item M_ATTRSYNTAX (#7): Error in attr syntax.
+
+=item M_MISSINGPARAM (#8): Missing parameter.
+
+=item M_ILLEGALPARAM (#9): Illegal parameter.
+
+=item M_OUTOFRANGE (#10): Out of range.
+
+=item M_NOTNUM (#11): Not a number.
+
+=item M_VACOLLIDE (#12): VA collision.
+
+=item M_PACOLLIDE (#13): PA collision.
+
+=item M_DIRECTIVESYNTAX (#14): Directive syntax error.
+
+=item M_GENFAIL (#15): File generation failed.
+
+=item M_ASMFAIL (#16): Assembler failed.
+
+=item M_CCFAIL (#17): C compiler failed.
+
+=item M_LINKFAIL (#18): Linker failed.
+
+=item M_CPPFAIL (#19): CPP failed.
+
+=item M_M4FAIL (#20): M4 preprocessor failed.
+
+=item M_BADCONFIG (#21): Bad configuration.
+
+=item M_EVENTERR (#22): Event parsing error.
+
+=item M_ARGERR (#23): Argument error.
+
+=item M_NOSEC (#24): Undefined section.
+
+=item M_BADTSB (#25): Bad TSB.
+
+=item M_BADALIGN (#26): Bad Alignment.
+
+=item M_EMPTYSECTION (#27): Empty section.
+
+=item M_TSBSYNTAX (#28): Error in tsb syntax.
+
+=item M_APPSYNTAX (#29): Error in app syntax.'
+
+=item M_MEMORY (#30): Memory error.
+
+=item M_GOLDFINGERPARSE (#31): Goldfinger parse error.
+
+=item M_GOLDFINGERARG (#32): Goldfinger arg error.
+
+=item M_ELF (#33): ELF error.
+
+=item M_BADLABEL (#34): Bad label.
+
+=item M_GOLDFINGERMISC (#35): Uncategorized goldfinger error.
+
+=item M_GOLDFINGERVERSION (#36): Bad version of goldfinger
+
+=item M_DUPLICATETAG (#37): Duplicate tags in TSB
+
+=item M_BLOCKSYNTAX (#38): Error defining goldfinger BLOCK
+
+
+=back
+
+=head1 SEE ALSO
+
+  Midas(3), goldfinger(1).
+
+=cut

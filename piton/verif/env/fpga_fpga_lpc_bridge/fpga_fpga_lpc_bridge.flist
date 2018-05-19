@@ -1,0 +1,4 @@
+// Flist for fpga_fpga_lpc_bridge testbench environment
+
+fpga_bridge_top.t.v
+fpga_bridge_top.v

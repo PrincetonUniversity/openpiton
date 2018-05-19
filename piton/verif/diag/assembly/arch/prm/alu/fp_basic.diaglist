@@ -1,0 +1,225 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: fp_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<fp>
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=f> 
+<runargs -sim_run_args=+l2warm=1>
+fp_addsub_rd0    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0  	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1  	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2  	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3  	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=3
+fp_mov   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov"  
+fp_neg   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg"  
+fp_abs   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs"  
+fp_fp2int   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int"  
+fp_fp2fp   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp"  
+fp_int2fp   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp"  
+
+fp_paddsub    			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub"
+fp_align     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align"
+fp_fill     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill"
+fp_copy     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy"
+fp_not     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not"
+fp_or     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or"
+fp_and     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and"
+fp_xor     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor"
+fp_ornot     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot"
+fp_andnot     			arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot"
+
+fp_cmp_fcc0_rd0	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3	     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_addsub_rd0_rand 	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1_rand 	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_rand 	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_rand 	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_rand"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_rand  	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_rand  	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_rand  	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_rand  	        arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=3
+fp_mov_rand   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_rand"  
+fp_neg_rand   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_rand"  
+fp_abs_rand   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_rand"  
+fp_fp2int_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rand"  
+fp_fp2fp_rand                   arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rand"
+fp_int2fp_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rand"
+
+fp_paddsub_rand     	    	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub_rand"
+fp_align_rand          		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align_rand"
+fp_fill_rand          		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill_rand"
+fp_copy_rand          		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy_rand"
+fp_not_rand           		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not_rand"
+fp_or_rand            		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or_rand"
+fp_and_rand         		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and_rand"
+fp_xor_rand          		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor_rand"
+fp_ornot_rand         		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot_rand"
+fp_andnot_rand        		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot_rand"
+
+fp_cmp_fcc0_rd0_rand 		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_rand  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_rand 		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_rand  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_rand 		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_rand  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_rand 		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_rand  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3_rand   		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_rand" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_addsub_rd0_fpdis    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=0
+fp_addsub_rd1_fpdis    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_fpdis    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_fpdis    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_fpdis"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_fpdis  	  	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_fpdis  	  	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_fpdis  	  	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_fpdis  	  	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=3
+fp_mov_fpdis   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_fpdis"  
+fp_neg_fpdis   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_fpdis"  
+fp_abs_fpdis   	  		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_fpdis"  
+fp_fp2int_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_fpdis"  
+fp_fp2fp_fpdis                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_fpdis"
+fp_int2fp_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_fpdis"
+
+
+fp_paddsub_fpdis    		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub_fpdis"
+fp_align_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align_fpdis"
+fp_fill_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fill_fpdis"
+fp_copy_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_copy_fpdis"
+fp_not_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_not_fpdis"
+fp_or_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_or_fpdis"
+fp_and_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_and_fpdis"
+fp_xor_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_xor_fpdis"
+fp_ornot_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_ornot_fpdis"
+fp_andnot_fpdis     		arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_andnot_fpdis"
+
+fp_cmp_fcc0_rd0_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc3_rd3_fpdis	     	arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
+
+fp_fp2int_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rsvd"  
+fp_fp2fp_rsvd             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rsvd"
+fp_int2fp_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rsvd"
+
+fp_addsub_rd0_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=3
+fp_addsub_rd0_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=3
+fp_addsub_rd0_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=0 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd1_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=1 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd2_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=2 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd3_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=3 -midas_args=-pal_diag_args=-tem=19
+fp_addsub_rd0_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd1_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=1
+fp_addsub_rd2_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=2
+fp_addsub_rd3_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=3
+
+fp_cmp_fcc0_rd0_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc0_rd1_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc0_rd2_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc0_rd3_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=0  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc1_rd0_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc1_rd1_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc1_rd2_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc1_rd3_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=1  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc2_rd0_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc2_rd1_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc2_rd2_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=2
+fp_cmp_fcc2_rd3_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=2  -midas_args=-pal_diag_args=-rd=3
+fp_cmp_fcc3_rd0_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=0
+fp_cmp_fcc3_rd1_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=1
+fp_cmp_fcc3_rd2_nv	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
+
+fp_fp2int_nv              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nv"
+fp_fp2int_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nx" 
+
+fp_fp2fp_of               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_of"
+fp_fp2fp_uf               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_uf"
+fp_fp2fp_nv               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nv"
+fp_fp2fp_nx               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nx"  -midas_args=-pal_diag_args=-tem=19
+
+fp_int2fp_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_nx" 
+
+fp_muldiv_rd0_of  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_of  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_of  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_of  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_uf  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_uf  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_uf  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_uf  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_uf"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_dz  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_dz  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_dz  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_dz  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_dz"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_nv  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=0
+fp_muldiv_rd1_nv  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=1
+fp_muldiv_rd2_nv  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=2
+fp_muldiv_rd3_nv  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nv"  -midas_args=-pal_diag_args=-rd=3
+fp_muldiv_rd0_nx  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=0  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd1_nx  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=1  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd2_nx  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=2  -midas_args=-pal_diag_args=-tem=19
+fp_muldiv_rd3_nx  	  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_nx"  -midas_args=-pal_diag_args=-rd=3  -midas_args=-pal_diag_args=-tem=19
+
+</runargs>
+</runargs>
+</fp>

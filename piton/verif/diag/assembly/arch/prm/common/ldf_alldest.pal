@@ -1,0 +1,245 @@
+BEGIN { push @INC, "$ENV{DV_ROOT}/verif/diag/assembly/arch/prm/common"; }
+
+use strict;
+use arch_diags;
+
+&arch_diags::setup_diag_options();
+
+:#define THREAD_COUNT  $arch_diags::opt{thrd_count}
+:#define THREAD_STRIDE $arch_diags::opt{thrd_stride}
+
+if($arch_diags::opt{hyper}) {
+:#define H_HT0_Trap_Instruction_2
+:#define My_HT0_Trap_Instruction_2  setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop; 
+}
+elsif ($arch_diags::opt{enboff}) {
+:#define H_T0_Trap_Instruction_2
+:#define My_T0_Trap_Instruction_2 setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop; 
+}
+else {
+:#define H_HT0_HTrap_Instruction_0
+:#define My_HT0_HTrap_Instruction_0 setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop; 
+}
+
+# illinst, fpdis, misalgn, dmisalgn, pirvact, vawatch, dataacc(T) 
+#  7,        8,      10,      10,       11,     11,      12
+
+my $illinst_vld  = $arch_diags::opt{illinst};
+my $fpdis_vld    = $arch_diags::opt{fpdis} && ($illinst_vld == 0);
+my $misalgn_vld  = $arch_diags::opt{misalgn}  && ($illinst_vld == 0) && ($fpdis_vld == 0); 
+my $dmisalgn_vld = $arch_diags::opt{dmisalgn} && ($illinst_vld == 0) && ($fpdis_vld == 0) && ($misalgn_vld == 0);
+my $privact_vld  = $arch_diags::opt{privact}  && ($illinst_vld == 0) && ($fpdis_vld == 0) && ($misalgn_vld == 0) && ($dmisalgn_vld == 0);
+my $vawatch_vld  = $arch_diags::opt{vawatch}  && ($illinst_vld == 0) && ($fpdis_vld == 0) && ($misalgn_vld == 0) && ($dmisalgn_vld == 0) && ($privact_vld == 0) && ($arch_diags::opt{hyper} == 0); 
+my $dataacc_vld  = $arch_diags::opt{dataacc}  && ($illinst_vld == 0) && ($fpdis_vld == 0) && ($misalgn_vld == 0) && ($dmisalgn_vld == 0) && ($privact_vld == 0) && ($vawatch_vld == 0);
+
+my $trap_on_inst_op    = $illinst_vld || $fpdis_vld || $misalgn_vld || $dmisalgn_vld || $privact_vld || $vawatch_vld;
+my $tte_setup_required = $arch_diags::opt{dataacc};
+
+if($illinst_vld) {
+    if($arch_diags::opt{enboff}) {
+:#define  H_T0_Illegal_instruction_0x10
+:#define My_T0_Illegal_instruction_0x10 done;
+    }
+    else {
+:#define  H_HT0_Illegal_instruction_0x10 
+:#define My_HT0_Illegal_instruction_0x10 done;
+    }
+}
+
+if($fpdis_vld) {
+    if($arch_diags::opt{hyper}) {
+:#define H_HT0_Fp_disabled_0x20
+:#define My_HT0_Fp_disabled_0x20 done;
+    }
+    else {
+:#define H_T0_Fp_disabled_0x20
+:#define My_T0_Fp_disabled_0x20 done;
+    }
+}
+else {
+:#define CREGS_FPRS_FEF 1
+}
+
+if($misalgn_vld) {
+    if($arch_diags::opt{enboff}) {
+:#define  H_T0_Mem_Address_Not_Aligned_0x34
+:#define My_T0_Mem_Address_Not_Aligned_0x34 done;
+    }
+    else {
+:#define  H_HT0_Mem_Address_Not_Aligned_0x34 
+:#define My_HT0_Mem_Address_Not_Aligned_0x34 done;
+    }
+}
+
+if($dmisalgn_vld) {
+    if($arch_diags::opt{enboff}) {
+:#define  H_T0_Lddf_Mem_Address_Not_Aligned_0x35
+:#define My_T0_Lddf_Mem_Address_Not_Aligned_0x35 done;
+    }
+    else {
+:#define  H_HT0_Lddf_Mem_Address_Not_Aligned_0x35 
+:#define My_HT0_Lddf_Mem_Address_Not_Aligned_0x35 done;
+    }
+}
+
+if($privact_vld) {
+    if($arch_diags::opt{enboff}) {
+:#define  H_T0_Privileged_Action_0x37 
+:#define My_T0_Privileged_Action_0x37 done;
+    }
+    else {
+:#define  H_HT0_Privileged_Action_0x37 
+:#define My_HT0_Privileged_Action_0x37 done;
+    }
+}
+
+if($vawatch_vld) {
+:#define  H_T0_Reserved_0x62 
+:#define My_T0_Reserved_0x62 done;
+}
+
+if($dataacc_vld) {
+    if($arch_diags::opt{enboff}) {
+:#define H_T0_Data_Access_Exception_0x30
+:#define My_T0_Data_Access_Exception_0x30 done;
+    }
+    else {
+:#define  H_HT0_Data_Access_Exception_0x30 
+:#define My_HT0_Data_Access_Exception_0x30 done;
+    }
+}
+
+
+# because setup code will be generated based on enabled trap
+if($arch_diags::opt{vawatch} || $arch_diags::opt{hyper}) { 
+    if($arch_diags::opt{enboff} == 0) {
+:#define MAIN_PAGE_HV_ALSO
+    }
+}
+
+if($arch_diags::opt{enboff}) {
+:#define HPV_NONSPLIT_MODE
+}
+
+if($arch_diags::opt{cti_inst}) {
+:#define USER_PAGE_CUSTOM_MAP
+}
+
+if($arch_diags::opt{cti_inst}) {
+:#define USER_PAGE_CUSTOM_MAP
+}
+
+if($arch_diags::opt{inst} eq "tl1") {
+:#define MAIN_PAGE_NUCLEUS_ALSO
+}
+
+if($arch_diags::opt{inst_group} eq "asi") {
+:#define JBI_CONFIG
+}
+
+:#include "boot.s"
+
+my @next_low_data_va = ();
+
+my @rand_data_va = ();
+my @next_rand_data_va = ();
+for(my $i=0; $i<$arch_diags::opt{thrd_count}; $i++) {
+    @rand_data_va[$i]      = 0x20088000 + ($i<<24);
+    @next_rand_data_va[$i] = @rand_data_va[$i];
+}
+@next_low_data_va = ();
+
+if($arch_diags::opt{cti_inst}) {
+    &arch_diags::gen_instr_sec();
+}
+
+:.text
+:.global main
+:main:
+:th_fork(th_main)
+
+for(my $i=0; $i<$arch_diags::opt{thrd_count}; $i++) {
+:   th_main_$i:
+:   setx th_main_jmp$i, %g1, %g2
+:   jmp %g2
+:   nop
+}
+
+for(my $i=0; $i<$arch_diags::opt{thrd_count}; $i++) {
+:   th_main_jmp$i:
+
+    if($arch_diags::opt{inst} eq "tl1") {
+:       ta T_CHANGE_TO_TL1
+    }
+
+    if($arch_diags::opt{super}) {
+:       ta T_CHANGE_PRIV
+    }
+    if($arch_diags::opt{hyper}) {
+:       ta T_CHANGE_HPRIV
+    }
+
+    if($arch_diags::opt{mem_inst}) {
+        my @misalgn_offsets = (0);
+        if($arch_diags::opt{misalgn}) {
+            if($arch_diags::opt{inst} eq "ld" || $arch_diags::opt{inst} eq "lda") {
+                @misalgn_offsets = (1, 2, 3);
+            }
+            if($arch_diags::opt{inst} eq "ldd" || $arch_diags::opt{inst} eq "ldda") {
+                @misalgn_offsets = (1, 2, 3, 5, 6, 7);
+            }
+        }
+        if($arch_diags::opt{dmisalgn}) {
+            @misalgn_offsets = (4);
+        }
+
+        foreach my $misalgn_offset (@misalgn_offsets) {
+            &arch_diags::gen_all_ldf($arch_diags::opt{inst}, \@next_rand_data_va[$i], \@next_low_data_va, 
+                                     $arch_diags::opt{alldest}, $misalgn_offset, $arch_diags::opt{vawatch}, $arch_diags::opt{dataacc});
+        }
+    }
+    elsif($arch_diags::opt{cti_inst}) {
+        if($arch_diags::opt{inst_group} eq "fbpfcc") {
+            &arch_diags::gen_all_fbpfcc($i, $arch_diags::opt{inst}, $arch_diags::opt{inst_group});
+        }
+        if($arch_diags::opt{inst_group} eq "fbfcc") {
+            &arch_diags::gen_all_fbfcc($i, $arch_diags::opt{inst}, $arch_diags::opt{inst_group});
+        }
+        if($arch_diags::opt{inst_group} eq "bicc") {
+            &arch_diags::gen_all_bicc($i, $arch_diags::opt{inst}, $arch_diags::opt{inst_group});
+        }
+        if($arch_diags::opt{inst_group} eq "bpcc") {
+            &arch_diags::gen_all_bpcc($i, $arch_diags::opt{inst}, $arch_diags::opt{inst_group});
+        }
+    }
+    elsif($arch_diags::opt{inst_group} eq "asi") {
+        &arch_diags::gen_all_asi_insts($i, $arch_diags::opt{inst});
+    }
+    elsif($arch_diags::opt{inst_group} eq "ldst") {
+        &arch_diags::gen_all_ldst_insts($i);
+    }
+    else {
+    }
+
+:   nop
+:   ta  T_GOOD_TRAP
+:   nop
+}
+
+if($trap_on_inst_op == 0 || $tte_setup_required) {
+    &arch_diags::gen_high_data_sec($arch_diags::opt{dataacc}, $arch_diags::opt{super});
+    &arch_diags::gen_data_sec(0x0, 8192, $arch_diags::opt{dataacc}, $arch_diags::opt{super});
+
+    for(my $i=0; $i<$arch_diags::opt{thrd_count}; $i++) {
+        &arch_diags::gen_data_sec(@rand_data_va[$i], @next_rand_data_va[$i], $arch_diags::opt{dataacc}, $arch_diags::opt{super});
+    }
+}
+else {
+    &arch_diags::gen_data_sec(0x0, 0x10, $arch_diags::opt{dataacc}, $arch_diags::opt{super});
+}
+
+&arch_diags::gen_scratch_mem_area();
+&arch_diags::gen_required_data_sections();
+
+&arch_diags::hyp_helper_apis();
+

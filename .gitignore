@@ -1,0 +1,109 @@
+*.nfs*
+*.swp
+*.log
+*a.out
+
+# Ignore everything in model directory
+build/*
+!build/.keep
+
+# Ignore generated logs from back-end
+# Good for 10 levels of hierarchy
+piton/design/*/synopsys/*
+!piton/design/*/synopsys/script
+piton/design/*/*/synopsys/*
+!piton/design/*/*/synopsys/script
+piton/design/*/*/*/synopsys/*
+!piton/design/*/*/*/synopsys/script
+piton/design/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/*/*/*/*/synopsys/script
+piton/design/*/*/*/*/*/*/*/*/*/*/synopsys/*
+!piton/design/*/*/*/*/*/*/*/*/*/*/synopsys/script
+
+# IP for FPGA designs is generated in palce
+# where .xci file is located, so need to ignore
+# these generated files.
+# Good for 10 levels of hierarchy
+piton/design/xilinx/*/ip_cores/*/*
+!piton/design/xilinx/*/ip_cores/*/*.xci
+!piton/design/xilinx/*/ip_cores/*/*.xco
+!piton/design/xilinx/*/ip_cores/*/*.coe
+piton/design/*/xilinx/*/ip_cores/*/*
+!piton/design/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
+!piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
+!piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
+!piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+
+# Ignore files generated for DMBR unit testing
+piton/verif/diag/assembly/princeton/dmbr_stream_hyper_gen.s
+piton/verif/env/dmbr_test/dmbr_test_top.v
+piton/verif/env/dmbr_test/test_cases/simple_sink.vmh
+piton/verif/env/dmbr_test/test_cases/simple_src.vmh
+piton/verif/diag/assembly/princeton/dmbr_assembly.s
+
+# Ignore sims logs
+flist
+history.sims
+ucli.key
+
+# Ignore temporary pyv files
+*.v.tmp
+*.h.tmp
+*.tmp.v
+*.tmp.h
+
+# Ignore generated .pyc files (specifically for pyhplib)
+*.pyc
+
+# Ignore deprecated automated IBM wrapper generated files
+*_TWRAPPER.v.TWRAPPER.v
+
+# trin ignore some other files
+cscope.*
+tags
+*.bak

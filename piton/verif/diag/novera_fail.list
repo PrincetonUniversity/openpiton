@@ -1,0 +1,33 @@
+-----------------------------------------------------------------------------
+Test status when running without Vera (-novera_build -novera_run options).
+-----------------------------------------------------------------------------
+Group: core1_mini 
+
+	All tests passed without Vera.
+
+---------------------------------------------------------------
+Group: core1_full
+
+	Following 10 tests failed without Vera.
+
+	 1. exu_ecc_mixed_ce:model_core1:core1_full:0
+	 2. exu_ecc_mixed_ue:model_core1:core1_full:0
+	 3. exu_ecc_rs1_ce:model_core1:core1_full:0
+	 4. exu_ecc_rs2_ce:model_core1:core1_full:0
+	 5. exu_ecc_rs3_ce:model_core1:core1_full:0
+	 6. exu_ecc_stuck_at:model_core1:core1_full:0
+	 7. exu_ecc_ue:model_core1:core1_full:0
+	 8. exu_ecc_ue_priority:model_core1:core1_full:0
+	 9. tlu_stb2b_trap_100:model_core1:core1_full:0
+	10. tlu_stb2b_trap_101:model_core1:core1_full:0
+
+---------------------------------------------------------------
+Group: chip8_mini
+
+	All tests passed without Vera.
+
+---------------------------------------------------------------
+Group: chip8_full
+
+	Status without Vera is not yet available.
+---------------------------------------------------------------

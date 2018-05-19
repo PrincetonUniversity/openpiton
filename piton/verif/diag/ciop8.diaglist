@@ -1,0 +1,109 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: ciop8.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////////////////////////////
+// ciop8
+////////////////////////////////////////////////////////////////////////////////
+
+<single_core_diags sys=ciop name=single_core_diags>
+<runargs -max_cycle=3000000 -rtl_timeout=50000 -fast_boot -midas_args=-DSYNC_THREADS >
+<runargs -sas>
+<ciop_regr_diags>
+#define CIOP_MODEL
+#include "ciop_basic.diaglist"
+#include "cmp_basic.diaglist"
+#include "assembly/arch/prm/rst/basic.diaglist"
+</ciop_regr_diags>
+<ciop_arch_diags>
+#include "assembly/arch/prm/common/arch_diags_basic.diaglist"
+</ciop_arch_diags>
+#undef CIOP_MODEL
+</runargs>
+</runargs>
+</single_core_diags>
+
+<chip8 sys=chip8 name=chip8>
+<runargs -max_cycle=3000000 -rtl_timeout=50000 -fast_boot>
+#define CIOP_MODEL
+<runargs -nosas -midas_args=-DSYNC_THREADS -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/>
+#include "tso_ciop_basic.diaglist"
+</runargs>
+<runargs -nosas>
+#include "ciop_iob_basic.diaglist"
+</runargs>
+<runargs -sas -midas_args=-DSYNC_THREADS>
+#include "cmp2_basic.diaglist"
+#include "cmp8_basic.diaglist"
+#include "cmp8_tso_basic.diaglist"
+#include "dram_ciop8_basic.diaglist"
+#include "ciop_pio_cov.diaglist"
+</runargs>
+#undef CIOP_MODEL
+</runargs>
+</ciop8>
+
+
+<chip8_full sys=chip8 name=chip8_full>
+<runargs -max_cycle=3000000 -rtl_timeout=50000 -fast_boot -midas_args=-DSYNC_THREADS>
+<runargs -sas>
+<ciop_regr_diags>
+#define CIOP_MODEL
+#include "ciop_basic.diaglist"
+#include "cmp_basic.diaglist"
+#include "assembly/arch/prm/rst/basic.diaglist"
+</ciop_regr_diags>
+<ciop_arch_diags>
+#include "assembly/arch/prm/common/arch_diags_basic.diaglist"
+</ciop_arch_diags>
+#undef CIOP_MODEL
+</runargs>
+</runargs>
+
+<runargs -max_cycle=3000000 -rtl_timeout=50000 -fast_boot>
+#define CIOP_MODEL
+<runargs -nosas -midas_args=-DSYNC_THREADS -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/>
+#include "tso_ciop_basic.diaglist"
+</runargs>
+<runargs -nosas>
+#include "ciop_iob_basic.diaglist"
+</runargs>
+<runargs -sas -midas_args=-DSYNC_THREADS>
+#include "cmp2_basic.diaglist"
+#include "cmp8_basic.diaglist"
+#include "cmp8_tso_basic.diaglist"
+#include "dram_ciop8_basic.diaglist"
+#include "ciop_pio_cov.diaglist"
+</runargs>
+#undef CIOP_MODEL
+</runargs>
+</chip8_full>
+
+<chip8_mini sys=chip8 name=chip8_mini>
+<runargs -max_cycle=3000000 -rtl_timeout=50000 -fast_boot >
+<runargs -nosas -sjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/>
+#include "ciop_iob_basic.diaglist"
+</runargs>
+#include "assembly/arch/prm/rst/basic.diaglist"
+#include "ciop_basic.diaglist"
+#include "dram_ciop8_basic.diaglist"
+#include "ciop_pio_cov.diaglist"
+</runargs>
+</chip8_mini>

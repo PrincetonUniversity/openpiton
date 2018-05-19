@@ -1,0 +1,284 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+//==================================================================================================
+//  Filename      : l2_pipe1_buf_out.v
+//  Created On    : 2014-04-06
+//  Revision      :
+//  Author        : Yaosheng Fu
+//  Company       : Princeton University
+//  Email         : yfu@princeton.edu
+//
+//  Description   : Output buffer for pipeline1
+//
+//
+//==================================================================================================
+
+`include "l2.vh"
+`include "define.vh"
+
+module l2_pipe1_buf_out(
+
+    input wire clk,
+    input wire rst_n,
+
+    input wire [`L2_P1_BUF_OUT_MODE_WIDTH-1:0] mode_in,
+    input wire valid_in,
+    input wire [`L2_P1_BUF_OUT_WIDTH -1:0] data_in,
+    output reg ready_in,
+
+   
+    output reg valid_out,
+    output reg [`NOC_DATA_WIDTH-1:0] data_out,
+    input wire ready_out
+
+);
+
+<%
+L2_P1_BUF_OUT_SIZE = 16
+%>
+
+reg [`NOC_DATA_WIDTH-1:0] buf_mem_f [`L2_P1_BUF_OUT_SIZE-1:0];
+reg buf_empty;
+reg buf_full;
+reg [`L2_P1_BUF_OUT_LOG_SIZE:0] buf_counter_f;
+reg [`L2_P1_BUF_OUT_LOG_SIZE:0] buf_counter_next;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] rd_ptr_f;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] rd_ptr_next;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_f;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_next;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_plus1;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_plus2;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_plus3;
+reg [`L2_P1_BUF_OUT_LOG_SIZE-1:0] wr_ptr_plus4;
+reg [`L2_P1_BUF_OUT_LOG_SIZE:0] buf_rd_flits;
+
+always @ *
+begin
+    if (mode_in == `L2_P1_BUF_OUT_MODE_1H0D)
+    begin
+        buf_rd_flits = 1;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_1H1D)
+    begin
+        buf_rd_flits = 2;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_1H2D)
+    begin
+        buf_rd_flits = 3;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_3H0D)
+    begin
+        buf_rd_flits = 3;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_3H1D)
+    begin
+        buf_rd_flits = 4;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_3H2D)
+    begin
+        buf_rd_flits = 5;
+    end
+    else if (mode_in == `L2_P1_BUF_OUT_MODE_0H2D)
+    begin
+        buf_rd_flits = 2;
+    end
+    else
+    begin
+        buf_rd_flits = 0;
+    end
+end
+
+
+
+always @ *
+begin
+   buf_empty = (buf_counter_f == 0);
+   buf_full = (buf_counter_f ==  `L2_P1_BUF_OUT_SIZE);
+end
+
+always @ *
+begin
+    if (!rst_n)
+    begin
+        buf_counter_next = 0;
+    end
+    else if ((valid_in && ready_in) && (valid_out && ready_out))
+    begin
+        buf_counter_next = buf_counter_f + buf_rd_flits - 1;
+    end
+    else if (valid_in && ready_in)
+    begin 
+        buf_counter_next = buf_counter_f + buf_rd_flits;
+    end
+    else if (valid_out && ready_out)
+    begin 
+        buf_counter_next = buf_counter_f - 1;
+    end
+    else
+    begin
+        buf_counter_next = buf_counter_f;
+    end
+end
+
+
+
+always @ (posedge clk)
+begin
+    buf_counter_f <= buf_counter_next;
+end
+
+
+always @ *
+begin
+    if (!rst_n)
+    begin   
+        rd_ptr_next = 0;
+    end
+    else if (valid_out && ready_out)
+    begin
+        rd_ptr_next = rd_ptr_f + 1;
+    end
+    else
+    begin
+        rd_ptr_next = rd_ptr_f;
+    end
+end
+
+
+
+always @ (posedge clk)
+begin
+    rd_ptr_f <= rd_ptr_next;
+end
+
+always @ *
+begin
+    if (!rst_n)
+    begin   
+        wr_ptr_next = 0;
+    end
+    else if (valid_in && ready_in)
+    begin
+        wr_ptr_next = wr_ptr_f + buf_rd_flits;
+    end
+    else
+    begin
+        wr_ptr_next = wr_ptr_f;
+    end
+end
+
+always @ (posedge clk)
+begin
+    wr_ptr_f <= wr_ptr_next;
+end
+
+
+always @ *
+begin
+    wr_ptr_plus1 = wr_ptr_f + 1;
+    wr_ptr_plus2 = wr_ptr_f + 2;
+    wr_ptr_plus3 = wr_ptr_f + 3;
+    wr_ptr_plus4 = wr_ptr_f + 4;
+end
+
+
+always @ *
+begin
+    ready_in = (buf_counter_f <= `L2_P1_BUF_OUT_SIZE - buf_rd_flits);
+end
+
+
+always @ *
+begin
+    valid_out = !buf_empty;
+    data_out = buf_mem_f[rd_ptr_f]; 
+end
+
+
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin  
+<%
+for i in range(L2_P1_BUF_OUT_SIZE):
+    print "        buf_mem_f[%d] <= 0;" % (i)
+%>
+    end
+    else if (valid_in && ready_in)
+    begin
+        if (mode_in == `L2_P1_BUF_OUT_MODE_1H0D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_1H1D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*4-1:`NOC_DATA_WIDTH*3];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_0H2D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH*4-1:`NOC_DATA_WIDTH*3];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*5-1:`NOC_DATA_WIDTH*4];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_3H0D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*2-1:`NOC_DATA_WIDTH];
+            buf_mem_f[wr_ptr_plus2] <= data_in[`NOC_DATA_WIDTH*3-1:`NOC_DATA_WIDTH*2];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_1H2D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*4-1:`NOC_DATA_WIDTH*3];
+            buf_mem_f[wr_ptr_plus2] <= data_in[`NOC_DATA_WIDTH*5-1:`NOC_DATA_WIDTH*4];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_3H1D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*2-1:`NOC_DATA_WIDTH];
+            buf_mem_f[wr_ptr_plus2] <= data_in[`NOC_DATA_WIDTH*3-1:`NOC_DATA_WIDTH*2];
+            buf_mem_f[wr_ptr_plus3] <= data_in[`NOC_DATA_WIDTH*4-1:`NOC_DATA_WIDTH*3];
+        end
+        else if (mode_in == `L2_P1_BUF_OUT_MODE_3H2D)
+        begin
+            buf_mem_f[wr_ptr_f] <= data_in[`NOC_DATA_WIDTH-1:0];
+            buf_mem_f[wr_ptr_plus1] <= data_in[`NOC_DATA_WIDTH*2-1:`NOC_DATA_WIDTH];
+            buf_mem_f[wr_ptr_plus2] <= data_in[`NOC_DATA_WIDTH*3-1:`NOC_DATA_WIDTH*2];
+            buf_mem_f[wr_ptr_plus3] <= data_in[`NOC_DATA_WIDTH*4-1:`NOC_DATA_WIDTH*3];
+            buf_mem_f[wr_ptr_plus4] <= data_in[`NOC_DATA_WIDTH*5-1:`NOC_DATA_WIDTH*4];
+        end
+    end
+
+end
+
+
+
+
+endmodule
+

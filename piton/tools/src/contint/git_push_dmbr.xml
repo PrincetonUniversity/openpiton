@@ -1,0 +1,129 @@
+<!--
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<bundles>
+
+<git_push_dmbr>
+    <!--  TODO: Add this back in when it is fixed!!
+    <asm_test name="ed_rtsm_princeton_test_test">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>princeton-test-test.s</asm_diag_name>
+        <ed_enable/>
+        <ed_sync_method>rtsm</ed_sync_method>
+        <finish_mask>3</finish_mask>
+        <midas_args>-DTHREAD_COUNT=2</midas_args>
+        <midas_args>-DTHREAD_STRIDE=1</midas_args>
+    </asm_test> -->
+    <asm_test name="dmbr_bug1">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>dmbr_bug1.s</asm_diag_name>
+        <dmbr/>
+    </asm_test>
+    <asm_test name="dmbr_config_regs_test">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>dmbr_config_regs_test.s</asm_diag_name>
+        <dmbr/>
+    </asm_test>
+    <asm_test name="dmbr_stream">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>dmbr_stream_hyper.s</asm_diag_name>
+    </asm_test>
+    <asm_test name="ed_stsm_princeton_test_test">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>princeton-test-test.s</asm_diag_name>
+        <ed_enable/>
+        <dmbr/>
+        <ed_sync_method>stsm</ed_sync_method>
+        <finish_mask>3</finish_mask>
+        <midas_args>-DTHREAD_COUNT=2</midas_args>
+        <midas_args>-DTHREAD_STRIDE=1</midas_args>
+    </asm_test>
+    <asm_test name="ed_rtsm_long_loop">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>long_loop.s</asm_diag_name>
+        <ed_enable/>
+        <dmbr/>
+        <ed_sync_method>rtsm</ed_sync_method>
+        <finish_mask>3</finish_mask>
+        <midas_args>-DTHREAD_COUNT=2</midas_args>
+        <midas_args>-DTHREAD_STRIDE=1</midas_args>
+    </asm_test>
+    <asm_test name="ed_stsm_long_loop">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <asm_diag_name>long_loop.s</asm_diag_name>
+        <ed_enable/>
+        <dmbr/>
+        <ed_sync_method>stsm</ed_sync_method>
+        <finish_mask>3</finish_mask>
+        <midas_args>-DTHREAD_COUNT=2</midas_args>
+        <midas_args>-DTHREAD_STRIDE=1</midas_args>
+    </asm_test>
+    <other name="ifu_esl_lfsr_exhaust">
+        <sys>ifu_esl_lfsr</sys>
+        <dmbr/>
+        <sim_run_args>+test_case=test_exhaust</sim_run_args>
+    </other>
+    <other name="ifu_esl_lfsr_ldstep">
+        <sys>ifu_esl_lfsr</sys>
+        <dmbr/>
+        <sim_run_args>+test_case=test_ldstep</sim_run_args>
+    </other>
+    <other name="ifu_esl_lfsr_pause">
+        <sys>ifu_esl_lfsr</sys>
+        <dmbr/>
+        <sim_run_args>+test_case=test_pause</sim_run_args>
+    </other>
+    <other name="ifu_esl_lfsr_seed">
+        <sys>ifu_esl_lfsr</sys>
+        <dmbr/>
+        <sim_run_args>+test_case=test_seed</sim_run_args>
+    </other>
+    <other name="ifu_esl_lfsr_state0">
+        <sys>ifu_esl_lfsr</sys>
+        <dmbr/>
+        <sim_run_args>+test_case=test_state0</sim_run_args>
+    </other>
+    <!--TODO: This test needs to be fixed for FPGA-->
+    <!--<other name="fpga_fpga_lpc_bridge">
+        <sys>fpga_fpga_lpc_bridge</sys>
+    </other>-->
+    <asm_regress name="tile1_mini">
+        <sys>manycore</sys>
+        <num_tile>1</num_tile>
+        <dmbr/>
+        <group>tile1_mini</group>
+    </asm_regress>
+</git_push_dmbr>
+
+</bundles>

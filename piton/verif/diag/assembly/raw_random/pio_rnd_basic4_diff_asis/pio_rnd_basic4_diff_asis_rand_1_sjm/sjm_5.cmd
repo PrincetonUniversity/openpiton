@@ -1,0 +1,115 @@
+# Modified by Princeton University on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: sjm_5.cmd
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+CONFIG id=30 iosyncadr=0x7EF00BEEF00
+TIMEOUT 10000000
+IOSYNC
+#==================================================
+#==================================================
+
+
+LABEL_0:
+
+WRITEBLKIO  0x00000604b77e3100 +
+        0x380746d6 0x651ca370 0x61d4a0d4 0x420058f5 +
+        0x67483b6c 0x501e0f40 0xe40ca54f 0xc1aa0955 +
+        0x9f290cbf 0x4a7a4abc 0xa44b0da8 0xb6bc7f4f +
+        0x4710af03 0xe13cd5f3 0xc90d7ad9 0xbe4bc967 
+
+WRITEBLKIO  0x0000061016fde4c0 +
+        0x09c300ac 0x034dc8bd 0x80d104b6 0x6753c4bc +
+        0x77ca9ea1 0x653d5a91 0xcce628cf 0xefa33ff7 +
+        0x45b29490 0x60f3b11f 0x47f2af58 0x7e487fcb +
+        0xb91ac2b8 0x07ea9e13 0xe0c6a0d8 0x770fced6 
+
+WRITEBLK  0x0000000424c34040 +
+        0x1ca65c6f 0xb1bf74b0 0x56859a57 0xd3ff2f64 +
+        0xcc29462d 0x631d6f53 0x1cfb816c 0x637ad57f +
+        0x1cef3f14 0xdcc3875d 0x9314610c 0x4ad80579 +
+        0x7259156b 0xa572d64c 0xf578f547 0x356c8b55 
+
+READBLK  0x0000000424c34040 +
+        0x1ca65c6f 0xb1bf74b0 0x56859a57 0xd3ff2f64 +
+        0xcc29462d 0x631d6f53 0x1cfb816c 0x637ad57f +
+        0x1cef3f14 0xdcc3875d 0x9314610c 0x4ad80579 +
+        0x7259156b 0xa572d64c 0xf578f547 0x356c8b55 
+
+READBLKIO  0x00000604b77e3100 +
+        0x380746d6 0x651ca370 0x61d4a0d4 0x420058f5 +
+        0x67483b6c 0x501e0f40 0xe40ca54f 0xc1aa0955 +
+        0x9f290cbf 0x4a7a4abc 0xa44b0da8 0xb6bc7f4f +
+        0x4710af03 0xe13cd5f3 0xc90d7ad9 0xbe4bc967 
+
+WRITEIO  0x00000609071ba600 4 0x30479621 
+
+WRITEMSKIO  0x0000060019403f80 0x0f00  0x00000000 0xc8b87213 0x00000000 0x00000000 
+
+READBLKIO  0x0000061016fde4c0 +
+        0x09c300ac 0x034dc8bd 0x80d104b6 0x6753c4bc +
+        0x77ca9ea1 0x653d5a91 0xcce628cf 0xefa33ff7 +
+        0x45b29490 0x60f3b11f 0x47f2af58 0x7e487fcb +
+        0xb91ac2b8 0x07ea9e13 0xe0c6a0d8 0x770fced6 
+
+WRITEBLKIO  0x00000612d73dff40 +
+        0x170d91d4 0x7b198cd0 0x4cd0ba15 0x593d28c4 +
+        0xf0e57ea0 0x0e0ea7c1 0x41faf114 0x9b924a96 +
+        0xd33febf7 0x2df294b1 0x3e34e049 0xe0293372 +
+        0xb28bb5d1 0x68492536 0xa7f8163a 0x832c7483 
+
+WRITEMSKIO  0x0000061720c9dc80 0xf0ff  0x8f4b5704 0x00000000 0x9e889f86 0x7c4d2fad 
+
+READMSKIO   0x0000060019403f80 0x0f00  0x00000000 0xc8b87213 0x00000000 0x00000000 
+
+WRITEMSKIO  0x0000061106f231c0 0x0000  0x00000000 0x00000000 0x00000000 0x00000000 
+
+WRITEMSKIO  0x000006095001a900 0x00f0  0x00000000 0x00000000 0x8b81753d 0x00000000 
+
+WRITEBLKIO  0x0000061104c98d40 +
+        0x63e87f74 0x4c4ddbab 0x1fab525c 0xb561843f +
+        0x2b9addb3 0x9c3185bc 0x596e6028 0x28d387d1 +
+        0x9db4664a 0xf5600986 0x4b5147b8 0x4251cdf5 +
+        0x955b15fa 0x68961ae8 0x2c971bd7 0x89065a4d 
+
+WRITEBLKIO  0x00000613f6411400 +
+        0x8b023ad6 0x4959ba6b 0x51ef5eaa 0xacf48e10 +
+        0x234cab94 0x3c03f8fc 0x399d2806 0x2a5551e4 +
+        0x2aa5dff7 0x1a0440a8 0xb1fdb215 0x1cb1afa0 +
+        0xcc3d5352 0x67be1128 0x07704b01 0xba5c03c4 
+
+READBLKIO  0x00000612d73dff40 +
+        0x170d91d4 0x7b198cd0 0x4cd0ba15 0x593d28c4 +
+        0xf0e57ea0 0x0e0ea7c1 0x41faf114 0x9b924a96 +
+        0xd33febf7 0x2df294b1 0x3e34e049 0xe0293372 +
+        0xb28bb5d1 0x68492536 0xa7f8163a 0x832c7483 
+
+WRITEMSKIO  0x0000060555987b80 0x0f0f  0x00000000 0x6389d271 0x00000000 0xeb5ddda8 
+
+READIO  0x00000609071ba600 4 0x30479621 
+WRITEIO  0x0000060683e93180 4 0xf9ed692a 
+
+READBLKIO  0x0000061104c98d40 +
+        0x63e87f74 0x4c4ddbab 0x1fab525c 0xb561843f +
+        0x2b9addb3 0x9c3185bc 0x596e6028 0x28d387d1 +
+        0x9db4664a 0xf5600986 0x4b5147b8 0x4251cdf5 +
+        0x955b15fa 0x68961ae8 0x2c971bd7 0x89065a4d 
+
+
+BA LABEL_0

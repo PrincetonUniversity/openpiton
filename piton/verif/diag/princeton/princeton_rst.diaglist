@@ -1,0 +1,105 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: diag_list_wdr
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+
+<princeton_rst>
+<princeton_rst_por_passing>
+</princeton_rst_por_passing>
+<princeton_rst_por_failing>
+    //por_all por_all.s
+</princeton_rst_por_failing>
+
+<princeton_rst_red_passing>
+    red_wr_regs1		red_wr_regs1.s 	  -nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    red_wr_regs2		red_wr_regs2.s 	  -nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    red_ic_tag		red_ic_tag.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    red_ic_instr		red_ic_instr.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    red_dc_data		red_dc_data.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    red_dc_tag_no_par_check	red_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    red_tlb			red_tlb.s          -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=500000
+    red_pcr_pic		red_pcr_pic.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_red_passing>
+<princeton_rst_red_failing>
+    //red_l2_tag_data		red_l2_tag_data.s  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //red_err_en		red_err_en.s       -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_red_failing>
+
+<princeton_rst_sir_passing>
+    sir_wr_regs1 	sir_wr_regs1.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    sir_wr_regs2 	sir_wr_regs2.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    sir_ic_tag 	sir_ic_tag.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    sir_ic_instr 	sir_ic_instr.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    sir_dc_data 	sir_dc_data.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    sir_dc_tag_no_par_check sir_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    sir_tlb 	sir_tlb.s         -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=500000
+    sir_pcr_pic 	sir_pcr_pic.s	  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_sir_passing>
+<princeton_rst_sir_failing>
+    //sir_l2_tag_data sir_l2_tag_data.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //sir_err_en 	sir_err_en.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_sir_failing>
+
+<princeton_rst_wdr_passing>
+    wdr_wr_regs1 	wdr_wr_regs1.s	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    wdr_wr_regs2 	wdr_wr_regs2.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    wdr_ic_tag 	wdr_ic_tag.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    wdr_ic_instr 	wdr_ic_instr.s  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    wdr_dc_data 	wdr_dc_data.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    wdr_dc_tag_no_par_check wdr_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    wdr_tlb 	wdr_tlb.s         -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=500000
+    wdr_pcr_pic 	wdr_pcr_pic.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_wdr_passing>
+<princeton_rst_wdr_failing>
+    //wdr_l2_tag_data wdr_l2_tag_data.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wdr_err_en 	wdr_err_en.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_wdr_failing>
+
+<princeton_rst_wmr_passing>
+</princeton_rst_wmr_passing>
+<princeton_rst_wmr_failing>
+    //wmr_wr_regs1 	wmr_wr_regs1.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_wr_regs2 	wmr_wr_regs2.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_ic_tag 	wmr_ic_tag.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff  -sim_run_args=+no_bisi_init
+    //wmr_ic_instr 	wmr_ic_instr.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_dc_data 	wmr_dc_data.s  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+    //wmr_dc_tag_no_par_check wmr_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff -sim_run_args=+no_bisi_init
+    //wmr_l2_tag_data wmr_l2_tag_data.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_tlb 	wmr_tlb.s         -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=500000
+    //wmr_err_en 	wmr_err_en.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_pcr_pic 	wmr_pcr_pic.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_ccr 	wmr_ccr.s	  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //wmr_asi 	wmr_asi.s	  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+</princeton_rst_wmr_failing>
+
+<princeton_rst_xir_passing>
+    xir_wr_regs1 	xir_wr_regs1.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+    xir_wr_regs2 	xir_wr_regs2.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+    xir_ic_tag 	xir_ic_tag.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000 -sim_run_args=+l1_chkoff
+    xir_ic_instr 	xir_ic_instr.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+    xir_dc_tag_no_par_check xir_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000 -sim_run_args=+l1_chkoff
+    xir_tlb 	xir_tlb.s         -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+    xir_pcr_pic 	xir_pcr_pic.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+</princeton_rst_xir_passing>
+<princeton_rst_xir_failing>
+    //xir_l2_tag_data xir_l2_tag_data.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    //xir_err_en 	xir_err_en.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=10000000
+</princeton_rst_xir_failing>
+</princeton_rst>

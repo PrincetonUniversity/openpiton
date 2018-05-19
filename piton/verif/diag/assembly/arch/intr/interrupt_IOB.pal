@@ -1,0 +1,653 @@
+:!!
+
+$num_thr = 4;
+
+:#define CUSTOM_THREAD_START
+:#define H_HT0_Interrupt_0x60 interrupt_handler
+:
+:#define My_Watchdog_Reset            set 0xdeadbeef, %g1; ba Power_On_Reset; nop;
+:#define My_External_Reset            set 0xdeadbeef, %g1; ba Power_On_Reset; nop;
+:#define My_Software_Initiated_Reset  set 0xdeadbeef, %g1; ba Power_On_Reset; nop;
+
+:
+:!! Offsets into memory
+:#define ISSUE_TID_OFFSET 0x0        
+:#define MODE_OFFSET 0x8 
+:#define MAXTL 6       
+:        
+:!! Mode definitions
+:#define NUM_MODES 5        
+:#define MODE_RED 0
+:#define MODE_TRAP 1
+:#define MODE_PRIV 2
+:#define MODE_NONPRIV 3
+:#define MODE_ERROR 4
+:
+:#include "boot.s"
+
+:attr_text {
+:        Name = .MAIN,
+:        VA=MAIN_BASE_TEXT_VA,
+:        RA=MAIN_BASE_TEXT_RA,
+:        tsbonly,
+:        part_0_i_ctx_zero_ps0_tsb,
+:        TTE_G=0, TTE_Context=0, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+:        TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+:        TTE_L=0, TTE_CP=1, TTE_CV=0, TTE_E=0, TTE_P=0, TTE_W=0
+:        }
+:
+:attr_data {
+:        Name = .MAIN,
+:        VA=MAIN_BASE_DATA_VA,
+:        RA=MAIN_BASE_DATA_RA,
+:        tsbonly,
+:        part_0_d_ctx_zero_ps0_tsb,
+:        TTE_G=0, TTE_Context=0, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+:        TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+:        TTE_L=0, TTE_CP=1, TTE_CV=0, TTE_E=0, TTE_P=0, TTE_W=1
+:        }
+:
+:.text
+:.global main
+:main:
+:!! Determing thread ID
+:        ta T_RD_THID
+:        mov %o1, %g1  !! load Thread status reg
+:
+:        setx red_int_data, %l1, %g5
+:        setx barrier_count, %l1, %g6
+:        
+:!! Check to see if current thread is active
+:        ldx [%g5+ISSUE_TID_OFFSET], %l3
+:        cmp %g1, %l3
+:        be launch_intrs
+:        nop
+:
+:loop_wait_for_reinit:
+:        setx wait_for_reinit, %i0, %i1  ! if we are here because of reinit
+:        ldub [%i1], %i0                 ! then wait till the time real reset.
+:        cmp  %i0, 0x1
+:        be   loop_wait_for_reinit
+:        nop
+:
+:        ldx [%g5+MODE_OFFSET], %l3
+:        cmp %l3, MODE_RED
+:        be target_red
+:        cmp %l3, MODE_TRAP
+:        be target_trap
+:        cmp %l3, MODE_PRIV
+:        be target_priv
+:        cmp %l3, MODE_ERROR
+:        be target_error
+:        nop
+:        ba target_nonpriv
+:        nop
+:
+:launch_intrs:
+:       setx wait_for_reinit, %i0, %i1  ! clear wait flag, since this is real reset.
+:       stub %g0, [%i1]
+:       membar #Sync
+:
+:       ta T_CHANGE_PRIV
+:
+:   !! Get out of RED Mode
+:        wrpr %g0, 0x1, %tl !! TL = 1 after done
+:        wrpr %g0, 0x1, %gl !! GL = 1 after done
+:        setx issue_non_red, %l1, %l0
+:        wrpr %l0, %g0, %tpc
+:        wrpr %l0, %g0, %tnpc
+:        setx 0x00000000600, %l1, %l0  !! gl=0, priv, interrupt enabled
+:        wrpr %l0, %g0, %tstate
+:        done
+:        nop
+:issue_non_red:          
+:       cmp %g1, 0
+:       be thr0_intr
+:       nop
+:       cmp %g1, 1
+:       bne diag_fail
+:       nop
+:       call thr1_intr
+:       nop
+:       call stress_test
+:	nop
+:       ba diag_pass
+:       nop
+:
+:
+:
+:/**************************************
+:        Code for non-issuing threads   
+:        ----------------------------
+:        Sets up state and branches to idle loop
+: ***************************************/             
+:target_red:
+:        ba thr_idle
+:        nop
+:target_error:
+:        ta T_CHANGE_PRIV
+:        wrpr %g0, MAXTL, %tl !! make sure TL = MAXTL
+:        !! mark thread as active                       
+:        ldstub [%g6], %l3
+:        cmp %l3, 0xff
+:        be  target_error
+:        nop
+:        add %l3, 0x1, %l3 !! increment counter
+:        stub %l3, [%g6]
+:        ta T_CHANGE_PRIV !! trap with TL=MAXTL will enter error
+:        nop
+:target_trap:
+:        ta T_CHANGE_PRIV
+:        wrpr %g0, 0x2, %tl !! TL = 1 after done
+:        wrpr %g0, 0x2, %gl !! TL = 1 after done
+:        set 0x600, %l2  !! priv, interrupt enabled
+:        ba target_exit_red
+:        nop
+:target_priv:
+:        ta T_CHANGE_PRIV
+:        wrpr %g0, 0x1, %tl !! TL = 0 after done
+:        wrpr %g0, 0x1, %gl !! TL = 0 after done
+:        set 0x600, %l2 !! priv, interrupt enabled
+:        nop
+:        ba target_exit_red
+:        nop
+:target_nonpriv: 
+:        ta T_CHANGE_PRIV
+:        set 0x200, %l2 !! interrupt enabled
+:        wrpr %g0, 0x1, %tl !! TL = 0 after done
+:        wrpr %g0, 0x1, %gl !! TL = 0 after done
+:        ba target_exit_red
+:        nop
+:
+:target_exit_red:        
+:        setx thr_idle, %l0, %l1
+:        wrpr %l1, %g0, %tpc
+:        wrpr %l1, %g0, %tnpc
+:        wrpr %l2, %g0, %tstate
+:        done
+:        nop
+:                
+:        
+:thr_idle:
+:        !! mark thread as active                       
+:        ldstub [%g6], %l3
+:        cmp %l3, 0xff
+:        be  thr_idle
+:        nop
+:        add %l3, 0x1, %l3 !! increment counter
+:        stub %l3, [%g6]
+:        
+:        mov 0x1, %l5
+:idle_loop:            
+:        add %l5, 0x1, %l5
+:        ba idle_loop
+:        nop
+:
+:
+:
+:/**********************************************************
+: *      Test set for interrupts with thread 0 as dispatcher
+: *        %g1 Issuing (current) thread ID
+: *        %g5 address for red_int_data
+: *        %g6 address for barrier_count
+: **********************************************************/                           
+:thr0_intr:
+$max_barrier = $num_thr - 1;
+$expect_barrier = 1;
+:        stub %g0, [%g6] !! clear active counter except for current thread
+# Note: Interrupt number: 1=reset, 2=suspend, 3=resume, 0=interrupt
+#       Reset vector: 1=POR, 2=WDR, 3=XIR, 4=SIR
+@intr =   (1,1,1,1,1,2,2,3,3,2,1,2,1,2,1,2,0,3,0);
+@vector = (1,2,3,4,1,0,0,0,0,0,1,0,2,0,3,0,5,0,3);
+for ($i = 0; $i < @intr; $i++) {
+:marker$i:
+:   nop
+  for($thr = 1; $thr < $num_thr; $thr++) {
+:      ! \$EV trig_pc_d (1,\@VA(.MAIN.marker$i)) -> intp($thr, $intr[$i], $vector[$i])
+  }
+  if($intr[$i] == 1 || $intr[$i] == 3) {$expect_barrier = 1;}
+  elsif ($intr[$i] == 2) {$expect_barrier = 0;}
+  if ($intr[$i] == 1 || ($expect_barrier && $intr[$i] == 0)) { # interrupt or reset
+:   set $max_barrier, %l0
+:   call intr_barrier
+:   nop
+  }
+}
+
+:!! Invalidate current thread number so reset will reset all the threads
+:        mov -1, %g1        
+:!! When done increment active thread counter (in memory).
+:        ldx [%g5+ISSUE_TID_OFFSET], %l3
+:        add %l3, 0x1, %l3
+:!! If last thread, then change state of target threads
+:        set $num_thr, %l4
+:        cmp %l3, %l4
+:        move %xcc, %g0, %l3 !! reset thread counter for loop
+:        stx %l3, [%g5+ISSUE_TID_OFFSET]
+:        be change_mode
+:        nop
+:        call reset_all
+:        nop
+:        ba thr_idle
+:        nop
+:
+:        
+:change_mode:    
+:        ldx [%g5+MODE_OFFSET], %l3
+:        add %l3, 0x1, %l3
+:        stx %l3, [%g5+MODE_OFFSET]
+:!! If all modes have been exercised then done, otherwise reset all        
+:        cmp %l3, NUM_MODES
+:        be diag_pass
+:        nop
+:        call reset_all
+:        nop
+:        ba thr_idle
+:        nop
+:
+: !! reset all threads
+:reset_all:        
+:       ta T_GOOD_TRAP ! once reached here means diag passed.
+:
+:       setx wait_for_reinit, %i0, %i1
+:       mov  0x1, %i0
+:       stub %i0, [%i1]
+:       membar #Sync
+:
+:       setx which_round, %i0, %i1
+:
+:       ta T_RD_THID
+:       mov %o1, %g1
+:
+:chk_thid0:
+:       cmp %g1, 0x0
+:       bne chk_thid1
+:       nop
+:       ldub [%i1], %i0
+:       mov %i0, %i2
+:       inc %i0
+:       stub %i0, [%i1]
+:       membar #Sync
+:       cmp %i2, 0x0
+:       be R0_th0r1
+:       nop
+:       cmp %i2, 0x1
+:       be R1_th0r1
+:       nop
+:       cmp %i2, 0x2
+:       be R2_th0r1
+:       nop
+:       cmp %i2, 0x3
+:       be R3_th0r1
+:       nop
+:
+:chk_thid1:
+:       cmp %g1, 0x1
+:       bne chk_thid2
+:       nop
+:       ldub [%i1+1], %i0
+:       mov %i0, %i2
+:       inc %i0
+:       stub %i0, [%i1+1]
+:       membar #Sync
+:       cmp %i2, 0x0
+:       be R0_th1r2
+:       nop
+:       cmp %i2, 0x1
+:       be R1_th1r2
+:       nop
+:       cmp %i2, 0x2
+:       be R2_th1r2
+:       nop
+:       cmp %i2, 0x3
+:       be R3_th1r2
+:       nop
+:
+:
+:chk_thid2:
+:       cmp %g1, 0x2
+:       bne chk_thid3
+:       nop
+:       ldub [%i1+2], %i0
+:       mov %i0, %i2
+:       inc %i0
+:       stub %i0, [%i1+2]
+:       membar #Sync
+:       cmp %i2, 0x0
+:       be R0_th2r3
+:       nop
+:       cmp %i2, 0x1
+:       be R1_th2r3
+:       nop
+:       cmp %i2, 0x2
+:       be R2_th2r3
+:       nop
+:       cmp %i2, 0x3
+:       be R3_th2r3
+:       nop
+:
+:
+:chk_thid3:
+:       cmp %g1, 0x3
+:       bne chk_thid3
+:       nop
+:       ldub [%i1+3], %i0
+:       mov %i0, %i2
+:       inc %i0
+:       stub %i0, [%i1+3]
+:       membar #Sync
+:       cmp %i2, 0x0
+:       be R0_th3r0
+:       nop
+:       cmp %i2, 0x1
+:       be R1_th3r0
+:       nop
+:       cmp %i2, 0x2
+:       be R2_th3r0
+:       nop
+:       cmp %i2, 0x3
+:       be R3_th3r0
+:       nop
+:
+:
+:
+:
+:R0_th0r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th0r1)) -> intp(1, 1, 1)
+:R0_th0r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th0r2)) -> intp(2, 1, 1)
+:R0_th0r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th0r3)) -> intp(3, 1, 1)
+:R0_th0r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th0r0)) -> intp(0, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R1_th0r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th0r1)) -> intp(1, 1, 1)
+:R1_th0r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th0r2)) -> intp(2, 1, 1)
+:R1_th0r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th0r3)) -> intp(3, 1, 1)
+:R1_th0r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th0r0)) -> intp(0, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R2_th0r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th0r1)) -> intp(1, 1, 1)
+:R2_th0r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th0r2)) -> intp(2, 1, 1)
+:R2_th0r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th0r3)) -> intp(3, 1, 1)
+:R2_th0r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th0r0)) -> intp(0, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R3_th0r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th0r1)) -> intp(1, 1, 1)
+:R3_th0r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th0r2)) -> intp(2, 1, 1)
+:R3_th0r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th0r3)) -> intp(3, 1, 1)
+:R3_th0r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th0r0)) -> intp(0, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:
+:
+:R0_th1r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th1r2)) -> intp(2, 1, 1)
+:R0_th1r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th1r3)) -> intp(3, 1, 1)
+:R0_th1r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th1r0)) -> intp(0, 1, 1)
+:R0_th1r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th1r1)) -> intp(1, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R1_th1r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th1r2)) -> intp(2, 1, 1)
+:R1_th1r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th1r3)) -> intp(3, 1, 1)
+:R1_th1r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th1r0)) -> intp(0, 1, 1)
+:R1_th1r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th1r1)) -> intp(1, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R2_th1r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th1r2)) -> intp(2, 1, 1)
+:R2_th1r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th1r3)) -> intp(3, 1, 1)
+:R2_th1r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th1r0)) -> intp(0, 1, 1)
+:R2_th1r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th1r1)) -> intp(1, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R3_th1r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th1r2)) -> intp(2, 1, 1)
+:R3_th1r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th1r3)) -> intp(3, 1, 1)
+:R3_th1r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th1r0)) -> intp(0, 1, 1)
+:R3_th1r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th1r1)) -> intp(1, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:
+:
+:R0_th2r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th2r3)) -> intp(3, 1, 1)
+:R0_th2r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th2r0)) -> intp(0, 1, 1)
+:R0_th2r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th2r1)) -> intp(1, 1, 1)
+:R0_th2r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th2r2)) -> intp(2, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R1_th2r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th2r3)) -> intp(3, 1, 1)
+:R1_th2r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th2r0)) -> intp(0, 1, 1)
+:R1_th2r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th2r1)) -> intp(1, 1, 1)
+:R1_th2r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th2r2)) -> intp(2, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R2_th2r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th2r3)) -> intp(3, 1, 1)
+:R2_th2r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th2r0)) -> intp(0, 1, 1)
+:R2_th2r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th2r1)) -> intp(1, 1, 1)
+:R2_th2r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th2r2)) -> intp(2, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R3_th2r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th2r3)) -> intp(3, 1, 1)
+:R3_th2r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th2r0)) -> intp(0, 1, 1)
+:R3_th2r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th2r1)) -> intp(1, 1, 1)
+:R3_th2r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th2r2)) -> intp(2, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:
+:
+:R0_th3r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th3r0)) -> intp(0, 1, 1)
+:R0_th3r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th3r1)) -> intp(1, 1, 1)
+:R0_th3r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th3r2)) -> intp(2, 1, 1)
+:R0_th3r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R0_th3r3)) -> intp(3, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R1_th3r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th3r0)) -> intp(0, 1, 1)
+:R1_th3r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th3r1)) -> intp(1, 1, 1)
+:R1_th3r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th3r2)) -> intp(2, 1, 1)
+:R1_th3r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R1_th3r3)) -> intp(3, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R2_th3r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th3r0)) -> intp(0, 1, 1)
+:R2_th3r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th3r1)) -> intp(1, 1, 1)
+:R2_th3r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th3r2)) -> intp(2, 1, 1)
+:R2_th3r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R2_th3r3)) -> intp(3, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:R3_th3r0: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th3r0)) -> intp(0, 1, 1)
+:R3_th3r1: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th3r1)) -> intp(1, 1, 1)
+:R3_th3r2: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th3r2)) -> intp(2, 1, 1)
+:R3_th3r3: nop  ! \$EV trig_pc_d (1,\@VA(.MAIN.R3_th3r3)) -> intp(3, 1, 1)
+:       ba wait_for_death
+:       nop
+:
+:wait_for_death:
+:       ba wait_for_death
+:       nop
+:                        
+:
+:
+:
+:/**********************************************************
+: *      Test set for interrupts with thread 1 dispatching to thread 0
+: *        %g1 Issuing (current) thread ID
+: *        %g5 address for red_int_data
+: *        %g6 address for barrier_count
+: **********************************************************/                           
+:thr1_intr:
+:        stub %g0, [%g6] !! clear active counter except for current thread
+  $thr = 0;
+  $expect_barrier = 1;
+for($i = 0; $i < @intr; $i++) {
+:thr1_marker$i:
+:   nop
+:      ! \$EV trig_pc_d (1,\@VA(.MAIN.thr1_marker$i)) -> intp($thr, $intr[$i], $vector[$i])
+  if($intr[$i] == 1 || $intr[$i] == 3) {$expect_barrier = 1;}
+  elsif ($intr[$i] == 2) {$expect_barrier = 0;}
+  if ($intr[$i] == 1 || ($expect_barrier && $intr[$i] == 0)) { # interrupt or reset
+:        set 1, %l0
+:   call intr_barrier
+:   nop
+  }
+}
+: retl
+: nop
+:
+:
+:
+:/*************************************************************
+: *     Stress test that issues 128 interrupts 
+: *     from the IOB simultaneously to thr 0
+: *************************************************************/
+:stress_test:
+  $thr = 0;
+for ($i = 0; $i < 0x40; $i++) {
+:stress_marker_A$i:
+:nop
+printf("! \$EV trig_pc_d (1,\@VA(.MAIN.stress_marker_A%d)) -> intp(%d, 0, ,%x)\n", $i, $thr, $i);
+}
+for ($i = 0; $i < 0x40; $i++) {
+:stress_marker_B$i:
+:nop
+:      ! \$EV trig_pc_d (1,\@VA(.MAIN.stress_marker_B$i)) -> intp($thr, 0, $i)
+}
+:  retl
+:  nop
+:
+:
+:/***********************************************************
+: *     Function to check if the barrier can be crossed
+: *     Takes the number of threads that need to reach the barrier
+: *     in %l0
+: ***********************************************************/
+:intr_barrier:
+:   ldub [%g6], %l2
+:   cmp %l2, %l0
+:   bne intr_barrier
+:   nop
+:   stub %g0, [%g6] !! clear active counter
+:   retl
+:   nop   
+
+:/*
+: ********************************
+: *      Diag PASSED             *
+: ********************************
+: */
+:diag_pass:
+:        set     0xaaddcafe,     %l0
+:        ta T_GOOD_TRAP
+:        nop
+:
+:/*
+: ********************************
+: *      Diag FAILED !           *
+: ********************************
+: */
+:diag_fail:
+:        set     0xdeadcafe,     %l0
+:        ta T_BAD_TRAP
+:        nop
+:        nop
+:
+:                             
+
+:
+:.data
+:.global red_int_data        
+:.global barrier_count        
+:.data
+:        .align 64
+:red_int_data:
+:!! issuing tid
+:        .word 0x00000000, 0x00000000
+:!! mode for target threads (0:  RED, 1: TL=1, 2: PRIV, 3: NONPRIV, 4: ERROR)
+:        .word 0x00000000, 0x00000000
+:
+:        .align 64
+:barrier_count:  
+:        .word 0x00000000, 0x00000000
+:wait_for_reinit:  
+:        .word 0x00000000, 0x00000000
+:which_round:
+:       .word 0x00000000, 0x00000000
+:.end  
+:
+
+
+:SECTION .RED_SEC_ASSISTED_BOOT TEXT_VA=0x0000000
+:#ifndef ALL_PAGE_CUSTOM_MAP
+:attr_text {
+:	Name=.RED_SEC_ASSISTED_BOOT,
+:	hypervisor
+:}
+:#endif
+:			
+:RESERVED_0: !Should not come here
+:        nop
+:        nop
+:        nop
+:        nop
+:        nop
+:        nop
+:        nop
+:        nop
+:
+:assist_Power_On_Reset:
+:        setx HRedmode_Reset_Handler, %g1, %g2
+:        jmp %g2
+:        nop
+:
+:.align 32
+:	
+:assist_Watchdog_Reset:
+:        ba assist_Power_On_Reset
+:        nop
+:
+:.align 32
+:	
+:assist_External_Reset:
+:        ba assist_Power_On_Reset
+:        nop
+:
+:.align 32
+:	
+:assist_Software_Initiated_Reset:
+:        ba assist_Power_On_Reset
+:        nop
+:
+:.align 32
+:	
+:assist_RED_Mode_Other_Reset:
+:        nop
+:	nop
+:	nop
+:
+:/*
+: ********************************
+: *      trap handler            *
+: ********************************
+: */
+:.global interrupt_handler
+:interrupt_handler:      
+:        ldxa  [ %g0 ] 0x74, %g3  !! read interrupt vector from ASI_UDB_INTR_R
+:        !! increment sync counter
+:        setx barrier_count, %l1, %g6
+:interrupt_idle: 
+:        !! mark thread as active                       
+:        ldstuba [%g6] 0x10, %l3
+:        cmp %l3, 0xff
+:        be interrupt_idle 
+:        nop
+:        add %l3, 0x1, %l3 !! increment counter
+:        stuba %l3, [%g6] 0x10
+:        done

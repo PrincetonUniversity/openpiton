@@ -1,0 +1,104 @@
+BEGIN { push @INC, "$ENV{DV_ROOT}/verif/diag/assembly/arch/prm/alu"; }
+
+use strict;
+require ArchDiagsFp ;
+
+our $debug =0 ;
+my $fp = ArchDiagsFp -> new () ; 
+
+my $debug =1;
+$fp -> setupDiagOptions();
+
+
+printf ("#define  THREAD_COUNT    %s\n", $fp -> {opt} -> {thrd_count});
+printf ("#define  THREAD_STRIDE   %s\n",$fp -> {opt} -> {thrd_stride});
+
+if($fp -> {opt} -> {hyper}) 
+{
+:#define H_HT0_Trap_Instruction_2
+:#define My_HT0_Trap_Instruction_2  setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop;
+}
+elsif ($fp -> {opt} -> {enboff}) 
+{
+:#define H_T0_Trap_Instruction_2
+:#define My_T0_Trap_Instruction_2 setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop;
+}
+else 
+{
+:#define H_HT0_HTrap_Instruction_0
+:#define My_HT0_HTrap_Instruction_0 setx hyp_api, %g1, %g2; jmpl %g2, %g0; nop;
+}
+
+# because setup code will be generated based on enabled trap
+if($fp -> {opt} -> {vawatch} || $fp -> {opt} -> {hyper}) 
+{
+  if($fp -> {opt} -> {enboff} == 0) 
+  {
+:#define MAIN_PAGE_HV_ALSO
+  }
+}
+
+if($fp -> {opt} -> {enboff}) 
+{
+:#define HPV_NONSPLIT_MODE
+}
+
+if($fp -> {opt} -> {cti_inst}) 
+{
+:#define USER_PAGE_CUSTOM_MAP
+}
+
+$fp-> enableInt();
+
+:#include "boot.s"
+
+
+:.text
+:.global main
+:main:
+$fp -> initIntReg(1,0);
+:th_fork(th_main)
+
+for(my $i=0; $i<$fp->{opt}->{thrd_count}; $i++) {
+:   th_main_$i:
+:   setx th_main_jmp$i, %g1, %g2
+:   jmp %g2
+:   nop
+}
+
+for(my $i=0; $i<$fp -> {opt} -> {thrd_count}; $i++) 
+{
+:   th_main_jmp$i:
+
+    if($fp -> {opt} -> {super}) 
+{
+:       ta T_CHANGE_PRIV
+    }
+    if($fp -> {opt} -> {hyper}) 
+{
+:       ta T_CHANGE_HPRIV
+    }
+
+
+if($fp -> {opt} -> {rand})
+{
+  $fp -> genRandomInst();
+}
+elsif($fp -> {opt} -> {rsvd})
+{
+  $fp -> genAllWalk1InstWithRsvd();
+}
+else
+{
+  $fp -> genAllWalk1Inst();
+}
+
+:   nop
+:   ta  T_GOOD_TRAP
+:   nop
+}
+
+
+
+$fp -> gen_scratch_mem_area();
+$fp -> hyp_helper_apis();

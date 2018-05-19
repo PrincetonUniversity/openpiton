@@ -1,0 +1,155 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: ifu_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<runargs -vera_cov_obj=ifu_coverage -sas -max_cycle=200000 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0>
+
+#ifdef CIOP_MODEL
+
+#ifndef PERF_REGR
+icache_diag_asi 	-nosas -fast_boot -max_cycle=100000000 -midas_args=-allow_tsb_conflicts -sim_run_args=+l1_chkoff asi_walker.pal
+#endif
+
+tlz_inst_acc_err	-finish_mask=1 -fast_boot tlz_inst_acc_err.s
+priv_ch_dlyslt 		-finish_mask=1 -fast_boot priv_ch_dlyslt.s
+dtlb_err_frf_err 	-finish_mask=1 -fast_boot dtlb_err_frf_err.s
+dtlb_err_stb7 		-finish_mask=1 -fast_boot dtlb_err_stb7.s
+dtlb_err_stb8 		-finish_mask=1 -fast_boot dtlb_err_stb8.s
+tcc_ccr_checker 	-finish_mask=f -fast_boot tcc_ccr_checker.pal
+br_ccr_checker 		-finish_mask=f -fast_boot br_ccr_checker.pal
+fpbr_fcc_checker 	-finish_mask=f -fast_boot fpbr_fcc_checker.pal
+thrfsm_cov 		-finish_mask=3 -fast_boot thrfsm_cov.pal
+thrfsm_cov2 		-finish_mask=3 -fast_boot thrfsm_cov2.pal
+spu_kill 		-finish_mask=1 -fast_boot spu_kill.s
+spu_kill2 		-finish_mask=1 -fast_boot spu_kill2.s
+br_stress 		-finish_mask=f -fast_boot -max_cycle=5000000  -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -sim_run_args=+asm_err_en -midas_args=-allow_tsb_conflicts -sim_run_args=+softint_off=1 -sim_run_args=+inst_check_off=1 br_stress.s
+flush_order		-sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=f flush_order.s -fast_boot
+priv_dlyslt		-midas_args=-allow_tsb_conflicts -finish_mask=1 -fast_boot -sim_run_args=+inst_check_off=1 priv_dlyslt.s
+tlberr_dlyslt		-sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=1 tlberr_dlyslt.s -fast_boot -sim_run_args=+asm_err_en
+pc_oor_dlyslt		-sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=f pc_oor_dlyslt.s -fast_boot
+io_icerr 		 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -sim_run_args=+asm_err_en -sim_run_args=+fast_boot -sas_run_args=-DFAST_BOOT -vcs_run -midas_args=-allow_tsb_conflicts -sim_run_args=+inst_check_off=1 io_icerr.s 
+
+#else
+
+#ifdef THREAD1_FULL
+  
+
+// bug3685    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3685.s  -sim_run_args=+l1_chkoff
+// bug3725    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3725.s  
+
+#else
+
+bug2356_0  -midas_args=-DSPEC_LD_OFF bug2356.s
+bug2356_1  bug2356.s
+bug2415_0  -midas_args=-DSPEC_LD_OFF bug2415.s
+bug2415_1  bug2415.s
+bug2416_0  -midas_args=-DSPEC_LD_OFF bug2416_0.s
+bug2416_1  bug2416_0.s
+bug2416_2  -midas_args=-DSPEC_LD_OFF bug2416_1.s
+bug2416_3  bug2416_1.s
+bug2416_4  -midas_args=-DSPEC_LD_OFF bug2416_2.s
+bug2416_5  bug2416_2.s
+bug2417_0  -midas_args=-DSPEC_LD_OFF bug2417.s
+bug2417_1  bug2417.s
+bug2426_0  -midas_args=-DSPEC_LD_OFF bug2426.s
+bug2426_1  bug2426.s
+bug2433_0  -midas_args=-DSPEC_LD_OFF bug2433.s
+bug2433_1  bug2433.s
+bug2434_0  -midas_args=-DSPEC_LD_OFF bug2434.s
+bug2434_1  bug2434.s
+bug2445_0  -midas_args=-DSPEC_LD_OFF bug2445.s
+bug2445_1  bug2445.s
+bug2543_0  -midas_args=-DSPEC_LD_OFF bug2543.s -sim_run_args=+l1_chkoff
+bug2543_1  bug2543.s -sim_run_args=+l1_chkoff
+bug2568_0  -midas_args=-DSPEC_LD_OFF bug2568.s
+bug2568_1  bug2568.s
+bug2943    bug2943.s
+bug2948	   bug2948.s
+bug3070    bug3070.s
+bug3071	   bug3071.s
+bug3138	   -max_cycle=400000 bug3138.s 
+bug3144    bug3144.s
+bug3144_0  bug3144_0.s
+bug2868    bug2868.s
+bug2880    bug2880.s
+bug2883    bug2883.s
+bug2943    bug2943.s
+bug3212    -max_cycle=400000 bug3212.s
+bug3273    bug3273.s
+bug3289	   bug3289.s -sim_run_args=+l1_chkoff
+bug3155    bug3155.s
+bug3321    bug3321.s -sim_run_args=+l1_chkoff
+#ifndef THREAD4_FULL
+bug3085    -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1051765343 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3085.s
+bug3083	   -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1051765342 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3083.s
+bug3176    -sim_run_args=+rand_err_en -sim_run_args=+rand_err_seed=1052780419 -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err bug3176.s
+bug3584    -sim_run_args=+asm_err_en bug3584.s -sim_run_args=+l1_chkoff
+#endif
+bug3576    bug3576.s
+bug3572    bug3572.s
+#ifndef THREAD4_FULL
+bug3551    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806301 bug3551.s 
+bug3552    -midas_args=-DSPEC_LD_OFF -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055801447 bug3552.s
+#endif
+bug3596    bug3596.s -sim_run_args=+l1_chkoff
+#ifndef THREAD4_FULL
+bug3556    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806355 bug3556.s
+bug3620    -sim_run_args=+asm_err_en -finish_mask=3 bug3620.s
+bug3620_0  -sim_run_args=+asm_err_en -finish_mask=3 bug3620_0.s
+bug3628    -sim_run_args=+asm_err_en -finish_mask=3 bug3628.s
+bug3631	   -sim_run_args=+asm_err_en -finish_mask=3 bug3631.s
+bug3671    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3671.s  
+bug3685    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3685.s  -sim_run_args=+l1_chkoff
+bug3688    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3688.s  
+bug3701    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3701.s  
+bug3725    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3725.s  
+bug3738    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3738.s
+bug3752    -max_cycle=200000   -sim_run_args=+rand_err_en  -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334594 bug3752.s 
+bug3753    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334745 bug3753.s
+bug3761    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3761.s  
+#endif
+bug3766    -max_cycle=200000  -midas_args=-DSPEC_LD_OFF  bug3766.s  
+#ifndef THREAD4_FULL
+bug3773    -max_cycle=400000  -sim_run_args=+asm_err_en  -sim_run_args=+L1_INTQ_END_CHECK_OFF bug3773.s  
+bug3775    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3775.s  
+bug3788    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3788.s   
+bug3846    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=7  -midas_args=-allow_tsb_conflicts  bug3846.s  
+bug3898    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3898.s
+bug3900    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3900.s  
+bug3901    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3901.s
+bug3928    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3928.s  
+bug3932    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3932.s  
+bug4012    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4012.s 
+bug4017    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4017.s  
+bug4091    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4091.s  
+bug4267    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4267.s 
+bug4330    -max_cycle=400000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err  -sim_run_args=+err_inj_dbg -sim_run_args=+err_inj_dbg  -sim_run_args=+rand_err_seed=92003826 bug4330.s 
+bug4411    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4411.s  
+bug4459    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err  -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=20031003  bug4459.s  
+bug4461    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=20031003  bug4461.s 
+#endif
+#ifndef THREAD4_FULL
+bug4534    -max_cycle=400000 -finish_mask=f -sim_run_args=+asm_err_en bug4534.s
+#endif
+
+#endif
+#endif
+
+</runargs>

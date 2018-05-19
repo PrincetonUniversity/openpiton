@@ -1,0 +1,35 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: bwsocket_pli.tab
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+//$bw_init_list   call=bw_init_list_call size=32
+$bw_list          call=bw_list_call      size=32
+$bw_sas_recv      call=bw_sas_recv_call  size=32
+$bw_sas_send      call=bw_sas_send_call  size=32
+$bw_socket_init   call=bw_socket_init_call
+$bw_empty         call=bw_is_empty_call  size=32
+$bw_decoder       call=bw_instruction_decoder_call size=32
+$bw_good_trap     call=check_good_trap_call size=32
+$bw_force_by_name call=bw_tlb_reset_vld_call
+$bw_fail          call=bw_fail_call
+$bw_reset_buf     call=bw_reset_buffer_call
+$bw_tcl_read      call=bw_tcl_read_call  size=32
+$bw_tcl_write     call=bw_tcl_write_call
+

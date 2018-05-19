@@ -1,0 +1,44 @@
+=head2 Mon Apr 26 11:32:22 2004: C<Module> L<Regreport|Regreport>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/Regreport/5.01/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.01>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Mon Apr 26 11:32:45 2004: C<Module> L<Regreport|Regreport>
+
+=over 4
+
+=item *
+
+C<installed into: perlmod/Regreport/5.01/lib/site_perl/5.8.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.01>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

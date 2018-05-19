@@ -1,0 +1,297 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+//
+// OpenSPARC T1 Processor File: cmp_l15_messages_mon.v
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+//
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+//
+// The above named program is distributed in the hope that it will be
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+//
+// ========== Copyright Header End ============================================
+////////////////////////////////////////////////////////
+
+`include "sys.h"
+`include "iop.h"
+`include "cross_module.h.tmp"
+
+
+<%
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.environ["DV_ROOT"], 'tools/bin/'));
+    from pyhplib import *
+
+    print "`define NUM_TILES " + `NUM_TILES`;
+%>
+
+`ifndef USE_TEST_TOP // useless for older TOPs
+
+module manycore_network_mon (
+    input wire clk
+    );
+
+// check boundary communication
+// There are two parts to the check
+/* 1. check for valid signal from valid tiles to non-valid tiles
+    - from leftmost tiles to left
+    - topmost tiles to top
+    - ... right
+    - ... bottom
+    The only exception is from tile 0 to off-chip
+    Implementation:
+        For every valid tile, check NESW. Also because the system will not to configured to fill all tiles,
+            if the tile directly below or to the right is not configured then also check for error.
+*/
+/* 2. check for valid signal from non-valid tiles to valid tiles
+    - for every non-valid tiles, if the valid signal to an adjacent valid tile is asserted, then error
+*/
+
+always @ (negedge clk)
+begin
+    if($test$plusargs("enable_router_mon"))
+    begin
+<%
+    maxflatid = NUM_TILES - 1;
+    for y in range (Y_TILES):
+        for x in range (X_TILES):
+            flatid = x + (y * X_TILES);
+            print "`ifdef RTL_SPARC%d" % flatid
+            for nocid in [1,2,3]:
+                for dir in ['N', 'S', 'E', 'W']:
+                    for way in ['out']:
+                        print "    if (`CHIP.tile_%d_%d_%s_%s_noc%d_valid)" % (y,x,way,dir,nocid)
+                        print "    begin"
+                        print '        $display("%%d: TILE%d noc%d router %s %s data: 0x%%x ", $time,`CHIP.tile_%d_%d_%s_%s_noc%d_data);' % (flatid, nocid, way, dir,  y, x, way, dir, nocid)
+                        print "    end"
+            print "`endif"
+%>
+    end
+end
+
+localparam ERROR_NOC1 = 2'd1;
+localparam ERROR_NOC2 = 2'd2;
+localparam ERROR_NOC3 = 2'd3;
+
+
+reg [31:0] error_dir;
+reg [31:0] error_noc;
+reg [31:0] error_x;
+reg [31:0] error_y;
+reg boundary_err;
+always @ (negedge clk)
+begin
+    boundary_err = 0;
+    <%
+        maxflatid = NUM_TILES - 1;
+        for y in range (Y_TILES):
+            for x in range (X_TILES):
+                flatid = x + (y * X_TILES);
+                flatid_right = flatid + 1;
+                flatid_left = flatid - 1;
+                flatid_up = flatid - X_TILES;
+                flatid_down = flatid + X_TILES;
+                check_left = True;
+                check_right = True;
+                check_up = True;
+                check_down = True;
+                print "`ifdef RTL_SPARC%d" % flatid
+                for nocid in [1,2,3]:
+                    if (y == 0):
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "N";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        check_up = False;
+                    if (y == Y_TILES-1):
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "S";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        check_down = False;
+                    if (x == X_TILES-1):
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "E";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        check_right = False
+                    if (x == 0):
+                        if (y != 0):
+                            # it's okay for tile 0_0 to send messages to off-chip
+                            print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
+                            print 'if (boundary_err == 1)'
+                            print 'begin'
+                            print 'error_dir = "W";'
+                            print 'error_noc = %d;' % nocid
+                            print 'error_x = %d;' % x
+                            print 'error_y = %d;' % y
+                            print 'end'
+                        check_left = False;
+
+                    if (check_up):
+                        print "`ifndef RTL_SPARC%d" % flatid_up
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "N";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_down):
+                        print "`ifndef RTL_SPARC%d" % flatid_down
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "S";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_left):
+                        print "`ifndef RTL_SPARC%d" % flatid_left
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "W";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_right):
+                        print "`ifndef RTL_SPARC%d" % flatid_right
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "E";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                print "`endif"
+
+                error_check_code = '''
+                    if (boundary_err == 1)
+                    begin
+                        $display("%d : Simulation -> FAIL. network_mon: packet out of valid bound from tile_%0d_%0d_out_%0s_noc%0d", $time, error_y, error_x, error_dir, error_noc);
+                        repeat(5)@(posedge clk);
+                        `MONITOR_PATH.fail("network_mon: network_mon: packet going out of valid bound");
+                    end
+                    '''
+                print error_check_code
+
+
+                check_left = False;
+                check_right = False;
+                check_up = False;
+                check_down = False;
+                # Check for valid signal from non-existent tiles to any other tiles.
+                # For example, if there is only tile 0_0 and 0_1, then 
+                print 'boundary_err = 0;'
+                print "`ifndef RTL_SPARC%d" % flatid
+                for nocid in [1,2,3]:
+                    if (x != X_TILES-1):
+                        check_right = True
+                    if (x != 0):
+                        check_left = True
+                    if (y != Y_TILES-1):
+                        check_down = True
+                    if (y != 0):
+                        check_up = True
+
+                    if (check_up):
+                        print "`ifdef RTL_SPARC%d" % flatid_up
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "N";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_down):
+                        print "`ifdef RTL_SPARC%d" % flatid_down
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "S";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_left):
+                        print "`ifdef RTL_SPARC%d" % flatid_left
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "W";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+                    if (check_right):
+                        print "`ifdef RTL_SPARC%d" % flatid_right
+                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
+                        print 'if (boundary_err == 1)'
+                        print 'begin'
+                        print 'error_dir = "E";'
+                        print 'error_noc = %d;' % nocid
+                        print 'error_x = %d;' % x
+                        print 'error_y = %d;' % y
+                        print 'end'
+                        print '`endif'
+
+
+                error_check_code = '''
+                    if (boundary_err == 1)
+                    begin
+                        $display("%d : Simulation -> FAIL. network_mon: packet from invalid tile_%0d_%0d_out_%0s_noc%0d", $time, error_y, error_x, error_dir, error_noc);
+                        repeat(5)@(posedge clk);
+                        `MONITOR_PATH.fail("network_mon: network_mon: packet from invalid tile");
+                    end
+                    '''
+                print error_check_code
+                print "`endif"
+
+    %>
+
+    // if (boundary_err == 1)
+    // begin
+    //     $display("%d : Simulation -> FAIL(%0s)", $time, "network_mon: packet going out of bound");
+    //     repeat(5)@(posedge clk);
+    //     `MONITOR_PATH.fail("network_mon: network_mon: packet going out of bound");
+    // end
+end
+
+endmodule
+
+`endif

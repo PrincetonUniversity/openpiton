@@ -1,0 +1,54 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: ldaf_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<princeton_ldaf_enboff>
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=33> 
+<runargs -sim_run_args=+l2warm=1 -rtl_timeout=500000>
+
+ldaf_lda_alldest_enboff 				ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_alldest_enboff"
+ldaf_lda_alldest_enboff_super 				ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_alldest_enboff_super"
+ldaf_lda_fpdis_enboff                                ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_enboff"
+ldaf_lda_misalgn_enboff                              ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_enboff"
+ldaf_lda_dataacc_enboff                              ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_dataacc_enboff"
+ldaf_lda_vawatch_enboff                              ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_vawatch_enboff"
+ldaf_lda_fpdis_misalgn_enboff                        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_enboff"
+ldaf_lda_fpdis_dataacc_enboff                        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_dataacc_enboff"
+ldaf_lda_fpdis_vawatch_enboff                        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_vawatch_enboff"
+ldaf_lda_fpdis_misalgn_dataacc_enboff                ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_dataacc_enboff"
+ldaf_lda_fpdis_misalgn_vawatch_enboff                ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_vawatch_enboff"
+ldaf_lda_fpdis_dataacc_vawatch_enboff                ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_dataacc_vawatch_enboff"
+ldaf_lda_fpdis_misalgn_dataacc_vawatch_enboff        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_dataacc_vawatch_enboff"
+ldaf_lda_misalgn_dataacc_enboff                      ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_dataacc_enboff"
+ldaf_lda_misalgn_vawatch_enboff                      ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_vawatch_enboff"
+ldaf_lda_misalgn_dataacc_vawatch_enboff              ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_dataacc_vawatch_enboff"
+ldaf_lda_dataacc_vawatch_enboff                      ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_dataacc_vawatch_enboff"
+ldaf_lda_fpdis_enboff_super                          ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_enboff_super"
+ldaf_lda_misalgn_enboff_super                        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_enboff_super"
+ldaf_lda_vawatch_enboff_super                        ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_vawatch_enboff_super"
+ldaf_lda_fpdis_misalgn_enboff_super                  ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_enboff_super"
+ldaf_lda_fpdis_vawatch_enboff_super                  ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_vawatch_enboff_super"
+ldaf_lda_fpdis_misalgn_vawatch_enboff_super          ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_fpdis_misalgn_vawatch_enboff_super"
+ldaf_lda_misalgn_vawatch_enboff_super                ldf_alldest.pal  -midas_args=-pal_diag_args=-name="ldaf_lda_misalgn_vawatch_enboff_super"
+
+
+</runargs>
+</runargs>
+</princeton_ldaf_enboff>

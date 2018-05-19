@@ -1,0 +1,31 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: diag_list_red
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+red_wr_regs1		red_wr_regs1.s 	  -sas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+red_wr_regs2		red_wr_regs2.s 	  -sas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+red_ic_tag		red_ic_tag.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+red_ic_instr		red_ic_instr.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+red_dc_data		red_dc_data.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+red_dc_tag_no_par_check	red_dc_tag_no_par_check.s -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
+red_l2_tag_data		red_l2_tag_data.s  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+red_tlb			red_tlb.s          -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=500000
+red_err_en		red_err_en.s       -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+red_pcr_pic		red_pcr_pic.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000

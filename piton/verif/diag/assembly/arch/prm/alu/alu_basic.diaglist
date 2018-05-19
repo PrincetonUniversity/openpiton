@@ -1,0 +1,91 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+// 
+// OpenSPARC T1 Processor File: alu_basic.diaglist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// 
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+// 
+// The above named program is distributed in the hope that it will be 
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+// 
+// ========== Copyright Header End ============================================
+<alu>
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=f> 
+<runargs -sim_run_args=+l2warm=1>
+alu_add    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add"
+alu_sub    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub"
+alu_div    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div"
+alu_mul32    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32"
+alu_mulstep    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep"
+alu_muldiv    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv"
+alu_shift    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift"
+alu_logical    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical"
+alu_tadd    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd"
+alu_tsub    				arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub"
+
+alu_add_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_rsvd"
+alu_sub_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_rsvd"
+alu_div_rsvd                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_rsvd"
+alu_mul32_rsvd                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_rsvd"
+alu_mulstep_rsvd                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep_rsvd"
+alu_muldiv_rsvd                         arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv_rsvd"
+alu_shift_rsvd                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift_rsvd"
+alu_tadd_rsvd                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_rsvd"
+alu_tsub_rsvd                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_rsvd"
+
+alu_add_negative 	                arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_negative"
+alu_add_zero     	                arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_zero"
+alu_add_overflow     	                arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_overflow"
+alu_add_carry     	                arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_carry"
+
+alu_sub_negative                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_negative"
+alu_sub_zero                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_zero"
+alu_sub_overflow                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_overflow"
+alu_sub_carry                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_carry"
+
+alu_div_negative                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_negative"
+alu_div_zero                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_zero"
+alu_div_overflow                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_overflow"
+
+alu_logical_negative                    arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_negative"
+alu_logical_zero                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_zero"
+
+alu_mul32_negative                      arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_negative"
+alu_mul32_zero                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_zero"
+
+alu_tadd_negative                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_negative"
+alu_tadd_zero                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_zero"
+alu_tadd_overflow                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_overflow"
+alu_tadd_carry                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_carry"
+
+alu_tsub_negative                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_negative"
+alu_tsub_zero                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_zero"
+alu_tsub_overflow                       arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_overflow"
+alu_tsub_carry                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_carry"
+
+//alu_mulstep
+
+alu_add_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add_rand"
+alu_sub_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub_rand"
+alu_div_rand                            arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_div_rand"
+alu_mul32_rand                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mul32_rand"
+alu_mulstep_rand                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_mulstep_rand"
+alu_muldiv_rand                         arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_muldiv_rand"
+alu_shift_rand                          arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_shift_rand"
+alu_logical_rand                        arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_logical_rand"
+alu_tadd_rand                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tadd_rand"
+alu_tsub_rand                           arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_tsub_rand"
+
+</runargs>
+</runargs>
+</alu>

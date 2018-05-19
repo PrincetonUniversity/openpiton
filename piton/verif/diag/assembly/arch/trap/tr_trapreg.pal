@@ -1,0 +1,108 @@
+:/***********************************************************************
+: * Name:   tr_trapreg.pal
+: * Date:   06/07/02
+: *
+: *  Description:
+: * 	Access trap registers in tl=0, tl>=1
+: *
+: **********************************************************************/
+:
+:/*******************************************************
+: * My handler externsions
+: *******************************************************/
+:
+:#define	H_HT0_Illegal_instruction_0x10
+:#define	H_HT1_Illegal_instruction_0x10
+:
+:#define My_HT0_Illegal_instruction_0x10 \
+:		/*skip trapping and next instructions*/ \
+:		rdpr	%tstate, %i1; \
+:		rdpr	%tt, %i1; \
+:		rdpr	%tpc, %i0; \
+:		rdpr	%tnpc, %i1; \
+:		add	%i1, 4, %i1; \
+:		wrpr	%i1, %tnpc; \
+:		mov	%l0, %i1; \
+:		done; \
+:
+:#define My_HT1_Illegal_instruction_0x10 \
+:		rdpr	%tstate, %i1; \
+:		rdpr	%tt, %i1; \
+:		rdpr	%tpc, %i0; \
+:		rdpr	%tnpc, %i1; \
+:		add	%l4, 0x1, %l4; \
+:		done; \
+:		nop;
+:
+:
+:/*******************************************************/
+:
+:#include "boot.s"
+:
+:attr_text {
+:       Name = .MAIN,
+:       VA=MAIN_BASE_TEXT_VA,
+:       RA=MAIN_BASE_TEXT_RA,
+:       tsbonly,
+:       part_0_i_ctx_zero_ps0_tsb,
+:       TTE_G=1, TTE_Context=0, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+:       TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+:       TTE_L=0, TTE_CP=1, TTE_CV=0, TTE_E=0, TTE_P=0, TTE_W=1
+:       }
+:
+:
+:.text
+:.global main  
+:
+:main:
+:	ta	T_CHANGE_PRIV
+
+@trregs= ('%tstate', '%tt', '%tpc', '%tnpc');
+
+:trap_level_0:				!accessing trregs causes illegal_instruction trap
+:	wrpr	%g0, 0, %tl
+:	set	0xdeadbeef, %l0
+foreach $reg (@trregs) {
+:	rdpr	$reg, %l0			!read %l0 to make sure not modified
+:	ta	T_BAD_TRAP	
+:	wrpr	%l0, $reg
+:	ta	T_BAD_TRAP	
+}
+:
+:
+:trap_level_n_wrpr:
+for($tl=1; $tl<=6; ++$tl) {
+:	wrpr	%g0, $tl, %tl		!!!---- set to trap level $tl
+:	setx	0x[04x[0..0xffff]][07x[0..0xfffffff]][[0,4,8,c]], %g1, %g2
+:	wrpr	%g2, 0, %tpc
+:	setx	0x[04x[0..0xffff]][07x[0..0xfffffff]][[0,4,8,c]], %g1, %g2
+:	wrpr	%g2, 0, %tnpc
+:	set	0x[03x[0..0x1ff]] | 0x100, %g2
+:	wrpr	%g2, 0, %tt
+:	setx	0x[02x[0..0xff]][08x[0..0xffffffff]] & 0xffff0fff1f, %g1, %g2
+:	wrpr	%g2, 0, %tstate
+:
+}
+:trap_level_n_rdpr:
+for($tl=1; $tl<=6; ++$tl) {
+:	wrpr	%g0, $tl, %tl		!set to trap level $tl
+   foreach $reg (@trregs) {
+:	rdpr	$reg, %g2
+   }
+}
+:	wrpr	%g0, 0, %tl		!set back to trap level 0
+
+
+:/*******************************************************
+: * Exit code
+: *******************************************************/
+:
+:test_pass:
+:	ta		T_GOOD_TRAP
+:
+:test_fail:
+:	ta		T_BAD_TRAP
+:
+:/*******************************************************
+: * My handler externsions
+: *******************************************************/

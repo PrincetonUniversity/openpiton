@@ -1,0 +1,1362 @@
+
+=head1 NAME
+
+Bit::Vector::Overload - Overloaded operators add-on for Bit::Vector
+
+=head1 USAGE
+
+Note that you do not need to "C<use Bit::Vector;>"
+in addition to this module.
+
+Simply "C<use Bit::Vector::Overload;>" B<INSTEAD>
+of "C<use Bit::Vector;>". You can still use all the
+methods from the "Bit::Vector" module in addition
+to the overloaded operators and methods provided
+here after that.
+
+=head1 SYNOPSIS
+
+  Configuration
+      $config = Bit::Vector->Configuration();
+      Bit::Vector->Configuration($config);
+      $oldconfig = Bit::Vector->Configuration($newconfig);
+
+  String Conversion
+      $string = "$vector";             #  depending on configuration
+      print "\$vector = '$vector'\n";
+
+  Emptyness
+      if ($vector)  #  if not empty (non-zero)
+      if (! $vector)  #  if empty (zero)
+      unless ($vector)  #  if empty (zero)
+
+  Complement (one's complement)
+      $vector2 = ~$vector1;
+      $vector = ~$vector;
+
+  Negation (two's complement)
+      $vector2 = -$vector1;
+      $vector = -$vector;
+
+  Norm
+      $norm = abs($vector);  #  depending on configuration
+
+  Absolute
+      $vector2 = abs($vector1);  #  depending on configuration
+
+  Concatenation
+      $vector3 = $vector1 . $vector2;
+      $vector1 .= $vector2;
+      $vector1 = $vector2 . $vector1;
+      $vector2 = $vector1 . $scalar;  #  depending on configuration
+      $vector2 = $scalar . $vector1;
+      $vector .= $scalar;
+
+  Duplication
+      $vector2 = $vector1 x $factor;
+      $vector x= $factor;
+
+  Shift Left
+      $vector2 = $vector1 << $bits;
+      $vector <<= $bits;
+
+  Shift Right
+      $vector2 = $vector1 >> $bits;
+      $vector >>= $bits;
+
+  Union
+      $vector3 = $vector1 | $vector2;
+      $vector1 |= $vector2;
+      $vector2 = $vector1 | $scalar;
+      $vector |= $scalar;
+
+      $vector3 = $vector1 + $vector2;  #  depending on configuration
+      $vector1 += $vector2;
+      $vector2 = $vector1 + $scalar;
+      $vector += $scalar;
+
+  Intersection
+      $vector3 = $vector1 & $vector2;
+      $vector1 &= $vector2;
+      $vector2 = $vector1 & $scalar;
+      $vector &= $scalar;
+
+      $vector3 = $vector1 * $vector2;  #  depending on configuration
+      $vector1 *= $vector2;
+      $vector2 = $vector1 * $scalar;
+      $vector *= $scalar;
+
+  ExclusiveOr
+      $vector3 = $vector1 ^ $vector2;
+      $vector1 ^= $vector2;
+      $vector2 = $vector1 ^ $scalar;
+      $vector ^= $scalar;
+
+  Set Difference
+      $vector3 = $vector1 - $vector2;  #  depending on configuration
+      $vector1 -= $vector2;
+      $vector1 = $vector2 - $vector1;
+      $vector2 = $vector1 - $scalar;
+      $vector2 = $scalar - $vector1;
+      $vector -= $scalar;
+
+  Addition
+      $vector3 = $vector1 + $vector2;  #  depending on configuration
+      $vector1 += $vector2;
+      $vector2 = $vector1 + $scalar;
+      $vector += $scalar;
+
+  Subtraction
+      $vector3 = $vector1 - $vector2;  #  depending on configuration
+      $vector1 -= $vector2;
+      $vector1 = $vector2 - $vector1;
+      $vector2 = $vector1 - $scalar;
+      $vector2 = $scalar - $vector1;
+      $vector -= $scalar;
+
+  Multiplication
+      $vector3 = $vector1 * $vector2;  #  depending on configuration
+      $vector1 *= $vector2;
+      $vector2 = $vector1 * $scalar;
+      $vector *= $scalar;
+
+  Division
+      $vector3 = $vector1 / $vector2;
+      $vector1 /= $vector2;
+      $vector1 = $vector2 / $vector1;
+      $vector2 = $vector1 / $scalar;
+      $vector2 = $scalar / $vector1;
+      $vector /= $scalar;
+
+  Modulo
+      $vector3 = $vector1 % $vector2;
+      $vector1 %= $vector2;
+      $vector1 = $vector2 % $vector1;
+      $vector2 = $vector1 % $scalar;
+      $vector2 = $scalar % $vector1;
+      $vector %= $scalar;
+
+  Exponentiation
+      $vector3 = $vector1 ** $vector2;
+      $vector1 **= $vector2;
+      $vector2 = $vector1 ** $scalar;
+      $vector2 = $scalar ** $vector1;
+      $vector **= $scalar;
+
+  Increment
+      ++$vector;
+      $vector++;
+
+  Decrement
+      --$vector;
+      $vector--;
+
+  Lexical Comparison (unsigned)
+      $cmp = $vector1 cmp $vector2;
+      if ($vector1 lt $vector2)
+      if ($vector1 le $vector2)
+      if ($vector1 gt $vector2)
+      if ($vector1 ge $vector2)
+
+      $cmp = $vector cmp $scalar;
+      if ($vector lt $scalar)
+      if ($vector le $scalar)
+      if ($vector gt $scalar)
+      if ($vector ge $scalar)
+
+  Comparison (signed)
+      $cmp = $vector1 <=> $vector2;
+      if ($vector1 < $vector2)  #  depending on configuration
+      if ($vector1 <= $vector2)
+      if ($vector1 > $vector2)
+      if ($vector1 >= $vector2)
+
+      $cmp = $vector <=> $scalar;
+      if ($vector < $scalar)  #  depending on configuration
+      if ($vector <= $scalar)
+      if ($vector > $scalar)
+      if ($vector >= $scalar)
+
+  Equality
+      if ($vector1 eq $vector2)
+      if ($vector1 ne $vector2)
+      if ($vector eq $scalar)
+      if ($vector ne $scalar)
+
+      if ($vector1 == $vector2)
+      if ($vector1 != $vector2)
+      if ($vector == $scalar)
+      if ($vector != $scalar)
+
+  Subset Relationship
+      if ($vector1 <= $vector2)  #  depending on configuration
+
+  True Subset Relationship
+      if ($vector1 < $vector2)  #  depending on configuration
+
+  Superset Relationship
+      if ($vector1 >= $vector2)  #  depending on configuration
+
+  True Superset Relationship
+      if ($vector1 > $vector2)  #  depending on configuration
+
+=head1 IMPORTANT NOTES
+
+=over 2
+
+=item *
+
+Boolean values
+
+Boolean values in this module are always a numeric zero ("C<0>") for
+"false" and a numeric one ("C<1>") for "true".
+
+=item *
+
+Negative numbers
+
+Numeric factors (as needed for the "C<E<lt>E<lt>>", "C<E<gt>E<gt>>"
+and "C<x>" operators) and bit numbers are always regarded as being
+B<UNSIGNED>.
+
+As a consequence, whenever you pass a negative number for such a factor
+or bit number, it will be treated as a (usually very large) positive
+number due to its internal two's complement binary representation, usually
+resulting in malfunctions or an "index out of range" error message and
+program abortion.
+
+Note that this does not apply to "big integer" decimal numbers, which
+are (usually) passed as strings, and which may of course be negative
+(see also the section "Big integers" a little further below).
+
+=item *
+
+Overloaded operators configuration
+
+Note that the behaviour of certain overloaded operators can be changed
+in various ways by means of the "C<Configuration()>" method (for more
+details, see the description of this method further below).
+
+For instance, scalars (i.e., numbers and strings) provided as operands
+to overloaded operators are automatically converted to bit vectors,
+internally.
+
+These scalars are thereby automatically assumed to be indices or to be
+in hexadecimal, binary, decimal or enumeration format, depending on the
+configuration.
+
+Similarly, when converting bit vectors to strings using double quotes
+(""), the output format will also depend on the previously chosen
+configuration.
+
+Finally, some overloaded operators may have different semantics depending
+on the proper configuration; for instance, the operator "+" can be the
+"union" operator from set theory or the arithmetic "add" operator.
+
+In all cases (input, output and operator semantics), the defaults have
+been chosen in such a way so that the behaviour of the module is backward
+compatible with previous versions.
+
+=item *
+
+"Big integers"
+
+As long as "big integers" (for "big integer" arithmetic) are small enough
+so that Perl doesn't need scientific notation (exponents) to be able to
+represent them internally, you can provide these "big integer" constants
+to the overloaded operators of this module (or to the method "C<from_Dec()>")
+in numeric form (i.e., either as a numeric constant or expression or as a
+Perl variable containing a numeric value).
+
+Note that you will get an error message (resulting in program abortion)
+if your "big integer" numbers exceed that limit.
+
+Because this limit is machine-dependent and not obvious to find out,
+it is strongly recommended that you enclose B<ALL> your "big integer"
+constants in your programs in (double or single) quotes.
+
+Examples:
+
+    $vector /= 10;  #  ok because number is small
+
+    $vector /= -10;  #  ok for same reason
+
+    $vector /= "10";  #  always correct
+
+    $vector += "1152921504606846976";  #  quotes probably required here
+
+All examples assume
+
+    Bit::Vector->Configuration("input=decimal");
+
+having been set beforehand.
+
+Note also that this module does not support scientific notation (exponents)
+for "big integer" decimal numbers because you can always make the bit vector
+large enough for the whole number to fit without loss of precision (as it
+would occur if scientific notation were used).
+
+Finally, note that the only characters allowed in "big integer" constant
+strings are the digits C<0..9> and an optional leading sign ("C<+>" or "C<->").
+
+All other characters produce a syntax error.
+
+=item *
+
+Valid operands for overloaded operators
+
+All overloaded operators expect at least one bit vector operand,
+in order for the operator to "know" that not the usual operation
+is to be carried out, but rather the overloaded variant.
+
+This is especially true for all unary operators:
+
+                    "$vector"
+                    if ($vector)
+                    if (!$vector)
+                    ~$vector
+                    -$vector
+                    abs($vector)
+                    ++$vector
+                    $vector++
+                    --$vector
+                    $vector--
+
+For obvious reasons the left operand (the "lvalue") of all
+assignment operators is also required to be a bit vector:
+
+                        .=
+                        x=
+                        <<=
+                        >>=
+                        |=
+                        &=
+                        ^=
+                        +=
+                        -=
+                        *=
+                        /=
+                        %=
+                       **=
+
+In the case of three special operators, namely "C<E<lt>E<lt>>",
+"C<E<gt>E<gt>>" and "C<x>", as well as their related assignment
+variants, "C<E<lt>E<lt>=>", "C<E<gt>E<gt>=>" and "C<x=>", the
+left operand is B<ALWAYS> a bit vector and the right operand is
+B<ALWAYS> a number (which is the factor indicating how many times
+the operator is to be applied).
+
+In all truly binary operators, i.e.,
+
+                        .
+                        |
+                        &
+                        ^
+                        +
+                        -
+                        *
+                        /
+                        %
+                       **
+                    <=>   cmp
+                     ==    eq
+                     !=    ne
+                     <     lt
+                     <=    le
+                     >     gt
+                     >=    ge
+
+one of either operands may be replaced by a Perl scalar, i.e.,
+a number or a string, either as a Perl constant, a Perl expression
+or a Perl variable yielding a number or a string.
+
+The same applies to the right side operand (the "rvalue") of the
+remaining assignment operators, i.e.,
+
+                        .=
+                        |=
+                        &=
+                        ^=
+                        +=
+                        -=
+                        *=
+                        /=
+                        %=
+                       **=
+
+Note that this Perl scalar should be of the correct type, i.e.,
+numeric or string, for the chosen configuration, because otherwise
+a warning message will occur if your program runs under the "C<-w>"
+switch of Perl.
+
+The acceptable scalar types for each possible configuration are
+the following:
+
+    input = bit indices    (default)  :    numeric
+    input = hexadecimal               :    string
+    input = binary                    :    string
+    input = decimal                   :    string     (in general)
+    input = decimal                   :    numeric    (if small enough)
+    input = enumeration               :    string
+
+NOTE ALSO THAT THESE SCALAR OPERANDS ARE CONVERTED TO BIT VECTORS OF
+THE SAME SIZE AS THE BIT VECTOR WHICH IS THE OTHER OPERAND.
+
+The only exception from this rule is the concatenation operator
+("C<.>") and its assignment variant ("C<.=>"):
+
+If one of the two operands of the concatenation operator ("C<.>") is
+not a bit vector object but a Perl scalar, the contents of the remaining
+bit vector operand are converted into a string (the format of which
+depends on the configuration set with the "C<Configuration()>" method),
+which is then concatenated in the proper order (i.e., as indicated by the
+order of the two operands) with the Perl scalar (in other words, a string
+is returned in such a case instead of a bit vector object!).
+
+If the right side operand (the "rvalue") of the assignment variant
+("C<.=>") of the concatenation operator is a Perl scalar, it is converted
+internally to a bit vector of the same size as the left side operand provided
+that the configuration states that scalars are to be regarded as indices,
+decimal strings or enumerations.
+
+If the configuration states that scalars are to be regarded as hexadecimal
+or boolean strings, however, these strings are converted to bit vectors of
+a size matching the length of the input string, i.e., four times the length
+for hexadecimal strings (because each hexadecimal digit is worth 4 bits) and
+once the length for binary strings.
+
+If a decimal number ("big integer") is too large to be stored in a
+bit vector of the given size, a "numeric overflow error" occurs.
+
+If a bit index is out of range for the given bit vector, an "index
+out of range" error occurs.
+
+If a scalar operand cannot be converted successfully due to invalid
+syntax, a fatal "input string syntax error" is issued.
+
+If the two operands of the operator "C<E<lt>E<lt>>", "C<E<gt>E<gt>>"
+or "C<x>" are reversed, a fatal "reversed operands error" occurs.
+
+If an operand is neither a bit vector nor a scalar, then a fatal
+"illegal operand type error" occurs.
+
+=item *
+
+Bit order
+
+Note that bit vectors are stored least order bit and least order word first
+internally.
+
+I.e., bit #0 of any given bit vector corresponds to bit #0 of word #0 in the
+array of machine words representing the bit vector.
+
+(Where word #0 comes first in memory, i.e., it is stored at the least memory
+address in the allocated block of memory holding the given bit vector.)
+
+Note however that machine words can be stored least order byte first or last,
+depending on your system's implementation.
+
+Note further that whenever bit vectors are converted to and from (binary or
+hexadecimal) strings, the B<RIGHTMOST> bit is always the B<LEAST SIGNIFICANT>
+one, and the B<LEFTMOST> bit is always the B<MOST SIGNIFICANT> bit.
+
+This is because in our western culture, numbers are always represented in this
+way (least significant to most significant digits go from right to left).
+
+Of course this requires an internal reversion of order, which the corresponding
+conversion methods perform automatically (without any additional overhead, it's
+just a matter of starting the internal loop at the bottom or the top end).
+
+=item *
+
+Matching sizes
+
+In general, for methods involving several bit vectors at the same time, all
+bit vector arguments must have identical sizes (number of bits), or a fatal
+"size mismatch" error will occur.
+
+Exceptions from this rule are the methods "C<Concat()>", "C<Concat_List()>",
+"C<Copy()>", "C<Interval_Copy()>" and "C<Interval_Substitute()>", where no
+conditions at all are imposed on the size of their bit vector arguments.
+
+In method "C<Multiply()>", all three bit vector arguments must in principle
+obey the rule of matching sizes, but the bit vector in which the result of
+the multiplication is to be stored may be larger than the two bit vector
+arguments containing the factors for the multiplication.
+
+In method "C<Power()>", the bit vector for the result must be the same
+size or greater than the base of the exponentiation term. The exponent
+can be any size.
+
+The same applies to the corresponding overloaded operators.
+
+=item *
+
+Index ranges
+
+All indices for any given bits must lie between "C<0>" and
+"C<$vector-E<gt>Size()-1>", or a fatal "index out of range"
+error will occur.
+
+=back
+
+=head1 DESCRIPTION
+
+=over 2
+
+=item *
+
+C<$config = Bit::Vector-E<gt>Configuration();>
+
+=item *
+
+C<Bit::Vector-E<gt>Configuration($config);>
+
+=item *
+
+C<$oldconfig = Bit::Vector-E<gt>Configuration($newconfig);>
+
+This method serves to alter the semantics (i.e., behaviour) of certain
+overloaded operators (which are all implemented in Perl, by the way).
+
+It does not have any effect whatsoever on anything else. In particular,
+it does not affect the methods implemented in C.
+
+The method accepts an (optional) string as input in which certain keywords
+are expected, which influence some or almost all of the overloaded operators
+in several possible ways.
+
+The method always returns a string (which you do not need to take care of,
+i.e., to store, in case you aren't interested in keeping it) which is a
+complete representation of the current configuration (i.e., B<BEFORE>
+any modifications are applied) and which can be fed back to this method
+later in order to restore the previous configuration.
+
+There are three aspects of the way certain overloaded operators behave which
+can be controlled with this method:
+
+  +  the way scalar operands (replacing one of the two
+     bit vector object operands) are automatically
+     converted internally into a bit vector object of
+     their own,
+
+  +  the operation certain overloaded operators perform,
+     i.e., an operation with sets or an arithmetic
+     operation,
+
+  +  the format to which bit vectors are converted
+     automatically when they are enclosed in double
+     quotes.
+
+The input string may contain any number of assignments, each of which
+controls one of these three aspects.
+
+Each assignment has the form "C<E<lt>whichE<gt>=E<lt>valueE<gt>>".
+
+"C<E<lt>whichE<gt>>" and "C<E<lt>valueE<gt>>" thereby consist of letters
+(C<[a-zA-Z]>) and white space.
+
+Multiple assignments have to be separated by one or more comma (","),
+semi-colon (";"), colon (":"), vertical bar ("|"), slash ("/"),
+newline ("\n"), ampersand ("&"), plus ("+") or dash ("-").
+
+Empty lines or statements (only white space) are allowed but will be
+ignored.
+
+"C<E<lt>whichE<gt>>" has to contain one or more keywords from one of
+three groups, each group representing one of the three aspects that
+the "C<Configuration()>" method controls:
+
+  +  "^scalar", "^input", "^in$"
+
+  +  "^operator", "^semantic", "^ops$"
+
+  +  "^string", "^output", "^out$"
+
+The character "^" thereby denotes the beginning of a word, and "$"
+denotes the end. Case is ignored (!).
+
+Using these keywords, you can build any phrase you like to select one
+of the three aspects (see also examples given below).
+
+The only condition is that no other keyword from any of the other two
+groups may match - otherwise a syntax error will occur (i.e., ambiguities
+are forbidden). A syntax error also occurs if none of the keywords
+matches.
+
+This same principle applies to "C<E<lt>valueE<gt>>":
+
+Depending on which aspect you specified for "C<E<lt>whichE<gt>>",
+there are different groups of keywords that determine the value
+the selected aspect will be set to:
+
+  +  "<which>" = "^scalar", "^input", "^in$":
+
+       "<value>" =
+
+       *  "^bit$", "^index", "^indice"
+       *  "^hex"
+       *  "^bin"
+       *  "^dec"
+       *  "^enum"
+
+  +  "<which>" = "^operator", "^semantic", "^ops$":
+
+       "<value>" =
+
+       *  "^set$"
+       *  "^arithmetic"
+
+  +  "<which>" = "^string", "^output", "^out$":
+
+       "<value>" =
+
+       *  "^hex"
+       *  "^bin"
+       *  "^dec"
+       *  "^enum"
+
+Examples:
+
+  "Any scalar input I provide should be considered to be = a bit index"
+
+  "I want to have operator semantics suitable for = arithmetics"
+
+  "Any bit vector in double quotes is to be output as = an enumeration"
+
+B<SCALAR INPUT:>
+
+In the case of scalar input, "C<^bit$>", "C<^index>", or "C<^indice>"
+all cause scalar input to be considered to represent a bit index, i.e.,
+"C<$vector ^= 5;>" will flip bit #5 in the given bit vector (this is
+essentially the same as "C<$vector-E<gt>bit_flip(5);>").
+
+Note that "bit indices" is the default setting for "scalar input".
+
+The keyword "C<^hex>" will cause scalar input to be considered as being in
+hexadecimal, i.e., "C<$vector ^= 5;>" will flip bit #0 and bit #2 (because
+hexadecimal "C<5>" is binary "C<0101>").
+
+(Note though that hexadecimal input should always be enclosed in quotes,
+otherwise it will be interpreted as a decimal number by Perl! The example
+relies on the fact that hexadecimal C<0-9> and decimal C<0-9> are the same.)
+
+The keyword "C<^bin>" will cause scalar input to be considered as being in
+binary format. All characters except "C<0>" and "C<1>" are forbidden in
+this case (i.e., produce a syntax error).
+
+"C<$vector ^= '0101';>", for instance, will flip bit #0 and bit #2.
+
+The keyword "C<^dec>" causes scalar input to be considered as integers
+in decimal format, i.e., "C<$vector ^= 5;>" will flip bit #0 and bit #2
+(because decimal "C<5>" is binary "C<0101>").
+
+(Note though that all decimal input should be enclosed in quotes, because
+for large numbers, Perl will use scientific notation internally for
+representing them, which produces a syntax error because scientific
+notation is neither supported by this module nor needed.)
+
+Finally, the keyword "C<^enum>" causes scalar input to be considered
+as being a list ("enumeration") of indices and ranges of (contiguous)
+indices, i.e., "C<$vector |= '2,3,5,7-13,17-23';>" will cause bits #2,
+#3, #5, #7 through #13 and #17 through #23 to be set.
+
+B<OPERATOR SEMANTICS:>
+
+Several overloaded operators can have two distinct functions depending
+on this setting.
+
+The affected operators are: "C<+>", "C<->", "C<*>", "C<E<lt>>", "C<E<lt>=>",
+"C<E<gt>>" and "C<E<gt>=>".
+
+With the default setting, "set operations", these operators perform:
+
+  +       set union                           ( set1  u   set2 )
+  -       set difference                      ( set1  \   set2 )
+  *       set intersection                    ( set1  n   set2 )
+  <       true subset relationship            ( set1  <   set2 )
+  <=      subset relationship                 ( set1  <=  set2 )
+  >       true superset relationship          ( set1  >   set2 )
+  >=      superset relationship               ( set1  >=  set2 )
+
+With the alternative setting, "arithmetic operations", these operators
+perform:
+
+  +       addition                            ( num1  +   num2 )
+  -       subtraction                         ( num1  -   num2 )
+  *       multiplication                      ( num1  *   num2 )
+  <       "less than" comparison              ( num1  <   num2 )
+  <=      "less than or equal" comparison     ( num1  <=  num2 )
+  >       "greater than" comparison           ( num1  >   num2 )
+  >=      "greater than or equal" comparison  ( num1  >=  num2 )
+
+Note that these latter comparison operators ("C<E<lt>>", "C<E<lt>=>",
+"C<E<gt>>" and "C<E<gt>=>") regard their operands as being B<SIGNED>.
+
+To perform comparisons with B<UNSIGNED> operands, use the operators
+"C<lt>", "C<le>", "C<gt>" and "C<ge>" instead (in contrast to the
+operators above, these operators are B<NOT> affected by the
+"operator semantics" setting).
+
+B<STRING OUTPUT:>
+
+There are four methods which convert the contents of a given bit vector
+into a string: "C<to_Hex()>", "C<to_Bin()>", "C<to_Dec()>" and "C<to_Enum()>"
+(not counting "C<Block_Read()>", since this method does not return a
+human-readable string).
+
+(For conversion to octal, see the description of the method
+"C<Chunk_List_Read()>".)
+
+Therefore, there are four possible formats into which a bit vector can
+be converted when it is enclosed in double quotes, for example:
+
+  print "\$vector = '$vector'\n";
+  $string = "$vector";
+
+Hence you can set "string output" to four different values: To "hex"
+for hexadecimal format (which is the default), to "bin" for binary
+format, to "dec" for conversion to decimal numbers and to "enum"
+for conversion to enumerations (".newsrc" style sets).
+
+B<BEWARE> that the conversion to decimal numbers is inherently slow;
+it can easily take up several seconds for a single large bit vector!
+
+Therefore you should store the decimal strings returned to you
+rather than converting a given bit vector again.
+
+B<EXAMPLES:>
+
+The default setting as returned by the method "C<Configuration()>"
+is:
+
+        Scalar Input       = Bit Index
+        Operator Semantics = Set Operators
+        String Output      = Hexadecimal
+
+Performing a statement such as:
+
+  Bit::Vector->Configuration("in=bin,ops=arithmetic,out=bin");
+  print Bit::Vector->Configuration(), "\n";
+
+yields the following output:
+
+        Scalar Input       = Binary
+        Operator Semantics = Arithmetic Operators
+        String Output      = Binary
+
+Note that you can always feed this output back into the "C<Configuration()>"
+method to restore that setting later.
+
+This also means that you can enter the same given setting with almost any
+degree of verbosity you like (as long as the required keywords appear and
+no ambiguities arise).
+
+Note further that any aspect you do not specify is not changed, i.e.,
+the statement
+
+  Bit::Vector->Configuration("operators = arithmetic");
+
+leaves all other aspects unchanged.
+
+=item *
+
+C<"$vector">
+
+Remember that variables enclosed in double quotes are always
+interpolated in Perl.
+
+Whenever a Perl variable containing the reference of a "Bit::Vector"
+object is enclosed in double quotes (either alone or together with
+other text and/or variables), the contents of the corresponding
+bit vector are converted into a printable string.
+
+Since there are several conversion methods available in this module
+(see the description of the methods "C<to_Hex()>", "C<to_Bin()>",
+"C<to_Dec()>" and "C<to_Enum()>"), it is of course desirable to
+be able to choose which of these methods should be applied in this
+case.
+
+This can actually be done by changing the configuration of this
+module using the method "C<Configure()>" (see the previous chapter,
+immediately above).
+
+The default is conversion to hexadecimal.
+
+=item *
+
+C<if ($vector)>
+
+It is possible to use a Perl variable containing the reference of a
+"Bit::Vector" object as a boolean expression.
+
+The condition above is true if the corresponding bit vector contains
+at least one set bit, and it is false if B<ALL> bits of the corresponding
+bit vector are cleared.
+
+=item *
+
+C<if (!$vector)>
+
+Since it is possible to use a Perl variable containing the reference of a
+"Bit::Vector" object as a boolean expression, you can of course also negate
+this boolean expression.
+
+The condition above is true if B<ALL> bits of the corresponding bit vector
+are cleared, and it is false if the corresponding bit vector contains at
+least one set bit.
+
+Note that this is B<NOT> the same as using the method "C<is_full()>",
+which returns true if B<ALL> bits of the corresponding bit vector are
+B<SET>.
+
+=item *
+
+C<~$vector>
+
+This term returns a new bit vector object which is the one's complement
+of the given bit vector.
+
+This is equivalent to inverting all bits.
+
+=item *
+
+C<-$vector> (unary minus)
+
+This term returns a new bit vector object which is the two's complement
+of the given bit vector.
+
+This is equivalent to inverting all bits and incrementing the result by one.
+
+(This is the same as changing the sign of a number in two's complement
+binary representation.)
+
+=item *
+
+C<abs($vector)>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+the number of set bits in the given bit vector (this is the same
+as calculating the number of elements which are contained in the
+given set) - which is the default behaviour, or it returns a new
+bit vector object which contains the absolute value of the number
+stored in the given bit vector.
+
+=item *
+
+C<$vector1 . $vector2>
+
+This term usually returns a new bit vector object which is the
+result of the concatenation of the two bit vector operands.
+
+The left operand becomes the most significant, and the right operand
+becomes the least significant part of the new bit vector object.
+
+If one of the two operands is not a bit vector object but a Perl scalar,
+however, the contents of the remaining bit vector operand are converted
+into a string (the format of which depends on the configuration set with
+the "C<Configuration()>" method), which is then concatenated in the proper
+order (i.e., as indicated by the order of the two operands) with the Perl
+scalar.
+
+In other words, a string is returned in such a case instead of a
+bit vector object!
+
+=item *
+
+C<$vector x $factor>
+
+This term returns a new bit vector object which is the concatenation
+of as many copies of the given bit vector operand (the left operand)
+as the factor (the right operand) specifies.
+
+If the factor is zero, a bit vector object with a length of zero bits
+is returned.
+
+If the factor is one, just a new copy of the given bit vector is
+returned.
+
+Note that a fatal "reversed operands error" occurs if the two operands
+are swapped.
+
+=item *
+
+C<$vector E<lt>E<lt> $bits>
+
+This term returns a new bit vector object which is a copy of the given
+bit vector (the left operand), which is then shifted left (towards the
+most significant bit) by as many places as the right operand, "C<$bits>",
+specifies.
+
+This means that the "C<$bits>" most significant bits are lost, all other
+bits move up by "C<$bits>" positions, and the "C<$bits>" least significant
+bits that have been left unoccupied by this shift are all set to zero.
+
+If "C<$bits>" is greater than the number of bits of the given bit vector,
+this term returns an empty bit vector (i.e., with all bits cleared) of
+the same size as the given bit vector.
+
+Note that a fatal "reversed operands error" occurs if the two operands
+are swapped.
+
+=item *
+
+C<$vector E<gt>E<gt> $bits>
+
+This term returns a new bit vector object which is a copy of the given
+bit vector (the left operand), which is then shifted right (towards the
+least significant bit) by as many places as the right operand, "C<$bits>",
+specifies.
+
+This means that the "C<$bits>" least significant bits are lost, all other
+bits move down by "C<$bits>" positions, and the "C<$bits>" most significant
+bits that have been left unoccupied by this shift are all set to zero.
+
+If "C<$bits>" is greater than the number of bits of the given bit vector,
+this term returns an empty bit vector (i.e., with all bits cleared) of
+the same size as the given bit vector.
+
+Note that a fatal "reversed operands error" occurs if the two operands
+are swapped.
+
+=item *
+
+C<$vector1 | $vector2>
+
+This term returns a new bit vector object which is the result of
+a bitwise OR operation between the two bit vector operands.
+
+This is the same as calculating the union of two sets.
+
+=item *
+
+C<$vector1 & $vector2>
+
+This term returns a new bit vector object which is the result of
+a bitwise AND operation between the two bit vector operands.
+
+This is the same as calculating the intersection of two sets.
+
+=item *
+
+C<$vector1 ^ $vector2>
+
+This term returns a new bit vector object which is the result of
+a bitwise XOR (exclusive-or) operation between the two bit vector
+operands.
+
+This is the same as calculating the symmetric difference of two sets.
+
+=item *
+
+C<$vector1 + $vector2>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+a new bit vector object which is the result of a bitwise OR operation
+between the two bit vector operands (this is the same as calculating
+the union of two sets) - which is the default behaviour, or it returns
+a new bit vector object which contains the sum of the two numbers
+stored in the two bit vector operands.
+
+=item *
+
+C<$vector1 - $vector2>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+a new bit vector object which is the set difference of the two sets
+represented in the two bit vector operands - which is the default
+behaviour, or it returns a new bit vector object which contains
+the difference of the two numbers stored in the two bit vector
+operands.
+
+=item *
+
+C<$vector1 * $vector2>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+a new bit vector object which is the result of a bitwise AND operation
+between the two bit vector operands (this is the same as calculating
+the intersection of two sets) - which is the default behaviour, or it
+returns a new bit vector object which contains the product of the two
+numbers stored in the two bit vector operands.
+
+=item *
+
+C<$vector1 / $vector2>
+
+This term returns a new bit vector object containing the result of the
+division of the two numbers stored in the two bit vector operands.
+
+=item *
+
+C<$vector1 % $vector2>
+
+This term returns a new bit vector object containing the remainder of
+the division of the two numbers stored in the two bit vector operands.
+
+=item *
+
+C<$vector1 ** $vector2>
+
+This term returns a new bit vector object containing the result of the
+exponentiation of the left bit vector elevated to the right bit vector's
+power.
+
+=item *
+
+C<$vector1 .= $vector2;>
+
+This statement "appends" the right bit vector operand (the "rvalue")
+to the left one (the "lvalue").
+
+The former contents of the left operand become the most significant
+part of the resulting bit vector, and the right operand becomes the
+least significant part.
+
+Since bit vectors are stored in "least order bit first" order, this
+actually requires the left operand to be shifted "up" by the length
+of the right operand, which is then copied to the now freed least
+significant part of the left operand.
+
+If the right operand is a Perl scalar, it is first converted to a
+bit vector of the same size as the left operand, provided that the
+configuration states that scalars are to be regarded as indices,
+decimal strings or enumerations.
+
+If the configuration states that scalars are to be regarded as hexadecimal
+or boolean strings, however, these strings are converted to bit vectors of
+a size matching the length of the input string, i.e., four times the length
+for hexadecimal strings (because each hexadecimal digit is worth 4 bits) and
+once the length for binary strings.
+
+=item *
+
+C<$vector x= $factor;>
+
+This statement replaces the given bit vector by a concatenation of as many
+copies of the original contents of the given bit vector as the factor (the
+right operand) specifies.
+
+If the factor is zero, the given bit vector is resized to a length of zero
+bits.
+
+If the factor is one, the given bit vector is not changed at all.
+
+=item *
+
+C<$vector E<lt>E<lt>= $bits;>
+
+This statement moves the contents of the given bit vector left by "C<$bits>"
+positions (towards the most significant bit).
+
+This means that the "C<$bits>" most significant bits are lost, all other
+bits move up by "C<$bits>" positions, and the "C<$bits>" least significant
+bits that have been left unoccupied by this shift are all set to zero.
+
+If "C<$bits>" is greater than the number of bits of the given bit vector,
+the given bit vector is erased completely (i.e., all bits are cleared).
+
+=item *
+
+C<$vector E<gt>E<gt>= $bits;>
+
+This statement moves the contents of the given bit vector right by "C<$bits>"
+positions (towards the least significant bit).
+
+This means that the "C<$bits>" least significant bits are lost, all other
+bits move down by "C<$bits>" positions, and the "C<$bits>" most significant
+bits that have been left unoccupied by this shift are all set to zero.
+
+If "C<$bits>" is greater than the number of bits of the given bit vector,
+the given bit vector is erased completely (i.e., all bits are cleared).
+
+=item *
+
+C<$vector1 |= $vector2;>
+
+This statement performs a bitwise OR operation between the two
+bit vector operands and stores the result in the left operand.
+
+This is the same as calculating the union of two sets.
+
+=item *
+
+C<$vector1 &= $vector2;>
+
+This statement performs a bitwise AND operation between the two
+bit vector operands and stores the result in the left operand.
+
+This is the same as calculating the intersection of two sets.
+
+=item *
+
+C<$vector1 ^= $vector2;>
+
+This statement performs a bitwise XOR (exclusive-or) operation
+between the two bit vector operands and stores the result in the
+left operand.
+
+This is the same as calculating the symmetric difference of two sets.
+
+=item *
+
+C<$vector1 += $vector2;>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this statement either performs
+a bitwise OR operation between the two bit vector operands (this is
+the same as calculating the union of two sets) - which is the default
+behaviour, or it calculates the sum of the two numbers stored in the
+two bit vector operands.
+
+The result of this operation is stored in the left operand.
+
+=item *
+
+C<$vector1 -= $vector2;>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this statement either calculates
+the set difference of the two sets represented in the two bit vector
+operands - which is the default behaviour, or it calculates the
+difference of the two numbers stored in the two bit vector operands.
+
+The result of this operation is stored in the left operand.
+
+=item *
+
+C<$vector1 *= $vector2;>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this statement either performs
+a bitwise AND operation between the two bit vector operands (this is
+the same as calculating the intersection of two sets) - which is the
+default behaviour, or it calculates the product of the two numbers
+stored in the two bit vector operands.
+
+The result of this operation is stored in the left operand.
+
+=item *
+
+C<$vector1 /= $vector2;>
+
+This statement puts the result of the division of the two numbers
+stored in the two bit vector operands into the left operand.
+
+=item *
+
+C<$vector1 %= $vector2;>
+
+This statement puts the remainder of the division of the two numbers
+stored in the two bit vector operands into the left operand.
+
+=item *
+
+C<$vector1 **= $vector2;>
+
+This statement puts the result of the exponentiation of the left
+operand elevated to the right operand's power into the left operand.
+
+=item *
+
+C<++$vector>, C<$vector++>
+
+This operator performs pre- and post-incrementation of the
+given bit vector.
+
+The value returned by this term is a reference of the given
+bit vector object (after or before the incrementation,
+respectively).
+
+=item *
+
+C<--$vector>, C<$vector-->
+
+This operator performs pre- and post-decrementation of the
+given bit vector.
+
+The value returned by this term is a reference of the given
+bit vector object (after or before the decrementation,
+respectively).
+
+=item *
+
+C<($vector1 cmp $vector2)>
+
+This term returns "C<-1>" if "C<$vector1>" is less than "C<$vector2>",
+"C<0>" if "C<$vector1>" and "C<$vector2>" are the same, and "C<1>"
+if "C<$vector1>" is greater than "C<$vector2>".
+
+This comparison assumes B<UNSIGNED> bit vectors.
+
+=item *
+
+C<($vector1 eq $vector2)>
+
+This term returns true ("C<1>") if the contents of the two bit vector
+operands are the same and false ("C<0>") otherwise.
+
+=item *
+
+C<($vector1 ne $vector2)>
+
+This term returns true ("C<1>") if the two bit vector operands differ
+and false ("C<0>") otherwise.
+
+=item *
+
+C<($vector1 lt $vector2)>
+
+This term returns true ("C<1>") if "C<$vector1>" is less than "C<$vector2>",
+and false ("C<0>") otherwise.
+
+This comparison assumes B<UNSIGNED> bit vectors.
+
+=item *
+
+C<($vector1 le $vector2)>
+
+This term returns true ("C<1>") if "C<$vector1>" is less than or equal to
+"C<$vector2>", and false ("C<0>") otherwise.
+
+This comparison assumes B<UNSIGNED> bit vectors.
+
+=item *
+
+C<($vector1 gt $vector2)>
+
+This term returns true ("C<1>") if "C<$vector1>" is greater than "C<$vector2>",
+and false ("C<0>") otherwise.
+
+This comparison assumes B<UNSIGNED> bit vectors.
+
+=item *
+
+C<($vector1 ge $vector2)>
+
+This term returns true ("C<1>") if "C<$vector1>" is greater than or equal to
+"C<$vector2>", and false ("C<0>") otherwise.
+
+This comparison assumes B<UNSIGNED> bit vectors.
+
+=item *
+
+C<($vector1 E<lt>=E<gt> $vector2)>
+
+This term returns "C<-1>" if "C<$vector1>" is less than "C<$vector2>",
+"C<0>" if "C<$vector1>" and "C<$vector2>" are the same, and "C<1>"
+if "C<$vector1>" is greater than "C<$vector2>".
+
+This comparison assumes B<SIGNED> bit vectors.
+
+=item *
+
+C<($vector1 == $vector2)>
+
+This term returns true ("C<1>") if the contents of the two bit vector
+operands are the same and false ("C<0>") otherwise.
+
+=item *
+
+C<($vector1 != $vector2)>
+
+This term returns true ("C<1>") if the two bit vector operands differ
+and false ("C<0>") otherwise.
+
+=item *
+
+C<($vector1 E<lt> $vector2)>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+true ("C<1>") if "C<$vector1>" is a true subset of "C<$vector2>"
+(and false ("C<0>") otherwise) - which is the default behaviour,
+or it returns true ("C<1>") if "C<$vector1>" is less than
+"C<$vector2>" (and false ("C<0>") otherwise).
+
+The latter comparison assumes B<SIGNED> bit vectors.
+
+=item *
+
+C<($vector1 E<lt>= $vector2)>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+true ("C<1>") if "C<$vector1>" is a subset of "C<$vector2>" (and
+false ("C<0>") otherwise) - which is the default behaviour, or it
+returns true ("C<1>") if "C<$vector1>" is less than or equal to
+"C<$vector2>" (and false ("C<0>") otherwise).
+
+The latter comparison assumes B<SIGNED> bit vectors.
+
+=item *
+
+C<($vector1 E<gt> $vector2)>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+true ("C<1>") if "C<$vector1>" is a true superset of "C<$vector2>"
+(and false ("C<0>") otherwise) - which is the default behaviour,
+or it returns true ("C<1>") if "C<$vector1>" is greater than
+"C<$vector2>" (and false ("C<0>") otherwise).
+
+The latter comparison assumes B<SIGNED> bit vectors.
+
+=item *
+
+C<($vector1 E<gt>= $vector2)>
+
+Depending on the configuration (see the description of the method
+"C<Configuration()>" for more details), this term either returns
+true ("C<1>") if "C<$vector1>" is a superset of "C<$vector2>" (and
+false ("C<0>") otherwise) - which is the default behaviour, or it
+returns true ("C<1>") if "C<$vector1>" is greater than or equal to
+"C<$vector2>" (and false ("C<0>") otherwise).
+
+The latter comparison assumes B<SIGNED> bit vectors.
+
+=back
+
+=head1 SEE ALSO
+
+Bit::Vector(3), Bit::Vector::String(3).
+
+=head1 VERSION
+
+This man page documents "Bit::Vector::Overload" version 6.4.
+
+=head1 AUTHOR
+
+  Steffen Beyer
+  mailto:sb@engelschall.com
+  http://www.engelschall.com/u/sb/download/
+
+=head1 COPYRIGHT
+
+Copyright (c) 2000 - 2004 by Steffen Beyer. All rights reserved.
+
+=head1 LICENSE
+
+This package is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself, i.e., under the
+terms of the "Artistic License" or the "GNU General Public License".
+
+The C library at the core of this Perl module can additionally
+be redistributed and/or modified under the terms of the "GNU
+Library General Public License".
+
+Please refer to the files "Artistic.txt", "GNU_GPL.txt" and
+"GNU_LGPL.txt" in this distribution for details!
+
+=head1 DISCLAIMER
+
+This package is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+See the "GNU General Public License" for more details.
+
