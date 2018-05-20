@@ -25,6 +25,11 @@
 `include "tlu.h"
 `include "lsu.tmp.h"
 `include "define.vh"
+`ifdef PITON_PROTO
+`ifdef PITONSYS_UART_BOOT
+   `include "uart16550_define.vh"
+`endif   // PITONSYS_UART_BOOT
+`endif   // PITON_PROTO
      
 module sparc (/*AUTOARG*/
    // Outputs
@@ -80,7 +85,7 @@ module sparc (/*AUTOARG*/
    `ifndef NO_RTL_CSM
    output [`TLB_CSM] spc_pcx_csm_pa;
    `endif
-   
+
    // jtag/bist stuff
    // input        rtap_core_stallreq;
    output [`SRAM_WRAPPER_BUS_WIDTH-1:0] srams_rtap_data;
@@ -179,7 +184,7 @@ module sparc (/*AUTOARG*/
 
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
-   wire [10:0]          bist_ctl_reg_out;       // From test_stub of test_stub_bist.v
+   wire [`L1D_ADDRESS_HI:0]          bist_ctl_reg_out;       // From test_stub of test_stub_bist.v
    wire                 bist_ctl_reg_wr_en;     // From lsu of lsu.v
    wire [`CPX_WIDTH-1:0]cpx_spc_data_cx2_buf;   // From buf_cpx of cpx_spc_buf.v
    wire [`CPX_WIDTH-1:0]cpx_spc_data_cx3;       // From ff_cpx of cpx_spc_rpt.v
@@ -199,7 +204,7 @@ module sparc (/*AUTOARG*/
    wire                 exu_ifu_regz_e;         // From exu of sparc_exu.v
    wire                 exu_ifu_spill_e;        // From exu of sparc_exu.v
    wire                 exu_ifu_va_oor_m;       // From exu of sparc_exu.v
-   wire [10:3]          exu_lsu_early_va_e;     // From exu of sparc_exu.v
+   wire [`L1D_ADDRESS_HI:3]          exu_lsu_early_va_e;     // From exu of sparc_exu.v
    wire [47:0]          exu_lsu_ldst_va_e;      // From exu of sparc_exu.v
    wire                 exu_lsu_priority_trap_m;// From exu of sparc_exu.v
    wire [63:0]          exu_lsu_rs2_data_e;     // From exu of sparc_exu.v
@@ -438,7 +443,7 @@ module sparc (/*AUTOARG*/
    wire [3:0]           lsu_ifu_itlb_en;        // From lsu of lsu.v
    wire                 lsu_ifu_l2_corr_error;  // From lsu of lsu.v
    wire                 lsu_ifu_l2_unc_error;   // From lsu of lsu.v
-   wire [11:5]          lsu_ifu_ld_icache_index;// From lsu of lsu.v
+   wire [`IC_IDX_HI:5]  lsu_ifu_ld_icache_index;// From lsu of lsu.v
    wire [1:0]           lsu_ifu_ld_pcxpkt_tid;  // From lsu of lsu.v
    wire                 lsu_ifu_ld_pcxpkt_vld;  // From lsu of lsu.v
    wire [3:0]           lsu_ifu_ldst_cmplt;     // From lsu of lsu.v
@@ -494,7 +499,7 @@ module sparc (/*AUTOARG*/
    wire [7:0]           lsu_tlu_tlb_asi_state_m;// From lsu of lsu.v
    wire [47:13]         lsu_tlu_tlb_dmp_va_m;   // From lsu of lsu.v
    wire                 lsu_tlu_tlb_ld_inst_m;  // From lsu of lsu.v
-   wire [10:0]          lsu_tlu_tlb_ldst_va_m;  // From lsu of lsu.v
+   wire [`L1D_ADDRESS_HI:0]          lsu_tlu_tlb_ldst_va_m;  // From lsu of lsu.v
    wire                 lsu_tlu_tlb_st_inst_m;  // From lsu of lsu.v
    wire [2:0]           lsu_tlu_tte_pg_sz_g;    // From lsu of lsu.v
    wire [8:0]           lsu_tlu_ttype_m2;       // From lsu of lsu.v
@@ -1203,7 +1208,7 @@ module sparc (/*AUTOARG*/
            .lsu_ifu_itlb_en             (lsu_ifu_itlb_en[3:0]),
            .lsu_ifu_l2_corr_error       (lsu_ifu_l2_corr_error),
            .lsu_ifu_l2_unc_error        (lsu_ifu_l2_unc_error),
-           .lsu_ifu_ld_icache_index     (lsu_ifu_ld_icache_index[11:5]),
+           .lsu_ifu_ld_icache_index     (lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
            .lsu_ifu_ld_pcxpkt_tid       (lsu_ifu_ld_pcxpkt_tid[1:0]),
            .lsu_ifu_ld_pcxpkt_vld       (lsu_ifu_ld_pcxpkt_vld),
            .lsu_ifu_ldst_cmplt          (lsu_ifu_ldst_cmplt[3:0]),
@@ -1259,7 +1264,7 @@ module sparc (/*AUTOARG*/
            .lsu_tlu_tlb_asi_state_m     (lsu_tlu_tlb_asi_state_m[7:0]),
            .lsu_tlu_tlb_dmp_va_m        (lsu_tlu_tlb_dmp_va_m[47:13]),
            .lsu_tlu_tlb_ld_inst_m       (lsu_tlu_tlb_ld_inst_m),
-           .lsu_tlu_tlb_ldst_va_m       (lsu_tlu_tlb_ldst_va_m[10:0]),
+           .lsu_tlu_tlb_ldst_va_m       (lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
            .lsu_tlu_tlb_st_inst_m       (lsu_tlu_tlb_st_inst_m),
            .lsu_tlu_ttype_m2            (lsu_tlu_ttype_m2[8:0]),
            .lsu_tlu_ttype_vld_m2        (lsu_tlu_ttype_vld_m2),
@@ -1296,7 +1301,7 @@ module sparc (/*AUTOARG*/
            .cfg_lsu_csm_dtlb_lsid       (cfg_lsu_csm_dtlb_lsid),
 
            `endif
-           .bist_ctl_reg_out            (bist_ctl_reg_out[10:0]),
+           .bist_ctl_reg_out            (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
            .const_cpuid                 (const_cpuid[2:0]),
            .exu_lsu_rs2_data_e          (exu_lsu_rs2_data_e[63:0]),
            .exu_lsu_rs3_data_e          (exu_lsu_rs3_data_e[63:0]),
@@ -1381,7 +1386,7 @@ module sparc (/*AUTOARG*/
            .tlu_lsu_tid_m               (tlu_lsu_tid_m[1:0]),
            .tlu_lsu_tl_zero             (tlu_lsu_tl_zero[3:0]),
            .exu_lsu_ldst_va_e           (exu_lsu_ldst_va_e[47:0]),
-           .exu_lsu_early_va_e          (exu_lsu_early_va_e[10:3]),
+           .exu_lsu_early_va_e          (exu_lsu_early_va_e[`L1D_ADDRESS_HI:3]),
 //           .ffu_lsu_data                (ffu_lsu_data[80:0]));
            .ffu_lsu_data                (ffu_lsu_data[80:0]),
            .cfg_asi_lsu_ldxa_vld_w2     (cfg_asi_lsu_ldxa_vld_w2),
@@ -1424,7 +1429,7 @@ module sparc (/*AUTOARG*/
                  .exu_ifu_regz_e        (exu_ifu_regz_e),
                  .exu_ifu_spill_e       (exu_ifu_spill_e),
                  .exu_ifu_va_oor_m      (exu_ifu_va_oor_m),
-                 .exu_lsu_early_va_e    (exu_lsu_early_va_e[10:3]),
+                 .exu_lsu_early_va_e    (exu_lsu_early_va_e[`L1D_ADDRESS_HI:3]),
                  .exu_lsu_ldst_va_e     (exu_lsu_ldst_va_e[47:0]),
                  .exu_lsu_priority_trap_m(exu_lsu_priority_trap_m),
                  .exu_lsu_rs2_data_e    (exu_lsu_rs2_data_e[63:0]),
@@ -1742,7 +1747,7 @@ module sparc (/*AUTOARG*/
            .lsu_tlu_tlb_asi_state_m     (lsu_tlu_tlb_asi_state_m[7:0]),
            .lsu_tlu_tlb_dmp_va_m        (lsu_tlu_tlb_dmp_va_m[47:13]),
            .lsu_tlu_tlb_ld_inst_m       (lsu_tlu_tlb_ld_inst_m),
-           .lsu_tlu_tlb_ldst_va_m       (lsu_tlu_tlb_ldst_va_m[10:0]),
+           .lsu_tlu_tlb_ldst_va_m       (lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
            .lsu_tlu_tlb_st_inst_m       (lsu_tlu_tlb_st_inst_m),
            .lsu_tlu_ttype_m2            (lsu_tlu_ttype_m2[8:0]),
            .lsu_tlu_ttype_vld_m2        (lsu_tlu_ttype_vld_m2),
@@ -1892,7 +1897,7 @@ module sparc (/*AUTOARG*/
 // removing test_stub_bist
 // the following unused outputs might cause problems for timing
 // (include the LSU & IFU at least)
-assign bist_ctl_reg_out = 11'b0;
+assign bist_ctl_reg_out = {`L1D_ADDRESS_HI+1{1'b0}};
 assign testmode_l = 1'b0;
 assign sehold = 1'b0;
 assign se = 1'b0;
@@ -2002,6 +2007,7 @@ assign se = 1'b0;
 
    assign rclk = gclk;
    assign cluster_cken = 1'b1;
+
 
    // bw_clk_cl_sparc_cmp spc_hdr(/*AUTOINST*/
    //                             // Outputs

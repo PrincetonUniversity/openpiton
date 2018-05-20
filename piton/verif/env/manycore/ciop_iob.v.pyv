@@ -31,7 +31,7 @@
     print "`define Y_TILES %d" % Y_TILES;
 %>
 
-module ciop_iob(
+module ciop_fake_iob(
     input clk,
     input rst_n,
 

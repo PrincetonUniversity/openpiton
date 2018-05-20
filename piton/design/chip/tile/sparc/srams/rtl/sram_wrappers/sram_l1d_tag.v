@@ -38,22 +38,33 @@ module sram_l1d_tag
 input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
-input wire [6:0] A,
+input wire [`L1D_SET_IDX_HI:0] A,
 input wire RDWEN,
-input wire [131:0] BW,
-input wire [131:0] DIN,
-output wire [131:0] DOUT,
+input wire [`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT-1:0] BW,
+input wire [`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT-1:0] DIN,
+output wire [`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT-1:0] DOUT,
 input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
 input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
 output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
-reg [131:0] cache [127:0];
+
+
+sink #(`BIST_OP_WIDTH) s0(.in (BIST_COMMAND));
+sink #(`SRAM_WRAPPER_BUS_WIDTH) s1(.in (BIST_DIN));
+sink #(`BIST_ID_WIDTH) s2(.in (SRAMID));
+sink #(1) s3(.in (RESET_N));
+always @ *
+begin
+   BIST_DOUT = 0;
+end
+
+reg [`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT-1:0] cache [`L1D_SET_COUNT-1:0];
 
 integer i;
 initial
 begin
-   for (i = 0; i < 128; i = i + 1)
+   for (i = 0; i < `L1D_SET_COUNT; i = i + 1)
    begin
       cache[i] = 0;
    end
@@ -61,7 +72,7 @@ end
 
 
 
-   reg [131:0] dout_f;
+   reg [`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT-1:0] dout_f;
 
    assign DOUT = dout_f;
 

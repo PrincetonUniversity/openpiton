@@ -974,9 +974,9 @@ always @(posedge clk)begin
             if(`TOP_MOD.diag_done)send_cmd(`PLI_RETRY, 0, 0, 0, 0, 0);
             if(expected_warm)begin
                 //if(`TOP_MOD.init_done)begin
-                if(`TOP_MOD.ciop_iob.cpx_data[`CPX_VLD]                            &&
-                        (`TOP_MOD.ciop_iob.cpx_data[`CPX_RQ_HI:`CPX_RQ_LO] == `INT_RET) &&
-                        `TOP_MOD.ciop_iob.cpx_data[17:16] == 1)begin
+                if(`FAKE_IOB.cpx_data[`CPX_VLD]                            &&
+                        (`FAKE_IOB.cpx_data[`CPX_RQ_HI:`CPX_RQ_LO] == `INT_RET) &&
+                        `FAKE_IOB.cpx_data[17:16] == 1)begin
                     expected_warm = 0;
                     //reset list and buffer
                     $bw_reset_buf();//always send C0T0
@@ -1001,8 +1001,8 @@ always @(posedge clk)begin
                     //set active thread.
                     //`TOP_MOD.monitor.pc_cmp.active_thread[0] = 1;
                     $display("Get wake up signal from cpx");
-                    $display("wake up thread: %b", `TOP_MOD.ciop_iob.cpx_data[12:8]);
-                    `TOP_MOD.monitor.pc_cmp.active_thread[`TOP_MOD.ciop_iob.cpx_data[12:8]] = 1;
+                    $display("wake up thread: %b", `FAKE_IOB.cpx_data[12:8]);
+                    `TOP_MOD.monitor.pc_cmp.active_thread[`FAKE_IOB.cpx_data[12:8]] = 1;
                     max = `TOP_MOD.monitor.pc_cmp.max;
                     `TOP_MOD.monitor.pc_cmp.max = 4000000;//waiting for dram wake up.
                     swap = 1;

@@ -282,3 +282,78 @@ end
    
 endmodule
   '''
+
+def GenMux(inputs, sels, output, num):
+  print "always @ *"
+  print "begin"
+  print "%s = 0;" % output
+  for i in range (num):
+    if (i == 0):
+      print "if (%s)" % (sels.replace("__WAY", `i`))
+    else:
+      print "else if (%s)" % (sels.replace("__WAY", `i`))
+    print "   %s = %s;" % (output, inputs.replace("__WAY", `i`))
+  print "end"
+
+def GenOr(inputs, sels, output, num):
+  print "always @ *"
+  print "begin"
+  print "%s = 0;" % output
+  for i in range (num):
+    print "if (%s)" % (sels.replace("__WAY", `i`))
+    print "   %s = %s | %s;" % (output, output, inputs.replace("__WAY", `i`))
+  print "end"
+
+def GenEncoder(sels, output, num):
+  print "%s = 0;" % output
+  for i in range (num):
+    if (i == 0):
+      print "if (%s)" % (sels.replace("__WAY", `i`))
+    else:
+      print "else if (%s)" % (sels.replace("__WAY", `i`))
+    print "   %s = %d;" % (output, i)
+
+def GenInversedMux(inputs, sels, output, num):
+  for i in range (num):
+    if (i == 0):
+      print "if (%s)" % (sels.replace("__WAY", `i`))
+    else:
+      print "else if (%s)" % (sels.replace("__WAY", `i`))
+    print "   %s = %s;" % (output.replace("__WAY", `i`), inputs.replace("__WAY", `i`))
+
+
+# <%
+#   template = '''
+#   '''
+#   GenFor(template, CONFIG_L1D_ASSOCIATIVITY);
+# %>
+
+def GenFor(inputs, num, low=0):
+  for i in range(low, num):
+    print inputs.replace("__WAY", `i`)
+
+def GenPriorityEncoder(inputs, out, num):
+  print "always @ *"
+  print "begin"
+  print "%s = 0;" % out
+  for i in range (num):
+    if i == 0:
+      print "if (%s[%d])" % (inputs, i)
+    else:
+      print "else if (%s[%d])" % (inputs, i)
+    print "   %s = %d;" % (out, i)
+  print "end"
+
+
+def GenPriorityDecoder(inputs, out, num):
+  print "always @ *"
+  print "begin"
+  print "%s = 0;" % out
+  for i in range (num):
+    if i == 0:
+      print "if (%s == %d)" % (inputs, i)
+    else:
+      print "else if (%s == %d)" % (inputs, i)
+    print "   %s[%d] = 1'b1;" % (out, i)
+  print "end"
+

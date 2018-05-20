@@ -120,7 +120,7 @@ char* resolveFileName( char FileName[] )
    int   debug = 0;
    if ((tmpPtr = (char*) getenv("CONFIGSRCHDEBUG")) != NULL) debug=atoi(tmpPtr);
 
-   char  retStr[MAXSIZE];
+   static char  retStr[MAXSIZE];
    char  tmpStr[MAXSIZE];
 
    if (debug>1) fprintf(stderr,"\n    +[resolveFileName]:  \"%s\"\n", FileName);

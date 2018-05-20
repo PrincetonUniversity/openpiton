@@ -31,6 +31,7 @@
 
 `include        "iop.h"
 `include        "lsu.tmp.h"
+`include "ifu.tmp.h"
 
 `include        "define.vh"
 ////////////////////////////////////////////////////////////////////////
@@ -174,7 +175,7 @@ module lsu ( /*AUTOARG*/
 /*AUTOINPUT*/
 // Beginning of automatic inputs (from unused autoinst inputs)
 input                   arst_l;                 // To qctl1 of lsu_qctl1.v, ...
-input [10:0]            bist_ctl_reg_out;       // To dctldp of lsu_dctldp.v
+input [`L1D_ADDRESS_HI:0]            bist_ctl_reg_out;       // To dctldp of lsu_dctldp.v
 input                   clk;                    // To qctl1 of lsu_qctl1.v, ...
 input [2:0]             const_cpuid;            // To qctl2 of lsu_qctl2.v, ...
 input [63:0]            exu_lsu_rs2_data_e;     // To stb_rwdp of lsu_stb_rwdp.v
@@ -395,7 +396,7 @@ output                  lsu_ifu_io_error;       // From dctl of lsu_dctl.v
 output [3:0]            lsu_ifu_itlb_en;        // From dctl of lsu_dctl.v
 output                  lsu_ifu_l2_corr_error;  // From dctl of lsu_dctl.v
 output                  lsu_ifu_l2_unc_error;   // From dctl of lsu_dctl.v
-output [11:5]           lsu_ifu_ld_icache_index;// From qdp1 of lsu_qdp1.v
+output [`IC_IDX_HI:5]           lsu_ifu_ld_icache_index;// From qdp1 of lsu_qdp1.v
 output [1:0]            lsu_ifu_ld_pcxpkt_tid;  // From qdp1 of lsu_qdp1.v
 output                  lsu_ifu_ld_pcxpkt_vld;  // From qctl1 of lsu_qctl1.v
 output [3:0]            lsu_ifu_ldst_cmplt;     // From dctl of lsu_dctl.v
@@ -456,7 +457,7 @@ output [1:0]            lsu_tlu_tlb_access_tid_m;// From dctl of lsu_dctl.v
 output [7:0]            lsu_tlu_tlb_asi_state_m;// From dctldp of lsu_dctldp.v
 output [47:13]          lsu_tlu_tlb_dmp_va_m;   // From dctldp of lsu_dctldp.v
 output                  lsu_tlu_tlb_ld_inst_m;  // From dctl of lsu_dctl.v
-output [10:0]           lsu_tlu_tlb_ldst_va_m;  // From dctldp of lsu_dctldp.v
+output [`L1D_ADDRESS_HI:0]           lsu_tlu_tlb_ldst_va_m;  // From dctldp of lsu_dctldp.v
 output                  lsu_tlu_tlb_st_inst_m;  // From,tl of lsu_dctl.v
 output [8:0]            lsu_tlu_ttype_m2;       // From excpctl of lsu_excpctl.v
 output                  lsu_tlu_ttype_vld_m2;   // From excpctl of lsu_excpctl.v
@@ -472,7 +473,7 @@ output [`TLB_CSM]       spc_pcx_csm_pa;
 `endif
 
 // trin: disabling useless in/outs
-wire [6:0]              mbist_dcache_index = 7'b0;     // To dctl of lsu_dctl.v
+wire [`L1D_ADDRESS_HI-4:0]              mbist_dcache_index = 1'b0;     // To dctl of lsu_dctl.v
 wire                    mbist_dcache_read = 1'b0;      // To dctl of lsu_dctl.v
 wire [1:0]              mbist_dcache_way = 2'b0;       // To dctl of lsu_dctl.v
 wire                    mbist_dcache_word = 1'b0;      // To dctl of lsu_dctl.v
@@ -512,9 +513,9 @@ wire                    binit_quad_asi_m;       // From dctl of lsu_dctl.v
 wire                    bist_tap_wr_en;         // From dctl of lsu_dctl.v
 wire                    blk_asi_m;              // From dctl of lsu_dctl.v
 wire                    cache_hit;              // From dtlb of bw_r_tlb.v
-wire [3:0]              cache_way_hit;          // From dtlb of bw_r_tlb.v
-wire [3:0]              cache_way_hit_buf1;     // From tlbdp of lsu_tlbdp.v
-wire [3:0]              cache_way_hit_buf2;     // From tlbdp of lsu_tlbdp.v
+wire [`L1D_WAY_COUNT-1:0]              cache_way_hit;          // From dtlb of bw_r_tlb.v
+wire [`L1D_WAY_COUNT-1:0]              cache_way_hit_buf1;     // From tlbdp of lsu_tlbdp.v
+wire [`L1D_WAY_COUNT-1:0]              cache_way_hit_buf2;     // From tlbdp of lsu_tlbdp.v
 wire                    cam_real_m;             // From dctl of lsu_dctl.v
 wire                    cpx_fwd_pkt_en_cx;      // From qctl2 of lsu_qctl2.v
 wire                    cpx_st_ack_tid0;        // From qctl2 of lsu_qctl2.v
@@ -528,11 +529,12 @@ wire                    dcache_alt_mx_sel_e;    // From dctl of lsu_dctl.v
 wire                    dcache_alt_mx_sel_e_bf; // From dctl of lsu_dctl.v
 wire                    dcache_arry_data_sel_m; // From dctl of lsu_dctl.v
 wire [15:0]             dcache_byte_wr_en_e;    // From dctl of lsu_dctl.v
-wire [7:0]              dcache_iob_addr_e;      // From qdp2 of lsu_qdp2.v
-wire [7:0]              dcache_rdata_msb_w0_m;  // From dcache of bw_r_dcd.v
-wire [7:0]              dcache_rdata_msb_w1_m;  // From dcache of bw_r_dcd.v
-wire [7:0]              dcache_rdata_msb_w2_m;  // From dcache of bw_r_dcd.v
-wire [7:0]              dcache_rdata_msb_w3_m;  // From dcache of bw_r_dcd.v
+wire [`L1D_ADDRESS_HI-3:0]              dcache_iob_addr_e;      // From qdp2 of lsu_qdp2.v
+// wire [7:0]              dcache_rdata_msb_w0_m;  // From dcache of bw_r_dcd.v
+// wire [7:0]              dcache_rdata_msb_w1_m;  // From dcache of bw_r_dcd.v
+// wire [7:0]              dcache_rdata_msb_w2_m;  // From dcache of bw_r_dcd.v
+// wire [7:0]              dcache_rdata_msb_w3_m;  // From dcache of bw_r_dcd.v
+wire [`L1D_WAY_COUNT*8-1:0]              dcache_rdata_msb_m;  // From dcache of bw_r_dcd.v
 wire [63:0]             dcache_rdata_wb;        // From dcache of bw_r_dcd.v
 wire [63:0]             dcache_rdata_wb_buf;    // From dcdp of lsu_dcdp.v
 wire                    dcache_rparity_err_wb;  // From dcache of bw_r_dcd.v
@@ -556,19 +558,20 @@ wire [4:0]              dfq_wptr;               // From qctl2 of lsu_qctl2.v
 wire                    dfq_wptr_vld;           // From qctl2 of lsu_qctl2.v
 wire [3:0]              dfture_tap_rd_en;       // From dctl of lsu_dctl.v
 wire                    dfture_tap_wr_mx_sel;   // From dctl of lsu_dctl.v
-wire [32:0]             dtag_rdata_w0_m;        // From dtag of bw_r_idct.v
-wire [32:0]             dtag_rdata_w1_m;        // From dtag of bw_r_idct.v
-wire [32:0]             dtag_rdata_w2_m;        // From dtag of bw_r_idct.v
-wire [32:0]             dtag_rdata_w3_m;        // From dtag of bw_r_idct.v
+// wire [32:0]             dtag_rdata_w0_m;        // From dtag of bw_r_dct.v
+// wire [32:0]             dtag_rdata_w1_m;        // From dtag of bw_r_dct.v
+// wire [32:0]             dtag_rdata_w2_m;        // From dtag of bw_r_dct.v
+// wire [32:0]             dtag_rdata_w3_m;        // From dtag of bw_r_dct.v
+wire [`L1D_TAG_ARRAY_REAL_WIDTH-1:0]             dtag_rdata_m;        // From dtag of bw_r_dct.v
 wire                    dtlb_bypass_m;          // From dctl of lsu_dctl.v
-wire [15:0]             dva_bit_wr_en_e;        // From dctl of lsu_dctl.v
+wire [`L1D_VAL_ARRAY_HI:0]             dva_bit_wr_en_e;        // From dctl of lsu_dctl.v
 wire                    dva_din_e;              // From dctl of lsu_dctl.v
-wire [4:0]              dva_snp_addr_e;         // From qctl2 of lsu_qctl2.v
-wire [15:0]             dva_snp_bit_wr_en_e;    // From qctl2 of lsu_qctl2.v
+wire [`L1D_ADDRESS_HI-6:0]              dva_snp_addr_e;         // From qctl2 of lsu_qctl2.v
+wire [`L1D_VAL_ARRAY_HI:0]             dva_snp_bit_wr_en_e;    // From qctl2 of lsu_qctl2.v
 wire                    dva_svld_e;             // From qctl2 of lsu_qctl2.v
-wire [3:0]              dva_vld_m;              // From dva of bw_r_rf16x32.v
-wire [3:0]              dva_vld_m_bf;           // From dctl of lsu_dctl.v
-wire [10:6]             dva_wr_adr_e;           // From dctl of lsu_dctl.v
+wire [`L1D_WAY_COUNT-1:0]              dva_vld_m;              // From dva of sram_l1d_val.v
+wire [`L1D_WAY_COUNT-1:0]              dva_vld_m_bf;           // From dctl of lsu_dctl.v
+wire [`L1D_ADDRESS_HI:6]             dva_wr_adr_e;           // From dctl of lsu_dctl.v
 wire                    flsh_inst_m;            // From stb_rwctl of lsu_stb_rwctl.v
 wire                    fp_ldst_m;              // From dctl of lsu_dctl.v
 
@@ -608,34 +611,37 @@ wire                    ldiagctl_wr_en;         // From dctl of lsu_dctl.v
 wire                    ldst_dbl_m;             // From dctl of lsu_dctl.v
 wire [1:0]              ldst_sz_m;              // From dctl of lsu_dctl.v
 wire                    ldxa_internal;          // From dctl of lsu_dctl.v
+
 wire [1:0]              lmq0_byp_misc_sz;       // From qdp1 of lsu_qdp1.v
 wire                    lmq0_l2fill_fpld;       // From qdp1 of lsu_qdp1.v
 wire [2:0]              lmq0_ld_rq_type;        // From qdp1 of lsu_qdp1.v
 wire                    lmq0_ldd_vld;           // From qdp1 of lsu_qdp1.v
 wire                    lmq0_ncache_ld;         // From qdp1 of lsu_qdp1.v
-wire [10:0]             lmq0_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
-wire [1:0]              lmq0_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+wire [`L1D_ADDRESS_HI:0]             lmq0_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
+wire [`L1D_WAY_MASK]              lmq0_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+
 wire [1:0]              lmq1_byp_misc_sz;       // From qdp1 of lsu_qdp1.v
 wire                    lmq1_l2fill_fpld;       // From qdp1 of lsu_qdp1.v
 wire [2:0]              lmq1_ld_rq_type;        // From qdp1 of lsu_qdp1.v
 wire                    lmq1_ldd_vld;           // From qdp1 of lsu_qdp1.v
 wire                    lmq1_ncache_ld;         // From qdp1 of lsu_qdp1.v
-wire [10:0]             lmq1_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
-wire [1:0]              lmq1_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+wire [`L1D_ADDRESS_HI:0]             lmq1_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
+wire [`L1D_WAY_MASK]              lmq1_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
 wire [1:0]              lmq2_byp_misc_sz;       // From qdp1 of lsu_qdp1.v
 wire                    lmq2_l2fill_fpld;       // From qdp1 of lsu_qdp1.v
 wire [2:0]              lmq2_ld_rq_type;        // From qdp1 of lsu_qdp1.v
 wire                    lmq2_ldd_vld;           // From qdp1 of lsu_qdp1.v
 wire                    lmq2_ncache_ld;         // From qdp1 of lsu_qdp1.v
-wire [10:0]             lmq2_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
-wire [1:0]              lmq2_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+wire [`L1D_ADDRESS_HI:0]             lmq2_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
+wire [`L1D_WAY_MASK]              lmq2_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
 wire [1:0]              lmq3_byp_misc_sz;       // From qdp1 of lsu_qdp1.v
 wire                    lmq3_l2fill_fpld;       // From qdp1 of lsu_qdp1.v
 wire [2:0]              lmq3_ld_rq_type;        // From qdp1 of lsu_qdp1.v
 wire                    lmq3_ldd_vld;           // From qdp1 of lsu_qdp1.v
 wire                    lmq3_ncache_ld;         // From qdp1 of lsu_qdp1.v
-wire [10:0]             lmq3_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
-wire [1:0]              lmq3_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+wire [`L1D_ADDRESS_HI:0]             lmq3_pcx_pkt_addr;      // From qdp1 of lsu_qdp1.v
+wire [`L1D_WAY_MASK]              lmq3_pcx_pkt_way;       // From qctl1 of lsu_qctl1.v
+
 wire [3:0]              lmq_byp_data_en_w2;     // From dctl of lsu_dctl.v
 wire [3:0]              lmq_byp_data_fmx_sel;   // From dctl of lsu_dctl.v
 wire [3:0]              lmq_byp_data_mxsel0;    // From dctl of lsu_dctl.v
@@ -655,7 +661,7 @@ wire [2:0]              lsu_asi_sel_fmx1;       // From dctl of lsu_dctl.v
 wire [2:0]              lsu_asi_sel_fmx2;       // From dctl of lsu_dctl.v
 wire                    lsu_atm_st_cmplt_e;     // From qctl2 of lsu_qctl2.v
 wire [2:0]              lsu_atomic_pkt2_bsel_g; // From dctl of lsu_dctl.v
-wire [3:0]              lsu_bist_rsel_way_e;    // From dctl of lsu_dctl.v
+wire [`L1D_WAY_COUNT-1:0]              lsu_bist_rsel_way_e;    // From dctl of lsu_dctl.v
 wire [2:0]              lsu_bld_cnt_m;          // From qctl1 of lsu_qctl1.v
 wire                    lsu_bld_helper_cmplt_m; // From qctl1 of lsu_qctl1.v
 wire                    lsu_bld_pcx_rq;         // From qctl1 of lsu_qctl1.v
@@ -668,9 +674,11 @@ wire                    lsu_bst_in_pipe_m;      // From dctl of lsu_dctl.v
 wire                    lsu_byp_ldd_oddrd_m;    // From qctl2 of lsu_qctl2.v
 wire [1:0]              lsu_byp_misc_sz_e;      // From qdp1 of lsu_qdp1.v
 wire [7:0]              lsu_cpu_dcd_sel;        // From qctl2 of lsu_qctl2.v
-wire                    lsu_cpu_inv_data_b0;    // From qdp2 of lsu_qdp2.v
-wire [13:9]             lsu_cpu_inv_data_b13to9;// From qdp2 of lsu_qdp2.v
-wire [7:2]              lsu_cpu_inv_data_b7to2; // From qdp2 of lsu_qdp2.v
+// wire                    lsu_cpu_inv_data_b0;    // From qdp2 of lsu_qdp2.v
+// wire [13:9]             lsu_cpu_inv_data_b13to9;// From qdp2 of lsu_qdp2.v
+// wire [7:2]              lsu_cpu_inv_data_b7to2; // From qdp2 of lsu_qdp2.v
+wire                        lsu_cpu_inv_data_val ;
+wire  [`L1D_WAY_WIDTH-1:0]  lsu_cpu_inv_data_way ;
 wire                    lsu_cpu_uhlf_sel;       // From qctl2 of lsu_qctl2.v
 wire                    lsu_cpx_ld_dcache_perror_e;// From qctl2 of lsu_qctl2.v
 wire                    lsu_cpx_ld_dtag_perror_e;// From qctl2 of lsu_qctl2.v
@@ -678,8 +686,8 @@ wire                    lsu_cpx_pkt_atm_st_cmplt;// From qdp2 of lsu_qdp2.v
 wire                    lsu_cpx_pkt_atomic;     // From qdp2 of lsu_qdp2.v
 wire                    lsu_cpx_pkt_binit_st;   // From qdp2 of lsu_qdp2.v
 wire                    lsu_cpx_pkt_ifill_type; // From qdp2 of lsu_qdp2.v
-wire [4:0]              lsu_cpx_pkt_inv_pa;     // From qdp2 of lsu_qdp2.v
-wire [1:0]              lsu_cpx_pkt_invwy;      // From qdp2 of lsu_qdp2.v
+wire [`L1D_ADDRESS_HI-6:0]              lsu_cpx_pkt_inv_pa;     // From qdp2 of lsu_qdp2.v
+wire [`L1D_WAY_MASK]              lsu_cpx_pkt_invwy;      // From qdp2 of lsu_qdp2.v
 wire                    lsu_cpx_pkt_l2miss;     // From qdp2 of lsu_qdp2.v
 wire [1:0]              lsu_cpx_pkt_ld_err;     // From qdp2 of lsu_qdp2.v
 wire                    lsu_cpx_pkt_perror_dinv;// From qdp2 of lsu_qdp2.v
@@ -697,18 +705,18 @@ wire [5:0]              lsu_cpxpkt_type_dcd_cx; // From qctl2 of lsu_qctl2.v
 wire [3:0]              lsu_ctl_state_wr_en;    // From dctl of lsu_dctl.v
 wire                    lsu_dc_iob_access_e;    // From dctl of lsu_dctl.v
 wire                    lsu_dcache_data_perror_g;// From dctl of lsu_dctl.v
-wire [10:3]             lsu_dcache_fill_addr_e; // From dctl of lsu_dctl.v
-wire [10:4]             lsu_dcache_fill_addr_e_err;// From dctl of lsu_dctl.v
+wire [`L1D_ADDRESS_HI:3]             lsu_dcache_fill_addr_e; // From dctl of lsu_dctl.v
+wire [`L1D_ADDRESS_HI:4]             lsu_dcache_fill_addr_e_err;// From dctl of lsu_dctl.v
 wire [143:0]            lsu_dcache_fill_data_e; // From qdp2 of lsu_qdp2.v
-wire [3:0]              lsu_dcache_fill_way_e;  // From dctl of lsu_dctl.v
+wire [`L1D_WAY_COUNT-1:0]              lsu_dcache_fill_way_e;  // From dctl of lsu_dctl.v
 wire                    lsu_dcache_iob_rd_w;    // From qctl2 of lsu_qctl2.v
-wire [1:0]              lsu_dcache_iob_way_e;   // From qdp2 of lsu_qdp2.v
+wire [`L1D_WAY_MASK]              lsu_dcache_iob_way_e;   // From qdp2 of lsu_qdp2.v
 wire [1:0]              lsu_dcache_rand;        // From dctl of lsu_dctl.v
 wire                    lsu_dcache_tag_perror_g;// From dctl of lsu_dctl.v
 wire                    lsu_dcache_wr_vld_e;    // From dctl of lsu_dctl.v
 wire                    lsu_dcfill_active_e;    // From qctl2 of lsu_qctl2.v
 wire                    lsu_dcfill_data_mx_sel_e;// From dctl of lsu_dctl.v
-wire [3:0]              lsu_dctag_mrgn;         // From dctldp of lsu_dctldp.v
+wire [`L1D_WAY_COUNT-1:0]              lsu_dctag_mrgn;         // From dctldp of lsu_dctldp.v
 wire [7:0]              lsu_dctl_asi_state_m;   // From dctldp of lsu_dctldp.v
 wire                    lsu_dctldp_thread0_m;   // From dctl of lsu_dctl.v
 wire                    lsu_dctldp_thread1_m;   // From dctl of lsu_dctl.v
@@ -739,10 +747,10 @@ wire [3:0]              lsu_diagnstc_data_sel;  // From dctl of lsu_dctl.v
 wire [7:0]              lsu_diagnstc_dc_prty_invrt_e;// From dctldp of lsu_dctldp.v
 wire                    lsu_diagnstc_dtagv_prty_invrt_e;// From dctl of lsu_dctl.v
 wire [3:0]              lsu_diagnstc_va_sel;    // From dctl of lsu_dctl.v
-wire [10:0]             lsu_diagnstc_wr_addr_e; // From dctldp of lsu_dctldp.v
+wire [`L1D_ADDRESS_HI:0]             lsu_diagnstc_wr_addr_e; // From dctldp of lsu_dctldp.v
 wire                    lsu_diagnstc_wr_data_b0;// From qdp1 of lsu_qdp1.v
 wire [63:0]             lsu_diagnstc_wr_data_e; // From qdp1 of lsu_qdp1.v
-wire [1:0]              lsu_diagnstc_wr_way_e;  // From dctldp of lsu_dctldp.v
+wire [`L1D_WAY_MASK]              lsu_diagnstc_wr_way_e;  // From dctldp of lsu_dctldp.v
 wire [5:0]              lsu_dp_ctl_reg0;        // From dctldp of lsu_dctldp.v
 wire [5:0]              lsu_dp_ctl_reg1;        // From dctldp of lsu_dctldp.v
 wire [5:0]              lsu_dp_ctl_reg2;        // From dctldp of lsu_dctldp.v
@@ -826,7 +834,7 @@ wire                    lsu_qdp2_dfq_st_vld;    // From qctl2 of lsu_qctl2.v
 wire                    lsu_quad_asi_e;         // From dctl of lsu_dctl.v
 wire                    lsu_quad_word_access_g; // From dctl of lsu_dctl.v
 wire                    lsu_ramtest_rd_w;       // From qctl1 of lsu_qctl1.v
-wire [3:0]              lsu_rd_dtag_parity_g;   // From tagdp of lsu_tagdp.v
+wire [`L1D_WAY_ARRAY_MASK]              lsu_rd_dtag_parity_g;   // From tagdp of lsu_tagdp.v
 wire                    lsu_snap_blk_st_m;      // From dctl of lsu_dctl.v
 wire                    lsu_squash_va_oor_m;    // From dctl of lsu_dctl.v
 wire [3:0]              lsu_st_ack_dq_stb;      // From qctl2 of lsu_qctl2.v
@@ -847,7 +855,7 @@ wire                    lsu_st_sz_hww_m;        // From stb_rwctl of lsu_stb_rwc
 wire                    lsu_st_sz_w_m;          // From stb_rwctl of lsu_stb_rwctl.v
 wire                    lsu_st_sz_wdw_m;        // From stb_rwctl of lsu_stb_rwctl.v
 wire                    lsu_st_w_or_dbl_le_g;   // From dctl of lsu_dctl.v
-wire [1:0]              lsu_st_way_e;           // From qdp2 of lsu_qdp2.v
+wire [`L1D_WAY_MASK]              lsu_st_way_e;           // From qdp2 of lsu_qdp2.v
 wire                    lsu_st_wr_dcache;       // From qctl2 of lsu_qctl2.v
 wire                    lsu_st_x_le_g;          // From dctl of lsu_dctl.v
 wire [3:0]              lsu_stb_data_early_sel_e;// From stb_rwctl of lsu_stb_rwctl.v
@@ -948,7 +956,7 @@ wire [3:0]              sctxt_state_wr_thrd;    // From dctl of lsu_dctl.v
 wire                    signed_ldst_byte_m;     // From dctl of lsu_dctl.v
 wire                    signed_ldst_hw_m;       // From dctl of lsu_dctl.v
 wire                    signed_ldst_w_m;        // From dctl of lsu_dctl.v
-wire [10:0]             st_dcfill_addr;         // From qdp2 of lsu_qdp2.v
+wire [`L1D_ADDRESS_HI:0]             st_dcfill_addr;         // From qdp2 of lsu_qdp2.v
 wire [63:0]             st_rs3_data_g;          // From qdp1 of lsu_qdp1.v
 wire                    sta_internal_m;         // From dctl of lsu_dctl.v
 wire [2:1]              stb0_atm_rq_type;       // From stb_ctl0 of lsu_stb_ctl.v
@@ -1157,7 +1165,7 @@ wire                    lsu_dtlb_csm_rd_e;
 input [`CPX_WIDTH-1:0]  cpx_spc_data_cx;   // cpx to processor pkt
 input [`PCX_WIDTH-1:0]  spu_lsu_ldst_pckt;
 input [47:0]            exu_lsu_ldst_va_e;  // VA for mem-ref (src-execute)
-input [10:3]            exu_lsu_early_va_e;  // early partial VA for lookup
+input [`L1D_ADDRESS_HI:3]            exu_lsu_early_va_e;  // early partial VA for lookup
 input	[80:0]		ffu_lsu_data ;
 
 
@@ -1176,8 +1184,8 @@ wire [63:0]   lsu_stb_st_data_g;
 wire [151:0] dfq_rdata;
 wire [151:0] dfq_wdata;
 wire         lsu_cpx_stack_icfill_vld;
-wire [29:0]  dtag_wdata_m;
-wire [29:0]  dtag_wdata_e;
+wire [`L1D_TAG_PARITY_WIDTH-1:0]  dtag_wdata_m;
+wire [`L1D_TAG_PARITY_WIDTH-1:0]  dtag_wdata_e;
    wire      lsu_cpx_stack_dcfill_vld_b130;
    wire [7:0] stb_ldst_byte_msk_min;
 
@@ -1408,8 +1416,8 @@ wire [3:0] 		lsu_tlu_stb_full_w2_t;  // To accommodate 1T design
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
-                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lmq2_pcx_pkt_way     (),
                   .lmq3_pcx_pkt_way     (),
                   .lsu_st_pcx_rq_pick   (lsu_st_pcx_rq_pick[3:0]),
@@ -1558,7 +1566,7 @@ lsu_qctl1 qctl1  (
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lmq1_pcx_pkt_way     (),
                   .lmq2_pcx_pkt_way     (),
                   .lmq3_pcx_pkt_way     (),
@@ -1705,7 +1713,7 @@ lsu_qctl1 qctl1  (
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lmq1_pcx_pkt_way     (),
                   .lmq2_pcx_pkt_way     (),
                   .lmq3_pcx_pkt_way     (),
@@ -1853,8 +1861,8 @@ lsu_qctl1 qctl1  (
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
-                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lmq2_pcx_pkt_way     (),
                   .lmq3_pcx_pkt_way     (),
                   .lsu_st_pcx_rq_pick   (lsu_st_pcx_rq_pick[3:0]),
@@ -2000,9 +2008,9 @@ lsu_qctl1 qctl1  (
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
-                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[1:0]),
-                  .lmq2_pcx_pkt_way     (lmq2_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq2_pcx_pkt_way     (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lmq3_pcx_pkt_way     (),
                   .lsu_st_pcx_rq_pick   (lsu_st_pcx_rq_pick[3:0]),
                   .lsu_stb_pcx_rvld_d1  (lsu_stb_pcx_rvld_d1),
@@ -2147,10 +2155,10 @@ lsu_qctl1 qctl1  (
                   .lsu_lmq_byp_misc_sel (lsu_lmq_byp_misc_sel[3:0]),
                   .lsu_sscan_data       (lsu_sscan_data[12:0]),  // Templated
                   .lsu_dfq_byp_tid_d1_sel(lsu_dfq_byp_tid_d1_sel[3:0]),
-                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[1:0]),
-                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[1:0]),
-                  .lmq2_pcx_pkt_way     (lmq2_pcx_pkt_way[1:0]),
-                  .lmq3_pcx_pkt_way     (lmq3_pcx_pkt_way[1:0]),
+                  .lmq0_pcx_pkt_way     (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq1_pcx_pkt_way     (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq2_pcx_pkt_way     (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
+                  .lmq3_pcx_pkt_way     (lmq3_pcx_pkt_way[`L1D_WAY_MASK]),
                   .lsu_st_pcx_rq_pick   (lsu_st_pcx_rq_pick[3:0]),
                   .lsu_stb_pcx_rvld_d1  (lsu_stb_pcx_rvld_d1),
                   .lsu_stb_rd_tid       (lsu_stb_rd_tid[1:0]),
@@ -2293,59 +2301,58 @@ lsu_qctl1 qctl1  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
           .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -2380,7 +2387,7 @@ lsu_qctl1 qctl1  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -2398,7 +2405,7 @@ lsu_qctl1 qctl1  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -2434,14 +2441,16 @@ lsu_qctl1 qctl1  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -2497,59 +2506,58 @@ lsu_qctl2 qctl2  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
 		  .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -2584,7 +2592,7 @@ lsu_qctl2 qctl2  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -2602,7 +2610,7 @@ lsu_qctl2 qctl2  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -2638,14 +2646,16 @@ lsu_qctl2 qctl2  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -2698,59 +2708,58 @@ lsu_qctl2 qctl2  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
           .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -2785,7 +2794,7 @@ lsu_qctl2 qctl2  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -2803,7 +2812,7 @@ lsu_qctl2 qctl2  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -2839,14 +2848,16 @@ lsu_qctl2 qctl2  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -2899,59 +2910,58 @@ lsu_qctl2 qctl2  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
           .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -2986,7 +2996,7 @@ lsu_qctl2 qctl2  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -3004,7 +3014,7 @@ lsu_qctl2 qctl2  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -3040,14 +3050,16 @@ lsu_qctl2 qctl2  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -3100,59 +3112,58 @@ lsu_qctl2 qctl2  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
           .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -3187,7 +3198,7 @@ lsu_qctl2 qctl2  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -3205,7 +3216,7 @@ lsu_qctl2 qctl2  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -3241,14 +3252,16 @@ lsu_qctl2 qctl2  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -3301,59 +3314,58 @@ lsu_qctl2 qctl2  (
                   .cpx_spc_data_cx_b124to123  (cpx_spc_data_cx[`CPX_PERR_DINV+1:`CPX_PERR_DINV]),
                   .cpx_spc_data_cx_b120to118  (cpx_spc_data_cx[`CPX_INV_CID_HI:`CPX_INV_CID_LO]),
                   .cpx_spc_data_cx_b71to70    (cpx_spc_data_cx[71:70]),
-                  .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
-                  .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
-                  .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
-                  .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
-                  .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
-                  .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
-                  .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
-                  .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
 
-                  .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
-                  .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
-                  .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
-                  .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
-                  .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
-                  .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
-                  .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
-                  .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  .cpx_spc_data_cx_dcache_inval_val(cpx_spc_data_cx[`CPX_INV_DCACHE_VAL]),
+                  .cpx_spc_data_cx_icache_inval_val(cpx_spc_data_cx[`CPX_INV_ICACHE_VAL]),
 
-                  .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
-                  .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
-                  .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
-                  .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
-                  .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
-                  .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
-                  .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
-                  .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
-
-                  .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
-                  .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
-                  .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
-                  .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
-                  .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
+                  // .cpx_spc_data_cx_b0         (cpx_spc_data_cx[0]),
+                  // .cpx_spc_data_cx_b4         (cpx_spc_data_cx[4]),
+                  // .cpx_spc_data_cx_b8         (cpx_spc_data_cx[8]),
+                  // .cpx_spc_data_cx_b12        (cpx_spc_data_cx[12]),
+                  // .cpx_spc_data_cx_b16        (cpx_spc_data_cx[16]),
+                  // .cpx_spc_data_cx_b20        (cpx_spc_data_cx[20]),
+                  // .cpx_spc_data_cx_b24        (cpx_spc_data_cx[24]),
+                  // .cpx_spc_data_cx_b28        (cpx_spc_data_cx[28]),
+                  // .cpx_spc_data_cx_b32        (cpx_spc_data_cx[32]),
+                  // .cpx_spc_data_cx_b35        (cpx_spc_data_cx[35]),
+                  // .cpx_spc_data_cx_b38        (cpx_spc_data_cx[38]),
+                  // .cpx_spc_data_cx_b41        (cpx_spc_data_cx[41]),
+                  // .cpx_spc_data_cx_b44        (cpx_spc_data_cx[44]),
+                  // .cpx_spc_data_cx_b47        (cpx_spc_data_cx[47]),
+                  // .cpx_spc_data_cx_b50        (cpx_spc_data_cx[50]),
+                  // .cpx_spc_data_cx_b53        (cpx_spc_data_cx[53]),
+                  // .cpx_spc_data_cx_b56        (cpx_spc_data_cx[56]),
+                  // .cpx_spc_data_cx_b60        (cpx_spc_data_cx[60]),
+                  // .cpx_spc_data_cx_b64        (cpx_spc_data_cx[64]),
+                  // .cpx_spc_data_cx_b68        (cpx_spc_data_cx[68]),
+                  // .cpx_spc_data_cx_b72        (cpx_spc_data_cx[72]),
+                  // .cpx_spc_data_cx_b76        (cpx_spc_data_cx[76]),
+                  // .cpx_spc_data_cx_b80        (cpx_spc_data_cx[80]),
+                  // .cpx_spc_data_cx_b84        (cpx_spc_data_cx[84]),
+                  // .cpx_spc_data_cx_b88        (cpx_spc_data_cx[88]),
+                  // .cpx_spc_data_cx_b91        (cpx_spc_data_cx[91]),
+                  // .cpx_spc_data_cx_b94        (cpx_spc_data_cx[94]),
+                  // .cpx_spc_data_cx_b97        (cpx_spc_data_cx[97]),
+                  // .cpx_spc_data_cx_b100       (cpx_spc_data_cx[100]),
                   .cpx_spc_data_cx_b103       (cpx_spc_data_cx[103]),
-                  .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
-                  .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
-
-                  .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
-                  .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
-                  .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
-                  .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
-                  .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
-                  .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
-                  .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
-                  .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
-
-                  .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
-                  .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
-                  .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
-                  .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
-                  .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
-                  .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
-                  .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
-                  .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
+                  // .cpx_spc_data_cx_b106       (cpx_spc_data_cx[106]),
+                  // .cpx_spc_data_cx_b109       (cpx_spc_data_cx[109]),
+                  // .cpx_spc_data_cx_b1         (cpx_spc_data_cx[1]),
+                  // .cpx_spc_data_cx_b5         (cpx_spc_data_cx[5]),
+                  // .cpx_spc_data_cx_b9         (cpx_spc_data_cx[9]),
+                  // .cpx_spc_data_cx_b13        (cpx_spc_data_cx[13]),
+                  // .cpx_spc_data_cx_b17        (cpx_spc_data_cx[17]),
+                  // .cpx_spc_data_cx_b21        (cpx_spc_data_cx[21]),
+                  // .cpx_spc_data_cx_b25        (cpx_spc_data_cx[25]),
+                  // .cpx_spc_data_cx_b29        (cpx_spc_data_cx[29]),
+                  // .cpx_spc_data_cx_b57        (cpx_spc_data_cx[57]),
+                  // .cpx_spc_data_cx_b61        (cpx_spc_data_cx[61]),
+                  // .cpx_spc_data_cx_b65        (cpx_spc_data_cx[65]),
+                  // .cpx_spc_data_cx_b69        (cpx_spc_data_cx[69]),
+                  // .cpx_spc_data_cx_b73        (cpx_spc_data_cx[73]),
+                  // .cpx_spc_data_cx_b77        (cpx_spc_data_cx[77]),
+                  // .cpx_spc_data_cx_b81        (cpx_spc_data_cx[81]),
+                  // .cpx_spc_data_cx_b85        (cpx_spc_data_cx[85]),
 
 		  .lsu_cpx_stack_icfill_vld(lsu_cpx_stack_icfill_vld),
                   /*AUTOINST*/
@@ -3388,7 +3400,7 @@ lsu_qctl2 qctl2  (
                   .dfq_rptr_vld         (dfq_rptr_vld),
                   .dfq_rptr             (dfq_rptr[4:0]),
                   .lsu_ifu_stallreq     (lsu_ifu_stallreq),
-                  .dva_snp_addr_e       (dva_snp_addr_e[4:0]),
+                  .dva_snp_addr_e       (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                   .lsu_st_ack_dq_stb    (lsu_st_ack_dq_stb[3:0]),
                   .lsu_cpx_rmo_st_ack   (lsu_cpx_rmo_st_ack[3:0]),
                   .lsu_st_wr_dcache     (lsu_st_wr_dcache),
@@ -3406,7 +3418,7 @@ lsu_qctl2 qctl2  (
                   .lsu_fldd_vld_en      (lsu_fldd_vld_en),
                   .lsu_dfill_dcd_thrd   (lsu_dfill_dcd_thrd[3:0]),
                   .lsu_fwdpkt_dest      (lsu_fwdpkt_dest[4:0]),
-                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[15:0]),
+                  .dva_snp_bit_wr_en_e  (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
                   .lsu_cpx_spc_inv_vld  (lsu_cpx_spc_inv_vld),
                   .lsu_cpx_thrdid       (lsu_cpx_thrdid[3:0]),
                   .lsu_cpx_stack_dcfill_vld(lsu_cpx_stack_dcfill_vld),
@@ -3442,14 +3454,16 @@ lsu_qctl2 qctl2  (
                   .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                   .lsu_cpx_pkt_l2miss   (lsu_cpx_pkt_l2miss),
                   .lsu_cpx_pkt_tid      (lsu_cpx_pkt_tid[1:0]),
-                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[1:0]),
+                  .lsu_cpx_pkt_invwy    (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
                   .lsu_dfq_byp_flush    (lsu_dfq_byp_flush),
                   .lsu_dfq_byp_type     (lsu_dfq_byp_type[5:0]),
                   .lsu_dfq_byp_invwy_vld(lsu_dfq_byp_invwy_vld),
-                  .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                  .lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
-                  .lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
-                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[4:0]),
+                  //.lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                  //.lsu_cpu_inv_data_b7to2(lsu_cpu_inv_data_b7to2[7:2]),
+                  //.lsu_cpu_inv_data_b0  (lsu_cpu_inv_data_b0),
+                  .lsu_cpu_inv_data_val          (lsu_cpu_inv_data_val),
+                  .lsu_cpu_inv_data_way          (lsu_cpu_inv_data_way),
+                  .lsu_cpx_pkt_inv_pa   (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                   .lsu_cpx_pkt_ifill_type(lsu_cpx_pkt_ifill_type),
                   .lsu_cpx_pkt_atomic   (lsu_cpx_pkt_atomic),
                   .lsu_cpx_pkt_binit_st (lsu_cpx_pkt_binit_st),
@@ -3529,12 +3543,12 @@ lsu_qctl2 qctl2  (
                    .rst_tri_en           (mem_write_disable),
                    //.sehold               (),
                    .rclk                 (clk),
-                   .dcache_alt_addr_e    (lsu_dcache_fill_addr_e[10:3]),
-                   .dcache_alt_rsel_way_e(lsu_bist_rsel_way_e[3:0]),
-                   .dcache_rd_addr_e     (exu_lsu_early_va_e[10:3]),
-                   .dcache_rsel_way_wb   (cache_way_hit[3:0]),
+                   .dcache_alt_addr_e    (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+                   .dcache_alt_rsel_way_e(lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+                   .dcache_rd_addr_e     (exu_lsu_early_va_e[`L1D_ADDRESS_HI:3]),
+                   .dcache_rsel_way_wb   (cache_way_hit[`L1D_WAY_COUNT-1:0]),
                    .dcache_wdata_e       (lsu_dcache_fill_data_e[143:0]),
-                   .dcache_wr_rway_e     (lsu_dcache_fill_way_e[3:0]),
+                   .dcache_wr_rway_e     (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                    .dcache_wvld_e        (lsu_dcache_wr_vld_e));
 */
 
@@ -3546,22 +3560,23 @@ bw_r_dcd dcache (
                  .dcache_rdata_wb       (dcache_rdata_wb[63:0]),
                  .dcache_rparity_wb     (dcache_rparity_wb[7:0]),
                  .dcache_rparity_err_wb (dcache_rparity_err_wb),
-                 .dcache_rdata_msb_w0_m (dcache_rdata_msb_w0_m[7:0]),
-                 .dcache_rdata_msb_w1_m (dcache_rdata_msb_w1_m[7:0]),
-                 .dcache_rdata_msb_w2_m (dcache_rdata_msb_w2_m[7:0]),
-                 .dcache_rdata_msb_w3_m (dcache_rdata_msb_w3_m[7:0]),
+                 .dcache_rdata_msb_m (dcache_rdata_msb_m),
+                 // .dcache_rdata_msb_w0_m (dcache_rdata_msb_w0_m[7:0]),
+                 // .dcache_rdata_msb_w1_m (dcache_rdata_msb_w1_m[7:0]),
+                 // .dcache_rdata_msb_w2_m (dcache_rdata_msb_w2_m[7:0]),
+                 // .dcache_rdata_msb_w3_m (dcache_rdata_msb_w3_m[7:0]),
                  .dcd_fuse_repair_value (dcd_fuse_repair_value[7:0]),
                  .dcd_fuse_repair_en    (dcd_fuse_repair_en[1:0]),
                  // Inputs
-                 .dcache_rd_addr_e      (exu_lsu_early_va_e[10:3]), // Templated
-                 .dcache_alt_addr_e     (lsu_dcache_fill_addr_e[10:3]), // Templated
+                 .dcache_rd_addr_e      (exu_lsu_early_va_e[`L1D_ADDRESS_HI:3]), // Templated
+                 .dcache_alt_addr_e     (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]), // Templated
                  .dcache_rvld_e         (dcache_rvld_e),
                  .dcache_wvld_e         (lsu_dcache_wr_vld_e),   // Templated
                  .dcache_wdata_e        (lsu_dcache_fill_data_e[143:0]), // Templated
-                 .dcache_wr_rway_e      (lsu_dcache_fill_way_e[3:0]), // Templated
+                 .dcache_wr_rway_e      (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]), // Templated
                  .dcache_byte_wr_en_e   (dcache_byte_wr_en_e[15:0]),
-                 .dcache_alt_rsel_way_e (lsu_bist_rsel_way_e[3:0]), // Templated
-                 .dcache_rsel_way_wb    (cache_way_hit[3:0]),    // Templated
+                 .dcache_alt_rsel_way_e (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]), // Templated
+                 .dcache_rsel_way_wb    (cache_way_hit[`L1D_WAY_COUNT-1:0]),    // Templated
                  .dcache_alt_mx_sel_e   (dcache_alt_mx_sel_e),
                  .se                    (se),
                  .sehold                (sehold),
@@ -3583,19 +3598,19 @@ bw_r_dcd dcache (
                  .rtap_srams_bist_data (rtap_srams_bist_data)
 
                  );
-/* bw_r_rf16x32  AUTO_TEMPLATE (
+/* sram_l1d_val  AUTO_TEMPLATE (
              .rst_tri_en           (mem_write_disable),
              .rclk             (clk),
-             .bit_wen          (dva_bit_wr_en_e[15:0]),
+             .bit_wen          (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
              .din                (dva_din_e),
-             .dout               (dva_vld_m[3:0]),
-             .rd_adr1            (exu_lsu_early_va_e[10:4]),
+             .dout               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
+             .rd_adr1            (exu_lsu_early_va_e[`L1D_ADDRESS_HI:4]),
              .rd_adr1_sel        (1'b1),
              .rd_adr2            (7'b0),
              .rd_en              (ifu_lsu_ld_inst_e),
              .reset_l            (arst_l),
              //.sehold             (),
-             .wr_adr             (dva_wr_adr_e[10:6]),
+             .wr_adr             (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
              .wr_en              (lsu_dtagv_wr_vld_e));
 */
 
@@ -3604,20 +3619,20 @@ sram_l1d_val dva (
                   .si                   (short_si0),
                    /*AUTOINST*/
                   // Outputs
-                  .dout                 (dva_vld_m[3:0]),        // Templated
+                  .dout                 (dva_vld_m[`L1D_WAY_COUNT-1:0]),        // Templated
                   // Inputs
                   .rclk                 (clk),                   // Templated
                   .se                   (se),
                   .reset_l              (arst_l),                // Templated
                   .sehold               (sehold),
                   .rst_tri_en           (mem_write_disable),     // Templated
-                  .rd_adr1              (exu_lsu_early_va_e[10:4]), // Templated
-                  .rd_adr2              (7'b0),                  // Templated
+                  .rd_adr1              (exu_lsu_early_va_e[`L1D_ADDRESS_HI:4]), // Templated
+                  .rd_adr2              ({`L1D_SET_IDX_WIDTH{1'b0}}),                  // Templated
                   .rd_adr1_sel          (1'b1),                  // Templated
                   .rd_en                (ifu_lsu_ld_inst_e),     // Templated
-                  .wr_adr               (dva_wr_adr_e[10:6]),    // Templated
+                  .wr_adr               (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),    // Templated
                   .wr_en                (lsu_dtagv_wr_vld_e),    // Templated
-                  .bit_wen              (dva_bit_wr_en_e[15:0]), // Templated
+                  .bit_wen              (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]), // Templated
                   .din                  (dva_din_e),             // Templated
 
                   // debug interface
@@ -3626,13 +3641,13 @@ sram_l1d_val dva (
                      .rtap_srams_bist_data      (rtap_srams_bist_data),
                      .srams_rtap_data           (dcv_rtap_data)
                   );
-/* bw_r_idct  AUTO_TEMPLATE (
+/* bw_r_dct  AUTO_TEMPLATE (
                .rst_tri_en           (mem_write_disable),
                //.sehold                  (),
                .rclk                    (clk),
-               .adj                     (lsu_dctag_mrgn[3:0]),
-               .index0_x                (exu_lsu_early_va_e[10:4]),
-               .index1_x                (lsu_dcache_fill_addr_e[10:4]),
+               .adj                     (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
+               .index0_x                (exu_lsu_early_va_e[`L1D_ADDRESS_HI:4]),
+               .index1_x                (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:4]),
                .index_sel_x             (lsu_dtag_index_sel_x_e),
                .rdreq_x                 (lsu_ldst_inst_vld_e),
                .rdtag_w0_y              (dtag_rdata_w0_m[32:0]),
@@ -3640,44 +3655,47 @@ sram_l1d_val dva (
                .rdtag_w2_y              (dtag_rdata_w2_m[32:0]),
                .rdtag_w3_y              (dtag_rdata_w3_m[32:0]),
                .wrreq_x                 (lsu_dtag_wrreq_x_e),
-               //.wrtag_w0_y                 ({3'b000,dtag_wdata_m[29:0]}),
-               //.wrtag_w1_y                 ({3'b000,dtag_wdata_m[29:0]}),
-               //.wrtag_w2_y                 ({3'b000,dtag_wdata_m[29:0]}),
-               //.wrtag_w3_y                 ({3'b000,dtag_wdata_m[29:0]}),
-               .dec_wrway_x                (lsu_dcache_fill_way_e[3:0]),
+               //.wrtag_w0_y                 ({3'b000,dtag_wdata_m}),
+               //.wrtag_w1_y                 ({3'b000,dtag_wdata_m}),
+               //.wrtag_w2_y                 ({3'b000,dtag_wdata_m}),
+               //.wrtag_w3_y                 ({3'b000,dtag_wdata_m}),
+               .dec_wrway_x                (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .reset_l                 (arst_l));
 */
 
 bw_r_dct dtag (
                 .so                     (short_scan0_2),
                 .si                     (short_scan0_1),
-		.wrtag_w0_y		({3'b000,dtag_wdata_m[29:0]}),
-		.wrtag_w1_y		({3'b000,dtag_wdata_m[29:0]}),
-		.wrtag_w2_y		({3'b000,dtag_wdata_m[29:0]}),
-		.wrtag_w3_y		({3'b000,dtag_wdata_m[29:0]}),
-      .wrtag_w0_x    ({3'b000,dtag_wdata_e[29:0]}),
-      .wrtag_w1_x    ({3'b000,dtag_wdata_e[29:0]}),
-      .wrtag_w2_x    ({3'b000,dtag_wdata_e[29:0]}),
-      .wrtag_w3_x    ({3'b000,dtag_wdata_e[29:0]}),
+		// .wrtag_w0_y		({3'b000,dtag_wdata_m}),
+		// .wrtag_w1_y		({3'b000,dtag_wdata_m}),
+		// .wrtag_w2_y		({3'b000,dtag_wdata_m}),
+		// .wrtag_w3_y		({3'b000,dtag_wdata_m}),
+      // .wrtag_w0_x    ({3'b000,dtag_wdata_e}),
+      // .wrtag_w1_x    ({3'b000,dtag_wdata_e}),
+      // .wrtag_w2_x    ({3'b000,dtag_wdata_e}),
+      // .wrtag_w3_x    ({3'b000,dtag_wdata_e}),
+      .wrtag_y    ({3'b0, dtag_wdata_m}),
+      .wrtag_x    ({3'b0, dtag_wdata_e}),
                 /*AUTOINST*/
                 // Outputs
-                .rdtag_w0_y             (dtag_rdata_w0_m[32:0]), // Templated
-                .rdtag_w1_y             (dtag_rdata_w1_m[32:0]), // Templated
-                .rdtag_w2_y             (dtag_rdata_w2_m[32:0]), // Templated
-                .rdtag_w3_y             (dtag_rdata_w3_m[32:0]), // Templated
+                // .rdtag_w0_y             (dtag_rdata_w0_m[32:0]), // Templated
+                // .rdtag_w1_y             (dtag_rdata_w1_m[32:0]), // Templated
+                // .rdtag_w2_y             (dtag_rdata_w2_m[32:0]), // Templated
+                // .rdtag_w3_y             (dtag_rdata_w3_m[32:0]), // Templated
+                .rdtag_y             (dtag_rdata_m), // Templated
                 // Inputs
                 .rclk                   (clk),                   // Templated
                 .se                     (se),
                 .reset_l                (arst_l),                // Templated
                 .sehold                 (sehold),
                 .rst_tri_en             (mem_write_disable),     // Templated
-                .index0_x               (exu_lsu_early_va_e[10:4]), // Templated
-                .index1_x               (lsu_dcache_fill_addr_e[10:4]), // Templated
+                .index0_x               (exu_lsu_early_va_e[`L1D_ADDRESS_HI:4]), // Templated
+                .index1_x               (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:4]), // Templated
                 .index_sel_x            (lsu_dtag_index_sel_x_e), // Templated
-                .dec_wrway_x            (lsu_dcache_fill_way_e[3:0]), // Templated
+                .dec_wrway_x            (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]), // Templated
                 .rdreq_x                (lsu_ldst_inst_vld_e),   // Templated
                 .wrreq_x                (lsu_dtag_wrreq_x_e),    // Templated
-                .adj                    (lsu_dctag_mrgn[3:0]),
+                .adj                    (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
 
 
                // debug interface
@@ -3709,8 +3727,8 @@ lsu_tlbdp tlbdp (
                  .stb_cam_vld           (stb_cam_vld),
                  .tte_data_parity_error (tte_data_parity_error),
                  .tte_tag_parity_error  (tte_tag_parity_error),
-                 .cache_way_hit_buf1    (cache_way_hit_buf1[3:0]),
-                 .cache_way_hit_buf2    (cache_way_hit_buf2[3:0]),
+                 .cache_way_hit_buf1    (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
+                 .cache_way_hit_buf2    (cache_way_hit_buf2[`L1D_WAY_COUNT-1:0]),
                  .lsu_tlu_tte_pg_sz_g   (lsu_tlu_tte_pg_sz_g[2:0]),
                  // Inputs
                  .rclk                  (clk),                   // Templated
@@ -3728,11 +3746,11 @@ lsu_tlbdp tlbdp (
                  .tlb_cam_hit           (tlb_cam_hit),
                  .ifu_lsu_ld_inst_e     (ifu_lsu_ld_inst_e),
                  .lsu_dtlb_bypass_e     (lsu_dtlb_bypass_e),
-                 .cache_way_hit         (cache_way_hit[3:0]));
+                 .cache_way_hit         (cache_way_hit[`L1D_WAY_COUNT-1:0]));
 
 /*
 lsu_tagdp AUTO_TEMPLATE (
-                  .dva_vld_m              (dva_vld_m_bf[3:0]),
+                  .dva_vld_m              (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                   .rclk                   (clk));
 */
 
@@ -3743,17 +3761,14 @@ lsu_tagdp tagdp (
                  /*AUTOINST*/
                  // Outputs
                  .lsu_misc_rdata_w2     (lsu_misc_rdata_w2[63:0]),
-                 .lsu_rd_dtag_parity_g  (lsu_rd_dtag_parity_g[3:0]),
+                 .lsu_rd_dtag_parity_g  (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                  // Inputs
                  .rclk                  (clk),                   // Templated
                  .se                    (se),
                  .lsu_va_wtchpt_addr    (lsu_va_wtchpt_addr[47:3]),
                  .lsu_va_wtchpt_sel_g   (lsu_va_wtchpt_sel_g),
-                 .dva_vld_m             (dva_vld_m_bf[3:0]),     // Templated
-                 .dtag_rdata_w0_m       (dtag_rdata_w0_m[29:0]),
-                 .dtag_rdata_w1_m       (dtag_rdata_w1_m[29:0]),
-                 .dtag_rdata_w2_m       (dtag_rdata_w2_m[29:0]),
-                 .dtag_rdata_w3_m       (dtag_rdata_w3_m[29:0]),
+                 .dva_vld_m             (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),     // Templated
+                 .dtag_rdata_m (dtag_rdata_m),
                  .lsu_dtag_rsel_m       (lsu_dtag_rsel_m[3:0]),
                  .lsu_local_ldxa_sel_g  (lsu_local_ldxa_sel_g),
                  .lsu_tlb_rd_data       (lsu_tlb_rd_data[63:0]),
@@ -3914,7 +3929,7 @@ lsu_excpctl excpctl (
                .rclk                    (clk),
                .rst_l                   (dctl_rst_l),
       	       .tlu_dtlb_tte_tag_b58t56 (tlu_dtlb_tte_tag_w2[58:56]),
-               .lsu_dcfill_addr_e       (lsu_dcache_fill_addr_e_err[10:4]));
+               .lsu_dcfill_addr_e       (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]));
 */
 
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
@@ -3952,7 +3967,7 @@ lsu_excpctl excpctl (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -3961,10 +3976,10 @@ lsu_excpctl excpctl (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -3973,7 +3988,7 @@ lsu_excpctl excpctl (
                    .lsu_dp_ctl_reg1     (lsu_dp_ctl_reg1[5:0]),
                    .lsu_dp_ctl_reg2     (),
                    .lsu_dp_ctl_reg3     (),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4025,7 +4040,7 @@ lsu_excpctl excpctl (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4041,7 +4056,7 @@ lsu_excpctl excpctl (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4094,7 +4109,7 @@ lsu_dctldp dctldp (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -4103,10 +4118,10 @@ lsu_dctldp dctldp (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -4115,7 +4130,7 @@ lsu_dctldp dctldp (
                    .lsu_dp_ctl_reg1     (),
                    .lsu_dp_ctl_reg2     (),
                    .lsu_dp_ctl_reg3     (),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4167,7 +4182,7 @@ lsu_dctldp dctldp (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4183,7 +4198,7 @@ lsu_dctldp dctldp (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4224,7 +4239,7 @@ lsu_dctldp dctldp (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -4233,10 +4248,10 @@ lsu_dctldp dctldp (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -4245,7 +4260,7 @@ lsu_dctldp dctldp (
                    .lsu_dp_ctl_reg1     (),
                    .lsu_dp_ctl_reg2     (),
                    .lsu_dp_ctl_reg3     (),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4297,7 +4312,7 @@ lsu_dctldp dctldp (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4313,7 +4328,7 @@ lsu_dctldp dctldp (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4354,7 +4369,7 @@ lsu_dctldp dctldp (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -4363,10 +4378,10 @@ lsu_dctldp dctldp (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -4375,7 +4390,7 @@ lsu_dctldp dctldp (
                    .lsu_dp_ctl_reg1     (lsu_dp_ctl_reg1[5:0]),
                    .lsu_dp_ctl_reg2     (),
                    .lsu_dp_ctl_reg3     (),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4427,7 +4442,7 @@ lsu_dctldp dctldp (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4443,7 +4458,7 @@ lsu_dctldp dctldp (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4484,7 +4499,7 @@ lsu_dctldp dctldp (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -4493,10 +4508,10 @@ lsu_dctldp dctldp (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -4505,7 +4520,7 @@ lsu_dctldp dctldp (
                    .lsu_dp_ctl_reg1     (lsu_dp_ctl_reg1[5:0]),
                    .lsu_dp_ctl_reg2     (lsu_dp_ctl_reg2[5:0]),
                    .lsu_dp_ctl_reg3     (),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4557,7 +4572,7 @@ lsu_dctldp dctldp (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4573,7 +4588,7 @@ lsu_dctldp dctldp (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4615,7 +4630,7 @@ lsu_dctldp dctldp (
                    .lsu_ifu_direct_map_l1(lsu_ifu_direct_map_l1),
                    .dc_direct_map       (dc_direct_map),
                    .lsu_ictag_mrgn      (lsu_ictag_mrgn[3:0]),
-                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[3:0]),
+                   .lsu_dctag_mrgn      (lsu_dctag_mrgn[`L1D_WAY_COUNT-1:0]),
                    .lsu_mamem_mrgn      (lsu_mamem_mrgn[3:0]),
                    .lsu_dtlb_mrgn       (lsu_dtlb_mrgn[7:0]),
                    .lsu_itlb_mrgn       (lsu_itlb_mrgn[7:0]),
@@ -4624,10 +4639,10 @@ lsu_dctldp dctldp (
                    .lsu_tlu_ldst_va_m   (lsu_tlu_ldst_va_m[9:0]),
                    .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
                    .lsu_ifu_asi_state   (lsu_ifu_asi_state[7:0]),
-                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+                   .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
                    .lsu_tlu_tlb_dmp_va_m(lsu_tlu_tlb_dmp_va_m[47:13]),
                    .lsu_ifu_asi_addr    (lsu_ifu_asi_addr[17:0]),
-                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[10:0]),
+                   .lsu_diagnstc_wr_addr_e(lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
                    .lsu_diagnstc_dc_prty_invrt_e(lsu_diagnstc_dc_prty_invrt_e[7:0]),
                    .lsu_ifu_err_addr    (lsu_ifu_err_addr[47:4]),
                    .va_wtchpt_msk_match_m(va_wtchpt_msk_match_m),
@@ -4636,7 +4651,7 @@ lsu_dctldp dctldp (
                    .lsu_dp_ctl_reg1     (lsu_dp_ctl_reg1[5:0]),
                    .lsu_dp_ctl_reg2     (lsu_dp_ctl_reg2[5:0]),
                    .lsu_dp_ctl_reg3     (lsu_dp_ctl_reg3[5:0]),
-                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[1:0]),
+                   .lsu_diagnstc_wr_way_e(lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
                    .lsu_diag_va_prty_invrt(lsu_diag_va_prty_invrt),
                    // Inputs
                    .rclk                (clk),                   // Templated
@@ -4688,7 +4703,7 @@ lsu_dctldp dctldp (
                    .lsuctl_ctlbits_wr_en(lsuctl_ctlbits_wr_en[3:0]),
                    .dfture_tap_rd_en    (dfture_tap_rd_en[3:0]),
                    .bist_tap_wr_en      (bist_tap_wr_en),
-                   .bist_ctl_reg_out    (bist_ctl_reg_out[10:0]),
+                   .bist_ctl_reg_out    (bist_ctl_reg_out[`L1D_ADDRESS_HI:0]),
                    .mrgn_tap_wr_en      (mrgn_tap_wr_en),
                    .ldiagctl_wr_en      (ldiagctl_wr_en),
                    .misc_ctl_sel_din    (misc_ctl_sel_din[3:0]),
@@ -4704,7 +4719,7 @@ lsu_dctldp dctldp (
                    .tlb_access_sel_thrd2(tlb_access_sel_thrd2),
                    .tlb_access_sel_default(tlb_access_sel_default),
                    .mrgnctl_wr_en       (mrgnctl_wr_en),
-                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[10:4]), // Templated
+                   .lsu_dcfill_addr_e   (lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]), // Templated
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
@@ -4761,7 +4776,7 @@ lsu_dctl AUTO_TEMPLATE (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -4771,8 +4786,8 @@ lsu_dctl AUTO_TEMPLATE (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -5022,12 +5037,12 @@ lsu_dctl AUTO_TEMPLATE (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -5040,8 +5055,8 @@ lsu_dctl AUTO_TEMPLATE (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -5073,7 +5088,7 @@ lsu_dctl AUTO_TEMPLATE (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -5124,13 +5139,13 @@ lsu_dctl AUTO_TEMPLATE (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -5178,11 +5193,11 @@ lsu_dctl AUTO_TEMPLATE (
                .lsu_dp_ctl_reg2         (6'b000000),
                .lsu_dp_ctl_reg3         (6'b000000),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -5191,22 +5206,22 @@ lsu_dctl AUTO_TEMPLATE (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[1:0]),
-               .lmq2_pcx_pkt_way        (2'b00),
-               .lmq3_pcx_pkt_way        (2'b00),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq2_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq3_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -5235,7 +5250,7 @@ lsu_dctl dctl (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -5245,8 +5260,8 @@ lsu_dctl dctl (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -5496,12 +5511,12 @@ lsu_dctl dctl (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -5514,8 +5529,8 @@ lsu_dctl dctl (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -5547,7 +5562,7 @@ lsu_dctl dctl (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -5598,13 +5613,13 @@ lsu_dctl dctl (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -5652,11 +5667,11 @@ lsu_dctl dctl (
                .lsu_dp_ctl_reg2         (6'b000000),
                .lsu_dp_ctl_reg3         (6'b000000),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -5665,22 +5680,22 @@ lsu_dctl dctl (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (2'b00),
-               .lmq2_pcx_pkt_way        (2'b00),
-               .lmq3_pcx_pkt_way        (2'b00),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq2_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq3_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -5706,7 +5721,7 @@ lsu_dctl dctl (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -5716,8 +5731,8 @@ lsu_dctl dctl (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -5967,12 +5982,12 @@ lsu_dctl dctl (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -5985,8 +6000,8 @@ lsu_dctl dctl (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -6018,7 +6033,7 @@ lsu_dctl dctl (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -6069,13 +6084,13 @@ lsu_dctl dctl (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -6123,11 +6138,11 @@ lsu_dctl dctl (
                .lsu_dp_ctl_reg2         (6'b000000),
                .lsu_dp_ctl_reg3         (6'b000000),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -6136,22 +6151,22 @@ lsu_dctl dctl (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (2'b00),
-               .lmq2_pcx_pkt_way        (2'b00),
-               .lmq3_pcx_pkt_way        (2'b00),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq2_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq3_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -6177,7 +6192,7 @@ lsu_dctl dctl (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -6187,8 +6202,8 @@ lsu_dctl dctl (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -6438,12 +6453,12 @@ lsu_dctl dctl (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -6456,8 +6471,8 @@ lsu_dctl dctl (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -6489,7 +6504,7 @@ lsu_dctl dctl (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -6540,13 +6555,13 @@ lsu_dctl dctl (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -6594,11 +6609,11 @@ lsu_dctl dctl (
                .lsu_dp_ctl_reg2         (6'b000000),
                .lsu_dp_ctl_reg3         (6'b000000),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -6607,22 +6622,22 @@ lsu_dctl dctl (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[1:0]),
-               .lmq2_pcx_pkt_way        (2'b00),
-               .lmq3_pcx_pkt_way        (2'b00),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq2_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
+               .lmq3_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -6648,7 +6663,7 @@ lsu_dctl dctl (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -6658,8 +6673,8 @@ lsu_dctl dctl (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -6909,12 +6924,12 @@ lsu_dctl dctl (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -6927,8 +6942,8 @@ lsu_dctl dctl (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -6960,7 +6975,7 @@ lsu_dctl dctl (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -7011,13 +7026,13 @@ lsu_dctl dctl (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -7065,11 +7080,11 @@ lsu_dctl dctl (
                .lsu_dp_ctl_reg2         (lsu_dp_ctl_reg2[5:0]),
                .lsu_dp_ctl_reg3         (6'b000000),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -7078,22 +7093,22 @@ lsu_dctl dctl (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[1:0]),
-               .lmq2_pcx_pkt_way        (lmq2_pcx_pkt_way[1:0]),
-               .lmq3_pcx_pkt_way        (2'b00),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq2_pcx_pkt_way        (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq3_pcx_pkt_way        ({`L1D_WAY_WIDTH{1'b0}}),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -7119,7 +7134,7 @@ lsu_dctl dctl (
                .dctl_rst_l              (dctl_rst_l),
                .lsu_tlu_wsr_inst_e      (lsu_tlu_wsr_inst_e),
                .lsu_l2fill_fpld_e       (lsu_l2fill_fpld_e),
-               .dva_vld_m_bf            (dva_vld_m_bf[3:0]),
+               .dva_vld_m_bf            (dva_vld_m_bf[`L1D_WAY_COUNT-1:0]),
                .lsu_no_spc_pref         (lsu_no_spc_pref[3:0]),
                .ifu_tlu_flush_fd_w      (ifu_tlu_flush_fd_w),
                .ifu_tlu_flush_fd2_w     (ifu_tlu_flush_fd2_w),
@@ -7129,8 +7144,8 @@ lsu_dctl dctl (
                .lsu_diagnstc_data_sel   (lsu_diagnstc_data_sel[3:0]),
                .lsu_diagnstc_va_sel     (lsu_diagnstc_va_sel[3:0]),
                .lsu_err_addr_sel        (lsu_err_addr_sel[2:0]),
-               .dva_bit_wr_en_e         (dva_bit_wr_en_e[15:0]),
-               .dva_wr_adr_e            (dva_wr_adr_e[10:6]),
+               .dva_bit_wr_en_e         (dva_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_wr_adr_e            (dva_wr_adr_e[`L1D_ADDRESS_HI:6]),
                .lsu_exu_ldst_miss_w2    (lsu_exu_ldst_miss_w2),
                .lsu_exu_dfill_vld_w2    (lsu_exu_dfill_vld_w2),
                .lsu_ffu_ld_vld          (lsu_ffu_ld_vld),
@@ -7380,12 +7395,12 @@ lsu_dctl dctl (
                .lsu_memref_m            (lsu_memref_m),
                .lsu_flsh_inst_m         (lsu_flsh_inst_m),
                .lsu_ifu_asi_data_en_l   (lsu_ifu_asi_data_en_l),
-               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[10:3]),
-               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[10:4]),
+               .lsu_dcache_fill_addr_e  (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:3]),
+               .lsu_dcache_fill_addr_e_err(lsu_dcache_fill_addr_e_err[`L1D_ADDRESS_HI:4]),
                .lsu_thread_g            (lsu_thread_g[3:0]),
                .lmq_ldd_vld             (lmq_ldd_vld),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
-               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[3:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
+               .lsu_dcache_fill_way_e   (lsu_dcache_fill_way_e[`L1D_WAY_COUNT-1:0]),
                .lmq_ld_addr_b3          (lmq_ld_addr_b3),
                .lsu_outstanding_rmo_st_max(lsu_outstanding_rmo_st_max[3:0]),
                .lsu_dcfill_data_mx_sel_e(lsu_dcfill_data_mx_sel_e),
@@ -7398,8 +7413,8 @@ lsu_dctl dctl (
                .arst_l                  (arst_l),
                .lsu_diag_va_prty_invrt  (lsu_diag_va_prty_invrt),
                .dva_svld_e              (dva_svld_e),
-               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[15:0]),
-               .dva_snp_addr_e          (dva_snp_addr_e[4:0]),
+               .dva_snp_bit_wr_en_e     (dva_snp_bit_wr_en_e[`L1D_VAL_ARRAY_HI:0]),
+               .dva_snp_addr_e          (dva_snp_addr_e[`L1D_ADDRESS_HI-6:0]),
                .lsu_tte_data_cp_g       (tlb_rd_tte_data[`STLB_DATA_CP]), // Templated
                .lsu_l2fill_vld          (lsu_l2fill_vld),
                .ld_inst_vld_e           (ifu_lsu_ld_inst_e),     // Templated
@@ -7431,7 +7446,7 @@ lsu_dctl dctl (
                .lmq1_l2fill_fpld        (lmq1_l2fill_fpld),
                .lmq2_l2fill_fpld        (lmq2_l2fill_fpld),
                .lmq3_l2fill_fpld        (lmq3_l2fill_fpld),
-               .cache_way_hit_buf1      (cache_way_hit_buf1[3:0]),
+               .cache_way_hit_buf1      (cache_way_hit_buf1[`L1D_WAY_COUNT-1:0]),
                .cache_hit               (cache_hit),
                .lmq0_byp_misc_sz        (lmq0_byp_misc_sz[1:0]),
                .lmq1_byp_misc_sz        (lmq1_byp_misc_sz[1:0]),
@@ -7482,13 +7497,13 @@ lsu_dctl dctl (
                .lsu_st_wr_dcache        (lsu_st_wr_dcache),
                .tlu_lsu_asi_update_m    (tlu_lsu_asi_update_m),
                .tlu_lsu_tid_m           (tlu_lsu_tid_m[1:0]),
-               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[3:0]),
+               .lsu_rd_dtag_parity_g    (lsu_rd_dtag_parity_g[`L1D_WAY_ARRAY_MASK]),
                .dcache_rparity_err_wb   (dcache_rparity_err_wb),
                .lsu_diagnstc_wr_data_b0 (lsu_diagnstc_wr_data_b0),
                .lsu_byp_ldd_oddrd_m     (lsu_byp_ldd_oddrd_m),
                .tlu_lsu_redmode         (tlu_lsu_redmode[3:0]),
                .tlu_lsu_redmode_rst_d1  (tlu_lsu_redmode_rst_d1[3:0]),
-               .dva_vld_m               (dva_vld_m[3:0]),
+               .dva_vld_m               (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                .lsu_dfill_tid_e         (dfq_tid[1:0]),          // Templated
                .ifu_lsu_asi_ack         (ifu_lsu_asi_ack),
                .lsu_intrpt_cmplt        (lsu_intrpt_cmplt[3:0]),
@@ -7536,11 +7551,11 @@ lsu_dctl dctl (
                .lsu_dp_ctl_reg2         (lsu_dp_ctl_reg2[5:0]),
                .lsu_dp_ctl_reg3         (lsu_dp_ctl_reg3[5:0]),
                .ldd_in_dfq_out          (ldd_in_dfq_out),
-               .dcache_iob_addr_e       (dcache_iob_addr_e[7:0]),
-               .mbist_dcache_index      (mbist_dcache_index[6:0]),
+               .dcache_iob_addr_e       (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+               .mbist_dcache_index      (mbist_dcache_index[`L1D_ADDRESS_HI-4:0]),
                .mbist_dcache_word       (mbist_dcache_word),
-               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[10:0]),
-               .st_dcfill_addr          (st_dcfill_addr[10:0]),
+               .lsu_diagnstc_wr_addr_e  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
+               .st_dcfill_addr          (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
                .lsu_dfq_ld_vld          (lsu_dfq_ld_vld),
                .lsu_dfq_st_vld          (lsu_dfq_st_vld),
                .lmq0_ldd_vld            (lmq0_ldd_vld),
@@ -7549,22 +7564,22 @@ lsu_dctl dctl (
                .lmq3_ldd_vld            (lmq3_ldd_vld),
                .lsu_dfq_byp_tid         (lsu_dfq_byp_tid[1:0]),
                .dfq_byp_ff_en           (dfq_byp_ff_en),
-               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[1:0]),
+               .lsu_dcache_iob_way_e    (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                .mbist_dcache_way        (mbist_dcache_way[1:0]),
-               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[1:0]),
-               .lsu_st_way_e            (lsu_st_way_e[1:0]),
-               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[1:0]),
-               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[1:0]),
-               .lmq2_pcx_pkt_way        (lmq2_pcx_pkt_way[1:0]),
-               .lmq3_pcx_pkt_way        (lmq3_pcx_pkt_way[1:0]),
+               .lsu_diagnstc_wr_way_e   (lsu_diagnstc_wr_way_e[`L1D_WAY_MASK]),
+               .lsu_st_way_e            (lsu_st_way_e[`L1D_WAY_MASK]),
+               .lmq0_pcx_pkt_way        (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq1_pcx_pkt_way        (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq2_pcx_pkt_way        (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
+               .lmq3_pcx_pkt_way        (lmq3_pcx_pkt_way[`L1D_WAY_MASK]),
                .lmq0_ld_rq_type         (lmq0_ld_rq_type[2:0]),
                .lmq1_ld_rq_type         (lmq1_ld_rq_type[2:0]),
                .lmq2_ld_rq_type         (lmq2_ld_rq_type[2:0]),
                .lmq3_ld_rq_type         (lmq3_ld_rq_type[2:0]),
-               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[10:0]),
-               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[10:0]),
-               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[10:0]),
-               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[10:0]),
+               .lmq0_pcx_pkt_addr       (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq1_pcx_pkt_addr       (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq2_pcx_pkt_addr       (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+               .lmq3_pcx_pkt_addr       (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                .lsu_ttype_vld_m2        (lsu_ttype_vld_m2_bf1),  // Templated
                .tlu_early_flush_pipe2_w (tlu_early_flush_pipe2_w),
                .lsu_st_dcfill_size_e    (lsu_st_dcfill_size_e[1:0]),
@@ -7599,13 +7614,14 @@ lsu_dcdp dcdp (
                .rst_tri_en              (mux_drive_disable),     // Templated
                .dcache_rdata_wb         (dcache_rdata_wb[63:0]),
                .dcache_rparity_wb       (dcache_rparity_wb[7:0]),
-               .dcache_rdata_msb_w0_m   (dcache_rdata_msb_w0_m[7:0]),
-               .dcache_rdata_msb_w1_m   (dcache_rdata_msb_w1_m[7:0]),
-               .dcache_rdata_msb_w2_m   (dcache_rdata_msb_w2_m[7:0]),
-               .dcache_rdata_msb_w3_m   (dcache_rdata_msb_w3_m[7:0]),
-               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[3:0]),
+                 .dcache_rdata_msb_m (dcache_rdata_msb_m),
+                 // .dcache_rdata_msb_w0_m (dcache_rdata_msb_w0_m[7:0]),
+                 // .dcache_rdata_msb_w1_m (dcache_rdata_msb_w1_m[7:0]),
+                 // .dcache_rdata_msb_w2_m (dcache_rdata_msb_w2_m[7:0]),
+                 // .dcache_rdata_msb_w3_m (dcache_rdata_msb_w3_m[7:0]),
+               .lsu_bist_rsel_way_e     (lsu_bist_rsel_way_e[`L1D_WAY_COUNT-1:0]),
                .dcache_alt_mx_sel_e     (dcache_alt_mx_sel_e_bf), // Templated
-               .cache_way_hit_buf2      (cache_way_hit_buf2[3:0]),
+               .cache_way_hit_buf2      (cache_way_hit_buf2[`L1D_WAY_COUNT-1:0]),
                .morphed_addr_m          (morphed_addr_m[7:0]),
                .signed_ldst_byte_m      (signed_ldst_byte_m),
                .signed_ldst_hw_m        (signed_ldst_hw_m),
@@ -7654,7 +7670,7 @@ bw_r_tlb  AUTO_TEMPLATE (
                  .rst_tri_en            (mem_write_disable),
                  .rclk                  (clk),
                  .adj                   (lsu_dtlb_mrgn[7:0]),
-                 .cache_set_vld         (dva_vld_m[3:0]),
+                 .cache_set_vld         (dva_vld_m[`L1D_WAY_COUNT-1:0]),
                  .grst_l                (1'b1), // hard reset not to be used
                  .rst_soft_l            (lsu_dtlb_invalid_all_l_m),
                  .hold              	(sehold),
@@ -7705,7 +7721,7 @@ bw_r_dtlb dtlb  (
                 .tlb_pgnum              (tlb_pgnum[39:10]),
                 .tlb_pgnum_crit         (tlb_pgnum_crit[39:10]),
                 .tlb_cam_hit            (tlb_cam_hit),
-                .cache_way_hit          (cache_way_hit[3:0]),
+                .cache_way_hit          (cache_way_hit[`L1D_WAY_COUNT-1:0]),
                 .cache_hit              (cache_hit),
 
                 // Inputs
@@ -7741,11 +7757,8 @@ bw_r_dtlb dtlb  (
                 .tlb_demap              (lsu_dtlb_dmp_vld_e),    // Templated
                 .tlb_demap_auto         (tlu_dtlb_dmp_actxt_g),  // Templated
                 .tlb_demap_all          (lsu_dtlb_dmp_all_e),    // Templated
-                .cache_ptag_w0          ({dtag_rdata_w0_m[28:0], lsu_ldst_va_m[10]}), // Templated
-                .cache_ptag_w1          ({dtag_rdata_w1_m[28:0], lsu_ldst_va_m[10]}), // Templated
-                .cache_ptag_w2          ({dtag_rdata_w2_m[28:0], lsu_ldst_va_m[10]}), // Templated
-                .cache_ptag_w3          ({dtag_rdata_w3_m[28:0], lsu_ldst_va_m[10]}), // Templated
-                .cache_set_vld          (dva_vld_m[3:0]),        // Templated
+                .cache_ptag          ({lsu_ldst_va_m[10], dtag_rdata_m}), // Templated
+                .cache_set_vld          (dva_vld_m[`L1D_WAY_COUNT-1:0]),        // Templated
                 .tlb_bypass_va          (exu_lsu_ldst_va_e[12:10]), // Templated
                 .tlb_bypass             (lsu_dtlb_bypass_e),     // Templated
                 .se                     (se),
@@ -10392,8 +10405,8 @@ lsu_qdp1 AUTO_TEMPLATE (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
                      .lsu_iobrdge_rd_data     ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-                     .dtag_wdata_m            (dtag_wdata_m[29:0]),
-                     .dtag_wdata_e            (dtag_wdata_e[29:0]),
+                     .dtag_wdata_m            (dtag_wdata_m),
+                     .dtag_wdata_e            (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -10431,16 +10444,16 @@ lsu_qdp1 AUTO_TEMPLATE (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -10514,10 +10527,10 @@ lsu_qdp1 AUTO_TEMPLATE (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[1:0]),
-                 .lmq2_pcx_pkt_way      (2'b00),
-                 .lmq3_pcx_pkt_way      (2'b00),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq2_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq3_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -10542,8 +10555,8 @@ lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
 		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-		             .dtag_wdata_m		      (dtag_wdata_m[29:0]),
-                   .dtag_wdata_e          (dtag_wdata_e[29:0]),
+		             .dtag_wdata_m		      (dtag_wdata_m),
+                   .dtag_wdata_e          (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -10581,16 +10594,16 @@ lsu_qdp1  qdp1  (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -10664,10 +10677,10 @@ lsu_qdp1  qdp1  (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (2'b00),
-                 .lmq2_pcx_pkt_way      (2'b00),
-                 .lmq3_pcx_pkt_way      (2'b00),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq2_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq3_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -10689,8 +10702,8 @@ lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
                      .lsu_iobrdge_rd_data     ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-                     .dtag_wdata_m            (dtag_wdata_m[29:0]),
-                     .dtag_wdata_e            (dtag_wdata_e[29:0]),
+                     .dtag_wdata_m            (dtag_wdata_m),
+                     .dtag_wdata_e            (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -10728,16 +10741,16 @@ lsu_qdp1  qdp1  (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -10811,10 +10824,10 @@ lsu_qdp1  qdp1  (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (2'b00),
-                 .lmq2_pcx_pkt_way      (2'b00),
-                 .lmq3_pcx_pkt_way      (2'b00),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq2_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq3_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -10836,8 +10849,8 @@ lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
                      .lsu_iobrdge_rd_data     ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-                     .dtag_wdata_m            (dtag_wdata_m[29:0]),
-                     .dtag_wdata_e            (dtag_wdata_e[29:0]),
+                     .dtag_wdata_m            (dtag_wdata_m),
+                     .dtag_wdata_e            (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -10875,16 +10888,16 @@ lsu_qdp1  qdp1  (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -10958,10 +10971,10 @@ lsu_qdp1  qdp1  (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[1:0]),
-                 .lmq2_pcx_pkt_way      (2'b00),
-                 .lmq3_pcx_pkt_way      (2'b00),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq2_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
+                 .lmq3_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -10983,8 +10996,8 @@ lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
                      .lsu_iobrdge_rd_data     ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-                     .dtag_wdata_m            (dtag_wdata_m[29:0]),
-                     .dtag_wdata_e            (dtag_wdata_e[29:0]),
+                     .dtag_wdata_m            (dtag_wdata_m),
+                     .dtag_wdata_e            (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -11022,16 +11035,16 @@ lsu_qdp1  qdp1  (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -11105,10 +11118,10 @@ lsu_qdp1  qdp1  (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[1:0]),
-                 .lmq2_pcx_pkt_way      (lmq2_pcx_pkt_way[1:0]),
-                 .lmq3_pcx_pkt_way      (2'b00),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq2_pcx_pkt_way      (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq3_pcx_pkt_way      ({`L1D_WAY_WIDTH{1'b0}}),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -11130,8 +11143,8 @@ lsu_qdp1  qdp1  (
                  .so                    (short_scan0_9),
                  .si                    (short_scan0_8),
 		             .lsu_iobrdge_rd_data	  ({16'b0,lsu_iobrdge_rd_data[27:0]}),
-		             .dtag_wdata_m		      (dtag_wdata_m[29:0]),
-                   .dtag_wdata_e          (dtag_wdata_e[29:0]),
+		             .dtag_wdata_m		      (dtag_wdata_m),
+                   .dtag_wdata_e          (dtag_wdata_e),
                  /*AUTOINST*/
                  // Outputs
                  `ifndef NO_RTL_CSM
@@ -11169,16 +11182,16 @@ lsu_qdp1  qdp1  (
                  .ld_sec_hit_thrd1      (ld_sec_hit_thrd1),
                  .ld_sec_hit_thrd2      (ld_sec_hit_thrd2),
                  .ld_sec_hit_thrd3      (ld_sec_hit_thrd3),
-                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[10:0]),
-                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[10:0]),
-                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[10:0]),
-                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[10:0]),
+                 .lmq0_pcx_pkt_addr     (lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq1_pcx_pkt_addr     (lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq2_pcx_pkt_addr     (lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
+                 .lmq3_pcx_pkt_addr     (lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0]),
                  .lsu_mmu_rs3_data_g    (lsu_mmu_rs3_data_g[63:0]),
                  .lsu_tlu_rs3_data_g    (lsu_tlu_rs3_data_g[63:0]),
                  .lsu_diagnstc_wr_data_b0(lsu_diagnstc_wr_data_b0),
                  .lsu_diagnstc_wr_data_e(lsu_diagnstc_wr_data_e[63:0]),
                  .lsu_ifu_stxa_data     (lsu_ifu_stxa_data[47:0]),
-                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[11:5]),
+                 .lsu_ifu_ld_icache_index(lsu_ifu_ld_icache_index[`IC_IDX_HI:5]),
                  .lsu_ifu_ld_pcxpkt_tid (lsu_ifu_ld_pcxpkt_tid[1:0]),
                  .lsu_error_pa_m        (lsu_error_pa_m[28:0]),
                  .lsu_pref_pcx_req      (lsu_pref_pcx_req),
@@ -11252,10 +11265,10 @@ lsu_qdp1  qdp1  (
                  .tlb_pgnum             (tlb_pgnum_buf[39:13]),  // Templated
                  .lsu_bld_pcx_rq        (lsu_bld_pcx_rq),
                  .lsu_bld_rq_addr       (lsu_bld_rq_addr[1:0]),
-                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[1:0]),
-                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[1:0]),
-                 .lmq2_pcx_pkt_way      (lmq2_pcx_pkt_way[1:0]),
-                 .lmq3_pcx_pkt_way      (lmq3_pcx_pkt_way[1:0]),
+                 .lmq0_pcx_pkt_way      (lmq0_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq1_pcx_pkt_way      (lmq1_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq2_pcx_pkt_way      (lmq2_pcx_pkt_way[`L1D_WAY_MASK]),
+                 .lmq3_pcx_pkt_way      (lmq3_pcx_pkt_way[`L1D_WAY_MASK]),
                  .lsu_dfq_ld_vld        (lsu_dfq_ld_vld),
                  .lsu_ifu_asi_data_en_l (lsu_ifu_asi_data_en_l),
                  .lsu_ld0_spec_vld_kill_w2(lsu_ld0_spec_vld_kill_w2),
@@ -11301,16 +11314,18 @@ lsu_qdp2 qdp2  (
                 .lsu_cpx_pkt_vld        (),                      // Templated
                 .lsu_cpx_pkt_atm_st_cmplt(lsu_cpx_pkt_atm_st_cmplt),
                 .lsu_cpx_pkt_tid        (lsu_cpx_pkt_tid[1:0]),
-                .lsu_cpx_pkt_invwy      (lsu_cpx_pkt_invwy[1:0]),
-                .lsu_cpx_pkt_inv_pa     (lsu_cpx_pkt_inv_pa[4:0]),
+                .lsu_cpx_pkt_invwy      (lsu_cpx_pkt_invwy[`L1D_WAY_MASK]),
+                .lsu_cpx_pkt_inv_pa     (lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]),
                 .lsu_cpx_pkt_l2miss     (lsu_cpx_pkt_l2miss),
                 .lsu_dfq_byp_invwy_vld  (lsu_dfq_byp_invwy_vld),
                 .lsu_dfq_byp_type       (lsu_dfq_byp_type[5:0]),
                 .lsu_dfq_byp_flush      (lsu_dfq_byp_flush),
                 .lsu_dfq_byp_tid        (lsu_dfq_byp_tid[1:0]),
-                .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
-                .lsu_cpu_inv_data_b7to2 (lsu_cpu_inv_data_b7to2[7:2]),
-                .lsu_cpu_inv_data_b0    (lsu_cpu_inv_data_b0),
+                // .lsu_cpu_inv_data_b13to9(lsu_cpu_inv_data_b13to9[13:9]),
+                // .lsu_cpu_inv_data_b7to2 (lsu_cpu_inv_data_b7to2[7:2]),
+                // .lsu_cpu_inv_data_b0    (lsu_cpu_inv_data_b0),
+                .lsu_cpu_inv_data_val        (lsu_cpu_inv_data_val),
+                .lsu_cpu_inv_data_way        (lsu_cpu_inv_data_way),
                 .lsu_iobrdge_wr_data    (lsu_iobrdge_wr_data[43:0]),
                 .lsu_iobrdge_tap_rq_type(lsu_iobrdge_tap_rq_type[8:0]),
                 .lsu_cpx_pkt_perror_dinv(lsu_cpx_pkt_perror_dinv),
@@ -11325,10 +11340,10 @@ lsu_qdp2 qdp2  (
                 .lsu_dfq_byp_stack_adr_b54(lsu_dfq_byp_stack_adr_b54[1:0]),
                 .lsu_dfq_byp_stack_wrway(lsu_dfq_byp_stack_wrway[1:0]),
                 .lsu_dfq_byp_atm        (lsu_dfq_byp_atm),
-                .dcache_iob_addr_e      (dcache_iob_addr_e[7:0]),
-                .st_dcfill_addr         (st_dcfill_addr[10:0]),
-                .lsu_st_way_e           (lsu_st_way_e[1:0]),
-                .lsu_dcache_iob_way_e   (lsu_dcache_iob_way_e[1:0]),
+                .dcache_iob_addr_e      (dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0]),
+                .st_dcfill_addr         (st_dcfill_addr[`L1D_ADDRESS_HI:0]),
+                .lsu_st_way_e           (lsu_st_way_e[`L1D_WAY_MASK]),
+                .lsu_dcache_iob_way_e   (lsu_dcache_iob_way_e[`L1D_WAY_MASK]),
                 .lsu_st_dcfill_size_e   (lsu_st_dcfill_size_e[1:0]),
                 .lsu_cpx_pkt_ifill_type (lsu_cpx_pkt_ifill_type),
                 .lsu_cpx_pkt_atomic     (lsu_cpx_pkt_atomic),

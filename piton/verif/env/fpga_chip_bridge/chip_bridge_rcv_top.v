@@ -90,6 +90,7 @@ fpga_bridge_send_32 fpga_side(
     .rst(rst), 
     .wr_clk(fpga_clk),
     .rd_clk(intcnct_clk),
+    .credit_wr_clk(intcnct_clk),
     .bin_data_1(network_in_1),
     .bin_val_1(data_in_val_1),
     .bin_rdy_1(data_in_rdy_1),

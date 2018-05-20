@@ -269,7 +269,7 @@ input [1:0]		lsu_tlu_tlb_access_tid_m;// To mmu_ctl of tlu_mmu_ctl.v
 input [7:0]		lsu_tlu_tlb_asi_state_m;// To mmu_ctl of tlu_mmu_ctl.v
 input [47:13]	lsu_tlu_tlb_dmp_va_m;	// To mmu_dp of tlu_mmu_dp.v
 input			lsu_tlu_tlb_ld_inst_m;	// To mmu_ctl of tlu_mmu_ctl.v
-input [10:0]	lsu_tlu_tlb_ldst_va_m;	// To mmu_ctl of tlu_mmu_ctl.v
+input [`L1D_ADDRESS_HI:0]	lsu_tlu_tlb_ldst_va_m;	// To mmu_ctl of tlu_mmu_ctl.v
 input			lsu_tlu_tlb_st_inst_m;	// To mmu_ctl of tlu_mmu_ctl.v
 // input			lsu_tlu_tte_ebit_g;	// To tcl of tlu_tcl.v
 input [8:0]		lsu_tlu_ttype_m2;	// To tcl of tlu_tcl.v
@@ -1523,7 +1523,7 @@ tlu_mmu_ctl mmu_ctl (
 		     .lsu_tlu_dtlb_done	(lsu_tlu_dtlb_done),
 		     .ifu_tlu_itlb_done	(ifu_tlu_itlb_done),
 		     .lsu_tlu_tlb_asi_state_m(lsu_tlu_tlb_asi_state_m[7:0]),
-		     .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[10:0]),
+		     .lsu_tlu_tlb_ldst_va_m(lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0]),
 		     .lsu_tlu_tlb_ld_inst_m(lsu_tlu_tlb_ld_inst_m),
 		     .lsu_tlu_tlb_st_inst_m(lsu_tlu_tlb_st_inst_m),
 		     .lsu_tlu_tlb_access_tid_m(lsu_tlu_tlb_access_tid_m[1:0]),

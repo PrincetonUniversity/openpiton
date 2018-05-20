@@ -217,13 +217,13 @@ wire [`PCX_REQTYPE_WIDTH-1:0] pcxdecoder_l15_rqtype;
 wire pcxdecoder_l15_nc;
 wire [`PCX_SIZE_FIELD_WIDTH-1:0] pcxdecoder_l15_size;
 // wire pcxdecoder_l15_invalall;
-wire [`L15_NUM_THREADS_LOG-1:0] pcxdecoder_l15_threadid;
+wire [`L15_THREADID_MASK] pcxdecoder_l15_threadid;
 wire pcxdecoder_l15_prefetch;
 wire pcxdecoder_l15_blockstore;
 wire pcxdecoder_l15_blockinitstore;
 wire [1:0] pcxdecoder_l15_l1rplway;
 wire pcxdecoder_l15_val;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] pcxdecoder_l15_address;
+wire [`L15_PADDR_HI:0] pcxdecoder_l15_address;
 wire [63:0] pcxdecoder_l15_data;
 wire [63:0] pcxdecoder_l15_data_next_entry;
 wire [`TLB_CSM_WIDTH-1:0] pcxdecoder_l15_csm_data;
@@ -293,12 +293,12 @@ wire [63:0] noc2decoder_l15_data_0;
 wire [63:0] noc2decoder_l15_data_1;
 wire [63:0] noc2decoder_l15_data_2;
 wire [63:0] noc2decoder_l15_data_3;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] noc2decoder_l15_address;
+wire [`L15_PADDR_HI:0] noc2decoder_l15_address;
 wire [3:0] noc2decoder_l15_fwd_subcacheline_vector;
 wire [`PACKET_HOME_ID_WIDTH-1:0] noc2decoder_l15_src_homeid;
 
 wire [`L15_CSM_NUM_TICKETS_LOG2-1:0] noc2decoder_l15_csm_mshrid;
-wire [`L15_NUM_THREADS_LOG-1:0] noc2decoder_l15_threadid;
+wire [`L15_THREADID_MASK] noc2decoder_l15_threadid;
 wire noc2decoder_l15_hmc_fill;
 
 /*
@@ -343,7 +343,7 @@ wire          l15_cpxencoder_l2miss;
 wire [1:0]    l15_cpxencoder_error;
 wire          l15_cpxencoder_noncacheable;
 wire          l15_cpxencoder_atomic;
-wire [`L15_NUM_THREADS_LOG-1:0]    l15_cpxencoder_threadid;
+wire [`L15_THREADID_MASK]    l15_cpxencoder_threadid;
 wire          l15_cpxencoder_prefetch;
 wire          l15_cpxencoder_f4b;
 wire [63:0]   l15_cpxencoder_data_0;
@@ -352,7 +352,7 @@ wire [63:0]   l15_cpxencoder_data_2;
 wire [63:0]   l15_cpxencoder_data_3;
 wire          l15_cpxencoder_inval_icache_all_way;
 wire          l15_cpxencoder_inval_dcache_all_way;
-wire [11:4]   l15_cpxencoder_inval_address_11_4;
+wire [15:4]   l15_cpxencoder_inval_address_15_4;
 wire          l15_cpxencoder_cross_invalidate;
 wire [1:0]    l15_cpxencoder_cross_invalidate_way;
 wire          l15_cpxencoder_inval_dcache_inval;
@@ -367,9 +367,9 @@ wire l15_noc1buffer_req_val;
 wire [`NOC1_BUFFER_ACK_DATA_WIDTH-1:0] noc1encoder_l15_req_data_sent;
 
 wire [`L15_NOC1_REQTYPE_WIDTH-1:0] l15_noc1buffer_req_type;
-wire [`L15_NUM_THREADS_LOG-1:0] l15_noc1buffer_req_threadid;
+wire [`L15_THREADID_MASK] l15_noc1buffer_req_threadid;
 wire [`L15_MSHR_ID_WIDTH-1:0] l15_noc1buffer_req_mshrid;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] l15_noc1buffer_req_address;
+wire [`L15_PADDR_HI:0] l15_noc1buffer_req_address;
 wire l15_noc1buffer_req_non_cacheable;
 wire [2:0] l15_noc1buffer_req_size;
 wire l15_noc1buffer_req_prefetch;
@@ -386,9 +386,9 @@ wire [`MSG_SDID_WIDTH-1:0] noc1buffer_noc1encoder_req_csm_sdid;
 wire [`MSG_LSID_WIDTH-1:0] noc1buffer_noc1encoder_req_csm_lsid;
 
 wire [`L15_NOC1_REQTYPE_WIDTH-1:0] noc1buffer_noc1encoder_req_type;
-wire [`L15_NUM_THREADS_LOG-1:0] noc1buffer_noc1encoder_req_threadid;
+wire [`L15_THREADID_MASK] noc1buffer_noc1encoder_req_threadid;
 wire [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_noc1encoder_req_mshrid;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] noc1buffer_noc1encoder_req_address;
+wire [`L15_PADDR_HI:0] noc1buffer_noc1encoder_req_address;
 wire noc1buffer_noc1encoder_req_non_cacheable;
 wire [2:0] noc1buffer_noc1encoder_req_size;
 wire noc1buffer_noc1encoder_req_prefetch;
@@ -413,8 +413,8 @@ wire [63:0] l15_noc3encoder_req_data_0;
 wire [63:0] l15_noc3encoder_req_data_1;
 wire [`L15_MSHR_ID_WIDTH-1:0] l15_noc3encoder_req_mshrid;
 wire [1:0] l15_noc3encoder_req_sequenceid;
-wire [`L15_NUM_THREADS_LOG-1:0] l15_noc3encoder_req_threadid;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] l15_noc3encoder_req_address;
+wire [`L15_THREADID_MASK] l15_noc3encoder_req_threadid;
+wire [`L15_PADDR_HI:0] l15_noc3encoder_req_address;
 wire l15_noc3encoder_req_with_data;
 wire l15_noc3encoder_req_was_inval;
 wire [3:0] l15_noc3encoder_req_fwdack_vector;
@@ -425,8 +425,8 @@ wire [63:0] noc3buffer_noc3encoder_req_data_0;
 wire [63:0] noc3buffer_noc3encoder_req_data_1;
 wire [`L15_MSHR_ID_WIDTH-1:0] noc3buffer_noc3encoder_req_mshrid;
 wire [1:0] noc3buffer_noc3encoder_req_sequenceid;
-wire [`L15_NUM_THREADS_LOG-1:0] noc3buffer_noc3encoder_req_threadid;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] noc3buffer_noc3encoder_req_address;
+wire [`L15_THREADID_MASK] noc3buffer_noc3encoder_req_threadid;
+wire [`L15_PADDR_HI:0] noc3buffer_noc3encoder_req_address;
 wire noc3buffer_noc3encoder_req_with_data;
 wire noc3buffer_noc3encoder_req_was_inval;
 wire [3:0] noc3buffer_noc3encoder_req_fwdack_vector;
@@ -460,7 +460,7 @@ sram_l15_tag dtag(
 // DCACHE
 wire l15_dcache_val_s2;
 wire l15_dcache_rw_s2;
-wire [(`L15_CACHE_INDEX_WIDTH+`L15_CACHE_WAY_WIDTH)-1:0] l15_dcache_index_s2;
+wire [(`L15_CACHE_INDEX_WIDTH+`L15_WAY_WIDTH)-1:0] l15_dcache_index_s2;
 wire [127:0] l15_dcache_write_data_s2;
 wire [127:0] l15_dcache_write_mask_s2;
 wire [127:0] dcache_l15_dout_s3;
@@ -540,13 +540,13 @@ sram_l15_hmt hmt(
 // MSHR
 wire pipe_mshr_writereq_val_s1;
 wire [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] pipe_mshr_writereq_op_s1;
-wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] pipe_mshr_writereq_address_s1;
+wire [`L15_PADDR_HI:0] pipe_mshr_writereq_address_s1;
 wire [127:0] pipe_mshr_writereq_write_buffer_data_s1;
 wire [15:0] pipe_mshr_writereq_write_buffer_byte_mask_s1;
 wire [`L15_CONTROL_WIDTH-1:0] pipe_mshr_writereq_control_s1;
 wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_writereq_mshrid_s1;
-wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_writereq_threadid_s1;
-wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_readreq_threadid_s1;
+wire [`L15_THREADID_MASK] pipe_mshr_writereq_threadid_s1;
+wire [`L15_THREADID_MASK] pipe_mshr_readreq_threadid_s1;
 wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_readreq_mshrid_s1;
 wire [`L15_CONTROL_WIDTH-1:0] mshr_pipe_readres_control_s1;
 wire [`PACKET_HOME_ID_WIDTH-1:0] mshr_pipe_readres_homeid_s1;
@@ -556,20 +556,20 @@ wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address;
 wire [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1;
 wire [(`L15_MESI_TRANS_STATE_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_st_state_s1;
 wire pipe_mshr_write_buffer_rd_en_s2;
-wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_threadid_s2;
+wire [`L15_THREADID_MASK] pipe_mshr_threadid_s2;
 wire [127:0]mshr_pipe_write_buffer_s2;
 wire [15:0] mshr_pipe_write_buffer_byte_mask_s2;
 wire pipe_mshr_val_s3;
 wire [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] pipe_mshr_op_s3;
 wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_mshrid_s3;
-wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_threadid_s3;
+wire [`L15_THREADID_MASK] pipe_mshr_threadid_s3;
 wire [`L15_MESI_TRANS_STATE_WIDTH-1:0] pipe_mshr_write_update_state_s3;
 wire [1:0] pipe_mshr_write_update_way_s3;
 
 wire noc1buffer_mshr_homeid_write_val_s4;
 wire [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_mshrid_s4;
 wire [`PACKET_HOME_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_data_s4;
-wire [`L15_NUM_THREADS_LOG-1:0] noc1buffer_mshr_homeid_write_threadid_s4;
+wire [`L15_THREADID_MASK] noc1buffer_mshr_homeid_write_threadid_s4;
 
 l15_mshr mshr(
     .clk(clk),
@@ -611,9 +611,9 @@ l15_mshr mshr(
 
 // MESI array
 wire l15_mesi_read_val_s1;
-wire [6:0] l15_mesi_read_index_s1;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_mesi_read_index_s1;
 wire l15_mesi_write_val_s2;
-wire [6:0] l15_mesi_write_index_s2;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_mesi_write_index_s2;
 wire [7:0] l15_mesi_write_mask_s2;
 wire [7:0] l15_mesi_write_data_s2;
 wire [7:0] mesi_l15_dout_s2;
@@ -655,12 +655,12 @@ rf_l15_mesi mesi(
 
 // way map table
 wire l15_wmt_read_val_s2;
-wire [6:0] l15_wmt_read_index_s2;
+wire [`L1D_SET_IDX_MASK] l15_wmt_read_index_s2;
 wire l15_wmt_write_val_s3;
-wire [6:0] l15_wmt_write_index_s3;
-wire [11:0] l15_wmt_write_mask_s3;
-wire [11:0] l15_wmt_write_data_s3;
-wire [11:0] wmt_l15_data_s3;
+wire [`L1D_SET_IDX_MASK] l15_wmt_write_index_s3;
+wire [`L15_WMT_MASK] l15_wmt_write_mask_s3;
+wire [`L15_WMT_MASK] l15_wmt_write_data_s3;
+wire [`L15_WMT_MASK] wmt_l15_data_s3;
 rf_l15_wmt wmc(
     .clk(clk),
     .rst_n(rst_n),
@@ -675,9 +675,9 @@ rf_l15_wmt wmc(
 
 // lru array, psuedo
 wire l15_lruarray_read_val_s1;
-wire [6:0] l15_lruarray_read_index_s1;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_lruarray_read_index_s1;
 wire l15_lruarray_write_val_s3;
-wire [6:0] l15_lruarray_write_index_s3;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_lruarray_write_index_s3;
 wire [5:0] l15_lruarray_write_mask_s3;
 wire [5:0] l15_lruarray_write_data_s3;
 wire [5:0] lruarray_l15_dout_s2;
@@ -787,7 +787,7 @@ l15_pipeline pipeline(
    .l15_cpxencoder_data_3(l15_cpxencoder_data_3),
    .l15_cpxencoder_inval_icache_all_way(l15_cpxencoder_inval_icache_all_way),
    .l15_cpxencoder_inval_dcache_all_way(l15_cpxencoder_inval_dcache_all_way),
-   .l15_cpxencoder_inval_address_11_4(l15_cpxencoder_inval_address_11_4),
+   .l15_cpxencoder_inval_address_15_4(l15_cpxencoder_inval_address_15_4),
    .l15_cpxencoder_cross_invalidate(l15_cpxencoder_cross_invalidate),
    .l15_cpxencoder_cross_invalidate_way(l15_cpxencoder_cross_invalidate_way),
    .l15_cpxencoder_inval_dcache_inval(l15_cpxencoder_inval_dcache_inval),
@@ -930,7 +930,7 @@ l15_cpxencoder l15_cpxencoder(
    .l15_cpxencoder_data_3(l15_cpxencoder_data_3),
    .l15_cpxencoder_inval_icache_all_way(l15_cpxencoder_inval_icache_all_way),
    .l15_cpxencoder_inval_dcache_all_way(l15_cpxencoder_inval_dcache_all_way),
-   .l15_cpxencoder_inval_address_11_4(l15_cpxencoder_inval_address_11_4),
+   .l15_cpxencoder_inval_address_15_4(l15_cpxencoder_inval_address_15_4),
    .l15_cpxencoder_cross_invalidate(l15_cpxencoder_cross_invalidate),
    .l15_cpxencoder_cross_invalidate_way(l15_cpxencoder_cross_invalidate_way),
    .l15_cpxencoder_inval_dcache_inval(l15_cpxencoder_inval_dcache_inval),

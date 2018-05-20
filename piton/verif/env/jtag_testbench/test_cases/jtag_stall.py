@@ -30,6 +30,7 @@ import libjtag
 jtag = libjtag.JtagGen()
 jtag.CommitWait(1000)
 jtag.CommandStallCore(coreid=0, threadid=0, stall=1)
+# jtag.CommandStallCore(coreid=0, threadid=1, stall=1)
 jtag.CommitWait(100)
 jtag.CommandRead(register='interruptbit', expected='11111111')
 jtag.CommandClearInterrupt()

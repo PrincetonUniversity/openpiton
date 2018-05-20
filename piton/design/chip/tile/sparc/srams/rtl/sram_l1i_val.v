@@ -1,7 +1,7 @@
 // Modified by Princeton University on June 9th, 2015
 // ========== Copyright Header Begin ==========================================
 //
-// OpenSPARC T1 Processor File: bw_r_rf16x32.v
+// OpenSPARC T1 Processor File: sram_l1i_val.v
 // Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
 // DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
 //
@@ -21,7 +21,7 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////////////////////
 /*
- //  Module Name:  bw_r_rf16x32
+ //  Module Name:  sram_l1i_val
  //  Description:
  //   1r1w array for icache and dcache valid bits.
  //   Modified to conform to naming convention
@@ -62,6 +62,7 @@
 // time scale definition
 
 //`include "iop.h"
+`include "ifu.tmp.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Local header file includes / local defines
@@ -90,14 +91,14 @@ input        sehold;          // scan enable hold
 input        rst_tri_en;
 
 // 11:5(I);10:4(D)
-input [6:0]     rd_adr1 ;     // rd address-1
-input [6:0]     rd_adr2 ;     // rd address-2
+input [`IC_SET_IDX_HI:0]     rd_adr1 ;     // rd address-1
+input [`IC_SET_IDX_HI:0]     rd_adr2 ;     // rd address-2
 
 input        rd_adr1_sel ;  // sel rd addr 1
 input        rd_en ;            // rd enable
 
 // 11:7(I);10:6(D)
-input [6:2]     wr_adr ;  // wr address
+input [`IC_SET_IDX_HI:2]     wr_adr ;  // wr address
 
 input        wr_en ;        // wr enable
 input [15:0] bit_wen ;  // write enable with bit select
@@ -121,28 +122,28 @@ input  [`BIST_ID_WIDTH-1:0] sramid;
 reg [15:0] debug_data_bmask;
 reg [15:0] debug_data_in;
 reg [15:0] debug_data_out;
-reg [6:0] debug_address;
+reg [`IC_SET_IDX_HI:0] debug_address;
 reg debug_rw;
 reg debug_en;
 
 // trin's reimplementation
-reg [15:0] mem [0:31];
+reg [15:0] mem [0:`IC_VAL_SET_COUNT-1];
 wire rst_all = rst_tri_en | ~reset_l;
 
 reg write_en_x;
 reg write_bit_x;
 reg [15:0] write_mask_x;
-reg [6:2] write_address_x;
+reg [`IC_SET_IDX_HI:2] write_address_x;
 reg read_en_x;
-reg [6:0] read_address_x;
+reg [`IC_SET_IDX_HI:0] read_address_x;
 reg debug_en_x;
 
 reg write_en_y;
 reg write_bit_y;
 reg [15:0] write_mask_y;
-reg [6:2] write_address_y;
+reg [`IC_SET_IDX_HI:2] write_address_y;
 reg read_en_y;
-reg [6:0] read_address_y;
+reg [`IC_SET_IDX_HI:0] read_address_y;
 reg debug_en_y;
 
 always @ *
@@ -162,11 +163,11 @@ begin
       // write_bit_x = debug_data_in;
       write_mask_x = debug_data_in;
       write_address_x = 0;
-      write_address_x[6:2] = debug_address[4:0];
+      write_address_x[`IC_SET_IDX_HI:2] = debug_address[`IC_SET_IDX_HI-2:0];
 
       read_en_x = debug_rw == 1'b0;
       read_address_x = 0;
-      read_address_x[6:2] = debug_address[4:0];
+      read_address_x[`IC_SET_IDX_HI:2] = debug_address[`IC_SET_IDX_HI-2:0];
    end
    debug_en_x = debug_en;
 
@@ -184,10 +185,11 @@ begin
 end
 
 // WRITE
+integer memidx;
 reg [15:0] write_data_y;
 always @ *
 begin
-   write_data_y = (mem[write_address_y[6:2]] & ~write_mask_y) | ({16{write_bit_y}} & write_mask_y);
+   write_data_y = (mem[write_address_y[`IC_SET_IDX_HI:2]] & ~write_mask_y) | ({16{write_bit_y}} & write_mask_y);
    if (debug_en_y)
       write_data_y = write_mask_y;
 end
@@ -195,44 +197,54 @@ always @ (posedge clk)
 begin
    if (rst_all)
    begin
-      mem[0] <= 16'b0;
-      mem[1] <= 16'b0;
-      mem[2] <= 16'b0;
-      mem[3] <= 16'b0;
-      mem[4] <= 16'b0;
-      mem[5] <= 16'b0;
-      mem[6] <= 16'b0;
-      mem[7] <= 16'b0;
-      mem[8] <= 16'b0;
-      mem[9] <= 16'b0;
-      mem[10] <= 16'b0;
-      mem[11] <= 16'b0;
-      mem[12] <= 16'b0;
-      mem[13] <= 16'b0;
-      mem[14] <= 16'b0;
-      mem[15] <= 16'b0;
-      mem[16] <= 16'b0;
-      mem[17] <= 16'b0;
-      mem[18] <= 16'b0;
-      mem[19] <= 16'b0;
-      mem[20] <= 16'b0;
-      mem[21] <= 16'b0;
-      mem[22] <= 16'b0;
-      mem[23] <= 16'b0;
-      mem[24] <= 16'b0;
-      mem[25] <= 16'b0;
-      mem[26] <= 16'b0;
-      mem[27] <= 16'b0;
-      mem[28] <= 16'b0;
-      mem[29] <= 16'b0;
-      mem[30] <= 16'b0;
-      mem[31] <= 16'b0;
+      // mem[0] <= 16'b0;
+      // mem[1] <= 16'b0;
+      // mem[2] <= 16'b0;
+      // mem[3] <= 16'b0;
+      // mem[4] <= 16'b0;
+      // mem[5] <= 16'b0;
+      // mem[6] <= 16'b0;
+      // mem[7] <= 16'b0;
+      // mem[8] <= 16'b0;
+      // mem[9] <= 16'b0;
+      // mem[10] <= 16'b0;
+      // mem[11] <= 16'b0;
+      // mem[12] <= 16'b0;
+      // mem[13] <= 16'b0;
+      // mem[14] <= 16'b0;
+      // mem[15] <= 16'b0;
+      // mem[16] <= 16'b0;
+      // mem[17] <= 16'b0;
+      // mem[18] <= 16'b0;
+      // mem[19] <= 16'b0;
+      // mem[20] <= 16'b0;
+      // mem[21] <= 16'b0;
+      // mem[22] <= 16'b0;
+      // mem[23] <= 16'b0;
+      // mem[24] <= 16'b0;
+      // mem[25] <= 16'b0;
+      // mem[26] <= 16'b0;
+      // mem[27] <= 16'b0;
+      // mem[28] <= 16'b0;
+      // mem[29] <= 16'b0;
+      // mem[30] <= 16'b0;
+      // mem[31] <= 16'b0;
+      
+      // genvar memidx;
+      // generate
+      // for (memidx = 0; memidx < `IC_VAL_SET_COUNT; memidx = memidx + 1) begin
+      //   mem[memidx] <= 16b'0;
+      // end
+      
+      for (memidx = 0; memidx < `IC_VAL_SET_COUNT; memidx = memidx + 1) begin
+        mem[memidx] <= 16'b0;
+      end
    end
    else
    begin
       if (write_en_y)
       begin
-         mem[write_address_y[6:2]] <= write_data_y;
+         mem[write_address_y[`IC_SET_IDX_HI:2]] <= write_data_y;
       end
    end
 end
@@ -244,13 +256,13 @@ reg [15:0] read3;
 reg [15:0] write_to_0;
 always @ *
 begin
-   read1 = mem[read_address_y[6:2]];
+   read1 = mem[read_address_y[`IC_SET_IDX_HI:2]];
 
    // write/read conflict
    // basically, final_read = sram_read & write
    read2 = read1;
    write_to_0 = ~{16{write_bit_y}} & write_mask_y;
-   if ((read_address_y[6:2] == write_address_y[6:2]) && write_en_y)
+   if ((read_address_y[`IC_SET_IDX_HI:2] == write_address_y[`IC_SET_IDX_HI:2]) && write_en_y)
       read2 = read1 & ~write_to_0;
 
    // write_to_0 = 0;
@@ -430,13 +442,13 @@ begin
    // TODO
    debug_en = bist_en;
    debug_rw = bist_rdwen;
-   debug_address[6:0] = bist_address_reg[6:0];
+   debug_address[`IC_SET_IDX_HI:0] = bist_address_reg[`IC_SET_IDX_HI:0];
    debug_data_in[15:0] = bist_data_reg[15:0];
    debug_data_bmask = ~(16'b0);
 end
 
 
-endmodule // bw_r_rf16x32
+endmodule // sram_l1i_val
 
 
 

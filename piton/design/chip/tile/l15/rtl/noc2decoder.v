@@ -59,7 +59,7 @@ module noc2decoder(
 
     output reg noc2decoder_l15_val,
     output reg [`L15_MSHR_ID_WIDTH-1:0] noc2decoder_l15_mshrid,
-    output reg [`L15_NUM_THREADS_LOG-1:0] noc2decoder_l15_threadid,
+    output reg [`L15_THREADID_MASK] noc2decoder_l15_threadid,
     output reg noc2decoder_l15_hmc_fill,
     output reg noc2decoder_l15_l2miss,
     output reg noc2decoder_l15_icache_type,
@@ -98,8 +98,8 @@ begin
     noc2_mshrid = noc2_data[`MSG_MSHRID];
     noc2decoder_l15_mshrid = noc2_mshrid[`L15_MSHR_ID_WIDTH-1:0];
     noc2decoder_l15_csm_mshrid = noc2_mshrid[`L15_CSM_NUM_TICKETS_LOG2-1:0];
-    // the threadid is encoded in the mshrid sent to L2, is the next L15_NUM_THREADS_LOG bits after the first L15_MSHR_ID_WIDTH bits
-    noc2decoder_l15_threadid = noc2_mshrid[`L15_MSHR_ID_WIDTH+`L15_NUM_THREADS_LOG -1 -: `L15_NUM_THREADS_LOG];
+    // the threadid is encoded in the mshrid sent to L2, is the next L15_THREADID_WIDTH bits after the first L15_MSHR_ID_WIDTH bits
+    noc2decoder_l15_threadid = noc2_mshrid[`L15_MSHR_ID_WIDTH+`L15_THREADID_WIDTH -1 -: `L15_THREADID_WIDTH];
     noc2decoder_l15_hmc_fill = noc2_mshrid[`MSG_MSHRID_WIDTH-1];
 
     noc2decoder_l15_l2miss = noc2_data[`MSG_L2_MISS];

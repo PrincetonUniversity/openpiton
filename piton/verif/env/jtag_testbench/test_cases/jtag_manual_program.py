@@ -72,6 +72,9 @@ import re
 jtag = libjtag.JtagGen()
 jtag.CommitWait(2000)
 # jtag.CommandStallCore(coreid=0, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=1, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=2, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=3, threadid=0, stall=1)
 jtag.CommandWriteRtap(coreid=0, threadid=0, rtapid=jtag.defines['JTAG_RTAP_ID_ICACHE_EN_REG'],
                         data='11111') # enable icache on all 4 threads, b4 is the "lock" bit
 

@@ -31,16 +31,19 @@ buildargs=''
 runargs=''
 # morerunargs='-sim_run_args=+pll_en=1'
 buildargs='-sys=jtag_testbench -x_tiles=1 -y_tiles=1'
+# buildargs='-sys=jtag_testbench -x_tiles=2 -y_tiles=1'
+# buildargs='-sys=jtag_testbench -x_tiles=2 -y_tiles=2'
 # buildargs='-sys=jtag_testbench -x_tiles=1 -y_tiles=1 -sim_pll'
-runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_stall'
-# runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_shadowscan'
+buildargs+=' -ibm'
+# runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_stall'
+runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_shadowscan'
 # runargs='-sys=jtag_testbench jtag_infinite_loop.s -sim_run_args=+test_case_base=jtag_sram_write'
 # runargs='-sys=jtag_testbench test.s -sim_run_args=+test_case_base=jtag_thread_start_manual -sim_run_args=+jtag_iob_send_wakeup=0'
 # runargs='-sys=jtag_testbench jtag_infinite_loop1.s -sim_run_args=+test_case_base=jtag_pc_write'
 # runargs='-sys=jtag_testbench test.s -sim_run_args=+test_case_base=jtag_reset_vector -sim_run_args=+jtag_iob_send_wakeup=0'
 # runargs='-sys=jtag_testbench test.s -sim_run_args=+test_case_base=jtag_manual_program -sim_run_args=+jtag_iob_send_wakeup=0 -sim_run_args=+jtag_timeout=2000000000'
 # runargs='-sys=jtag_testbench -sim_run_args=+test_case_base=jtag_oram_read -sim_run_args=+jtag_iob_send_wakeup=0 -oram'
-runargs='-sys=jtag_testbench -sim_run_args=+test_case_base=jtag_rw_configregs -sim_run_args=+jtag_iob_send_wakeup=0'
+# runargs='-sys=jtag_testbench -sim_run_args=+test_case_base=jtag_rw_configregs -sim_run_args=+jtag_iob_send_wakeup=0'
 # runargs='-sys=jtag_testbench -sim_run_args=+test_case_base=jtag_sram_write_frf -sim_run_args=+jtag_iob_send_wakeup=0'
 # runargs='-sys=jtag_testbench jtag_infinite_loop.s -sim_run_args=+test_case_base=jtag_read_irf'
 # runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_test_clk_gating'
@@ -49,22 +52,28 @@ runargs='-sys=jtag_testbench -sim_run_args=+test_case_base=jtag_rw_configregs -s
 # runargs='-sys=jtag_testbench test_fail.s -sim_run_args=+test_case_base=jtag_pc_breakpoint'
 # runargs='-sys=jtag_testbench test.s -sim_run_args=+test_case_base=jtag_pc_breakpoint_resume'
 
-# jtag_oram_read
-#CWD=`pwd`
-#cd /home/trin/jtag_test
-#python jtag_oram_read.py
-#cd $CWD
+# jtag_test_clk_gating
+if [ "$1" = 'compile' ] ; then
+   CWD=`pwd`
+   cd $PITON_ROOT/piton/verif/env/jtag_testbench/test_cases
+   python jtag_test_clk_gating.py
+   cd $CWD
+   shift
+fi
 
 if [ "$1" = 'build' ] ; then
-    sims -vcs_build $buildargs -vcs_build_args=-debug_all > build_out
-		echo BUILD DONE
+   sims -vcs_build $buildargs -vcs_build_args=-debug_all > buildout
+	echo BUILD DONE
+   shift
 fi
 
 if [ "$1" = 'gui' ] ; then
-    sims -vcs_run $buildargs $morerunargs $runargs -rtl_timeout=500000 -gui
-else
-    sims -vcs_run $buildargs $morerunargs $runargs -rtl_timeout=500000 > out;
-    echo DONE
+   sims -vcs_run $buildargs $morerunargs $runargs -rtl_timeout=500000 -gui
+fi
+
+if [ "$1" = 'run' ] ; then
+   sims -vcs_run $buildargs $morerunargs $runargs -rtl_timeout=500000 > out;
+   echo DONE
 fi
 
 # sims -vcs_run $runargs -rtl_timeout=500000 

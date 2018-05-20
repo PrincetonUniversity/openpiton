@@ -1,0 +1,4 @@
+// Flist for memctrl_test testbench environment
+
+memctrl_test_top.v
+ddr3_model.v

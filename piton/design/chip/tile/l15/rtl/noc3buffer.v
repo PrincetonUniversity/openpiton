@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //
 //==================================================================================================
-
 `include "l15.tmp.h"
 `include "define.vh"
 
@@ -54,7 +53,7 @@ module noc3buffer(
     input wire [63:0] l15_noc3encoder_req_data_0,
     input wire [63:0] l15_noc3encoder_req_data_1,
     input wire [`L15_MSHR_ID_WIDTH-1:0] l15_noc3encoder_req_mshrid,
-    input wire [`L15_NUM_THREADS_LOG-1:0] l15_noc3encoder_req_threadid,
+    input wire [`L15_THREADID_MASK] l15_noc3encoder_req_threadid,
     input wire [1:0] l15_noc3encoder_req_sequenceid,
     input wire [39:0] l15_noc3encoder_req_address,
     input wire l15_noc3encoder_req_with_data,
@@ -68,7 +67,7 @@ module noc3buffer(
     output reg [63:0] noc3buffer_noc3encoder_req_data_1,
     output reg [`L15_MSHR_ID_WIDTH-1:0] noc3buffer_noc3encoder_req_mshrid,
     output reg [1:0] noc3buffer_noc3encoder_req_sequenceid,
-    output reg [`L15_NUM_THREADS_LOG-1:0] noc3buffer_noc3encoder_req_threadid,
+    output reg [`L15_THREADID_MASK] noc3buffer_noc3encoder_req_threadid,
     output reg [39:0] noc3buffer_noc3encoder_req_address,
     output reg noc3buffer_noc3encoder_req_with_data,
     output reg noc3buffer_noc3encoder_req_was_inval,

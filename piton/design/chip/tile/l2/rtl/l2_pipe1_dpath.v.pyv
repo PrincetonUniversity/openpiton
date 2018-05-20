@@ -1796,7 +1796,11 @@ begin
         else    
         `endif
         begin
+`ifdef PITON_ASIC_RTL
+            msg_send_dst_chipid_S4 = src_chipid_S4_f;
+`else      
             msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
+`endif      
             msg_send_dst_x_S4 = {{(`MSG_SRC_X_WIDTH - `L2_OWNER_X_WIDTH){1'b0}}, 
                                  l2_way_state_owner_S4_f[`L2_OWNER_X]}; 
             msg_send_dst_y_S4 = {{(`MSG_SRC_Y_WIDTH - `L2_OWNER_Y_WIDTH){1'b0}},

@@ -25,24 +25,50 @@
 /*
 //
 //  Module Name: ifu.h
-//  Description:  
+//  Description:	
 //  All ifu defines
 */
 
 //--------------------------------------------
 // Icache Values in IFU::ICD/ICV/ICT/FDP/IFQDP
 //--------------------------------------------
+
+<%
+   import math
+   import pyhplib
+   from pyhplib import *
+
+   linesize = 32
+   # 512
+   numentries = CONFIG_L1I_SIZE / linesize
+   # 4
+   way = CONFIG_L1I_ASSOCIATIVITY
+   # 128
+   numsets = numentries / way
+   # 2
+   waywidth = math.log(CONFIG_L1I_ASSOCIATIVITY, 2)
+   # 16384
+   print("`define IC_SZ %d" % CONFIG_L1I_SIZE)
+   # 6
+   print("`define IC_SET_IDX_HI %d" % (math.log(numentries, 2) - 1 - waywidth))
+   # 4
+   print("`define IC_NUM_WAY %d" % way)
+   print("`define IC_WAY_MASK %d:0" % (waywidth-1))
+   # 2
+   print("`define IC_WAY_IDX_WIDTH %d" % waywidth)
+%>
+
+`define IC_WAY_ARRAY_MASK `IC_NUM_WAY-1:0
+// `IC_WAY_MASK
+
 // Set Values
-`define IC_SZ      16384
-// IC_IDX_HI = log(icache_size/4ways) - 1
-`define IC_IDX_HI  11
-
-`define IC_SET_IDX_HI  6
-
 // !!IMPORTANT!! a change to IC_LINE_SZ will mean a change to the code as
 //   well.  Unfortunately this has not been properly parametrized.
 //   Changing the IC_LINE_SZ param alone is *not* enough.
-`define IC_LINE_SZ  32
+// `define IC_LINE_SZ  32
+<%
+   print("`define IC_LINE_SZ %d" % linesize)
+%>
 
 // !!IMPORTANT!! a change to IC_TAG_HI will mean a change to the code as
 //   well.  Changing the IC_TAG_HI param alone is *not* enough to
@@ -50,29 +76,94 @@
 // highest bit of PA
 `define IC_TAG_HI    39
 
-
 // Derived Values
+// IC_IDX_HI = log(icache_size/4ways) - 1
+// 11
+`define IC_IDX_HI  (`IC_SET_IDX_HI + 5)
+
 // 4095
-`define IC_ARR_HI (`IC_SZ/4 - 1)
+// `define IC_ARR_HI (`IC_SZ/`IC_NUM_WAY - 1)
 
 // number of entries - 1 = 511
 `define IC_ENTRY_HI  ((`IC_SZ/`IC_LINE_SZ) - 1)
+// 128 - 1
+`define IC_SET_COUNT ((`IC_SZ/`IC_LINE_SZ/`IC_NUM_WAY))
+// 32
+`define IC_VAL_SET_COUNT ((`IC_SZ/`IC_LINE_SZ/`IC_NUM_WAY/4))
 
 // 12
 `define IC_TAG_LO    (`IC_IDX_HI + 1)
 
 // 28
 `define IC_TAG_SZ    (`IC_TAG_HI - `IC_IDX_HI)
+// `define IC_TAG_MASK_ALL ((`IC_TLB_TAG_SZ * `IC_NUM_WAY)-1):0
+
+
+// 4
+`define IC_TAG_UNUSED_SZ (`IC_PHYS_TAG_SZ - `IC_TAG_SZ - 1)
+// `define IC_PARITY_PADDING (32 - `IC_TAG_SZ - 1)
+`define IC_ASITAG_PADDING (29 - `IC_TAG_SZ)
+<%
+   if numsets * 32 <= 8192 / CONFIG_L1I_ASSOCIATIVITY:
+      print("`define NO_IC_ASITAG_PADDING")
+%>
 
 // 7
 `define IC_IDX_SZ  (`IC_IDX_HI - 4)
 
 // tags for all 4 ways + parity
 // 116
-`define IC_TAG_ALL   ((`IC_TAG_SZ * 4) + 4)
+// `define IC_TAG_ALL   ((`IC_TAG_SZ * `IC_NUM_WAY) + 4)
 
 // 115
-`define IC_TAG_ALL_HI   ((`IC_TAG_SZ * 4) + 3)
+// `define IC_TAG_ALL_HI   ((`IC_TAG_SZ * `IC_NUM_WAY) + 3)
+
+// physical implementation defines
+`define IC_PHYS_TAG_SZ 33
+`define IC_PHYS_TAG_HI 32
+`define IC_PHYS_TAG_ALL_HI   ((`IC_TAG_SZ * `IC_NUM_WAY)-1)
+`define IC_PHYS_TAG_MASK_ALL `IC_PHYS_TAG_SZ*`IC_NUM_WAY-1 : 0
+`define IC_PHYS_TAG_WAY0_MASK `IC_PHYS_TAG_SZ*1-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY1_MASK `IC_PHYS_TAG_SZ*2-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY2_MASK `IC_PHYS_TAG_SZ*3-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY3_MASK `IC_PHYS_TAG_SZ*4-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY4_MASK `IC_PHYS_TAG_SZ*5-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY5_MASK `IC_PHYS_TAG_SZ*6-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY6_MASK `IC_PHYS_TAG_SZ*7-1 -: `IC_PHYS_TAG_SZ
+`define IC_PHYS_TAG_WAY7_MASK `IC_PHYS_TAG_SZ*8-1 -: `IC_PHYS_TAG_SZ
+
+
+// TLB
+// `define IC_TLB_TAG_SZ 30
+// tag + 1 bit parity
+`define IC_TLB_TAG_SZ (`IC_TAG_SZ+1)
+`define IC_TLB_TAG_HI (`IC_TLB_TAG_SZ-1)
+`define IC_TLB_TAG_MASK_ALL ((`IC_TLB_TAG_SZ * `IC_NUM_WAY)-1):0
+`define IC_TLB_TAG_MASK `IC_TLB_TAG_SZ-1:0
+
+`define IC_TLB_PARITY_PADDING (32-`IC_TLB_TAG_SZ)
+<%
+   if numsets * 32 <= 2048 / CONFIG_L1I_ASSOCIATIVITY:
+      print("`define NO_IC_TLB_PARITY_PADDING")
+%>
+
+`define IC_TLB_TAG_WAY0_MASK `IC_TLB_TAG_SZ*1-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY1_MASK `IC_TLB_TAG_SZ*2-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY2_MASK `IC_TLB_TAG_SZ*3-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY3_MASK `IC_TLB_TAG_SZ*4-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY4_MASK `IC_TLB_TAG_SZ*5-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY5_MASK `IC_TLB_TAG_SZ*6-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY6_MASK `IC_TLB_TAG_SZ*7-1 -: `IC_TLB_TAG_SZ
+`define IC_TLB_TAG_WAY7_MASK `IC_TLB_TAG_SZ*8-1 -: `IC_TLB_TAG_SZ
+
+`define IC_TLB_TAG_NPARITY_WAY0_MASK `IC_TLB_TAG_SZ*1-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY1_MASK `IC_TLB_TAG_SZ*2-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY2_MASK `IC_TLB_TAG_SZ*3-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY3_MASK `IC_TLB_TAG_SZ*4-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY4_MASK `IC_TLB_TAG_SZ*5-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY5_MASK `IC_TLB_TAG_SZ*6-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY6_MASK `IC_TLB_TAG_SZ*7-2 -: `IC_TAG_SZ
+`define IC_TLB_TAG_NPARITY_WAY7_MASK `IC_TLB_TAG_SZ*8-2 -: `IC_TAG_SZ
 
 
 //----------------------------------------------------------------------

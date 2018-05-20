@@ -54,7 +54,7 @@ module l15_cpxencoder(
     input wire [1:0]    l15_cpxencoder_error,
     input wire          l15_cpxencoder_noncacheable,
     input wire          l15_cpxencoder_atomic,
-    input wire [`L15_NUM_THREADS_LOG-1:0]    l15_cpxencoder_threadid,
+    input wire [`L15_THREADID_MASK]    l15_cpxencoder_threadid,
     input wire          l15_cpxencoder_prefetch,
     input wire          l15_cpxencoder_f4b,
     input wire [63:0]  l15_cpxencoder_data_0,
@@ -63,7 +63,7 @@ module l15_cpxencoder(
     input wire [63:0]  l15_cpxencoder_data_3,
     input wire          l15_cpxencoder_inval_icache_all_way,
     input wire          l15_cpxencoder_inval_dcache_all_way,
-    input wire [11:4]   l15_cpxencoder_inval_address_11_4,
+    input wire [15:4]   l15_cpxencoder_inval_address_15_4,
     input wire          l15_cpxencoder_cross_invalidate,
     input wire [1:0]    l15_cpxencoder_cross_invalidate_way,
     input wire          l15_cpxencoder_inval_dcache_inval,
@@ -115,7 +115,7 @@ begin
     out[143:140] = l15_cpxencoder_returntype;
     out[139:0] = 1'b0;
     next_state = `STATE_NORMAL;
-    inval_index_5_4 = l15_cpxencoder_inval_address_11_4[5:4];
+    inval_index_5_4 = l15_cpxencoder_inval_address_15_4[5:4];
     if (l15_cpxencoder_val)
     begin
     case(l15_cpxencoder_returntype)
@@ -178,40 +178,17 @@ begin
                 out[125] = l15_cpxencoder_blockinitstore;
                 out[124:123] = {l15_cpxencoder_inval_icache_all_way,
                                 l15_cpxencoder_inval_dcache_all_way};
-                out[122:121] = l15_cpxencoder_inval_address_11_4[5:4];
+                out[122:121] = l15_cpxencoder_inval_address_15_4[5:4];
                 out[120:118] = cpuid[2:0];
-                out[117:112] = l15_cpxencoder_inval_address_11_4[11:6];
+                out[117:112] = l15_cpxencoder_inval_address_15_4[11:6];
 
-                // cpu1,2,3,4,5,6,7 invalidation vectors are all tied to 1'b0
-                    out[31:4] = 28'b0;
-                    out[55:35] = 21'b0;
-                    out[87:60] = 28'b0;
-                    out[111:91] = 21'b0;
-                // fill inval vector for cpu0
-                if ((l15_cpxencoder_inval_dcache_inval || l15_cpxencoder_inval_icache_inval) == 1'b0)
+                // out[`CPX_INV_PA_15_12] = l15_cpxencoder_inval_address_15_4[15:12];
+                if (l15_cpxencoder_inval_dcache_inval == 1)
                 begin
-                    out[3:0] = 4'b0;
-                    out[34:32] = 3'b0;
-                    out[59:56] = 4'b0;
-                    out[90:88] = 3'b0;
-                end
-                else if (l15_cpxencoder_inval_dcache_inval == 1)
-                begin
-                    if (inval_index_5_4 == 2'b00)
-                        out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                    else if (inval_index_5_4 == 2'b01)
-                        out[34:32] = {l15_cpxencoder_inval_way[1:0], 1'b1};
-                    else if (inval_index_5_4 == 2'b10)
-                        out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                    else if (inval_index_5_4 == 2'b11)
-                        out[90:88] = {l15_cpxencoder_inval_way[1:0], 1'b1};
+                    out[`CPX_INV_WAY] = l15_cpxencoder_inval_way;
+                    out[`CPX_INV_DCACHE_VAL] = 1'b1;
                 end
                 // trin: icache inval not used; monitored
-                // else if (l15_cpxencoder_inval_icache_inval == 1)
-                // begin
-                //     out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                //     out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                // end
         end
 
         `ST_ACK:
@@ -224,40 +201,16 @@ begin
                 out[125] = l15_cpxencoder_blockinitstore;
                 out[124:123] = {l15_cpxencoder_inval_icache_all_way,
                                 l15_cpxencoder_inval_dcache_all_way};
-                out[122:121] = l15_cpxencoder_inval_address_11_4[5:4];
+                out[122:121] = l15_cpxencoder_inval_address_15_4[5:4];
                 out[120:118] = cpuid[2:0];
-                out[117:112] = l15_cpxencoder_inval_address_11_4[11:6];
+                out[117:112] = l15_cpxencoder_inval_address_15_4[11:6];
 
-                // cpu1,2,3,4,5,6,7 invalidation vectors are all tied to 1'b0
-                    out[31:4] = 28'b0;
-                    out[55:35] = 21'b0;
-                    out[87:60] = 28'b0;
-                    out[111:91] = 21'b0;
-                // fill inval vector for cpu0
-                if ((l15_cpxencoder_inval_dcache_inval || l15_cpxencoder_inval_icache_inval) == 1'b0)
+                // out[`CPX_INV_PA_15_12] = l15_cpxencoder_inval_address_15_4[15:12];
+                if (l15_cpxencoder_inval_dcache_inval == 1)
                 begin
-                    out[3:0] = 4'b0;
-                    out[34:32] = 3'b0;
-                    out[59:56] = 4'b0;
-                    out[90:88] = 3'b0;
+                    out[`CPX_INV_WAY] = l15_cpxencoder_inval_way;
+                    out[`CPX_INV_DCACHE_VAL] = 1'b1;
                 end
-                else if (l15_cpxencoder_inval_dcache_inval == 1)
-                begin
-                    if (inval_index_5_4 == 2'b00)
-                        out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                    else if (inval_index_5_4 == 2'b01)
-                        out[34:32] = {l15_cpxencoder_inval_way[1:0], 1'b1};
-                    else if (inval_index_5_4 == 2'b10)
-                        out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                    else if (inval_index_5_4 == 2'b11)
-                        out[90:88] = {l15_cpxencoder_inval_way[1:0], 1'b1};
-                end
-                // trin: icache inval not used; monitored
-                // else if (l15_cpxencoder_inval_icache_inval == 1)
-                // begin
-                //     out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                //     out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                // end
         end
 
         `INT_RET:
@@ -303,41 +256,10 @@ begin
                         out[125] = l15_cpxencoder_blockinitstore;
                         out[124:123] = {l15_cpxencoder_inval_icache_all_way,
                                         l15_cpxencoder_inval_dcache_all_way};
-                        out[122:121] = l15_cpxencoder_inval_address_11_4[5:4];
+                        out[122:121] = l15_cpxencoder_inval_address_15_4[5:4];
                         out[120:118] = cpuid[2:0];
-                        out[117:112] = l15_cpxencoder_inval_address_11_4[11:6];
-
+                        out[117:112] = l15_cpxencoder_inval_address_15_4[11:6];
                         // trin: storeacks for CAS do not invalidate anything; monitored
-                        /*
-                        // cpu1,2,3,4,5,6,7 invalidation vectors are all tied to 1'b0
-                            out[31:4] = 28'b0;
-                            out[55:35] = 21'b0;
-                            out[87:60] = 28'b0;
-                            out[111:91] = 21'b0;
-                        if ((l15_cpxencoder_inval_dcache_inval || l15_cpxencoder_inval_icache_inval) == 1'b0)
-                        begin
-                            out[3:0] = 4'b0;
-                            out[34:32] = 3'b0;
-                            out[59:56] = 4'b0;
-                            out[90:88] = 3'b0;
-                        end
-                        else if (l15_cpxencoder_inval_dcache_inval == 1)
-                        begin
-                            if (inval_index_5_4 == 2'b00)
-                                out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                            else if (inval_index_5_4 == 2'b01)
-                                out[34:32] = {l15_cpxencoder_inval_way[1:0], 1'b1};
-                            else if (inval_index_5_4 == 2'b10)
-                                out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b01};
-                            else if (inval_index_5_4 == 2'b11)
-                                out[90:88] = {l15_cpxencoder_inval_way[1:0], 1'b1};
-                        end
-                        else if (l15_cpxencoder_inval_icache_inval == 1)
-                        begin
-                            out[3:0] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                            out[59:56] = {l15_cpxencoder_inval_way[1:0], 2'b10};
-                        end
-                        */
                     next_state = `STATE_NORMAL;
                 end
             endcase

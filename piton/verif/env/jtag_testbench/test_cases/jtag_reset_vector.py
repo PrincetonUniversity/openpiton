@@ -38,6 +38,10 @@ jtag = libjtag.JtagGen()
 jtag.CommitWait(2000)
 # jtag.CommandRead(register='interruptbit', expected='1111')
 # jtag.CommandClearInterrupt()
+# jtag.CommandStallCore(coreid=0, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=1, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=2, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=3, threadid=0, stall=1)
 
 control = '00000000001111' # enable icache, dcache, immu, dmmu
 # jtag.CommandWriteThreadState(coreid=0, threadid=0, wrdata=control, mode='lsu_control')

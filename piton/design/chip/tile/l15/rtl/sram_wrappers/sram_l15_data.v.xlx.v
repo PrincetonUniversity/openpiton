@@ -57,62 +57,17 @@ always @*
 
 
 
-`ifdef ML605_BOARD
-   bram_512x128 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (DIN        ),
-      
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (DOUT       )
-   );
-`elsif NEXYS4DDR_BOARD
-   artix7_bram_512x128 mem (
-      .BRAM_PORTA_clk    (MEMCLK     ),
-      .BRAM_PORTA_en     (write_en   ),
-      .BRAM_PORTA_we     (wen_mask   ),
-      .BRAM_PORTA_addr   (A          ),
-      .BRAM_PORTA_din    (DIN        ),
-      
-      .BRAM_PORTB_clk    (MEMCLK     ),
-      .BRAM_PORTB_en     (read_en    ),
-      .BRAM_PORTB_addr   (A          ),
-      .BRAM_PORTB_dout   (DOUT       )
-   );
-`elsif VC707_BOARD
-   virtex7_bram_512x128 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (DIN        ),
-      
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (DOUT       )
-   );
-
-`else
-
-   bram_512x128 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (DIN        ),
-      
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (DOUT       )
-   );
-
-`endif
-
+bram_512x128 mem (
+   .clka    (MEMCLK     ),
+   .ena     (write_en   ),
+   .wea     (wen_mask   ),
+   .addra   (A          ),
+   .dina    (DIN        ),
+   
+   .clkb    (MEMCLK     ),
+   .enb     (read_en    ),
+   .addrb   (A          ),
+   .doutb   (DOUT       )
+);
 
 endmodule

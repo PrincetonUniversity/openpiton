@@ -65,23 +65,27 @@
 // trin: defines for jtag test bench
 
 `ifdef JTAG_TB_XMODULE
-`define TOP_MOD      jtag_testbench_top.helper
+    `define TOP_MOD     jtag_testbench_top.helper
+    `define SIM_TOP     jtag_testbench_top.helper
+    `define TOP_MOD_INST `TOP_MOD
 `else
-  `define TOP_MOD      cmp_top
+    `define TOP_MOD     cmp_top
+    `define SIM_TOP     cmp_top
+    `define TOP_MOD_INST `TOP_MOD.system
 // TODO: Alexey: use PITON_PROTO define ?
 //`define TOP_MOD      fpga_top.cmp_top
 `endif
 
-`define SIM_TOP cmp_top
 //`define SIM_TOP fpga_top.cmp_top
 
-`define TOP_SHELL    cmp_top_shell
-`define TOP_MOD_INST `TOP_MOD.chip
-`define CHIP         `TOP_MOD.chip
+    // `define TOP_SHELL    cmp_top_shell
+`define CHIP         `TOP_MOD_INST.chip
+`define CHIP_INT_CLK `CHIP.clk_muxed
 `define TOP_DESIGN   `TOP_MOD.chip
+`define FAKE_IOB     `TOP_MOD.ciop_fake_iob
 // `define TOP_MEMORY   `TOP_MOD.cmp
 
-`define JTAG_CTAP    `TOP_MOD.chip.jtag_port.ctap
+`define JTAG_CTAP    `CHIP.jtag_port.ctap
 `define MONITOR_PATH `TOP_MOD.monitor
 `define PC_CMP       `TOP_MOD.monitor.pc_cmp
 `define SAS_SEND     `TOP_MOD.sas_tasks.send_cmd

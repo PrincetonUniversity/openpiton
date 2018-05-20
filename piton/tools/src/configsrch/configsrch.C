@@ -38,7 +38,7 @@
 //                           configsrch-ERROR:  error finding version for <foobootoo> </>
 //---------------------------------------------------------------------------
 
-#include <fstream.h>
+#include <fstream>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

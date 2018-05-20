@@ -39,56 +39,59 @@
 #                               addresses
 #
 #####################################################################
-import re, os, sys
+import re, os, sys, math
 from optparse import OptionParser
-
-DV_ROOT = os.environ['DV_ROOT']
-MODEL_DIR = os.environ['MODEL_DIR']
-MAP_MODULE_NAME = "bram_map.v"
+from fpga_lib import *
 
 HEX_ADDR_WIDTH = 16
 OUT = 0
 IN = 1
-BRAM_SIZE = 256
+BRAM_SIZE = 16384
+
+
+def printAddrDataMap(addr_data_map):
+    for key in addr_data_map.keys():
+        print "Addr: %x Data: %s" % (key, addr_data_map[key])
 
 class Section:
-    def __init__(self, start, end, mem_trace):
+    def __init__(self, start, end, mem_trace, st_brd):
 
-        bin_start = bin(int(start,16))
+        bin_start = bin(start)
         if (len(bin_start) > 8):
             cl_addr = int(bin_start[2:-6],2)
         else:
             cl_addr = 0
         self.s_start = cl_addr << 6
 
-        bin_end = bin(int(end,16))
+        bin_end = bin(end)
         if (len(bin_end) > 8):
             cl_addr = int(bin_end[2:-6],2)
         else:
             cl_addr= 0
         self.s_end = (cl_addr + 1) << 6
 
-        self.blocks = self.createBlocks(self.s_start, self.s_end, mem_trace)
+        self.blocks = self.createBlocks(self.s_start, self.s_end, mem_trace, st_brd)
         self.bram_addr = None
 
-    def createBlocks(self, start, end, mem_trace):
+    def createBlocks(self, start, end, mem_trace, st_brd):
         block_list = list()
         block_data = ''
         addr = start
         word_cnt = 0
+        blk_bit_width = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board]
+        dw_in_block = blk_bit_width / DW_BIT_SIZE
         while addr < end:
-            full_addr = fullAddr(addr)
-            data = mem_trace.get(full_addr, 16*'0')
-            # print "Adding data %s for address: %s" % (data, full_addr)
+            data = mem_trace.get(addr, 16*'0')
+            # print "Adding data %s for address: %x" % (data, addr)
             block_data = data + block_data
             # print addr % 64
-            if ((word_cnt % 8) == 7):
+            if ((word_cnt % dw_in_block) == (dw_in_block - 1)):
                 block_list.append(block_data)
                 block_data = ''
                 word_cnt = 0
             else:
                 word_cnt += 1
-            addr += 8
+            addr += DW_BYTE_SIZE
         return block_list
 
     def setBramAddr(self, addr):
@@ -116,13 +119,16 @@ class TestSections:
         return self.sections
 
     def addSection(self, new_sect, flog):
+        print >> flog, "Adding new section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
         for s in self.sections:
             if (((new_sect.s_start >= s.s_start) and (new_sect.s_start <= s.s_end)) or
                 ((new_sect.s_end   >= s.s_start) and (new_sect.s_end   <= s.s_end))):
                 print >> flog, "Error: Trying to add a section which overlaps with an existant one!"
-                print >> sys.stderr, "Error: Trying to add a section which overlaps with existant!"
                 print >> flog, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
+                print >> flog, "Existant section: [%x, %x]" % (s.s_start, s.s_end)
+                print >> sys.stderr, "Error: Trying to add a section which overlaps with existant!"
                 print >> sys.stderr, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
+                print >> sys.stderr, "Existant section: [%x, %x]" % (s.s_start, s.s_end)
                 exit(1)
         self.sections.append(new_sect)
 
@@ -132,6 +138,8 @@ def fullAddr(val):
     full_addr = (HEX_ADDR_WIDTH-len(short_addr))*'0' + short_addr
     return full_addr
 
+# Input: list of Sections
+# Output: test_proto.coe file in $MODEL_DIR folder
 def genCoe(section_list):
     dir_path = os.environ['MODEL_DIR']
     f = open(dir_path + '/test_proto.coe', 'w')
@@ -152,7 +160,7 @@ def genCoe(section_list):
     
     f.close()
 
-def genVerilogMapping(section_list, fname, tname):
+def genVerilogMapping(section_list, st_brd, fname=MAP_MODULE_NAME, tname="unknown"):
     # f = sys.stderr
     f = open(fname, 'w')
     l = len(section_list)
@@ -161,14 +169,17 @@ def genVerilogMapping(section_list, fname, tname):
     print >> f, "// Auto generated mapping module"
     print >> f, "// It is provided for test: %s " % tname
     print >> f, "//-----------------------------------------"
-    print >> f, """ module bram_map #(parameter MEM_ADDR_WIDTH=64, PHY_ADDR_WIDTH=40, BRAM_ADDR_WIDTH=12)
+    print >> f, """ module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
 (
-    input       [PHY_ADDR_WIDTH-1:0]    msg_addr,
+    input       [VA_ADDR_WIDTH-1:0]         va_byte_addr,
     
-    output      [BRAM_ADDR_WIDTH-1:0]   bram_blk_addr,
-    output                              hit_any_section
+    output      [STORAGE_ADDR_WIDTH-1:0]    storage_addr_out,
+    output                                  hit_any_section
 );
 """
+
+    print >> f, "wire [63:0] storage_addr;"
+    print >> f
 
     for i in range(0,l):
         print >> f, "wire [63:0] %30s_%d;" % ('bram_addr', i)
@@ -180,26 +191,39 @@ def genVerilogMapping(section_list, fname, tname):
 
     print >> f
 
+    block_byte_width = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board] / 8
+    block_byte_offset_w = math.log(block_byte_width, 2)
     for i in range(0,l):
         s = section_list[i]
-        print >> f, "assign bram_addr_%d = (({{(MEM_ADDR_WIDTH-PHY_ADDR_WIDTH){1'b0}}, msg_addr} - 64'h%x) >> 6) + %d;" % \
-                    (i, s.s_start, s.bram_addr)
+        print >> f, "assign bram_addr_%d = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h%x) >> %d) + %d;" % \
+                    (i, s.s_start, block_byte_offset_w, s.bram_addr)
 
     print >> f
 
     for i in range(0,l):
         s = section_list[i]
-        print >> f, "assign in_section_%d = (msg_addr >= 64'h%x) & (msg_addr < 64'h%x);" % \
+        print >> f, "assign in_section_%d = (va_byte_addr >= 64'h%x) & (va_byte_addr < 64'h%x);" % \
                     (i, s.s_start, s.s_end)
 
     print >> f
 
-    print >> f, "assign bram_blk_addr ="
+    print >> f, "assign storage_addr ="
     for i in range(0,l):
         s = section_list[i]
         term = ';' if i == (l-1) else '|'
-        print >> f, "({BRAM_ADDR_WIDTH{in_section_%d}} & bram_addr_%d[BRAM_ADDR_WIDTH-1:0])%s" % \
+        print >> f, "({STORAGE_ADDR_WIDTH{in_section_%d}} & bram_addr_%d[STORAGE_ADDR_WIDTH-1:0])%s" % \
                 (i, i, term)
+
+
+    print >> f
+    # number of addressable chunks in storage / storage block
+    block_bit_size = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board]
+    addressable_bit_size = STORAGE_ADDRESSABLE_BIT_WIDTH[st_brd.storage][st_brd.board]
+    addres_chunks_in_block = int(math.log(block_bit_size / addressable_bit_size, 2))
+    if addres_chunks_in_block > 0:
+        print >> f, "assign storage_addr_out = {storage_addr, %d'b0};" % addres_chunks_in_block
+    else:
+        print >> f, "assign storage_addr_out = storage_addr;"
 
 
     print >> f
@@ -215,6 +239,14 @@ def genVerilogMapping(section_list, fname, tname):
     print >> f, "//-----------------------------------------"
     f.close()
 
+
+##################################################################
+# Name:     memImageData
+# Input:    fname           -   name of mem.image file
+# Output:   addr_val_dict   -   dictionary { addr : data}
+#                               addr -int
+#                               data - 16 hex char string
+##################################################################
 def memImageData(fname):
     addr_val_dict = dict()
     # section_list = list()
@@ -231,34 +263,41 @@ def memImageData(fname):
         data =  re.findall(r'[0-9a-f]{16}', line)
         if len(data) > 0:
             for el in data:
-                addr_val_dict[fullAddr(addr)] = el
+                addr_val_dict[addr] = el
                 addr += 8
         elif (state == IN):
             state = OUT
             # section_list.append(Section(start,fullAddr(addr-8),addr_val_dict))
     f.close()
 
+    # printAddrDataMap(addr_val_dict)
     return addr_val_dict
 
-def mapToBram(section_list):
+def mapToBram(section_list, st_brd):
+    st_size = STORAGE_BIT_SIZE[st_brd.storage][st_brd.board]
+    blk_size = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board]
+    max_block_num = st_size / blk_size
+
     bram_addr = 0
     f = open("bram_map.log", 'w')
     limit_exceeded = False
     for s in section_list:
         s.setBramAddr(bram_addr)
         bram_addr += s.getBlockNum()
-        if (bram_addr > BRAM_SIZE):
+        if (bram_addr > max_block_num):
             limit_exceeded = True
         print >> f, s
 
     f.close()
 
-    print >> sys.stderr, "Used %d out of %d rows of BRAM" % (bram_addr, BRAM_SIZE)
+    print >> sys.stderr, "Used %d out of %d blocks of storage" % (bram_addr, max_block_num)
     if limit_exceeded:
-        print >> sys.stderr, "Error: Limit of BRAM is exceeded!"
-        exit(1)
+        print >> sys.stderr, "Error: Limit of storage is exceeded!"
+        return 1
 
-def memTestData(fname, memimage_map, tname, flog):
+    return 0
+
+def makeAddrDataTestDict(fname, memimage_map, flog):
     try:
         f = open(fname, 'r')
     except:
@@ -266,22 +305,40 @@ def memTestData(fname, memimage_map, tname, flog):
         exit(2)
 
     test_map = dict()
-    
+ 
     for line in f:
         m = re.search(r'MemRead:[\s]+([0-9a-fA-F]+)[\s]*:[\s]*([0-9a-fA-F]+)', line)
         if (m != None):
-            if m.group(1) not in test_map:
-                if memimage_map.has_key(m.group(1)):
-                    test_map[m.group(1)] = memimage_map.get(m.group(1))
+            addr = int(m.group(1), 16)
+            # print "Looking for addr %d" % addr
+            if addr not in test_map:
+                if memimage_map.has_key(addr):
+                    test_map[addr] = memimage_map.get(addr)
+                    # print "Adding Addr: %x Data: %s to test dictionary" % (addr, memimage_map.get(addr))
                 else:
-                    print >> flog, "Warning: %s is not in memimage file" % m.group(1)
+                    # print >> sys.stderr, "Warning: %x is not in memimage file" % addr
+                    # print >> sys.stderr, "Mapping with 0's"
+                    print >> flog, "Warning: %x is not in memimage file" % addr
                     print >> flog, "Mapping with 0's"
-                    test_map[m.group(1)] = 16*'0'
+                    test_map[addr] = 16*'0'
     # print test_map
     # print >> sys.stderr, "Closing a file: %s" % fname
     f.close()
 
+    return test_map
+    
+###########################################################
+# Name:     memTestData
+# Input:    test_map    -   dictionary { addr : data}
+#                           addr - int
+#                           data - 16 hex char string
+#           flog        -   log file name
+# Output:   sections    -   list of Section for a test
+###########################################################
+def memTestData(st_brd, test_map, flog):
     test_sections = TestSections()
+    # print "TEST_MAP"
+    # printAddrDataMap(test_map)
 
     #####################################################################
     # Test version - automatic section creation
@@ -292,23 +349,23 @@ def memTestData(fname, memimage_map, tname, flog):
     addr_prev = accessed_addr[0]
     sect_first = addr_prev
     for addr in accessed_addr[1:]:
-        diff = 8*(int(addr, 16) - int(addr_prev, 16))
+        diff = 8*(addr - addr_prev)
         if diff > max_unacc_interv:
-            test_sections.addSection(Section(sect_first, addr_prev, test_map), flog)
+            test_sections.addSection(Section(sect_first, addr_prev, test_map, st_brd), flog)
             sect_first = addr
         addr_prev = addr
 
     # last interval must be mappend in any case
-    test_sections.addSection(Section(sect_first, addr, test_map), flog)
-    print >> sys.stderr, "Automatically created %d sections for test in bram memory" % len(test_sections.getSections())
+    test_sections.addSection(Section(sect_first, addr, test_map, st_brd), flog)
+    # print >> sys.stderr, "Created %d sections for test in memory" % len(test_sections.getSections())
  
-    print >> sys.stderr, "Checking correctness of section mapping... "
+    print >> sys.stderr, "Checking correctness of section mapping... ",
 
     sections = test_sections.getSections()
     for k in test_map.keys():
         k_is_found = False
         for s in sections:
-            if ((int(k,16) >= s.s_start) and (int(k,16) < s.s_end)):
+            if ((k >= s.s_start) and (k < s.s_end)):
                 k_is_found = True
                 break
         if not k_is_found:
@@ -320,7 +377,7 @@ def memTestData(fname, memimage_map, tname, flog):
     return sections
 
 
-def makeMapping(tname):
+def makeMapping(st_brd, tname="unknown"):
     flog = open('make_mem_map.log', 'w')
 
     fname_image     = os.path.join(MODEL_DIR, "mem.image")
@@ -331,14 +388,19 @@ def makeMapping(tname):
     
     mem_image_data = memImageData(fname_image)
     print "Length of image file: %d" % len(mem_image_data.keys())
-    sections = memTestData(fsim_log, mem_image_data, tname, flog)
+    addr_data_test_map = makeAddrDataTestDict(fsim_log, mem_image_data, flog)
+    sections = memTestData(st_brd, addr_data_test_map, flog)
     # print "Length of used data: %d" % len(sections)
-    mapToBram(sections)
+    # TODO: check if used. Will be error withoug the second argument so far
+    rv = mapToBram(sections, st_brd)
+    if rv != 0:
+        flog.close()
+        return 1
     
 
     # should be ordered list - does it still true?
     genCoe(sections)
-    genVerilogMapping(sections, bram_map_file, tname)
+    genVerilogMapping(sections, st_brd, bram_map_file, tname)
 
     flog.close()
     # print block_list

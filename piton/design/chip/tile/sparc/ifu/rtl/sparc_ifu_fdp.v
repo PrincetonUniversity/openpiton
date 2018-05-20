@@ -233,7 +233,7 @@ module sparc_ifu_fdp(/*AUTOARG*/
    output               so;
    output [12:0]        fdp_itlb_ctxt_bf;
    output [47:2]        fdp_icd_vaddr_bf;   // 11:2 is index to ic
-   output [11:5]        fdp_icv_index_bf;
+   output [`IC_IDX_HI:5]        fdp_icv_index_bf;
    output [47:0]        fdp_erb_pc_f;
    output [31:0]        fdp_dtu_inst_s;     // 32b inst + switch bit
 
@@ -1084,7 +1084,7 @@ end
    assign fdp_icd_vaddr_bf = pc_bf[47:2];
 
    // create separate output for the icv to the left
-   assign fdp_icv_index_bf = pc_bf[11:5];
+   assign fdp_icv_index_bf = pc_bf[`IC_IDX_HI:5];
 
    // Place this mux as close to the top (itlb) as possible
    dp_mux3ds #(48) pcbf_mux(.dout  (pc_bf[47:0]),

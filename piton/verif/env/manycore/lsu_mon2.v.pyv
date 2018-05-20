@@ -569,14 +569,14 @@ wire	spc0_lsu_ld_hit_wb;
 
 `ifndef RTL_SPU
 assign  spc0_lsu_ld_hit_wb   =
-((|`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_way_hit[3:0])  & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dcache_enable_g & (`SPARC_CORE0.sparc0.lsu.lsu.dctl.tlb_cam_hit_g | `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_dtlb_bypass_g) &  //bug3702
+((|`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_way_hit[`L1D_WAY_ARRAY_MASK])  & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dcache_enable_g & (`SPARC_CORE0.sparc0.lsu.lsu.dctl.tlb_cam_hit_g | `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_dtlb_bypass_g) &  //bug3702
   ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.ldxa_internal & ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.dcache_rd_parity_error & ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_perror_g & ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.endian_mispred_g &
   ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.atomic_g &  ~`SPARC_CORE0.sparc0.lsu.lsu.dctl.ncache_asild_rq_g) &  // remove stb_cam_hit
 ~((`SPARC_CORE0.sparc0.lsu.lsu.dctl.dc_diagnstc_asi_g & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_alt_space_g)) &
   `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_vld & (~`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_alt_space_g | (`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_alt_space_g & `SPARC_CORE0.sparc0.lsu.lsu.dctl.recognized_asi_g)) ;
 `else
 assign  spc0_lsu_ld_hit_wb   =
-((|`SPARC_CORE0.sparc0.lsu.dctl.lsu_way_hit[3:0])  & `SPARC_CORE0.sparc0.lsu.dctl.dcache_enable_g & (`SPARC_CORE0.sparc0.lsu.dctl.tlb_cam_hit_g | `SPARC_CORE0.sparc0.lsu.dctl.lsu_dtlb_bypass_g) &  //bug3702
+((|`SPARC_CORE0.sparc0.lsu.dctl.lsu_way_hit[`L1D_WAY_ARRAY_MASK])  & `SPARC_CORE0.sparc0.lsu.dctl.dcache_enable_g & (`SPARC_CORE0.sparc0.lsu.dctl.tlb_cam_hit_g | `SPARC_CORE0.sparc0.lsu.dctl.lsu_dtlb_bypass_g) &  //bug3702
   ~`SPARC_CORE0.sparc0.lsu.dctl.ldxa_internal & ~`SPARC_CORE0.sparc0.lsu.dctl.dcache_rd_parity_error & ~`SPARC_CORE0.sparc0.lsu.dctl.dtag_perror_g & ~`SPARC_CORE0.sparc0.lsu.dctl.endian_mispred_g &
   ~`SPARC_CORE0.sparc0.lsu.dctl.atomic_g &  ~`SPARC_CORE0.sparc0.lsu.dctl.ncache_asild_rq_g) &  // remove stb_cam_hit
 ~((`SPARC_CORE0.sparc0.lsu.dctl.dc_diagnstc_asi_g & `SPARC_CORE0.sparc0.lsu.dctl.lsu_alt_space_g)) &
@@ -1033,25 +1033,25 @@ assign spc0_tte_data_perror_unc_w_flush =
 // dcache tag perror w blk asi
 wire spc0_lsu_dcache_tag_perror_g_w_blkasi;
 assign spc0_lsu_dcache_tag_perror_g_w_blkasi =
-  (|(`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[3:0] & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dva_vld_g[3:0])) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
+  (|(`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[`L1D_WAY_ARRAY_MASK] & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dva_vld_g[`L1D_WAY_ARRAY_MASK])) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
   (`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_alt_space_g & `SPARC_CORE0.sparc0.lsu.lsu.dctl.blk_asi_g);
 
 // dcache tag perror w pgnum39_w_bypass
 wire spc0_lsu_dcache_tag_perror_g_w_pgnum39_w_bypass;
 assign spc0_lsu_dcache_tag_perror_g_w_pgnum39_w_bypass =
-  (|`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[3:0]) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
+  (|`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[`L1D_WAY_ARRAY_MASK]) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
   (`SPARC_CORE0.sparc0.lsu.lsu.dctl.tlb_pgnum[39] & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_dtlb_bypass_g);
 
 // dcache tag perror w pgnum39_wo_bypass
 wire spc0_lsu_dcache_tag_perror_g_w_pgnum39_wo_bypass;
 assign spc0_lsu_dcache_tag_perror_g_w_pgnum39_wo_bypass =
-  (|`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[3:0]) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
+  (|`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[`L1D_WAY_ARRAY_MASK]) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
   (`SPARC_CORE0.sparc0.lsu.lsu.dctl.tlb_pgnum[39] & (~`SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_dtlb_bypass_g & `SPARC_CORE0.sparc0.lsu.lsu.dctl.tlb_cam_hit_g));
 
 // dcache tag perror w atomic
 wire spc0_lsu_dcache_tag_perror_g_w_atomic;
 assign spc0_lsu_dcache_tag_perror_g_w_atomic =
-  (|(`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[3:0] & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dva_vld_g[3:0])) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
+  (|(`SPARC_CORE0.sparc0.lsu.lsu.dctl.dtag_parity_error[`L1D_WAY_ARRAY_MASK] & `SPARC_CORE0.sparc0.lsu.lsu.dctl.dva_vld_g[`L1D_WAY_ARRAY_MASK])) & `SPARC_CORE0.sparc0.lsu.lsu.dctl.ld_inst_vld_unflushed & `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_inst_vld_w &
    `SPARC_CORE0.sparc0.lsu.lsu.dctl.atomic_g;
 
 
@@ -1161,7 +1161,7 @@ reg  spc0_lsu_dtagv_wr_vld_e_d1, spc0_lsu_dtagv_wr_vld_e_d2;
 reg  [4:0] spc0_dva_rdaddr_10to6_d1;
 wire [15:0] spc0_dva_rd_en_e;
 reg  [15:0] spc0_dva_rd_en_e_d1;
-wire [15:0] spc0_dva_vld_m_expanded;
+wire [`L1D_VAL_ARRAY_HI:0] spc0_dva_vld_m_expanded;
 reg  [4:0] spc0_dva_wraddr_10to6_d1, spc0_dva_wraddr_10to6_d2;
 reg  [15:0] spc0_dva_bit_wr_en_e_d1, spc0_dva_bit_wr_en_e_d2;
 reg  spc0_dva_din_e_d1, spc0_dva_din_e_d2;
@@ -1261,14 +1261,14 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
     assign spc0_dva_rd_en_e[7:4]         = {4{(`SPARC_CORE0.sparc0.lsu.lsu.exu_lsu_early_va_e[5:4] == 2'b01)}};
     assign spc0_dva_rd_en_e[3:0]         = {4{(`SPARC_CORE0.sparc0.lsu.lsu.exu_lsu_early_va_e[5:4] == 2'b00)}};
 
-    assign spc0_dva_vld_m_expanded[15:0] = {4{`SPARC_CORE0.sparc0.lsu.lsu.dva_vld_m[3:0]}};
+    assign spc0_dva_vld_m_expanded[`L1D_VAL_ARRAY_HI:0] = {4{`SPARC_CORE0.sparc0.lsu.lsu.dva_vld_m[`L1D_WAY_MASK]}};
 `else
     assign spc0_dva_rd_en_e[15:12]       = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b11)}};
     assign spc0_dva_rd_en_e[11:8]        = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b10)}};
     assign spc0_dva_rd_en_e[7:4]         = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b01)}};
     assign spc0_dva_rd_en_e[3:0]         = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b00)}};
     
-    assign spc0_dva_vld_m_expanded[15:0] = {4{`SPARC_CORE0.sparc0.lsu.dva_vld_m[3:0]}};
+    assign spc0_dva_vld_m_expanded[`L1D_VAL_ARRAY_HI:0] = {4{`SPARC_CORE0.sparc0.lsu.dva_vld_m[`L1D_WAY_MASK]}};
 `endif
 
     assign spc0_dva_rdwr_sameline_diffvalue =

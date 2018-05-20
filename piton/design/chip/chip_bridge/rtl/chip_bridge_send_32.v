@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *******************************************************************/
 
-
+`include "piton_system.vh"
 
 `timescale 1ns/1ps
 
@@ -118,21 +118,44 @@ wire sync_network_val_3;
 
 
 wire [63:0] data_to_serial_buffer;
-reg  [31:0] serial_buffer_data[1:0];
+reg  [31:0] serial_buffer_data;
+reg  [31:0] serial_buffer_data_f /* synthesis iob = true */;
 reg   [0:0] serial_buffer_data_counter;
 wire  [1:0] channel_to_serial_buffer;
-reg   [1:0] serial_buffer_channel;
+reg   [1:0] serial_buffer_channel /* synthesis iob = true */;
+reg   [1:0] serial_buffer_channel_dup /* synthesis dont_touch = true */;
+
+`ifdef PITON_PROTO
+// Do internal sychronization for each clock for FPGA
+reg wr_rst_f;
+reg wr_rst_ff;
+reg rd_rst_f;
+reg rd_rst_ff;
+always @ (posedge wr_clk)
+begin
+    wr_rst_f <= rst;
+    wr_rst_ff <= wr_rst_f;
+end
+always @ (posedge rd_clk)
+begin
+    rd_rst_f <= rst;
+    rd_rst_ff <= rd_rst_f;
+end
+`endif
 
 assign bin_rdy_1 = ~fifo1_full; 
 assign bin_rdy_2 = ~fifo2_full; 
 assign bin_rdy_3 = ~fifo3_full; 
 
-assign data_to_fpga = serial_buffer_data[serial_buffer_data_counter];
+assign data_to_fpga = serial_buffer_data_f;
 assign data_channel = serial_buffer_channel;
 
-
 bridge_network_chooser separator(
+`ifdef PITON_PROTO
+    .rst    (rd_rst_ff),
+`else // ifndef PITON_PROTO
     .rst    (rst),
+`endif
     .clk    (rd_clk),
     .data_out(data_to_serial_buffer),
     .data_channel(channel_to_serial_buffer),
@@ -149,6 +172,19 @@ bridge_network_chooser separator(
 );
 //TODO: determine if full/empty are active high or low
 //input-output fixed to 64 bits
+`ifdef PITON_PROTO
+afifo_w64_d16  async_fifo_1(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(network_rdy_1 && async_mux),
+    .wr_en(bin_val_1 && async_mux),
+    .din(bin_data_1),
+    .dout(async_network_data_1),
+    .full(async_fifo1_full),
+    .empty(async_network_val_1)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -165,7 +201,21 @@ async_fifo_1(
     .wfull(async_fifo1_full),
     .rempty(async_network_val_1)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+afifo_w64_d16  async_fifo_2(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(network_rdy_2 && async_mux),
+    .wr_en(bin_val_2 && async_mux),
+    .din(bin_data_2),
+    .dout(async_network_data_2),
+    .full(async_fifo2_full),
+    .empty(async_network_val_2)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -182,7 +232,21 @@ async_fifo_2(
     .wfull(async_fifo2_full),
     .rempty(async_network_val_2)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+afifo_w64_d16  async_fifo_3(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(network_rdy_3 && async_mux),
+    .wr_en(bin_val_3 && async_mux),
+    .din(bin_data_3),
+    .dout(async_network_data_3),
+    .full(async_fifo3_full),
+    .empty(async_network_val_3)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -199,7 +263,24 @@ async_fifo_3(
     .wfull(async_fifo3_full),
     .rempty(async_network_val_3)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w64_d16  sync_fifo_1(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(rd_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(rd_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(rd_clk),
+    .rd_en(network_rdy_1 && ~async_mux),
+    .wr_en(bin_val_1 && ~async_mux),
+    .din(bin_data_1),
+    .dout(sync_network_data_1),
+    .full(sync_fifo1_full),
+    .empty(sync_network_val_1)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -214,7 +295,24 @@ sync_fifo_1(
     .full(sync_fifo1_full),
     .empty(sync_network_val_1)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w64_d16  sync_fifo_2(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(rd_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(rd_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(rd_clk),
+    .rd_en(network_rdy_2 && ~async_mux),
+    .wr_en(bin_val_2 && ~async_mux),
+    .din(bin_data_2),
+    .dout(sync_network_data_2),
+    .full(sync_fifo2_full),
+    .empty(sync_network_val_2)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -229,7 +327,24 @@ sync_fifo_2(
     .full(sync_fifo2_full),
     .empty(sync_network_val_2)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w64_d16  sync_fifo_3(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(rd_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(rd_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(rd_clk),
+    .rd_en(network_rdy_3 && ~async_mux),
+    .wr_en(bin_val_3 && ~async_mux),
+    .din(bin_data_3),
+    .dout(sync_network_data_3),
+    .full(sync_fifo3_full),
+    .empty(sync_network_val_3)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(4),
@@ -244,6 +359,7 @@ sync_fifo_3(
     .full(sync_fifo3_full),
     .empty(sync_network_val_3)
 );
+`endif // endif PITON_PROTO
 
 assign network_val_1  = async_mux ? async_network_val_1 : sync_network_val_1;
 assign network_val_2  = async_mux ? async_network_val_2 : sync_network_val_2;
@@ -258,27 +374,36 @@ assign fifo2_full = async_mux ? async_fifo2_full : sync_fifo2_full;
 assign fifo3_full = async_mux ? async_fifo3_full : sync_fifo3_full;
 
 always @(posedge rd_clk) begin
+`ifdef PITON_PROTO
+    if(rd_rst_ff) begin
+`else // ifndef PITON_PROTO
     if(rst) begin
-        serial_buffer_data [0] <= 32'd0;
-        serial_buffer_data [1] <= 32'd0;
+`endif // endif PITON_PROTO
+        serial_buffer_data <= 32'd0;
+        serial_buffer_data_f <= 32'd0;
         serial_buffer_channel <= 2'd0;
+        serial_buffer_channel_dup <= 2'd0;
         serial_buffer_data_counter <= 1'b1;
     end
     else begin
         if( channel_to_serial_buffer != 0 && serial_buffer_data_counter == 1) begin
             
-            serial_buffer_data[0] <= data_to_serial_buffer[31:0];
-            serial_buffer_data[1] <= data_to_serial_buffer[63:32];
+            serial_buffer_data_f <= data_to_serial_buffer[31:0];
+            serial_buffer_data <= data_to_serial_buffer[63:32];
             serial_buffer_channel <= channel_to_serial_buffer;
+            serial_buffer_channel_dup <= channel_to_serial_buffer;
 
             serial_buffer_data_counter <= serial_buffer_data_counter + 1'b1;
         end
-        else if( data_channel != 0 && serial_buffer_data_counter != 1'b1) begin
+        else if( serial_buffer_channel_dup != 0 && serial_buffer_data_counter != 1'b1) begin
+            serial_buffer_data_f <= serial_buffer_data;
+
             serial_buffer_data_counter <= serial_buffer_data_counter + 1'b1;
         end
         else begin
             serial_buffer_data_counter <= 1'b1;
             serial_buffer_channel <= channel_to_serial_buffer;
+            serial_buffer_channel_dup <= channel_to_serial_buffer;
         end
     end
 end 

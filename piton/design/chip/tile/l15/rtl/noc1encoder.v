@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //
 //==================================================================================================
-
 `include "l15.tmp.h"
 `include "define.vh"
 
@@ -55,7 +54,7 @@ module noc1encoder(
    input wire noc1buffer_noc1encoder_req_val,
    input wire [`L15_NOC1_REQTYPE_WIDTH-1:0] noc1buffer_noc1encoder_req_type,
    input wire [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_noc1encoder_req_mshrid,
-   input wire [`L15_NUM_THREADS_LOG-1:0] noc1buffer_noc1encoder_req_threadid,
+   input wire [`L15_THREADID_MASK] noc1buffer_noc1encoder_req_threadid,
    input wire [39:0] noc1buffer_noc1encoder_req_address,
    input wire noc1buffer_noc1encoder_req_non_cacheable,
    input wire [`PCX_SIZE_WIDTH-1:0] noc1buffer_noc1encoder_req_size,

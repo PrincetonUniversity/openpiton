@@ -264,6 +264,14 @@ class JtagGen():
     self.SetRegisterData(inst)
     self.CommitWriteRegister()
 
+  def CommandReadClockGatingMask(self, expected):
+    self.SetRegisterSelect('instruction')
+    inst = ''
+    inst += self.defines['JTAG_REQ_OP_WRITE_CLK_EN'] + 24*'0'
+    assert(len(inst) == 32)
+    self.SetRegisterData(inst)
+    self.CommitWriteRegister()
+
   def CommandSetOramClockGatingMask(self, mask):
     self.SetRegisterSelect('data')
     self.SetRegisterData(mask)

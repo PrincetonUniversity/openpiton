@@ -681,7 +681,7 @@ module sparc_ifu (/*AUTOARG*/
    wire                 erc_erd_asisrc_sel_icd_s_l;// From errctl of sparc_ifu_errctl.v
    wire                 erc_erd_asisrc_sel_itlb_s_l;// From errctl of sparc_ifu_errctl.v
    wire                 erc_erd_asisrc_sel_misc_s_l;// From errctl of sparc_ifu_errctl.v
-   wire [3:0]           erc_erd_asiway_s1_l;    // From errctl of sparc_ifu_errctl.v
+   wire [`IC_WAY_ARRAY_MASK]           erc_erd_asiway_s1_l;    // From errctl of sparc_ifu_errctl.v
    wire [3:0]           erc_erd_eadr0_sel_frf_l;// From errctl of sparc_ifu_errctl.v
    wire [3:0]           erc_erd_eadr0_sel_irf_l;// From errctl of sparc_ifu_errctl.v
    wire [3:0]           erc_erd_eadr0_sel_itlb_l;// From errctl of sparc_ifu_errctl.v
@@ -838,7 +838,7 @@ module sparc_ifu (/*AUTOARG*/
    wire [48:0]          fdp_esl_t2pc_next_s2;   // From fdp of sparc_ifu_fdp.v
    wire [48:0]          fdp_esl_t3pc_next_s2;   // From fdp of sparc_ifu_fdp.v
    wire [3:0]           fdp_esl_brtrp_target_pc_bf_f;
-   wire [11:5]          fdp_icv_index_bf;       // From fdp of sparc_ifu_fdp.v
+   wire [`IC_IDX_HI:5]          fdp_icv_index_bf;       // From fdp of sparc_ifu_fdp.v
 
    // trin
    // wire [1:0]           fuse_icd_repair_en;     // From icdhdr of cmp_sram_redhdr.v
@@ -872,7 +872,7 @@ module sparc_ifu (/*AUTOARG*/
    wire [3:0]           ifc_ifd_milfill_sel_i2_l;// From ifqctl of sparc_ifu_ifqctl.v
    wire [3:0]           ifc_ifd_milreq_sel_d_l; // From ifqctl of sparc_ifu_ifqctl.v
    wire [4:2]           ifc_ifd_pcxline_adj_d;  // From ifqctl of sparc_ifu_ifqctl.v
-   wire [1:0]           ifc_ifd_repway_s;       // From ifqctl of sparc_ifu_ifqctl.v
+   wire [`IC_WAY_MASK]           ifc_ifd_repway_s;       // From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifc_ifd_reqvalid_e;     // From ifqctl of sparc_ifu_ifqctl.v
    wire [1:0]           ifc_ifd_thrid_e;        // From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifc_ifd_uncached_e;     // From ifqctl of sparc_ifu_ifqctl.v
@@ -904,7 +904,7 @@ module sparc_ifu (/*AUTOARG*/
    wire [2:0]           ifd_ifc_newdestid_s;    // From ifqdp of sparc_ifu_ifqdp.v
    wire [4:2]           ifd_ifc_pcxline_d;      // From ifqdp of sparc_ifu_ifqdp.v
    wire [`CPX_WIDTH-1:0]ifd_inv_ifqop_i2;       // From ifqdp of sparc_ifu_ifqdp.v
-   wire [1:0]           ifd_inv_wrway_i2;       // From ifqdp of sparc_ifu_ifqdp.v
+   wire [`IC_WAY_MASK]           ifd_inv_wrway_i2;       // From ifqdp of sparc_ifu_ifqdp.v
    wire [39:2]          ifq_fdp_fill_paddr;     // From ifqdp of sparc_ifu_ifqdp.v
    wire [3:0]           ifq_dtu_pred_rdy;       // From ifqctl of sparc_ifu_ifqctl.v
    wire [3:0]           ifq_dtu_thrrdy;         // From ifqctl of sparc_ifu_ifqctl.v
@@ -914,7 +914,7 @@ module sparc_ifu (/*AUTOARG*/
    wire                 ifq_erb_asi_errstat_i2; // From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifq_erb_asi_imask_i2;   // From ifqctl of sparc_ifu_ifqctl.v
    wire [47:0]          ifq_erb_asidata_i2;     // From ifqdp of sparc_ifu_ifqdp.v
-   wire [1:0]           ifq_erb_asiway_f;       // From invctl of sparc_ifu_invctl.v
+   wire [`IC_WAY_MASK]           ifq_erb_asiway_f;       // From invctl of sparc_ifu_invctl.v
    wire                 ifq_erb_asiwr_i2;       // From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifq_erb_ce_rep;         // From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifq_erb_fwdrd_bf;       // From ifqctl of sparc_ifu_ifqctl.v
@@ -943,8 +943,8 @@ module sparc_ifu (/*AUTOARG*/
    wire [`IC_IDX_HI:2]  ifq_icd_index_bf;       // From ifqdp of sparc_ifu_ifqdp.v
    wire [3:0]           ifq_icd_worden_bf;      // From ifqctl of sparc_ifu_ifqctl.v
    wire [135:0]         ifq_icd_wrdata_i2;      // From ifqdp of sparc_ifu_ifqdp.v
-   wire [1:0]           ifq_icd_wrway_bf;       // From ifqdp of sparc_ifu_ifqdp.v
-   wire [3:0]           ifq_ict_dec_wrway_bf;   // From invctl of sparc_ifu_invctl.v
+   wire [`IC_WAY_MASK]           ifq_icd_wrway_bf;       // From ifqdp of sparc_ifu_ifqdp.v
+   wire [`IC_WAY_ARRAY_MASK]           ifq_ict_dec_wrway_bf;   // From invctl of sparc_ifu_invctl.v
    wire                 ifq_icv_wrdata_bf;      // From ifqctl of sparc_ifu_ifqctl.v
    wire [15:0]          ifq_icv_wren_bf;        // From invctl of sparc_ifu_invctl.v
    wire [`IC_IDX_HI:5]  ifq_icv_wrindex_bf;     // From invctl of sparc_ifu_invctl.v
@@ -982,7 +982,7 @@ module sparc_ifu (/*AUTOARG*/
 
    wire           itlb_fcl_imiss_s_l;     // To fcl of sparc_ifu_fcl.v
    wire           itlb_fcl_tlbmiss_f_l;   // To fcl of sparc_ifu_fcl.v
-   wire [3:0]     itlb_wsel_waysel_s1;     // To icd of sparc_ifu_icd.v
+   wire [`IC_WAY_ARRAY_MASK]     itlb_wsel_waysel_s1;     // To icd of sparc_ifu_icd.v
    wire [39:10]   itlb_ifq_paddr_s;       // To ifqdp of sparc_ifu_ifqdp.v, ...
    wire [42:0]    itlb_rd_tte_data;       // To errdp of sparc_ifu_errdp.v
    wire [58:0]    itlb_rd_tte_tag;        // To errdp of sparc_ifu_errdp.v
@@ -999,10 +999,7 @@ module sparc_ifu (/*AUTOARG*/
    wire           fcl_itlb_wr_vld_bf;     // From fcl of sparc_ifu_fcl.v
    wire [47:2]    fdp_icd_vaddr_bf;       // From fdp of sparc_ifu_fdp.v
    wire [12:0]    fdp_itlb_ctxt_bf;       // From fdp of sparc_ifu_fdp.v
-   wire [32:0]    ict_itlb_tag0_f;        // From ict of bw_r_ict.v
-   wire [32:0]    ict_itlb_tag1_f;        // From ict of bw_r_ict.v
-   wire [32:0]    ict_itlb_tag2_f;        // From ict of bw_r_ict.v
-   wire [32:0]    ict_itlb_tag3_f;        // From ict of bw_r_ict.v
+   wire [`IC_TLB_TAG_MASK_ALL]    ict_itlb_tags_f;        // From ict of bw_r_ict.v
 
    // sscan rename
    wire [3:0]       ifq_sscan_data;         // From ifqctl of sparc_ifu_ifqctl.v
@@ -1408,7 +1405,7 @@ module sparc_ifu (/*AUTOARG*/
                       .fcl_fdp_addr_mask_d(ifu_exu_addr_mask_d),
                       /*AUTOINST*/
                       // Outputs
-                      .fdp_icv_index_bf (fdp_icv_index_bf[11:5]),
+                      .fdp_icv_index_bf (fdp_icv_index_bf[`IC_IDX_HI:5]),
                       .fdp_erb_pc_f     (fdp_erb_pc_f[47:0]),
                       .fdp_dtu_inst_s   (fdp_dtu_inst_s[31:0]),
                       .ifu_exu_pc_d     (ifu_exu_pc_d[47:0]),
@@ -1808,7 +1805,7 @@ module sparc_ifu (/*AUTOARG*/
 //                        // Outputs
 //                        .ifu_lsu_tlb_writeable(ifu_lsu_tlb_writeable),
 //                        .itlb_ifq_paddr_s(itlb_ifq_paddr_s[39:10]),
-//                        .itlb_icd_waysel_s1(itlb_icd_waysel_s1[3:0]),
+//                        .itlb_icd_waysel_s1(itlb_icd_waysel_s1[`IC_WAY_ARRAY_MASK]),
 //                        .itlb_fcl_imiss_s_l(itlb_fcl_imiss_s_l),
 //                        .itlb_fcl_tlbmiss_f_l(itlb_fcl_tlbmiss_f_l),
 //                        .itlb_fcl_priv_s1(itlb_fcl_priv_s1),
@@ -1851,7 +1848,7 @@ module sparc_ifu (/*AUTOARG*/
 		              .tlb_rd_tte_data (itlb_rd_tte_data[42:0]), // 2
 		              .tlb_pgnum	     (itlb_ifq_paddr_s[`IC_TAG_HI:10]), // 2
 		              .tlb_cam_hit	   (itlb_fcl_tlbmiss_f_l),    // 1
-		              .cache_way_hit   (itlb_wsel_waysel_s1[3:0]), // 2
+		              .cache_way_hit   (itlb_wsel_waysel_s1[`IC_WAY_ARRAY_MASK]), // 2
 		              .cache_hit       (itlb_fcl_imiss_s_l),      // 2
 		              .so		(short_scan0_1),
 
@@ -1928,14 +1925,9 @@ module sparc_ifu (/*AUTOARG*/
 		              .tlb_demap_all	(fcl_itlb_dmp_all_bf),        // 0
                   .tlb_demap_auto (tlu_itlb_dmp_actxt_g),
 
-		              .cache_ptag_w3	({ict_itlb_tag3_f[27:0],   // 1
-					                          fdp_erb_pc_f[`IC_IDX_HI:(`IC_IDX_HI-1)]}),
-		              .cache_ptag_w2	({ict_itlb_tag2_f[27:0],    // 1
-					                          fdp_erb_pc_f[`IC_IDX_HI:(`IC_IDX_HI-1)]}),
-		              .cache_ptag_w1	({ict_itlb_tag1_f[27:0],    // 1
-                                    fdp_erb_pc_f[`IC_IDX_HI:(`IC_IDX_HI-1)]}),
-		              .cache_ptag_w0	({ict_itlb_tag0_f[27:0],     // 1
-                                    fdp_erb_pc_f[`IC_IDX_HI:(`IC_IDX_HI-1)]}),
+// trin: since the TLB is configured at fixed 30b per entry, this is the only way to do it
+//    until TLB is also parameterized
+                    .cache_ptag  (ict_itlb_tags_f),
 
 		              .cache_set_vld	(icv_itlb_valid_f[3:0]),     // 1
 
@@ -1965,8 +1957,8 @@ module sparc_ifu (/*AUTOARG*/
                            .se          (se),
                            .icd_wsel_fetdata_s1(icd_wsel_fetdata_s1[135:0]),
                            .icd_wsel_topdata_s1(icd_wsel_topdata_s1[135:0]),
-                           .itlb_wsel_waysel_s1(itlb_wsel_waysel_s1[3:0]),
-                           .ifq_erb_asiway_f(ifq_erb_asiway_f[1:0]));
+                           .itlb_wsel_waysel_s1(itlb_wsel_waysel_s1[`IC_WAY_ARRAY_MASK]),
+                           .ifq_erb_asiway_f(ifq_erb_asiway_f[`IC_WAY_MASK]));
 
 
 /*   cmp_sram_redhdr AUTO_TEMPLATE(
@@ -2028,7 +2020,7 @@ module sparc_ifu (/*AUTOARG*/
                 .se                     (se),
                 .sehold                 (sehold),
                 .fcl_icd_index_sel_ifq_bf(fcl_icd_index_sel_ifq_bf),
-                .ifq_icd_wrway_bf       (ifq_icd_wrway_bf[1:0]),
+                .ifq_icd_wrway_bf       (ifq_icd_wrway_bf[`IC_WAY_MASK]),
                 .ifq_icd_worden_bf      (ifq_icd_worden_bf[3:0]),
                 .ifq_icd_wrdata_i2      (ifq_icd_wrdata_i2[135:0]),
                 .fcl_icd_rdreq_bf       (fcl_icd_rdreq_bf),
@@ -2057,7 +2049,7 @@ module sparc_ifu (/*AUTOARG*/
 		                 .index0_x     (fdp_icd_vaddr_bf[`IC_IDX_HI:5]),
                      .index1_x     (ifq_icd_index_bf[`IC_IDX_HI:5]),
                      .index_sel_x  (fcl_icd_index_sel_ifq_bf),
-                     .dec_wrway_x  (ifq_ict_dec_wrway_bf[3:0]),
+                     .dec_wrway_x  (ifq_ict_dec_wrway_bf[`IC_WAY_ARRAY_MASK]),
                      .wrtag_w0_y   ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}),
                      .wrtag_w1_y   ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}),
                      .wrtag_w2_y   ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}),
@@ -2069,10 +2061,7 @@ module sparc_ifu (/*AUTOARG*/
    bw_r_ict ict(
                  .so                    (short_scan0_2),
                  .si                    (short_scan0_1),
-                 .rdtag_w0_y    (ict_itlb_tag0_f[32:0]),
-                 .rdtag_w1_y    (ict_itlb_tag1_f[32:0]),
-                 .rdtag_w2_y    (ict_itlb_tag2_f[32:0]),
-                 .rdtag_w3_y    (ict_itlb_tag3_f[32:0]),
+                 .rdtag_y    (ict_itlb_tags_f),
                  .rst_tri_en        (mem_write_disable),
 
                      /*AUTOINST*/
@@ -2084,17 +2073,11 @@ module sparc_ifu (/*AUTOARG*/
                  .index0_x              (fdp_icd_vaddr_bf[`IC_IDX_HI:5]), // Templated
                  .index1_x              (ifq_icd_index_bf[`IC_IDX_HI:5]), // Templated
                  .index_sel_x           (fcl_icd_index_sel_ifq_bf), // Templated
-                 .dec_wrway_x           (ifq_ict_dec_wrway_bf[3:0]), // Templated
+                 .dec_wrway_x           (ifq_ict_dec_wrway_bf[`IC_WAY_ARRAY_MASK]), // Templated
                  .rdreq_x               (fcl_icd_rdreq_bf),      // Templated
                  .wrreq_x               (fcl_ict_wrreq_bf),      // Templated
-                 .wrtag_w0_y            ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w1_y            ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w2_y            ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w3_y            ({4'b0, ifq_ict_wrtag_f[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w0_x            ({4'b0, ifq_ict_wrtag_bf[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w1_x            ({4'b0, ifq_ict_wrtag_bf[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w2_x            ({4'b0, ifq_ict_wrtag_bf[`IC_TAG_SZ:0]}), // Templated
-                 .wrtag_w3_x            ({4'b0, ifq_ict_wrtag_bf[`IC_TAG_SZ:0]}), // Templated
+                 .wrtag_y            (ifq_ict_wrtag_f),// Templated
+                 .wrtag_x            (ifq_ict_wrtag_bf),// Templated
                  .adj                   (lsu_ictag_mrgn[3:0]),
 
                  // debug interface
@@ -2115,7 +2098,7 @@ module sparc_ifu (/*AUTOARG*/
                     .si            (short_scan0_2),
                     .rst_tri_en        (mem_write_disable),
                     .reset_l       (arst_l),
-		                .rd_adr2       (fdp_icv_index_bf[11:5]),
+		                .rd_adr2       (fdp_icv_index_bf[`IC_IDX_HI:5]),
                     .rd_adr1       (ifq_icv_wrindex_bf[`IC_IDX_HI:5]),
                     .wr_adr        (ifq_icv_wrindex_bf[`IC_IDX_HI:7]),
                     .rd_adr1_sel   (fcl_ifq_grant_bf),
@@ -2136,7 +2119,7 @@ module sparc_ifu (/*AUTOARG*/
                      .sehold            (sehold),                // Templated
                      .rst_tri_en        (mem_write_disable),     // Templated
                      .rd_adr1           (ifq_icv_wrindex_bf[`IC_IDX_HI:5]), // Templated
-                     .rd_adr2           (fdp_icv_index_bf[11:5]), // Templated
+                     .rd_adr2           (fdp_icv_index_bf[`IC_IDX_HI:5]), // Templated
                      .rd_adr1_sel       (fcl_ifq_grant_bf),      // Templated
                      .rd_en             (fcl_icv_rdreq_bf),      // Templated
                      .wr_adr            (ifq_icv_wrindex_bf[`IC_IDX_HI:7]), // Templated
@@ -2169,7 +2152,7 @@ module sparc_ifu (/*AUTOARG*/
                          .ifq_icd_index_bf(ifq_icd_index_bf[`IC_IDX_HI:2]),
                          .ifq_icd_wrdata_i2(ifq_icd_wrdata_i2[135:0]),
                          .ifq_erb_wrindex_f(ifq_erb_wrindex_f[`IC_IDX_HI:4]),
-                         .ifq_icd_wrway_bf(ifq_icd_wrway_bf[1:0]),
+                         .ifq_icd_wrway_bf(ifq_icd_wrway_bf[`IC_WAY_MASK]),
                          .ifd_ifc_milhit_s(ifd_ifc_milhit_s[3:0]),
                          .ifd_ifc_instoffset0(ifd_ifc_instoffset0[1:0]),
                          .ifd_ifc_instoffset1(ifd_ifc_instoffset1[1:0]),
@@ -2195,7 +2178,7 @@ module sparc_ifu (/*AUTOARG*/
                          .ifd_ifc_cpxue_i2(ifd_ifc_cpxue_i2),
                          .ifd_ifc_cpxms_i2(ifd_ifc_cpxms_i2),
                          .ifd_ifc_miladdr4_i2(ifd_ifc_miladdr4_i2[3:0]),
-                         .ifd_inv_wrway_i2(ifd_inv_wrway_i2[1:0]),
+                         .ifd_inv_wrway_i2(ifd_inv_wrway_i2[`IC_WAY_MASK]),
                          .ifq_fdp_fill_paddr(ifq_fdp_fill_paddr[39:2]),
                          // Inputs
                          `ifndef NO_RTL_CSM
@@ -2209,7 +2192,7 @@ module sparc_ifu (/*AUTOARG*/
                          .itlb_ifq_paddr_s(itlb_ifq_paddr_s[39:10]),
                          .ifc_ifd_reqvalid_e(ifc_ifd_reqvalid_e),
                          .ifc_ifd_filladdr4_i2(ifc_ifd_filladdr4_i2),
-                         .ifc_ifd_repway_s(ifc_ifd_repway_s[1:0]),
+                         .ifc_ifd_repway_s(ifc_ifd_repway_s[`IC_WAY_MASK]),
                          .ifc_ifd_uncached_e(ifc_ifd_uncached_e),
                          .ifc_ifd_thrid_e(ifc_ifd_thrid_e[1:0]),
                          .ifc_ifd_pcxline_adj_d(ifc_ifd_pcxline_adj_d[4:2]),
@@ -2289,7 +2272,7 @@ module sparc_ifu (/*AUTOARG*/
                            .ifc_ifd_thrid_e(ifc_ifd_thrid_e[1:0]),
                            .ifc_ifd_pcxline_adj_d(ifc_ifd_pcxline_adj_d[4:2]),
                            .ifc_inv_asireq_i2(ifc_inv_asireq_i2),
-                           .ifc_ifd_repway_s(ifc_ifd_repway_s[1:0]),
+                           .ifc_ifd_repway_s(ifc_ifd_repway_s[`IC_WAY_MASK]),
                            .ifc_ifd_milfill_sel_i2_l(ifc_ifd_milfill_sel_i2_l[3:0]),
                            .ifc_ifd_finst_sel_l(ifc_ifd_finst_sel_l[3:0]),
                            .ifc_ifd_milreq_sel_d_l(ifc_ifd_milreq_sel_d_l[3:0]),
@@ -2369,9 +2352,9 @@ module sparc_ifu (/*AUTOARG*/
                            .inv_ifc_inv_pending(inv_ifc_inv_pending),
                            .ifq_icv_wrindex_bf(ifq_icv_wrindex_bf[`IC_IDX_HI:5]),
                            .ifq_icv_wren_bf(ifq_icv_wren_bf[15:0]),
-                           .ifq_ict_dec_wrway_bf(ifq_ict_dec_wrway_bf[3:0]),
+                           .ifq_ict_dec_wrway_bf(ifq_ict_dec_wrway_bf[`IC_WAY_ARRAY_MASK]),
                            .ifq_fcl_invreq_bf(ifq_fcl_invreq_bf),
-                           .ifq_erb_asiway_f(ifq_erb_asiway_f[1:0]),
+                           .ifq_erb_asiway_f(ifq_erb_asiway_f[`IC_WAY_MASK]),
                            // Inputs
                            .rclk        (rclk),
                            .se          (se),
@@ -2385,17 +2368,14 @@ module sparc_ifu (/*AUTOARG*/
                            .ifc_inv_asireq_i2(ifc_inv_asireq_i2),
                            .ifq_icd_index_bf(ifq_icd_index_bf[`IC_IDX_HI:5]),
                            .ifd_inv_ifqop_i2(ifd_inv_ifqop_i2[`CPX_WIDTH-1:0]),
-                           .ifd_inv_wrway_i2(ifd_inv_wrway_i2[1:0]));
+                           .ifd_inv_wrway_i2(ifd_inv_wrway_i2[`IC_WAY_MASK]));
 
 
    sparc_ifu_errdp  errdp(
                           .so           (scan0_11),
                           .si           (scan0_10),
                          .ifq_erb_wrtag_f(ifq_ict_wrtag_f[`IC_TAG_SZ-1:0]),
-                          .ict_itlb_tags_f({ict_itlb_tag3_f[28:0],
-                                            ict_itlb_tag2_f[28:0],
-                                            ict_itlb_tag1_f[28:0],
-                                            ict_itlb_tag0_f[28:0]}),
+                          .ict_itlb_tags_f(ict_itlb_tags_f),
                           .wsel_erb_asidata_s({wsel_mbist_icache_data[65:64],
                                                wsel_mbist_icache_data[31:0]}),
                           // .wsel_erb_asidata_s(34'b0),
@@ -2435,7 +2415,7 @@ module sparc_ifu (/*AUTOARG*/
                           .erc_erd_errinj_asidata(erc_erd_errinj_asidata[31:0]),
                           .ifq_erb_asidata_i2(ifq_erb_asidata_i2[47:0]),
                           .ifq_erb_wrindex_f(ifq_erb_wrindex_f[`IC_IDX_HI:4]),
-                          .erc_erd_asiway_s1_l(erc_erd_asiway_s1_l[3:0]),
+                          .erc_erd_asiway_s1_l(erc_erd_asiway_s1_l[`IC_WAY_ARRAY_MASK]),
                           .fcl_erb_itlbrd_data_s(fcl_erb_itlbrd_data_s),
                           .erc_erd_ld_imask(erc_erd_ld_imask),
                           .erc_erd_asisrc_sel_icd_s_l(erc_erd_asisrc_sel_icd_s_l),
@@ -2498,7 +2478,7 @@ module sparc_ifu (/*AUTOARG*/
                            .erc_erd_eadr0_sel_itlb_l(erc_erd_eadr0_sel_itlb_l[3:0]),
                            .erc_erd_eadr0_sel_frf_l(erc_erd_eadr0_sel_frf_l[3:0]),
                            .erc_erd_eadr0_sel_lsu_l(erc_erd_eadr0_sel_lsu_l[3:0]),
-                           .erc_erd_asiway_s1_l(erc_erd_asiway_s1_l[3:0]),
+                           .erc_erd_asiway_s1_l(erc_erd_asiway_s1_l[`IC_WAY_ARRAY_MASK]),
                            .erc_erd_eadr1_sel_pcd1_l(erc_erd_eadr1_sel_pcd1_l[3:0]),
                            .erc_erd_eadr1_sel_l1pa_l(erc_erd_eadr1_sel_l1pa_l[3:0]),
                            .erc_erd_eadr1_sel_l2pa_l(erc_erd_eadr1_sel_l2pa_l[3:0]),
@@ -2585,7 +2565,7 @@ module sparc_ifu (/*AUTOARG*/
                            .ifq_fcl_asird_bf(ifq_fcl_asird_bf),
                            .ifq_erb_fwdrd_bf(ifq_erb_fwdrd_bf),
                            .ifq_erb_asidata_i2(ifq_erb_asidata_i2[31:0]),
-                           .ifq_erb_asiway_f(ifq_erb_asiway_f[1:0]));
+                           .ifq_erb_asiway_f(ifq_erb_asiway_f[`IC_WAY_MASK]));
 
    // BIST Controller
 //   sparc_ifu_icd_arr_bist bist(// Outputs
@@ -2687,12 +2667,49 @@ sparc_ifu_sscan sscan(
 // `endif   
 
    // floating outputs
-   sink #(4) s0(.in (ict_itlb_tag0_f[32:29]));
-   sink #(4) s1(.in (ict_itlb_tag1_f[32:29]));
-   sink #(4) s2(.in (ict_itlb_tag2_f[32:29]));
-   sink #(4) s3(.in (ict_itlb_tag3_f[32:29]));
+   // sink #(`IC_TAG_UNUSED_SZ) s0(.in (ict_itlb_tags_f[`IC_PHYS_TAG_SZ-1:(`IC_TAG_SZ+1)]));
+   // sink #(`IC_TAG_UNUSED_SZ) s1(.in (ict_itlb_tag1_f[`IC_PHYS_TAG_SZ-1:(`IC_TAG_SZ+1)]));
+   // sink #(`IC_TAG_UNUSED_SZ) s2(.in (ict_itlb_tag2_f[`IC_PHYS_TAG_SZ-1:(`IC_TAG_SZ+1)]));
+   // sink #(`IC_TAG_UNUSED_SZ) s3(.in (ict_itlb_tag3_f[`IC_PHYS_TAG_SZ-1:(`IC_TAG_SZ+1)]));
    // sink #(2) s4(.in (fuse_icd_rid[5:4]));
 
+`ifdef PITON_PROTO
+   `ifndef PITON_PROTO_NO_MON
+      reg   [47:0]   ifu_exu_pc_d_prev;
+
+      always @(posedge rclk)
+         ifu_exu_pc_d_prev <= ifu_exu_pc_d;
+
+      always @(posedge rclk) begin
+         if (ifu_exu_pc_d_prev != ifu_exu_pc_d) begin
+            $display("IFU_EXU_PC_D: changed from 0x%x at", ifu_exu_pc_d_prev, $time);
+         end
+      end
+
+   `endif   // PITON_PROTO_NO_MON
+   
+    //--------------------------------------------------------------------
+    // Implementation of Deadlock FPGA flag
+    (* DONT_TOUCH="true" *) reg  [47:0]     ifu_exu_pc_d_prev;
+    (* DONT_TOUCH="true" *) reg  [31:0]     same_pc_cnt;
+   
+    (* DONT_TOUCH="true" *) wire            same_pc_flag;
+   
+    always @(posedge rclk)
+        ifu_exu_pc_d_prev <= ifu_exu_pc_d;
+   
+    always @(posedge rclk) begin
+        if(~grst_l)
+            same_pc_cnt <= 32'b0;
+        else
+            same_pc_cnt <= ~same_pc_flag ? 32'b0 : same_pc_cnt + 1;
+    end
+    
+    assign same_pc_flag = ifu_exu_pc_d == ifu_exu_pc_d_prev;
+    // End of: implementation of Deadlock FPGA flag
+    //--------------------------------------------------------------------
+    
+`endif      // PITON_PROTO
 
 endmodule
 // Local Variables:

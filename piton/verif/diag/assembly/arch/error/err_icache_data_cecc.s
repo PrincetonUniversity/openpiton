@@ -45,6 +45,14 @@
 #define  ITLB_ENTRY_PA     0x11300045e0
 ! I-Cache Tag parity computed by hand (if PA[38:13] changes, this need be re-computed)
 #define  ICACHE_TAG_PARITY 1
+! 12 for 16KB, 4w icache
+#define  TAG_SHIFT 12
+!#define  TAG_SHIFT 13
+! 0xfe0, or [11:5]
+! 7b of mask == 128 set entries
+#define  SET_MASK 0xfe0
+!#define  SET_MASK 0x1fe0
+
 
 main:
 
@@ -164,7 +172,7 @@ check_ASI_tag_load:
   setx  ITLB_ENTRY_PA, %l0, %g1
 
   ! Compute expected tag on %g2
-  srlx  %g1, 12, %g2              ! PA[39:12] on [27:0]
+  srlx  %g1, TAG_SHIFT, %g2              ! PA[39:12] on [27:0]
   mov   1, %l0
   sllx  %l0, 34, %l0              ! Valid bit
   or    %g2, %l0, %g2
@@ -172,7 +180,7 @@ check_ASI_tag_load:
   sllx  %l0, 32, %l0              ! Parity bit
   or    %g2, %l0, %g2
 
-  and   %g1, 0xfe0, %l0           ! Get set (PA[11:5])
+  and   %g1, SET_MASK, %l0           ! Get set (PA[11:5])
   sllx  %l0, 1, %l0               ! Position set
   ! Read Way 0
   mov   0, %l2

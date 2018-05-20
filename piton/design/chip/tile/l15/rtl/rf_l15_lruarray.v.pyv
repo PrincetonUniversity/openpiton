@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //==================================================================================================
-//  Filename      : l15_rf_128x8.v
+//  Filename      : rf_l15_lruarray.v
 //  Created On    : 2014-02-04 18:14:58
 //  Last Modified : 2014-02-13 18:30:34
 //  Revision      :
@@ -39,8 +39,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //
 //==================================================================================================
-//l15_rf_128x8.v
+//rf_l15_lruarray.v
 
+
+<%
+  import pyhplib
+  from pyhplib import * 
+%>
 //`timescale 1 ns / 10 ps
 //`default_nettype none
 module rf_l15_lruarray(
@@ -48,20 +53,25 @@ module rf_l15_lruarray(
    input wire rst_n,
 
    input wire read_valid,
-   input wire [6:0] read_index,
+   input wire [`L15_CACHE_INDEX_WIDTH-1:0] read_index,
 
    input wire write_valid,
-   input wire [6:0] write_index,
+   input wire [`L15_CACHE_INDEX_WIDTH-1:0] write_index,
    input wire [5:0] write_mask,
    input wire [5:0] write_data,
 
    output wire [5:0] read_data
    );
 
-// reg read_valid_f;
-reg [6:0] read_index_f;
+<%
+   linesize = 16
+   numset = int(CONFIG_L15_SIZE)/int(CONFIG_L15_ASSOCIATIVITY)/linesize
+%>
 
-reg [5:0] regfile [0:127];
+// reg read_valid_f;
+reg [`L15_CACHE_INDEX_WIDTH-1:0] read_index_f;
+
+reg [5:0] regfile [0:`L15_CACHE_INDEX_VECTOR_WIDTH-1];
 
 always @ (posedge clk)
 begin
@@ -85,7 +95,7 @@ begin
    if (!rst_n)
    begin
       <%
-         for i in range (128):
+         for i in range (numset):
             print "regfile[%d] <= 6'b0;" % (i)
       %>
       // regfile <= 1024'b0;

@@ -882,7 +882,7 @@ sub run_injobq
         print JOBCMD "#SBATCH -t 3:00:00               # walltime=1hr6mins\n" ;
     } else {
         print JOBCMD "#SBATCH --ntasks-per-node=1    # ppn=1\n" ;
-        print JOBCMD "#SBATCH --mem=1024              # mem=1GB\n" ;
+        print JOBCMD "#SBATCH --mem=2048              # mem=2GB\n" ;
         print JOBCMD "#SBATCH -t 3:20:00               # walltime=1hr6mins\n" ;
     }
     print JOBCMD "#SBATCH -J  $opt{jobcommand_name} # jobname\n\n" ;
@@ -4899,32 +4899,7 @@ sub parse_args
             'slurm!',
             'dmbr!',
             'dmbr_checker!',
-            # 'config_sram_l2_tag_height=s',
-            # 'config_sram_l2_tag_width=s',
-            # 'config_sram_l2_data_height=s',
-            # 'config_sram_l2_data_width=s',
-            # 'config_sram_l2_state_height=s',
-            # 'config_sram_l2_state_width=s',
-            # 'config_sram_l2_dir_height=s',
-            # 'config_sram_l2_dir_width=s',
-            # 'config_sram_l1i_tag_height=s',
-            # 'config_sram_l1i_tag_width=s',
-            # 'config_sram_l1i_data_height=s',
-            # 'config_sram_l1i_data_width=s',
-            # 'config_sram_l1d_tag_height=s',
-            # 'config_sram_l1d_tag_width=s',
-            # 'config_sram_l1d_data_height=s',
-            # 'config_sram_l1d_data_width=s',
-            # 'config_sram_frf_height=s',
-            # 'config_sram_frf_width=s',
-            # 'config_sram_l15_tag_height=s',
-            # 'config_sram_l15_tag_width=s',
-            # 'config_sram_l15_data_height=s',
-            # 'config_sram_l15_data_width=s',
-            # 'config_sram_l15_hmt_height=s',
-            # 'config_sram_l15_hmt_width=s',
-            # 'config_l15_entry_count=s',
-            # 'config_l15_associativity=s',
+            'oram!',
            );
 
   # print out all command line arguments + config arguments

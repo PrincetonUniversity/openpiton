@@ -98,7 +98,7 @@ our %PROJ_CONFIG =
     ld_opt       => ['-b elf64-sparc', '-no-warn-mismatch',
 		     '--no-check-sections'],
 
-    gcc_cmd      => '/tigress/CLOUD/local/bin/sparc-linux-gnu-gcc',
+    gcc_cmd      => $ENV{'PITON_GCC'},
     #gcc_opt      => ['-m64', '-nostdinc', '-fno-common', '-fno-builtin'],
     #gcc_opt      => ['-m64', '-fno-common', '-static'],
     gcc_opt      => ['-m64', '-fno-common'],
@@ -224,7 +224,7 @@ our %PROJ_CONFIG =
     ld_opt       => ['-b elf64-sparc', '-no-warn-mismatch',
              '--no-check-sections'],
 
-    gcc_cmd      => '/tigress/CLOUD/local/bin/sparc-linux-gnu-gcc',
+    gcc_cmd      => $ENV{'PITON_GCC'},
     #gcc_opt      => ['-m64', '-nostdinc', '-fno-common', '-fno-builtin'],
     #gcc_opt      => ['-m64', '-fno-common', '-static'],
     gcc_opt      => ['-m64', '-fno-common'],

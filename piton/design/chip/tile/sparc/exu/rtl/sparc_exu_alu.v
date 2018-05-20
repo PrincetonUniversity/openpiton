@@ -69,7 +69,7 @@ module sparc_exu_alu
    output [63:0] alu_byp_rd_data_e;          // alu result
    output [47:0] exu_ifu_brpc_e;// branch pc output
    output [47:0] exu_lsu_ldst_va_e; // address for lsu
-   output [10:3] exu_lsu_early_va_e; // faster bits for cache
+   output [`L1D_ADDRESS_HI:3] exu_lsu_early_va_e; // faster bits for cache
    output [7:0]  exu_mmu_early_va_e;
    output        alu_ecl_add_n64_e;
    output        alu_ecl_add_n32_e;
@@ -117,7 +117,7 @@ module sparc_exu_alu
                                .sel(ifu_lsu_casa_e));
    assign     exu_lsu_ldst_va_e[47:0] = va_e[47:0];
    // for bits 10:4 we have a separate bus that is not used for cas
-   assign     exu_lsu_early_va_e[10:3] = adder_out[10:3];
+   assign     exu_lsu_early_va_e[`L1D_ADDRESS_HI:3] = adder_out[`L1D_ADDRESS_HI:3];
    // mmu needs bits 7:0
    assign     exu_mmu_early_va_e[7:0] = adder_out[7:0];
 
@@ -143,7 +143,7 @@ module sparc_exu_alu
 
    // Logic/pass rs2_data
    dff_s invert_d2e(.din(ifu_exu_invert_d), .clk(clk), .q(invert_e), .se(se), .si(), .so());
-   sparc_exu_alulogic logic(.rs1_data(byp_alu_rs1_data_e[63:0]),
+   sparc_exu_alulogic logic_mod(.rs1_data(byp_alu_rs1_data_e[63:0]),
                             .rs2_data(byp_alu_rs2_data_e[63:0]),
                             .isand(ecl_alu_log_sel_and_e),
                             .isor(ecl_alu_log_sel_or_e),

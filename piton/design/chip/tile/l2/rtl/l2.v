@@ -55,12 +55,12 @@ module l2(
     output wire noc1_ready_in,
     
 
-     input wire noc3_valid_in,
-     input wire [`NOC_DATA_WIDTH-1:0] noc3_data_in,
+    input wire noc3_valid_in,
+    input wire [`NOC_DATA_WIDTH-1:0] noc3_data_in,
     output wire noc3_ready_in,
 
-     output wire noc2_valid_out,
-     output wire [`NOC_DATA_WIDTH-1:0] noc2_data_out,
+    output wire noc2_valid_out,
+    output wire [`NOC_DATA_WIDTH-1:0] noc2_data_out,
     input wire noc2_ready_out,
 
     // sram interface

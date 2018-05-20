@@ -3162,7 +3162,7 @@ begin
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H0D;
             msg_send_length_S4 = 2;
-`ifdef SIM_PITON_PHYSICAL
+`ifdef PITON_ASIC_RTL
             msg_send_data_size_S4 = `MSG_DATA_SIZE_64B;
 `else
             msg_send_data_size_S4 = data_size_S4_f;
@@ -3174,7 +3174,7 @@ begin
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H0D;
             msg_send_length_S4 = 2;
-`ifdef SIM_PITON_PHYSICAL           
+`ifdef PITON_ASIC_RTL           
             msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
 `else
             msg_send_data_size_S4 = data_size_S4_f;
@@ -3203,7 +3203,7 @@ begin
         `MSG_TYPE_STORE_MEM:
         begin
             msg_send_length_S4 = 10;
-`ifdef SIM_PITON_PHYSICAL            
+`ifdef PITON_ASIC_RTL            
             msg_send_data_size_S4 = `MSG_DATA_SIZE_64B;
 `else
             msg_send_data_size_S4 = data_size_S4_f;

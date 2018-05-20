@@ -25,7 +25,7 @@
 
 include ${DV_ROOT}/tools/env/Makefile.system
 
-INSTALL = .
+INSTALL = ../../bin
 
 DATE = $(shell date)
 

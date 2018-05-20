@@ -24,20 +24,21 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
+from optparse import OptionParser
+from fpga_lib import *
 
 MAX_BLOCK_NUM   = 255
-BLOCK_SIZE      = 512    # size in bits
-BYTES_PER_BLOCK = BLOCK_SIZE / 8
-ADDR_WIDTH      = 10    # in # of hex digits, 5 bytes = 10 hex digits
+ADDR_BIT_WIDTH  = 40
+ADDR_HEX_WIDTH  = ADDR_BIT_WIDTH / 4
 BLOCK_NUM_WIDTH = 2     # in # of hex digits, 1 byte = 2 hex digits
-BLOCK_WIDTH     = BLOCK_SIZE / 4 # in # of hex digits
 START_TRIGGER   = 0xaaaaaaaaaa
 PA_WIDTH        = 16
 STOP_ADDR       = 0xffffffffff
-DWORD_SIZE      = 16   # # of hex digits
+DWORD_BIT_WIDTH = 64
+DWORD_HEX_WIDTH = DWORD_BIT_WIDTH / 4
 
 def flushGroup(fptr, addr_str, gr_blocks):
-    if int(addr_str, 16) > 2**40 - 1:
+    if int(addr_str, 16) > 2**ADDR_BIT_WIDTH - 1:
         print "ERROR: address %s exceeds maximum possible addres" % addr_str
         exit(2)
 
@@ -46,37 +47,38 @@ def flushGroup(fptr, addr_str, gr_blocks):
     # for b in gr_blocks:
     #   print >> fptr, b
 
-    blk_cnt = 0
-    for b in gr_blocks:
-        blk_addr = int(addr_str,16) + blk_cnt*BYTES_PER_BLOCK
-        blk_cnt += 1
-        print >> fptr, strFromAddr(blk_addr,ADDR_WIDTH)
-        for i in range(0,BLOCK_SIZE/(DWORD_SIZE*4)):
-          print >> fptr, b[i*DWORD_SIZE:(i+1)*DWORD_SIZE]
+    print >> fptr, addr_str
+    print >> fptr, "%02x" % len(gr_blocks)
+    for block in gr_blocks:
+        print >> fptr, block
 
 def strFromAddr(addr, width):
     s = str(hex(addr))
     h = s[2:]
     return (width-len(h))*'0' + h
 
-def makeStreamFile():
-    fin = open('obp.coe', 'r')
-    fout = open('obp.stream', 'w')
+def makeStreamFile(fname_bram):
+    fin = open(fname_bram, 'r')
+    fout = open('test.ustr', 'w')
     block_ovrfl = 0
     block_total = 0
     gr_total = 0
     gr_blocks = list()
     gr_addr = 0
 
-    print >> fout, strFromAddr(START_TRIGGER,ADDR_WIDTH)
+    print >> fout, strFromAddr(START_TRIGGER,ADDR_HEX_WIDTH)
 
-    block_pattern = re.compile('([0-9a-fA-F]{%d})' % BLOCK_WIDTH)
+    blk_bit_width   = NOC_PAYLOAD_WIDTH
+    blk_hex_width   = blk_bit_width / 4
+    bytes_in_blk    = blk_bit_width / 8
+
+    block_pattern = re.compile('([0-9a-fA-F]{%d})' % blk_hex_width)
     for line in fin:
         m = re.search(r'@([0-9a-fA-F]{16})', line)
         if (m != None):
             if (len(gr_blocks) > 0):
                 gr_total += 1
-                flushGroup(fout, strFromAddr(gr_addr,ADDR_WIDTH), gr_blocks)
+                flushGroup(fout, strFromAddr(gr_addr,ADDR_HEX_WIDTH), gr_blocks)
 
             tmp = m.group(1)
             gr_addr = int(tmp, 16)
@@ -90,8 +92,8 @@ def makeStreamFile():
             if (len(gr_blocks) + blk_num) > MAX_BLOCK_NUM:
                 gr_total += 1
                 block_ovrfl += 1
-                flushGroup(fout, strFromAddr(gr_addr,ADDR_WIDTH), gr_blocks)
-                gr_addr = gr_addr + len(gr_blocks)*BYTES_PER_BLOCK
+                flushGroup(fout, strFromAddr(gr_addr,ADDR_HEX_WIDTH), gr_blocks)
+                gr_addr = gr_addr + len(gr_blocks)*bytes_in_blk
                 gr_blocks = blocks
             else:
                 gr_blocks = gr_blocks + blocks
@@ -99,20 +101,15 @@ def makeStreamFile():
 
     if (len(gr_blocks) > 0):
         gr_total += 1
-        flushGroup(fout, strFromAddr(gr_addr,ADDR_WIDTH), gr_blocks)
+        flushGroup(fout, strFromAddr(gr_addr,ADDR_HEX_WIDTH), gr_blocks)
 
-    print >> fout, strFromAddr(STOP_ADDR,ADDR_WIDTH)
+    print >> fout, strFromAddr(STOP_ADDR,ADDR_HEX_WIDTH)
+    print >> fout, '00'
     print >> fout, '00'
 
-    print "DEBUG: # groups %d" % gr_total
-    print "DEBUG: total # of blocks: %d" % block_total
-    print "DEBUG: # groups with overflow: %d" % block_ovrfl
+    # print "DEBUG: # groups %d" % gr_total
+    # print "DEBUG: total # of blocks: %d" % block_total
+    # print "DEBUG: # groups with overflow: %d" % block_ovrfl
 
     fin.close()
     fout.close()
-
-def main():
-    makeStreamFile()
-
-if __name__ == '__main__':
-    main()

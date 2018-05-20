@@ -34,7 +34,7 @@
 module lsu_nospu_wrap
 (
     input                   arst_l,
-    input [10:0]            bist_ctl_reg_out,
+    input [`L1D_ADDRESS_HI:0]            bist_ctl_reg_out,
     input                   clk,
     input [2:0]             const_cpuid,
     input [63:0]            exu_lsu_rs2_data_e,
@@ -200,7 +200,7 @@ module lsu_nospu_wrap
     output [3:0]            lsu_ifu_itlb_en,
     output                  lsu_ifu_l2_corr_error,
     output                  lsu_ifu_l2_unc_error,
-    output [11:5]           lsu_ifu_ld_icache_index,
+    output [`IC_IDX_HI:5]           lsu_ifu_ld_icache_index,
     output [1:0]            lsu_ifu_ld_pcxpkt_tid,
     output                  lsu_ifu_ld_pcxpkt_vld,
     output [3:0]            lsu_ifu_ldst_cmplt,
@@ -256,7 +256,7 @@ module lsu_nospu_wrap
     output [7:0]            lsu_tlu_tlb_asi_state_m,
     output [47:13]          lsu_tlu_tlb_dmp_va_m,
     output                  lsu_tlu_tlb_ld_inst_m,
-    output [10:0]           lsu_tlu_tlb_ldst_va_m,
+    output [`L1D_ADDRESS_HI:0]           lsu_tlu_tlb_ldst_va_m,
     output                  lsu_tlu_tlb_st_inst_m,
     output [8:0]            lsu_tlu_ttype_m2,
     output                  lsu_tlu_ttype_vld_m2,
@@ -270,7 +270,7 @@ module lsu_nospu_wrap
 
     input [`CPX_WIDTH-1:0]  cpx_spc_data_cx,
     input [47:0]            exu_lsu_ldst_va_e,
-    input [10:3]            exu_lsu_early_va_e,
+    input [`L1D_ADDRESS_HI:3]            exu_lsu_early_va_e,
     input   [80:0]          ffu_lsu_data ,
 
 

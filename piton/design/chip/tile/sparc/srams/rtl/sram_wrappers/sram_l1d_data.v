@@ -30,15 +30,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // This file is auto-generated
 // Author: Tri Nguyen
 `include "define.vh"
+`include "lsu.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif
-module sram_l1d_data
+
+`ifdef PRESERVE_PITON_SRAM
+
+module sram_l1d_data_piton
 (
 input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
-input wire [6:0] A,
+input wire [`L1D_SET_IDX_MASK] A,
 input wire RDWEN,
 input wire [287:0] BW,
 input wire [287:0] DIN,
@@ -48,12 +52,12 @@ input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
 output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
-reg [287:0] cache [127:0];
+reg [287:0] cache [`L1D_SET_COUNT-1:0];
 
 integer i;
 initial
 begin
-   for (i = 0; i < 128; i = i + 1)
+   for (i = 0; i < `L1D_SET_COUNT; i = i + 1)
    begin
       cache[i] = 0;
    end
@@ -77,3 +81,52 @@ end
    end
    
 endmodule
+
+`else
+
+module sram_l1d_data
+(
+input wire MEMCLK,
+input wire RESET_N,
+input wire CE,
+input wire [`L1D_SET_IDX_MASK] A,
+input wire RDWEN,
+input wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0] BW,
+input wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0] DIN,
+output wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0] DOUT,
+input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
+input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
+output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
+input wire [`BIST_ID_WIDTH-1:0] SRAMID
+);
+reg [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0] cache [`L1D_SET_COUNT-1:0];
+
+integer i;
+initial
+begin
+   for (i = 0; i < `L1D_SET_COUNT; i = i + 1)
+   begin
+      cache[i] = 0;
+   end
+end
+
+
+
+   reg [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0] dout_f;
+
+   assign DOUT = dout_f;
+
+   always @ (posedge MEMCLK)
+   begin
+      if (CE)
+      begin
+         if (RDWEN == 1'b0)
+            cache[A] <= (DIN & BW) | (cache[A] & ~BW);
+         else
+            dout_f <= cache[A];
+      end
+   end
+   
+endmodule
+
+`endif

@@ -54,7 +54,7 @@ module pcx_decoder(
    output reg [4:0]  pcxdecoder_l15_rqtype,
    output reg        pcxdecoder_l15_nc,
    output reg [2:0]  pcxdecoder_l15_size,
-   output reg [`L15_NUM_THREADS_LOG-1:0]  pcxdecoder_l15_threadid,
+   output reg [`L15_THREADID_MASK]  pcxdecoder_l15_threadid,
    output reg        pcxdecoder_l15_prefetch,
    output reg        pcxdecoder_l15_invalidate_cacheline,
    output reg        pcxdecoder_l15_blockstore,

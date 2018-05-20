@@ -40,7 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 //`timescale 1 ns / 10 ps
-
 `include "l15.tmp.h"
 
 `ifdef DEFAULT_NETTYPE_NONE
@@ -53,14 +52,14 @@ module l15_mshr(
     //s1
     input wire pipe_mshr_writereq_val_s1,
     input wire [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] pipe_mshr_writereq_op_s1,
-    input wire [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] pipe_mshr_writereq_address_s1,
+    input wire [`L15_PADDR_HI:0] pipe_mshr_writereq_address_s1,
     input wire [127:0] pipe_mshr_writereq_write_buffer_data_s1,
     input wire [15:0] pipe_mshr_writereq_write_buffer_byte_mask_s1,
     input wire [`L15_CONTROL_WIDTH-1:0] pipe_mshr_writereq_control_s1,
     input wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_writereq_mshrid_s1,
-    input wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_writereq_threadid_s1,
+    input wire [`L15_THREADID_MASK] pipe_mshr_writereq_threadid_s1,
 
-    input wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_readreq_threadid_s1,
+    input wire [`L15_THREADID_MASK] pipe_mshr_readreq_threadid_s1,
     input wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_readreq_mshrid_s1,
     output reg [`L15_CONTROL_WIDTH-1:0]mshr_pipe_readres_control_s1,
     output reg [`PACKET_HOME_ID_WIDTH-1:0] mshr_pipe_readres_homeid_s1,
@@ -74,7 +73,7 @@ module l15_mshr(
 
     //s2
     input wire pipe_mshr_write_buffer_rd_en_s2,
-    input wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_threadid_s2,
+    input wire [`L15_THREADID_MASK] pipe_mshr_threadid_s2,
     output reg [127:0]mshr_pipe_write_buffer_s2,
     output reg [15:0] mshr_pipe_write_buffer_byte_mask_s2,
 
@@ -82,7 +81,7 @@ module l15_mshr(
     input wire pipe_mshr_val_s3,
     input wire [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] pipe_mshr_op_s3,
     input wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_mshrid_s3,
-    input wire [`L15_NUM_THREADS_LOG-1:0] pipe_mshr_threadid_s3,
+    input wire [`L15_THREADID_MASK] pipe_mshr_threadid_s3,
     input wire [`L15_MESI_TRANS_STATE_WIDTH-1:0] pipe_mshr_write_update_state_s3,
     input wire [1:0] pipe_mshr_write_update_way_s3,
 
@@ -96,11 +95,11 @@ module l15_mshr(
     // homeid related signals
     input wire noc1buffer_mshr_homeid_write_val_s4,
     input wire [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_mshrid_s4,
-    input wire [`L15_NUM_THREADS_LOG-1:0] noc1buffer_mshr_homeid_write_threadid_s4,
+    input wire [`L15_THREADID_MASK] noc1buffer_mshr_homeid_write_threadid_s4,
     input wire [`PACKET_HOME_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_data_s4
     );
 
-// reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0]                    address_array [0:9];
+// reg [`L15_PADDR_HI:0]                    address_array [0:9];
 // reg [`L15_CONTROL_WIDTH-1:0]   control_array [0:9];
 // reg [9:0] val_array;
 
@@ -114,17 +113,17 @@ module l15_mshr(
 // reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] st9_state;
 // reg [`PACKET_HOME_ID_WIDTH-1:0] st_fill_homeid[0:1];
 
-reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] ld_address [0:`L15_NUM_THREADS-1];
+reg [`L15_PADDR_HI:0] ld_address [0:`L15_NUM_THREADS-1];
 reg [`L15_CONTROL_WIDTH-1:0] ld_control [0:`L15_NUM_THREADS-1];
 reg [`L15_NUM_THREADS-1:0] ld_val;
 reg [`PACKET_HOME_ID_WIDTH-1:0] ld_homeid [0:`L15_NUM_THREADS-1];
 
-// reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] ifill_address [0:`L15_NUM_THREADS-1];
+// reg [`L15_PADDR_HI:0] ifill_address [0:`L15_NUM_THREADS-1];
 reg [`L15_CONTROL_WIDTH-1:0] ifill_control [0:`L15_NUM_THREADS-1];
 reg [`L15_NUM_THREADS-1:0] ifill_val;
 // reg [`PACKET_HOME_ID_WIDTH-1:0] ifill_homeid [0:`L15_NUM_THREADS-1];
 
-reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] st_address [0:`L15_NUM_THREADS-1];
+reg [`L15_PADDR_HI:0] st_address [0:`L15_NUM_THREADS-1];
 reg [`L15_CONTROL_WIDTH-1:0] st_control [0:`L15_NUM_THREADS-1];
 reg [`L15_NUM_THREADS-1:0] st_val;
 reg [`PACKET_HOME_ID_WIDTH-1:0] st_homeid [0:`L15_NUM_THREADS-1];
@@ -138,8 +137,8 @@ reg [15:0] st_write_buffer_byte_mask [0:`L15_NUM_THREADS-1];
 /////////////////
 reg [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] op_s1;
 reg [`L15_MSHR_WRITE_TYPE_WIDTH-1:0] op_s3;
-reg [`L15_NUM_THREADS_LOG-1:0] threadid_s1;
-reg [`L15_NUM_THREADS_LOG-1:0] threadid_s3;
+reg [`L15_THREADID_MASK] threadid_s1;
+reg [`L15_THREADID_MASK] threadid_s3;
 reg [`L15_MSHR_ID_WIDTH-1:0] mshrid_s1;
 reg [`L15_MSHR_ID_WIDTH-1:0] mshrid_s3;
 always @ *
@@ -155,8 +154,8 @@ end
 
 // Read operation/outputs
 reg [`L15_NUM_MSHRID_PER_THREAD-1:0] tmp_vals [`L15_NUM_THREADS-1:0];
-reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] tmp_st_address [`L15_NUM_THREADS-1:0];
-reg [`L15_PHYSICAL_ADDRESS_WIDTH-1:0] tmp_ld_address [`L15_NUM_THREADS-1:0];
+reg [`L15_PADDR_HI:0] tmp_st_address [`L15_NUM_THREADS-1:0];
+reg [`L15_PADDR_HI:0] tmp_ld_address [`L15_NUM_THREADS-1:0];
 reg [2-1:0] tmp_st_way [`L15_NUM_THREADS-1:0];
 reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] tmp_st_state [`L15_NUM_THREADS-1:0];
 always @ *

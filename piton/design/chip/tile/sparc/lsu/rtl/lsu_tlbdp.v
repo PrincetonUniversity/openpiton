@@ -20,7 +20,7 @@
 // 
 // ========== Copyright Header End ============================================
 
-`include "lsu.tmp.h" 
+`include        "lsu.tmp.h"
 
 module lsu_tlbdp(/*AUTOARG*/
    // Outputs
@@ -79,9 +79,9 @@ input    tlb_rd_tte_tag_parity ;  // data parity bit from tte tag
 output   tte_data_parity_error ;
 output   tte_tag_parity_error ;
 
-   input [3:0] cache_way_hit;
-   output [3:0] cache_way_hit_buf1;
-   output [3:0] cache_way_hit_buf2;
+   input [`L1D_WAY_COUNT-1:0] cache_way_hit;
+   output [`L1D_WAY_COUNT-1:0] cache_way_hit_buf1;
+   output [`L1D_WAY_COUNT-1:0] cache_way_hit_buf2;
 
 output  [2:0]           lsu_tlu_tte_pg_sz_g ;   // page-size of tte 
 
@@ -327,8 +327,8 @@ assign  tte_data_parity_error =
 assign  tte_tag_parity_error  = 
   tlb_rd_tte_tag_parity ^ lsu_rd_tte_tag_parity ;
 
-   assign cache_way_hit_buf1[3:0] = cache_way_hit[3:0] ;
-   assign cache_way_hit_buf2[3:0] = cache_way_hit[3:0];
+   assign cache_way_hit_buf1[`L1D_WAY_COUNT-1:0] = cache_way_hit[`L1D_WAY_COUNT-1:0];
+   assign cache_way_hit_buf2[`L1D_WAY_COUNT-1:0] = cache_way_hit[`L1D_WAY_COUNT-1:0];
 
    
 endmodule

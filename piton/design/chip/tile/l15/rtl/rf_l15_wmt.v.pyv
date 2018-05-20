@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //==================================================================================================
-//  Filename      : l15_rf_128x8.v
+//  Filename      : rf_l15_wmt.v
 //  Created On    : 2014-02-04 18:14:58
 //  Last Modified : 2014-12-18 17:10:02
 //  Revision      :
@@ -39,29 +39,40 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //
 //==================================================================================================
-//l15_rf_128x8.v
+//rf_l15_wmt.v
 
 // trin timing fix 12/16: move read s3 to s2
 // timing 12/17: move write to s2 to s3
 
+<%
+  import pyhplib
+  from pyhplib import * 
+%>
 module rf_l15_wmt(
    input wire clk,
    input wire rst_n,
 
    input wire read_valid,
-   input wire [6:0] read_index,
+   input wire [`L1D_SET_IDX_MASK] read_index,
 
    input wire write_valid,
-   input wire [6:0] write_index,
-   input wire [11:0] write_mask,
-   input wire [11:0] write_data,
+   input wire [`L1D_SET_IDX_MASK] write_index,
+   input wire [`L15_WMT_MASK] write_mask,
+   input wire [`L15_WMT_MASK] write_data,
 
-   output wire [11:0] read_data
+   output wire [`L15_WMT_MASK] read_data
    );
 
-// reg [11:0] data_out_f;
+<%
+   linesize = 16
+   numset = int(CONFIG_L1D_SIZE)/int(CONFIG_L1D_ASSOCIATIVITY)/linesize
+   numway=int(CONFIG_L1D_ASSOCIATIVITY)
+   # numset=128
+   # numway=4
+%>
+// reg [`L15_WMT_MASK] data_out_f;
 
-// reg [11:0] regfile [0:127];
+// reg [`L15_WMT_MASK] regfile [0:127];
 
 // always @ (posedge clk)
 // begin
@@ -73,13 +84,13 @@ module rf_l15_wmt(
 // assign read_data = data_out_f;
 
 
-reg [11:0] data_out_f;
-reg [6:0] write_index_f;
-reg [11:0] write_data_f;
-reg [11:0] write_mask_f;
+reg [`L15_WMT_MASK] data_out_f;
+reg [`L1D_SET_IDX_MASK] write_index_f;
+reg [`L15_WMT_MASK] write_data_f;
+reg [`L15_WMT_MASK] write_mask_f;
 reg write_valid_f;
 
-reg [11:0] regfile [0:127];
+reg [`L15_WMT_MASK] regfile [0:`L15_WMT_ENTRY_COUNT-1];
 
 always @ (posedge clk)
 begin
@@ -108,8 +119,9 @@ begin
    if (!rst_n)
    begin
       <%
-         for i in range (128):
-            print "regfile[%d] <= 12'b0;" % (i)
+         for i in range (numset):
+            for j in range (numway):
+               print "regfile[%d][`L15_WMT_ENTRY_%d_VALID_MASK] <= 1'b0;" % (i,j)
       %>
    end
    else

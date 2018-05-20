@@ -58,6 +58,7 @@ module sparc_core(
     output wire [`TLB_CSM] spc0_pcx_csm_pa,
     `endif
     output wire [123:0] spc0_pcx_data_pa
+
 );
 
 // WIRE Definitions for unused outputs

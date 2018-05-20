@@ -29,7 +29,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <TverLine.H>
+#include <iostream>
 
+using namespace std;
 
 // define the read operator:  '>>' ...
 istream& operator>>(istream& is, TverLine& tLine) {

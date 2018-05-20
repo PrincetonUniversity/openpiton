@@ -111,6 +111,7 @@ fpga_bridge_rcv_32 fpga_side (
     .rst(rst), 
     .wr_clk(intcnct_clk),
     .rd_clk(fpga_clk),
+    .credit_rd_clk(intcnct_clk),
     .bout_data_1(network_out_1),
     .bout_val_1(data_out_val_1),
     .bout_rdy_1(data_out_rdy_1),

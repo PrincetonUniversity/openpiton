@@ -34,6 +34,7 @@ jtag = libjtag.JtagGen()
 
 jtag.CommitWait(1000)
 jtag.CommandStallCore(coreid=0, threadid=0, stall=1)
+jtag.CommandStallCore(coreid=1, threadid=0, stall=1)
 
 pc = jtag.HexToBin('000020000040', length=48)
 # pc = jtag.HexToBin('0x00000400c0', length=48)

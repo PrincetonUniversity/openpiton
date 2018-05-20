@@ -33,7 +33,7 @@
                   // time scale definition
 `include  "iop.h" 
 
-`include "lsu.tmp.h" 
+`include  "lsu.tmp.h" 
 
 ////////////////////////////////////////////////////////////////////////
 // Local header file includes / local defines
@@ -279,10 +279,10 @@ output  [3:0]           lsu_dfq_byp_tid_d1_sel;
    input [3:0]          lsu_no_spc_pref;
    
 //output  [1:0]           lsu_lmq_pkt_way_g;
-output  [1:0]           lmq0_pcx_pkt_way;
-output  [1:0]           lmq1_pcx_pkt_way;
-output  [1:0]           lmq2_pcx_pkt_way;
-output  [1:0]           lmq3_pcx_pkt_way;
+output  [`L1D_WAY_MASK]           lmq0_pcx_pkt_way;
+output  [`L1D_WAY_MASK]           lmq1_pcx_pkt_way;
+output  [`L1D_WAY_MASK]           lmq2_pcx_pkt_way;
+output  [`L1D_WAY_MASK]           lmq3_pcx_pkt_way;
 output  [3:0]           lsu_st_pcx_rq_pick;
 
 // signals related to logic moved from stb_rwctl
@@ -430,7 +430,7 @@ wire    ld0_sec_hit_w2,ld1_sec_hit_w2,ld2_sec_hit_w2,ld3_sec_hit_w2;
 //wire  [3:0] dfq_byp_sel_m;
 wire                 ld0_unfilled,ld1_unfilled,ld2_unfilled,ld3_unfilled;
 wire                 ld0_unfilled_tmp,ld1_unfilled_tmp,ld2_unfilled_tmp,ld3_unfilled_tmp;
-wire  [1:0]          ld0_unfilled_wy,ld1_unfilled_wy,ld2_unfilled_wy,ld3_unfilled_wy ;
+wire  [`L1D_WAY_MASK]          ld0_unfilled_wy,ld1_unfilled_wy,ld2_unfilled_wy,ld3_unfilled_wy ;
 wire        ld0_l2cache_rq,ld1_l2cache_rq ;
 wire        ld2_l2cache_rq,ld3_l2cache_rq ;
 wire                 ld0_pcx_rq_sel_d1, ld1_pcx_rq_sel_d1 ;
@@ -445,7 +445,7 @@ wire         ldst_dbl_g;
 //wire                  lsu_ld_sec_hit_l2access_g ;
 wire                  lsu_ld_sec_hit_l2access_w2 ;
 //wire  [1:0]           lsu_ld_sec_hit_wy_g ;
-wire  [1:0]           lsu_ld_sec_hit_wy_w2 ;
+wire  [`L1D_WAY_MASK]           lsu_ld_sec_hit_wy_w2 ;
 //wire  [1:0]  ld_way;
 //wire [1:0]	      ld_pcx_pkt_wy_g ;
 
@@ -573,63 +573,63 @@ assign	lsu_ramtest_rd_w = lsu_dcache_iob_rd_w | ifu_lsu_fwd_data_vld ;
 //        casa_g ? 2'b00 : ld_way[1:0] ;
 //
 //assign  ld_pcx_pkt_wy_g[1:0] = lsu_lmq_pkt_way_g[1:0];
-wire  [1:0]  ld_way_mx1_g , ld_way_mx2_g , ld_way_mx2_w2;
+wire  [`L1D_WAY_MASK]  ld_way_mx1_g , ld_way_mx2_g , ld_way_mx2_w2;
 
-assign  ld_way_mx1_g[1:0] = 
-    lsu_way_hit_or ? lsu_encd_way_hit[1:0]: 
-                        (dc_direct_map ? lsu_ldst_va_way_g[1:0] : lsu_dcache_rand[1:0]) ;
+assign  ld_way_mx1_g[`L1D_WAY_MASK] = 
+    lsu_way_hit_or ? lsu_encd_way_hit[`L1D_WAY_MASK]: 
+                        (dc_direct_map ? lsu_ldst_va_way_g[`L1D_WAY_MASK] : lsu_dcache_rand[`L1D_WAY_MASK]) ;
 
-assign  ld_way_mx2_g[1:0] = 
+assign  ld_way_mx2_g[`L1D_WAY_MASK] = 
 //(ldst_dbl_g & st_inst_vld_unflushed & lsu_quad_asi_g) ? 2'b01 :  //quad st, obsolete
-        casa_g ? 2'b00 : ld_way_mx1_g[1:0] ;
+        casa_g ? {`L1D_WAY_WIDTH{1'b0}} : ld_way_mx1_g[`L1D_WAY_MASK] ;
 
-dff_s #(2)  ff_ld_way_mx2_w2 (
-        .din    (ld_way_mx2_g[1:0]),
-        .q      (ld_way_mx2_w2[1:0]),
+dff_s #(`L1D_WAY_WIDTH)  ff_ld_way_mx2_w2 (
+        .din    (ld_way_mx2_g[`L1D_WAY_MASK]),
+        .q      (ld_way_mx2_w2[`L1D_WAY_MASK]),
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
         );
 
-wire  [1:0]  lsu_lmq_pkt_way_w2;
-assign  lsu_lmq_pkt_way_w2[1:0] =  lsu_ld_sec_hit_l2access_w2 ? lsu_ld_sec_hit_wy_w2[1:0] :
-                                         ld_way_mx2_w2[1:0];
+wire  [`L1D_WAY_MASK]  lsu_lmq_pkt_way_w2;
+assign  lsu_lmq_pkt_way_w2[`L1D_WAY_MASK] =  lsu_ld_sec_hit_l2access_w2 ? lsu_ld_sec_hit_wy_w2[`L1D_WAY_MASK] :
+                                         ld_way_mx2_w2[`L1D_WAY_MASK];
 
 //bug2705 - add mx for way in w2-cycle
-wire  [1:0]  lmq0_pcx_pkt_way_tmp, lmq1_pcx_pkt_way_tmp, lmq2_pcx_pkt_way_tmp, lmq3_pcx_pkt_way_tmp ;
+wire  [`L1D_WAY_MASK]  lmq0_pcx_pkt_way_tmp, lmq1_pcx_pkt_way_tmp, lmq2_pcx_pkt_way_tmp, lmq3_pcx_pkt_way_tmp ;
 
-assign  lmq0_pcx_pkt_way[1:0] =  ld0_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[1:0] : lmq0_pcx_pkt_way_tmp[1:0] ;
-assign  lmq1_pcx_pkt_way[1:0] =  ld1_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[1:0] : lmq1_pcx_pkt_way_tmp[1:0] ;
-assign  lmq2_pcx_pkt_way[1:0] =  ld2_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[1:0] : lmq2_pcx_pkt_way_tmp[1:0] ;
-assign  lmq3_pcx_pkt_way[1:0] =  ld3_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[1:0] : lmq3_pcx_pkt_way_tmp[1:0] ;
+assign  lmq0_pcx_pkt_way[`L1D_WAY_MASK] =  ld0_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[`L1D_WAY_MASK] : lmq0_pcx_pkt_way_tmp[`L1D_WAY_MASK] ;
+assign  lmq1_pcx_pkt_way[`L1D_WAY_MASK] =  ld1_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[`L1D_WAY_MASK] : lmq1_pcx_pkt_way_tmp[`L1D_WAY_MASK] ;
+assign  lmq2_pcx_pkt_way[`L1D_WAY_MASK] =  ld2_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[`L1D_WAY_MASK] : lmq2_pcx_pkt_way_tmp[`L1D_WAY_MASK] ;
+assign  lmq3_pcx_pkt_way[`L1D_WAY_MASK] =  ld3_spec_pick_vld_w2 ? lsu_lmq_pkt_way_w2[`L1D_WAY_MASK] : lmq3_pcx_pkt_way_tmp[`L1D_WAY_MASK] ;
 
 wire	qword_access0,qword_access1,qword_access2,qword_access3;
 
 // Extend by 1-b to add support for 3rd size bit for iospace.
 // move the flops from qdp1 to qctl1
-dffe_s #(2)  ff_lmq0_pcx_pkt_way (
-           .din    (lsu_lmq_pkt_way_w2[1:0]),
-           .q      (lmq0_pcx_pkt_way_tmp[1:0]),
+dffe_s #(`L1D_WAY_WIDTH)  ff_lmq0_pcx_pkt_way (
+           .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+           .q      (lmq0_pcx_pkt_way_tmp[`L1D_WAY_MASK]),
            .en     (lmq_enable_w2[0]),
            .clk    (clk),
            .se     (1'b0),       .si (),          .so ()
            );
-dffe_s #(2)  ff_lmq1_pcx_pkt_way (
-           .din    (lsu_lmq_pkt_way_w2[1:0]),
-           .q      (lmq1_pcx_pkt_way_tmp[1:0]),
+dffe_s #(`L1D_WAY_WIDTH)  ff_lmq1_pcx_pkt_way (
+           .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+           .q      (lmq1_pcx_pkt_way_tmp[`L1D_WAY_MASK]),
            .en     (lmq_enable_w2[1]),
            .clk    (clk),
            .se     (1'b0),       .si (),          .so ()
            );
-dffe_s #(2)  ff_lmq2_pcx_pkt_way (
-           .din    (lsu_lmq_pkt_way_w2[1:0]),
-           .q      (lmq2_pcx_pkt_way_tmp[1:0]),
+dffe_s #(`L1D_WAY_WIDTH)  ff_lmq2_pcx_pkt_way (
+           .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+           .q      (lmq2_pcx_pkt_way_tmp[`L1D_WAY_MASK]),
            .en     (lmq_enable_w2[2]),
            .clk    (clk),
            .se     (1'b0),       .si (),          .so ()
            );
-dffe_s #(2)  ff_lmq3_pcx_pkt_way (
-           .din    (lsu_lmq_pkt_way_w2[1:0]),
-           .q      (lmq3_pcx_pkt_way_tmp[1:0]),
+dffe_s #(`L1D_WAY_WIDTH)  ff_lmq3_pcx_pkt_way (
+           .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+           .q      (lmq3_pcx_pkt_way_tmp[`L1D_WAY_MASK]),
            .en     (lmq_enable_w2[3]),
            .clk    (clk),
            .se     (1'b0),       .si (),          .so ()
@@ -815,11 +815,11 @@ assign  lsu_ld_sec_hit_l2access_w2 =
 
 //phase 2
 //since can be multiple hits, it isn't one-hot mux, but fix priority-sel mux
-assign  lsu_ld_sec_hit_wy_w2[1:0] =
-    ld0_sec_hit_w2 ? ld0_unfilled_wy[1:0] :
-      ld1_sec_hit_w2 ? ld1_unfilled_wy[1:0] :
-        ld2_sec_hit_w2 ? ld2_unfilled_wy[1:0] :
-          ld3_sec_hit_w2 ? ld3_unfilled_wy[1:0] : 2'bxx ;
+assign  lsu_ld_sec_hit_wy_w2[`L1D_WAY_MASK] =
+    ld0_sec_hit_w2 ? ld0_unfilled_wy[`L1D_WAY_MASK] :
+      ld1_sec_hit_w2 ? ld1_unfilled_wy[`L1D_WAY_MASK] :
+        ld2_sec_hit_w2 ? ld2_unfilled_wy[`L1D_WAY_MASK] :
+          ld3_sec_hit_w2 ? ld3_unfilled_wy[`L1D_WAY_MASK] : {`L1D_WAY_WIDTH{1'bx}} ;
 
 //dff #(4)  stgm_dbypsel (
 //        .din    (dfq_byp_sel[3:0]),
@@ -1929,10 +1929,10 @@ dffre_s #(1)  ld0out_state (
         .se     (1'b0),       .si (),          .so ()
         );
 
-dffre_s #(2)  ld0out_state_way (
-        //.din    (ld_pcx_pkt_wy_mx0[1:0]}),
-        .din    (lsu_lmq_pkt_way_w2[1:0]),
-        .q      (ld0_unfilled_wy[1:0]),
+dffre_s #(`L1D_WAY_WIDTH)  ld0out_state_way (
+        //.din    (ld_pcx_pkt_wy_mx0[`L1D_WAY_MASK]}),
+        .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+        .q      (ld0_unfilled_wy[`L1D_WAY_MASK]),
         .rst    (ld0_fill_reset_d2),  .en     (ld0_unfilled_wy_en),
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
@@ -2081,10 +2081,10 @@ dffre_s  #(1)  ld1out_state (
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
   );
-dffre_s  #(2)  ld1out_state_way (
-        //.din    (ld_pcx_pkt_wy_mx1[1:0]),
-        .din    (lsu_lmq_pkt_way_w2[1:0]),
-        .q      (ld1_unfilled_wy[1:0]),
+dffre_s  #(`L1D_WAY_WIDTH)  ld1out_state_way (
+        //.din    (ld_pcx_pkt_wy_mx1[`L1D_WAY_MASK]),
+        .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+        .q      (ld1_unfilled_wy[`L1D_WAY_MASK]),
         .rst    (ld1_fill_reset_d2),  .en     (ld1_unfilled_wy_en),
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
@@ -2235,9 +2235,9 @@ dffre_s  #(1) ld2out_state (
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
         );
-dffre_s  #(2) ld2out_state_way (
-        .din    (lsu_lmq_pkt_way_w2[1:0]),
-        .q      (ld2_unfilled_wy[1:0]),
+dffre_s  #(`L1D_WAY_WIDTH) ld2out_state_way (
+        .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+        .q      (ld2_unfilled_wy[`L1D_WAY_MASK]),
         .rst    (ld2_fill_reset_d2),  .en     (ld2_unfilled_wy_en),
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
@@ -2386,9 +2386,9 @@ dffre_s #(1)  ld3out_state (
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()
         );
-dffre_s #(2)  ld3out_state_way (
-        .din    (lsu_lmq_pkt_way_w2[1:0]),
-        .q      (ld3_unfilled_wy[1:0]),
+dffre_s #(`L1D_WAY_WIDTH)  ld3out_state_way (
+        .din    (lsu_lmq_pkt_way_w2[`L1D_WAY_MASK]),
+        .q      (ld3_unfilled_wy[`L1D_WAY_MASK]),
         .rst    (ld3_fill_reset_d2),  .en     (ld3_unfilled_wy_en),
         .clk    (clk),
         .se     (1'b0),       .si (),          .so ()

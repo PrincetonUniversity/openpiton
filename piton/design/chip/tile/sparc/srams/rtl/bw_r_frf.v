@@ -26,6 +26,11 @@
 //     78 bits (64 bits data, 14 bits ecc) wide.
 */
 
+// `define NO_USE_IBM_SRAMS
+`define IBM_SRAM_FRF
+// trin 4/18/16: always use nowrapper implementation
+//  all others will fail floating point tests
+
 `ifndef NO_USE_IBM_SRAMS
 `define IBM_SRAM_FRF
 `endif
@@ -181,16 +186,7 @@ sram_1rw_128x78 regfile
 endmodule // sparc_ffu_frf
 
 
-
-
-
-
-
-
-
-
-
-`else
+`else // when NO_USE_IBM_SRAMS is defined
 
 
 module bw_r_frf (/*AUTOARG*/

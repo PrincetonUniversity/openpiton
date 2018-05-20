@@ -446,8 +446,23 @@ module bw_r_icd_orig(
    bist_ic_data, rst_tri_en, ifq_icd_data_sel_old_i2,
    ifq_icd_data_sel_fill_i2, ifq_icd_data_sel_bist_i2, fuse_icd_wren,
    fuse_icd_rid, fuse_icd_repair_value, fuse_icd_repair_en,
-   efc_spc_fuse_clk1
+   efc_spc_fuse_clk1,
+
+    // sram wrapper interface
+    sram_icache_w10_rtap_data,
+    sram_icache_w32_rtap_data,
+    rtap_srams_bist_command,
+    rtap_srams_bist_data
    );
+
+    // sram wrapper interface
+    output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w10_rtap_data;
+    output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w32_rtap_data;
+    // dummy output for the reference model
+    assign sram_icache_w10_rtap_data = 0;
+    assign sram_icache_w32_rtap_data = 0;
+    input  [`BIST_OP_WIDTH-1:0] rtap_srams_bist_command;
+    input  [`SRAM_WRAPPER_BUS_WIDTH-1:0] rtap_srams_bist_data;
 
    input          rclk,
                   se,

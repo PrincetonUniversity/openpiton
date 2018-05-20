@@ -30,9 +30,11 @@
 //----------------------------------------------------------------------
 
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include <ctype.h>
 #include <Configsrch.H>
+
+using namespace std;
 
 //  Class TverLine provides a clean interface to the entries in a Tool
 //  Release Engineering (TRE) Tool Version (.tver) file.  The purpose of

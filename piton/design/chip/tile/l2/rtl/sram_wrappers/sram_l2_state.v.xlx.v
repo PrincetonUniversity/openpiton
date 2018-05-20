@@ -54,6 +54,10 @@ output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
 
+reg            write_en_muxed;
+reg   [21:0]   wen_mask_muxed;
+reg   [175:0]  data_in_muxed;
+reg   [7:0]    AB_muxed;
 
 wire           write_en;
 wire           read_en;
@@ -87,85 +91,74 @@ assign DOUTA      = {data_out[169:168],data_out[163:160],
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-`ifdef ML605_BOARD
-   // TODO:  for 32k L2 ?
-   bram_256x176 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (AB         ),
-      .dina    (data_in    ),
-     
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (AA         ),
-      .doutb   (data_out   )
-   );
-`elsif NEXYS4DDR_BOARD
-   `ifdef L2_32K_4WAY
-      artix7_bram_2p_128x176 mem ( // for 32k L2
-   `else 
-      artix7_bram_2p_256x176 mem (
-   `endif
-   
-   .BRAM_PORTA_clk    (MEMCLK     ),
-   .BRAM_PORTA_en     (write_en   ),
-   .BRAM_PORTA_we     (wen_mask   ),
-   .BRAM_PORTA_addr   (AB         ),
-   .BRAM_PORTA_din    (data_in    ),
-   
-   .BRAM_PORTB_clk    (MEMCLK     ),
-   .BRAM_PORTB_en     (read_en    ),
-   .BRAM_PORTB_addr   (AA         ),
-   .BRAM_PORTB_dout   (data_out   )
-);
-`elsif VC707_BOARD
-    `ifdef L2_32K_4WAY
-      virtex7_bram_2p_128x176 mem ( // for 32k L2
-   `else 
-      virtex7_bram_2p_256x176 mem ( // 64K L2
-   `endif
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (AB         ),
-      .dina    (data_in    ),
-      .douta   (           ),
-     
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .web     ({22{1'b0}} ),   // added because us DRC error 23-20
-      .addrb   (AA         ),
-      .dinb    ({176{1'b0}}),
-      .doutb   (data_out   )
-   );
-
-`else
-
-   `ifdef L2_32K_4WAY
-      bram_2p_128x176 mem ( // for 32k L2
-   `else 
-      bram_2p_256x176 mem ( // 64K L2
-   `endif
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (AB         ),
-      .dina    (data_in    ),
-      .douta   (           ),
-     
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .web     ({22{1'b0}} ),   // added because us DRC error 23-20
-      .addrb   (AA         ),
-      .dinb    ({176{1'b0}}),
-      .doutb   (data_out   )
-   );
-
-
+`ifdef L2_32K_4WAY
+   bram_2p_128x176 mem ( // for 32k L2
+`else 
+   bram_2p_256x176 mem ( // 64K L2
 `endif
+   .clka    (MEMCLK     ),
+   .ena     (write_en_muxed   ),
+   .wea     (wen_mask_muxed   ),
+   .addra   (AB_muxed         ),
+   .dina    (data_in_muxed    ),
+   .douta   (           ),
+  
+   .clkb    (MEMCLK     ),
+   .enb     (read_en    ),
+   .web     ({22{1'b0}} ),   // added because us DRC error 23-20
+   .addrb   (AA         ),
+   .dinb    ({176{1'b0}}),
+   .doutb   (data_out   )
+);
 
 
+localparam INIT_STATE = 1'd0;
+localparam DONE_STATE  = 1'd1;
 
+localparam INDEX_WIDTH = 8;
+localparam DATA_WIDTH = 66;
+
+reg [INDEX_WIDTH-1:0] bist_index;
+reg [INDEX_WIDTH-1:0] bist_index_next;
+reg init_done;
+reg init_done_next;
+
+always @ (posedge MEMCLK)
+begin
+   if (!RESET_N)
+   begin
+      bist_index <= 0;
+      init_done <= 0;
+   end
+   else
+   begin
+      bist_index <= bist_index_next;
+      init_done <= init_done_next;
+   end
+end
+
+always @ *
+begin
+   bist_index_next = init_done ? bist_index : bist_index + 1;
+   init_done_next = ((|(~bist_index)) == 0) | init_done;
+end
+
+always @ *
+begin
+   if (!init_done)
+   begin
+      write_en_muxed = 1'b1;
+      wen_mask_muxed = ~(22'b0);
+      data_in_muxed = 176'b0;
+      AB_muxed = bist_index;
+   end
+   else
+   begin
+      write_en_muxed = write_en;
+      wen_mask_muxed = wen_mask;
+      data_in_muxed = data_in;
+      AB_muxed = AB;
+   end
+end
 
 endmodule

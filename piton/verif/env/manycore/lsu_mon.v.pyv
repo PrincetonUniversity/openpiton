@@ -23,8 +23,8 @@
 // lsu_mon.vpal
 //
 // Description: LSU Monitor for monitoring some coverage conditions
-//    as well as some checkers. Run pal to get .v
-//    like pal -r -o lsu_mon.v lsu_mon.vpal
+// 		as well as some checkers. Run pal to get .v
+// 		like pal -r -o lsu_mon.v lsu_mon.vpal
 ////////////////////////////////////////////////////////
 
 `include "cross_module.tmp.h"
@@ -36,11 +36,11 @@
 %>
 
 module lsu_mon ( clk, rst_l);
-  input clk;    // the cpu clock
-  input rst_l;    // reset (active low).
+  input clk;		// the cpu clock
+  input rst_l;		// reset (active low).
 
 
-   reg  lsu_mon_msg;
+   reg 	lsu_mon_msg;
   initial
   begin
     if( $test$plusargs("lsu_mon_msg") )
@@ -56,8 +56,8 @@ text = '''
 wire       spc1_dva_ren             = `SPARC_CORE1.sparc0.lsu.lsu.ifu_lsu_ld_inst_e;
 wire       spc1_dva_wen             = `SPARC_CORE1.sparc0.lsu.lsu.lsu_dtagv_wr_vld_e;
 wire       spc1_dva_din             = `SPARC_CORE1.sparc0.lsu.lsu.dva_din_e;
-wire [3:0] spc1_dva_dout            = `SPARC_CORE1.sparc0.lsu.lsu.dva_vld_m[3:0];
-wire [6:0] spc1_dva_raddr           = `SPARC_CORE1.sparc0.lsu.lsu.exu_lsu_early_va_e[10:4];
+wire [`L1D_WAY_ARRAY_MASK] spc1_dva_dout            = `SPARC_CORE1.sparc0.lsu.lsu.dva_vld_m[`L1D_WAY_ARRAY_MASK];
+wire [`L1D_ADDRESS_HI-4:0] spc1_dva_raddr           = `SPARC_CORE1.sparc0.lsu.lsu.exu_lsu_early_va_e[`L1D_ADDRESS_HI:4];
 wire [4:0] spc1_dva_waddr           = `SPARC_CORE1.sparc0.lsu.lsu.dva_wr_adr_e[10:6];
 wire       spc1_dva_dtag_perror     = `SPARC_CORE1.sparc0.lsu.lsu.lsu_cpx_ld_dtag_perror_e;
 wire       spc1_dva_dcache_perror   = `SPARC_CORE1.sparc0.lsu.lsu.lsu_cpx_ld_dcache_perror_e;
@@ -125,42 +125,42 @@ wire       spc1_dtp  = `SPARC_CORE1.sparc0.lsu.lsu.dctl.dtag_perror_g ;
 wire       spc1_mpc  = 1'b0;
 wire       spc1_mpu  = `SPARC_CORE1.sparc0.lsu.lsu.dctl.tte_data_perror_unc_en ;
 `else
-wire     spc1_dva_ren           = `SPARC_CORE1.sparc0.lsu.ifu_lsu_ld_inst_e;
-wire     spc1_dva_wen           = `SPARC_CORE1.sparc0.lsu.lsu_dtagv_wr_vld_e;
-wire     spc1_dva_din           = `SPARC_CORE1.sparc0.lsu.dva_din_e;
-wire [3:0] spc1_dva_dout          = `SPARC_CORE1.sparc0.lsu.dva_vld_m[3:0];
-wire [6:0] spc1_dva_raddr           = `SPARC_CORE1.sparc0.lsu.exu_lsu_early_va_e[10:4];
-wire [4:0] spc1_dva_waddr           = `SPARC_CORE1.sparc0.lsu.dva_wr_adr_e[10:6];
-wire       spc1_dva_dtag_perror   = `SPARC_CORE1.sparc0.lsu.lsu_cpx_ld_dtag_perror_e;
-wire       spc1_dva_dcache_perror   = `SPARC_CORE1.sparc0.lsu.lsu_cpx_ld_dcache_perror_e;
-wire       spc1_dva_inv_perror  = `SPARC_CORE1.sparc0.lsu.qctl2.lsu_cpx_pkt_perror_dinv;
-wire     spc1_ld_miss           = `SPARC_CORE1.sparc0.lsu.dctl.lsu_ld_miss_wb;
+wire 	   spc1_dva_ren 	        = `SPARC_CORE1.sparc0.lsu.ifu_lsu_ld_inst_e;
+wire 	   spc1_dva_wen 	        = `SPARC_CORE1.sparc0.lsu.lsu_dtagv_wr_vld_e;
+wire 	   spc1_dva_din 	        = `SPARC_CORE1.sparc0.lsu.dva_din_e;
+wire [`L1D_WAY_ARRAY_MASK] spc1_dva_dout 	        = `SPARC_CORE1.sparc0.lsu.dva_vld_m[`L1D_WAY_ARRAY_MASK];
+wire [`L1D_ADDRESS_HI-4:0] spc1_dva_raddr 	        = `SPARC_CORE1.sparc0.lsu.exu_lsu_early_va_e[`L1D_ADDRESS_HI:4];
+wire [4:0] spc1_dva_waddr 	        = `SPARC_CORE1.sparc0.lsu.dva_wr_adr_e[10:6];
+wire       spc1_dva_dtag_perror 	= `SPARC_CORE1.sparc0.lsu.lsu_cpx_ld_dtag_perror_e;
+wire       spc1_dva_dcache_perror 	= `SPARC_CORE1.sparc0.lsu.lsu_cpx_ld_dcache_perror_e;
+wire       spc1_dva_inv_perror 	= `SPARC_CORE1.sparc0.lsu.qctl2.lsu_cpx_pkt_perror_dinv;
+wire 	   spc1_ld_miss 	        = `SPARC_CORE1.sparc0.lsu.dctl.lsu_ld_miss_wb;
 reg        spc1_ld_miss_capture;
 
-wire     spc1_atomic_g          = `SPARC_CORE1.sparc0.lsu.qctl1.atomic_g;
-wire [1:0] spc1_atm_type0   = `SPARC_CORE1.sparc0.lsu.qctl1.stb0_atm_rq_type[2:1];
+wire 	   spc1_atomic_g 	        = `SPARC_CORE1.sparc0.lsu.qctl1.atomic_g;
+wire [1:0] spc1_atm_type0 	= `SPARC_CORE1.sparc0.lsu.qctl1.stb0_atm_rq_type[2:1];
 
-wire [1:0] spc1_atm_type1   = `SPARC_CORE1.sparc0.lsu.qctl1.stb1_atm_rq_type[2:1];
+wire [1:0] spc1_atm_type1 	= `SPARC_CORE1.sparc0.lsu.qctl1.stb1_atm_rq_type[2:1];
 
-wire [1:0] spc1_atm_type2   = `SPARC_CORE1.sparc0.lsu.qctl1.stb2_atm_rq_type[2:1];
+wire [1:0] spc1_atm_type2 	= `SPARC_CORE1.sparc0.lsu.qctl1.stb2_atm_rq_type[2:1];
 
-wire [1:0] spc1_atm_type3   = `SPARC_CORE1.sparc0.lsu.qctl1.stb3_atm_rq_type[2:1];
+wire [1:0] spc1_atm_type3 	= `SPARC_CORE1.sparc0.lsu.qctl1.stb3_atm_rq_type[2:1];
 
 
 
-wire [3:0] spc1_dctl_lsu_way_hit  = `SPARC_CORE1.sparc0.lsu.dctl.lsu_way_hit;
-wire       spc1_dctl_dcache_enable_g  = `SPARC_CORE1.sparc0.lsu.dctl.dcache_enable_g;
-wire       spc1_dctl_ldxa_internal  = `SPARC_CORE1.sparc0.lsu.dctl.ldxa_internal;
-wire       spc1_dctl_ldst_dbl_g   = `SPARC_CORE1.sparc0.lsu.dctl.ldst_dbl_g;
-wire       spc1_dctl_atomic_g   = `SPARC_CORE1.sparc0.lsu.dctl.atomic_g;
-wire       spc1_dctl_stb_cam_hit  = `SPARC_CORE1.sparc0.lsu.dctl.stb_cam_hit;
-wire       spc1_dctl_endian_mispred_g   = `SPARC_CORE1.sparc0.lsu.dctl.endian_mispred_g;
-wire       spc1_dctl_dcache_rd_parity_error   = `SPARC_CORE1.sparc0.lsu.dctl.dcache_rd_parity_error;
-wire       spc1_dctl_dtag_perror_g  = `SPARC_CORE1.sparc0.lsu.dctl.dtag_perror_g;
-wire       spc1_dctl_tte_data_perror_unc  = `SPARC_CORE1.sparc0.lsu.dctl.tte_data_perror_unc;
-wire       spc1_dctl_ld_inst_vld_g  = `SPARC_CORE1.sparc0.lsu.dctl.ld_inst_vld_g;
-wire       spc1_dctl_lsu_alt_space_g  = `SPARC_CORE1.sparc0.lsu.dctl.lsu_alt_space_g;
-wire       spc1_dctl_recognized_asi_g   = `SPARC_CORE1.sparc0.lsu.dctl.recognized_asi_g;
+wire [3:0] spc1_dctl_lsu_way_hit 	= `SPARC_CORE1.sparc0.lsu.dctl.lsu_way_hit;
+wire       spc1_dctl_dcache_enable_g 	= `SPARC_CORE1.sparc0.lsu.dctl.dcache_enable_g;
+wire       spc1_dctl_ldxa_internal 	= `SPARC_CORE1.sparc0.lsu.dctl.ldxa_internal;
+wire       spc1_dctl_ldst_dbl_g 	= `SPARC_CORE1.sparc0.lsu.dctl.ldst_dbl_g;
+wire       spc1_dctl_atomic_g 	= `SPARC_CORE1.sparc0.lsu.dctl.atomic_g;
+wire       spc1_dctl_stb_cam_hit 	= `SPARC_CORE1.sparc0.lsu.dctl.stb_cam_hit;
+wire       spc1_dctl_endian_mispred_g 	= `SPARC_CORE1.sparc0.lsu.dctl.endian_mispred_g;
+wire       spc1_dctl_dcache_rd_parity_error 	= `SPARC_CORE1.sparc0.lsu.dctl.dcache_rd_parity_error;
+wire       spc1_dctl_dtag_perror_g 	= `SPARC_CORE1.sparc0.lsu.dctl.dtag_perror_g;
+wire       spc1_dctl_tte_data_perror_unc 	= `SPARC_CORE1.sparc0.lsu.dctl.tte_data_perror_unc;
+wire       spc1_dctl_ld_inst_vld_g 	= `SPARC_CORE1.sparc0.lsu.dctl.ld_inst_vld_g;
+wire       spc1_dctl_lsu_alt_space_g 	= `SPARC_CORE1.sparc0.lsu.dctl.lsu_alt_space_g;
+wire       spc1_dctl_recognized_asi_g 	= `SPARC_CORE1.sparc0.lsu.dctl.recognized_asi_g;
 wire       spc1_dctl_ncache_asild_rq_g  = `SPARC_CORE1.sparc0.lsu.dctl.ncache_asild_rq_g ;
 wire       spc1_dctl_bld_hit;
 wire       spc1_dctl_bld_stb_hit;
@@ -307,7 +307,7 @@ wire       spc1_qctl1_ld_sec_hit_thrd0  = `SPARC_CORE1.sparc0.lsu.qctl1.ld_sec_h
 wire       spc1_qctl1_ld0_inst_vld_g  = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_inst_vld_g;
 wire       spc1_ld0_pkt_vld_unmasked  = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pkt_vld_unmasked;
 reg        spc1_ld0_pkt_vld_unmasked_d;
-reg    spc1_qctl1_ld_sec_hit_thrd0_w2;
+reg	   spc1_qctl1_ld_sec_hit_thrd0_w2;
 
 wire       spc1_dctl_thread0_w3  = `SPARC_CORE1.sparc0.lsu.dctl.thread0_w3;
 wire       spc1_dctl_dfill_thread0  = `SPARC_CORE1.sparc0.lsu.dctl.dfill_thread0;
@@ -335,7 +335,7 @@ wire       spc1_qctl1_ld1_inst_vld_g  = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_inst_v
 wire       spc1_ld1_pkt_vld_unmasked  = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pkt_vld_unmasked;
 `endif
 reg        spc1_ld1_pkt_vld_unmasked_d;
-reg    spc1_qctl1_ld_sec_hit_thrd1_w2;
+reg	   spc1_qctl1_ld_sec_hit_thrd1_w2;
 
 `ifndef RTL_SPU
 wire       spc1_dctl_thread1_w3  = `SPARC_CORE1.sparc0.lsu.lsu.dctl.thread1_w3;
@@ -371,7 +371,7 @@ wire       spc1_qctl1_ld2_inst_vld_g  = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_inst_v
 wire       spc1_ld2_pkt_vld_unmasked  = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pkt_vld_unmasked;
 `endif
 reg        spc1_ld2_pkt_vld_unmasked_d;
-reg    spc1_qctl1_ld_sec_hit_thrd2_w2;
+reg	   spc1_qctl1_ld_sec_hit_thrd2_w2;
 
 `ifndef RTL_SPU
 wire       spc1_dctl_thread2_w3  = `SPARC_CORE1.sparc0.lsu.lsu.dctl.thread2_w3;
@@ -407,7 +407,7 @@ wire       spc1_qctl1_ld3_inst_vld_g  = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_inst_v
 wire       spc1_ld3_pkt_vld_unmasked  = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pkt_vld_unmasked;
 `endif
 reg        spc1_ld3_pkt_vld_unmasked_d;
-reg    spc1_qctl1_ld_sec_hit_thrd3_w2;
+reg	   spc1_qctl1_ld_sec_hit_thrd3_w2;
 
 `ifndef RTL_SPU
 wire       spc1_dctl_thread3_w3  = `SPARC_CORE1.sparc0.lsu.lsu.dctl.thread3_w3;
@@ -438,24 +438,24 @@ wire       spc1_qctl1_bld_g     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.bld_g;
 wire       spc1_qctl1_bld_reset     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.bld_reset;
 wire [1:0] spc1_qctl1_bld_cnt   = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.bld_cnt;
 `else
-wire       spc1_qctl1_bld_g   = `SPARC_CORE1.sparc0.lsu.qctl1.bld_g;
-wire       spc1_qctl1_bld_reset   = `SPARC_CORE1.sparc0.lsu.qctl1.bld_reset;
-wire [1:0] spc1_qctl1_bld_cnt   = `SPARC_CORE1.sparc0.lsu.qctl1.bld_cnt;
+wire       spc1_qctl1_bld_g 	= `SPARC_CORE1.sparc0.lsu.qctl1.bld_g;
+wire       spc1_qctl1_bld_reset 	= `SPARC_CORE1.sparc0.lsu.qctl1.bld_reset;
+wire [1:0] spc1_qctl1_bld_cnt 	= `SPARC_CORE1.sparc0.lsu.qctl1.bld_cnt;
 `endif
 
 
 reg  [9:0] spc1_bld0_full_cntr;
 reg  [1:0] spc1_bld0_full_d;
-reg      spc1_bld0_full_capture;
+reg 	   spc1_bld0_full_capture;
 reg  [9:0] spc1_bld1_full_cntr;
 reg  [1:0] spc1_bld1_full_d;
-reg      spc1_bld1_full_capture;
+reg 	   spc1_bld1_full_capture;
 reg  [9:0] spc1_bld2_full_cntr;
 reg  [1:0] spc1_bld2_full_d;
-reg      spc1_bld2_full_capture;
+reg 	   spc1_bld2_full_capture;
 reg  [9:0] spc1_bld3_full_cntr;
 reg  [1:0] spc1_bld3_full_d;
-reg      spc1_bld3_full_capture;
+reg 	   spc1_bld3_full_capture;
 
 `ifndef RTL_SPU
 wire       spc1_ipick   = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.imiss_pcx_rq_vld;
@@ -465,12 +465,12 @@ wire       spc1_mpick   = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.misc_pcx_rq_all;
 wire [3:0] spc1_apick   = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.all_pcx_rq_pick;
 wire       spc1_msquash     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.mcycle_squash_d1;
 `else
-wire       spc1_ipick   = `SPARC_CORE1.sparc0.lsu.qctl1.imiss_pcx_rq_vld;
-wire       spc1_lpick   = `SPARC_CORE1.sparc0.lsu.qctl1.ld_pcx_rq_all;
-wire       spc1_spick   = `SPARC_CORE1.sparc0.lsu.qctl1.st_pcx_rq_all;
-wire       spc1_mpick   = `SPARC_CORE1.sparc0.lsu.qctl1.misc_pcx_rq_all;
-wire [3:0] spc1_apick   = `SPARC_CORE1.sparc0.lsu.qctl1.all_pcx_rq_pick;
-wire       spc1_msquash   = `SPARC_CORE1.sparc0.lsu.qctl1.mcycle_squash_d1;
+wire       spc1_ipick 	= `SPARC_CORE1.sparc0.lsu.qctl1.imiss_pcx_rq_vld;
+wire       spc1_lpick 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld_pcx_rq_all;
+wire       spc1_spick 	= `SPARC_CORE1.sparc0.lsu.qctl1.st_pcx_rq_all;
+wire       spc1_mpick 	= `SPARC_CORE1.sparc0.lsu.qctl1.misc_pcx_rq_all;
+wire [3:0] spc1_apick 	= `SPARC_CORE1.sparc0.lsu.qctl1.all_pcx_rq_pick;
+wire       spc1_msquash 	= `SPARC_CORE1.sparc0.lsu.qctl1.mcycle_squash_d1;
 `endif
 
 reg       spc1_fpicko;
@@ -485,13 +485,13 @@ wire       spc1_lmiss_vld0  = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld0_pcx_rq_vld;
 wire       spc1_ld_pkt_vld0     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld0_pkt_vld;
 wire       spc1_st_pkt_vld0     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.st0_pkt_vld;
 `else
-wire [39:0] spc1_imiss_pa   = `SPARC_CORE1.sparc0.lsu.ifu_lsu_pcxpkt_e[39:0];
-wire       spc1_imiss_vld   = `SPARC_CORE1.sparc0.lsu.qctl1.imiss_pcx_rq_vld;
+wire [39:0] spc1_imiss_pa 	= `SPARC_CORE1.sparc0.lsu.ifu_lsu_pcxpkt_e[39:0];
+wire       spc1_imiss_vld 	= `SPARC_CORE1.sparc0.lsu.qctl1.imiss_pcx_rq_vld;
 reg       spc1_imiss_vld_d;
-wire [39:0] spc1_lmiss_pa0  = `SPARC_CORE1.sparc0.lsu.qdp1.lmq0_pcx_pkt[39:0];
-wire       spc1_lmiss_vld0  = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pcx_rq_vld;
-wire       spc1_ld_pkt_vld0   = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pkt_vld;
-wire       spc1_st_pkt_vld0   = `SPARC_CORE1.sparc0.lsu.qctl1.st0_pkt_vld;
+wire [39:0] spc1_lmiss_pa0 	= `SPARC_CORE1.sparc0.lsu.qdp1.lmq0_pcx_pkt[39:0];
+wire       spc1_lmiss_vld0 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pcx_rq_vld;
+wire       spc1_ld_pkt_vld0 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pkt_vld;
+wire       spc1_st_pkt_vld0 	= `SPARC_CORE1.sparc0.lsu.qctl1.st0_pkt_vld;
 `endif
 
 reg       spc1_lmiss_eq0;
@@ -516,24 +516,24 @@ wire       spc1_lmiss_vld3  = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld3_pcx_rq_vld;
 wire       spc1_ld_pkt_vld3     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld3_pkt_vld;
 wire       spc1_st_pkt_vld3     = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.st3_pkt_vld;
 `else
-wire [39:0] spc1_lmiss_pa1  = `SPARC_CORE1.sparc0.lsu.qdp1.lmq1_pcx_pkt[39:0];
-wire       spc1_lmiss_vld1  = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pcx_rq_vld;
-wire       spc1_ld_pkt_vld1   = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pkt_vld;
-wire       spc1_st_pkt_vld1   = `SPARC_CORE1.sparc0.lsu.qctl1.st1_pkt_vld;
+wire [39:0] spc1_lmiss_pa1 	= `SPARC_CORE1.sparc0.lsu.qdp1.lmq1_pcx_pkt[39:0];
+wire       spc1_lmiss_vld1 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pcx_rq_vld;
+wire       spc1_ld_pkt_vld1 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pkt_vld;
+wire       spc1_st_pkt_vld1 	= `SPARC_CORE1.sparc0.lsu.qctl1.st1_pkt_vld;
 
 reg       spc1_lmiss_eq1;
 reg             spc1_atm_imiss_eq1;
-wire [39:0] spc1_lmiss_pa2  = `SPARC_CORE1.sparc0.lsu.qdp1.lmq2_pcx_pkt[39:0];
-wire       spc1_lmiss_vld2  = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pcx_rq_vld;
-wire       spc1_ld_pkt_vld2   = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pkt_vld;
-wire       spc1_st_pkt_vld2   = `SPARC_CORE1.sparc0.lsu.qctl1.st2_pkt_vld;
+wire [39:0] spc1_lmiss_pa2 	= `SPARC_CORE1.sparc0.lsu.qdp1.lmq2_pcx_pkt[39:0];
+wire       spc1_lmiss_vld2 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pcx_rq_vld;
+wire       spc1_ld_pkt_vld2 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pkt_vld;
+wire       spc1_st_pkt_vld2 	= `SPARC_CORE1.sparc0.lsu.qctl1.st2_pkt_vld;
 
 reg       spc1_lmiss_eq2;
 reg             spc1_atm_imiss_eq2;
-wire [39:0] spc1_lmiss_pa3  = `SPARC_CORE1.sparc0.lsu.qdp1.lmq3_pcx_pkt[39:0];
-wire       spc1_lmiss_vld3  = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pcx_rq_vld;
-wire       spc1_ld_pkt_vld3   = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pkt_vld;
-wire       spc1_st_pkt_vld3   = `SPARC_CORE1.sparc0.lsu.qctl1.st3_pkt_vld;
+wire [39:0] spc1_lmiss_pa3 	= `SPARC_CORE1.sparc0.lsu.qdp1.lmq3_pcx_pkt[39:0];
+wire       spc1_lmiss_vld3 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pcx_rq_vld;
+wire       spc1_ld_pkt_vld3 	= `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pkt_vld;
+wire       spc1_st_pkt_vld3 	= `SPARC_CORE1.sparc0.lsu.qctl1.st3_pkt_vld;
 `endif
 
 reg       spc1_lmiss_eq3;
@@ -552,63 +552,63 @@ wire       spc1_stb_cam_mhit        = `SPARC_CORE1.sparc0.lsu.lsu.stb_cam_mhit;
 
 wire [3:0] spc1_dfq_vld_entries     = `SPARC_CORE1.sparc0.lsu.lsu.qctl2.dfq_vld_entries;
 `else
-wire [44:0] spc1_wdata_ramc = `SPARC_CORE1.sparc0.lsu.stb_cam.wdata_ramc;
-wire    spc1_wptr_vld   = `SPARC_CORE1.sparc0.lsu.stb_cam.wptr_vld;
-wire [75:0] spc1_wdata_ramd = {`SPARC_CORE1.sparc0.lsu.stb_wdata_ramd_b75_b64[75:64],`SPARC_CORE1.sparc0.lsu.lsu_stb_st_data_g[63:0]};
+wire [44:0]	spc1_wdata_ramc = `SPARC_CORE1.sparc0.lsu.stb_cam.wdata_ramc;
+wire		spc1_wptr_vld   = `SPARC_CORE1.sparc0.lsu.stb_cam.wptr_vld;
+wire [75:0]	spc1_wdata_ramd = {`SPARC_CORE1.sparc0.lsu.stb_wdata_ramd_b75_b64[75:64],`SPARC_CORE1.sparc0.lsu.lsu_stb_st_data_g[63:0]};
 
-wire     spc1_stb_cam_hit           = `SPARC_CORE1.sparc0.lsu.stb_rwctl.stb_cam_hit;
-wire [2:0] spc1_stb_cam_hit_ptr   = `SPARC_CORE1.sparc0.lsu.stb_rwctl.stb_cam_hit_ptr;
-wire [7:0] spc1_stb_ld_full_raw = `SPARC_CORE1.sparc0.lsu.stb_ld_full_raw[7:0];
-wire [7:0] spc1_stb_ld_partial_raw  = `SPARC_CORE1.sparc0.lsu.stb_ld_partial_raw[7:0];
-wire       spc1_stb_cam_mhit    = `SPARC_CORE1.sparc0.lsu.stb_cam_mhit;
+wire 	   spc1_stb_cam_hit 	        = `SPARC_CORE1.sparc0.lsu.stb_rwctl.stb_cam_hit;
+wire [2:0] spc1_stb_cam_hit_ptr 	= `SPARC_CORE1.sparc0.lsu.stb_rwctl.stb_cam_hit_ptr;
+wire [7:0] spc1_stb_ld_full_raw	= `SPARC_CORE1.sparc0.lsu.stb_ld_full_raw[7:0];
+wire [7:0] spc1_stb_ld_partial_raw	= `SPARC_CORE1.sparc0.lsu.stb_ld_partial_raw[7:0];
+wire       spc1_stb_cam_mhit		= `SPARC_CORE1.sparc0.lsu.stb_cam_mhit;
 
-wire [3:0] spc1_dfq_vld_entries   = `SPARC_CORE1.sparc0.lsu.qctl2.dfq_vld_entries;
+wire [3:0] spc1_dfq_vld_entries 	= `SPARC_CORE1.sparc0.lsu.qctl2.dfq_vld_entries;
 `endif
-wire     spc1_dfq_full;
+wire 	   spc1_dfq_full;
 reg  [9:0] spc1_dfq_full_cntr;
 reg        spc1_dfq_full_d;
-reg      spc1_dfq_full_capture;
+reg 	   spc1_dfq_full_capture;
 
 reg  [9:0] spc1_dfq_full_cntr1;
 reg        spc1_dfq_full_d1;
-wire     spc1_dfq_full1;
-reg      spc1_dfq_full_capture1;
+wire 	   spc1_dfq_full1;
+reg 	   spc1_dfq_full_capture1;
 reg  [9:0] spc1_dfq_full_cntr2;
 reg        spc1_dfq_full_d2;
-wire     spc1_dfq_full2;
-reg      spc1_dfq_full_capture2;
+wire 	   spc1_dfq_full2;
+reg 	   spc1_dfq_full_capture2;
 reg  [9:0] spc1_dfq_full_cntr3;
 reg        spc1_dfq_full_d3;
-wire     spc1_dfq_full3;
-reg      spc1_dfq_full_capture3;
+wire 	   spc1_dfq_full3;
+reg 	   spc1_dfq_full_capture3;
 reg  [9:0] spc1_dfq_full_cntr4;
 reg        spc1_dfq_full_d4;
-wire     spc1_dfq_full4;
-reg      spc1_dfq_full_capture4;
+wire 	   spc1_dfq_full4;
+reg 	   spc1_dfq_full_capture4;
 reg  [9:0] spc1_dfq_full_cntr5;
 reg        spc1_dfq_full_d5;
-wire     spc1_dfq_full5;
-reg      spc1_dfq_full_capture5;
+wire 	   spc1_dfq_full5;
+reg 	   spc1_dfq_full_capture5;
 reg  [9:0] spc1_dfq_full_cntr6;
 reg        spc1_dfq_full_d6;
-wire     spc1_dfq_full6;
-reg      spc1_dfq_full_capture6;
+wire 	   spc1_dfq_full6;
+reg 	   spc1_dfq_full_capture6;
 reg  [9:0] spc1_dfq_full_cntr7;
 reg        spc1_dfq_full_d7;
-wire     spc1_dfq_full7;
-reg      spc1_dfq_full_capture7;
+wire 	   spc1_dfq_full7;
+reg 	   spc1_dfq_full_capture7;
 
-wire     spc1_dva_rdwrhit;
+wire 	   spc1_dva_rdwrhit;
 reg  [9:0] spc1_dva_full_cntr;
 reg        spc1_dva_full_d;
-reg      spc1_dva_full_capture;
-reg      spc1_dva_inv;
-reg      spc1_dva_inv_d;
-reg      spc1_dva_vld;
-reg      spc1_dva_vld_d;
+reg 	   spc1_dva_full_capture;
+reg 	   spc1_dva_inv;
+reg 	   spc1_dva_inv_d;
+reg 	   spc1_dva_vld;
+reg 	   spc1_dva_vld_d;
 reg  [9:0] spc1_dva_vfull_cntr;
 reg        spc1_dva_vfull_d;
-reg      spc1_dva_vfull_capture;
+reg 	   spc1_dva_vfull_capture;
 reg        spc1_dva_collide;
 reg        spc1_dva_vld2lkup;
 reg        spc1_dva_invld2lkup;
@@ -624,31 +624,31 @@ reg [6:0] spc1_dva_raddr_d;
 reg [4:0] spc1_dva_waddr_d;
 reg [4:0] spc1_dva_invwaddr_d;
 
-reg           spc1_ld0_lt_1;
-reg           spc1_ld0_lt_2;
-reg           spc1_ld0_lt_3;
-reg           spc1_ld1_lt_0;
-reg           spc1_ld1_lt_2;
-reg           spc1_ld1_lt_3;
-reg           spc1_ld2_lt_0;
-reg           spc1_ld2_lt_1;
-reg           spc1_ld2_lt_3;
-reg           spc1_ld3_lt_0;
-reg           spc1_ld3_lt_1;
-reg           spc1_ld3_lt_2;
+reg  	        spc1_ld0_lt_1;
+reg  	        spc1_ld0_lt_2;
+reg  	        spc1_ld0_lt_3;
+reg  	        spc1_ld1_lt_0;
+reg  	        spc1_ld1_lt_2;
+reg  	        spc1_ld1_lt_3;
+reg  	        spc1_ld2_lt_0;
+reg  	        spc1_ld2_lt_1;
+reg  	        spc1_ld2_lt_3;
+reg  	        spc1_ld3_lt_0;
+reg  	        spc1_ld3_lt_1;
+reg  	        spc1_ld3_lt_2;
 
-reg           spc1_st0_lt_1;
-reg           spc1_st0_lt_2;
-reg           spc1_st0_lt_3;
-reg           spc1_st1_lt_0;
-reg           spc1_st1_lt_2;
-reg           spc1_st1_lt_3;
-reg           spc1_st2_lt_0;
-reg           spc1_st2_lt_1;
-reg           spc1_st2_lt_3;
-reg           spc1_st3_lt_0;
-reg           spc1_st3_lt_1;
-reg           spc1_st3_lt_2;
+reg  	        spc1_st0_lt_1;
+reg  	        spc1_st0_lt_2;
+reg  	        spc1_st0_lt_3;
+reg  	        spc1_st1_lt_0;
+reg  	        spc1_st1_lt_2;
+reg  	        spc1_st1_lt_3;
+reg  	        spc1_st2_lt_0;
+reg  	        spc1_st2_lt_1;
+reg  	        spc1_st2_lt_3;
+reg  	        spc1_st3_lt_0;
+reg  	        spc1_st3_lt_1;
+reg  	        spc1_st3_lt_2;
 
 wire [11:0]      spc1_ld_ooo_ret;
 wire [11:0]      spc1_st_ooo_ret;
@@ -668,55 +668,55 @@ wire            spc1_mbar_vld0           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.mbar
 wire            spc1_ld0_unfilled    = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld0_unfilled;
 wire            spc1_flsh_vld0           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.flsh_vld0;
 `else
-wire [7:0]  spc1_stb_state_vld0    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_vld;
-wire [7:0]  spc1_stb_state_ack0    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_ack;
-wire [7:0]  spc1_stb_state_ced0    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_ced;
-wire [7:0]  spc1_stb_state_rst0    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_rst;
-wire          spc1_stb_ack_vld0    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.ack_vld;
-wire          spc1_ld0_inst_vld_g    = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_inst_vld_g;
-wire          spc1_intrpt0_cmplt   = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[0];
-wire          spc1_stb0_full           = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_full;
-wire          spc1_stb0_full_w2    = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_full_w2;
-wire          spc1_lmq0_full           = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pcx_rq_vld;
-wire          spc1_mbar_vld0           = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld0;
-wire          spc1_ld0_unfilled    = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_unfilled;
-wire          spc1_flsh_vld0           = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld0;
+wire [7:0]	spc1_stb_state_vld0 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_vld;
+wire [7:0]	spc1_stb_state_ack0 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_ack;
+wire [7:0]	spc1_stb_state_ced0 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_ced;
+wire [7:0]	spc1_stb_state_rst0 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_state_rst;
+wire 	        spc1_stb_ack_vld0 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.ack_vld;
+wire 	        spc1_ld0_inst_vld_g 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_inst_vld_g;
+wire 	        spc1_intrpt0_cmplt 	 = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[0];
+wire 	        spc1_stb0_full 	         = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_full;
+wire 	        spc1_stb0_full_w2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl0.stb_full_w2;
+wire 	        spc1_lmq0_full 	         = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_pcx_rq_vld;
+wire 	        spc1_mbar_vld0 	         = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld0;
+wire 	        spc1_ld0_unfilled 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld0_unfilled;
+wire 	        spc1_flsh_vld0	         = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld0;
 `endif
 
-reg  [9:0]  spc1_ld0_unf_cntr;
-reg           spc1_ld0_unfilled_d;
+reg  [9:0]	spc1_ld0_unf_cntr;
+reg  	        spc1_ld0_unfilled_d;
 
-reg  [9:0]  spc1_st0_unf_cntr;
-reg           spc1_st0_unfilled_d;
-reg           spc1_st0_unfilled;
+reg  [9:0]	spc1_st0_unf_cntr;
+reg  	        spc1_st0_unfilled_d;
+reg  	        spc1_st0_unfilled;
 
-reg           spc1_mbar_vld_d0;
-reg           spc1_flsh_vld_d0;
+reg 	        spc1_mbar_vld_d0;
+reg 	        spc1_flsh_vld_d0;
 
-reg           spc1_lmq0_full_d;
-reg  [9:0]  spc1_lmq_full_cntr0;
+reg 	        spc1_lmq0_full_d;
+reg  [9:0]	spc1_lmq_full_cntr0;
 reg             spc1_lmq_full_capture0;
 
-reg  [9:0]  spc1_stb_full_cntr0;
-reg     spc1_stb_full_capture0;
+reg  [9:0]	spc1_stb_full_cntr0;
+reg 		spc1_stb_full_capture0;
 
-reg  [9:0]  spc1_mbar_vld_cntr0;
-reg     spc1_mbar_vld_capture0;
+reg  [9:0]	spc1_mbar_vld_cntr0;
+reg 		spc1_mbar_vld_capture0;
 
-reg  [9:0]  spc1_flsh_vld_cntr0;
-reg     spc1_flsh_vld_capture0;
+reg  [9:0]	spc1_flsh_vld_cntr0;
+reg 		spc1_flsh_vld_capture0;
 
-reg     spc1_stb_head_hit0;
-wire    spc1_raw_ack_capture0;
-reg  [9:0]  spc1_stb_ack_cntr0;
+reg 		spc1_stb_head_hit0;
+wire 		spc1_raw_ack_capture0;
+reg  [9:0]	spc1_stb_ack_cntr0;
 
-reg  [9:0]  spc1_stb_ced_cntr0;
-reg           spc1_stb_ced0_d;
-reg           spc1_stb_ced_capture0;
-wire            spc1_stb_ced0;
+reg  [9:0]	spc1_stb_ced_cntr0;
+reg  	        spc1_stb_ced0_d;
+reg  	        spc1_stb_ced_capture0;
+wire  	        spc1_stb_ced0;
 
-reg           spc1_atm0_d;
-reg  [9:0]  spc1_atm_cntr0;
+reg 	        spc1_atm0_d;
+reg  [9:0]	spc1_atm_cntr0;
 reg             spc1_atm_intrpt_capture0;
 reg             spc1_atm_intrpt_b4capture0;
 reg             spc1_atm_inv_capture0;
@@ -740,55 +740,55 @@ wire            spc1_mbar_vld1           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.mbar
 wire            spc1_ld1_unfilled    = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld1_unfilled;
 wire            spc1_flsh_vld1           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.flsh_vld1;
 `else
-wire [7:0]  spc1_stb_state_vld1    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_vld;
-wire [7:0]  spc1_stb_state_ack1    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_ack;
-wire [7:0]  spc1_stb_state_ced1    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_ced;
-wire [7:0]  spc1_stb_state_rst1    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_rst;
-wire          spc1_stb_ack_vld1    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.ack_vld;
-wire          spc1_ld1_inst_vld_g    = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_inst_vld_g;
-wire          spc1_intrpt1_cmplt   = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[1];
-wire          spc1_stb1_full           = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_full;
-wire          spc1_stb1_full_w2    = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_full_w2;
-wire          spc1_lmq1_full           = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pcx_rq_vld;
-wire          spc1_mbar_vld1           = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld1;
-wire          spc1_ld1_unfilled    = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_unfilled;
-wire          spc1_flsh_vld1           = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld1;
+wire [7:0]	spc1_stb_state_vld1 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_vld;
+wire [7:0]	spc1_stb_state_ack1 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_ack;
+wire [7:0]	spc1_stb_state_ced1 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_ced;
+wire [7:0]	spc1_stb_state_rst1 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_state_rst;
+wire 	        spc1_stb_ack_vld1 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.ack_vld;
+wire 	        spc1_ld1_inst_vld_g 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_inst_vld_g;
+wire 	        spc1_intrpt1_cmplt 	 = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[1];
+wire 	        spc1_stb1_full 	         = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_full;
+wire 	        spc1_stb1_full_w2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl1.stb_full_w2;
+wire 	        spc1_lmq1_full 	         = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_pcx_rq_vld;
+wire 	        spc1_mbar_vld1 	         = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld1;
+wire 	        spc1_ld1_unfilled 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld1_unfilled;
+wire 	        spc1_flsh_vld1	         = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld1;
 `endif
 
-reg  [9:0]  spc1_ld1_unf_cntr;
-reg           spc1_ld1_unfilled_d;
+reg  [9:0]	spc1_ld1_unf_cntr;
+reg  	        spc1_ld1_unfilled_d;
 
-reg  [9:0]  spc1_st1_unf_cntr;
-reg           spc1_st1_unfilled_d;
-reg           spc1_st1_unfilled;
+reg  [9:0]	spc1_st1_unf_cntr;
+reg  	        spc1_st1_unfilled_d;
+reg  	        spc1_st1_unfilled;
 
-reg           spc1_mbar_vld_d1;
-reg           spc1_flsh_vld_d1;
+reg 	        spc1_mbar_vld_d1;
+reg 	        spc1_flsh_vld_d1;
 
-reg           spc1_lmq1_full_d;
-reg  [9:0]  spc1_lmq_full_cntr1;
+reg 	        spc1_lmq1_full_d;
+reg  [9:0]	spc1_lmq_full_cntr1;
 reg             spc1_lmq_full_capture1;
 
-reg  [9:0]  spc1_stb_full_cntr1;
-reg     spc1_stb_full_capture1;
+reg  [9:0]	spc1_stb_full_cntr1;
+reg 		spc1_stb_full_capture1;
 
-reg  [9:0]  spc1_mbar_vld_cntr1;
-reg     spc1_mbar_vld_capture1;
+reg  [9:0]	spc1_mbar_vld_cntr1;
+reg 		spc1_mbar_vld_capture1;
 
-reg  [9:0]  spc1_flsh_vld_cntr1;
-reg     spc1_flsh_vld_capture1;
+reg  [9:0]	spc1_flsh_vld_cntr1;
+reg 		spc1_flsh_vld_capture1;
 
-reg     spc1_stb_head_hit1;
-wire    spc1_raw_ack_capture1;
-reg  [9:0]  spc1_stb_ack_cntr1;
+reg 		spc1_stb_head_hit1;
+wire 		spc1_raw_ack_capture1;
+reg  [9:0]	spc1_stb_ack_cntr1;
 
-reg  [9:0]  spc1_stb_ced_cntr1;
-reg           spc1_stb_ced1_d;
-reg           spc1_stb_ced_capture1;
-wire            spc1_stb_ced1;
+reg  [9:0]	spc1_stb_ced_cntr1;
+reg  	        spc1_stb_ced1_d;
+reg  	        spc1_stb_ced_capture1;
+wire  	        spc1_stb_ced1;
 
-reg           spc1_atm1_d;
-reg  [9:0]  spc1_atm_cntr1;
+reg 	        spc1_atm1_d;
+reg  [9:0]	spc1_atm_cntr1;
 reg             spc1_atm_intrpt_capture1;
 reg             spc1_atm_intrpt_b4capture1;
 reg             spc1_atm_inv_capture1;
@@ -812,55 +812,55 @@ wire            spc1_mbar_vld2           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.mbar
 wire            spc1_ld2_unfilled    = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld2_unfilled;
 wire            spc1_flsh_vld2           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.flsh_vld2;
 `else
-wire [7:0]  spc1_stb_state_vld2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_vld;
-wire [7:0]  spc1_stb_state_ack2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_ack;
-wire [7:0]  spc1_stb_state_ced2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_ced;
-wire [7:0]  spc1_stb_state_rst2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_rst;
-wire          spc1_stb_ack_vld2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.ack_vld;
-wire          spc1_ld2_inst_vld_g    = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_inst_vld_g;
-wire          spc1_intrpt2_cmplt   = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[2];
-wire          spc1_stb2_full           = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_full;
-wire          spc1_stb2_full_w2    = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_full_w2;
-wire          spc1_lmq2_full           = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pcx_rq_vld;
-wire          spc1_mbar_vld2           = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld2;
-wire          spc1_ld2_unfilled    = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_unfilled;
-wire          spc1_flsh_vld2           = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld2;
+wire [7:0]	spc1_stb_state_vld2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_vld;
+wire [7:0]	spc1_stb_state_ack2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_ack;
+wire [7:0]	spc1_stb_state_ced2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_ced;
+wire [7:0]	spc1_stb_state_rst2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_state_rst;
+wire 	        spc1_stb_ack_vld2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.ack_vld;
+wire 	        spc1_ld2_inst_vld_g 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_inst_vld_g;
+wire 	        spc1_intrpt2_cmplt 	 = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[2];
+wire 	        spc1_stb2_full 	         = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_full;
+wire 	        spc1_stb2_full_w2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl2.stb_full_w2;
+wire 	        spc1_lmq2_full 	         = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_pcx_rq_vld;
+wire 	        spc1_mbar_vld2 	         = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld2;
+wire 	        spc1_ld2_unfilled 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld2_unfilled;
+wire 	        spc1_flsh_vld2	         = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld2;
 `endif
 
-reg  [9:0]  spc1_ld2_unf_cntr;
-reg           spc1_ld2_unfilled_d;
+reg  [9:0]	spc1_ld2_unf_cntr;
+reg  	        spc1_ld2_unfilled_d;
 
-reg  [9:0]  spc1_st2_unf_cntr;
-reg           spc1_st2_unfilled_d;
-reg           spc1_st2_unfilled;
+reg  [9:0]	spc1_st2_unf_cntr;
+reg  	        spc1_st2_unfilled_d;
+reg  	        spc1_st2_unfilled;
 
-reg           spc1_mbar_vld_d2;
-reg           spc1_flsh_vld_d2;
+reg 	        spc1_mbar_vld_d2;
+reg 	        spc1_flsh_vld_d2;
 
-reg           spc1_lmq2_full_d;
-reg  [9:0]  spc1_lmq_full_cntr2;
+reg 	        spc1_lmq2_full_d;
+reg  [9:0]	spc1_lmq_full_cntr2;
 reg             spc1_lmq_full_capture2;
 
-reg  [9:0]  spc1_stb_full_cntr2;
-reg     spc1_stb_full_capture2;
+reg  [9:0]	spc1_stb_full_cntr2;
+reg 		spc1_stb_full_capture2;
 
-reg  [9:0]  spc1_mbar_vld_cntr2;
-reg     spc1_mbar_vld_capture2;
+reg  [9:0]	spc1_mbar_vld_cntr2;
+reg 		spc1_mbar_vld_capture2;
 
-reg  [9:0]  spc1_flsh_vld_cntr2;
-reg     spc1_flsh_vld_capture2;
+reg  [9:0]	spc1_flsh_vld_cntr2;
+reg 		spc1_flsh_vld_capture2;
 
-reg     spc1_stb_head_hit2;
-wire    spc1_raw_ack_capture2;
-reg  [9:0]  spc1_stb_ack_cntr2;
+reg 		spc1_stb_head_hit2;
+wire 		spc1_raw_ack_capture2;
+reg  [9:0]	spc1_stb_ack_cntr2;
 
-reg  [9:0]  spc1_stb_ced_cntr2;
-reg           spc1_stb_ced2_d;
-reg           spc1_stb_ced_capture2;
-wire            spc1_stb_ced2;
+reg  [9:0]	spc1_stb_ced_cntr2;
+reg  	        spc1_stb_ced2_d;
+reg  	        spc1_stb_ced_capture2;
+wire  	        spc1_stb_ced2;
 
-reg           spc1_atm2_d;
-reg  [9:0]  spc1_atm_cntr2;
+reg 	        spc1_atm2_d;
+reg  [9:0]	spc1_atm_cntr2;
 reg             spc1_atm_intrpt_capture2;
 reg             spc1_atm_intrpt_b4capture2;
 reg             spc1_atm_inv_capture2;
@@ -884,55 +884,55 @@ wire            spc1_mbar_vld3           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.mbar
 wire            spc1_ld3_unfilled    = `SPARC_CORE1.sparc0.lsu.lsu.qctl1.ld3_unfilled;
 wire            spc1_flsh_vld3           = `SPARC_CORE1.sparc0.lsu.lsu.dctl.flsh_vld3;
 `else
-wire [7:0]  spc1_stb_state_vld3    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_vld;
-wire [7:0]  spc1_stb_state_ack3    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_ack;
-wire [7:0]  spc1_stb_state_ced3    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_ced;
-wire [7:0]  spc1_stb_state_rst3    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_rst;
-wire          spc1_stb_ack_vld3    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.ack_vld;
-wire          spc1_ld3_inst_vld_g    = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_inst_vld_g;
-wire          spc1_intrpt3_cmplt   = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[3];
-wire          spc1_stb3_full           = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_full;
-wire          spc1_stb3_full_w2    = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_full_w2;
-wire          spc1_lmq3_full           = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pcx_rq_vld;
-wire          spc1_mbar_vld3           = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld3;
-wire          spc1_ld3_unfilled    = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_unfilled;
-wire          spc1_flsh_vld3           = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld3;
+wire [7:0]	spc1_stb_state_vld3 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_vld;
+wire [7:0]	spc1_stb_state_ack3 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_ack;
+wire [7:0]	spc1_stb_state_ced3 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_ced;
+wire [7:0]	spc1_stb_state_rst3 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_state_rst;
+wire 	        spc1_stb_ack_vld3 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.ack_vld;
+wire 	        spc1_ld3_inst_vld_g 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_inst_vld_g;
+wire 	        spc1_intrpt3_cmplt 	 = `SPARC_CORE1.sparc0.lsu.qctl1.lsu_intrpt_cmplt[3];
+wire 	        spc1_stb3_full 	         = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_full;
+wire 	        spc1_stb3_full_w2 	 = `SPARC_CORE1.sparc0.lsu.stb_ctl3.stb_full_w2;
+wire 	        spc1_lmq3_full 	         = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_pcx_rq_vld;
+wire 	        spc1_mbar_vld3 	         = `SPARC_CORE1.sparc0.lsu.dctl.mbar_vld3;
+wire 	        spc1_ld3_unfilled 	 = `SPARC_CORE1.sparc0.lsu.qctl1.ld3_unfilled;
+wire 	        spc1_flsh_vld3	         = `SPARC_CORE1.sparc0.lsu.dctl.flsh_vld3;
 `endif
 
-reg  [9:0]  spc1_ld3_unf_cntr;
-reg           spc1_ld3_unfilled_d;
+reg  [9:0]	spc1_ld3_unf_cntr;
+reg  	        spc1_ld3_unfilled_d;
 
-reg  [9:0]  spc1_st3_unf_cntr;
-reg           spc1_st3_unfilled_d;
-reg           spc1_st3_unfilled;
+reg  [9:0]	spc1_st3_unf_cntr;
+reg  	        spc1_st3_unfilled_d;
+reg  	        spc1_st3_unfilled;
 
-reg           spc1_mbar_vld_d3;
-reg           spc1_flsh_vld_d3;
+reg 	        spc1_mbar_vld_d3;
+reg 	        spc1_flsh_vld_d3;
 
-reg           spc1_lmq3_full_d;
-reg  [9:0]  spc1_lmq_full_cntr3;
+reg 	        spc1_lmq3_full_d;
+reg  [9:0]	spc1_lmq_full_cntr3;
 reg             spc1_lmq_full_capture3;
 
-reg  [9:0]  spc1_stb_full_cntr3;
-reg     spc1_stb_full_capture3;
+reg  [9:0]	spc1_stb_full_cntr3;
+reg 		spc1_stb_full_capture3;
 
-reg  [9:0]  spc1_mbar_vld_cntr3;
-reg     spc1_mbar_vld_capture3;
+reg  [9:0]	spc1_mbar_vld_cntr3;
+reg 		spc1_mbar_vld_capture3;
 
-reg  [9:0]  spc1_flsh_vld_cntr3;
-reg     spc1_flsh_vld_capture3;
+reg  [9:0]	spc1_flsh_vld_cntr3;
+reg 		spc1_flsh_vld_capture3;
 
-reg     spc1_stb_head_hit3;
-wire    spc1_raw_ack_capture3;
-reg  [9:0]  spc1_stb_ack_cntr3;
+reg 		spc1_stb_head_hit3;
+wire 		spc1_raw_ack_capture3;
+reg  [9:0]	spc1_stb_ack_cntr3;
 
-reg  [9:0]  spc1_stb_ced_cntr3;
-reg           spc1_stb_ced3_d;
-reg           spc1_stb_ced_capture3;
-wire            spc1_stb_ced3;
+reg  [9:0]	spc1_stb_ced_cntr3;
+reg  	        spc1_stb_ced3_d;
+reg  	        spc1_stb_ced_capture3;
+wire  	        spc1_stb_ced3;
 
-reg           spc1_atm3_d;
-reg  [9:0]  spc1_atm_cntr3;
+reg 	        spc1_atm3_d;
+reg  [9:0]	spc1_atm_cntr3;
 reg             spc1_atm_intrpt_capture3;
 reg             spc1_atm_intrpt_b4capture3;
 reg             spc1_atm_inv_capture3;
@@ -963,13 +963,13 @@ begin
          9'b0xxx1xxx1 : spc1_fpicko = 1'b0;
          9'b1xxxxxxxx : spc1_fpicko = 1'b0;
          9'b0xxx0xxx0 : spc1_fpicko = 1'b0;
-   default:
-    begin
-    spc1_fpicko =  1'b1;
-    $display("%0d ERROR: lsu_mon1 final picker imiss not picked", $time);
-    repeat(100) @(posedge clk);
-    $finish;
-    end
+	 default:
+	  begin
+		spc1_fpicko =  1'b1;
+		$display("%0d ERROR: lsu_mon1 final picker imiss not picked", $time);
+		repeat(100) @(posedge clk);
+		$finish;
+	  end
        endcase
      end
 end
@@ -977,22 +977,22 @@ end
 // interface
 //exu
 assign spc1_exu_und = {spc1_l2,
-        spc1_unc,
-        spc1_fpld,
-        spc1_fpldst,
-        spc1_unflush,
-        spc1_ldw,
-        spc1_byp,
-        spc1_flsh,
-        spc1_chm,
-        spc1_ldxa,
-        spc1_ato,
-        spc1_pref,
-        spc1_chit,
-        spc1_dcp,
-        spc1_dtp,
-        spc1_mpc,
-        spc1_mpu};
+			  spc1_unc,
+			  spc1_fpld,
+			  spc1_fpldst,
+			  spc1_unflush,
+			  spc1_ldw,
+			  spc1_byp,
+			  spc1_flsh,
+			  spc1_chm,
+			  spc1_ldxa,
+			  spc1_ato,
+			  spc1_pref,
+			  spc1_chit,
+			  spc1_dcp,
+			  spc1_dtp,
+			  spc1_mpc,
+			  spc1_mpu};
 
 always @(spc1_exu_und)
 begin
@@ -1015,26 +1015,26 @@ begin
          17'h04000 : spc1_exu =  5'h0f;
          17'h08000 : spc1_exu =  5'h10;
          17'h10000 : spc1_exu =  5'h11;
-   default: spc1_exu =  5'h12;
+	 default: spc1_exu =  5'h12;
        endcase
 end
 //excp
 assign spc1_exp_und = {spc1_exp_wtchpt_trp_g,
-        spc1_exp_misalign_addr_ldst_atm_m,
-        spc1_exp_priv_violtn_g,
-        spc1_exp_daccess_excptn_g,
-        spc1_exp_daccess_prot_g,
-        spc1_exp_priv_action_g,
-        spc1_exp_spec_access_epage_g,
-        spc1_exp_uncache_atomic_g,
-        spc1_exp_illegal_asi_action_g,
-        spc1_exp_flt_ld_nfo_pg_g,
-        spc1_exp_asi_rd_unc,
-        spc1_exp_tlb_data_ce,
-        spc1_exp_tlb_data_ue,
-        spc1_exp_tlb_tag_ue,
-        spc1_exp_unc,
-        spc1_exp_corr};
+			  spc1_exp_misalign_addr_ldst_atm_m,
+			  spc1_exp_priv_violtn_g,
+			  spc1_exp_daccess_excptn_g,
+			  spc1_exp_daccess_prot_g,
+			  spc1_exp_priv_action_g,
+			  spc1_exp_spec_access_epage_g,
+			  spc1_exp_uncache_atomic_g,
+			  spc1_exp_illegal_asi_action_g,
+			  spc1_exp_flt_ld_nfo_pg_g,
+			  spc1_exp_asi_rd_unc,
+			  spc1_exp_tlb_data_ce,
+			  spc1_exp_tlb_data_ue,
+			  spc1_exp_tlb_tag_ue,
+			  spc1_exp_unc,
+			  spc1_exp_corr};
 
 always @(spc1_exp_und)
 begin
@@ -1056,7 +1056,7 @@ begin
          16'h2000 : spc1_exp =  5'h0e;
          16'h4000 : spc1_exp =  5'h0f;
          16'h8000 : spc1_exp =  5'h10;
-   default: spc1_exp =  5'h11;
+	 default: spc1_exp =  5'h11;
        endcase
 end
 
@@ -1073,7 +1073,7 @@ end
 //     intld_byp_cmplt[0] |
 //     // * early-or signals
 //     ldst_cmplt_late_0_d1 ;
-// assign ldst_cmplt_late_0 =
+// assign	ldst_cmplt_late_0 =
 //     (lsu_atm_st_cmplt_e & ~fill_err_trap_e & dfill_thread0) |
 //     bsync0_reset    |
 //     lsu_intrpt_cmplt[0]   |
@@ -1085,22 +1085,22 @@ end
 
 
 assign spc1_dctl_stxa_cmplt0 = ((spc1_dctl_stxa_internal_d2 & spc1_dctl_thread0_w3) |
-               spc1_dctl_stxa_stall_wr_cmplt0_d1);
+				       spc1_dctl_stxa_stall_wr_cmplt0_d1);
 assign spc1_dctl_l2fill_cmplt0 = (((spc1_dctl_lsu_l2fill_vld & ~spc1_dctl_atomic_ld_squash_e &
-              ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
-            ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread0);
+					    ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
+					  ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread0);
 
 assign spc1_dctl_fillerr0 = spc1_dctl_l2_corr_error_e & spc1_dctl_dfill_thread0;
 // Rolling in changes due to bug 3624
 // assign spc1_dctl_atm_cmplt0 = (spc1_dctl_lsu_atm_st_cmplt_e & ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread0);
 
 assign spc1_dctl_ldst_cond_cmplt0 = { spc1_dctl_stxa_cmplt0, spc1_dctl_l2fill_cmplt0,
-              spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[0],
-              spc1_dctl_bsync0_reset, spc1_dctl_lsu_intrpt_cmplt[0]
-               };
+					    spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[0],
+					    spc1_dctl_bsync0_reset, spc1_dctl_lsu_intrpt_cmplt[0]
+					     };
 
 assign spc1_cmplt0 = { spc1_dctl_ldxa_illgl_va_cmplt_d1, spc1_dctl_pref_tlbmiss_cmplt_d2,
-            spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt0, spc1_dctl_l2fill_fpld_e};
+			      spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt0, spc1_dctl_l2fill_fpld_e};
 
 
 always @(spc1_cmplt0 or spc1_dctl_ldst_cond_cmplt0)
@@ -1120,32 +1120,32 @@ begin
          12'h400 : spc1_ldstcond_cmplt0 =  4'hb; // stxa
          12'h800 : spc1_ldstcond_cmplt0 =  4'hc; // err
          12'ha00 : spc1_ldstcond_cmplt0 =  4'hd; // err & l2
-   default:
-     begin
-    spc1_ldstcond_cmplt0 =  4'hd;
-    // Got filter out fp ld and err and check one hot
-     end
+	 default:
+	   begin
+		spc1_ldstcond_cmplt0 =  4'hd;
+		// Got filter out fp ld and err and check one hot
+	   end
        endcase
 end
 
 
 assign spc1_dctl_stxa_cmplt1 = ((spc1_dctl_stxa_internal_d2 & spc1_dctl_thread1_w3) |
-               spc1_dctl_stxa_stall_wr_cmplt1_d1);
+				       spc1_dctl_stxa_stall_wr_cmplt1_d1);
 assign spc1_dctl_l2fill_cmplt1 = (((spc1_dctl_lsu_l2fill_vld & ~spc1_dctl_atomic_ld_squash_e &
-              ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
-            ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread1);
+					    ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
+					  ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread1);
 
 assign spc1_dctl_fillerr1 = spc1_dctl_l2_corr_error_e & spc1_dctl_dfill_thread1;
 // Rolling in changes due to bug 3624
 // assign spc1_dctl_atm_cmplt1 = (spc1_dctl_lsu_atm_st_cmplt_e & ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread1);
 
 assign spc1_dctl_ldst_cond_cmplt1 = { spc1_dctl_stxa_cmplt1, spc1_dctl_l2fill_cmplt1,
-              spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[1],
-              spc1_dctl_bsync1_reset, spc1_dctl_lsu_intrpt_cmplt[1]
-               };
+					    spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[1],
+					    spc1_dctl_bsync1_reset, spc1_dctl_lsu_intrpt_cmplt[1]
+					     };
 
 assign spc1_cmplt1 = { spc1_dctl_ldxa_illgl_va_cmplt_d1, spc1_dctl_pref_tlbmiss_cmplt_d2,
-            spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt1, spc1_dctl_l2fill_fpld_e};
+			      spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt1, spc1_dctl_l2fill_fpld_e};
 
 
 always @(spc1_cmplt1 or spc1_dctl_ldst_cond_cmplt1)
@@ -1165,32 +1165,32 @@ begin
          12'h400 : spc1_ldstcond_cmplt1 =  4'hb; // stxa
          12'h800 : spc1_ldstcond_cmplt1 =  4'hc; // err
          12'ha00 : spc1_ldstcond_cmplt1 =  4'hd; // err & l2
-   default:
-     begin
-    spc1_ldstcond_cmplt1 =  4'hd;
-    // Got filter out fp ld and err and check one hot
-     end
+	 default:
+	   begin
+		spc1_ldstcond_cmplt1 =  4'hd;
+		// Got filter out fp ld and err and check one hot
+	   end
        endcase
 end
 
 
 assign spc1_dctl_stxa_cmplt2 = ((spc1_dctl_stxa_internal_d2 & spc1_dctl_thread2_w3) |
-               spc1_dctl_stxa_stall_wr_cmplt2_d1);
+				       spc1_dctl_stxa_stall_wr_cmplt2_d1);
 assign spc1_dctl_l2fill_cmplt2 = (((spc1_dctl_lsu_l2fill_vld & ~spc1_dctl_atomic_ld_squash_e &
-              ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
-            ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread2);
+					    ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
+					  ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread2);
 
 assign spc1_dctl_fillerr2 = spc1_dctl_l2_corr_error_e & spc1_dctl_dfill_thread2;
 // Rolling in changes due to bug 3624
 // assign spc1_dctl_atm_cmplt2 = (spc1_dctl_lsu_atm_st_cmplt_e & ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread2);
 
 assign spc1_dctl_ldst_cond_cmplt2 = { spc1_dctl_stxa_cmplt2, spc1_dctl_l2fill_cmplt2,
-              spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[2],
-              spc1_dctl_bsync2_reset, spc1_dctl_lsu_intrpt_cmplt[2]
-               };
+					    spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[2],
+					    spc1_dctl_bsync2_reset, spc1_dctl_lsu_intrpt_cmplt[2]
+					     };
 
 assign spc1_cmplt2 = { spc1_dctl_ldxa_illgl_va_cmplt_d1, spc1_dctl_pref_tlbmiss_cmplt_d2,
-            spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt2, spc1_dctl_l2fill_fpld_e};
+			      spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt2, spc1_dctl_l2fill_fpld_e};
 
 
 always @(spc1_cmplt2 or spc1_dctl_ldst_cond_cmplt2)
@@ -1210,32 +1210,32 @@ begin
          12'h400 : spc1_ldstcond_cmplt2 =  4'hb; // stxa
          12'h800 : spc1_ldstcond_cmplt2 =  4'hc; // err
          12'ha00 : spc1_ldstcond_cmplt2 =  4'hd; // err & l2
-   default:
-     begin
-    spc1_ldstcond_cmplt2 =  4'hd;
-    // Got filter out fp ld and err and check one hot
-     end
+	 default:
+	   begin
+		spc1_ldstcond_cmplt2 =  4'hd;
+		// Got filter out fp ld and err and check one hot
+	   end
        endcase
 end
 
 
 assign spc1_dctl_stxa_cmplt3 = ((spc1_dctl_stxa_internal_d2 & spc1_dctl_thread3_w3) |
-               spc1_dctl_stxa_stall_wr_cmplt3_d1);
+				       spc1_dctl_stxa_stall_wr_cmplt3_d1);
 assign spc1_dctl_l2fill_cmplt3 = (((spc1_dctl_lsu_l2fill_vld & ~spc1_dctl_atomic_ld_squash_e &
-              ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
-            ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread3);
+					    ~spc1_dctl_lsu_ignore_fill)) & ~spc1_dctl_l2fill_fpld_e &
+					  ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread3);
 
 assign spc1_dctl_fillerr3 = spc1_dctl_l2_corr_error_e & spc1_dctl_dfill_thread3;
 // Rolling in changes due to bug 3624
 // assign spc1_dctl_atm_cmplt3 = (spc1_dctl_lsu_atm_st_cmplt_e & ~spc1_dctl_fill_err_trap_e & spc1_dctl_dfill_thread3);
 
 assign spc1_dctl_ldst_cond_cmplt3 = { spc1_dctl_stxa_cmplt3, spc1_dctl_l2fill_cmplt3,
-              spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[3],
-              spc1_dctl_bsync3_reset, spc1_dctl_lsu_intrpt_cmplt[3]
-               };
+					    spc1_dctl_atomic_ld_squash_e, spc1_dctl_intld_byp_cmplt[3],
+					    spc1_dctl_bsync3_reset, spc1_dctl_lsu_intrpt_cmplt[3]
+					     };
 
 assign spc1_cmplt3 = { spc1_dctl_ldxa_illgl_va_cmplt_d1, spc1_dctl_pref_tlbmiss_cmplt_d2,
-            spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt3, spc1_dctl_l2fill_fpld_e};
+			      spc1_dctl_lsu_pcx_pref_issue, spc1_dctl_diag_wr_cmplt3, spc1_dctl_l2fill_fpld_e};
 
 
 always @(spc1_cmplt3 or spc1_dctl_ldst_cond_cmplt3)
@@ -1255,19 +1255,19 @@ begin
          12'h400 : spc1_ldstcond_cmplt3 =  4'hb; // stxa
          12'h800 : spc1_ldstcond_cmplt3 =  4'hc; // err
          12'ha00 : spc1_ldstcond_cmplt3 =  4'hd; // err & l2
-   default:
-     begin
-    spc1_ldstcond_cmplt3 =  4'hd;
-    // Got filter out fp ld and err and check one hot
-     end
+	 default:
+	   begin
+		spc1_ldstcond_cmplt3 =  4'hd;
+		// Got filter out fp ld and err and check one hot
+	   end
        endcase
 end
 
 
 
 always @(spc1_ldstcond_cmplt0 or spc1_ldstcond_cmplt1 or spc1_ldstcond_cmplt2
-   or spc1_ldstcond_cmplt3 or spc1_dctl_lsu_ifu_ldst_cmplt
-   or spc1_dctl_late_cmplt0 or spc1_dctl_late_cmplt1 or spc1_dctl_late_cmplt2 or spc1_dctl_late_cmplt3)
+	 or spc1_ldstcond_cmplt3 or spc1_dctl_lsu_ifu_ldst_cmplt
+	 or spc1_dctl_late_cmplt0 or spc1_dctl_late_cmplt1 or spc1_dctl_late_cmplt2 or spc1_dctl_late_cmplt3)
 begin
        case (spc1_dctl_lsu_ifu_ldst_cmplt)
          4'b0000 : spc1_ldstcond_cmplt_d = 4'h0;
@@ -1281,19 +1281,19 @@ begin
          4'b0110 : spc1_ldstcond_cmplt_d = 4'he;
          4'b1010 : spc1_ldstcond_cmplt_d = 4'he;
          4'b1100 : spc1_ldstcond_cmplt_d = 4'he;
-   default:
-      begin
-      spc1_ldstcond_cmplt_d =  4'hf;
-    end
+	 default:
+	  	begin
+			spc1_ldstcond_cmplt_d =  4'hf;
+		end
        endcase
 end
 
 
 // st returns ooo
 assign spc1_st_ooo_ret = { spc1_st0_lt_1, spc1_st0_lt_2, spc1_st0_lt_3,
-            spc1_st1_lt_0, spc1_st1_lt_2, spc1_st1_lt_3,
-            spc1_st2_lt_0, spc1_st2_lt_1, spc1_st2_lt_3,
-            spc1_st3_lt_0, spc1_st3_lt_1, spc1_st3_lt_2};
+			      spc1_st1_lt_0, spc1_st1_lt_2, spc1_st1_lt_3,
+			      spc1_st2_lt_0, spc1_st2_lt_1, spc1_st2_lt_3,
+			      spc1_st3_lt_0, spc1_st3_lt_1, spc1_st3_lt_2};
 
 always @(posedge clk)
 begin
@@ -1464,7 +1464,7 @@ begin
 end
 
 always @(spc1_st0_unfilled or spc1_st1_unfilled or spc1_st2_unfilled or spc1_st3_unfilled
-   or spc1_st0_unfilled_d or spc1_st1_unfilled_d or spc1_st2_unfilled_d or spc1_st3_unfilled_d)
+	 or spc1_st0_unfilled_d or spc1_st1_unfilled_d or spc1_st2_unfilled_d or spc1_st3_unfilled_d)
 begin
 if(~spc1_st0_unfilled && spc1_st0_unfilled_d && spc1_st1_unfilled)
  spc1_st0_lt_1 <= (spc1_st1_unf_cntr > spc1_st0_unf_cntr);
@@ -1516,13 +1516,13 @@ else
 if(~spc1_st3_unfilled && spc1_st3_unfilled_d && spc1_st2_unfilled)
  spc1_st3_lt_2 <= (spc1_st2_unf_cntr > spc1_st3_unf_cntr);
 else
- spc1_st3_lt_2 <= 1'b0;             //
+ spc1_st3_lt_2 <= 1'b0;				      //
 end
 // load returns ooo
 assign spc1_ld_ooo_ret = { spc1_ld0_lt_1, spc1_ld0_lt_2, spc1_ld0_lt_3,
-            spc1_ld1_lt_0, spc1_ld1_lt_2, spc1_ld1_lt_3,
-            spc1_ld2_lt_0, spc1_ld2_lt_1, spc1_ld2_lt_3,
-            spc1_ld3_lt_0, spc1_ld3_lt_1, spc1_ld3_lt_2};
+			      spc1_ld1_lt_0, spc1_ld1_lt_2, spc1_ld1_lt_3,
+			      spc1_ld2_lt_0, spc1_ld2_lt_1, spc1_ld2_lt_3,
+			      spc1_ld3_lt_0, spc1_ld3_lt_1, spc1_ld3_lt_2};
 always @(posedge clk)
 begin
     if((~spc1_ld0_unfilled && spc1_ld0_unfilled_d)|| ~rst_l)
@@ -1576,7 +1576,7 @@ begin
 end
 
 always @(spc1_ld0_unfilled or spc1_ld1_unfilled or spc1_ld2_unfilled or spc1_ld3_unfilled
-   or spc1_ld0_unfilled_d or spc1_ld1_unfilled_d or spc1_ld2_unfilled_d or spc1_ld3_unfilled_d)
+	 or spc1_ld0_unfilled_d or spc1_ld1_unfilled_d or spc1_ld2_unfilled_d or spc1_ld3_unfilled_d)
 begin
 if(~spc1_ld0_unfilled && spc1_ld0_unfilled_d && spc1_ld1_unfilled)
  spc1_ld0_lt_1 <= (spc1_ld1_unf_cntr > spc1_ld0_unf_cntr);
@@ -1628,7 +1628,7 @@ else
 if(~spc1_ld3_unfilled && spc1_ld3_unfilled_d && spc1_ld2_unfilled)
  spc1_ld3_lt_2 <= (spc1_ld2_unf_cntr > spc1_ld3_unf_cntr);
 else
- spc1_ld3_lt_2 <= 1'b0;             //
+ spc1_ld3_lt_2 <= 1'b0;				      //
 end
 
 // bld checks note it has stb_cam hit, ldst_dbl and asi terms removed from the dctl hit equation
@@ -2964,7 +2964,7 @@ end
 
 always @(spc1_dva_raddr or spc1_dva_ren or spc1_dva_inv)
 begin
-  if (spc1_dva_inv && spc1_dva_ren && (spc1_dva_raddr[6:2] == spc1_dva_waddr_d))
+  if (spc1_dva_inv && spc1_dva_ren && (spc1_dva_raddr[`L1D_ADDRESS_HI-4:2] == spc1_dva_waddr_d))
     spc1_dva_vld2lkup <= 1'b1;
   else
     spc1_dva_vld2lkup <= 1'b0;
@@ -3026,7 +3026,7 @@ end
 
 always @(spc1_dva_raddr or spc1_dva_ren or spc1_dva_vld)
 begin
-  if (spc1_dva_vld && spc1_dva_ren && (spc1_dva_raddr[6:2] == spc1_dva_waddr_d))
+  if (spc1_dva_vld && spc1_dva_ren && (spc1_dva_raddr[`L1D_ADDRESS_HI-4:2] == spc1_dva_waddr_d))
     spc1_dva_invld2lkup <= 1'b1;
   else
     spc1_dva_invld2lkup <= 1'b0;
@@ -3056,7 +3056,7 @@ end // always @ (posedge clk)
 // Can this ever happen/Might have to flag this as an error..
 always @(spc1_dva_raddr or spc1_dva_waddr or spc1_dva_ren or spc1_dva_wen)
 begin
-  if ( spc1_dva_ren && spc1_dva_wen && (spc1_dva_raddr[6:2] == spc1_dva_waddr))
+  if ( spc1_dva_ren && spc1_dva_wen && (spc1_dva_raddr[`L1D_ADDRESS_HI-4:2] == spc1_dva_waddr))
     spc1_dva_collide <= 1'b1;
   else
     spc1_dva_collide <= 1'b0;

@@ -179,7 +179,7 @@ input [27:0]  lsu_iobrdge_wr_data ;
 //  input      bistctl_wr_en;
    output [6:0] bist_ctl_reg_in;
    
-   input [10:0] bist_ctl_reg_out;
+   input [`L1D_ADDRESS_HI:0] bist_ctl_reg_out;
    
    input      mrgn_tap_wr_en;
 
@@ -192,7 +192,7 @@ input [27:0]  lsu_iobrdge_wr_data ;
    input [3:0]  misc_ctl_sel_din ;  //should force default
 
 output	[3:0]	lsu_ictag_mrgn ;	// icache tag self-timed margin control
-output	[3:0]	lsu_dctag_mrgn ;	// dcache tag self-timed margin control
+output	[`L1D_WAY_ARRAY_MASK]	lsu_dctag_mrgn ;	// dcache tag self-timed margin control
 
 output	[3:0]	lsu_mamem_mrgn ;	// mamem self-timed margin control
 output	[7:0]	lsu_dtlb_mrgn ;	  // dtlb self-timed margin control
@@ -224,17 +224,17 @@ output  [7:0]   lsu_ifu_asi_state;
    input tlb_access_sel_thrd2;
    input tlb_access_sel_default;
 
-output  [10:0]   lsu_tlu_tlb_ldst_va_m ;
+output  [`L1D_ADDRESS_HI:0]   lsu_tlu_tlb_ldst_va_m ;
 output  [47:13]         lsu_tlu_tlb_dmp_va_m ;
 output  [17:0]    lsu_ifu_asi_addr ;
 
-   output [10:0]  lsu_diagnstc_wr_addr_e ;
+   output [`L1D_ADDRESS_HI:0]  lsu_diagnstc_wr_addr_e ;
    output [7:0]   lsu_diagnstc_dc_prty_invrt_e ;
 
 ///  output [13:11] lsu_lngltncy_ldst_va;
    
    input mrgnctl_wr_en;
-input [10:4]  lsu_dcfill_addr_e ;         // data cache fill addr
+input [`L1D_ADDRESS_HI:4]  lsu_dcfill_addr_e ;         // data cache fill addr
 input [28:0]  lsu_error_pa_m ;            // error phy addr
 //   input      sync_error_sel;
    output  [47:4]    lsu_ifu_err_addr ;    // error address
@@ -250,7 +250,7 @@ input [7:0]   stb_ldst_byte_msk ;
    output [5:0] lsu_dp_ctl_reg3;
 
    input   [3:0] lsu_diagnstc_va_sel ;
-   output  [1:0] lsu_diagnstc_wr_way_e ;
+   output  [`L1D_WAY_MASK] lsu_diagnstc_wr_way_e ;
    output	 lsu_diag_va_prty_invrt ;
    input   rst_tri_en;
 
@@ -1191,8 +1191,8 @@ assign va_wtchpt_msk_match_m  =
 /***********************ldxa****************************/   
 // BIST_Controller ASI
 // tap wr takes precedence
-//wire  [10:0]  bistctl_data_in;
-//wire  [10:0]  bist_ctl_reg ;
+//wire  [`L1D_ADDRESS_HI:0]  bistctl_data_in;
+//wire  [`L1D_ADDRESS_HI:0]  bist_ctl_reg ;
 
 //assign  bistctl_data_in[13:0] =
 //  bist_tap_wr_en ? lsu_iobrdge_wr_data[13:0] : st_rs3_data_g[13:0] ;
@@ -1218,15 +1218,15 @@ clken_buf bistctl_clkbuf (
    
 `ifdef FPGA_SYN_CLK_DFF
 dffe_s #(11) bistctl_ff (
-        .din    (bistctl_data_in[10:0]),
-        .q      (bist_ctl_reg[10:0]),
+        .din    (bistctl_data_in[`L1D_ADDRESS_HI:0]),
+        .q      (bist_ctl_reg[`L1D_ADDRESS_HI:0]),
         .en (~(~bistctl_wr_en)), .clk(clk),
         .se     (se),       .si (),          .so ()
         );
 `else
 dff_s #(11) bistctl_ff (
-        .din    (bistctl_data_in[10:0]),
-        .q      (bist_ctl_reg[10:0]),
+        .din    (bistctl_data_in[`L1D_ADDRESS_HI:0]),
+        .q      (bist_ctl_reg[`L1D_ADDRESS_HI:0]),
         .clk    (bistctl_clk),
         .se     (se),       .si (),          .so ()
         );
@@ -1285,7 +1285,7 @@ dff_s #(28) mrgnctl_ff (
 assign	lsu_itlb_mrgn[7:0] = mrgn_ctl_reg[27:20] ;
 assign	lsu_dtlb_mrgn[7:0] = mrgn_ctl_reg[19:12] ;
 assign	lsu_ictag_mrgn[3:0] = mrgn_ctl_reg[11:8] ;
-assign	lsu_dctag_mrgn[3:0] = mrgn_ctl_reg[7:4] ;
+assign	lsu_dctag_mrgn[`L1D_WAY_ARRAY_MASK] = mrgn_ctl_reg[7:4] ;
 assign	lsu_mamem_mrgn[3:0] = mrgn_ctl_reg[3:0] ;
 
 // LSU Diag Reg ASI
@@ -1345,7 +1345,7 @@ dff_s #(4) misc_ctl_sel_stgg (
       
 // Misc Ctl Registers
 mux4ds #(44)     miscrg_mx (
-        .in0    ({33'b0,bist_ctl_reg_out[10:0]}),
+        .in0    ({{43-`L1D_ADDRESS_HI{1'b0}},bist_ctl_reg_out[`L1D_ADDRESS_HI:0]}),
         .in1    ({16'b0,mrgn_ctl_reg[27:0]}),
         .in2    ({42'd0,ldiag_ctl_reg[1:0]}),
         .in3    ({40'd0,dfture_tap_rd_data[3:0]}),
@@ -1580,7 +1580,7 @@ wire [17:0] lngltncy_ldst_va ;
 
 assign  lngltncy_ldst_va[17:0] = ldst_va_dout[17:0];
 assign  lngltncy_dmp_va[47:13] = ldst_va_dout[47:13];   
-assign  lsu_tlu_tlb_ldst_va_m[10:0] = lngltncy_ldst_va[10:0] ;
+assign  lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:0] = lngltncy_ldst_va[`L1D_ADDRESS_HI:0] ;
 assign  lsu_tlu_tlb_dmp_va_m[47:13] = lngltncy_dmp_va[47:13] ;
 assign  lsu_ifu_asi_addr[17:0] = lngltncy_ldst_va[17:0] ;
 
@@ -1614,7 +1614,7 @@ mux4ds #(21)     diag_va_mx (
         .dout   (diag_va[20:0])
         );
 
-assign  lsu_diagnstc_wr_addr_e[10:0] = diag_va[10:0] ;
+assign  lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0] = diag_va[`L1D_ADDRESS_HI:0] ;
 assign  lsu_diagnstc_dc_prty_invrt_e[7:0] = diag_va[20:13] ;   
 
 //assign  lsu_lngltncy_ldst_va[13:11]= lngltncy_ldst_va[13:11] ;
@@ -1624,24 +1624,24 @@ assign  lsu_diagnstc_dc_prty_invrt_e[7:0] = diag_va[20:13] ;
 //assign  lsu_diagnstc_wr_way_e[2] =  diag_va[12] & ~diag_va[11] ;
 //assign  lsu_diagnstc_wr_way_e[3] =  diag_va[12] &  diag_va[11] ;
 
-assign  lsu_diagnstc_wr_way_e[1:0] =  {diag_va[12],  diag_va[11]};
+assign  lsu_diagnstc_wr_way_e[`L1D_WAY_MASK] =  {diag_va[12],  diag_va[11]};
    
    
 assign	lsu_diag_va_prty_invrt = diag_va[13] ;
 
 /***************error addr***************/
-wire  [10:4] dcfill_addr_m,dcfill_addr_g ;
+wire  [`L1D_ADDRESS_HI:4] dcfill_addr_m,dcfill_addr_g ;
 
-dff_s #(7)  filla_stgm (
-        .din    (lsu_dcfill_addr_e[10:4]),
-        .q      (dcfill_addr_m[10:4]),
+dff_s #(`L1D_SET_IDX_WIDTH)  filla_stgm (
+        .din    (lsu_dcfill_addr_e[`L1D_ADDRESS_HI:4]),
+        .q      (dcfill_addr_m[`L1D_ADDRESS_HI:4]),
         .clk    (clk),
         .se     (se),       .si (),          .so ()
         ); 
 
-dff_s #(7)  filla_stgg (
-        .din    (dcfill_addr_m[10:4]),
-        .q      (dcfill_addr_g[10:4]),
+dff_s #(`L1D_SET_IDX_WIDTH)  filla_stgg (
+        .din    (dcfill_addr_m[`L1D_ADDRESS_HI:4]),
+        .q      (dcfill_addr_g[`L1D_ADDRESS_HI:4]),
         .clk    (clk),
         .se     (se),       .si (),          .so ()
         ); 
@@ -1659,7 +1659,8 @@ wire  [47:4]  err_addr_g ;
 mux3ds #(44)     erra_mx (
         .in0    (ldst_va_g[47:4]),
         .in1    ({38'd0,async_tlb_index[5:0]}),
-        .in2    ({8'd0,error_pa_g[28:0],dcfill_addr_g[10:4]}),
+        .in2    ({8'd0,error_pa_g[28:0],dcfill_addr_g[10:4]}), // trin todo; might not be right
+        // .in2    ({8'd0,error_pa_g[28:0],dcfill_addr_g[`L1D_ADDRESS_HI:4]}), // trin todo; might not be right
         .sel0   (lsu_err_addr_sel[0]),
         .sel1   (lsu_err_addr_sel[1]),
         .sel2   (lsu_err_addr_sel[2]),
@@ -1669,7 +1670,7 @@ mux3ds #(44)     erra_mx (
 /*assign  err_addr_g[47:4] =
   sync_error_sel ?  ldst_va_g[47:4] : 
 	async_error_sel ? {38'd0,async_tlb_index[5:0]} :
-			{8'd0,error_pa_g[28:0],dcfill_addr_g[10:4]} ;*/
+			{8'd0,error_pa_g[28:0],dcfill_addr_g[`L1D_ADDRESS_HI:4]} ;*/
 
 dff_s #(44)  errad_stgg (
         .din    (err_addr_g[47:4]),

@@ -463,7 +463,7 @@ def run_item (dryrun, contint_dir, item) :
 
         if (os.environ.get('PTON_HANOI', -1) == -1):
             fp.write("#SBATCH --ntasks-per-node=1    # ppn=1\n")
-            fp.write("#SBATCH --mem=1024              # mem=1GB\n")
+            fp.write("#SBATCH --mem=2048              # mem=2GB\n")
             fp.write("#SBATCH -t 2:06:00               # walltime=1hr6mins\n")
         else:
             fp.write("#SBATCH -t 3:00:00               # walltime=1hr6mins\n")

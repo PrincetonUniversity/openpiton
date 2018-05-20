@@ -31,7 +31,7 @@
 //			   collection of any class of objects.
 //----------------------------------------------------------------------
 
-#include <iostream.h>
+#include <iostream>
 #include <stdlib.h>
 #include <assert.h>
 

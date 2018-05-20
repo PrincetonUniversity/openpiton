@@ -35,29 +35,32 @@
     interrupt_packet    test.s \
     -sim_run_args=+test_case_base=jtag_thread_start_manual -sim_run_args=+jtag_iob_send_wakeup=0 \
 
-    pc_write            jtag_infinite_loop1.s \
-    -sim_run_args=+test_case_base=jtag_pc_write
+    //pc_write            jtag_infinite_loop1.s \
+    //-sim_run_args=+test_case_base=jtag_pc_write
 
     reset_vector_set    test.s \
     -sim_run_args=+test_case_base=jtag_reset_vector -sim_run_args=+jtag_iob_send_wakeup=0 \
 
-    no_noc              test.s \
-    -sim_run_args=+test_case_base=jtag_manual_program -sim_run_args=+jtag_iob_send_wakeup=0 \
-    -sim_run_args=+jtag_timeout=2000000000 -sim_run_args=+force_cache=1
+    // trin 5/17/16: stopped working because non-IBM SRAMs don't implement JTAG
+    // no_noc              test.s \
+    // -sim_run_args=+test_case_base=jtag_manual_program -sim_run_args=+jtag_iob_send_wakeup=0 \
+    // -sim_run_args=+jtag_timeout=2000000000 -sim_run_args=+force_cache=1
     // currently this test does not achieve 100% no NOC activity because I'm too lazy to eliminate the last
     // 3 dcache loads but it is entirely possible
 
-    oram_read           test.s \
-    -sim_run_args=+test_case_base=jtag_oram_read -sim_run_args=+jtag_iob_send_wakeup=0 -oram
+    //oram_read           test.s \
+    //-sim_run_args=+test_case_base=jtag_oram_read -sim_run_args=+jtag_iob_send_wakeup=0 -oram
 
     jtag_rw_configregs           test.s \
     -sim_run_args=+test_case_base=jtag_rw_configregs -sim_run_args=+jtag_iob_send_wakeup=0
 
-    jtag_sram_write_frf           test.s \
-    -sim_run_args=+test_case_base=jtag_sram_write_frf -sim_run_args=+jtag_iob_send_wakeup=0
+    // trin 5/17/16: stopped working because non-IBM SRAMs don't implement JTAG
+    // jtag_sram_write_frf           test.s \
+    // -sim_run_args=+test_case_base=jtag_sram_write_frf -sim_run_args=+jtag_iob_send_wakeup=0
 
-    jtag_read_irf           jtag_infinite_loop.s \
-    -sim_run_args=+test_case_base=jtag_read_irf 
+    // trin 5/17/16: stopped working because non-IBM SRAMs don't implement JTAG
+    // jtag_read_irf           jtag_infinite_loop.s \
+    // -sim_run_args=+test_case_base=jtag_read_irf 
 
     jtag_test_clk_gating           test_fail.s \
     -sim_run_args=+test_case_base=jtag_test_clk_gating  \

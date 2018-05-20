@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *******************************************************************/
 
+`include "piton_system.vh"
+
 `timescale 1ns/1ps
 
 module chip_bridge_in (
@@ -134,6 +136,24 @@ wire [63:0] buffered_data;
 reg [1:0] buffered_channel;
 
 
+`ifdef PITON_PROTO
+// Do internal sychronization for each clock for FPGA
+reg wr_rst_f;
+reg wr_rst_ff;
+reg rd_rst_f;
+reg rd_rst_ff;
+always @ (posedge wr_clk)
+begin
+    wr_rst_f <= rst;
+    wr_rst_ff <= wr_rst_f;
+end
+always @ (posedge rd_clk)
+begin
+    rd_rst_f <= rst;
+    rd_rst_ff <= rd_rst_f;
+end
+`endif
+
 /*********************************************************
 //credit FIFO boot system
 *********************************************************/
@@ -153,7 +173,11 @@ assign sort_val_3  = (buffered_channel == 2'b11 && channel_buffer_count == 1'b1)
 assign buffered_data = {data_from_fpga, channel_buffer};
 
 always @(posedge wr_clk) begin
+`ifdef PITON_PROTO
+    if (wr_rst_ff) begin
+`else // ifndef PITON_PROTO
     if(rst) begin
+`endif
         channel_buffer <= 32'd0;
         channel_buffer_count <= 0;
     end
@@ -175,6 +199,19 @@ end
 //data FIFOs
 *********************************************************/
 
+`ifdef PITON_PROTO
+afifo_w64_d16 async_fifo_1(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(bout_rdy_1 & ~credit_fifo_full & async_mux),
+    .wr_en(sort_val_1 & async_mux),
+    .din(sort_data_1),
+    .dout(async_bout_data_1),
+    .full(async_fifo1_full),
+    .empty(async_fifo1_empty)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -191,7 +228,21 @@ async_fifo_1(
     .wfull(async_fifo1_full), //credit system should prevent this from ever being full
     .rempty(async_fifo1_empty)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+afifo_w64_d16 async_fifo_2(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(bout_rdy_2 & ~credit_fifo_full & async_mux),
+    .wr_en(sort_val_2 & async_mux),
+    .din(sort_data_2),
+    .dout(async_bout_data_2),
+    .full(async_fifo2_full),
+    .empty(async_fifo2_empty)
+);
+`else //ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -208,9 +259,22 @@ async_fifo_2(
     .wfull(async_fifo2_full), //credit system should prevent this from ever being full
     .rempty(async_fifo2_empty)
 );
+`endif // endif PITON_PROTO
 
 
-
+`ifdef PITON_PROTO
+afifo_w64_d16 async_fifo_3(
+    .rst(rst),
+    .wr_clk(wr_clk),
+    .rd_clk(rd_clk),
+    .rd_en(bout_rdy_3 & ~credit_fifo_full & async_mux),
+    .wr_en(sort_val_3 & async_mux),
+    .din(sort_data_3),
+    .dout(async_bout_data_3),
+    .full(async_fifo3_full),
+    .empty(async_fifo3_empty)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -227,7 +291,24 @@ async_fifo_3(
     .wfull(async_fifo3_full), //credit system should prevent this from ever being full
     .rempty(async_fifo3_empty)
 );
+`endif // endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w64_d16 sync_fifo_1(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(wr_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(wr_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(wr_clk),
+    .rd_en(bout_rdy_1 & ~credit_fifo_full & ~async_mux),
+    .wr_en(sort_val_1 & ~async_mux),
+    .din(sort_data_1),
+    .dout(sync_bout_data_1),
+    .full(sync_fifo1_full),
+    .empty(sync_fifo1_empty)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -242,7 +323,24 @@ sync_fifo_1(
     .full(sync_fifo1_full), //credit system should prevent this from ever being full
     .empty(sync_fifo1_empty)
 );
+`endif //endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w64_d16 sync_fifo_2(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(wr_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(wr_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(wr_clk),
+    .rd_en(bout_rdy_2 & ~credit_fifo_full & ~async_mux),
+    .wr_en(sort_val_2 & ~async_mux),
+    .din(sort_data_2),
+    .dout(sync_bout_data_2),
+    .full(sync_fifo2_full),
+    .empty(sync_fifo2_empty)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -257,9 +355,24 @@ sync_fifo_2(
     .full(sync_fifo2_full), //credit system should prevent this from ever being full
     .empty(sync_fifo2_empty)
 );
+`endif // endif PITON_PROTO
 
-
-
+`ifdef PITON_PROTO
+fifo_w64_d16 sync_fifo_3(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(wr_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(wr_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(wr_clk),
+    .rd_en(bout_rdy_3 & ~credit_fifo_full & ~async_mux),
+    .wr_en(sort_val_3 & ~async_mux),
+    .din(sort_data_3),
+    .dout(sync_bout_data_3),
+    .full(sync_fifo3_full),
+    .empty(sync_fifo3_empty)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(64),
 .ASIZE(5),
@@ -274,6 +387,7 @@ sync_fifo_3(
     .full(sync_fifo3_full), //credit system should prevent this from ever being full
     .empty(sync_fifo3_empty)
 );
+`endif // endif PITON_PROTO
 
 assign fifo1_full = async_mux ? async_fifo1_full : sync_fifo1_full;
 assign fifo2_full = async_mux ? async_fifo2_full : sync_fifo2_full;
@@ -301,10 +415,23 @@ wire [2:0] credit_fifo_out;
 wire [2:0] async_credit_fifo_out;
 wire [2:0] sync_credit_fifo_out;
 
-reg  [2:0] credit_to_fpga_r;
+reg  [2:0] credit_to_fpga_r /* synthesis iob = true */;
 
 //FIFO used for bridging credits between clock domains
 
+`ifdef PITON_PROTO
+afifo_w3_d16 async_credit_fifo(
+    .rst(rst),
+    .wr_clk(rd_clk),
+    .rd_clk(wr_clk),
+    .rd_en(~wr_rst_ff & async_mux),
+    .wr_en(~(rd_rst_ff) & (| credit_gather) & async_mux),
+    .din(credit_gather),
+    .dout(async_credit_fifo_out),
+    .full(async_credit_fifo_full),
+    .empty(async_credit_empty)
+);
+`else // ifndef PITON_PROTO
 async_fifo #(
 .DSIZE(3),
 .ASIZE(5),
@@ -321,7 +448,24 @@ async_credit_fifo(
     .wfull(async_credit_fifo_full),   
     .rempty(async_credit_empty)
 );
+`endif //endif PITON_PROTO
 
+`ifdef PITON_PROTO
+fifo_w3_d16 sync_credit_fifo(
+`ifdef PITON_FPGA_AFIFO_NO_SRST
+    .rst(wr_rst_ff),
+`else // ifndef PITON_FPGA_AFIFO_NO_SRST
+    .srst(wr_rst_ff),
+`endif // endif PITON_FPGA_AFIFO_NO_SRST
+    .clk(wr_clk),
+    .rd_en(~wr_rst_ff & ~async_mux),
+    .wr_en(~(wr_rst_ff) & (| credit_gather) & ~async_mux),
+    .din(credit_gather),
+    .dout(sync_credit_fifo_out),
+    .full(sync_credit_fifo_full),
+    .empty(sync_credit_empty)
+);
+`else // ifndef PITON_PROTO
 sync_fifo #(
 .DSIZE(3),
 .ASIZE(5),
@@ -336,6 +480,7 @@ sync_credit_fifo(
     .full(sync_credit_fifo_full),   
     .empty(sync_credit_empty)
 );
+`endif // endif PITON_PROTO
 
 assign credit_fifo_out = async_mux ? async_credit_fifo_out : sync_credit_fifo_out;
 assign credit_fifo_full = async_mux ? async_credit_fifo_full : sync_credit_fifo_full;
@@ -351,7 +496,11 @@ assign credit_gather[2] = bout_rdy_3 & bout_val_3;
  channel side sequential logic 
  ****************************************************/
 always@(posedge wr_clk) begin
+`ifdef PITON_PROTO
+   if(wr_rst_ff) begin
+`else // ifndef PITON_PROTO
    if(rst) begin
+`endif // endif PITON_PROTO
         credit_to_fpga_r <= 3'b000;       
    end
    else begin

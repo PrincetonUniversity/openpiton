@@ -1,0 +1,5 @@
+// Flist for host_fpga_comm testbench environment
+
+host_fpga_comm_top.v
+host.v
+bram_2p_model.v

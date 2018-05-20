@@ -80,25 +80,17 @@ module sparc_ifu_invctl(/*AUTOARG*/
 //  Local Signals
 //----------------------------------------------------------------------
 
-   wire [3:0]  cpu_sel,
-               invcpu21_sel_i2;
-   wire        invcpu0_sel_i2;
-
-   wire [1:0]  inv_vec0,
-		           inv_vec1;
-   wire [1:0]  inv_way0_p1_i2,
-		           inv_way0_p0_i2,
-		           inv_way1_p1_i2,
-		           inv_way1_p0_i2,
-               invwd0_way_i2,
-               invwd1_way_i2,
-               inv0_way_i2,
-               inv1_way_i2;
+   wire [1:0]  invwd_way_i2;
+   wire [1:0]  invwd0_way_i2 = invwd_way_i2;
+   wire [1:0]  invwd1_way_i2 = invwd_way_i2;
+   wire [1:0]  inv0_way_i2;
+   wire [1:0]  inv1_way_i2;
 
    wire [1:0]  asi_way_f;
 
-   wire        word0_inv_i2,
-               word1_inv_i2;
+   wire        word_inv_i2;
+   wire        word0_inv_i2 = word_inv_i2;
+   wire        word1_inv_i2 = word_inv_i2;
 
    wire        ldinv_i2,
                ldpkt_i2,
@@ -175,131 +167,8 @@ module sparc_ifu_invctl(/*AUTOARG*/
    // Extract Invalidate Packet For This Core
    //----------------------------------------------------------------------
 
-   // mux the invalidate vector down to get this processors inv vector
-
-   // First ecode cpu id
-   assign cpu_sel[0] = ~const_cpuid[2] & ~const_cpuid[1];
-   assign cpu_sel[1] = ~const_cpuid[2] &  const_cpuid[1];
-   assign cpu_sel[2] =  const_cpuid[2] & ~const_cpuid[1];
-   assign cpu_sel[3] =  const_cpuid[2] &  const_cpuid[1];
-
-   // 4:1 follwed by 2:1 to get 8:1, to get invalidate way selects
-   assign invcpu21_sel_i2 = cpu_sel;
-   assign invcpu0_sel_i2 = const_cpuid[0];
-
-   // First do word 0 for even processors
-   mux4ds #(1)  v0p0_mux(.dout  (inv_vec0[0]),
-			                   .in0   (ifd_inv_ifqop_i2[1]),
-			                   .in1   (ifd_inv_ifqop_i2[9]),
-			                   .in2   (ifd_inv_ifqop_i2[17]),
-			                   .in3   (ifd_inv_ifqop_i2[25]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   mux4ds #(2)  w0p0_mux(.dout (inv_way0_p0_i2[1:0]),
-			                   .in0  (ifd_inv_ifqop_i2[3:2]),
-			                   .in1  (ifd_inv_ifqop_i2[11:10]),
-			                   .in2  (ifd_inv_ifqop_i2[19:18]),
-			                   .in3  (ifd_inv_ifqop_i2[27:26]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   // word 0 for odd processors
-   mux4ds #(1)  v0p1_mux(.dout  (inv_vec0[1]),
-			                   .in0   (ifd_inv_ifqop_i2[5]),
-			                   .in1   (ifd_inv_ifqop_i2[13]),
-			                   .in2   (ifd_inv_ifqop_i2[21]),
-			                   .in3   (ifd_inv_ifqop_i2[29]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   mux4ds #(2)  w0p1_mux(.dout (inv_way0_p1_i2[1:0]),
-			                   .in0  (ifd_inv_ifqop_i2[7:6]),
-			                   .in1  (ifd_inv_ifqop_i2[15:14]),
-			                   .in2  (ifd_inv_ifqop_i2[23:22]),
-			                   .in3  (ifd_inv_ifqop_i2[31:30]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-
-   // Word 1
-   // word 1 for even processors
-   mux4ds #(1)  v1p0_mux(.dout  (inv_vec1[0]),
-			                   .in0   (ifd_inv_ifqop_i2[57]),
-			                   .in1   (ifd_inv_ifqop_i2[65]),
-			                   .in2   (ifd_inv_ifqop_i2[73]),
-			                   .in3   (ifd_inv_ifqop_i2[81]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   mux4ds #(2)  w1p0_mux(.dout (inv_way1_p0_i2[1:0]),
-			                   .in0  (ifd_inv_ifqop_i2[59:58]),
-			                   .in1  (ifd_inv_ifqop_i2[67:66]),
-			                   .in2  (ifd_inv_ifqop_i2[75:74]),
-			                   .in3  (ifd_inv_ifqop_i2[83:82]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   // word 1 for odd processors
-   mux4ds #(1)  inv_v1p1_mux(.dout  (inv_vec1[1]),
-			                       .in0   (ifd_inv_ifqop_i2[61]),
-			                       .in1   (ifd_inv_ifqop_i2[69]),
-			                       .in2   (ifd_inv_ifqop_i2[77]),
-			                       .in3   (ifd_inv_ifqop_i2[85]),
-			                       .sel0 (invcpu21_sel_i2[0]),
-			                       .sel1 (invcpu21_sel_i2[1]),
-			                       .sel2 (invcpu21_sel_i2[2]),
-			                       .sel3 (invcpu21_sel_i2[3]));
-
-   mux4ds #(2)  w1p1_mux(.dout (inv_way1_p1_i2[1:0]),
-			                   .in0  (ifd_inv_ifqop_i2[63:62]),
-			                   .in1  (ifd_inv_ifqop_i2[71:70]),
-			                   .in2  (ifd_inv_ifqop_i2[79:78]),
-			                   .in3  (ifd_inv_ifqop_i2[87:86]),
-			                   .sel0 (invcpu21_sel_i2[0]),
-			                   .sel1 (invcpu21_sel_i2[1]),
-			                   .sel2 (invcpu21_sel_i2[2]),
-			                   .sel3 (invcpu21_sel_i2[3]));
-
-   // Mux odd and even values down to a single value for word0 and word1
-//   dp_mux2es #(1) v0_mux (.dout (word0_inv_i2),
-//			                    .in0  (inv_vec0[0]),
-//			                    .in1  (inv_vec0[1]),
-//			                    .sel  (invcpu0_sel_i2));
-   assign word0_inv_i2 = invcpu0_sel_i2 ? inv_vec0[1] : inv_vec0[0];
-
-//   dp_mux2es #(2) w0_mux (.dout (invwd0_way_i2[1:0]),
-//			                    .in0  (inv_way0_p0_i2[1:0]),
-//			                    .in1  (inv_way0_p1_i2[1:0]),
-//			                    .sel  (invcpu0_sel_i2));
-   assign invwd0_way_i2 = invcpu0_sel_i2 ? inv_way0_p1_i2[1:0] :
-                                           inv_way0_p0_i2[1:0];
-
-   // word1
-//   dp_mux2es #(1) v1_mux (.dout (word1_inv_i2),
-//			                    .in0  (inv_vec1[0]),
-//			                    .in1  (inv_vec1[1]),
-//			                    .sel  (invcpu0_sel_i2));
-   assign word1_inv_i2 = invcpu0_sel_i2 ? inv_vec1[1] : inv_vec1[0];
-
-//   dp_mux2es #(2) w1_mux (.dout (invwd1_way_i2[1:0]),
-//			                    .in0  (inv_way1_p0_i2[1:0]),
-//			                    .in1  (inv_way1_p1_i2[1:0]),
-//			                    .sel  (invcpu0_sel_i2));
-   assign invwd1_way_i2 = invcpu0_sel_i2 ? inv_way1_p1_i2[1:0] :
-                                           inv_way1_p0_i2[1:0];
+   assign word_inv_i2 = ifd_inv_ifqop_i2[`CPX_INV_ICACHE_VAL];
+   assign invwd_way_i2 = ifd_inv_ifqop_i2[`CPX_INV_WAY]; // trin: width mismatch okay
 
    //-----------------------------
    // Decode CPX Packet
@@ -367,10 +236,10 @@ module sparc_ifu_invctl(/*AUTOARG*/
 
    assign inv0_way_i2 = ~ifc_inv_ifqadv_i2 ? w0_way_f :
                         ldinv_i2           ? ldinv_way_i2 :
-                                             invwd0_way_i2;
+                                             invwd_way_i2;
    assign inv1_way_i2 = ~ifc_inv_ifqadv_i2 ? w1_way_f :
                         ldinv_i2           ? ldinv_way_i2 :
-                                             invwd1_way_i2;
+                                             invwd_way_i2;
 
    assign pick_wr = (imissrtn_i2 | ifc_inv_asireq_i2) & ifc_inv_ifqadv_i2 |
                      mbist_icache_write;
@@ -413,22 +282,22 @@ module sparc_ifu_invctl(/*AUTOARG*/
 
 
    // determine if valid bit write to top 32B, bot 32B or both
-   assign wrt_en_wd_i2[0] = word0_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
+   assign wrt_en_wd_i2[0] = word_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
                                            ~inv_addr_i2[6] |
                           ldinv_i2 & ~ldinv_addr_i2[5] & ~ldinv_addr_i2[6] |
 		                      icv_wrreq_i2 & ~missaddr5_i2 & ~missaddr6_i2;
 
-   assign wrt_en_wd_i2[1] = word1_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
+   assign wrt_en_wd_i2[1] = word_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
                                            ~inv_addr_i2[6] |
 			                      ldinv_i2 & ldinv_addr_i2[5] & ~ldinv_addr_i2[6] |
 		                        icv_wrreq_i2 & missaddr5_i2 & ~missaddr6_i2;
 
-   assign wrt_en_wd_i2[2] = word0_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
+   assign wrt_en_wd_i2[2] = word_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
                                            inv_addr_i2[6] |
                           ldinv_i2 & ~ldinv_addr_i2[5] & ldinv_addr_i2[6] |
 		                      icv_wrreq_i2 & ~missaddr5_i2 & missaddr6_i2;
 
-   assign wrt_en_wd_i2[3] = word1_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
+   assign wrt_en_wd_i2[3] = word_inv_i2 & (stpkt_i2 | evpkt_i2 |strmack_i2) &
                                            inv_addr_i2[6] |
 			                      ldinv_i2 & ldinv_addr_i2[5] & ldinv_addr_i2[6] |
 		                        icv_wrreq_i2 & missaddr5_i2 & missaddr6_i2;
@@ -476,8 +345,7 @@ module sparc_ifu_invctl(/*AUTOARG*/
    // Invalidates
    //--------------------------
    assign invalidate_i2 = (stpkt_i2 | evpkt_i2 | strmack_i2) &
-			                      (word0_inv_i2 |
-                             word1_inv_i2 |
+			                      (word_inv_i2 |
 			                       ifd_inv_ifqop_i2[`CPX_IINV]) |  // all ways
 			                     ldinv_i2;
 
@@ -513,7 +381,12 @@ module sparc_ifu_invctl(/*AUTOARG*/
 
    // evict invalidate index
    //   assign    inv_addr_i2 = ifqop_i2[117:112];
-   assign inv_addr_i2 = ifd_inv_ifqop_i2[`CPX_INV_IDX_HI:`CPX_INV_IDX_LO];
+   // assign inv_addr_i2 = ifd_inv_ifqop_i2[`CPX_INV_IDX_HI:`CPX_INV_IDX_LO];
+   // trin: CPX is modified to accomodate up to 10 bits of icache indexing
+   //    or 4096*4w*32B = 512KB
+   wire [15:6] inv_addr_i2_full = { ifd_inv_ifqop_i2[`CPX_INV_PA_15_12],
+                          ifd_inv_ifqop_i2[`CPX_INV_IDX_HI:`CPX_INV_IDX_LO] };
+   assign inv_addr_i2[`IC_IDX_HI:6] = inv_addr_i2_full[`IC_IDX_HI:6];
 
    // index for invalidates caused by a load
    // store dcache index when a load req is made

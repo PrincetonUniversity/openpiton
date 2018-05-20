@@ -66,6 +66,10 @@ begin
 
 <%
     t = r'''
+
+    if(!$test$plusargs("disable_l2_mon"))
+    begin
+
     if (`L2_TOP0.pipe1.ctrl.valid_S1 && ~`L2_TOP0.pipe1.ctrl.stall_S1)
     begin
         $display("TILE0-------------------------------------");
@@ -342,8 +346,6 @@ begin
     // Monitors
     //////////////////////////////////////
 
-    if(!$test$plusargs("disable_l2_mon"))
-    begin
 
     //the lru bit should be invalid if the line itself is invalid
     if (`L2_TOP0.pipe1.ctrl.valid_S2 && ~`L2_TOP0.pipe1.ctrl.stall_S2)

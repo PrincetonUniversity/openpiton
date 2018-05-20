@@ -125,7 +125,7 @@ module tlu_nospu_wrap
     input [7:0]     lsu_tlu_tlb_asi_state_m,
     input [47:13]   lsu_tlu_tlb_dmp_va_m,
     input           lsu_tlu_tlb_ld_inst_m,
-    input [10:0]    lsu_tlu_tlb_ldst_va_m,
+    input [`L1D_ADDRESS_HI:0]    lsu_tlu_tlb_ldst_va_m,
     input           lsu_tlu_tlb_st_inst_m,
     input [8:0]     lsu_tlu_ttype_m2,
     input           lsu_tlu_ttype_vld_m2,

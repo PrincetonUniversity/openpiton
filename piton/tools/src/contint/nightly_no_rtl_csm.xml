@@ -1,0 +1,195 @@
+<!--
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<bundles>
+
+<nightly_no_rtl_csm>
+
+    <!--TODO: This test needs to be fixed for FPGA-->                                                                   
+    <!--<other name="fpga_fpga_lpc_bridge">
+        <sys>fpga_fpga_lpc_bridge</sys>
+        <vcs_cm_name>fpga_fpga_lpc_bridge</vcs_cm_name>
+    </other>-->
+    <asm_regress name="all_tile1_passing_no_rtl_csm">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <config_rtl>SYNC_MUX</config_rtl>
+        <group>all_tile1_passing_no_rtl_csm</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="all_tile2_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <group>all_tile2_passing</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile4">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <group>tile4</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile8">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>1</y_tiles>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <group>tile8</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile16">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>tile16</group>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <asm_regress name="tile64">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>8</y_tiles>
+        <group>tile64</group>
+        <config_rtl>NO_RTL_CSM</config_rtl>
+        <slurm>-t 12:00:00</slurm>
+        <slurm>--mem=4096</slurm>
+        <vcs_use_cm/>
+    </asm_regress>
+
+
+
+
+
+    <!--<asm_regress name="princeton_ciop_tso">
+        <sys>manycore</sys>
+        <x_tiles>4</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ciop_tso</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ciop_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_ciop_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_cmp8_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_cmp8_tso">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_cmp8_tso</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_rst">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_rst</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_dram_basic">
+        <sys>manycore</sys>
+        <x_tiles>8</x_tiles>
+		<y_tiles>2</y_tiles>
+        <group>princeton_dram_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_exu_basic">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_exu_basic</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_newmdl">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_newmdl</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="asi_basic_passing">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>asi_basic_passing</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldf</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldaf">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldaf</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_ldst">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_ldst</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    <asm_regress name="princeton_tlu_extended">
+        <sys>manycore</sys>
+        <x_tiles>2</x_tiles>
+		<y_tiles>1</y_tiles>
+        <group>princeton_tlu_extended</group>
+        <vcs_use_cm/>
+    </asm_regress>-->
+
+ 
+  
+</nightly_no_rtl_csm>
+
+</bundles>

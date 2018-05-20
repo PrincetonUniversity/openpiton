@@ -26,6 +26,7 @@
 // Wraps the EXU to tie unused signals when no scan chain is present
 
 `include "define.vh"
+`include "lsu.tmp.h"
 
 module sparc_exu_wrap
 (
@@ -126,7 +127,7 @@ module sparc_exu_wrap
     output               exu_ifu_regz_e,
     output               exu_ifu_spill_e,
     output               exu_ifu_va_oor_m,
-    output [10:3]        exu_lsu_early_va_e,
+    output [`L1D_ADDRESS_HI:3]        exu_lsu_early_va_e,
     output [47:0]        exu_lsu_ldst_va_e,
     output               exu_lsu_priority_trap_m,
     output [63:0]        exu_lsu_rs2_data_e,

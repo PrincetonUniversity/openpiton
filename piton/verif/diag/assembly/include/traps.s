@@ -8492,7 +8492,7 @@ state_checkpoint_skip:
 
 #ifdef FPGA_HW
 #ifdef HPV_NONSPLIT_MODE
-#include "good_bad_trap_handler.s
+#include "good_bad_trap_handler.s"
 #endif
 #endif
 

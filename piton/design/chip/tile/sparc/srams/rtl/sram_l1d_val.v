@@ -1,7 +1,7 @@
 // Modified by Princeton University on June 9th, 2015
 // ========== Copyright Header Begin ==========================================
 //
-// OpenSPARC T1 Processor File: bw_r_rf16x32.v
+// OpenSPARC T1 Processor File: sram_l1d_val.v
 // Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
 // DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
 //
@@ -21,7 +21,7 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////////////////////
 /*
- //  Module Name:  bw_r_rf16x32
+ //  Module Name:  sram_l1d_val
  //  Description:
  //   1r1w array for icache and dcache valid bits.
  //   Modified to conform to naming convention
@@ -90,20 +90,20 @@ input        sehold;          // scan enable hold
 input        rst_tri_en;
 
 // 11:5(I);10:4(D)
-input [6:0]     rd_adr1 ;     // rd address-1
-input [6:0]     rd_adr2 ;     // rd address-2
+input [`L1D_SET_IDX_MASK]     rd_adr1 ;     // rd address-1
+input [`L1D_SET_IDX_MASK]     rd_adr2 ;     // rd address-2
 
 input        rd_adr1_sel ;  // sel rd addr 1
 input        rd_en ;            // rd enable
 
 // 11:7(I);10:6(D)
-input [6:2]     wr_adr ;  // wr address
+input [`L1D_SET_IDX_HI:2]     wr_adr ;  // wr address
 
 input        wr_en ;        // wr enable
-input [15:0] bit_wen ;  // write enable with bit select
+input [`L1D_VAL_ARRAY_HI:0] bit_wen ;  // write enable with bit select
 input        din ;        // write data
 
-output reg [3:0]    dout ;    // valid bits for tag compare
+output reg [`L1D_WAY_COUNT-1:0]    dout ;    // valid bits for tag compare
 
 output       so;
 
@@ -118,31 +118,31 @@ input  [`SRAM_WRAPPER_BUS_WIDTH-1:0] rtap_srams_bist_data;
 input  [`BIST_ID_WIDTH-1:0] sramid;
 
 // interface to debug module
-reg [15:0] debug_data_bmask;
-reg [15:0] debug_data_in;
-reg [15:0] debug_data_out;
-reg [6:0] debug_address;
+reg [`L1D_VAL_ARRAY_HI:0] debug_data_bmask;
+reg [`L1D_VAL_ARRAY_HI:0] debug_data_in;
+reg [`L1D_VAL_ARRAY_HI:0] debug_data_out;
+reg [`L1D_SET_IDX_MASK] debug_address;
 reg debug_rw;
 reg debug_en;
 
 // trin's reimplementation
-reg [15:0] mem [0:31];
+reg [`L1D_VAL_ARRAY_HI:0] mem [0:`L1D_VAL_SET_COUNT-1];
 wire rst_all = rst_tri_en | ~reset_l;
 
 reg write_en_x;
 reg write_bit_x;
-reg [15:0] write_mask_x;
-reg [6:2] write_address_x;
+reg [`L1D_VAL_ARRAY_HI:0] write_mask_x;
+reg [`L1D_SET_IDX_HI:2] write_address_x;
 reg read_en_x;
-reg [6:0] read_address_x;
+reg [`L1D_SET_IDX_MASK] read_address_x;
 reg debug_en_x;
 
 reg write_en_y;
 reg write_bit_y;
-reg [15:0] write_mask_y;
-reg [6:2] write_address_y;
+reg [`L1D_VAL_ARRAY_HI:0] write_mask_y;
+reg [`L1D_SET_IDX_HI:2] write_address_y;
 reg read_en_y;
-reg [6:0] read_address_y;
+reg [`L1D_SET_IDX_MASK] read_address_y;
 reg debug_en_y;
 
 always @ *
@@ -162,11 +162,11 @@ begin
       // write_bit_x = debug_data_in;
       write_mask_x = debug_data_in;
       write_address_x = 0;
-      write_address_x[6:2] = debug_address[4:0];
+      write_address_x[`L1D_SET_IDX_HI:2] = debug_address[4:0];
 
       read_en_x = debug_rw == 1'b0;
       read_address_x = 0;
-      read_address_x[6:2] = debug_address[4:0];
+      read_address_x[`L1D_SET_IDX_HI:2] = debug_address[4:0];
    end
    debug_en_x = debug_en;
 
@@ -184,10 +184,10 @@ begin
 end
 
 // WRITE
-reg [15:0] write_data_y;
+reg [`L1D_VAL_ARRAY_HI:0] write_data_y;
 always @ *
 begin
-   write_data_y = (mem[write_address_y[6:2]] & ~write_mask_y) | ({16{write_bit_y}} & write_mask_y);
+   write_data_y = (mem[write_address_y[`L1D_SET_IDX_HI:2]] & ~write_mask_y) | ({16{write_bit_y}} & write_mask_y);
    if (debug_en_y)
       write_data_y = write_mask_y;
 end
@@ -232,29 +232,29 @@ begin
    begin
       if (write_en_y)
       begin
-         mem[write_address_y[6:2]] <= write_data_y;
+         mem[write_address_y[`L1D_SET_IDX_HI:2]] <= write_data_y;
       end
    end
 end
 
 // READ
-reg [15:0] read1;
-reg [15:0] read2;
-reg [15:0] read3;
-reg [15:0] write_to_0;
+reg [`L1D_VAL_ARRAY_HI:0] read1;
+reg [`L1D_VAL_ARRAY_HI:0] read2;
+reg [`L1D_VAL_ARRAY_HI:0] read3;
+reg [`L1D_VAL_ARRAY_HI:0] write_to_0;
 always @ *
 begin
-   read1 = mem[read_address_y[6:2]];
+   read1 = mem[read_address_y[`L1D_SET_IDX_HI:2]];
 
    // write/read conflict
    // basically, final_read = sram_read & write
    read2 = read1;
    write_to_0 = ~{16{write_bit_y}} & write_mask_y;
-   if ((read_address_y[6:2] == write_address_y[6:2]) && write_en_y)
+   if ((read_address_y[`L1D_SET_IDX_HI:2] == write_address_y[`L1D_SET_IDX_HI:2]) && write_en_y)
       read2 = read1 & ~write_to_0;
 
    // write_to_0 = 0;
-   // if ((read_address_y[6:2] == write_address_y[6:2]) && write_en_y)
+   // if ((read_address_y[`L1D_SET_IDX_HI:2] == write_address_y[`L1D_SET_IDX_HI:2]) && write_en_y)
    //    write_to_0 = write_mask_y;
 
    // read2 = (~write_to_0 & read1 | write_to_0 & {16{write_bit_y}} & read1);
@@ -262,13 +262,13 @@ begin
 
    case (read_address_y[1:0])
       2'b00:
-         read3 = read2[3:0];
+         read3 = read2[`L1D_WAY_COUNT*1-1 -: `L1D_WAY_COUNT];
       2'b01:
-         read3 = read2[7:4];
+         read3 = read2[`L1D_WAY_COUNT*2-1 -: `L1D_WAY_COUNT];
       2'b10:
-         read3 = read2[11:8];
+         read3 = read2[`L1D_WAY_COUNT*3-1 -: `L1D_WAY_COUNT];
       2'b11:
-         read3 = read2[15:12];
+         read3 = read2[`L1D_WAY_COUNT*4-1 -: `L1D_WAY_COUNT];
    endcase
 
    dout = 0;
@@ -334,7 +334,7 @@ begin
 
    if (bist_data_capture_read_en)
    begin
-      bist_data_reg_next = debug_data_out[BIST_DATA_WIDTH-1:0];
+      bist_data_reg_next = debug_data_out[BIST_DATA_WIDTH-1:0]; // trin reconfig
    end
 
    if (bist_data_shift_en)
@@ -430,13 +430,13 @@ begin
    // TODO
    debug_en = bist_en;
    debug_rw = bist_rdwen;
-   debug_address[6:0] = bist_address_reg[6:0];
-   debug_data_in[15:0] = bist_data_reg[15:0];
+   debug_address[`L1D_SET_IDX_MASK] = bist_address_reg[`L1D_SET_IDX_MASK];
+   debug_data_in[`L1D_VAL_ARRAY_HI:0] = bist_data_reg[`L1D_VAL_ARRAY_HI:0];
    debug_data_bmask = ~(16'b0);
 end
 
 
-endmodule // bw_r_rf16x32
+endmodule // sram_l1d_val
 
 
 

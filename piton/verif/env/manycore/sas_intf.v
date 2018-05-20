@@ -910,7 +910,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE0.`LSU_PATH.dctl.blk_asi_g;
    assign i0_0_asi_binit_g    = `SPARC_CORE0.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE0.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_0_dcache_hit_g= |(`SPARC_CORE0.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_0_dcache_hit_g= |(`SPARC_CORE0.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_0_full_raw_g=
 	(|`SPARC_CORE0.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE0.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -977,7 +977,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE1.`LSU_PATH.dctl.blk_asi_g;
    assign i0_1_asi_binit_g    = `SPARC_CORE1.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE1.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_1_dcache_hit_g= |(`SPARC_CORE1.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_1_dcache_hit_g= |(`SPARC_CORE1.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_1_full_raw_g=
 	(|`SPARC_CORE1.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE1.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1044,7 +1044,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE2.`LSU_PATH.dctl.blk_asi_g;
    assign i0_2_asi_binit_g    = `SPARC_CORE2.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE2.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_2_dcache_hit_g= |(`SPARC_CORE2.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_2_dcache_hit_g= |(`SPARC_CORE2.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_2_full_raw_g=
 	(|`SPARC_CORE2.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE2.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1111,7 +1111,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE3.`LSU_PATH.dctl.blk_asi_g;
    assign i0_3_asi_binit_g    = `SPARC_CORE3.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE3.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_3_dcache_hit_g= |(`SPARC_CORE3.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_3_dcache_hit_g= |(`SPARC_CORE3.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_3_full_raw_g=
 	(|`SPARC_CORE3.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE3.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1178,7 +1178,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE4.`LSU_PATH.dctl.blk_asi_g;
    assign i0_4_asi_binit_g    = `SPARC_CORE4.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE4.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_4_dcache_hit_g= |(`SPARC_CORE4.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_4_dcache_hit_g= |(`SPARC_CORE4.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_4_full_raw_g=
 	(|`SPARC_CORE4.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE4.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1245,7 +1245,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE5.`LSU_PATH.dctl.blk_asi_g;
    assign i0_5_asi_binit_g    = `SPARC_CORE5.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE5.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_5_dcache_hit_g= |(`SPARC_CORE5.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_5_dcache_hit_g= |(`SPARC_CORE5.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_5_full_raw_g=
 	(|`SPARC_CORE5.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE5.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1312,7 +1312,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE6.`LSU_PATH.dctl.blk_asi_g;
    assign i0_6_asi_binit_g    = `SPARC_CORE6.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE6.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_6_dcache_hit_g= |(`SPARC_CORE6.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_6_dcache_hit_g= |(`SPARC_CORE6.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_6_full_raw_g=
 	(|`SPARC_CORE6.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE6.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1379,7 +1379,7 @@ module sas_intf (/*AUTOARG*/
 				`SPARC_CORE7.`LSU_PATH.dctl.blk_asi_g;
    assign i0_7_asi_binit_g    = `SPARC_CORE7.`LSU_PATH.dctl.lsu_alt_space_g &
 				`SPARC_CORE7.`LSU_PATH.dctl.binit_quad_asi_g;
-   assign i0_7_dcache_hit_g= |(`SPARC_CORE7.`LSU_PATH.dtlb.cache_way_hit[3:0]);
+   assign i0_7_dcache_hit_g= |(`SPARC_CORE7.`LSU_PATH.dtlb.cache_way_hit[`L1D_WAY_COUNT-1:0]);
    assign i0_7_full_raw_g=
 	(|`SPARC_CORE7.`LSU_PATH.qctl1.stb_ld_full_raw[7:0]) &
 	 ~(`SPARC_CORE7.`LSU_PATH.qctl1.stb_cam_mhit |
@@ -1630,7 +1630,7 @@ module sas_intf (/*AUTOARG*/
       i4_0_ic_inv_vld_f <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE0.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE0.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_0_ic_inv_addr_f  <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_0_ic_inv_addr_f  <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_0_ic_inv_word1_f <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_0_ic_inv_word0_f <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_0_ic_inv_way1_f  <= #1 `SPARC_CORE0.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -1646,7 +1646,7 @@ module sas_intf (/*AUTOARG*/
       i4_0_ic_inv_vld_f <= #1 `SPARC_CORE0.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE0.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE0.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_0_ic_inv_addr_f  <= #1 `SPARC_CORE0.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_0_ic_inv_addr_f  <= #1 `SPARC_CORE0.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_0_ic_inv_word1_f <= #1 `SPARC_CORE0.sparc0.ifu.invctl.word1_inv_i2;
       i4_0_ic_inv_word0_f <= #1 `SPARC_CORE0.sparc0.ifu.invctl.word0_inv_i2;
       i4_0_ic_inv_way1_f  <= #1 `SPARC_CORE0.sparc0.ifu.invctl.invwd1_way_i2;
@@ -1708,7 +1708,7 @@ module sas_intf (/*AUTOARG*/
       i4_1_ic_inv_vld_f <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE1.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE1.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_1_ic_inv_addr_f  <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_1_ic_inv_addr_f  <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_1_ic_inv_word1_f <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_1_ic_inv_word0_f <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_1_ic_inv_way1_f  <= #1 `SPARC_CORE1.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -1724,7 +1724,7 @@ module sas_intf (/*AUTOARG*/
       i4_1_ic_inv_vld_f <= #1 `SPARC_CORE1.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE1.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE1.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_1_ic_inv_addr_f  <= #1 `SPARC_CORE1.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_1_ic_inv_addr_f  <= #1 `SPARC_CORE1.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_1_ic_inv_word1_f <= #1 `SPARC_CORE1.sparc0.ifu.invctl.word1_inv_i2;
       i4_1_ic_inv_word0_f <= #1 `SPARC_CORE1.sparc0.ifu.invctl.word0_inv_i2;
       i4_1_ic_inv_way1_f  <= #1 `SPARC_CORE1.sparc0.ifu.invctl.invwd1_way_i2;
@@ -1786,7 +1786,7 @@ module sas_intf (/*AUTOARG*/
       i4_2_ic_inv_vld_f <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE2.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE2.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_2_ic_inv_addr_f  <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_2_ic_inv_addr_f  <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_2_ic_inv_word1_f <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_2_ic_inv_word0_f <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_2_ic_inv_way1_f  <= #1 `SPARC_CORE2.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -1802,7 +1802,7 @@ module sas_intf (/*AUTOARG*/
       i4_2_ic_inv_vld_f <= #1 `SPARC_CORE2.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE2.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE2.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_2_ic_inv_addr_f  <= #1 `SPARC_CORE2.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_2_ic_inv_addr_f  <= #1 `SPARC_CORE2.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_2_ic_inv_word1_f <= #1 `SPARC_CORE2.sparc0.ifu.invctl.word1_inv_i2;
       i4_2_ic_inv_word0_f <= #1 `SPARC_CORE2.sparc0.ifu.invctl.word0_inv_i2;
       i4_2_ic_inv_way1_f  <= #1 `SPARC_CORE2.sparc0.ifu.invctl.invwd1_way_i2;
@@ -1864,7 +1864,7 @@ module sas_intf (/*AUTOARG*/
       i4_3_ic_inv_vld_f <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE3.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE3.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_3_ic_inv_addr_f  <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_3_ic_inv_addr_f  <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_3_ic_inv_word1_f <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_3_ic_inv_word0_f <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_3_ic_inv_way1_f  <= #1 `SPARC_CORE3.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -1880,7 +1880,7 @@ module sas_intf (/*AUTOARG*/
       i4_3_ic_inv_vld_f <= #1 `SPARC_CORE3.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE3.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE3.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_3_ic_inv_addr_f  <= #1 `SPARC_CORE3.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_3_ic_inv_addr_f  <= #1 `SPARC_CORE3.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_3_ic_inv_word1_f <= #1 `SPARC_CORE3.sparc0.ifu.invctl.word1_inv_i2;
       i4_3_ic_inv_word0_f <= #1 `SPARC_CORE3.sparc0.ifu.invctl.word0_inv_i2;
       i4_3_ic_inv_way1_f  <= #1 `SPARC_CORE3.sparc0.ifu.invctl.invwd1_way_i2;
@@ -1942,7 +1942,7 @@ module sas_intf (/*AUTOARG*/
       i4_4_ic_inv_vld_f <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE4.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE4.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_4_ic_inv_addr_f  <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_4_ic_inv_addr_f  <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_4_ic_inv_word1_f <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_4_ic_inv_word0_f <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_4_ic_inv_way1_f  <= #1 `SPARC_CORE4.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -1958,7 +1958,7 @@ module sas_intf (/*AUTOARG*/
       i4_4_ic_inv_vld_f <= #1 `SPARC_CORE4.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE4.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE4.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_4_ic_inv_addr_f  <= #1 `SPARC_CORE4.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_4_ic_inv_addr_f  <= #1 `SPARC_CORE4.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_4_ic_inv_word1_f <= #1 `SPARC_CORE4.sparc0.ifu.invctl.word1_inv_i2;
       i4_4_ic_inv_word0_f <= #1 `SPARC_CORE4.sparc0.ifu.invctl.word0_inv_i2;
       i4_4_ic_inv_way1_f  <= #1 `SPARC_CORE4.sparc0.ifu.invctl.invwd1_way_i2;
@@ -2020,7 +2020,7 @@ module sas_intf (/*AUTOARG*/
       i4_5_ic_inv_vld_f <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE5.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE5.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_5_ic_inv_addr_f  <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_5_ic_inv_addr_f  <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_5_ic_inv_word1_f <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_5_ic_inv_word0_f <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_5_ic_inv_way1_f  <= #1 `SPARC_CORE5.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -2036,7 +2036,7 @@ module sas_intf (/*AUTOARG*/
       i4_5_ic_inv_vld_f <= #1 `SPARC_CORE5.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE5.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE5.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_5_ic_inv_addr_f  <= #1 `SPARC_CORE5.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_5_ic_inv_addr_f  <= #1 `SPARC_CORE5.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_5_ic_inv_word1_f <= #1 `SPARC_CORE5.sparc0.ifu.invctl.word1_inv_i2;
       i4_5_ic_inv_word0_f <= #1 `SPARC_CORE5.sparc0.ifu.invctl.word0_inv_i2;
       i4_5_ic_inv_way1_f  <= #1 `SPARC_CORE5.sparc0.ifu.invctl.invwd1_way_i2;
@@ -2098,7 +2098,7 @@ module sas_intf (/*AUTOARG*/
       i4_6_ic_inv_vld_f <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE6.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE6.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_6_ic_inv_addr_f  <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_6_ic_inv_addr_f  <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_6_ic_inv_word1_f <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_6_ic_inv_word0_f <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_6_ic_inv_way1_f  <= #1 `SPARC_CORE6.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -2114,7 +2114,7 @@ module sas_intf (/*AUTOARG*/
       i4_6_ic_inv_vld_f <= #1 `SPARC_CORE6.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE6.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE6.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_6_ic_inv_addr_f  <= #1 `SPARC_CORE6.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_6_ic_inv_addr_f  <= #1 `SPARC_CORE6.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_6_ic_inv_word1_f <= #1 `SPARC_CORE6.sparc0.ifu.invctl.word1_inv_i2;
       i4_6_ic_inv_word0_f <= #1 `SPARC_CORE6.sparc0.ifu.invctl.word0_inv_i2;
       i4_6_ic_inv_way1_f  <= #1 `SPARC_CORE6.sparc0.ifu.invctl.invwd1_way_i2;
@@ -2176,7 +2176,7 @@ module sas_intf (/*AUTOARG*/
       i4_7_ic_inv_vld_f <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.stpkt_i2 &
                          `SPARC_CORE7.sparc0.ifu.ifu.invctl.invalidate_i2 &
                  `SPARC_CORE7.sparc0.ifu.ifu.invctl.icvidx_sel_inv_i2;
-      i4_7_ic_inv_addr_f  <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.inv_addr_i2[11:6];
+      i4_7_ic_inv_addr_f  <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_7_ic_inv_word1_f <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.word1_inv_i2;
       i4_7_ic_inv_word0_f <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.word0_inv_i2;
       i4_7_ic_inv_way1_f  <= #1 `SPARC_CORE7.sparc0.ifu.ifu.invctl.invwd1_way_i2;
@@ -2192,7 +2192,7 @@ module sas_intf (/*AUTOARG*/
       i4_7_ic_inv_vld_f <= #1 `SPARC_CORE7.sparc0.ifu.invctl.stpkt_i2 &
 	                     `SPARC_CORE7.sparc0.ifu.invctl.invalidate_i2 &
 			     `SPARC_CORE7.sparc0.ifu.invctl.icvidx_sel_inv_i2;
-      i4_7_ic_inv_addr_f  <= #1 `SPARC_CORE7.sparc0.ifu.invctl.inv_addr_i2[11:6];
+      i4_7_ic_inv_addr_f  <= #1 `SPARC_CORE7.sparc0.ifu.invctl.inv_addr_i2[`IC_IDX_HI:6];
       i4_7_ic_inv_word1_f <= #1 `SPARC_CORE7.sparc0.ifu.invctl.word1_inv_i2;
       i4_7_ic_inv_word0_f <= #1 `SPARC_CORE7.sparc0.ifu.invctl.word0_inv_i2;
       i4_7_ic_inv_way1_f  <= #1 `SPARC_CORE7.sparc0.ifu.invctl.invwd1_way_i2;

@@ -133,7 +133,7 @@ input            	ifu_tlu_itlb_done ; // itlb rd/wr/dmp complete
 //input			int_tlu_asi_data_vld ;	// asi return vld for int blk
 //input			int_tlu_ldxa_illgl_va ;	// int asi has illgl va
 input  [7:0]           	lsu_tlu_tlb_asi_state_m ;
-input  [10:0]           lsu_tlu_tlb_ldst_va_m ;
+input  [`L1D_ADDRESS_HI:0]           lsu_tlu_tlb_ldst_va_m ;
 input                  	lsu_tlu_tlb_ld_inst_m ;
 input                  	lsu_tlu_tlb_st_inst_m ;
 input  [1:0]           	lsu_tlu_tlb_access_tid_m ;
@@ -397,7 +397,7 @@ wire	idemap_pend, ddemap_pend ;
 wire	itlb_tag_rd_en, dtlb_tag_rd_en ;
 wire	[3:0]	dsfsr_asi_wr_en ;
 wire	[3:0]	isfsr_asi_wr_en ;
-wire	[10:3]	tlb_ldst_va_g ;
+wire	[`L1D_ADDRESS_HI:3]	tlb_ldst_va_g ;
 wire		tlb_ld_inst_g,tlb_st_inst_g ;
 wire		tlb_ld_inst_unflushed,tlb_st_inst_unflushed ;
 wire	[1:0]	tlb_access_tid_g ;
@@ -1419,9 +1419,9 @@ assign	lng_ltncy_rst =
 	~rst_l ;
 `endif
 
-dffe_s  #(10) dtlbacc_stgg (
-        .din    ({lsu_tlu_tlb_ldst_va_m[10:3], lsu_tlu_tlb_access_tid_m[1:0]}),
-        .q      ({tlb_ldst_va_g[10:3],tlb_access_tid_g[1:0]}),
+dffe_s  #(`L1D_ADDRESS_HI) dtlbacc_stgg (
+        .din    ({lsu_tlu_tlb_ldst_va_m[`L1D_ADDRESS_HI:3], lsu_tlu_tlb_access_tid_m[1:0]}),
+        .q      ({tlb_ldst_va_g[`L1D_ADDRESS_HI:3],tlb_access_tid_g[1:0]}),
         .clk    (clk),
 	.en	(lng_ltncy_en),
         .se     (1'b0),       .si (),          .so ()
@@ -2518,7 +2518,7 @@ wire	[2:0]	pg_size ;
 wire		page_8k, page_64k, page_4m ;
 wire		va_15_13_vld, va_21_16_vld, va_27_22_vld ;
 
-assign sun4r_tte_g = ~tlb_ldst_va_g[10] ;
+assign sun4r_tte_g = ~tlb_ldst_va_g[10] ; // trin todo; might be the top bit? ask yaosheng
 
 assign tlu_sun4r_tte_g = sun4r_tte_g ;
 

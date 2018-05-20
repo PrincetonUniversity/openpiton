@@ -146,8 +146,8 @@
 `define CPX_INVPA4      121
 `define CPX_CPUID_HI    120
 `define CPX_CPUID_LO    118
-`define CPX_INV_PA_HI   116
-`define CPX_INV_PA_LO   112
+//`define CPX_INV_PA_HI   116
+//`define CPX_INV_PA_LO   112
 `define CPX_INV_IDX_HI   117
 `define CPX_INV_IDX_LO   112
 

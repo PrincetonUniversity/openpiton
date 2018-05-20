@@ -59,61 +59,17 @@ always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
 
-`ifdef ML605_BOARD
-   bram_128x160 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (data_in    ),
+bram_128x160 mem (
+   .clka    (MEMCLK     ),
+   .ena     (write_en   ),
+   .wea     (wen_mask   ),
+   .addra   (A          ),
+   .dina    (data_in    ),
 
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (data_out   )
-   );
-`elsif NEXYS4DDR_BOARD
-   artix7_bram_128x160 mem (
-      .BRAM_PORTA_clk    (MEMCLK     ),
-      .BRAM_PORTA_en     (write_en   ),
-      .BRAM_PORTA_we     (wen_mask   ),
-      .BRAM_PORTA_addr   (A          ),
-      .BRAM_PORTA_din    (data_in    ),
-
-      .BRAM_PORTB_clk    (MEMCLK     ),
-      .BRAM_PORTB_en     (read_en    ),
-      .BRAM_PORTB_addr   (A          ),
-      .BRAM_PORTB_dout   (data_out   )
-   );
-`elsif VC707_BOARD
-   virtex7_bram_128x160 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (data_in    ),
-
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (data_out   )
-   );
-
-`else
-
-   bram_128x160 mem (
-      .clka    (MEMCLK     ),
-      .ena     (write_en   ),
-      .wea     (wen_mask   ),
-      .addra   (A          ),
-      .dina    (data_in    ),
-
-      .clkb    (MEMCLK     ),
-      .enb     (read_en    ),
-      .addrb   (A          ),
-      .doutb   (data_out   )
-   );
-
-`endif
+   .clkb    (MEMCLK     ),
+   .enb     (read_en    ),
+   .addrb   (A          ),
+   .doutb   (data_out   )
+);
 
 endmodule

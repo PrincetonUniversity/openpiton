@@ -27,6 +27,7 @@
 <cmp_default name=default>
 
 <all_tile1_passing>
+<all_tile1_passing_no_rtl_csm>
 
 <tile1_mini>
 <princeton-test>
@@ -872,9 +873,11 @@
 </tile1_ciop_pio_cov>
 
 #include "princeton/princeton_rst.diaglist"
-#include "princeton/princeton_new_diag.diaglist"
 #include "princeton/princeton_c_tests.diaglist"
 
+
+</all_tile1_passing_no_rtl_csm>
+#include "princeton/princeton_new_diag.diaglist"
 </all_tile1_passing>
 
 <all_tile1_failing>
@@ -1235,7 +1238,7 @@
     sus_res_21      -nosas    -finish_mask=33  sus_res_21.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
     sus_res_22      -nosas    -finish_mask=33  sus_res_22.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
     
-    br_stress       -finish_mask=33 -fast_boot -max_cycle=5000000  -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -sim_run_args=+asm_err_en -midas_args=-allow_tsb_conflicts -sim_run_args=+softint_off=1 -sim_run_args=+inst_check_off=1 br_stress.s
+    //br_stress       -finish_mask=33 -fast_boot -max_cycle=5000000  -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -sim_run_args=+asm_err_en -midas_args=-allow_tsb_conflicts -sim_run_args=+softint_off=1 -sim_run_args=+inst_check_off=1 br_stress.s
 
     tso_prod_cons1       tso_prod_cons1.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
 
@@ -1281,7 +1284,8 @@
       
     // tried to generate a similar condition as the one in 6322. Got pretty close
     // but does not fail.
-    tso_prod_cons_intr3b    tso_prod_cons_intr3b.s  -finish_mask=0101 -midas_args=-DTHREAD_COUNT=5 -sim_run_args=+inst_check_off=1 -sim_run_args=+L1_DIFFLIMIT=512
+    
+    //tso_prod_cons_intr3b    tso_prod_cons_intr3b.s  -finish_mask=0101 -midas_args=-DTHREAD_COUNT=5 -sim_run_args=+inst_check_off=1 -sim_run_args=+L1_DIFFLIMIT=512
 
     mpgen_mustpass1_041403 mpgen_diag1_041403.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
     //mpgen_mustpass2_042103 mpgen_diag2_042103.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 -midas_args=-DCUSTOM_CP=0 // was finish_mask=55

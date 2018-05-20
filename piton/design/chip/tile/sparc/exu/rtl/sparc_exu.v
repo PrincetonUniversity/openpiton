@@ -204,7 +204,7 @@ wire mem_write_disable = ~grst_l;
    output               exu_ifu_regz_e;         // From alu of sparc_exu_alu.v
    output               exu_ifu_spill_e;        // From rml of sparc_exu_rml.v
    output               exu_ifu_va_oor_m;       // From ecl of sparc_exu_ecl.v
-   output [10:3]        exu_lsu_early_va_e;     // From alu of sparc_exu_alu.v
+   output [`L1D_ADDRESS_HI:3]        exu_lsu_early_va_e;     // From alu of sparc_exu_alu.v
    output [47:0]        exu_lsu_ldst_va_e;      // From alu of sparc_exu_alu.v
    output               exu_lsu_priority_trap_m;// From ecl of sparc_exu_ecl.v
    output [63:0]        exu_lsu_rs2_data_e;     // From bypass of sparc_exu_byp.v
@@ -996,7 +996,7 @@ wire mem_write_disable = ~grst_l;
                      .alu_byp_rd_data_e (alu_byp_rd_data_e[63:0]),
                      .exu_ifu_brpc_e    (exu_ifu_brpc_e[47:0]),
                      .exu_lsu_ldst_va_e (exu_lsu_ldst_va_e[47:0]),
-                     .exu_lsu_early_va_e(exu_lsu_early_va_e[10:3]),
+                     .exu_lsu_early_va_e(exu_lsu_early_va_e[`L1D_ADDRESS_HI:3]),
                      .exu_mmu_early_va_e(exu_mmu_early_va_e[7:0]),
                      .alu_ecl_add_n64_e (alu_ecl_add_n64_e),
                      .alu_ecl_add_n32_e (alu_ecl_add_n32_e),

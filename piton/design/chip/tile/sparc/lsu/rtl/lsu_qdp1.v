@@ -29,7 +29,8 @@
 `include  "sys.h" // system level definition file which contains the
           // time scale definition
 `include  "iop.h"
-`include "lsu.tmp.h" 
+`include  "lsu.tmp.h"
+`include "ifu.tmp.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Local header file includes / local defines
@@ -180,10 +181,10 @@ input         lsu_bld_pcx_rq ;        // cycle after request
 input [1:0]   lsu_bld_rq_addr ;       // cycle after request
 
 //input  [1:0]           lsu_lmq_pkt_way_g;
-input  [1:0]           lmq0_pcx_pkt_way;
-input  [1:0]           lmq1_pcx_pkt_way;
-input  [1:0]           lmq2_pcx_pkt_way;
-input  [1:0]           lmq3_pcx_pkt_way;
+input  [`L1D_WAY_MASK]           lmq0_pcx_pkt_way;
+input  [`L1D_WAY_MASK]           lmq1_pcx_pkt_way;
+input  [`L1D_WAY_MASK]           lmq2_pcx_pkt_way;
+input  [`L1D_WAY_MASK]           lmq3_pcx_pkt_way;
 
 input           lsu_dfq_ld_vld ;
 input   lsu_ifu_asi_data_en_l ;
@@ -263,10 +264,10 @@ output                    ld_sec_hit_thrd2 ;        // ld has sec. hit against t
 output                    ld_sec_hit_thrd3 ;        // ld has sec. hit against th3
 //output  [1:0]             lmq_pcx_pkt_sz ;
 //output  [39:0]            lmq_pcx_pkt_addr ;
-output  [10:0]            lmq0_pcx_pkt_addr;
-output  [10:0]            lmq1_pcx_pkt_addr;
-output  [10:0]            lmq2_pcx_pkt_addr;
-output  [10:0]            lmq3_pcx_pkt_addr;
+output  [`L1D_ADDRESS_HI:0]            lmq0_pcx_pkt_addr;
+output  [`L1D_ADDRESS_HI:0]            lmq1_pcx_pkt_addr;
+output  [`L1D_ADDRESS_HI:0]            lmq2_pcx_pkt_addr;
+output  [`L1D_ADDRESS_HI:0]            lmq3_pcx_pkt_addr;
 
 //output  [63:0]            lsu_tlu_st_rs3_data_g ;
 output  [63:0]            lsu_mmu_rs3_data_g ;
@@ -277,7 +278,7 @@ output  [63:0]            lsu_diagnstc_wr_data_e ;
 
 output  [47:0]            lsu_ifu_stxa_data ;       // stxa related data
 
-output  [11:5]            lsu_ifu_ld_icache_index ;
+output  [`IC_IDX_HI:5]            lsu_ifu_ld_icache_index ;
 output  [1:0]             lsu_ifu_ld_pcxpkt_tid ;
 
 //output  [1:0]             lmq_ld_way ;              // cache set way for ld fill
@@ -453,9 +454,11 @@ dff_s  #(`TLB_CSM_WIDTH) lmq_csm0 (
 wire    lmq0_pcx_pkt_vld ;
 assign  lmq0_pcx_pkt_vld  =  lmq0_pcx_pkt_tmp[`LMQ_VLD] & ~lsu_ld0_spec_vld_kill_w2 ;
 
+wire [1:0] lmq0_pcx_pkt_way_trin = lmq0_pcx_pkt_way; // trin reconfig: this format prevents way > 4
+
 assign  lmq0_pcx_pkt[`LMQ_VLD:0]  = {lmq0_pcx_pkt_vld,
                                      lmq0_pcx_pkt_tmp[`LMQ_VLD-1:44],
-                                     lmq0_pcx_pkt_way[1:0],
+                                     lmq0_pcx_pkt_way_trin, 
                                      lmq0_pcx_pkt_tmp[41:0]};
 
 // Needs to be multi-threaded.
@@ -528,9 +531,11 @@ dff_s  #(`TLB_CSM_WIDTH) lmq_csm1 (
 wire    lmq1_pcx_pkt_vld ;
 assign  lmq1_pcx_pkt_vld  =  lmq1_pcx_pkt_tmp[`LMQ_VLD] & ~lsu_ld1_spec_vld_kill_w2 ;
 
+wire [1:0] lmq1_pcx_pkt_way_trin = lmq1_pcx_pkt_way; // trin reconfig: this format prevents way > 4
+
 assign  lmq1_pcx_pkt[`LMQ_VLD:0]  =  {lmq1_pcx_pkt_vld,
                                       lmq1_pcx_pkt_tmp[`LMQ_VLD-1:44],
-                                      lmq1_pcx_pkt_way[1:0],
+                                      lmq1_pcx_pkt_way_trin[1:0],
                                       lmq1_pcx_pkt_tmp[41:0]};
 
 assign  ld_sec_hit_thrd1 =
@@ -1115,42 +1120,42 @@ assign  lsu_pref_pcx_req = load_pcx_pkt[`LMQ_PREF] ;
 
 `endif // `ifndef CONFIG_NUM_THREADS
 
-   assign lmq0_pcx_pkt_addr[10:0] =  lmq0_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
+   assign lmq0_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq0_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   assign lmq1_pcx_pkt_addr[10:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq2_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq3_pcx_pkt_addr[10:0] =  11'b0;
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
 
 `else // `ifndef CONFIG_NUM_THREADS
 
 `ifdef FPGA_SYN_1THREAD
-   assign lmq1_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq2_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq3_pcx_pkt_addr[10:0] =  11'b0;
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
 
 `elsif THREADS_1
 
-   assign lmq1_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq2_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq3_pcx_pkt_addr[10:0] =  11'b0;
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
 
 `elsif THREADS_2
 
-   assign lmq1_pcx_pkt_addr[10:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq2_pcx_pkt_addr[10:0] =  11'b0;
-   assign lmq3_pcx_pkt_addr[10:0] =  11'b0;
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
 
 `elsif THREADS_3
 
-   assign lmq1_pcx_pkt_addr[10:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq2_pcx_pkt_addr[10:0] =  lmq2_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq3_pcx_pkt_addr[10:0] =  11'b0;
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq2_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  {`L1D_ADDRESS_HI+1{1'b0}};
 
 `else
-   assign lmq1_pcx_pkt_addr[10:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq2_pcx_pkt_addr[10:0] =  lmq2_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
-   assign lmq3_pcx_pkt_addr[10:0] =  lmq3_pcx_pkt[`LMQ_AD_LO + 10 :`LMQ_AD_LO];
+   assign lmq1_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq1_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq2_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq2_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
+   assign lmq3_pcx_pkt_addr[`L1D_ADDRESS_HI:0] =  lmq3_pcx_pkt[`LMQ_AD_LO + `L1D_ADDRESS_HI :`LMQ_AD_LO];
 `endif
 
 `endif // `ifndef CONFIG_NUM_THREADS
@@ -1492,7 +1497,7 @@ mux4ds  #(7) lmq_dthrd_sel2 (
 
 `endif // `ifndef CONFIG_NUM_THREADS
 
-//assign  lmq_pcx_pkt_addr[10:0] = lmq_ld_addr[10:0] ;
+//assign  lmq_pcx_pkt_addr[`L1D_ADDRESS_HI:0] = lmq_ld_addr[`L1D_ADDRESS_HI:0] ;
 
 
    wire [29:0] dtag_wdata_e;
@@ -3021,9 +3026,9 @@ dff_s  #(`TLB_CSM_WIDTH) pcx_csm_xmit_ff (
 /*assign  lsu_ifu_ld_icache_index[11:5] = pcx_pkt_data[`PCX_AD_LO+11:`PCX_AD_LO+5] ;
 assign  lsu_ifu_ld_pcxpkt_tid[1:0] = pcx_pkt_data[`PCX_TH_HI:`PCX_TH_LO] ;*/
 
-dff_s  #(9) stg_icindx (
-        .din  ({pcx_pkt_data[`PCX_AD_LO+11:`PCX_AD_LO+5],pcx_pkt_data[`PCX_TH_HI:`PCX_TH_LO]}),
-        .q    ({lsu_ifu_ld_icache_index[11:5],lsu_ifu_ld_pcxpkt_tid[1:0]}),
+dff_s  #(`IC_SET_IDX_HI+3) stg_icindx (
+        .din  ({pcx_pkt_data[`PCX_AD_LO+`IC_IDX_HI:`PCX_AD_LO+5],pcx_pkt_data[`PCX_TH_HI:`PCX_TH_LO]}),
+        .q    ({lsu_ifu_ld_icache_index[`IC_IDX_HI:5],lsu_ifu_ld_pcxpkt_tid[1:0]}),
         .clk  (clk),
         .se     (1'b0),     .si (),          .so ()
         );

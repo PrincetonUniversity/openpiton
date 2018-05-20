@@ -89,11 +89,14 @@
 `define MSG_OPTIONS_4           5:0
 `define MSG_MSHRID              13:6
 `define MSG_TYPE                21:14
+`define MSG_TYPE_LO             14
 `define MSG_LENGTH              29:22
+`define MSG_LENGTH_LO           22
 `define MSG_DST_FBITS           33:30
 `define MSG_DST_Y               41:34
 `define MSG_DST_X               49:42
 `define MSG_DST_CHIPID          63:50
+`define MSG_DST_CHIPID_HI       63
 
 `define MSG_DATA_SIZE           74:72
 `define MSG_CACHE_TYPE          75

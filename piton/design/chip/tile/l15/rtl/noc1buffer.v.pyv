@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //
 //==================================================================================================
-
 `include "l15.tmp.h"
 
 <%
@@ -57,7 +56,7 @@ module noc1buffer(
    input wire l15_noc1buffer_req_val,
    input wire [`L15_NOC1_REQTYPE_WIDTH-1:0] l15_noc1buffer_req_type,
    input wire [`L15_MSHR_ID_WIDTH-1:0] l15_noc1buffer_req_mshrid,
-   input wire [`L15_NUM_THREADS_LOG-1:0] l15_noc1buffer_req_threadid,
+   input wire [`L15_THREADID_MASK] l15_noc1buffer_req_threadid,
    input wire [39:0] l15_noc1buffer_req_address,
    input wire l15_noc1buffer_req_non_cacheable,
    input wire [`PCX_SIZE_WIDTH-1:0] l15_noc1buffer_req_size,
@@ -81,7 +80,7 @@ module noc1buffer(
    output reg noc1buffer_noc1encoder_req_val,
    output reg [`L15_NOC1_REQTYPE_WIDTH-1:0] noc1buffer_noc1encoder_req_type,
    output reg [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_noc1encoder_req_mshrid,
-   output reg [`L15_NUM_THREADS_LOG-1:0] noc1buffer_noc1encoder_req_threadid,
+   output reg [`L15_THREADID_MASK] noc1buffer_noc1encoder_req_threadid,
    output reg [39:0] noc1buffer_noc1encoder_req_address,
    output reg noc1buffer_noc1encoder_req_non_cacheable,
    output reg [`PCX_SIZE_WIDTH-1:0] noc1buffer_noc1encoder_req_size,
@@ -100,7 +99,7 @@ module noc1buffer(
    // output to mshrid when we have the csm
    output reg noc1buffer_mshr_homeid_write_val_s4,
    output reg [`L15_MSHR_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_mshrid_s4,
-   output reg [`L15_NUM_THREADS_LOG-1:0] noc1buffer_mshr_homeid_write_threadid_s4,
+   output reg [`L15_THREADID_MASK] noc1buffer_mshr_homeid_write_threadid_s4,
    output reg [`PACKET_HOME_ID_WIDTH-1:0] noc1buffer_mshr_homeid_write_data_s4,
 
    // output reg noc1buffer_l15_req_ack,

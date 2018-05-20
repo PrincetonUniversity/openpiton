@@ -29,7 +29,7 @@
  * Author: Tri Nguyen
  */
 
-`include "test_infrstrct.v"
+//`include "test_infrstrct.v"
 
 `include "sys.h"
 `include "iop.h"
@@ -345,32 +345,34 @@ module jtag_testbench_top_helper
 
     fpga_bridge fpga_intf(
         .rst_n                  (chip_rst_n),
-        .fpga_clk               (fpga_clk),
-        .intcnct_clk            (io_clk),
-        .network_out_1          (fpga_intf_noc1_data),
-        .network_out_2          (fpga_intf_noc2_data),
-        .network_out_3          (fpga_intf_noc3_data),
-        .data_out_val_1         (fpga_intf_noc1_valid),
-        .data_out_val_2         (fpga_intf_noc2_valid),
-        .data_out_val_3         (fpga_intf_noc3_valid),
-        .data_out_rdy_1         (intf_fpga_noc1_rdy),
-        .data_out_rdy_2         (intf_fpga_noc2_rdy),
-        .data_out_rdy_3         (intf_fpga_noc3_rdy),
-        .intcnct_data_in        (intf_fpga_data),
-        .intcnct_channel_in     (intf_fpga_channel),
-        .intcnct_credit_back_in (intf_fpga_credit_back),
-        .network_in_1           (intf_fpga_noc1_data),
-        .network_in_2           (intf_fpga_noc2_data),
-        .network_in_3           (intf_fpga_noc3_data),
-        .data_in_val_1          (intf_fpga_noc1_valid),
-        .data_in_val_2          (intf_fpga_noc2_valid),
-        .data_in_val_3          (intf_fpga_noc3_valid),
-        .data_in_rdy_1          (fpga_intf_noc1_rdy),
-        .data_in_rdy_2          (fpga_intf_noc2_rdy),
-        .data_in_rdy_3          (fpga_intf_noc3_rdy),
-        .intcnct_data_out       (fpga_intf_data),
-        .intcnct_channel_out    (fpga_intf_channel),
-        .intcnct_credit_back_out(fpga_intf_credit_back)
+        .fpga_out_clk           (fpga_clk),
+        .fpga_in_clk            (fpga_clk),
+        .intf_out_clk           (io_clk),
+        .intf_in_clk            (io_clk),
+        .fpga_intf_data_noc1    (fpga_intf_noc1_data),
+        .fpga_intf_data_noc2    (fpga_intf_noc2_data),
+        .fpga_intf_data_noc3    (fpga_intf_noc3_data),
+        .fpga_intf_val_noc1     (fpga_intf_noc1_valid),
+        .fpga_intf_val_noc2     (fpga_intf_noc2_valid),
+        .fpga_intf_val_noc3     (fpga_intf_noc3_valid),
+        .fpga_intf_rdy_noc1     (intf_fpga_noc1_rdy),
+        .fpga_intf_rdy_noc2     (intf_fpga_noc2_rdy),
+        .fpga_intf_rdy_noc3     (intf_fpga_noc3_rdy),
+        .intf_fpga_data         (intf_fpga_data),
+        .intf_fpga_channel      (intf_fpga_channel),
+        .intf_fpga_credit_back  (intf_fpga_credit_back),
+        .intf_fpga_data_noc1    (intf_fpga_noc1_data),
+        .intf_fpga_data_noc2    (intf_fpga_noc2_data),
+        .intf_fpga_data_noc3    (intf_fpga_noc3_data),
+        .intf_fpga_val_noc1     (intf_fpga_noc1_valid),
+        .intf_fpga_val_noc2     (intf_fpga_noc2_valid),
+        .intf_fpga_val_noc3     (intf_fpga_noc3_valid),
+        .intf_fpga_rdy_noc1     (fpga_intf_noc1_rdy),
+        .intf_fpga_rdy_noc2     (fpga_intf_noc2_rdy),
+        .intf_fpga_rdy_noc3     (fpga_intf_noc3_rdy),
+        .fpga_intf_data         (fpga_intf_data),
+        .fpga_intf_channel      (fpga_intf_channel),
+        .fpga_intf_credit_back  (fpga_intf_credit_back)
     );
 
 ////////////////////////////////////////////////////////
@@ -453,7 +455,7 @@ module jtag_testbench_top_helper
         .ready_out(iob_noc1_ready_in)    // Rdy signal from processor to dynamic network
     );
 
-    ciop_iob ciop_iob(
+    ciop_fake_iob ciop_fake_iob(
         .noc_in_val        (iob_noc1_valid_in),
         .noc_in_rdy        (iob_noc1_ready_in),
         .noc_in_data       (iob_noc1_data_in),
@@ -720,7 +722,7 @@ module jtag_testbench_top;
         repeat(5000)@(posedge helper.chip.clk_muxed);     // wait for sram wrappers; trin: 5000 cycles is about the lowest
 
         helper.diag_done = 1;       // ???
-        helper.ciop_iob.ok_iob = send_wakeup;    // send wake up packet to first tile
+        helper.ciop_fake_iob.ok_iob = send_wakeup;    // send wake up packet to first tile
         helper.init_done = 1;       // ???
 
         $display("Running tests");

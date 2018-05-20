@@ -31,7 +31,7 @@
                   // time scale definition
 `include  "iop.h"
  
-`include "lsu.tmp.h" 
+`include  "lsu.tmp.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Local header file includes / local defines
@@ -50,8 +50,12 @@ module lsu_qdp2 ( /*AUTOARG*/
    lsu_cpx_pkt_vld, lsu_cpx_pkt_atm_st_cmplt, lsu_cpx_pkt_tid, 
    lsu_cpx_pkt_invwy, lsu_cpx_pkt_inv_pa, lsu_cpx_pkt_l2miss, 
    lsu_dfq_byp_invwy_vld, lsu_dfq_byp_type, lsu_dfq_byp_flush, 
-   lsu_dfq_byp_tid, lsu_cpu_inv_data_b13to9, lsu_cpu_inv_data_b7to2, 
-   lsu_cpu_inv_data_b0, lsu_iobrdge_wr_data, lsu_iobrdge_tap_rq_type, 
+   lsu_dfq_byp_tid, 
+   // lsu_cpu_inv_data_b13to9, lsu_cpu_inv_data_b7to2, 
+   // lsu_cpu_inv_data_b0,
+   lsu_cpu_inv_data_val, lsu_cpu_inv_data_way,
+
+   lsu_iobrdge_wr_data, lsu_iobrdge_tap_rq_type, 
    lsu_cpx_pkt_perror_dinv, lsu_cpx_pkt_perror_iinv, 
    lsu_cpx_pkt_perror_set, lsu_cpx_pkt_ld_err, lsu_dfq_byp_binit_st, 
    lsu_cpx_pkt_binit_st, lsu_cpx_pkt_prefetch, lsu_cpx_pkt_prefetch2, 
@@ -102,7 +106,7 @@ input                       lsu_stb_pcx_rvld_d1 ;   // stb has been read-delayby
 input  [63:0]               lsu_diagnstc_wr_data_e ;       // Store data
 input  [7:0]                lsu_diagnstc_dc_prty_invrt_e ; // invert parity of dw
 //input  [3:0]                lsu_diagnstc_wr_way_e ;        // cache way to be written
-//input  [10:0]               lsu_diagnstc_wr_addr_e ;       // address
+//input  [`L1D_ADDRESS_HI:0]               lsu_diagnstc_wr_addr_e ;       // address
 
 //input                     lsu_ifill_pkt_vld ;     // ifill pkt vld
 //input                     lsu_bist_wvld_e ;       // bist write to dcache
@@ -156,8 +160,8 @@ output               	  lsu_cpx_pkt_strm_ack ;
 output                    lsu_cpx_pkt_vld ;
 output                    lsu_cpx_pkt_atm_st_cmplt ;
 output  [1:0]             lsu_cpx_pkt_tid ;
-output  [1:0]             lsu_cpx_pkt_invwy ;     // invalidate way
-output  [4:0]             lsu_cpx_pkt_inv_pa ;    // invalidate pa [10:6]
+output  [`L1D_WAY_MASK]             lsu_cpx_pkt_invwy ;     // invalidate way
+output  [`L1D_ADDRESS_HI-6:0]             lsu_cpx_pkt_inv_pa ;    // invalidate pa [10:6]
 output			  lsu_cpx_pkt_l2miss ;	// ld req missed in L2
 output                    lsu_dfq_byp_invwy_vld ;
 output  [5:0]             lsu_dfq_byp_type ;
@@ -165,9 +169,11 @@ output                    lsu_dfq_byp_flush ;
 //output  [2:0]             lsu_dfq_byp_cpuid ;
 output  [1:0]             lsu_dfq_byp_tid ;
 //output  [13:0]            lsu_cpu_inv_data ;
-output  [13:9]            lsu_cpu_inv_data_b13to9 ;
-output  [7:2]             lsu_cpu_inv_data_b7to2 ;
-output                    lsu_cpu_inv_data_b0 ;
+// output  [13:9]            lsu_cpu_inv_data_b13to9 ;
+// output  [7:2]             lsu_cpu_inv_data_b7to2 ;
+// output                    lsu_cpu_inv_data_b0 ;
+output                        lsu_cpu_inv_data_val ;
+output  [`L1D_WAY_WIDTH-1:0]  lsu_cpu_inv_data_way ;
 //output                    lsu_dfq_byp_stquad_pkt2 ;
 //output                    lsu_cpx_pkt_stquad_pkt2 ;
 output  [43:0]            lsu_iobrdge_wr_data ;
@@ -190,19 +196,17 @@ output  [1:0]             lsu_dfq_byp_stack_wrway;
 output                    lsu_dfq_byp_atm;
 
    //dcache_fill_addr_e change
-   output [7:0]           dcache_iob_addr_e;
-   output [10:0]          st_dcfill_addr;
+   output [`L1D_ADDRESS_HI-3:0]           dcache_iob_addr_e;
+   output [`L1D_ADDRESS_HI:0]          st_dcfill_addr;
 
-   output [1:0]           lsu_st_way_e;
-   output [1:0]           lsu_dcache_iob_way_e;
+   output [`L1D_WAY_MASK]           lsu_st_way_e;
+   output [`L1D_WAY_MASK]           lsu_dcache_iob_way_e;
 
    output [1:0]           lsu_st_dcfill_size_e;
    
 /*AUTOWIRE*/
 // Beginning of automatic wires (for undeclared instantiated-module outputs)
 // End of automatics
-wire  [13:0]      cpx_cpulo_inv_data ;
-wire  [13:0]      cpx_cpuhi_inv_data ;
 //wire  [`STB_PCX_WIDTH-1:0]  stb_pcx_pkt ;
 //wire  [`STB_DFQ_WIDTH-1:0]  stb_dfq_pkt_data ;
 wire  [`STB_DFQ_WIDTH-1:0]  stb_dfq_data_in ;
@@ -225,10 +229,10 @@ wire  [107:0]     cpx_fwd_pkt_din ;
 
 //wire [3:0]     bist_rsel_way_m ;
 //wire [3:0]     lsu_bist_rsel_way_wb ;  // way select for read
-wire  [1:0]  cpx_st_dcfill_wrway;
+wire  [`L1D_WAY_MASK]  cpx_st_dcfill_wrway;
 wire  [`STB_DFQ_VLD:0]   stb_dcfill_data_mx;
 wire           clk;
-wire  [13:0]            lsu_cpu_inv_data ;
+// wire  [13:0]            lsu_cpu_inv_data ;
 
 assign  clk = rclk;
 
@@ -500,8 +504,8 @@ dff_s  #(108) fwdpkt_ff  (
 // pkt[74:68] - Set Index
 // pkt[67] -DWord
 
-wire [7:0] dcache_iob_addr_e ;
-assign	dcache_iob_addr_e[7:0] = lsu_pcx_fwd_pkt[74:67] ;
+wire [`L1D_ADDRESS_HI-3:0] dcache_iob_addr_e ;
+assign	dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0] = lsu_pcx_fwd_pkt[74:67] ; // trinn: need to lookup and change the pcx fwd packet format, but the feature is probably deprecated in piton
 
 //wire [3:0] dcache_iob_wy_e ; 
 //assign	dcache_iob_wy_e[0] = ~lsu_pcx_fwd_pkt[76] & ~lsu_pcx_fwd_pkt[75] ;
@@ -509,7 +513,8 @@ assign	dcache_iob_addr_e[7:0] = lsu_pcx_fwd_pkt[74:67] ;
 //assign	dcache_iob_wy_e[2] =  lsu_pcx_fwd_pkt[76] & ~lsu_pcx_fwd_pkt[75] ;
 //assign	dcache_iob_wy_e[3] =  lsu_pcx_fwd_pkt[76] &  lsu_pcx_fwd_pkt[75] ;
 
-assign lsu_dcache_iob_way_e [1:0] =  {lsu_pcx_fwd_pkt[76],  lsu_pcx_fwd_pkt[75]};
+wire [1:0] lsu_pcx_fwd_pkt_iob_way = {lsu_pcx_fwd_pkt[76],  lsu_pcx_fwd_pkt[75]}; // trin reconfig
+assign lsu_dcache_iob_way_e[`L1D_WAY_MASK] =  lsu_pcx_fwd_pkt_iob_way[`L1D_WAY_MASK];
   
 wire [63:0] dcache_iob_data_e ; 
 assign	dcache_iob_data_e[63:0] = lsu_pcx_fwd_pkt[63:0] ;
@@ -538,11 +543,13 @@ wire  [1:0]           cpx_st_ack_addr_b54;
 assign  dfq_cpx_raw_wdata[`DFQ_WIDTH:0] = 
   {lsu_cpx_spc_inv_vld,lsu_cpxpkt_type_dcd_cx[5:0],cpx_spc_data_cx[`CPX_WIDTH-1:0]};
 
+wire [1:0] cpx_st_dcfill_wrway_trin = cpx_st_dcfill_wrway; // trin reconfig
+
 assign  dfq_st_data[`DFQ_WIDTH:0]  =  
         {lsu_cpx_spc_inv_vld,lsu_cpxpkt_type_dcd_cx[5:0],
          cpx_spc_data_cx[`CPX_WIDTH-1:87],
          cpx_st_ack_addr_b54[1:0],             // 86:85
-         cpx_st_dcfill_wrway[1:0],             // 84:83
+         cpx_st_dcfill_wrway_trin[1:0],             // 84:83 // trin reconfig
          stb_dcfill_data_mx[`STB_DFQ_VLD:0]};  // 82:0
 
 mux2ds  #(`DFQ_WIDTH+1) dfq_st_data_mx (
@@ -642,11 +649,18 @@ assign  lsu_cpx_pkt_ifill_type    = dfq_byp_ff_data[`DFQ_WIDTH-2];
 assign  lsu_cpx_pkt_tid[1:0]      = dfq_byp_ff_data[`CPX_TH_HI:`CPX_TH_LO] ;
 assign  lsu_cpx_pkt_vld     = dfq_byp_ff_data[`CPX_VLD] ;
 assign  lsu_cpx_pkt_atm_st_cmplt  = dfq_byp_ff_data[129] ;
-assign  lsu_cpx_pkt_invwy[1:0]    = dfq_byp_ff_data[`CPX_WY_HI:`CPX_WY_LO] ;
+
+wire [1:0] lsu_cpx_pkt_invwy_trin = dfq_byp_ff_data[`CPX_WY_HI:`CPX_WY_LO]; // trin reconfig
+assign  lsu_cpx_pkt_invwy[`L1D_WAY_MASK]    = lsu_cpx_pkt_invwy_trin[`L1D_WAY_MASK] ; // trin reconfig: not enough way bits
 // Upper 6bits are used to store decoded request type information.
 assign  lsu_cpx_pkt_strm_ack   = dfq_byp_ff_data[`DFQ_WIDTH-5];
 //assign  lsu_cpx_pkt_inv_pa[4:0]   = dfq_byp_ff_data[`CPX_INV_PA_HI-1:`CPX_INV_PA_LO];  //!!
-assign  lsu_cpx_pkt_inv_pa[4:0]   = dfq_byp_ff_data[`CPX_INV_PA_HI:`CPX_INV_PA_LO];
+
+wire [15:6] dfq_byp_ff_data_addr_15_6;
+assign dfq_byp_ff_data_addr_15_6 = {dfq_byp_ff_data[`CPX_INV_PA_15_12],
+                                          dfq_byp_ff_data[`CPX_INV_IDX_HI:`CPX_INV_IDX_LO]};
+
+assign  lsu_cpx_pkt_inv_pa[`L1D_ADDRESS_HI-6:0]   = dfq_byp_ff_data_addr_15_6[`L1D_ADDRESS_HI:6];
 assign  lsu_cpx_pkt_atomic    = dfq_byp_ff_data[129]  | //atomic st ack
             dfq_byp_ff_data[131]  ; //stquad pkt1
 //assign  lsu_cpx_pkt_stquad_pkt2   = dfq_byp_ff_data[130] ;
@@ -669,157 +683,54 @@ assign  lsu_cpx_pkt_l2miss = dfq_byp_ff_data[139] ;
 //=================================================================================================
 
 
-mux4ds  #(14) invfld_lo_sel (
-        .in0    ({dfq_byp_mx_data[`CPX_A11_C0_HI:`CPX_A11_C0_LO],
-                  dfq_byp_mx_data[`CPX_A10_C0_HI:`CPX_A10_C0_LO],
-                  dfq_byp_mx_data[`CPX_A01_C0_HI:`CPX_A01_C0_LO],
-                  dfq_byp_mx_data[`CPX_A00_C0_HI:`CPX_A00_C0_LO]}),
-        .in1    ({dfq_byp_mx_data[`CPX_A11_C1_HI:`CPX_A11_C1_LO],
-                  dfq_byp_mx_data[`CPX_A10_C1_HI:`CPX_A10_C1_LO],
-                  dfq_byp_mx_data[`CPX_A01_C1_HI:`CPX_A01_C1_LO],
-                  dfq_byp_mx_data[`CPX_A00_C1_HI:`CPX_A00_C1_LO]}),
-        .in2    ({dfq_byp_mx_data[`CPX_A11_C2_HI:`CPX_A11_C2_LO],
-                  dfq_byp_mx_data[`CPX_A10_C2_HI:`CPX_A10_C2_LO],
-                  dfq_byp_mx_data[`CPX_A01_C2_HI:`CPX_A01_C2_LO],
-                  dfq_byp_mx_data[`CPX_A00_C2_HI:`CPX_A00_C2_LO]}),
-        .in3    ({dfq_byp_mx_data[`CPX_A11_C3_HI:`CPX_A11_C3_LO],
-                  dfq_byp_mx_data[`CPX_A10_C3_HI:`CPX_A10_C3_LO],
-                  dfq_byp_mx_data[`CPX_A01_C3_HI:`CPX_A01_C3_LO],
-                  dfq_byp_mx_data[`CPX_A00_C3_HI:`CPX_A00_C3_LO]}),
-        .sel0   (lsu_cpu_dcd_sel[0]),
-        .sel1   (lsu_cpu_dcd_sel[1]),
-        .sel2   (lsu_cpu_dcd_sel[2]),
-        .sel3   (lsu_cpu_dcd_sel[3]),
-        .dout   (cpx_cpulo_inv_data[13:0])
-);
+// assign lsu_cpu_inv_data = {dfq_byp_mx_data[`CPX_A11_C0_HI:`CPX_A11_C0_LO],
+//                   dfq_byp_mx_data[`CPX_A10_C0_HI:`CPX_A10_C0_LO],
+//                   dfq_byp_mx_data[`CPX_A01_C0_HI:`CPX_A01_C0_LO],
+//                   dfq_byp_mx_data[`CPX_A00_C0_HI:`CPX_A00_C0_LO]};
 
-mux4ds  #(14) invfld_hi_sel (
-        .in0    ({dfq_byp_mx_data[`CPX_A11_C4_HI:`CPX_A11_C4_LO],
-                  dfq_byp_mx_data[`CPX_A10_C4_HI:`CPX_A10_C4_LO],
-                  dfq_byp_mx_data[`CPX_A01_C4_HI:`CPX_A01_C4_LO],
-                  dfq_byp_mx_data[`CPX_A00_C4_HI:`CPX_A00_C4_LO]}),
-        .in1    ({dfq_byp_mx_data[`CPX_A11_C5_HI:`CPX_A11_C5_LO],
-                  dfq_byp_mx_data[`CPX_A10_C5_HI:`CPX_A10_C5_LO],
-                  dfq_byp_mx_data[`CPX_A01_C5_HI:`CPX_A01_C5_LO],
-                  dfq_byp_mx_data[`CPX_A00_C5_HI:`CPX_A00_C5_LO]}),
-        .in2    ({dfq_byp_mx_data[`CPX_A11_C6_HI:`CPX_A11_C6_LO],
-                  dfq_byp_mx_data[`CPX_A10_C6_HI:`CPX_A10_C6_LO],
-                  dfq_byp_mx_data[`CPX_A01_C6_HI:`CPX_A01_C6_LO],
-                  dfq_byp_mx_data[`CPX_A00_C6_HI:`CPX_A00_C6_LO]}),
-        .in3    ({dfq_byp_mx_data[`CPX_A11_C7_HI:`CPX_A11_C7_LO],
-                  dfq_byp_mx_data[`CPX_A10_C7_HI:`CPX_A10_C7_LO],
-                  dfq_byp_mx_data[`CPX_A01_C7_HI:`CPX_A01_C7_LO],
-                  dfq_byp_mx_data[`CPX_A00_C7_HI:`CPX_A00_C7_LO]}),
-        .sel0   (lsu_cpu_dcd_sel[4]),
-        .sel1   (lsu_cpu_dcd_sel[5]),
-        .sel2   (lsu_cpu_dcd_sel[6]),
-        .sel3   (lsu_cpu_dcd_sel[7]),
-        .dout   (cpx_cpuhi_inv_data[13:0])
-);
+// assign  lsu_cpu_inv_data_b13to9[13:9]  =  lsu_cpu_inv_data[13:9] ;
+// assign  lsu_cpu_inv_data_b7to2[7:2]  =  lsu_cpu_inv_data[7:2] ;
+// assign  lsu_cpu_inv_data_b0  =  lsu_cpu_inv_data[0] ;
 
-
-mux2ds  #(14) invfld_sel (
-        .in0    (cpx_cpulo_inv_data[13:0]),
-        .in1    (cpx_cpuhi_inv_data[13:0]),
-        .sel0   (~lsu_cpu_uhlf_sel),  
-        .sel1   (lsu_cpu_uhlf_sel),
-        .dout   (lsu_cpu_inv_data[13:0])
-);
-
-assign  lsu_cpu_inv_data_b13to9[13:9]  =  lsu_cpu_inv_data[13:9] ;
-assign  lsu_cpu_inv_data_b7to2[7:2]  =  lsu_cpu_inv_data[7:2] ;
-assign  lsu_cpu_inv_data_b0  =  lsu_cpu_inv_data[0] ;
+assign lsu_cpu_inv_data_val = dfq_byp_mx_data[`CPX_INV_DCACHE_VAL];
+wire [3:0] dfq_byp_mx_data_inv_way = dfq_byp_mx_data[`CPX_INV_WAY]; 
+assign lsu_cpu_inv_data_way[`L1D_WAY_MASK] = dfq_byp_mx_data_inv_way[`L1D_WAY_MASK]; 
 
 // same structure as above for st data write way
-wire  [13:0] cpx_cpulo_dcfill_wrway,
-             cpx_cpuhi_dcfill_wrway,
-             cpx_st_dcfill_wrway_sel;
-             
+// wire  [13:0]  cpx_st_dcfill_wrway_sel;
 
-mux4ds  #(14) st_dcfill_wrway_lo (
-        .in0    ({cpx_spc_data_cx[`CPX_A11_C0_HI:`CPX_A11_C0_LO],
-                  cpx_spc_data_cx[`CPX_A10_C0_HI:`CPX_A10_C0_LO],
-                  cpx_spc_data_cx[`CPX_A01_C0_HI:`CPX_A01_C0_LO],
-                  cpx_spc_data_cx[`CPX_A00_C0_HI:`CPX_A00_C0_LO]}),
-        .in1    ({cpx_spc_data_cx[`CPX_A11_C1_HI:`CPX_A11_C1_LO],
-                  cpx_spc_data_cx[`CPX_A10_C1_HI:`CPX_A10_C1_LO],
-                  cpx_spc_data_cx[`CPX_A01_C1_HI:`CPX_A01_C1_LO],
-                  cpx_spc_data_cx[`CPX_A00_C1_HI:`CPX_A00_C1_LO]}),
-        .in2    ({cpx_spc_data_cx[`CPX_A11_C2_HI:`CPX_A11_C2_LO],
-                  cpx_spc_data_cx[`CPX_A10_C2_HI:`CPX_A10_C2_LO],
-                  cpx_spc_data_cx[`CPX_A01_C2_HI:`CPX_A01_C2_LO],
-                  cpx_spc_data_cx[`CPX_A00_C2_HI:`CPX_A00_C2_LO]}),
-        .in3    ({cpx_spc_data_cx[`CPX_A11_C3_HI:`CPX_A11_C3_LO],
-                  cpx_spc_data_cx[`CPX_A10_C3_HI:`CPX_A10_C3_LO],
-                  cpx_spc_data_cx[`CPX_A01_C3_HI:`CPX_A01_C3_LO],
-                  cpx_spc_data_cx[`CPX_A00_C3_HI:`CPX_A00_C3_LO]}),
-        .sel0   (lsu_cpu_dcd_sel[0]),
-        .sel1   (lsu_cpu_dcd_sel[1]),
-        .sel2   (lsu_cpu_dcd_sel[2]),
-        .sel3   (lsu_cpu_dcd_sel[3]),
-        .dout   (cpx_cpulo_dcfill_wrway[13:0])
-);
-
-mux4ds  #(14) st_dcfill_wrway_hi (
-        .in0    ({cpx_spc_data_cx[`CPX_A11_C4_HI:`CPX_A11_C4_LO],
-                  cpx_spc_data_cx[`CPX_A10_C4_HI:`CPX_A10_C4_LO],
-                  cpx_spc_data_cx[`CPX_A01_C4_HI:`CPX_A01_C4_LO],
-                  cpx_spc_data_cx[`CPX_A00_C4_HI:`CPX_A00_C4_LO]}),
-        .in1    ({cpx_spc_data_cx[`CPX_A11_C5_HI:`CPX_A11_C5_LO],
-                  cpx_spc_data_cx[`CPX_A10_C5_HI:`CPX_A10_C5_LO],
-                  cpx_spc_data_cx[`CPX_A01_C5_HI:`CPX_A01_C5_LO],
-                  cpx_spc_data_cx[`CPX_A00_C5_HI:`CPX_A00_C5_LO]}),
-        .in2    ({cpx_spc_data_cx[`CPX_A11_C6_HI:`CPX_A11_C6_LO],
-                  cpx_spc_data_cx[`CPX_A10_C6_HI:`CPX_A10_C6_LO],
-                  cpx_spc_data_cx[`CPX_A01_C6_HI:`CPX_A01_C6_LO],
-                  cpx_spc_data_cx[`CPX_A00_C6_HI:`CPX_A00_C6_LO]}),
-        .in3    ({cpx_spc_data_cx[`CPX_A11_C7_HI:`CPX_A11_C7_LO],
-                  cpx_spc_data_cx[`CPX_A10_C7_HI:`CPX_A10_C7_LO],
-                  cpx_spc_data_cx[`CPX_A01_C7_HI:`CPX_A01_C7_LO],
-                  cpx_spc_data_cx[`CPX_A00_C7_HI:`CPX_A00_C7_LO]}),
-        .sel0   (lsu_cpu_dcd_sel[4]),
-        .sel1   (lsu_cpu_dcd_sel[5]),
-        .sel2   (lsu_cpu_dcd_sel[6]),
-        .sel3   (lsu_cpu_dcd_sel[7]),
-        .dout   (cpx_cpuhi_dcfill_wrway[13:0])
-);
-
-
-
-mux2ds  #(14) st_dcfill_wrway_sel (
-        .in0    (cpx_cpulo_dcfill_wrway[13:0]),
-        .in1    (cpx_cpuhi_dcfill_wrway[13:0]),
-        .sel0   (~lsu_cpu_uhlf_sel),
-        .sel1   (lsu_cpu_uhlf_sel),
-        .dout   (cpx_st_dcfill_wrway_sel[13:0])
-);
+// assign cpx_st_dcfill_wrway_sel = cpx_spc_data_cx[`CPX_INV_WAY];
+// wire cpx_st_dcfill_wrway_val = cpx_spc_data_cx[`CPX_INV_DCACHE_VAL];
+// wire [1:0] cpx_st_dcfill_pa_54 = cpx_spc_data_cx[`CPX_INVPA5:`CPX_INVPA4];
 
 // select the appropriate offset
 
 //bug3718 - 0in bug - cpx_st_dcfill_wrway_sel can be multi-hot foe non-stack cpx responses
 //          hence qual w/ stack req type
-wire  [3:0]  st_dcfill_wrway_mxsel ;
+// wire  [3:0]  st_dcfill_wrway_mxsel ;
 
-assign st_dcfill_wrway_mxsel[0] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_sel[0]) & ~rst_tri_en ;
-assign st_dcfill_wrway_mxsel[1] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_sel[4]) & ~rst_tri_en ;
-assign st_dcfill_wrway_mxsel[2] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_sel[7]) & ~rst_tri_en ;
-assign st_dcfill_wrway_mxsel[3] =  ~|st_dcfill_wrway_mxsel[2:0] | rst_tri_en;
+// assign st_dcfill_wrway_mxsel[0] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_val) & ~rst_tri_en ;
+// assign st_dcfill_wrway_mxsel[1] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_val) & ~rst_tri_en ;
+// assign st_dcfill_wrway_mxsel[2] =  (lsu_cpxpkt_type_dcd_cx[2] & cpx_st_dcfill_wrway_val) & ~rst_tri_en ;
+// assign st_dcfill_wrway_mxsel[3] =  ~|st_dcfill_wrway_mxsel[2:0] | rst_tri_en;
 
-mux4ds  #(2) st_dcfill_wrway_sel_b54 (
-        .in0    (cpx_st_dcfill_wrway_sel[3:2]),
-        .in1    (cpx_st_dcfill_wrway_sel[6:5]),
-        .in2    (cpx_st_dcfill_wrway_sel[10:9]),
-        .in3    (cpx_st_dcfill_wrway_sel[13:12]),
-        .sel0   (st_dcfill_wrway_mxsel[0]),
-        .sel1   (st_dcfill_wrway_mxsel[1]),
-        .sel2   (st_dcfill_wrway_mxsel[2]),
-        .sel3   (st_dcfill_wrway_mxsel[3]),
-        .dout   (cpx_st_dcfill_wrway[1:0])
-);
+// mux4ds  #(2) st_dcfill_wrway_sel_b54 (
+//         .in0    (cpx_st_dcfill_wrway_sel[3:2]),
+//         .in1    (cpx_st_dcfill_wrway_sel[6:5]),
+//         .in2    (cpx_st_dcfill_wrway_sel[10:9]),
+//         .in3    (cpx_st_dcfill_wrway_sel[13:12]),
+//         .sel0   (st_dcfill_wrway_mxsel[0]),
+//         .sel1   (st_dcfill_wrway_mxsel[1]),
+//         .sel2   (st_dcfill_wrway_mxsel[2]),
+//         .sel3   (st_dcfill_wrway_mxsel[3]),
+//         .dout   (cpx_st_dcfill_wrway[1:0])
+// );
 
-
-assign  cpx_st_ack_addr_b54[0] = cpx_st_dcfill_wrway_sel[4] | cpx_st_dcfill_wrway_sel[11] ;
-assign  cpx_st_ack_addr_b54[1] = cpx_st_dcfill_wrway_sel[7] | cpx_st_dcfill_wrway_sel[11] ;
+wire [3:0] cpx_spc_data_cx_wrway = cpx_spc_data_cx[`CPX_INV_WAY]; 
+assign cpx_st_dcfill_wrway[`L1D_WAY_MASK] = cpx_spc_data_cx_wrway[`L1D_WAY_MASK]; // trin: width mismatch okay
+assign cpx_st_ack_addr_b54 = cpx_spc_data_cx[`CPX_INVPA5:`CPX_INVPA4];
+// assign  cpx_st_ack_addr_b54[0] = cpx_st_dcfill_wrway_sel[4] | cpx_st_dcfill_wrway_sel[11] ;
+// assign  cpx_st_ack_addr_b54[1] = cpx_st_dcfill_wrway_sel[7] | cpx_st_dcfill_wrway_sel[11] ;
 
 //=================================================================================================
 
@@ -873,14 +784,15 @@ assign st_dcfill_data[127:0] =
 //   dfq_byp_ff_data[84:83],                          // 131:130 - wr_way[1:0]
 //   dfq_byp_ff_data[`STB_DFQ_SZ_HI:`STB_DFQ_SZ_LO],  // 129:128 - size[1:0]
                                                                //29'd0,                                           //!!! reduce 
-                                                               //{dfq_byp_ff_data[`CPX_INV_PA_HI:`CPX_INV_PA_LO], // addr 10:6
+                                                               //{dfq_byp_ff_data[`CPX_INV_IDX_HI:`CPX_INV_IDX_LO], // addr 10:6
                                                                //dfq_byp_ff_data[86:85],        // addr 5:4
                                                                //dfq_byp_ff_data[`STB_DFQ_AD_LO+3:`STB_DFQ_AD_LO]}, // addr 3:0
    dcache_wr_data[63:0],                            // 127:64
    dcache_wr_data[63:0]};                           // 63:0
 
-   assign st_dcfill_addr[10:0] =    
-   {dfq_byp_ff_data[`CPX_INV_PA_HI:`CPX_INV_PA_LO],    // addr 10:6
+
+   assign st_dcfill_addr[`L1D_ADDRESS_HI:0] =    
+   {dfq_byp_ff_data_addr_15_6[`L1D_ADDRESS_HI:6],    // addr 10:6
     dfq_byp_ff_data[86:85],                            // addr 5:4
     dfq_byp_ff_data[`STB_DFQ_AD_LO+3:`STB_DFQ_AD_LO]}; // addr 3:0
    
@@ -888,7 +800,8 @@ assign st_dcfill_data[127:0] =
 // The width can be reduced !!!
 
 //potentially we can take one cycle earlier version dfq_st_data   
-   assign lsu_st_way_e[1:0] = dfq_byp_ff_data[84:83];
+   wire [1:0] dfq_byp_ff_data_st_way = dfq_byp_ff_data[84:83]; // trin reconfig: this format prevents way > 4
+   assign lsu_st_way_e[`L1D_WAY_MASK] = dfq_byp_ff_data_st_way[`L1D_WAY_MASK];
    assign lsu_st_dcfill_size_e [1:0] = dfq_byp_ff_data[`STB_DFQ_SZ_HI:`STB_DFQ_SZ_LO];
        
 assign ldinv_dcfill_data[127:0] =
@@ -958,24 +871,24 @@ mux2ds  #(16) dcache_wr_parity_mod_mux (
 
 
 // Bist read and write address sent thru fill_addr
-//assign  lsu_dcache_fill_addr_e[10:0] = 
-//lsu_dc_iob_access_e ? {dcache_iob_addr_e[7:0],2'b00} :
+//assign  lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:0] = 
+//lsu_dc_iob_access_e ? {dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0],2'b00} :
 //(lsu_bist_wvld_e | lsu_bist_rvld_e) ? {1'b0, lsu_bist_addr_e[7:0],2'b00} :  //??FIX
-//  lsu_diagnstc_wr_src_sel_e ? lsu_diagnstc_wr_addr_e[10:0] :
+//  lsu_diagnstc_wr_src_sel_e ? lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0] :
 //    lsu_dcfill_data[`DCFILL_AD_LO+10:`DCFILL_AD_LO];
 
-//   wire [10:0] lsu_dcache_fill_addr_e;
+//   wire [`L1D_ADDRESS_HI:0] lsu_dcache_fill_addr_e;
    
 //mux4ds  #(11) lsu_dcache_fill_addr_e_mux (
-//  .in0  ({dcache_iob_addr_e[8:0],2'b00}),
+//  .in0  ({dcache_iob_addr_e[`L1D_ADDRESS_HI-3:0],2'b00}),
 //  .in1  ({mbist_dcache_index[6:0], mbist_dcache_word, 3'b00}),
-//  .in2  (lsu_diagnstc_wr_addr_e[10:0]),
+//  .in2  (lsu_diagnstc_wr_addr_e[`L1D_ADDRESS_HI:0]),
 //  .in3  (lsu_dcfill_data[`DCFILL_AD_LO+10:`DCFILL_AD_LO]),
 //  .sel0 (lsu_dcfill_mx_sel_e[0]),
 //  .sel1 (lsu_dcfill_mx_sel_e[1]),
 //  .sel2 (lsu_dcfill_mx_sel_e[2]),
 //  .sel3 (lsu_dcfill_mx_sel_e[3]),
-//  .dout (lsu_dcache_fill_addr_e[10:0])
+//  .dout (lsu_dcache_fill_addr_e[`L1D_ADDRESS_HI:0])
 //);
 
 wire	[63:0] misc_fill_data_e ;

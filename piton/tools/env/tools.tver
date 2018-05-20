@@ -22,7 +22,10 @@ regreport	/	1.73
 showargv	/	1.01
 sims		/	1.262
 contint     /   1.0
-protosyn    /   2.1
+protosyn    /   2.2
+pitonstream	/ 1.0
+pitonunimap     / 1.0
+image2stream    / 1.0
 rsyn        /   1.0
 rsta        /   1.0
 rrvs        /   1.0

@@ -30,54 +30,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // This file is auto-generated
 // Author: Tri Nguyen
 
+<%
+  import pyhplib
+  from pyhplib import * 
 
-`include "define.vh"
-`ifdef DEFAULT_NETTYPE_NONE
-`default_nettype none
-`endif
-module sram_l15_hmt
-(
-input wire MEMCLK,
-input wire RESET_N,
-input wire CE,
-input wire [9-1:0] A,
-input wire RDWEN,
-input wire [32-1:0] BW,
-input wire [32-1:0] DIN,
-output wire [32-1:0] DOUT,
-input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
-input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
-output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
-input wire [`BIST_ID_WIDTH-1:0] SRAMID
-);
-reg [32-1:0] cache [512-1:0];
-
-integer i;
-initial
-begin
-   for (i = 0; i < 512; i = i + 1)
-   begin
-      cache[i] = 0;
-   end
-end
-
-
-
-   reg [32-1:0] dout_f;
-
-   assign DOUT = dout_f;
-
-   always @ (posedge MEMCLK)
-   begin
-      if (CE)
-      begin
-         if (RDWEN == 1'b0)
-            cache[A] <= (DIN & BW) | (cache[A] & ~BW);
-         else
-            dout_f <= cache[A];
-      end
-   end
-   
-endmodule
-
-
+  pyhplib.MakeGenericCacheDefine(
+    modulename="sram_l15_hmt", 
+    type="1rw", 
+    # height=CONFIG_SRAM_L15_HMT_HEIGHT, 
+    # width=CONFIG_SRAM_L15_HMT_WIDTH
+    height_define="`L15_NUM_ENTRIES",
+    heightlog2_define="`L15_NUM_ENTRIES_LOG2",
+    width_define="`L15_HMT_ENTRY_WIDTH"
+    );
+%>

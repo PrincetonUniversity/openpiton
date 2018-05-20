@@ -21,6 +21,63 @@
 * 
 * ========== Copyright Header End ============================================
 */
+
+<%
+   import math
+   import pyhplib
+   from pyhplib import *
+
+   linesize = 16
+   # 512
+   numentries = CONFIG_L1D_SIZE / linesize
+   # 4
+   way = CONFIG_L1D_ASSOCIATIVITY
+   # 2
+   waywidth = math.log(CONFIG_L1D_ASSOCIATIVITY, 2)
+   # 512
+   print("`define L1D_ENTRY_COUNT %d" % numentries)
+   # 9 - 1 - 2 = 6
+   print("`define L1D_SET_IDX_HI %d" % (math.log(numentries, 2) - 1 - waywidth))
+   # 4
+   print("`define L1D_WAY_COUNT %d" % way)
+   # 2
+   print("`define L1D_WAY_WIDTH %d" % waywidth)
+%>
+
+// 1:0
+`define L1D_WAY_MASK `L1D_WAY_WIDTH-1:0
+`define L1D_WAY_ARRAY_MASK `L1D_WAY_COUNT-1:0
+// 128
+`define L1D_SET_COUNT (`L1D_ENTRY_COUNT/`L1D_WAY_COUNT)
+// 32
+`define L1D_VAL_ARRAY_HI (4*`L1D_WAY_COUNT-1)
+`define L1D_VAL_SET_COUNT (`L1D_SET_COUNT/4)
+// 10
+`define L1D_ADDRESS_HI (`L1D_SET_IDX_HI + 4)
+// 7
+`define L1D_ADDRESS_WIDTH (`L1D_ADDRESS_HI - 4 + 1)
+`define L1D_SET_IDX_ (`L1D_SET_IDX_HI + 4)
+// 6:0
+`define L1D_SET_IDX_MASK `L1D_SET_IDX_HI:0
+`define L1D_SET_IDX_WIDTH (`L1D_SET_IDX_HI+1)
+
+// 29 + 1 parity
+`define L1D_TAG_PARITY_WIDTH (29+1)
+`define L1D_TAG_ARRAY_WIDTH (`L1D_TAG_PARITY_WIDTH*`L1D_WAY_COUNT)
+`define L1D_TAG_REAL_WIDTH 33 // physical SRAM width for tag
+`define L1D_TAG_ARRAY_REAL_WIDTH (`L1D_TAG_REAL_WIDTH*`L1D_WAY_COUNT)
+
+// 144
+`define L1D_DATA_ENTRY_WIDTH 144
+
+<%
+   for i in range(CONFIG_L1D_ASSOCIATIVITY):
+      print("`define L1D_TAG_ARRAY_WAY%d_MASK `L1D_TAG_PARITY_WIDTH*(%d+1)-1 -: `L1D_TAG_PARITY_WIDTH" %(i,i))
+      print("`define L1D_TAG_ARRAY_WAY%d_PARITY_BIT_MASK `L1D_TAG_PARITY_WIDTH*(%d+1)-1" %(i,i))
+      print("`define L1D_TAG_REAL_ARRAY_WAY%d_MASK `L1D_TAG_REAL_WIDTH*(%d+1)-1 -: `L1D_TAG_REAL_WIDTH" %(i,i))
+      print("`define L1D_DATA_ENTRY_WAY%d_MASK `L1D_DATA_ENTRY_WIDTH*(%d+1)-1 -: `L1D_DATA_ENTRY_WIDTH" %(i,i))
+%>
+
 `define STB_PCX_WIDTH   115
 `define STB_PCX_VLD     114
 `define STB_PCX_RQ_HI   113
@@ -201,98 +258,98 @@
 `define TLB_DATA_W  	1 
 `define TLB_DATA_G  	0 
 
-// Invalidate Format
-//addr<5:4>=00
-`define CPX_A00_C0_LO	0
-`define CPX_A00_C0_HI	3
-`define CPX_A00_C1_LO	4
-`define CPX_A00_C1_HI	7
-`define CPX_A00_C2_LO	8
-`define CPX_A00_C2_HI	11
-`define CPX_A00_C3_LO	12
-`define CPX_A00_C3_HI	15
-`define CPX_A00_C4_LO	16
-`define CPX_A00_C4_HI	19
-`define CPX_A00_C5_LO	20
-`define CPX_A00_C5_HI	23
-`define CPX_A00_C6_LO	24
-`define CPX_A00_C6_HI	27
-`define CPX_A00_C7_LO	28
-`define CPX_A00_C7_HI	31
+// // Invalidate Format
+// //addr<5:4>=00
+// `define CPX_A00_C0_LO	0
+// `define CPX_A00_C0_HI	3
+// `define CPX_A00_C1_LO	4
+// `define CPX_A00_C1_HI	7
+// `define CPX_A00_C2_LO	8
+// `define CPX_A00_C2_HI	11
+// `define CPX_A00_C3_LO	12
+// `define CPX_A00_C3_HI	15
+// `define CPX_A00_C4_LO	16
+// `define CPX_A00_C4_HI	19
+// `define CPX_A00_C5_LO	20
+// `define CPX_A00_C5_HI	23
+// `define CPX_A00_C6_LO	24
+// `define CPX_A00_C6_HI	27
+// `define CPX_A00_C7_LO	28
+// `define CPX_A00_C7_HI	31
 
-//addr<5:4>=01
-`define CPX_A01_C0_LO	32
-`define CPX_A01_C0_HI	34
-`define CPX_A01_C1_LO	35
-`define CPX_A01_C1_HI	37
-`define CPX_A01_C2_LO	38
-`define CPX_A01_C2_HI	40
-`define CPX_A01_C3_LO	41
-`define CPX_A01_C3_HI	43
-`define CPX_A01_C4_LO	44
-`define CPX_A01_C4_HI	46
-`define CPX_A01_C5_LO	47
-`define CPX_A01_C5_HI	49
-`define CPX_A01_C6_LO	50
-`define CPX_A01_C6_HI	52
-`define CPX_A01_C7_LO	53
-`define CPX_A01_C7_HI	55
+// //addr<5:4>=01
+// `define CPX_A01_C0_LO	32
+// `define CPX_A01_C0_HI	34
+// `define CPX_A01_C1_LO	35
+// `define CPX_A01_C1_HI	37
+// `define CPX_A01_C2_LO	38
+// `define CPX_A01_C2_HI	40
+// `define CPX_A01_C3_LO	41
+// `define CPX_A01_C3_HI	43
+// `define CPX_A01_C4_LO	44
+// `define CPX_A01_C4_HI	46
+// `define CPX_A01_C5_LO	47
+// `define CPX_A01_C5_HI	49
+// `define CPX_A01_C6_LO	50
+// `define CPX_A01_C6_HI	52
+// `define CPX_A01_C7_LO	53
+// `define CPX_A01_C7_HI	55
 
-//addr<5:4>=10
-`define CPX_A10_C0_LO	56
-`define CPX_A10_C0_HI	59
-`define CPX_A10_C1_LO	60
-`define CPX_A10_C1_HI	63
-`define CPX_A10_C2_LO	64
-`define CPX_A10_C2_HI	67
-`define CPX_A10_C3_LO	68
-`define CPX_A10_C3_HI	71
-`define CPX_A10_C4_LO	72
-`define CPX_A10_C4_HI	75
-`define CPX_A10_C5_LO	76
-`define CPX_A10_C5_HI	79
-`define CPX_A10_C6_LO	80
-`define CPX_A10_C6_HI	83
-`define CPX_A10_C7_LO	84
-`define CPX_A10_C7_HI	87
+// //addr<5:4>=10
+// `define CPX_A10_C0_LO	56
+// `define CPX_A10_C0_HI	59
+// `define CPX_A10_C1_LO	60
+// `define CPX_A10_C1_HI	63
+// `define CPX_A10_C2_LO	64
+// `define CPX_A10_C2_HI	67
+// `define CPX_A10_C3_LO	68
+// `define CPX_A10_C3_HI	71
+// `define CPX_A10_C4_LO	72
+// `define CPX_A10_C4_HI	75
+// `define CPX_A10_C5_LO	76
+// `define CPX_A10_C5_HI	79
+// `define CPX_A10_C6_LO	80
+// `define CPX_A10_C6_HI	83
+// `define CPX_A10_C7_LO	84
+// `define CPX_A10_C7_HI	87
 
-//addr<5:4>=11
-`define CPX_A11_C0_LO	88
-`define CPX_A11_C0_HI	90
-`define CPX_A11_C1_LO	91
-`define CPX_A11_C1_HI	93
-`define CPX_A11_C2_LO	94
-`define CPX_A11_C2_HI	96
-`define CPX_A11_C3_LO	97
-`define CPX_A11_C3_HI	99
-`define CPX_A11_C4_LO	100
-`define CPX_A11_C4_HI	102
-`define CPX_A11_C5_LO	103
-`define CPX_A11_C5_HI	105
-`define CPX_A11_C6_LO	106
-`define CPX_A11_C6_HI	108
-`define CPX_A11_C7_LO	109
-`define CPX_A11_C7_HI	111
+// //addr<5:4>=11
+// `define CPX_A11_C0_LO	88
+// `define CPX_A11_C0_HI	90
+// `define CPX_A11_C1_LO	91
+// `define CPX_A11_C1_HI	93
+// `define CPX_A11_C2_LO	94
+// `define CPX_A11_C2_HI	96
+// `define CPX_A11_C3_LO	97
+// `define CPX_A11_C3_HI	99
+// `define CPX_A11_C4_LO	100
+// `define CPX_A11_C4_HI	102
+// `define CPX_A11_C5_LO	103
+// `define CPX_A11_C5_HI	105
+// `define CPX_A11_C6_LO	106
+// `define CPX_A11_C6_HI	108
+// `define CPX_A11_C7_LO	109
+// `define CPX_A11_C7_HI	111
 
 // cpuid - 4b
 `define CPX_INV_CID_LO 118
 `define CPX_INV_CID_HI 120
 
 // CPUany, addr<5:4>=00,10
-`define CPX_AX0_INV_DVLD 0
-`define CPX_AX0_INV_IVLD 1
-`define CPX_AX0_INV_WY_LO 2
-`define CPX_AX0_INV_WY_HI 3
+// `define CPX_AX0_INV_DVLD 0
+// `define CPX_AX0_INV_IVLD 1
+// `define CPX_AX0_INV_WY_LO 2
+// `define CPX_AX0_INV_WY_HI 3
 
 // CPUany, addr<5:4>=01,11
-`define CPX_AX1_INV_DVLD 0
-`define CPX_AX1_INV_WY_LO 1
-`define CPX_AX1_INV_WY_HI 2
+// `define CPX_AX1_INV_DVLD 0
+// `define CPX_AX1_INV_WY_LO 1
+// `define CPX_AX1_INV_WY_HI 2
 
 // CPUany, addr<5:4>=01,11
-`define CPX_AX1_INV_DVLD 0
-`define CPX_AX1_INV_WY_LO 1
-`define CPX_AX1_INV_WY_HI 2
+// `define CPX_AX1_INV_DVLD 0
+// `define CPX_AX1_INV_WY_LO 1
+// `define CPX_AX1_INV_WY_HI 2
 
 // DTAG parity error Invalidate
 `define CPX_PERR_DINV 123	// dcache inv

@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //==================================================================================================
 
-
 `include "l15.tmp.h"
 `include "define.vh"
 

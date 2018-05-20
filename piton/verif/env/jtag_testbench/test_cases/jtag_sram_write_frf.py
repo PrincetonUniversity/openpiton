@@ -31,6 +31,7 @@ import libjtag
 
 jtag = libjtag.JtagGen()
 jtag.CommitWait(1000)
+jtag.CommandStallCore(coreid=0, threadid=0, stall=1)
 
 #######################################################
 # now overwrite the data so that the next 4 instructions are all nops (no br)
