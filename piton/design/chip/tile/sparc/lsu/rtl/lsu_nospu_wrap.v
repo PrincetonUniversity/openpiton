@@ -27,8 +27,8 @@
 
 `include "sys.h"
 `include "iop.h"
-`include "ifu.h"
-`include "lsu.h"
+`include "ifu.tmp.h"
+`include "lsu.tmp.h"
 `include "define.vh"
 
 module lsu_nospu_wrap

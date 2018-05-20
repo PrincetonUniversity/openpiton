@@ -27,3 +27,5 @@
 
 dynamic_node_top_wrap.v
 dynamic_node_top.v
+dynamic_node_top_wrap_para.v
+dynamic_node_top_para.v

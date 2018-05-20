@@ -41,6 +41,20 @@ module bw_r_irf_register8
     output  [71:0]      rd_data
 );
 
+`ifdef FPGA_SYN_1THREAD
+    bw_r_irf_register bw_r_irf_register
+    (
+        .clk                (clk),
+        .reset_l            (reset_l),
+        .wren               (wrens),
+        .save               (save),
+        .save_addr          (save_addr),
+        .restore            (restore),
+        .restore_addr       (restore_addr),
+        .wr_data            (wr_data0),
+        .rd_data            (rd_data)
+    );
+`else
     bw_r_irf_register #(.NUM_WINDOW_ENTRIES(8), .SHIFT_ADDR(1)) bw_r_irf_register
     (
         .clk                (clk),
@@ -55,5 +69,6 @@ module bw_r_irf_register8
         .rd_thread          (rd_thread),
         .rd_data            (rd_data)
     );
+`endif
 
 endmodule

@@ -83,6 +83,7 @@ reg sel_13;
 reg sel_12;
 reg [1:0] sel_123;
 
+parameter FULL_THRESHOLD = 9'd240; // Much less than threshold to deal with multiple cycle latencies (IOB registers, etc)
 
 /*********************************************************
 //Combinational Logic
@@ -98,18 +99,18 @@ assign rdy_2 = (select == 2'b10 && select_counter == 1'b0) ? 1'b1 : 1'b0;
 assign rdy_3 = (select == 2'b11 && select_counter == 1'b0) ? 1'b1 : 1'b0;
 
 assign select = ( (select_counter != 1'b0         ) )   ? select_reg :
-                ( (credit_1 == 9'd255 || ~val_1) &&            //3 networks full
-                  (credit_2 == 9'd255 || ~val_2) && 
-                  (credit_3 == 9'd255 || ~val_3) )   ? 2'b00  :
-                ( (credit_2 == 9'd255 || ~val_2) &&            //2 networks full
-                  (credit_3 == 9'd255 || ~val_3) )   ? 2'b01  :
-                ( (credit_1 == 9'd255 || ~val_1) &&
-                  (credit_3 == 9'd255 || ~val_3) )   ? 2'b10  :
-                ( (credit_1 == 9'd255 || ~val_1) &&
-                  (credit_2 == 9'd255 || ~val_2) )   ? 2'b11  :
-                ( (credit_1 == 9'd255 || ~val_1) )   ? (sel_23 ? 2'b11 : 2'b10) : //1 network full
-                ( (credit_2 == 9'd255 || ~val_2) )   ? (sel_13 ? 2'b11 : 2'b01) :
-                ( (credit_3 == 9'd255 || ~val_3) )   ? (sel_12 ? 2'b10 : 2'b01) :
+                ( (credit_1 == FULL_THRESHOLD || ~val_1) &&            //3 networks full
+                  (credit_2 == FULL_THRESHOLD || ~val_2) && 
+                  (credit_3 == FULL_THRESHOLD || ~val_3) )   ? 2'b00  :
+                ( (credit_2 == FULL_THRESHOLD || ~val_2) &&            //2 networks full
+                  (credit_3 == FULL_THRESHOLD || ~val_3) )   ? 2'b01  :
+                ( (credit_1 == FULL_THRESHOLD || ~val_1) &&
+                  (credit_3 == FULL_THRESHOLD || ~val_3) )   ? 2'b10  :
+                ( (credit_1 == FULL_THRESHOLD || ~val_1) &&
+                  (credit_2 == FULL_THRESHOLD || ~val_2) )   ? 2'b11  :
+                ( (credit_1 == FULL_THRESHOLD || ~val_1) )   ? (sel_23 ? 2'b11 : 2'b10) : //1 network full
+                ( (credit_2 == FULL_THRESHOLD || ~val_2) )   ? (sel_13 ? 2'b11 : 2'b01) :
+                ( (credit_3 == FULL_THRESHOLD || ~val_3) )   ? (sel_12 ? 2'b10 : 2'b01) :
                                                 sel_123; //0 networks full
 
 
@@ -158,9 +159,9 @@ always @(posedge clk) begin
             credit_3 <= credit_3 - 9'd1;
         end
         
-        if((credit_1 < 9'd255) &&
-           (credit_2 < 9'd255) &&
-           (credit_3 < 9'd255) &&
+        if((credit_1 < FULL_THRESHOLD) &&
+           (credit_2 < FULL_THRESHOLD) &&
+           (credit_3 < FULL_THRESHOLD) &&
            (sel_123 == 0)         )
             sel_123 <= 2'b01;
 

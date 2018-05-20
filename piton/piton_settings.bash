@@ -3,7 +3,6 @@
 # User needs to define these new variables
 
 #################################################################
-# mmckeown:                                                     #
 #   PITON_ROOT should be set elsewhere, i.e.                    #
 #   some .bashrc script, to point to the princeton Piton        #
 #   prcessor git repository.                                    #
@@ -20,7 +19,6 @@ else
 fi
 
 ##################################################################
-# mmckeown:                                                      #
 #   These tool variables should be defined elsewhere, i.e. by    #
 #   some synopsys profile script.  I do not want ot make them    #
 #   system specific. The synopsys profile script on della sets   #

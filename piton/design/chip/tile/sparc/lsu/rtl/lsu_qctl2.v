@@ -34,7 +34,7 @@
                   // time scale definition
 `include  "iop.h" 
 
-`include  "lsu.h" 
+`include "lsu.tmp.h" 
 
 ////////////////////////////////////////////////////////////////////////
 // Local header file includes / local defines

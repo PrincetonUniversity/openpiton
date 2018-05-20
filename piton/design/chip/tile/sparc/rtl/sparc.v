@@ -21,9 +21,9 @@
 // ========== Copyright Header End ============================================
 `include "sys.h"
 `include "iop.h"
-`include "ifu.h"
+`include "ifu.tmp.h"
 `include "tlu.h"
-`include "lsu.h"
+`include "lsu.tmp.h"
 `include "define.vh"
      
 module sparc (/*AUTOARG*/

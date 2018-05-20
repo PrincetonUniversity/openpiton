@@ -31,7 +31,11 @@
 <tile1_mini>
 <princeton-test>
     princeton-test-test     princeton-test-test.s
+    basic-io-test          basic-io-test.s
+    uart-hello-world    uart-hello-world.s
 </princeton-test>
+
+<tile1_mini_icache>
     bypass_win      bypass_win.s
     //// fail_perf_chase_l1hit     chase.pal -midas_args=-pal_diag_args=-lenbytes=512 -midas_args=-pal_diag_args=-stride=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-expect_time=3 -midas_args=-pal_diag_args=-expect_string=L1_ld_hit
     dmiss_imiss     Dmiss_imiss.s
@@ -41,7 +45,6 @@
     ihit_sameset        Ihit_sameset.s
     imiss_branches      Imiss_branches.s
     imiss_oddeven       Imiss_oddeven.s
-    imiss_sameset       Imiss_sameset.s -max_cycle=50000
     intr_basic2     intr_basic2.s
     nop         nop.s
     simple_br       ifu_simple_br.s -max_cycle=400000
@@ -66,7 +69,6 @@
     lsu_stbar               lsu_stbar.s -midas_args=-allow_tsb_conflicts //-max_cycle=1200000 
     l2_buf          l2_buf.s 
     dexec_nf        dexec_nf.s -midas_args=-allow_tsb_conflicts
-
     tr_intexc1      tr_intexc1.s -sim_run_args=+inst_check_off=1
     ifetch_traps        ifetch_traps.s  -sim_run_args=+inst_check_off=1
     lsu_ldx         lsu_ldx.s
@@ -77,6 +79,10 @@
     fp_simple_all0      fp_simple_all0.s
     v9_alu_mov       v9_alu_mov.s //  -rtl_timeout=50000 -max_cycle=500000
     ssi_ldst    ssi_ldst.s -max_cycle=3000000 -rtl_timeout=50000 -nofast_boot // From ciop_basic
+</tile1_mini_icache>
+
+    // inf stall for configurable icache sizes
+    imiss_sameset       Imiss_sameset.s -max_cycle=50000
 </tile1_mini>
 
 //move to princeton_new_diag.diaglist

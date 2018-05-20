@@ -83,17 +83,67 @@ assign bram_ren      = (read_en | write_en) & ~rw_conflict;                // do
                                                                         // to make behaviour of a memory robust
 assign bram_wen      = wen_r;
 
-bram_4096x144 mem (
-   .clka    (MEMCLK        ),
-   .ena     (bram_wen      ),
-   .wea     ({18'b1}       ),   //TODO: remove ?
-   .addra   (A_r           ),
-   .dina    (bram_data_in  ),
-   .clkb    (MEMCLK        ),
-   .enb     (bram_ren      ),
-   .addrb   (A             ),
-   .doutb   (bram_data_out )
-);
+`ifdef ML605_BOARD
+
+  bram_4096x144 mem (
+       .clka    (MEMCLK        ),
+       .ena     (bram_wen      ),
+       .wea     ({18'b1}       ),
+       .addra   (A_r           ),
+       .dina    (bram_data_in  ),
+       
+       .clkb    (MEMCLK        ),
+       .enb     (bram_ren      ),
+       .addrb   (A             ),
+       .doutb   (bram_data_out )
+    );
+
+`elsif NEXYS4DDR_BOARD
+
+  artix7_bram_4096x144 mem (
+     .BRAM_PORTA_clk    (MEMCLK        ),
+     .BRAM_PORTA_en     (bram_wen      ),
+     .BRAM_PORTA_we     (1'b1          ),
+     .BRAM_PORTA_addr   (A_r           ),
+     .BRAM_PORTA_din    (bram_data_in  ),
+
+     .BRAM_PORTB_clk    (MEMCLK        ),
+     .BRAM_PORTB_en     (bram_ren      ),
+     .BRAM_PORTB_addr   (A             ),
+     .BRAM_PORTB_dout   (bram_data_out )
+  );
+
+`elsif VC707_BOARD
+
+  virtex7_bram_4096x144 mem (
+     .clka    (MEMCLK        ),
+     .ena     (bram_wen      ),
+     .wea     (1'b1          ),
+     .addra   (A_r           ),
+     .dina    (bram_data_in  ),
+     
+     .clkb    (MEMCLK        ),
+     .enb     (bram_ren      ),
+     .addrb   (A             ),
+     .doutb   (bram_data_out )
+  );
+
+`else
+
+  bram_4096x144 mem (
+     .clka    (MEMCLK        ),
+     .ena     (bram_wen      ),
+     .wea     (1'b1          ),
+     .addra   (A_r           ),
+     .dina    (bram_data_in  ),
+     
+     .clkb    (MEMCLK        ),
+     .enb     (bram_ren      ),
+     .addrb   (A             ),
+     .doutb   (bram_data_out )
+  );
+
+`endif
 
 
 

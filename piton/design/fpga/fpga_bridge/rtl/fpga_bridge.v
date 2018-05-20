@@ -30,8 +30,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //`timescale 1ns/1ps
 module fpga_bridge(
     rst_n,
+`ifdef PITON_SPARTAN6
+    fpga_clk,
+    intcnct_clk_out,
+    intcnct_clk_back,
+`else
     fpga_clk,
     intcnct_clk,
+`endif
     network_out_1,
     network_out_2,
     network_out_3,
@@ -61,8 +67,15 @@ module fpga_bridge(
 );
 
 input           rst_n;
-input           fpga_clk;
-input           intcnct_clk;
+
+`ifdef PITON_SPARTAN6
+    input           fpga_clk;
+    input           intcnct_clk_out;
+    input           intcnct_clk_back;
+`else
+    input           fpga_clk;
+    input           intcnct_clk;
+`endif
 
 input [63:0]    network_out_1;
 input [63:0]    network_out_2;
@@ -99,9 +112,14 @@ input   [2:0]   intcnct_credit_back_out;
 //assign dbg_interconnect_channel = intcnct_channel;
 
 fpga_bridge_send_32 fpga_chip_out(
-    .rst(~rst_n), 
+    .rst(~rst_n),
+`ifdef PITON_SPARTAN6
+    .wr_clk(fpga_clk),
+    .rd_clk(intcnct_clk_out),
+`else
     .wr_clk(fpga_clk),
     .rd_clk(intcnct_clk),
+`endif
     .bin_data_1(network_out_1),
     .bin_val_1(data_out_val_1),
     .bin_rdy_1(data_out_rdy_1),
@@ -118,8 +136,13 @@ fpga_bridge_send_32 fpga_chip_out(
 
 fpga_bridge_rcv_32 fpga_chip_in (
     .rst(~rst_n), 
+`ifdef PITON_SPARTAN6
+    .wr_clk(intcnct_clk_back),
+    .rd_clk(fpga_clk),
+`else
     .wr_clk(intcnct_clk),
     .rd_clk(fpga_clk),
+`endif
     .bout_data_1(network_in_1),
     .bout_val_1(data_in_val_1),
     .bout_rdy_1(data_in_rdy_1),
@@ -132,6 +155,6 @@ fpga_bridge_rcv_32 fpga_chip_in (
     .data_from_chip(intcnct_data_in),
     .data_channel(intcnct_channel_in),
     .credit_to_chip(intcnct_credit_back_in)
-    );
+);
 
 endmodule

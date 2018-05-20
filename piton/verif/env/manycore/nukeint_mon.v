@@ -27,7 +27,7 @@
 //
 // ***************************************************************************
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 module nukeint_mon(/*AUTOARG*/
    // Inputs

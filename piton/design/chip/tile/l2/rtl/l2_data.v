@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //==================================================================================================
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_data(
@@ -160,7 +160,8 @@ end
 
 */
 
-sram_1rw_4096x144 l2_data_array(
+// sram_1rw_4096x144 l2_data_array(
+sram_l2_data l2_data_array(
     .MEMCLK     (clk),
     .RESET_N(rst_n),
     .CE         (clk_en),

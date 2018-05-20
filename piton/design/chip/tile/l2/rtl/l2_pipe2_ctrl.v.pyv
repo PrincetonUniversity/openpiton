@@ -39,15 +39,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //====================================================================================================
 
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_pipe2_ctrl(
 
     input wire clk,
     input wire rst_n,
+    `ifndef NO_RTL_CSM
     input wire csm_en,
-
+    `endif
     //Inputs to Stage 1   
 
  
@@ -64,7 +65,9 @@ module l2_pipe2_ctrl(
     input wire [`MSG_L2_MISS_BITS-1:0] mshr_l2_miss_S1,
     input wire [`MSG_DATA_SIZE_WIDTH-1:0] mshr_data_size_S1,
     input wire [`MSG_CACHE_TYPE_WIDTH-1:0] mshr_cache_type_S1, 
+    `ifndef NO_RTL_CSM
     input wire mshr_smc_miss_S1,
+    `endif
     input wire [`L2_MSHR_STATE_BITS-1:0] mshr_state_out_S1,
     input wire mshr_inv_fwd_pending_S1,
 
@@ -86,11 +89,13 @@ module l2_pipe2_ctrl(
     input wire subline_valid_S2,
     input wire [`MSG_LSID_WIDTH-1:0] lsid_S2,
 
+    `ifndef NO_RTL_CSM
     input wire broadcast_counter_zero_S2,
     input wire broadcast_counter_max_S2,
     input wire [`MSG_SRC_CHIPID_WIDTH-1:0] broadcast_chipid_out_S2,
     input wire [`MSG_SRC_X_WIDTH-1:0] broadcast_x_out_S2,
     input wire [`MSG_SRC_Y_WIDTH-1:0] broadcast_y_out_S2,
+    `endif
 
     input wire msg_data_valid_S2,
     
@@ -137,8 +142,10 @@ module l2_pipe2_ctrl(
     output reg data_clk_en_S2,
     output wire data_rdw_en_S2,
 
+    `ifndef NO_RTL_CSM
     output reg [`CS_OP_WIDTH-1:0] broadcast_counter_op_S2,
     output reg broadcast_counter_op_val_S2,
+    `endif
 
     output reg state_owner_en_S2,
     output reg [`CS_OP_WIDTH-1:0] state_owner_op_S2,
@@ -158,8 +165,9 @@ module l2_pipe2_ctrl(
 
     output reg msg_data_ready_S2,
 
+    `ifndef NO_RTL_CSM
     output reg smc_wr_en_S2,
-
+    `endif
     //Outputs from Stage 3
     output reg valid_S3,    
     output wire stall_S3,  
@@ -197,7 +205,9 @@ localparam wr = 1'b0;
 reg stall_pre_S1;
 reg [`MSG_DATA_SIZE_WIDTH-1:0] data_size_S1;
 reg [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_S1;
+`ifndef NO_RTL_CSM
 reg smc_miss_S1;
+`endif
 reg inv_fwd_pending_S1;
 
 reg stall_hazard_S1;
@@ -295,11 +305,13 @@ begin
         end
         `MSG_TYPE_LOAD_MEM_ACK, `MSG_TYPE_NC_LOAD_MEM_ACK:
         begin
+            `ifndef NO_RTL_CSM
             if (smc_miss_S1)
             begin
                 cs_S1 = {n,              rd,           n};
             end
             else
+            `endif
             begin
                 cs_S1 = {y,              wr,         n};
             end
@@ -354,6 +366,7 @@ begin
     state_rd_en_S1 =  valid_S1 && !stall_S1 && cs_S1[`CS_STATE_RD_EN_S1];
 end
 
+`ifndef NO_RTL_CSM
 always @ *
 begin
     if (msg_from_mshr_S1)
@@ -365,7 +378,7 @@ begin
         smc_miss_S1 = 0;
     end
 end
-
+`endif
 
 reg valid_next_S1;
 
@@ -393,7 +406,9 @@ reg [`MSG_DATA_SIZE_WIDTH-1:0] data_size_S2_f;
 reg [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_S2_f;
 reg msg_from_mshr_S2_f;
 reg [`MSG_MESI_BITS-1:0] msg_mesi_S2_f;
+`ifndef NO_RTL_CSM
 reg smc_miss_S2_f;
+`endif
 reg [`MSG_TYPE_WIDTH-1:0] msg_type_S2_f;
 reg inv_fwd_pending_S2_f;
 
@@ -409,7 +424,9 @@ begin
         cache_type_S2_f <= 0; 
         msg_from_mshr_S2_f <= 1'b0;
         msg_mesi_S2_f <= 0;
+        `ifndef NO_RTL_CSM
         smc_miss_S2_f <= 0;
+        `endif
         inv_fwd_pending_S2_f <= 0;
     end
     else if (!stall_S2)
@@ -422,7 +439,9 @@ begin
         cache_type_S2_f <= cache_type_S1;
         msg_from_mshr_S2_f <= msg_from_mshr_S1;
         msg_mesi_S2_f <= msg_mesi_S1;
+        `ifndef NO_RTL_CSM
         smc_miss_S2_f <= smc_miss_S1;
+        `endif
         inv_fwd_pending_S2_f <= inv_fwd_pending_S1;
     end
 end
@@ -492,6 +511,7 @@ begin
             begin
                 if (is_last_subline_S2)
                 begin
+                    `ifndef NO_RTL_CSM
                     if (csm_en)
                     begin
                         if (lsid_S2 == `L2_PUBLIC_SHARER)
@@ -548,6 +568,7 @@ begin
                         end
                     end
                     else
+                    `endif
                     begin
                         if (subline_valid_S2)   
                         begin
@@ -664,6 +685,7 @@ begin
         begin
             if (is_last_subline_S2)
             begin
+                `ifndef NO_RTL_CSM
                 if (l2_way_state_mesi_S2 == `L2_MESI_B)
                 begin   
                     if (broadcast_counter_max_S2)
@@ -678,8 +700,13 @@ begin
                     end
                 end
                 else 
+                `endif
                 begin
+                    `ifndef NO_RTL_CSM
                     if ((l2_way_state_owner_S2 == 1) && (~smc_miss_S2_f) && (~inv_fwd_pending_S2_f))
+                    `else
+                    if ((l2_way_state_owner_S2 == 1) && (~inv_fwd_pending_S2_f))
+                    `endif
                     begin
                         cs_S2 = {n,     n,         rd,         n,       y,         `OP_CLR,     y,           `OP_CLR,    n, 
                                  n,      `L2_VD_ERROR,  y,      `L2_MESI_I,      n,      `L2_LRU_CLR};    
@@ -705,12 +732,14 @@ begin
         end
         `MSG_TYPE_NC_LOAD_MEM_ACK:
         begin
+            `ifndef NO_RTL_CSM
             if (smc_miss_S2_f)
             begin
                 cs_S2 = {n,     n,         rd,         n,       n,         `OP_CLR,     n,           `OP_CLR,    n,       
                          n,      `L2_VD_CLEAN,  n,      `L2_MESI_I,  n,      `L2_LRU_CLR};
             end
             else
+            `endif
             begin
                 cs_S2 = {y,     n,         rd,         n,       n,         `OP_CLR,     n,           `OP_CLR,    n,       
                          y,      `L2_VD_CLEAN,  n,      `L2_MESI_I,  n,      `L2_LRU_CLR};
@@ -752,6 +781,7 @@ end
 
 
 
+`ifndef NO_RTL_CSM
 always @ *
 begin
     broadcast_counter_op_val_S2 = !stall_S2 && valid_S2 && is_last_subline_S2 
@@ -769,6 +799,7 @@ begin
         broadcast_counter_op_S2 = `OP_ADD;
     end
 end
+`endif
 
 always @ *
 begin
@@ -811,9 +842,14 @@ begin
           || msg_type_S2_f == `MSG_TYPE_STORE_FWDACK)
     begin
         if (is_last_subline_S2)
-        begin 
+        begin
+            `ifndef NO_RTL_CSM 
             if (msg_type_S2_f == `MSG_TYPE_INV_FWDACK 
             && ((l2_way_state_owner_S2 != 1) || smc_miss_S2_f || inv_fwd_pending_S2_f))
+            `else 
+            if (msg_type_S2_f == `MSG_TYPE_INV_FWDACK 
+            && ((l2_way_state_owner_S2 != 1) || inv_fwd_pending_S2_f))
+            `endif
             begin
                 mshr_wr_state_en_S2 = n;
                 mshr_state_in_S2 = `L2_MSHR_STATE_INVAL;
@@ -901,23 +937,29 @@ begin
 end
 
 
+`ifndef NO_RTL_CSM
 always @ *
 begin
     msg_data_ready_S2 = !stall_real_S2 && (data_clk_en_S2 || smc_wr_en_S2);
 end
-
+`else
+always @ *
+begin
+    msg_data_ready_S2 = !stall_real_S2 && (data_clk_en_S2);
+end
+`endif
 /*
 always @ *
 begin
     state_rb_en_S2 = n; 
 end
 */
-
+`ifndef NO_RTL_CSM
 always @ *
 begin
     smc_wr_en_S2 = valid_S2 && smc_miss_S2_f && (msg_type_S2_f == `MSG_TYPE_NC_LOAD_MEM_ACK);
 end
-
+`endif
 
 
 assign state_rb_en_S2 = n;
@@ -977,12 +1019,17 @@ begin
     l2_load_data_subline_S2 = l2_load_data_subline_S2_f;
 end
 
-
+`ifndef NO_RTL_CSM
 always @ *
 begin
     stall_real_S2 = valid_S2 && ((cs_S2[`CS_DATA_CLK_EN_P2S2] || smc_wr_en_S2) && !msg_data_valid_S2);
 end
-
+`else
+always @ *
+begin
+    stall_real_S2 = valid_S2 && ((cs_S2[`CS_DATA_CLK_EN_P2S2]) && !msg_data_valid_S2);
+end
+`endif
 always @ *
 begin
     stall_S2 = valid_S2 && (stall_real_S2 || stall_load_S2);
@@ -1011,9 +1058,10 @@ end
 reg valid_S3_f;
 reg state_wr_en_S3_f;
 reg mshr_wr_state_en_S3_f;
-reg mshr_wr_data_en_S3_f;
 reg [`L2_MSHR_STATE_BITS-1:0] mshr_state_in_S3_f;
+`ifndef NO_RTL_CSM
 reg smc_miss_S3_f;
+`endif
 reg msg_from_mshr_S3_f;
 reg [`MSG_TYPE_WIDTH-1:0] msg_type_S3_f;
 
@@ -1024,9 +1072,10 @@ begin
         valid_S3_f <= 1'b0;
         state_wr_en_S3_f <= 1'b0;
         mshr_wr_state_en_S3_f <= 0;
-        mshr_wr_data_en_S3_f <= 0;
         mshr_state_in_S3_f <= 0;
+        `ifndef NO_RTL_CSM
         smc_miss_S3_f <= 0;
+        `endif
         msg_from_mshr_S3_f <= 0;
         msg_type_S3_f <= 0;
     end
@@ -1035,9 +1084,10 @@ begin
         valid_S3_f <= valid_next_S2;
         state_wr_en_S3_f <= state_wr_en_S2;
         mshr_wr_state_en_S3_f <= mshr_wr_state_en_S2;
-        mshr_wr_data_en_S3_f <= smc_wr_en_S2;
         mshr_state_in_S3_f <= mshr_state_in_S2;
+        `ifndef NO_RTL_CSM
         smc_miss_S3_f <= smc_miss_S2_f;
+        `endif
         msg_from_mshr_S3_f <= msg_from_mshr_S2_f;
         msg_type_S3_f <= msg_type_S2_f;
     end
@@ -1054,7 +1104,6 @@ begin
     valid_S3 = valid_S3_f;
     state_wr_en_S3 = !stall_S3 && valid_S3 && state_wr_en_S3_f;
     mshr_wr_state_en_S3 = !stall_S3 && valid_S3 && mshr_wr_state_en_S3_f;
-    //mshr_wr_data_en_S3 = !stall_S3 && valid_S3 && mshr_wr_data_en_S3_f;
     mshr_state_in_S3 = mshr_state_in_S3_f;
     msg_type_S3 = msg_type_S3_f;
 end

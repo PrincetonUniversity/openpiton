@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //==================================================================================================
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_state(
@@ -123,7 +123,8 @@ for i in range(L2_STATE_ARRAY_WIDTH):
     end
 end
 
- sram_2rw_256x66 l2_state_array (
+ // sram_2rw_256x66 l2_state_array (
+ sram_l2_state l2_state_array (
      .RESET_N(rst_n),
      .MEMCLK         (clk),
  

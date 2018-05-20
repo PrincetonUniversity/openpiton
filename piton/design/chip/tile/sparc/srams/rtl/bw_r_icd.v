@@ -50,7 +50,7 @@
 // Local header file includes / local defines
 ////////////////////////////////////////////////////////////////////////
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 //PITON_PROTO enables all FPGA related modifications
 `ifdef PITON_PROTO
@@ -98,8 +98,8 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
 	input			si;
 	input			reset_l;
 	input			sehold;
-	input	[11:2]		fdp_icd_index_bf;
-	input	[11:2]		ifq_icd_index_bf;
+	input	[`IC_IDX_HI:2]		fdp_icd_index_bf;
+	input	[`IC_IDX_HI:2]		ifq_icd_index_bf;
 	input			fcl_icd_index_sel_ifq_bf;
 	input	[1:0]		ifq_icd_wrway_bf;
 	input	[3:0]		ifq_icd_worden_bf;
@@ -135,15 +135,15 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
 	wire	[135:0]		wrdata_f;
 	wire	[135:0]		bist_data_expand;
     `ifdef FPGA_SYN_ALTERA
-        reg	[11:2]		index_bf;
+        reg	[`IC_IDX_HI:2]		index_bf;
     `else
-        wire [11:2]     index_bf;
+        wire [`IC_IDX_HI:2]     index_bf;
     `endif
-	reg	[11:2]		index_f;
-	reg	[11:0]		wr_index0;
-	reg	[11:0]		wr_index1;
-	reg	[11:0]		wr_index2;
-	reg	[11:0]		wr_index3;
+	reg	[`IC_IDX_HI:2]		index_f;
+	reg	[`IC_IDX_HI:0]		wr_index0;
+	reg	[`IC_IDX_HI:0]		wr_index1;
+	reg	[`IC_IDX_HI:0]		wr_index2;
+	reg	[`IC_IDX_HI:0]		wr_index3;
 	reg			rdreq_f;
 	reg			wrreq_f;
 	reg	[3:0]		worden_f;
@@ -197,7 +197,7 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
     `endif
 //	assign index_bf = (fcl_icd_index_sel_ifq_bf ? ifq_icd_index_bf :
 //		fdp_icd_index_bf);
-  	wire [11:2] top_index = {index_f[11:3] , 1'b1};
+  	wire [`IC_IDX_HI:2] top_index = {index_f[`IC_IDX_HI:3] , 1'b1};
 
 	assign bist_data_expand = 136'b0;
 	assign icd_wsel_fetdata_s1 = fetdata_s1;
@@ -228,10 +228,10 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
         `endif
 	    wrway_f <= ifq_icd_wrway_bf;
 	    worden_f <= ifq_icd_worden_bf;
-	    wr_index0 <= {index_bf[11:4], 2'b0, ifq_icd_wrway_bf};
-	    wr_index1 <= {index_bf[11:4], 2'b1, ifq_icd_wrway_bf};
-	    wr_index2 <= {index_bf[11:4], 2'b10, ifq_icd_wrway_bf};
-	    wr_index3 <= {index_bf[11:4], 2'b11, ifq_icd_wrway_bf};
+	    wr_index0 <= {index_bf[`IC_IDX_HI:4], 2'b0, ifq_icd_wrway_bf};
+	    wr_index1 <= {index_bf[`IC_IDX_HI:4], 2'b1, ifq_icd_wrway_bf};
+	    wr_index2 <= {index_bf[`IC_IDX_HI:4], 2'b10, ifq_icd_wrway_bf};
+	    wr_index3 <= {index_bf[`IC_IDX_HI:4], 2'b11, ifq_icd_wrway_bf};
 	  end
 	  fetdata_s1 <= fetdata_f;
 	  topdata_s1 <= topdata_f;
@@ -287,25 +287,25 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
     `else
     always @(posedge clk) begin
     `endif
-	  fetch_00_00 <= icdata_ary_00_00[index_bf[11:4]];
-	  fetch_00_01 <= icdata_ary_00_01[index_bf[11:4]];
-	  fetch_00_10 <= icdata_ary_00_10[index_bf[11:4]];
-	  fetch_00_11 <= icdata_ary_00_11[index_bf[11:4]];
+	  fetch_00_00 <= icdata_ary_00_00[index_bf[`IC_IDX_HI:4]];
+	  fetch_00_01 <= icdata_ary_00_01[index_bf[`IC_IDX_HI:4]];
+	  fetch_00_10 <= icdata_ary_00_10[index_bf[`IC_IDX_HI:4]];
+	  fetch_00_11 <= icdata_ary_00_11[index_bf[`IC_IDX_HI:4]];
 
-	  fetch_01_00 <= icdata_ary_01_00[index_bf[11:4]];
-	  fetch_01_01 <= icdata_ary_01_01[index_bf[11:4]];
-	  fetch_01_10 <= icdata_ary_01_10[index_bf[11:4]];
-	  fetch_01_11 <= icdata_ary_01_11[index_bf[11:4]];
+	  fetch_01_00 <= icdata_ary_01_00[index_bf[`IC_IDX_HI:4]];
+	  fetch_01_01 <= icdata_ary_01_01[index_bf[`IC_IDX_HI:4]];
+	  fetch_01_10 <= icdata_ary_01_10[index_bf[`IC_IDX_HI:4]];
+	  fetch_01_11 <= icdata_ary_01_11[index_bf[`IC_IDX_HI:4]];
 
-	  fetch_10_00 <= icdata_ary_10_00[index_bf[11:4]];
-	  fetch_10_01 <= icdata_ary_10_01[index_bf[11:4]];
-	  fetch_10_10 <= icdata_ary_10_10[index_bf[11:4]];
-	  fetch_10_11 <= icdata_ary_10_11[index_bf[11:4]];
+	  fetch_10_00 <= icdata_ary_10_00[index_bf[`IC_IDX_HI:4]];
+	  fetch_10_01 <= icdata_ary_10_01[index_bf[`IC_IDX_HI:4]];
+	  fetch_10_10 <= icdata_ary_10_10[index_bf[`IC_IDX_HI:4]];
+	  fetch_10_11 <= icdata_ary_10_11[index_bf[`IC_IDX_HI:4]];
 
-	  fetch_11_00 <= icdata_ary_11_00[index_bf[11:4]];
-	  fetch_11_01 <= icdata_ary_11_01[index_bf[11:4]];
-	  fetch_11_10 <= icdata_ary_11_10[index_bf[11:4]];
-	  fetch_11_11 <= icdata_ary_11_11[index_bf[11:4]];
+	  fetch_11_00 <= icdata_ary_11_00[index_bf[`IC_IDX_HI:4]];
+	  fetch_11_01 <= icdata_ary_11_01[index_bf[`IC_IDX_HI:4]];
+	  fetch_11_10 <= icdata_ary_11_10[index_bf[`IC_IDX_HI:4]];
+	  fetch_11_11 <= icdata_ary_11_11[index_bf[`IC_IDX_HI:4]];
       `ifdef FPGA_SYN_ALTERA
           index_f <= index_bf; // Sandeep moved this logic 1/2 cycle forward for altera
           index_bf <= (fcl_icd_index_sel_ifq_bf ? ifq_icd_index_bf : // Moved this logic from a continuous assignment to a synchronous assignment
@@ -371,58 +371,58 @@ module bw_r_icd_orig(icd_wsel_fetdata_s1, icd_wsel_topdata_s1, icd_fuse_repair_v
 	  if (wrreq_f & (~rst_tri_en)) begin
 	    if (worden_f[0]) begin
 	      if (wr_index0[1:0] == 2'b0) begin
-		icdata_ary_00_00[wr_index0[11:4]] <= wrdata_f[135:102];
+		icdata_ary_00_00[wr_index0[`IC_IDX_HI:4]] <= wrdata_f[135:102];
 	      end
 	      if (wr_index0[1:0] == 2'b1) begin
-		icdata_ary_00_01[wr_index0[11:4]] <= wrdata_f[135:102];
+		icdata_ary_00_01[wr_index0[`IC_IDX_HI:4]] <= wrdata_f[135:102];
 	      end
 	      if (wr_index0[1:0] == 2'b10) begin
-		icdata_ary_00_10[wr_index0[11:4]] <= wrdata_f[135:102];
+		icdata_ary_00_10[wr_index0[`IC_IDX_HI:4]] <= wrdata_f[135:102];
 	      end
 	      if (wr_index0[1:0] == 2'b11) begin
-		icdata_ary_00_11[wr_index0[11:4]] <= wrdata_f[135:102];
+		icdata_ary_00_11[wr_index0[`IC_IDX_HI:4]] <= wrdata_f[135:102];
 	      end
 	    end
 	    if (worden_f[1]) begin
 	      if (wr_index1[1:0] == 2'b0) begin
-		icdata_ary_01_00[wr_index1[11:4]] <= wrdata_f[101:68];
+		icdata_ary_01_00[wr_index1[`IC_IDX_HI:4]] <= wrdata_f[101:68];
 	      end
 	      if (wr_index1[1:0] == 2'b1) begin
-		icdata_ary_01_01[wr_index1[11:4]] <= wrdata_f[101:68];
+		icdata_ary_01_01[wr_index1[`IC_IDX_HI:4]] <= wrdata_f[101:68];
 	      end
 	      if (wr_index1[1:0] == 2'b10) begin
-		icdata_ary_01_10[wr_index1[11:4]] <= wrdata_f[101:68];
+		icdata_ary_01_10[wr_index1[`IC_IDX_HI:4]] <= wrdata_f[101:68];
 	      end
 	      if (wr_index1[1:0] == 2'b11) begin
-		icdata_ary_01_11[wr_index1[11:4]] <= wrdata_f[101:68];
+		icdata_ary_01_11[wr_index1[`IC_IDX_HI:4]] <= wrdata_f[101:68];
 	      end
 	    end
 	    if (worden_f[2]) begin
 	      if (wr_index2[1:0] == 2'b0) begin
-		icdata_ary_10_00[wr_index2[11:4]] <= wrdata_f[67:34];
+		icdata_ary_10_00[wr_index2[`IC_IDX_HI:4]] <= wrdata_f[67:34];
 	      end
 	      if (wr_index2[1:0] == 2'b1) begin
-		icdata_ary_10_01[wr_index2[11:4]] <= wrdata_f[67:34];
+		icdata_ary_10_01[wr_index2[`IC_IDX_HI:4]] <= wrdata_f[67:34];
 	      end
 	      if (wr_index2[1:0] == 2'b10) begin
-		icdata_ary_10_10[wr_index2[11:4]] <= wrdata_f[67:34];
+		icdata_ary_10_10[wr_index2[`IC_IDX_HI:4]] <= wrdata_f[67:34];
 	      end
 	      if (wr_index2[1:0] == 2'b11) begin
-		icdata_ary_10_11[wr_index2[11:4]] <= wrdata_f[67:34];
+		icdata_ary_10_11[wr_index2[`IC_IDX_HI:4]] <= wrdata_f[67:34];
 	      end
 	    end
 	    if (worden_f[3]) begin
 	      if (wr_index3[1:0] == 2'b0) begin
-		icdata_ary_11_00[wr_index3[11:4]] <= wrdata_f[33:0];
+		icdata_ary_11_00[wr_index3[`IC_IDX_HI:4]] <= wrdata_f[33:0];
 	      end
 	      if (wr_index3[1:0] == 2'b1) begin
-		icdata_ary_11_01[wr_index3[11:4]] <= wrdata_f[33:0];
+		icdata_ary_11_01[wr_index3[`IC_IDX_HI:4]] <= wrdata_f[33:0];
 	      end
 	      if (wr_index3[1:0] == 2'b10) begin
-		icdata_ary_11_10[wr_index3[11:4]] <= wrdata_f[33:0];
+		icdata_ary_11_10[wr_index3[`IC_IDX_HI:4]] <= wrdata_f[33:0];
 	      end
 	      if (wr_index3[1:0] == 2'b11) begin
-		icdata_ary_11_11[wr_index3[11:4]] <= wrdata_f[33:0];
+		icdata_ary_11_11[wr_index3[`IC_IDX_HI:4]] <= wrdata_f[33:0];
 	      end
 	    end
 	  end
@@ -455,7 +455,7 @@ module bw_r_icd_orig(
                   reset_l;
    input          sehold;
 
-   input [11:2]   fdp_icd_index_bf,    // index to write to/read from
+   input [`IC_IDX_HI:2]   fdp_icd_index_bf,    // index to write to/read from
                   ifq_icd_index_bf;
    input          fcl_icd_index_sel_ifq_bf;
 
@@ -520,12 +520,12 @@ module bw_r_icd_orig(
                   wrdata_f,
                   bist_data_expand;
 
-   wire [11:2]     top_index,
+   wire [`IC_IDX_HI:2]     top_index,
                    index_bf;
 
-   reg  [11:2]     index_f;
+   reg  [`IC_IDX_HI:2]     index_f;
 
-   wire [11:0]     wr_index0,
+   wire [`IC_IDX_HI:0]     wr_index0,
 		               wr_index1,
 		               wr_index2,
 		               wr_index3;
@@ -623,7 +623,7 @@ module bw_r_icd_orig(
    // i.e. we read 1 word from each of 4 ways, but
    //      we write 4 words to 1 way
 
-   assign top_index = {index_f[11:3] , 1'b1};
+   assign top_index = {index_f[`IC_IDX_HI:3] , 1'b1};
 
 `ifdef DEFINE_0IN
 // physical implmentation: ignore this and use else portion
@@ -641,7 +641,7 @@ module bw_r_icd_orig(
                          {4{wrdata_f[101:68]}}, {4{wrdata_f[135:102]}} });
    wire [543:0] dout;
 
-   ic_data ic_data ( .nclk(~clk), .adr(index_f[11:4]), .we(we), .din(din), .dout(dout) );
+   ic_data ic_data ( .nclk(~clk), .adr(index_f[`IC_IDX_HI:4]), .we(we), .din(din), .dout(dout) );
 
    wire [271:0] dout_l1 = index_f[3] ? dout[543:272] : dout[271:0];
 
@@ -717,10 +717,10 @@ module bw_r_icd_orig(
 
    //                  index          word    way
    //                  -----          ----    ---
-   assign wr_index0 = {index_f[11:4], 2'b00, wrway_f};
-   assign wr_index1 = {index_f[11:4], 2'b01, wrway_f};
-   assign wr_index2 = {index_f[11:4], 2'b10, wrway_f};
-   assign wr_index3 = {index_f[11:4], 2'b11, wrway_f};
+   assign wr_index0 = {index_f[`IC_IDX_HI:4], 2'b00, wrway_f};
+   assign wr_index1 = {index_f[`IC_IDX_HI:4], 2'b01, wrway_f};
+   assign wr_index2 = {index_f[`IC_IDX_HI:4], 2'b10, wrway_f};
+   assign wr_index3 = {index_f[`IC_IDX_HI:4], 2'b11, wrway_f};
 
 `ifdef DEFINE_0IN
 `else
@@ -1005,8 +1005,8 @@ module bw_r_icd(
     input           si;
     input           reset_l;
     input           sehold;
-    input   [11:2]      fdp_icd_index_bf;
-    input   [11:2]      ifq_icd_index_bf;
+    input   [`IC_IDX_HI:2]      fdp_icd_index_bf;
+    input   [`IC_IDX_HI:2]      ifq_icd_index_bf;
     input           fcl_icd_index_sel_ifq_bf;
     input   [1:0]       ifq_icd_wrway_bf;
     input   [3:0]       ifq_icd_worden_bf;
@@ -1041,13 +1041,13 @@ module bw_r_icd(
     wire    [135:0]     next_wrdata_bf;
     reg    [135:0]     wrdata_f;
     wire    [135:0]     bist_data_expand;
-    wire [11:2]     index_bf;
-    reg [11:2]      index_f;
-    reg [11:2]      index_s1;
-    // reg [11:0]      wr_index0;
-    // reg [11:0]      wr_index1;
-    // reg [11:0]      wr_index2;
-    // reg [11:0]      wr_index3;
+    wire [`IC_IDX_HI:2]     index_bf;
+    reg [`IC_IDX_HI:2]      index_f;
+    reg [`IC_IDX_HI:2]      index_s1;
+    // reg [`IC_IDX_HI:0]      wr_index0;
+    // reg [`IC_IDX_HI:0]      wr_index1;
+    // reg [`IC_IDX_HI:0]      wr_index2;
+    // reg [`IC_IDX_HI:0]      wr_index3;
     // reg         rdreq_f;
     // reg         wrreq_f;
     // reg [3:0]       worden_f;
@@ -1058,7 +1058,7 @@ module bw_r_icd(
     assign index_bf = (fcl_icd_index_sel_ifq_bf ? ifq_icd_index_bf :
         fdp_icd_index_bf);
 
-    // wire [11:2] top_index = {index_f[11:3] , 1'b1};
+    // wire [`IC_IDX_HI:2] top_index = {index_f[`IC_IDX_HI:3] , 1'b1};
 
     always @ (posedge clk)
     begin
@@ -1108,12 +1108,12 @@ module bw_r_icd(
     reg  [543:0] wrmask_expanded_bf;
     wire [135:0] wrmask_bf;
 
-sram_1rw_256x272 icache_way_10
+sram_l1i_data icache_way_10
 (
     .MEMCLK(rclk),
     .RESET_N(reset_l),
     .CE(fcl_icd_rdreq_bf | fcl_icd_wrreq_bf),
-    .A(index_bf[11:4]),
+    .A(index_bf[`IC_IDX_HI:4]),
     .DIN(wrdata_expanded_bf[271:0]),
     .BW(wrmask_expanded_bf[271:0]),
     .RDWEN(~fcl_icd_wrreq_bf),
@@ -1126,12 +1126,12 @@ sram_1rw_256x272 icache_way_10
 );
 
 
-sram_1rw_256x272 icache_way_32
+sram_l1i_data icache_way_32
 (
     .MEMCLK(rclk),
     .RESET_N(reset_l),
     .CE(fcl_icd_rdreq_bf | fcl_icd_wrreq_bf),
-    .A(index_bf[11:4]),
+    .A(index_bf[`IC_IDX_HI:4]),
     .DIN(wrdata_expanded_bf[543:272]),
     .BW(wrmask_expanded_bf[543:272]),
     .RDWEN(~fcl_icd_wrreq_bf),
@@ -1233,11 +1233,11 @@ sram_1rw_256x272 icache_way_32
     always @ (posedge clk)
     begin
         if (fcl_icd_wrreq_bf)
-        cache[index_bf[11:4]] <= (wrdata_expanded_bf & wrmask_expanded_bf) | (cache[index_bf[11:4]] & ~wrmask_expanded_bf);
+        cache[index_bf[`IC_IDX_HI:4]] <= (wrdata_expanded_bf & wrmask_expanded_bf) | (cache[index_bf[`IC_IDX_HI:4]] & ~wrmask_expanded_bf);
         else
         begin
             if (fcl_icd_rdreq_bf)
-                read_data_f <= cache[index_bf[11:4]];
+                read_data_f <= cache[index_bf[`IC_IDX_HI:4]];
             else
                 read_data_f <= 0;
         end

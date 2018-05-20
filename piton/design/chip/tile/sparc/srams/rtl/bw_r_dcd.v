@@ -213,7 +213,7 @@ wire [143:0]   temp_w1a_reg;
 wire [143:0]   temp_w2a_reg;
 wire [143:0]   temp_w3a_reg;
 
-sram_1rw_128x288 dcache_way_01
+sram_l1d_data dcache_way_01
 (
   .MEMCLK(rclk),
   .RESET_N(arst_l),
@@ -231,7 +231,7 @@ sram_1rw_128x288 dcache_way_01
 );
 
 
-sram_1rw_128x288 dcache_way_23
+sram_l1d_data dcache_way_23
 (
   .MEMCLK(rclk),
   .RESET_N(arst_l),

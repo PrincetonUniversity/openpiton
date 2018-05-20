@@ -31,8 +31,8 @@
 ////////////////////////////////////////////////////////////////////////
 `include "sys.h"
 `include "iop.h"
-`include "ifu.h"
-`include "lsu.h"
+`include "ifu.tmp.h"
+`include "lsu.tmp.h"
 
 `include "define.vh"
 
@@ -853,7 +853,7 @@ module sparc_ifu (/*AUTOARG*/
 
    wire [135:0]         icd_wsel_fetdata_s1;    // From icd of bw_r_icd.v
    wire [135:0]         icd_wsel_topdata_s1;    // From icd of bw_r_icd.v
-   wire [3:0]           icv_itlb_valid_f;       // From icv of bw_r_rf16x32.v
+   wire [3:0]           icv_itlb_valid_f;       // From icv of sram_l1i_val.v
    wire                 ifc_ifd_addr_sel_asi_i2_l;// From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifc_ifd_addr_sel_bist_i2_l;// From ifqctl of sparc_ifu_ifqctl.v
    wire                 ifc_ifd_addr_sel_fill_i2_l;// From ifqctl of sparc_ifu_ifqctl.v
@@ -999,10 +999,10 @@ module sparc_ifu (/*AUTOARG*/
    wire           fcl_itlb_wr_vld_bf;     // From fcl of sparc_ifu_fcl.v
    wire [47:2]    fdp_icd_vaddr_bf;       // From fdp of sparc_ifu_fdp.v
    wire [12:0]    fdp_itlb_ctxt_bf;       // From fdp of sparc_ifu_fdp.v
-   wire [32:0]    ict_itlb_tag0_f;        // From ict of bw_r_idct.v
-   wire [32:0]    ict_itlb_tag1_f;        // From ict of bw_r_idct.v
-   wire [32:0]    ict_itlb_tag2_f;        // From ict of bw_r_idct.v
-   wire [32:0]    ict_itlb_tag3_f;        // From ict of bw_r_idct.v
+   wire [32:0]    ict_itlb_tag0_f;        // From ict of bw_r_ict.v
+   wire [32:0]    ict_itlb_tag1_f;        // From ict of bw_r_ict.v
+   wire [32:0]    ict_itlb_tag2_f;        // From ict of bw_r_ict.v
+   wire [32:0]    ict_itlb_tag3_f;        // From ict of bw_r_ict.v
 
    // sscan rename
    wire [3:0]       ifq_sscan_data;         // From ifqctl of sparc_ifu_ifqctl.v
@@ -1839,7 +1839,7 @@ module sparc_ifu (/*AUTOARG*/
 //                        .tlu_itlb_dmp_by_ctxt_g(tlu_itlb_dmp_by_ctxt_g),
 //                        .tlu_itlb_dmp_all_g(tlu_itlb_dmp_all_g));
 
-   bw_r_tlb itlb(
+   bw_r_itlb itlb(
 		              .tlb_pgnum_crit	(),
 		              // Outputs
                        `ifndef NO_RTL_CSM
@@ -2050,7 +2050,7 @@ module sparc_ifu (/*AUTOARG*/
                 .rtap_srams_bist_data (rtap_srams_bist_data)
                 );
 
-/*   bw_r_idct AUTO_TEMPLATE(
+/*   bw_r_ict AUTO_TEMPLATE(
                      // Inputs
                      .adj          (lsu_ictag_mrgn[3:0]),
                      .reset_l      (arst_l),
@@ -2066,7 +2066,7 @@ module sparc_ifu (/*AUTOARG*/
                      .wrreq_x      (fcl_ict_wrreq_bf));
  */
 
-   bw_r_idct ict(
+   bw_r_ict ict(
                  .so                    (short_scan0_2),
                  .si                    (short_scan0_1),
                  .rdtag_w0_y    (ict_itlb_tag0_f[32:0]),
@@ -2104,7 +2104,7 @@ module sparc_ifu (/*AUTOARG*/
                  .rtap_srams_bist_data   (rtap_srams_bist_data)
                  );
 //     sparc_ifu_icv icv
-/*   bw_r_rf16x32 AUTO_TEMPLATE(
+/*   sram_l1i_val AUTO_TEMPLATE(
                     // Outputs
                     .dout          (icv_itlb_valid_f[3:0]),
                     .so            (short_so0),
@@ -2124,7 +2124,7 @@ module sparc_ifu (/*AUTOARG*/
                     .rd_en         (fcl_icv_rdreq_bf),
                     .wr_en         (fcl_icv_wrreq_bf));
  */
-   bw_r_rf16x32  icv(/*AUTOINST*/
+   sram_l1i_val  icv(/*AUTOINST*/
                      // Outputs
                      .dout              (icv_itlb_valid_f[3:0]), // Templated
                      .so                (short_so0),             // Templated

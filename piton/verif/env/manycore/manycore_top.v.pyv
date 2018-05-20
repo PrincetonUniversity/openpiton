@@ -25,7 +25,7 @@
 `include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
-`include "ifu.h"
+`include "ifu.tmp.h"
 `include "define.vh"
 
 
@@ -46,6 +46,11 @@ reg jtag_clk;
 reg jtag_rst_l;
 reg          chip_rst_n;
 reg          pll_rst_n;
+reg mem_clk;
+
+
+wire tx;
+wire rx;
 
 `ifndef NO_SIM_PLL
 always #5000 core_ref_clk = ~core_ref_clk;     // 100MHz
@@ -61,6 +66,8 @@ always @ * io_clk = core_ref_clk;
 always #2500 fpga_clk = ~fpga_clk;           // 200MHz
 //assign fpga_clk = pin_clk;                // 
 always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
+
+always #1000 mem_clk = ~mem_clk;
 
 ////////////////////////////////////////////////////////
 // SYNTHESIZABLE CHIP
@@ -279,8 +286,13 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
 
     fpga_bridge fpga_intf(
         .rst_n                  (chip_rst_n),
+    `ifdef PITON_SPARTAN6
+        .fpga_clk               (fpga_clk),
+        .intcnct_clk_back       (io_clk),
+    `else
         .fpga_clk               (fpga_clk),
         .intcnct_clk            (io_clk),
+    `endif
         .network_out_1          (fpga_intf_noc1_data),
         .network_out_2          (fpga_intf_noc2_data),
         .network_out_3          (fpga_intf_noc3_data),
@@ -308,6 +320,123 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
     );
 
 ////////////////////////////////////////////////////////
+// mem_io_splitter
+////////////////////////////////////////////////////////
+    wire splitter_noc2_valid_in;
+    wire splitter_noc2_ready_in;
+    wire [`NOC_DATA_WIDTH-1:0] splitter_noc2_data_in;
+    wire splitter_mem_noc2_valid;
+    wire splitter_mem_noc2_ready;
+    wire [`NOC_DATA_WIDTH-1:0] splitter_mem_noc2_data;
+    wire splitter_io_noc2_valid;
+    wire splitter_io_noc2_ready;
+    wire [`NOC_DATA_WIDTH-1:0] splitter_io_noc2_data;
+
+    wire mem_splitter_noc3_valid;
+    wire mem_splitter_noc3_ready;
+    wire [`NOC_DATA_WIDTH-1:0] mem_splitter_noc3_data;
+    wire io_splitter_noc3_valid; //tmp stub
+    wire io_splitter_noc3_ready;
+    wire [`NOC_DATA_WIDTH-1:0] io_splitter_noc3_data ; // tmp stub
+
+    wire splitter_noc3_valid_out;
+    wire splitter_noc3_ready_out;
+    wire [`NOC_DATA_WIDTH-1:0] splitter_noc3_data_out;
+
+    wire splitter_noc1_valid_in; // tmp stub
+    wire splitter_noc1_ready_in;
+    wire [`NOC_DATA_WIDTH-1:0] splitter_noc1_data_in; // tmp stub
+    wire splitter_noc1_valid_out;
+    wire splitter_noc1_ready_out; // temperary stub
+    wire [`NOC_DATA_WIDTH-1:0] splitter_noc1_data_out;
+
+    assign splitter_noc1_valid_in = 1'b0;
+    assign splitter_noc1_data_in = `NOC_DATA_WIDTH'b0;
+    assign splitter_noc1_ready_out = 1'b1;
+    
+    valrdy_to_credit #(4, 3) cgno_blk_splitter(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(splitter_noc3_data_out),
+        .valid_in(splitter_noc3_valid_out),
+        .ready_in(splitter_noc3_ready_out),
+
+        .data_out(fpga_offfpga_noc3_data),           // Data
+        .valid_out(fpga_offfpga_noc3_valid),       // Val signal
+        .yummy_out(offfpga_fpga_noc3_yummy)    // Yummy signal
+    );
+    credit_to_valrdy cgni_blk_splitter_noc2(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(offfpga_fpga_noc2_data),
+        .valid_in(offfpga_fpga_noc2_valid),
+        .yummy_in(fpga_offfpga_noc2_yummy),
+
+        .data_out(splitter_noc2_data_in),           // Data
+        .valid_out(splitter_noc2_valid_in),       // Val signal from dynamic network to processor
+        .ready_out(splitter_noc2_ready_in)    // Rdy signal from processor to dynamic network
+    );
+    /*
+    credit_to_valrdy cgni_blk_splitter_noc1(
+        .clk(fpga_clk),
+        .reset(~chip_rst_n),
+        .data_in(offfpga_fpga_noc1_data),
+        .valid_in(offfpga_fpga_noc1_valid),
+        .yummy_in(fpga_offfpga_noc1_yummy),
+        .data_out(splitter_noc1_data_in),           // Data
+        .valid_out(splitter_noc1_valid_in),       // Val signal from dynamic network to processor
+        .ready_out(splitter_noc1_ready_in)    // Rdy signal from processor to dynamic network
+    );
+    */
+    
+    mem_io_splitter mem_io_splitter(
+        .clk  (fpga_clk),
+        .rst  (~chip_rst_n),
+
+        // rdy/val for nocs to splitter
+        .noc1_splitter_val  (splitter_noc1_valid_in),
+        .noc2_splitter_val  (splitter_noc2_valid_in),                             
+        .splitter_noc1_rdy  (splitter_noc1_ready_in),
+        .splitter_noc2_rdy  (splitter_noc2_ready_in),
+
+        // rdy/val for splitter to nocs
+        .splitter_noc3_val  (splitter_noc3_valid_out),
+        .noc3_splitter_rdy  (splitter_noc3_ready_out),
+
+        // rdy/val for splitter to mem
+        .splitter_mem_val  (splitter_mem_noc2_valid),
+        .mem_splitter_rdy  (splitter_mem_noc2_ready),
+
+        // rdy/val for mem to splitter
+        .mem_splitter_val  (mem_splitter_noc3_valid),
+        .splitter_mem_rdy  (mem_splitter_noc3_ready),
+
+        // rdy/val for splitter to IO
+        .splitter_io_val   (splitter_io_noc2_valid),
+        .io_splitter_rdy   (splitter_io_noc2_ready),
+
+        // rdy/val for IO to splitter
+        .io_splitter_val   (io_splitter_noc3_valid),
+        .splitter_io_rdy   (io_splitter_noc3_ready),
+
+        // rdy/val for splitter to noc1 sink
+        .noc1sink_splitter_rdy  (splitter_noc1_ready_out),
+        .splitter_noc1sink_val  (splitter_noc1_valid_out),
+        
+        .noc1_splitter_data  (splitter_noc1_data_in),
+        .noc2_splitter_data  (splitter_noc2_data_in),
+
+        .splitter_noc3_data  (splitter_noc3_data_out),
+        .splitter_noc1sink_data  (splitter_noc1_data_out),
+
+        .mem_splitter_data  (mem_splitter_noc3_data),
+        .splitter_mem_data  (splitter_mem_noc2_data),
+
+        .io_splitter_data  (io_splitter_noc3_data),
+        .splitter_io_data  (splitter_io_noc2_data)      
+    );
+    
+////////////////////////////////////////////////////////
 // fake memory controller
 ////////////////////////////////////////////////////////
     // input: noc2
@@ -319,7 +448,7 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
     wire mem_noc3_valid_out;
     wire mem_noc3_ready_out;
     wire [`NOC_DATA_WIDTH-1:0] mem_noc3_data_out;
-
+    /*
     valrdy_to_credit #(4, 3) cgno_blk_mem(
         .clk(fpga_clk),
         .reset(~chip_rst_n),
@@ -342,6 +471,7 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
         .valid_out(mem_noc2_valid_in),       // Val signal from dynamic network to processor
         .ready_out(mem_noc2_ready_in)    // Rdy signal from processor to dynamic network
     );
+
     fake_mem_ctrl fake_mem_ctrl(
         .clk                (fpga_clk),
         .rst_n              (chip_rst_n),
@@ -351,7 +481,277 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
         .noc_valid_out      (mem_noc3_valid_out),
         .noc_data_out       (mem_noc3_data_out),
         .noc_ready_out      (mem_noc3_ready_out)
+    */
+
+    wire                        mem_fifo_noc3_valid;
+    wire [`NOC_DATA_WIDTH-1:0]  mem_fifo_noc3_data;
+    wire                        mem_fifo_noc3_ready;
+
+    wire                        fifo_mem_noc2_valid;
+    wire [`NOC_DATA_WIDTH-1:0]  fifo_mem_noc2_data;
+    wire                        fifo_mem_noc2_ready;
+
+`ifdef VC707_BOARD //TODO: check define
+
+    mig_async_fifo mig_async_fifo(
+        .clk_1              (fpga_clk),
+        .rst_1              (~chip_rst_n),
+        .flit_in_val_1      (splitter_mem_noc2_valid),
+        .flit_in_data_1     (splitter_mem_noc2_data),
+        .flit_in_rdy_1      (splitter_mem_noc2_ready),
+    
+        .clk_2              (mem_clk),
+        .rst_2              (~chip_rst_n),
+        .flit_in_val_2      (mem_fifo_noc3_valid),
+        .flit_in_data_2     (mem_fifo_noc3_data),
+        .flit_in_rdy_2      (mem_fifo_noc3_ready),
+    
+        .flit_out_val_1     (mem_splitter_noc3_valid),
+        .flit_out_data_1    (mem_splitter_noc3_data),
+        .flit_out_rdy_1     (mem_splitter_noc3_ready),
+    
+        .flit_out_val_2     (fifo_mem_noc2_valid),
+        .flit_out_data_2    (fifo_mem_noc2_data),
+        .flit_out_rdy_2     (fifo_mem_noc2_ready)
     );
+`else  // VC707_BOARD
+    assign fifo_mem_noc2_valid      = splitter_mem_noc2_valid;
+    assign fifo_mem_noc2_data       = splitter_mem_noc2_data;
+    assign splitter_mem_noc2_ready  = fifo_mem_noc2_ready;
+
+    assign mem_splitter_noc3_valid  = mem_fifo_noc3_valid;
+    assign mem_splitter_noc3_data   = mem_fifo_noc3_data;
+    assign mem_fifo_noc3_ready      = mem_splitter_noc3_ready;
+`endif // VC707_BOARD
+
+    fake_mem_ctrl fake_mem_ctrl(
+    `ifdef VC707_BOARD
+        .clk                (mem_clk),
+    `else
+        .clk                (fpga_clk),
+    `endif
+        .rst_n              (chip_rst_n),
+        .noc_valid_in       (fifo_mem_noc2_valid),
+        .noc_data_in        (fifo_mem_noc2_data),
+        .noc_ready_in       (fifo_mem_noc2_ready),
+        .noc_valid_out      (mem_fifo_noc3_valid),
+        .noc_data_out       (mem_fifo_noc3_data),
+        .noc_ready_out      (mem_fifo_noc3_ready)
+    );
+
+    //a copy of the mem acting as io ctrl
+    /*
+    fake_mem_ctrl fake_io_ctrl(
+        .clk                (fpga_clk),
+        .rst_n              (chip_rst_n),
+        .noc_valid_in       (splitter_io_noc2_valid),
+        .noc_data_in        (splitter_io_noc2_data),
+        .noc_ready_in       (splitter_io_noc2_ready),
+        .noc_valid_out      (io_splitter_noc3_valid),
+        .noc_data_out       (io_splitter_noc3_data),
+        .noc_ready_out      (io_splitter_noc3_ready)
+    );
+    */
+    //assign io_splitter_noc3_valid = 1'b0;
+    //assign splitter_io_noc2_ready = 1'b1;
+    
+////////////////////////////////////////////////////////
+// iosplitter_axi_lite converter
+////////////////////////////////////////////////////////
+    wire [`NOC_DATA_WIDTH-1:0]      converter_io_aw_addr;
+    wire                            converter_io_aw_valid;
+    wire                            converter_io_aw_ready;
+    wire [`NOC_DATA_WIDTH-1:0]      converter_io_w_data;
+    wire [`NOC_DATA_WIDTH/8-1:0]    converter_io_w_strb;
+    wire                            converter_io_w_valid;
+    wire                            converter_io_w_ready;
+    wire [`NOC_DATA_WIDTH-1:0]      converter_io_ar_addr;
+    wire                            converter_io_ar_valid;
+    wire                            converter_io_ar_ready;
+    wire [`NOC_DATA_WIDTH-1:0]      io_converter_r_data;
+    wire [1:0]                      io_converter_r_resp; // width should be C_M_AXI_LITE_RESP_WIDTH
+    wire                            io_converter_r_valid;
+    wire                            io_converter_r_ready;
+    wire [1:0]                      io_converter_b_resp; // width should be C_M_AXI_LITE_RESP_WIDTH
+    wire                            io_converter_b_valid;
+    wire                            io_converter_b_ready;
+
+    //some input stubs
+    //assign converter_io_aw_ready = 1'b1;
+    //assign converter_io_w_ready = 1'b1;
+    //assign converter_io_ar_ready = 1'b1;
+    //assign io_converter_r_data = `NOC_DATA_WIDTH'hef;
+    //assign io_converter_r_resp = 2'b0;
+    //assign io_converter_r_valid = 1'b1;
+    //assign io_converter_b_resp = 2'b0;
+    //assign io_converter_b_valid = 1'b1;
+
+
+    iosplitter_axi_lite_updated iosplitter_axi_lite(
+        .clk  (fpga_clk),
+        .rst  (~chip_rst_n),
+               
+        //signal from the splitter
+        // rdy/val for splitter to IO
+        //connect to signal of the same name in mem_io_splitter.
+        .splitter_io_val     (splitter_io_noc2_valid),
+        .io_splitter_rdy     (splitter_io_noc2_ready),
+
+        // rdy/val for IO to splitter
+        .io_splitter_val     (io_splitter_noc3_valid),
+        .splitter_io_rdy     (io_splitter_noc3_ready),
+
+        //data to and from splitter
+        .io_splitter_data    (io_splitter_noc3_data),
+        .splitter_io_data    (splitter_io_noc2_data),
+           
+        //axi lite signals             
+        //write address channel
+        .m_axi_awaddr        (converter_io_aw_addr),
+        .m_axi_awvalid       (converter_io_aw_valid),
+        .m_axi_awready       (converter_io_aw_ready),
+
+        //write data channel
+        .m_axi_wdata         (converter_io_w_data),
+        .m_axi_wstrb         (converter_io_w_strb),
+        .m_axi_wvalid        (converter_io_w_valid),
+        .m_axi_wready        (converter_io_w_ready),
+
+        //read address channel
+        .m_axi_araddr        (converter_io_ar_addr),
+        .m_axi_arvalid       (converter_io_ar_valid),
+        .m_axi_arready       (converter_io_ar_ready),
+
+        //read data channel
+        .m_axi_rdata         (io_converter_r_data),
+        .m_axi_rresp         (io_converter_r_resp),
+        .m_axi_rvalid        (io_converter_r_valid),
+        .m_axi_rready        (io_converter_r_ready),
+
+        //write response channel
+        .m_axi_bresp         (io_converter_b_resp),
+        .m_axi_bvalid        (io_converter_b_valid),
+        .m_axi_bready        (io_converter_b_ready)
+    
+);
+
+////////////////////////////////////////////////////////
+// axi-lite slave stub
+////////////////////////////////////////////////////////
+
+
+//------------------------------------
+// TODO: Alexey: dirty hack is here
+//------------------------------------
+`ifdef PITON_PROTO
+  `define USE_UART_16550
+`endif
+
+ 
+`ifdef USE_UART_LITE
+    axi_uartlite_0 axi_uart(
+        .s_axi_aclk             (fpga_clk),
+        .s_axi_aresetn          (chip_rst_n),
+        .interrupt              (uart_interrupt),
+
+        //axi lite signals             
+        //write address channel
+        .s_axi_awaddr           (converter_io_aw_addr[3:0]),
+        .s_axi_awvalid          (converter_io_aw_valid),
+        .s_axi_awready          (converter_io_aw_ready),
+
+        //write data channel
+        .s_axi_wdata            (converter_io_w_data[31:0]),
+        .s_axi_wstrb            (converter_io_w_strb[3:0]),
+        .s_axi_wvalid           (converter_io_w_valid),
+        .s_axi_wready           (converter_io_w_ready),
+
+        //read address channel
+        .s_axi_araddr           (converter_io_ar_addr[3:0]),
+        .s_axi_arvalid          (converter_io_ar_valid),
+        .s_axi_arready          (converter_io_ar_ready),
+
+        //read data channel
+        .s_axi_rdata            (io_converter_r_data[31:0]),
+        .s_axi_rresp            (io_converter_r_resp),
+        .s_axi_rvalid           (io_converter_r_valid),
+        .s_axi_rready           (io_converter_r_ready),
+
+        //write response channel
+        .s_axi_bresp             (io_converter_b_resp),
+        .s_axi_bvalid            (io_converter_b_valid),
+        .s_axi_bready            (io_converter_b_ready),
+        
+        .rx                      (rx                ),
+        .tx                      (tx                )
+    );
+`elsif USE_UART_16550
+    wire    [12:0]  s_axi_awaddr;
+    wire    [12:0]  s_axi_araddr;
+
+    assign s_axi_awaddr = (converter_io_aw_addr[12:0] << 2)  | 13'h1000;
+    assign s_axi_rwaddr = (converter_io_ar_addr[12:0] << 2)  | 13'h1000;
+
+
+    uart_16550      uart_16550      (
+        .s_axi_aclk             (fpga_clk                   ),
+        .s_axi_aresetn          (chip_rst_n                 ),
+        .ip2intc_irpt           (uart_interrupt             ),
+        .freeze                 (1'b0                       ),
+        //write address channel
+        .s_axi_awaddr           (s_axi_awaddr               ),
+        .s_axi_awvalid          (converter_io_aw_valid      ),
+        .s_axi_awready          (converter_io_aw_ready      ),
+
+        //write data channel
+        .s_axi_wdata            (converter_io_w_data[31:0]  ),
+        .s_axi_wstrb            (converter_io_w_strb[3:0]   ),
+        .s_axi_wvalid           (converter_io_w_valid       ),
+        .s_axi_wready           (converter_io_w_ready       ),
+
+        //read address channel
+        .s_axi_araddr           (s_axi_araddr       ),
+        .s_axi_arvalid          (converter_io_ar_valid),
+        .s_axi_arready          (converter_io_ar_ready),
+
+        //read data channel
+        .s_axi_rdata            (io_converter_r_data[31:0]),
+        .s_axi_rresp            (io_converter_r_resp),
+        .s_axi_rvalid           (io_converter_r_valid),
+        .s_axi_rready           (io_converter_r_ready),
+
+        //write response channel
+        .s_axi_bresp            (io_converter_b_resp),
+        .s_axi_bvalid           (io_converter_b_valid),
+        .s_axi_bready           (io_converter_b_ready),
+
+        .baudoutn               (),
+        .ctsn                   (1'b0),
+        .dcdn                   (1'b0),
+        .ddis                   (),
+        .dsrn                   (1'b0),
+        .dtrn                   (),
+        .out1n                  (),
+        .out2n                  (),
+        .rin                    (1'b0),
+        .rtsn                   (),
+        .rxrdyn                 (),
+        .sin                    (rx     ),
+        .sout                   (tx     ),
+        .txrdyn                 ()
+    );
+`else
+    assign converter_io_aw_ready = 1'b1;
+    assign converter_io_w_ready = 1'b1;
+    assign converter_io_ar_ready = 1'b1;
+    assign io_converter_r_data = `NOC_DATA_WIDTH'hef;   // why?
+    assign io_converter_r_resp = 2'b0;
+    assign io_converter_r_valid = 1'b1;     // why?
+    assign io_converter_b_resp = 2'b0;
+    assign io_converter_b_valid = 1'b1;     // why? but it works!
+`endif
+
+
 
 ////////////////////////////////////////////////////////
 // iobridge rtl/stub
@@ -502,6 +902,7 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
         io_clk = 0;
         fpga_clk = 0;
         jtag_clk = 0;
+        mem_clk = 0;
         pll_bypass = 1'b0;
         // assign rangeA = x10 ? 5'b1 : x5 ? 5'b11110 : x2 ? 5'b10100 : x1 ? 5'b10010 : x20 ? 5'b0 : 5'b1;
         pll_rangea = 5'b00001; // 10x ref clock
@@ -618,6 +1019,17 @@ always #6529 jtag_clk = ~jtag_clk;         // <~100MHz
     end
 
     manycore_network_mon network_mon (pll_clk);
+
+    // Alexey
+    // UART monitor
+    reg      prev_tx_state;
+    always @(posedge core_ref_clk)
+        prev_tx_state <= tx;
+
+    always @(posedge core_ref_clk)
+        if (prev_tx_state != tx) begin
+            $display("UART: TX changed to %d at", tx, $time);
+        end
 
 endmodule // cmp_top
 

@@ -32,6 +32,7 @@
 * Description	:	provides a set of simple monitors and checkers for dmbr
 *******************************************************************************/
 `include "dmbr_define.v"
+`include "cross_module.tmp.h"
 
 module dmbr_mon (
 	input	clk

@@ -49,7 +49,7 @@ module dynamic_node_top_wrap
     input [`DATA_WIDTH-1:0] dataIn_E,
     input [`DATA_WIDTH-1:0] dataIn_S,
     input [`DATA_WIDTH-1:0] dataIn_W,
-    input [`DATA_WIDTH-1:0] dataIn_P,   // data input from processor
+     input [`DATA_WIDTH-1:0] dataIn_P,   // data input from processor
        
     input validIn_N,        // valid signals from neighboring tiles
     input validIn_E,
@@ -70,8 +70,8 @@ module dynamic_node_top_wrap
     output [`DATA_WIDTH-1:0] dataOut_N, // data outputs to neighbors
     output [`DATA_WIDTH-1:0] dataOut_E,
     output [`DATA_WIDTH-1:0] dataOut_S,
-    output [`DATA_WIDTH-1:0] dataOut_W,
-    output [`DATA_WIDTH-1:0] dataOut_P, // data output to processor
+     output [`DATA_WIDTH-1:0] dataOut_W,
+     output [`DATA_WIDTH-1:0] dataOut_P, // data output to processor
     
     output validOut_N,      // valid outputs to neighbors
     output validOut_E,

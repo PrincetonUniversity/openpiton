@@ -1600,7 +1600,7 @@ end
   end //always @(posedge clk) begin
   //====================================================
   // Dump all the counter value at end of the Simulation
-  always @(posedge `TOP_MOD.diag_done or posedge sim_fail) begin
+  always @(posedge `SIM_TOP.diag_done or posedge sim_fail) begin
     $display("*Info*: tlu_mon: Start of %m PIB dump>>>>>\n");
     $display("*Info*: tlu_mon: PCR0 = 64'h%16x, PIC0 = 64'h%16x", pcr0, {pich_cnt0[31:0], picl_cnt0[31:0]});
     $display("*Info*: tlu_mon: PCR1 = 64'h%16x, PIC1 = 64'h%16x", pcr1, {pich_cnt1[31:0], picl_cnt1[31:0]});

@@ -26,6 +26,17 @@
 
 `include "define.vh"
 
+`ifdef PITON_PROTO
+`ifdef NEXYS4DDR_BOARD
+`define ED_ENABLE_BIT 0
+`else
+`define ED_ENABLE_BIT 1
+`endif
+`else
+`define ED_ENABLE_BIT 1
+`endif
+
+
 module cfg_asi ( // Inputs
     clk,
     rst_n,
@@ -202,7 +213,7 @@ module cfg_asi ( // Inputs
     assign cfg_asi_lsu_ldxa_vld_w2 = asi_ld_w2;
     assign cfg_asi_lsu_ldxa_tid_w2 = ifu_tlu_thrid_w2;
 
-    assign cfg_dtu_esl_en = cfg_regs[`CFG_ED0_INDEX][`CFG_ED0_ENABLE_POS];
+    assign cfg_dtu_esl_en = cfg_regs[`CFG_ED0_INDEX][`CFG_ED0_ENABLE_POS] & `ED_ENABLE_BIT;
     assign cfg_dtu_esl_sync_method = cfg_regs[`CFG_ED0_INDEX][`CFG_ED0_SYNC_METHOD];
     assign cfg_esl_lfsr_seed = cfg_regs[`CFG_ED0_INDEX][`CFG_ED0_LFSR_SEED_POS];
     assign cfg_esl_lfsr_ld = cfg_regs[`CFG_ED0_INDEX][`CFG_ED0_LFSR_LOAD_POS];

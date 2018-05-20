@@ -28,8 +28,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 `include "sys.h"
-`include "lsu.h"
-`include "ifu.h"
+`include "lsu.tmp.h"
+`include "ifu.tmp.h"
 
 module sparc_ifu_errdp(/*AUTOARG*/
    // Outputs

@@ -1,0 +1,2 @@
+open_project nexys4ddr_piton.xpr
+launch_run impl_1 -to_step write_bitstream

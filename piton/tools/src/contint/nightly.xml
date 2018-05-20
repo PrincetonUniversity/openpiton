@@ -42,11 +42,11 @@
         <vcs_cm_name>fpga_chip_bridge</vcs_cm_name>
         <vcs_use_cm/>
     </other>
-    <other name="fpga_fpga_hpc_bridge">
+    <!--<other name="fpga_fpga_hpc_bridge">
         <sys>fpga_fpga_hpc_bridge</sys>
         <vcs_cm_name>fpga_fpga_hpc_bridge</vcs_cm_name>
         <vcs_use_cm/>
-    </other>
+    </other>-->
     <!--TODO: This test needs to be fixed for FPGA-->                                                                   
     <!--<other name="fpga_fpga_lpc_bridge">
         <sys>fpga_fpga_lpc_bridge</sys>
@@ -262,14 +262,14 @@
 		<y_tiles>1</y_tiles>
         <vcs_use_cm/>
     </asm_regress>
-    <asm_regress name="jtag_pll">
+    <!--<asm_regress name="jtag_pll">
         <sys>jtag_testbench</sys>
         <group>jtag_pll</group>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <vcs_use_cm/>
         <sim_pll/>
-    </asm_regress>
+    </asm_regress>-->
 
     <!--DMBR ASM TESTS-->
     <!-- <include>tile2_dmbr</include>-->

@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
 # 
@@ -26,29 +28,46 @@
 #####################################################################
 #  Filename      : make_mem_map.py
 #  Created On    : 2014-05-10
-#  Last Modified : 2015-05-10 16:52:02
-#  Revision      :
 #  Author        : Alexey Lavrov
 #  Company       : Princeton University
-#  Email         : alavrov@princeton.edu
+#  Email         : openpiton@princeton.edu
 #
-#  Description   : mapping of a test to BRAM on FPGA
-#
+#  Description   : Maps a test which passes VCS simulation
+#                  to BRAM on FPGA. Outputs two files to MODEL_DIR:
+#                  test_proto.coe - coefficient file for BRAM
+#                  bram_map.v - mapping between physical and BRAM
+#                               addresses
 #
 #####################################################################
-
-
 import re, os, sys
+from optparse import OptionParser
+
+DV_ROOT = os.environ['DV_ROOT']
+MODEL_DIR = os.environ['MODEL_DIR']
+MAP_MODULE_NAME = "bram_map.v"
 
 HEX_ADDR_WIDTH = 16
 OUT = 0
 IN = 1
-BRAM_SIZE = 4096
+BRAM_SIZE = 256
 
 class Section:
     def __init__(self, start, end, mem_trace):
-        self.s_start =  int(bin(int(start,16))[2:-6],2) << 6
-        self.s_end = (int(bin(int(end,16))[2:-6],2) + 1) << 6
+
+        bin_start = bin(int(start,16))
+        if (len(bin_start) > 8):
+            cl_addr = int(bin_start[2:-6],2)
+        else:
+            cl_addr = 0
+        self.s_start = cl_addr << 6
+
+        bin_end = bin(int(end,16))
+        if (len(bin_end) > 8):
+            cl_addr = int(bin_end[2:-6],2)
+        else:
+            cl_addr= 0
+        self.s_end = (cl_addr + 1) << 6
+
         self.blocks = self.createBlocks(self.s_start, self.s_end, mem_trace)
         self.bram_addr = None
 
@@ -83,7 +102,7 @@ class Section:
 
 
     def __str__(self):
-        s = "Start: @%s, End: @%s, bram addr: %d" % (fullAddr(self.s_start), fullAddr(self.s_end), self.bram_addr)
+        s = "Start: @%s, End: @%s, bram addr: %s" % (fullAddr(self.s_start), fullAddr(self.s_end), str(self.bram_addr))
         s += '\n'
         for i in range(0,len(self.blocks)):
             s += str(self.blocks[i]) + '\n'
@@ -100,8 +119,10 @@ class TestSections:
         for s in self.sections:
             if (((new_sect.s_start >= s.s_start) and (new_sect.s_start <= s.s_end)) or
                 ((new_sect.s_end   >= s.s_start) and (new_sect.s_end   <= s.s_end))):
-                print >> flog, "Error: Trying to add a section which overlaps with existant!"
+                print >> flog, "Error: Trying to add a section which overlaps with an existant one!"
+                print >> sys.stderr, "Error: Trying to add a section which overlaps with existant!"
                 print >> flog, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
+                print >> sys.stderr, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
                 exit(1)
         self.sections.append(new_sect)
 
@@ -112,7 +133,8 @@ def fullAddr(val):
     return full_addr
 
 def genCoe(section_list):
-    f = open(os.environ['MODEL_DIR'] + '/fpga/xilinx_ip/test_proto.coe', 'w')
+    dir_path = os.environ['MODEL_DIR']
+    f = open(dir_path + '/test_proto.coe', 'w')
     print >> f, "memory_initialization_radix=16;"
     print >> f, "memory_initialization_vector="
 
@@ -130,13 +152,14 @@ def genCoe(section_list):
     
     f.close()
 
-def genVerilogMapping(section_list, fname):
+def genVerilogMapping(section_list, fname, tname):
     # f = sys.stderr
     f = open(fname, 'w')
     l = len(section_list)
 
     print >> f, "//-----------------------------------------"
     print >> f, "// Auto generated mapping module"
+    print >> f, "// It is provided for test: %s " % tname
     print >> f, "//-----------------------------------------"
     print >> f, """ module bram_map #(parameter MEM_ADDR_WIDTH=64, PHY_ADDR_WIDTH=40, BRAM_ADDR_WIDTH=12)
 (
@@ -220,24 +243,28 @@ def memImageData(fname):
 def mapToBram(section_list):
     bram_addr = 0
     f = open("bram_map.log", 'w')
+    limit_exceeded = False
     for s in section_list:
         s.setBramAddr(bram_addr)
         bram_addr += s.getBlockNum()
         if (bram_addr > BRAM_SIZE):
-            print >> sys.stderr, "Error: Limit of BRAM is exeeded!"
-            exit(1)
+            limit_exceeded = True
         print >> f, s
 
     f.close()
 
-def memTestData(fname, memimage_map, tname, flog):
-    known_mapping = ['princeton-test-test.s', 'exu_muldiv.s']
-    if tname not in known_mapping:
-        print "Error: not know how to make test mapping to BRAM storage"
-        print "Read documentation on PITON prototyping"
-        sys.exit(2)
+    print >> sys.stderr, "Used %d out of %d rows of BRAM" % (bram_addr, BRAM_SIZE)
+    if limit_exceeded:
+        print >> sys.stderr, "Error: Limit of BRAM is exceeded!"
+        exit(1)
 
-    f = open(fname, 'r')
+def memTestData(fname, memimage_map, tname, flog):
+    try:
+        f = open(fname, 'r')
+    except:
+        print >> sys.stderr, "Can't open file %s" % fname
+        exit(2)
+
     test_map = dict()
     
     for line in f:
@@ -251,64 +278,31 @@ def memTestData(fname, memimage_map, tname, flog):
                     print >> flog, "Mapping with 0's"
                     test_map[m.group(1)] = 16*'0'
     # print test_map
+    # print >> sys.stderr, "Closing a file: %s" % fname
     f.close()
 
     test_sections = TestSections()
 
-    #######################################################
-    # Section for Princeton_test_test
-    #######################################################
-    if tname == 'princeton-test-test.s':
-        test_sections.addSection(Section('000000fff0000000','000000fff0000038', test_map), flog)
-        test_sections.addSection(Section('000000fff0000380','000000fff00003f8', test_map), flog)
-        test_sections.addSection(Section('00000000000400c0','00000000000402b8', test_map), flog)
-        test_sections.addSection(Section('000000000004c000','000000000004c038', test_map), flog)
-        test_sections.addSection(Section('000000000004c400','000000000004c4b8', test_map), flog)
-        test_sections.addSection(Section('0000000001000900','0000000001000a38', test_map), flog)
-        test_sections.addSection(Section('0000000000080c80','0000000000080cb8', test_map), flog)
-        test_sections.addSection(Section('0000000000084180','00000000000841f8', test_map), flog)
-        test_sections.addSection(Section('0000001100144000','0000001100144038', test_map), flog)
-        test_sections.addSection(Section('0000000001000180','00000000010001b8', test_map), flog)
-        test_sections.addSection(Section('0000001101834000','00000011018340b8', test_map), flog)
-        test_sections.addSection(Section('00000010001225c0','00000010001225f8', test_map), flog)
-        test_sections.addSection(Section('0000000000083140','00000000000831f8', test_map), flog)
-        test_sections.addSection(Section('0000000000084340','0000000000084438', test_map), flog)
-        test_sections.addSection(Section('0000000000080d00','0000000000080d38', test_map), flog)
-        test_sections.addSection(Section('0000000005002180','00000000050021b8', test_map), flog)
-        test_sections.addSection(Section('0000001101c34000','0000001101c34038', test_map), flog)
-        test_sections.addSection(Section('0000001000122540','0000001000122578', test_map), flog)
-        test_sections.addSection(Section('0000000002000000','0000000002000038', test_map), flog)
-        test_sections.addSection(Section('0000001130000000','0000001130000078', test_map), flog)
-        test_sections.addSection(Section('0000000006000000','0000000006000038', test_map), flog)
-        test_sections.addSection(Section('0000001170000000','0000001170000078', test_map), flog)
-        test_sections.addSection(Section('0000001000122000','0000001000122038', test_map), flog)
-        test_sections.addSection(Section('00000000000807e0','00000000000807f8', test_map), flog)
-    #######################################################
-    # Section for exu_muldiv.s
-    #######################################################
-    elif tname == 'exu_muldiv.s':
-        test_sections.addSection(Section('000000fff0000000','000000fff0000038', test_map), flog)
-        test_sections.addSection(Section('000000fff0000380','000000fff00003f8', test_map), flog)
-        test_sections.addSection(Section('00000000000400c0','00000000000402b8', test_map), flog)
-        test_sections.addSection(Section('000000000004c000','000000000004c4b8', test_map), flog)
-        test_sections.addSection(Section('00000000000807c0','0000000000080d38', test_map), flog)
-        test_sections.addSection(Section('0000000001000900','0000000001000a38', test_map), flog)
-        test_sections.addSection(Section('0000000000083140','0000000000084438', test_map), flog)
-        test_sections.addSection(Section('0000001100144000','0000001100144038', test_map), flog)
-        test_sections.addSection(Section('0000000001000180','00000000010001b8', test_map), flog)
-        test_sections.addSection(Section('0000001101834000','00000011018340b8', test_map), flog)
-        test_sections.addSection(Section('0000001000122540','00000010001225f8', test_map), flog)
-        test_sections.addSection(Section('0000000005002180','00000000050021b8', test_map), flog)
-        test_sections.addSection(Section('0000001101c34000','0000001101c34038', test_map), flog)
-        test_sections.addSection(Section('0000000002000000','0000000002000038', test_map), flog)
-        test_sections.addSection(Section('0000001130000000','0000001130000c78', test_map), flog)
-        test_sections.addSection(Section('0000000006000000','0000000006000038', test_map), flog)
-        test_sections.addSection(Section('0000001170000000','00000011700007b8', test_map), flog)
-        test_sections.addSection(Section('0000001000120500','0000001000120538', test_map), flog)
-        test_sections.addSection(Section('0000001000122000','0000001000122038', test_map), flog)
-    else:
-        print >> sys.stderr, "Error: Mapping for a test '%s' is not known" % tname
-        exit(1)
+    #####################################################################
+    # Test version - automatic section creation
+    #####################################################################
+    max_unacc_interv = 512*16   #  10 cache lines == 10 rows in bram
+    accessed_addr = test_map.keys()
+    accessed_addr.sort()
+    addr_prev = accessed_addr[0]
+    sect_first = addr_prev
+    for addr in accessed_addr[1:]:
+        diff = 8*(int(addr, 16) - int(addr_prev, 16))
+        if diff > max_unacc_interv:
+            test_sections.addSection(Section(sect_first, addr_prev, test_map), flog)
+            sect_first = addr
+        addr_prev = addr
+
+    # last interval must be mappend in any case
+    test_sections.addSection(Section(sect_first, addr, test_map), flog)
+    print >> sys.stderr, "Automatically created %d sections for test in bram memory" % len(test_sections.getSections())
+ 
+    print >> sys.stderr, "Checking correctness of section mapping... "
 
     sections = test_sections.getSections()
     for k in test_map.keys():
@@ -318,24 +312,25 @@ def memTestData(fname, memimage_map, tname, flog):
                 k_is_found = True
                 break
         if not k_is_found:
-            print "Error: %s is not mapped!" % k
+            print >> sys.stderr, "Error: %s is not mapped!" % k
             exit(1)
+
+    print >> sys.stderr, "Correct!"
 
     return sections
 
 
 def makeMapping(tname):
-    # os.chdir('/tigress/alavrov/chip/fpga/OpenSPARCT1_model')
     flog = open('make_mem_map.log', 'w')
 
-    fname_image     = os.environ['DV_ROOT'] + '/../build/mem.image'
-    fsim_log        = os.environ['DV_ROOT'] + '/../build/sims.log'
+    fname_image     = os.path.join(MODEL_DIR, "mem.image")
+    fsim_log        = os.path.join(MODEL_DIR, "sims.log")
 
-    bram_map_file   = os.environ['DV_ROOT'] + '/design/proto/bram_map.v'
+    bram_map_file   = os.path.join(MODEL_DIR, MAP_MODULE_NAME)
 
     
     mem_image_data = memImageData(fname_image)
-    # print "Length of image file: %d" % len(mem_image_data.keys())
+    print "Length of image file: %d" % len(mem_image_data.keys())
     sections = memTestData(fsim_log, mem_image_data, tname, flog)
     # print "Length of used data: %d" % len(sections)
     mapToBram(sections)
@@ -343,13 +338,22 @@ def makeMapping(tname):
 
     # should be ordered list - does it still true?
     genCoe(sections)
-    genVerilogMapping(sections, bram_map_file)
+    genVerilogMapping(sections, bram_map_file, tname)
 
     flog.close()
     # print block_list
       
 def main():
-    makeMapping()   
+    parser = OptionParser()
+    parser.add_option("-t", "--test", dest="tname", action="store", help="Name of a test")
+    (options, args) = parser.parse_args()
+
+    if options.tname == None:
+        print >> sys.stderr, "Error: provide a test name"
+        exit(2)
+
+    makeMapping(options.tname)
+    print >> sys.stderr, "Completed!" 
 
 
 if __name__ == '__main__':

@@ -27,7 +27,7 @@
 //
 // ***************************************************************************
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 module pc_muxsel_mon(/*AUTOARG*/
    // Inputs

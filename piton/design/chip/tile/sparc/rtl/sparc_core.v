@@ -192,6 +192,10 @@ sparc sparc0 (
 
     );
 
+// dummy test
+//assign srams_rtap_data = rtap_srams_bist_data;
+
+
 endmodule
 
 

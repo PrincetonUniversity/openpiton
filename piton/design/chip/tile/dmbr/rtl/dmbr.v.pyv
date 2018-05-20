@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 `include "dmbr_define.v"
 `include "define.vh"
-`include "l15.vh"
+`include "l15.tmp.h"
 <%
 DMBR_BIN_NUM = 10
 MAX_TAG = 16
@@ -70,6 +70,20 @@ module dmbr(
     //output to L1.5
     output reg stallOut
 );
+
+
+`ifdef PITON_FPGA_NO_DMBR
+    always @(posedge clk) begin
+        stallOut        <= 1'b0;
+        
+        <%
+        for i in range(DMBR_BIN_NUM):
+            print "curr_cred_bin_%d <= {`CREDIT_WIDTH{1'b0}};" % i
+        %>
+    end
+
+`else  // PITON_FPGA_NO_DMBR
+
 
 reg rep_en;
 reg add_counter_reset;
@@ -910,5 +924,7 @@ begin
 
     end
 end
+
+`endif  // PITON_FPGA_NO_DMBR
     
 endmodule

@@ -25,8 +25,9 @@
 `ifdef FPGA_SYN_SAVE_BRAM
 
 
-module bw_r_irf_register(clk, wren, save, save_addr, restore, restore_addr, wr_data, rd_data);
+module bw_r_irf_register(clk, reset_l, wren, save, save_addr, restore, restore_addr, wr_data, rd_data);
 	input		clk;
+	input       reset_l;
 	input		wren;
 	input		save;
 	input	[2:0]	save_addr;
@@ -41,7 +42,15 @@ module bw_r_irf_register(clk, wren, save, save_addr, restore, restore_addr, wr_d
 `endif    
 reg	[71:0]	onereg;
 
-  initial onereg = 72'h0;
+  // Alexey
+  // use reset_l instead
+  //initial onereg = 72'h0;
+  always @(posedge clk) begin
+    if (~reset_l)
+        onereg <= 72'h0;
+    else
+        if (wr_en) onereg <= wrdata;
+  end
 
   assign rd_data = onereg;
 
@@ -50,9 +59,9 @@ reg	[71:0]	onereg;
 
   wire wr_en = wren | restore;
 
-  always @(posedge clk) begin
-    if(wr_en) onereg <= wrdata;
-  end
+//  always @(posedge clk) begin
+//    if(wr_en) onereg <= wrdata;
+//  end
 
   wire [2:0] addr = save ? save_addr : restore_addr;
 
@@ -76,25 +85,26 @@ endmodule
 `else
 
 
-module bw_r_irf_register(clk, wren, save, save_addr, restore, restore_addr, wr_data, rd_data);
-	input		clk;
-	input		wren;
-	input		save;
-	input	[2:0]	save_addr;
-	input		restore;
-	input	[2:0]	restore_addr;
-	input	[71:0]	wr_data;
-	output	[71:0]	rd_data;
+module bw_r_irf_register(clk, reset_l, wren, save, save_addr, restore, restore_addr, wr_data, rd_data);
+    input       clk;
+    input       reset_l;
+    input       wren;
+    input       save;
+    input   [2:0]   save_addr;
+    input       restore;
+    input   [2:0]   restore_addr;
+    input   [71:0]  wr_data;
+    output  [71:0]  rd_data;
 `ifdef FPGA_SYN_ALTERA
-    reg	[71:0]	window[7:0]/* synthesis syn_ramstyle = block_ram*/; //  syn_ramstyle = no_rw_check */;
+    reg [71:0]  window[7:0]/* synthesis syn_ramstyle = block_ram*/; //  syn_ramstyle = no_rw_check */;
 `else
-reg	[71:0]	window[7:0]/* synthesis syn_ramstyle = block_ram  syn_ramstyle = no_rw_check */;
+reg [71:0]  window[7:0]/* synthesis syn_ramstyle = block_ram  syn_ramstyle = no_rw_check */;
 `endif
-reg	[71:0]	onereg;
+reg [71:0]  onereg;
 
-reg	[2:0]	rd_addr;
-reg	[2:0]	wr_addr;
-reg		save_d;
+reg [2:0]   rd_addr;
+reg [2:0]   wr_addr;
+reg     save_d;
 `ifdef FPGA_SYN_ALTERA
     integer k;
 
@@ -102,14 +112,16 @@ reg		save_d;
     begin
         for (k = 0; k < 8 ; k = k + 1)
         begin
-            window[k] = 72'h0;	
+            window[k] = 72'h0;  
         end
     end
 `endif
 
   initial 
       begin
-          onereg = 72'b0;
+          // Alexey
+          // reseted using reset_l
+          // onereg = 72'b0;
           wr_addr = 3'h0;
           rd_addr = 3'h0;
       end
@@ -133,7 +145,13 @@ reg		save_d;
   wire wr_en = wren | (restore & (wr_addr != rd_addr));
 
   always @(posedge clk) begin
-    if(wr_en) onereg <= wrdata;
+    if (~reset_l)
+    begin
+      onereg <= 72'h0;
+    end
+    else begin
+      if(wr_en) onereg <= wrdata;
+    end
   end
     
   always @(negedge clk) begin

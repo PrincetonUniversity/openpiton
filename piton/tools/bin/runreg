@@ -1,0 +1,68 @@
+#!/bin/csh -f
+# Modified by Princeton Unviersity on June 9th, 2015
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: runreg
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+if (((`uname -r` != "5.9") && (`uname -r` != "5.10")) || (`uname -s` != "SunOS")) then
+    echo "------------------------------------------------------------"
+    echo " OpenSPARC T1 regressions only supported on Solaris 9 or 10."
+    echo " Please run this script on Solaris 9 or Solaris 10 system.  "
+    echo "------------------------------------------------------------"
+    exit
+endif
+
+if (`uname -r` == "5.10") then
+    setenv LD_PRELOAD fake_uname.so
+    setenv _UNAME_RELEASE 5.9
+endif
+
+if ($2 == "") then
+   echo "Usage $0 [core1/chip8] [mini|full]"
+   echo "e.g.  $0 core1 mini"
+   exit
+endif
+
+if ("$1" == 'chip8') then 
+   setenv MOD chip8
+else if ("$1" == 'core1') then 
+   setenv MOD core1
+else
+   echo "Usage $0 [core1/chip8] [mini|full]"
+   echo "e.g.  $0 core1 mini"
+   exit
+endif
+
+if (($2 == 'mini') || ($2 == 'full')) then 
+   setenv TYP $2
+else
+   echo "Usage $0 [core1/chip8] [mini|full]"
+   echo "e.g.  $0 core1 mini"
+   exit
+endif
+
+if ($3 == "") then
+  setenv SIM vcs
+else 
+  setenv SIM ncv
+endif
+
+sims -sim_type=$SIM -group=$MOD\_$TYP
+

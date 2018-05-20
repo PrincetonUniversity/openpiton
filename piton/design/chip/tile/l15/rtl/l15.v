@@ -40,7 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 //`timescale 1 ns / 10 ps
-`include "l15.vh"
+`include "l15.tmp.h"
+`include "lsu.tmp.h"
 
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
@@ -52,7 +53,9 @@ module l15(
     input wire   [4:0]   pcx_req,
     input wire           pcx_atomic_req,
     input wire   [123:0] pcx_data,
+    `ifndef NO_RTL_CSM
     input wire   [`TLB_CSM_WIDTH-1:0] pcx_csm,
+    `endif
     input wire noc1_out_rdy,
     input wire noc2_in_val,
     input wire [`NOC_DATA_WIDTH-1:0] noc2_in_data,
@@ -99,11 +102,16 @@ module l15(
 // assigning sram return data
 wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] dtag_rtap_data;
 wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] dcache_rtap_data;
+
+`ifndef NO_RTL_CSM
 wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] hmt_rtap_data;
 assign srams_rtap_data = dtag_rtap_data
                             | dcache_rtap_data
                             | hmt_rtap_data;
-
+`else
+assign srams_rtap_data = dtag_rtap_data
+                            | dcache_rtap_data;
+`endif
 
 ///////////////////////////////////
 // CSM module
@@ -189,7 +197,11 @@ pcx_buffer pcx_buffer(
    .spc_uncore_req(pcx_req),
    .spc_uncore_atomic_req(pcx_atomic_req),
    .spc_uncore_data(pcx_data),
+    `ifndef NO_RTL_CSM
    .spc_uncore_csm_data(pcx_csm),
+    `else
+   .spc_uncore_csm_data(0),
+    `endif
    .pcxdecoder_pcxbuf_ack(pcxdecoder_pcxbuf_ack),
    .uncore_spc_grant(pcx_grant),
    .pcxbuf_pcxdecoder_data(pcxbuf_pcxdecoder_data),
@@ -430,7 +442,7 @@ wire [`L15_CACHE_TAG_RAW_WIDTH*4-1:0] l15_dtag_write_data_s1;
 wire [`L15_CACHE_TAG_RAW_WIDTH*4-1:0] l15_dtag_write_mask_s1;
 wire [`L15_CACHE_TAG_RAW_WIDTH*4-1:0] dtag_l15_dout_s2;
 
-sram_1rw_128x132 dtag(
+sram_l15_tag dtag(
     .MEMCLK(clk),
     .RESET_N(rst_n),
     .CE(l15_dtag_val_s1),
@@ -453,11 +465,15 @@ wire [127:0] l15_dcache_write_data_s2;
 wire [127:0] l15_dcache_write_mask_s2;
 wire [127:0] dcache_l15_dout_s3;
 
+
+`ifndef NO_RTL_CSM
 wire [`L15_CSM_GHID_WIDTH-1:0] l15_hmt_write_data_s2;
 wire [`L15_CSM_GHID_WIDTH-1:0] l15_hmt_write_mask_s2;
 wire [`L15_CSM_GHID_WIDTH-1:0] hmt_l15_dout_s3;
+`endif
 
-sram_1rw_512x128 dcache(
+// sram_1rw_512x128 dcache(
+sram_l15_data dcache(
     .MEMCLK(clk),
     .RESET_N(rst_n),
     .CE(l15_dcache_val_s2),
@@ -498,11 +514,13 @@ sram_1rw_512x128 dcache(
 //    .TDOUT()
 //    );
 
+`ifndef NO_RTL_CSM
 wire [31:0] l15_hmt_write_data_s2_extended = l15_hmt_write_data_s2;
 wire [31:0] l15_hmt_write_mask_s2_extended = l15_hmt_write_mask_s2;
 wire [31:0] hmt_l15_dout_s3_extended;
 assign hmt_l15_dout_s3 = hmt_l15_dout_s3_extended[`L15_CSM_GHID_WIDTH-1:0];
-sram_1rw_512x32 hmt(
+// sram_1rw_512x32 hmt(
+sram_l15_hmt hmt(
     .MEMCLK(clk),
     .RESET_N(rst_n),
     .CE(l15_dcache_val_s2),
@@ -516,7 +534,7 @@ sram_1rw_512x32 hmt(
     .BIST_DOUT(hmt_rtap_data),
     .SRAMID(`BIST_ID_L15_HMT)
     );
-
+`endif
 
 
 // MSHR
@@ -600,7 +618,7 @@ wire [7:0] l15_mesi_write_mask_s2;
 wire [7:0] l15_mesi_write_data_s2;
 wire [7:0] mesi_l15_dout_s2;
 
-l15_rf_128x8 mesi(
+rf_l15_mesi mesi(
     .clk(clk),
     .rst_n(rst_n),
     .read_valid(l15_mesi_read_val_s1),
@@ -643,7 +661,7 @@ wire [6:0] l15_wmt_write_index_s3;
 wire [11:0] l15_wmt_write_mask_s3;
 wire [11:0] l15_wmt_write_data_s3;
 wire [11:0] wmt_l15_data_s3;
-l15_rf_128x12 wmc(
+rf_l15_wmt wmc(
     .clk(clk),
     .rst_n(rst_n),
     .read_valid(l15_wmt_read_val_s2),
@@ -663,7 +681,7 @@ wire [6:0] l15_lruarray_write_index_s3;
 wire [5:0] l15_lruarray_write_mask_s3;
 wire [5:0] l15_lruarray_write_data_s3;
 wire [5:0] lruarray_l15_dout_s2;
-l15_rf_128x6 lruarray(
+rf_l15_lruarray lruarray(
     .clk(clk),
     .rst_n(rst_n),
     .read_valid(l15_lruarray_read_val_s1),
@@ -825,9 +843,11 @@ l15_pipeline pipeline(
    // .config_csm_en(config_csm_en),
 
    // hmt
+    `ifndef NO_RTL_CSM
    .l15_hmt_write_data_s2(l15_hmt_write_data_s2),
    .l15_hmt_write_mask_s2(l15_hmt_write_mask_s2),
    .hmt_l15_dout_s3(hmt_l15_dout_s3),
+    `endif
 
    // config registers
    .l15_config_req_val_s2(l15_config_req_val_s2),

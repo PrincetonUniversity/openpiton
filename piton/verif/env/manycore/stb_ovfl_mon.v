@@ -27,7 +27,7 @@
 //
 // ***************************************************************************
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 module stb_ovfl_mon (/*AUTOARG*/
    // Inputs

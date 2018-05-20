@@ -1,0 +1,73 @@
+///////////////////////
+// Xilinx IPs
+///////////////////////
+// common
+///////////////////////
+
+//----------------------
+// only for SIMULATION
+//----------------------
+-v $MODEL_DIR/vc707/ip_cores/axi_uartlite_0/axi_uartlite_0_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/uart_16550/uart_16550_funcsim.v
+-v $MODEL_DIR/vc707/ddr3/ddr3_model.v
+-v $MODEL_DIR/vc707/ddr3/wiredly.v
+-v $MODEL_DIR/vc707/ddr3/vc707_ddr3_model.v
+-v $MODEL_DIR/vc707/vc707_piton/vc707_piton.srcs/sources_1/ip/mig_7series_0_1/mig_7series_0_funcsim.v
+
+// for virtex7
+-v $XILINX_VIVADO/data/ip/xilinx/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_128x160/virtex7_bram_128x160_funcsim.v
+
+///////////////////////
+// L2
+///////////////////////
+-v $DV_ROOT/design/proto/bram_sdp_4096x144_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_2048x144_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_1024x64_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_512x64_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_256x66_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_128x108_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_256x104_wrapper.v
+
+// for virtex7
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_2048x144/virtex7_bram_2048x144_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_2p_256x176/virtex7_bram_2p_256x176_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_2p_128x176/virtex7_bram_2p_128x176_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_512x64/virtex7_bram_512x64_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_128x108/virtex7_bram_128x108_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_256x104/virtex7_bram_256x104_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_4096x144/virtex7_bram_4096x144_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_1024x64/virtex7_bram_1024x64_funcsim.v
+
+///////////////////////
+// SPARC
+///////////////////////
+//128X132 isn't listed in sparc Flist anymore - no bram equivalent
+-v $DV_ROOT/design/proto/bram_sdp_128x80_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_256x272_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_128x288_wrapper.v
+
+// for virtex7
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_128x80/virtex7_bram_128x80_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_128x288/virtex7_bram_128x288_funcsim.v
+
+///////////////////////
+// L15
+///////////////////////
+
+// for virtex7
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_512x128/virtex7_bram_512x128_funcsim.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_512x32/virtex7_bram_512x32_funcsim.v
+
+// Test storage
+$DV_ROOT/design/proto/bram_sdp_256x512_wrapper.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_256x512/virtex7_bram_256x512_funcsim.v
+
+//$DV_ROOT/design/proto/bram_sdp_8192x512_wrapper.v
+//-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_8192x512/virtex7_bram_8192x512_funcsim.v
+
+// $DV_ROOT/design/proto/bram_sdp_16384x512_wrapper.v
+// -v $MODEL_DIR/vc707/ip_cores/virtex7_bram_16384x512/virtex7_bram_16384x512_funcsim.v
+
+$DV_ROOT/design/proto/bram_sdp_65536x512_wrapper.v
+-v $MODEL_DIR/vc707/ip_cores/virtex7_bram_65536x512/virtex7_bram_65536x512_funcsim.v

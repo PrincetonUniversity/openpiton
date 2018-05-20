@@ -29,4 +29,6 @@ bus_compare_equal.v
 flip_bus.v
 one_of_eight.v
 one_of_five.v
+one_of_n.v
+one_of_n_plus_3.v
 net_dff.v

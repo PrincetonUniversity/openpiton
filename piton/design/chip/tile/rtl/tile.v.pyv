@@ -21,10 +21,11 @@
 // ========== Copyright Header End ============================================
 `include "define.vh"
 `include "dmbr_define.v"
-`include "l15.vh"
+`include "l15.tmp.h"
 `include "jtag.vh"
 <%
 DMBR_BIN_NUM = 10
+from pyhplib import *
 %>
 
 module tile(
@@ -41,7 +42,8 @@ module tile(
     input [`UCB_BUS_WIDTH-1:0]          jtag_tiles_ucb_data,
     output                              tile_jtag_ucb_val,
     output [`UCB_BUS_WIDTH-1:0]         tile_jtag_ucb_data,
-
+<%
+s = '''
     // Dynamic Network Inputs 0 (User Dynamic Network)
     input [`NOC_DATA_WIDTH-1:0]         dyn0_dataIn_N,
     input [`NOC_DATA_WIDTH-1:0]         dyn0_dataIn_E,
@@ -127,7 +129,37 @@ module tile(
     output                              dyn2_yummyOut_E,
     output                              dyn2_yummyOut_W,
     output                              dyn2_yummyOut_S
-    //output [4:0]                        ec_dyn2
+    //output [4:0]                        ec_dyn2\
+'''
+if (NETWORK_CONFIG == "xbar_config"):
+  s = '''
+    //condensed signals
+    input [`NOC_DATA_WIDTH-1:0]         dyn0_dataIn,
+    input                               dyn0_validIn,
+    input                               dyn0_do_yummy,
+
+    input [`NOC_DATA_WIDTH-1:0]         dyn1_dataIn,
+    input                               dyn1_validIn,
+    input                               dyn1_do_yummy,
+
+    input [`NOC_DATA_WIDTH-1:0]         dyn2_dataIn,
+    input                               dyn2_validIn,
+    input                               dyn2_do_yummy,
+
+    output [`NOC_DATA_WIDTH-1:0]        dyn0_do,
+    output                              dyn0_do_valid,
+    output                              dyn0_yummyOut,
+
+    output [`NOC_DATA_WIDTH-1:0]        dyn1_do,
+    output                              dyn1_do_valid,
+    output                              dyn1_yummyOut,
+
+    output [`NOC_DATA_WIDTH-1:0]        dyn2_do,
+    output                              dyn2_do_valid,
+    output                              dyn2_yummyOut\
+'''
+print s
+%>
 );
     // clock gating
     wire clk_gated;
@@ -208,7 +240,9 @@ module tile(
     wire   [4:0]                        pcx_req;
     wire                                pcx_atomic_req;
     wire   [123:0]                      pcx_data;
+    `ifndef NO_RTL_CSM
     wire   [`TLB_CSM]                   pcx_csm;
+    `endif
     wire [4:0]                          pcx_grant;
     // is actually cpx_data_valid
     wire                                cpx_data_ready;
@@ -296,7 +330,8 @@ module tile(
     /////////////
     // Routers //
     // //////////
-
+<%
+s = '''
     dynamic_node_top_wrap user_dynamic_network0
       (.clk(clk_gated),
        .reset_in(~rst_n_f),
@@ -455,12 +490,42 @@ module tile(
        //.store_meter_ack_partner(),
        //.store_meter_ack_non_partner(),
        //.ec_out(ec_dyn2));
+'''
+if (NETWORK_CONFIG == "xbar_config"):
+  s = '''
+    assign dyn0_do = buffer_router_data_noc1;
+    assign dyn0_do_valid = buffer_router_valid_noc1;
+    assign dyn0_yummyOut = buffer_router_yummy_noc1;
+    assign router_buffer_data_noc1 = dyn0_dataIn;
+    assign router_buffer_data_val_noc1 = dyn0_validIn;
+    assign router_buffer_consumed_noc1 = dyn0_do_yummy;
 
+    assign dyn1_do = buffer_router_data_noc2;
+    assign dyn1_do_valid = buffer_router_valid_noc2;
+    assign dyn1_yummyOut = buffer_router_yummy_noc2;
+    assign router_buffer_data_noc2 = dyn1_dataIn;
+    assign router_buffer_data_val_noc2 = dyn1_validIn;
+    assign router_buffer_consumed_noc2 = dyn1_do_yummy;
+
+    assign dyn2_do = buffer_router_data_noc3;
+    assign dyn2_do_valid = buffer_router_valid_noc3;
+    assign dyn2_yummyOut = buffer_router_yummy_noc3;
+    assign router_buffer_data_noc3 = dyn2_dataIn;
+    assign router_buffer_data_val_noc3 = dyn2_validIn;
+    assign router_buffer_consumed_noc3 = dyn2_do_yummy;
+'''
+print s
+%>
     ////////////////////////////////////////////
     // Credit - Val/Rdy Interface Transducers //
     ///////////////////////////////////////////
-
-    valrdy_to_credit #(16, 5) cgno_blk1(
+<%
+NIB_SIZE_LOG2 = 4
+if (NETWORK_CONFIG == "xbar_config"):
+  NIB_SIZE_LOG2 = 2
+NIB_SIZE = pow(2, NIB_SIZE_LOG2)
+%>
+    valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk1(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(processor_router_data_noc1),
@@ -472,7 +537,7 @@ module tile(
         .yummy_out(router_buffer_consumed_noc1)    // Yummy signal
     );
     
-    valrdy_to_credit #(16, 5) cgno_blk2(
+    valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk2(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(processor_router_data_noc2),
@@ -484,7 +549,7 @@ module tile(
         .yummy_out(router_buffer_consumed_noc2)    // Yummy signal
     );
     
-    valrdy_to_credit #(16, 5) cgno_blk3(
+    valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk3(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(processor_router_data_noc3),
@@ -595,7 +660,9 @@ module tile(
         .pcx_atomic_req(pcx_atomic_req),
         .pcx_data_123_117(pcx_data[123:117]),
         .pcx_data_112_0(pcx_data[112:0]),
+        `ifndef NO_RTL_CSM
         .pcx_csm(pcx_csm),
+        `endif
         .noc1_out_rdy(router_processor_ready_noc1),
         .noc2_in_val(buffer_processor_valid_noc2),
         .noc2_in_data(buffer_processor_data_noc2),

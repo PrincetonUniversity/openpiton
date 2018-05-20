@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_pipe2_dpath(
@@ -148,8 +148,10 @@ module l2_pipe2_dpath(
     output reg [`L2_DATA_ARRAY_WIDTH-1:0] data_data_in_S2,
     output wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_mask_in_S2,
 
+    `ifndef NO_RTL_CSM
     output reg [`L2_SMC_ADDR_WIDTH-1:0] smc_wr_addr_in_S2,
     output reg [`L2_SMC_DATA_IN_WIDTH-1:0] smc_data_in_S2,
+    `endif
 
     //Outputs from Stage 3
     output reg [`PHY_ADDR_WIDTH-1:0] addr_S3,
@@ -721,6 +723,7 @@ begin
                               state_way_data_mask_in_S2}; 
 end
 
+`ifndef NO_RTL_CSM
 always @ *
 begin
     smc_wr_addr_in_S2 = {sdid_S2_f, mshr_miss_lsid_S2_f}; 
@@ -730,7 +733,7 @@ always @ *
 begin
     smc_data_in_S2 = msg_data_S2; 
 end
-
+`endif
 
 
 //============================

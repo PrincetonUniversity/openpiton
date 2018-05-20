@@ -50,7 +50,7 @@
 %>
 
 
-
+`include "l2.tmp.h"
 `include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
@@ -78,7 +78,9 @@ begin
                   `L2_TOP0.pipe1.ctrl.stall_hazard_S1, `L2_TOP0.pipe1.ctrl.stall_mshr_S1,
                   `L2_TOP0.pipe1.ctrl.stall_msg_S1, `L2_TOP0.pipe1.ctrl.global_stall_S1);
         $display("Control signals: %b", `L2_TOP0.pipe1.ctrl.cs_S1);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe1.ctrl.csm_en);
+        `endif
         $display("Special addr type: %b", `L2_TOP0.pipe1.ctrl.special_addr_type_S1);
         $display("Msg from mshr: %b", `L2_TOP0.pipe1.ctrl.msg_from_mshr_S1);
         $display("P1S1 addr: 0x%h", `L2_TOP0.pipe1.dpath.addr_S1);
@@ -105,7 +107,9 @@ begin
                   `L2_TOP0.pipe1.ctrl.stall_real_S2, `L2_TOP0.pipe1.ctrl.stall_load_S2, 
                   `L2_TOP0.pipe1.ctrl.stall_msg_S2, `L2_TOP0.pipe1.ctrl.global_stall_S2);
         $display("Control signals: %b", `L2_TOP0.pipe1.ctrl.cs_S2);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe1.ctrl.csm_en);
+        `endif
         $display("Special addr type: %b", `L2_TOP0.pipe1.ctrl.special_addr_type_S2);
         $display("Msg from mshr: %b", `L2_TOP0.pipe1.ctrl.msg_from_mshr_S2);
         $display("P1S2 addr: 0x%h", `L2_TOP0.pipe1.dpath.addr_S2);
@@ -150,7 +154,9 @@ begin
         $display("P1S3 valid: recycle: %b, stall: %b", `L2_TOP0.pipe1.ctrl.req_recycle_S3, `L2_TOP0.pipe1.ctrl.stall_S3);
         $display("State wr en: %b", `L2_TOP0.pipe1.ctrl.state_wr_en_S3_f);
         $display("Dir data: 0x%h", `L2_TOP0.pipe1.ctrl.dir_data_S3);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe1.ctrl.csm_en);
+        `endif
         $display("Msg from mshr: %b", `L2_TOP0.pipe1.ctrl.msg_from_mshr_S3_f);
         $display("P1S3 addr: 0x%h", `L2_TOP0.pipe1.dpath.addr_S3_f);
         $display("P1S3 valid: l2_hit: %b, l2_evict: %b",
@@ -170,15 +176,25 @@ begin
         $write("P1S4 msg type: ");
         print_msg_type(`L2_TOP0.pipe1.ctrl.msg_type_S4_f);
         $display("Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.ctrl.data_size_S4_f, `L2_TOP0.pipe1.ctrl.cache_type_S4_f);
+        `ifndef NO_RTL_CSM
         $display("P1S4 valid: recycle: %b, stall: %b, msg_stall: %b, dir_data_stall: %b, stall_inv_counter: %b, stall_smc_buf: %b, smc_stall: %b, global_stall: %b, broadcast_stall: %b",
                   `L2_TOP0.pipe1.ctrl.req_recycle_S4, `L2_TOP0.pipe1.ctrl.stall_S4, 
                   `L2_TOP0.pipe1.ctrl.msg_stall_S4, `L2_TOP0.pipe1.ctrl.dir_data_stall_S4,
                   `L2_TOP0.pipe1.ctrl.stall_inv_counter_S4, `L2_TOP0.pipe1.ctrl.stall_smc_buf_S4,
                   `L2_TOP0.pipe1.ctrl.smc_stall_S4, `L2_TOP0.pipe1.ctrl.global_stall_S4, `L2_TOP0.pipe1.ctrl.broadcast_stall_S4);
+        `else
+        $display("P1S4 valid: recycle: %b, stall: %b, msg_stall: %b, dir_data_stall: %b, stall_inv_counter: %b, global_stall: %b",
+                  `L2_TOP0.pipe1.ctrl.req_recycle_S4, `L2_TOP0.pipe1.ctrl.stall_S4, 
+                  `L2_TOP0.pipe1.ctrl.msg_stall_S4, `L2_TOP0.pipe1.ctrl.dir_data_stall_S4,
+                  `L2_TOP0.pipe1.ctrl.stall_inv_counter_S4, 
+                  `L2_TOP0.pipe1.ctrl.global_stall_S4);
+        `endif
         $display("Control signals: %b", `L2_TOP0.pipe1.ctrl.cs_S4);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe1.ctrl.csm_en);
         $display("broadcast coreid: (%d, %d, %d)", `L2_TOP0.pipe1.ctrl.broadcast_chipid_out_S4, `L2_TOP0.pipe1.ctrl.broadcast_y_out_S4, `L2_TOP0.pipe1.ctrl.broadcast_x_out_S4);
         $display("broadcast state: %b, broadcast op val: %b", `L2_TOP0.pipe1.ctrl.broadcast_state_S4_f, `L2_TOP0.pipe1.ctrl.broadcast_counter_op_val_S4);
+        `endif
         $display("Special addr type: %b", `L2_TOP0.pipe1.ctrl.special_addr_type_S4);
         $display("MSHR state wr en: %b", `L2_TOP0.pipe1.ctrl.mshr_wr_state_en_S4);
         $display("MSHR data wr en: %b", `L2_TOP0.pipe1.ctrl.mshr_wr_data_en_S4);
@@ -191,10 +207,12 @@ begin
         $display("State data mask in: 0x%h", `L2_TOP0.pipe1.dpath.state_data_mask_in_S4);
         $display("State wr addr: 0x%h", `L2_TOP0.pipe1.dpath.state_wr_addr_S4);
         $display("Msg data: 0x%h", `L2_TOP0.pipe1.dpath.msg_data_S4_f);
+        `ifndef NO_RTL_CSM
         $display("SMC miss: %b", `L2_TOP0.pipe1.ctrl.smc_miss_S4);
         $display("SMC data out: 0x%h", `L2_TOP0.pipe1.dpath.smc_data_out_S4);
         $display("SMC tag out: 0x%h", `L2_TOP0.pipe1.dpath.smc_tag_out_S4);
         $display("SMC valid out: 0x%h", `L2_TOP0.pipe1.dpath.smc_valid_out_S4);
+        `endif
         $display("Msg send valid: %b, send ready: %b, mode: %b, length: %b", `L2_TOP0.pipe1.ctrl.msg_send_valid_S4,
                  `L2_TOP0.pipe1.ctrl.msg_send_ready_S4, `L2_TOP0.pipe1.ctrl.msg_send_mode_S4,`L2_TOP0.pipe1.ctrl.msg_send_length_S4);
         $write("Msg send type: ");
@@ -245,8 +263,10 @@ begin
         $display("P2S1 valid: stall: %b, stall_pre: %b, stall_hazard: %b",
                 `L2_TOP0.pipe2.ctrl.stall_S1, `L2_TOP0.pipe2.ctrl.stall_pre_S1, `L2_TOP0.pipe2.ctrl.stall_hazard_S1);
         $display("Control signals: %b", `L2_TOP0.pipe2.ctrl.cs_S1);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe2.ctrl.csm_en);
         $display("SMC miss: %b", `L2_TOP0.pipe2.ctrl.smc_miss_S1);
+        `endif
         $display("Msg from mshr: %b", `L2_TOP0.pipe2.ctrl.msg_from_mshr_S1);
         $display("Msg length: %b", `L2_TOP0.pipe2.ctrl.msg_length_S1);
         $display("P2S1 addr: 0x%h", `L2_TOP0.pipe2.dpath.addr_S1);
@@ -271,10 +291,12 @@ begin
         $display("P2S2 valid: stall: %b, stall_real: %b, stall_load: %b",
                   `L2_TOP0.pipe2.ctrl.stall_S2, `L2_TOP0.pipe2.ctrl.stall_real_S2, `L2_TOP0.pipe2.ctrl.stall_load_S2);
         $display("Control signals: %b", `L2_TOP0.pipe2.ctrl.cs_S2);
+        `ifndef NO_RTL_CSM
         $display("CSM enable: %b", `L2_TOP0.pipe2.ctrl.csm_en);
         $display("broadcast coreid: (%d, %d, %d)", `L2_TOP0.pipe2.ctrl.broadcast_chipid_out_S2, `L2_TOP0.pipe2.ctrl.broadcast_y_out_S2, `L2_TOP0.pipe2.ctrl.broadcast_x_out_S2);
         $display("broadcast op val: %b", `L2_TOP0.pipe2.ctrl.broadcast_counter_op_val_S2);
         $display("SMC miss: %b", `L2_TOP0.pipe2.ctrl.smc_miss_S2_f);
+        `endif
         $display("Msg from mshr: %b", `L2_TOP0.pipe2.ctrl.msg_from_mshr_S2);
         $display("P2S2 addr: 0x%h", `L2_TOP0.pipe2.dpath.addr_S2);
         $display("P2S2 valid: l2_way_sel: %b, l2_hit: %b, l2_wb: %b",
@@ -300,8 +322,10 @@ begin
     begin
         $display("TILE0-------------------------------------");
         $display($time);
+        `ifndef NO_RTL_CSM
         $display("SMC miss: %b", `L2_TOP0.pipe2.ctrl.smc_miss_S3_f);
         $display("CSM enable: %b", `L2_TOP0.pipe2.ctrl.csm_en);
+        `endif
         $display("P2S3 State wr addr: 0x%h", `L2_TOP0.pipe2.dpath.state_wr_addr_S3);
         $display("Mshr wr index: %b", `L2_TOP0.pipe2.dpath.mshr_wr_index_S3);
         $display("MSHR state wr en: %b", `L2_TOP0.pipe2.ctrl.mshr_wr_state_en_S3);
@@ -551,6 +575,7 @@ begin
 
 
     //SMC refill invalid data
+    `ifndef NO_RTL_CSM
     if (`L2_TOP0.pipe2.ctrl.valid_S2 && !`L2_TOP0.pipe2.ctrl.stall_S2)
     begin
         if (`L2_TOP0.pipe2.ctrl.smc_wr_en_S2 
@@ -562,7 +587,7 @@ begin
             `MONITOR_PATH.fail("l2_mon: SMC refills invalid data");
         end
     end
-
+    `endif
 
  
     end     //disable_l2_mon

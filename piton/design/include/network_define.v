@@ -43,3 +43,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define    OFF_CHIP_NODE_Y 0
 `define    MAX_FILE_SIZE 1024
 `define    FINAL_BITS 4
+
+ //whether the routing is based on chipid or x y position
+ //`define    ROUTING_CHIP_ID
+ `define    ROUTING_XY
+
+ //defines for different topology, only one should be active
+ //`define    NETWORK_TOPO_2D_MESH
+ //`define    NETWORK_TOPO_3D_MESH
+ `define    NETWORK_TOPO_XBAR

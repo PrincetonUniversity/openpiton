@@ -33,8 +33,8 @@
 
 `include "sys.h"
 `include "iop.h"
-`include "cross_module.h.tmp"
-`include "ifu.h"
+`include "cross_module.tmp.h"
+`include "ifu.tmp.h"
 `include "define.vh"
 
 

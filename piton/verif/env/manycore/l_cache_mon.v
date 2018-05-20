@@ -20,6 +20,8 @@
 //
 // ========== Copyright Header End ============================================
 
+`include "ifu.tmp.h"
+
 module l_cache_mon(/*AUTOARG*/
    // Inputs
    clk, rst_l, spc, index_f, wrreq_f, wrway_f, wrtag_f, wr_data,
@@ -31,16 +33,16 @@ module l_cache_mon(/*AUTOARG*/
    input clk,    rst_l;
    input [31:0]  spc;
 //ict signal
-   input [11:5]   index_f;
+   input [`IC_IDX_HI:5]   index_f;
    input         wrreq_f;
    input [1:0] 	 wrway_f;
-   input [28:0]  wrtag_f;
+   input [`IC_TAG_SZ:0]  wrtag_f;
 //icv
 //   input [1:0] 	 wr_data;
    input  	 wr_data;
    input [15:0] 	 wren_f;
    input         wrreq_bf;
-   input [11:7]  wrindex_bf;
+   input [`IC_IDX_HI:7]  wrindex_bf;
 
  // cpx packet
    input [`CPX_WIDTH-1:0] cpx_spc_data_cx;
@@ -54,22 +56,22 @@ module l_cache_mon(/*AUTOARG*/
    input [127:0] 	  w3;
 
    // define dummy tag
-   reg [28:0] 	tag[512:0];
+   reg [`IC_TAG_SZ:0] 	tag[512:0];
    reg [512:0] 	vld;
 
 
-   reg [28:0] 	 t_tag[3:0];
+   reg [`IC_TAG_SZ:0] 	 t_tag[3:0];
    reg [3:0] 	 vbit;
    reg [7:0] 	 vbit_32b;
 
-   wire [6:0] 	 index   = index_f[11:5];
-   wire [4:0] 	 w_index = wrindex_bf[11:7];
+   wire [`IC_SET_IDX_HI:0] 	 index   = index_f[`IC_IDX_HI:5];
+   wire [`IC_SET_IDX_HI-2:0] 	 w_index = wrindex_bf[`IC_IDX_HI:7];
    integer	 i;
    //array for pcx packet
-   reg [6:0] 	 imiss_index[4:0];
+   reg [`IC_SET_IDX_HI:0] 	 imiss_index[4:0];
    reg [1:0] 	 imiss_way[4:0];
 
-   reg [6:0] 	 load_index[4:0];
+   reg [`IC_SET_IDX_HI:0] 	 load_index[4:0];
    reg [1:0] 	 load_way[4:0];
    reg [3:0] 	 i_ptr, l_ptr, ia_ptr, la_ptr;
    reg [127:0] 	 wait_fill[3:0];
@@ -95,7 +97,8 @@ module l_cache_mon(/*AUTOARG*/
 
       for(i = 0; i <= 512 ; i = i + 1) begin
 	 vld[i] = 1'b0;
-	 tag[i] = 29'b0;
+	//  tag[i] = 29'b0;
+	 tag[i] = {`IC_TAG_SZ{1'b0}};
       end
    end // initial begin
    //make delay version
@@ -434,7 +437,7 @@ module l_cache_mon(/*AUTOARG*/
       			`CPX_INVALID_TIME, way, i);
       		  $display("%d : Simulation -> FAIL(%0s)", $time, "Dcache not Invalidated");
       		  // $sas_client("quit");
-      		  `TOP_MOD.fail_flag = 1'b1;
+      		  `SIM_TOP.fail_flag = 1'b1;
       		  $finish;
 	       end
 	       else d_count[ind+i] = d_count[ind+i] + 1;
@@ -493,7 +496,7 @@ module l_cache_mon(/*AUTOARG*/
           			`CPX_INVALID_TIME, way, i);
           		 $display("%d : Simulation -> FAIL(%0s)", $time, "Icache not validated");
           		 // $sas_client("quit");
-          		 `TOP_MOD.fail_flag = 1'b1;
+          		 `SIM_TOP.fail_flag = 1'b1;
           		 $finish;
     	       end
     	       else pcx_icount[ind+i] = pcx_icount[ind+i] + 1;

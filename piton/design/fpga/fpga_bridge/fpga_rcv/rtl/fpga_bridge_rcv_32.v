@@ -169,65 +169,109 @@ reg           bout_val_buf3;
 
 wire fifo1_empty;
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_1(
-    .rreset(rst_d1),
-    .wreset(rst_d1),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(bout_rdy_1 & ~credit_fifo_full),
-    .wval(sort_val_1),
-    .wdata(sort_data_1),
-    .rdata(bout_data_1),
-    .wfull(fifo1_full), //credit system should prevent this from ever being full
-    .rempty(fifo1_empty)
-);
+`ifdef PITON_SPARTAN6
+    afifo_send  async_fifo_1(
+        .rst(rst_d1),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(bout_rdy_1 & ~credit_fifo_full),
+        .wr_en(sort_val_1),
+        .din(sort_data_1),
+        .dout(bout_data_1),
+        .full(fifo1_full), //credit system should prevent this from ever being full
+        .empty(fifo1_empty)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_1(
+        .rreset(rst_d1),
+        .wreset(rst_d1),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(bout_rdy_1 & ~credit_fifo_full),
+        .wval(sort_val_1),
+        .wdata(sort_data_1),
+        .rdata(bout_data_1),
+        .wfull(fifo1_full), //credit system should prevent this from ever being full
+        .rempty(fifo1_empty)
+    );
+`endif
+
 
 assign bout_val_1 = ~fifo1_empty & ~credit_fifo_full;
 
 
 wire fifo2_empty;
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_2(
-    .rreset(rst_d1),
-    .wreset(rst_d1),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(bout_rdy_2 & ~credit_fifo_full),
-    .wval(sort_val_2),
-    .wdata(sort_data_2),
-    .rdata(bout_data_2),
-    .wfull(fifo2_full), //credit system should prevent this from ever being full
-    .rempty(fifo2_empty)
-);
+`ifdef PITON_SPARTAN6
+    afifo_send async_fifo_2(
+        .rst(rst_d1),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(bout_rdy_2 & ~credit_fifo_full),
+        .wr_en(sort_val_2),
+        .din(sort_data_2),
+        .dout(bout_data_2),
+        .full(fifo2_full), //credit system should prevent this from ever being full
+        .empty(fifo2_empty)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_2(
+        .rreset(rst_d1),
+        .wreset(rst_d1),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(bout_rdy_2 & ~credit_fifo_full),
+        .wval(sort_val_2),
+        .wdata(sort_data_2),
+        .rdata(bout_data_2),
+        .wfull(fifo2_full), //credit system should prevent this from ever being full
+        .rempty(fifo2_empty)
+    );
+`endif
+
 
 assign bout_val_2 = ~fifo2_empty & ~credit_fifo_full;
 
 wire fifo3_empty;
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_3(
-    .rreset(rst_d1),
-    .wreset(rst_d1),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(bout_rdy_3 & ~credit_fifo_full),
-    .wval(sort_val_3),
-    .wdata(sort_data_3),
-    .rdata(bout_data_3),
-    .wfull(fifo3_full), //credit system should prevent this from ever being full
-    .rempty(fifo3_empty)
-);
+`ifdef PITON_SPARTAN6
+    afifo_send async_fifo_3(
+        .rst(rst_d1),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(bout_rdy_3 & ~credit_fifo_full),
+        .wr_en(sort_val_3),
+        .din(sort_data_3),
+        .dout(bout_data_3),
+        .full(fifo3_full), //credit system should prevent this from ever being full
+        .empty(fifo3_empty)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_3(
+        .rreset(rst_d1),
+        .wreset(rst_d1),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(bout_rdy_3 & ~credit_fifo_full),
+        .wval(sort_val_3),
+        .wdata(sort_data_3),
+        .rdata(bout_data_3),
+        .wfull(fifo3_full), //credit system should prevent this from ever being full
+        .rempty(fifo3_empty)
+    );
+`endif
 
 assign bout_val_3 = ~fifo3_empty & ~credit_fifo_full;
 
@@ -249,22 +293,36 @@ reg  [2:0] credit_to_chip_r;
 
 wire credit_empty;
 
-async_fifo #(
-.DSIZE(3),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_credit_fifo(
-    .rreset(rst_d1),
-    .wreset(rst_d1),
-    .wclk(rd_clk),
-    .rclk(wr_clk),
-    .ren(~(rst | rst_d0)),
-    .wval(~(rst | rst_d0) & (| credit_gather)),
-    .wdata(credit_gather),
-    .rdata(credit_fifo_out),
-    .wfull(credit_fifo_full),   
-    .rempty(credit_empty)
-);
+`ifdef PITON_SPARTAN6
+    afifo_width_3 async_credit_fifo(
+        .rst(rst_d1),
+        .wr_clk(rd_clk),
+        .rd_clk(wr_clk),
+        .rd_en(~(rst | rst_d0)),
+        .wr_en(~(rst | rst_d0) & (| credit_gather)),
+        .din(credit_gather),
+        .dout(credit_fifo_out),
+        .full(credit_fifo_full),   
+        .empty(credit_empty)
+    );
+`else
+    async_fifo #(
+    .DSIZE(3),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_credit_fifo(
+        .rreset(rst_d1),
+        .wreset(rst_d1),
+        .wclk(rd_clk),
+        .rclk(wr_clk),
+        .ren(~(rst | rst_d0)),
+        .wval(~(rst | rst_d0) & (| credit_gather)),
+        .wdata(credit_gather),
+        .rdata(credit_fifo_out),
+        .wfull(credit_fifo_full),   
+        .rempty(credit_empty)
+    );
+`endif
 
 assign credit_val = ~ credit_empty;
 

@@ -26,7 +26,7 @@
 //==================================================================================================
 //  Filename      : config_regs.v
 //  Created On    : 2014-01-31 18:24:47
-//  Last Modified : 2014-12-26 21:20:40
+//  Last Modified : 2015-12-09 14:11:44
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -38,7 +38,7 @@
 //==================================================================================================
 
 //`timescale 1 ns / 10 ps
-`include "l15.vh"
+`include "l15.tmp.h"
 `include "define.vh"
 <%
 DMBR_BIN_NUM = 10
@@ -141,7 +141,13 @@ for i in range(DMBR_BIN_NUM):
 %>
 
 assign config_hmt_base = hmt_base;
-assign config_csm_en = csm_en;
+
+`ifdef PITON_NO_CSM
+   assign config_csm_en = 1'b0;
+`else
+   assign config_csm_en = csm_en;
+`endif
+
 assign config_system_tile_count = system_tile_count;
 assign config_home_alloc_method = home_alloc_method;
 assign config_chipid = chipid;

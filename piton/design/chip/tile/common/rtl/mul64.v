@@ -55,7 +55,7 @@
 `endif
 
 `ifdef FPGA_SYN_MUL
-module mul64(rs1_l, rs2, valid, areg, accreg, x2, out, rclk, si, so, se, 
+(* use_dsp48 = "yes" *) module mul64(rs1_l, rs2, valid, areg, accreg, x2, out, rclk, si, so, se, 
 	mul_rst_l, mul_step);
 
 	input	[63:0]		rs1_l;

@@ -24,7 +24,7 @@
 // Description: This monitor checks that the icache hits are mutex
 // ***************************************************************************
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 module icache_mutex_mon(/*AUTOARG*/
    // Inputs

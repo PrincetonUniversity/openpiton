@@ -86,8 +86,6 @@ manycore_network_mon.v
 -v async_fifo_mon.v
 -v iob_mon.v
 manycore_top.v
-$MODEL_DIR/fpga/xilinx_ip/clk_18MHz.v
-$DV_ROOT/design/proto/bram_sdp_4096x512_wrapper.v
-$MODEL_DIR/fpga/xilinx_ip/bram_sdp_4096x512.v 
+
 $DV_ROOT/design/proto/bram_map.v
-$XILINX/verilog/src/glbl.v
+$DV_ROOT/design/proto/bram_map_obp.v

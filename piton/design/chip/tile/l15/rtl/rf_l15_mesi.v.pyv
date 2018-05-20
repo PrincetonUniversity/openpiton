@@ -1,0 +1,118 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+
+//==================================================================================================
+//  Filename      : l15_rf_128x8.v
+//  Created On    : 2014-02-04 18:14:58
+//  Last Modified : 2014-12-17 16:09:50
+//  Revision      :
+//  Author        : Tri Nguyen
+//  Company       : Princeton University
+//  Email         : trin@princeton.edu
+//
+//  Description   :
+//
+//
+//==================================================================================================
+//l15_rf_128x8.v
+
+//`timescale 1 ns / 10 ps
+//`default_nettype none
+
+// 12/17 timing fix: move write to s3
+
+module rf_l15_mesi(
+   input wire clk,
+   input wire rst_n,
+
+   input wire read_valid,
+   input wire [6:0] read_index,
+
+   input wire write_valid,
+   input wire [6:0] write_index,
+   input wire [7:0] write_mask,
+   input wire [7:0] write_data,
+
+   output wire [7:0] read_data
+   );
+
+// reg read_valid_f;
+reg [6:0] read_index_f;
+reg [6:0] write_index_f;
+reg [7:0] write_data_f;
+reg [7:0] write_mask_f;
+reg write_valid_f;
+
+reg [7:0] regfile [0:127];
+
+always @ (posedge clk)
+begin
+   if (!rst_n)
+   begin
+      read_index_f <= 0;
+   end
+   else
+   if (read_valid)
+      read_index_f <= read_index;
+   else
+      read_index_f <= read_index_f;
+end
+
+// read port
+assign read_data = regfile[read_index_f];
+
+// Write port
+always @ (posedge clk)
+begin
+   write_valid_f <= write_valid;
+   if (write_valid)
+   begin
+      write_data_f <= write_data;
+      write_index_f <= write_index;
+      write_mask_f <= write_mask;
+   end
+end
+
+always @ (posedge clk)
+begin
+   if (!rst_n)
+   begin
+      <%
+         for i in range (128):
+            print "regfile[%d] <= 8'b0;" % (i)
+      %>
+      // regfile <= 1024'b0;
+   end
+   else
+   if (write_valid_f)
+   begin
+      // regfile[write_index] <= (write_data & write_mask) | (regfile[write_index] & ~write_mask);
+      regfile[write_index_f] <= (write_data_f & write_mask_f) | (regfile[write_index_f] & ~write_mask_f);
+   end
+end
+endmodule

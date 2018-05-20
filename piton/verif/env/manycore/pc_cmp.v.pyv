@@ -20,7 +20,7 @@
 //
 // ========== Copyright Header End ============================================
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 `define GOOD_TRAP_COUNTER 32
 
 <%

@@ -20,7 +20,7 @@
 // 
 // ========== Copyright Header End ============================================
 
-`include        "lsu.h"
+`include "lsu.tmp.h" 
 
 module lsu_tlbdp(/*AUTOARG*/
    // Outputs

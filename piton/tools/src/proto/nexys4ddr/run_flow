@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd $MODEL_DIR/nexys4ddr/nexys4ddr_piton
+echo "Running FPGA implementation" >&2
+vivado -mode batch -source ../flow > ../protosyn_logs/flow.log

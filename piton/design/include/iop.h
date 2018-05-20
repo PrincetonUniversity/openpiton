@@ -154,6 +154,28 @@
 `define CPX_DA_HI       127  //CPX data payload
 `define CPX_DA_LO         0
 
+// cache invalidation format
+// `define CPX_INV_DCACHE_WORD0_VAL 0
+// `define CPX_INV_ICACHE_WORD0_VAL 1
+// `define CPX_INV_WORD0_WAY 5:2
+// `define CPX_INV_DCACHE_WORD0_VAL 6
+// `define CPX_INV_ICACHE_WORD0_VAL 7
+// `define CPX_INV_WORD0_WAY 11:8
+// `define CPX_INV_DCACHE_WORD0_VAL 12
+// // `define CPX_INV_ICACHE_WORD0_VAL 13
+// `define CPX_INV_WORD0_WAY 17:14
+// `define CPX_INV_DCACHE_WORD0_VAL 18
+// // `define CPX_INV_ICACHE_WORD0_VAL 19
+// `define CPX_INV_WORD0_WAY 23:20
+
+`define CPX_INV_DCACHE_VAL 0
+`define CPX_INV_ICACHE_VAL 1
+`define CPX_INV_WAY 5:2
+// 4 extra bits for bigger icache/dcache
+// up to 512KB l1 icache, 256KB l1 dcache
+`define CPX_INV_PA_15_12 27:24
+`define CPX_INV_UNUSED 111:28
+
 `define	LOAD_RQ		5'b00000
 `define	IMISS_RQ	5'b10000
 `define	STORE_RQ	5'b00001

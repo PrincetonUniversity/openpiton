@@ -19,8 +19,8 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 //
 // ========== Copyright Header End ============================================
-`ifdef FPGA_SYN
-`define FPGA_SYN_16x160
+`ifdef PITON_PROTO
+    //`define FPGA_SYN_16x160
 `endif
 
 `ifdef USE_IBM_SRAMS
@@ -793,6 +793,7 @@ task mra_val;
                 t = r'''
                     `ifdef RTL_SPARC0
                                10'd0 : begin
+                    `ifndef PITON_PROTO
                     `ifdef FPGA_SYN_16x160
                                     $bw_force_by_name(2, idx, `TLUPATH0.mra.arr0.inq_ary0, tmp[1:0]);
                                     $bw_force_by_name(2, idx, `TLUPATH0.mra.arr0.inq_ary1, tmp[3:2]);
@@ -894,9 +895,12 @@ task mra_val;
                                     $bw_force_by_name(2, idx, `TLUPATH0.mra.arr19.inq_ary2, tmp[5:4]);
                                     $bw_force_by_name(2, idx, `TLUPATH0.mra.arr19.inq_ary3, tmp[7:6]);
                                     mra_wdata[159:152] = {tmp[7],tmp[5],tmp[3],tmp[1],tmp[6],tmp[4],tmp[2],tmp[0]};
+                        `else
+                            $bw_force_by_name(2, idx, `TLUPATH0.mra.inq_ary, mra_wdata);
+                        `endif
                     `else
                     $bw_force_by_name(2, idx, `TLUPATH0.mra.inq_ary, mra_wdata);
-                    `endif // FPGA_SYN
+                    `endif // PITON_PROTO
                                 end
                     `endif
                 '''

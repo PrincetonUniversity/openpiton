@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 //`timescale 1 ns / 10 ps
-`include "l15.vh"
+`include "l15.tmp.h"
 
 <%
 L15_PHYSICAL_ADDRESS_WIDTH = 40
@@ -132,9 +132,11 @@ module l15_pipeline(
     output reg [5:0] l15_lruarray_write_data_s3,
 
     // hmt
+    `ifndef NO_RTL_CSM
     input wire [`L15_CSM_GHID_WIDTH-1:0] hmt_l15_dout_s3,
     output reg [`L15_CSM_GHID_WIDTH-1:0] l15_hmt_write_data_s2,
     output reg [`L15_CSM_GHID_WIDTH-1:0] l15_hmt_write_mask_s2,
+    `endif
 
     // wmt
     output reg l15_wmt_read_val_s2,
@@ -988,7 +990,9 @@ reg [`L15_WMT_READ_OP_WIDTH-1:0]decoder_wmt_read_op_s1;
 reg [`L15_WMT_WRITE_OP_WIDTH-1:0]decoder_wmt_write_op_s1;
 reg [`L15_LRUARRAY_WRITE_OP_WIDTH-1:0]decoder_lruarray_write_op_s1;
 reg [`L15_CPX_OP_WIDTH-1:0]decoder_cpx_operation_s1;
+`ifndef NO_RTL_CSM
 reg [`L15_HMT_OP_WIDTH-1:0]decoder_hmt_op_s1;
+`endif
 reg [`L15_NOC1_OP_WIDTH-1:0]decoder_noc1_operation_s1;
 reg [`L15_NOC3_OP_WIDTH-1:0]decoder_noc3_operation_s1;
 reg [`L15_CSM_OP_WIDTH-1:0]decoder_csm_op_s1;
@@ -1028,7 +1032,9 @@ begin
     decoder_mshr_allocation_type_s1 = 0;
 
     decoder_no_free_mshr_s1 = 0;
+    `ifndef NO_RTL_CSM
     decoder_hmt_op_s1 = 0;
+    `endif
     case (predecode_reqtype_s1)
         `L15_REQTYPE_LOAD_NC:
         begin
@@ -1053,6 +1059,7 @@ begin
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_TAGCHECK_M;
                 decoder_creditman_noc1_needed = 2'd2; // this one is for the subsequent load too
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_TAGCHECK_M_FROM_DCACHE;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_M;
             end
             else
             begin // nc load
@@ -1174,6 +1181,7 @@ begin
                     decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_TAGCHECK_M_FROM_DCACHE;
                     // moved for atomicity
                     decoder_creditman_req_8B_s1 = 1'b1;
+                    decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_M;
                 end
                 else
                 begin // st nc or blockstore
@@ -1260,6 +1268,7 @@ begin
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_FLUSH_M;
                 decoder_creditman_noc1_needed = 2'd1;
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_FLUSH_M_FROM_DCACHE;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_FLUSH_M;
             end
         end
 
@@ -1288,6 +1297,7 @@ begin
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_TAGCHECK_M;
                 decoder_creditman_noc1_needed = 2'd2;
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_TAGCHECK_M_FROM_DCACHE;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_M;
 
                 // move data request to the first operation to keep atomicity
                 if (predecode_reqtype_s1 == `L15_REQTYPE_CAS)
@@ -1386,6 +1396,8 @@ begin
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_INVAL_ACK_FROM_DCACHE;
             else
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_INVAL_ACK_IF_TAGCHECK_M_FROM_DCACHE;
+
+            decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_M;
         end
 
         `L15_REQTYPE_DOWNGRADE:
@@ -1437,6 +1449,7 @@ begin
                 decoder_creditman_noc1_needed = 2'd1;
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_LRU_M_FROM_DCACHE;
                 decoder_creditman_noc1_unreserve_s1 = 1'b1;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_LRU_M;
             end
             else // the fill
             begin
@@ -1450,7 +1463,9 @@ begin
                 decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
                 decoder_lruarray_write_op_s1 = `L15_LRU_REPLACEMENT;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_LD_RESPONSE_FROM_NOC2;
+                `ifndef NO_RTL_CSM
                 decoder_hmt_op_s1 = `L15_HMT_OP_WRITE;
+                `endif
             end
         end
 
@@ -1460,6 +1475,7 @@ begin
             decoder_stall_on_matched_bypassed_index_s1 = 1;
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
             decoder_cpx_operation_s1 = `L15_CPX_GEN_LD_RESPONSE_FROM_NOC2;
+            decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_M;
         end
 
         `L15_REQTYPE_ACKDT_IFILL:
@@ -1487,6 +1503,7 @@ begin
                 decoder_creditman_noc1_needed = 2'd1;
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_LRU_M_FROM_DCACHE;
                 decoder_creditman_noc1_unreserve_s1 = 1'b1;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_LRU_M;
             end
             else // the fill
             begin
@@ -1498,7 +1515,9 @@ begin
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE;
                 decoder_lruarray_write_op_s1 = `L15_LRU_REPLACEMENT;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_ST_ACK;
+                `ifndef NO_RTL_CSM
                 decoder_hmt_op_s1 = `L15_HMT_OP_WRITE;
+                `endif
             end
         end
 
@@ -1919,6 +1938,8 @@ end
  ***********/
 
 // propagated variables (flops) from S2
+
+`ifndef NO_RTL_CSM
 <%
 s2floplist = [
     ('threadid','`L15_NUM_THREADS_LOG'),
@@ -1958,6 +1979,45 @@ s2floplist = [
     ('hmt_op','`TLB_CSM_WIDTH'),
     ]
 %>
+`else
+<%
+s2floplist_no_rtl_csm = [
+    ('threadid','`L15_NUM_THREADS_LOG'),
+    ('mshrid','`L15_MSHR_ID_WIDTH'),
+    ('address','`L15_PHYSICAL_ADDRESS_WIDTH'),
+    ('non_cacheable','1'),
+    ('size','3'),
+    ('prefetch','1'),
+    ('l1_replacement_way','2'),
+    ('l2_miss','1'),
+    ('f4b','1'),
+    ('predecode_noc2_inval', '1'),
+    ('predecode_fwd_subcacheline_vector', '4'),
+    ('blockstore', '1'),
+    ('blockstoreinit', '1'),
+    ('predecode_reqtype', '`L15_REQTYPE_WIDTH'),
+    ('decoder_dtag_operation', '`L15_DTAG_OP_WIDTH'),
+    ('wmt_write_op','`L15_WMT_WRITE_OP_WIDTH'),
+    ('lruarray_write_op','`L15_LRUARRAY_WRITE_OP_WIDTH'),
+    ('csm_op','`L15_CSM_OP_WIDTH'),
+    ('config_op','`L15_CONFIG_OP_WIDTH'),
+    ('wmt_read_op','`L15_WMT_READ_OP_WIDTH'),
+    ('noc2_src_homeid','`PACKET_HOME_ID_WIDTH'),
+    ('s3_mshr_operation','`L15_S3_MSHR_OP_WIDTH'),
+    ('cpx_operation','`L15_CPX_OP_WIDTH'),
+    ('noc1_operation','`L15_NOC1_OP_WIDTH'),
+    ('noc3_operations','`L15_NOC3_OP_WIDTH'),
+    ('mesi_read_op','`L15_S2_MESI_OP_WIDTH'),
+    ('mesi_write_op','`L15_S3_MESI_OP_WIDTH'),
+    ('dcache_operation','`L15_DCACHE_OP_WIDTH'),
+    ('s2_mshr_operation','`L15_S2_MSHR_OP_WIDTH'),
+    ('pcx_ack_stage','`L15_ACK_STAGE_WIDTH'),
+    ('noc2_ack_stage','`L15_ACK_STAGE_WIDTH'),
+    ('noc2_ack_state','`L15_MESI_STATE_WIDTH'),
+    ('csm_pcx_data','`TLB_CSM_WIDTH'),
+    ]
+%>
+`endif
 reg val_s2_next;
 
 <%
@@ -2003,11 +2063,19 @@ begin
     if (stall_s2)
     begin
         val_s2_next = val_s2;
+        `ifndef NO_RTL_CSM
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
             print "%s_next = %s;" % (name,name)
         %>
+        `else
+        <%
+        for e in s2floplist_no_rtl_csm:
+            name = e[0] + '_s2'
+            print "%s_next = %s;" % (name,name)
+        %>
+        `endif
     end
     else
     begin
@@ -2043,11 +2111,16 @@ begin
         blockstore_s2_next = predecode_blockstore_bit_s1;
         blockstoreinit_s2_next = predecode_blockstore_init_s1;
         noc2_src_homeid_s2_next = noc2decoder_l15_src_homeid;
+
+        `ifndef NO_RTL_CSM
         hmt_fill_homeid_s2_next = predecode_mshr_read_homeid_s1;
+        `endif
         csm_pcx_data_s2_next = pcxdecoder_l15_csm_data;
         decoder_dtag_operation_s2_next = decoder_dtag_operation_s1;
         wmt_read_op_s2_next = decoder_wmt_read_op_s1;
+        `ifndef NO_RTL_CSM
         hmt_op_s2_next = decoder_hmt_op_s1;
+        `endif
     end
 
     // Stalling logics
@@ -2099,6 +2172,7 @@ reg flush_state_mes_s2;
 reg [1:0] flush_way_s2;
 // reg [3:0] flush_way_mask_s2;
 reg [`L15_CACHE_TAG_WIDTH-1:0] flush_way_tag_s2;
+reg [39:0] flush_way_address_s2;
 always @ *
 begin
     // note: dtag has 33b per tag entry way, but we are only using 29b
@@ -2159,6 +2233,7 @@ begin
                         (flush_way_s2 == 2) ? dtag_tag_way2_s2[`L15_CACHE_TAG_WIDTH-1:0] :
                                                         dtag_tag_way3_s2[`L15_CACHE_TAG_WIDTH-1:0];
 
+    flush_way_address_s2 = {flush_way_tag_s2, address_s2[`L15_NUM_4WAY_ENTRIES_LOG2-1+4:4], 4'b0};
 
     // expanding some signals
     tagcheck_state_me_s2 = tagcheck_state_s2 == `L15_MESI_STATE_M || tagcheck_state_s2 == `L15_MESI_STATE_E;
@@ -2427,6 +2502,7 @@ begin
 
     // if source is MSHR it means a write hi
     // hmt_fill_data_s2 = (dcache_source_s2 == `L15_DCACHE_SOURCE_MSHR) ? 
+    `ifndef NO_RTL_CSM
     l15_hmt_write_data_s2[`L15_CSM_GHID_WIDTH-1:0] = 0;
     l15_hmt_write_data_s2[`L15_CSM_GHID_CHIP_MASK] = hmt_fill_homeid_s2[`PACKET_HOME_ID_CHIP_MASK];
     l15_hmt_write_data_s2[`L15_CSM_GHID_XPOS_MASK] = hmt_fill_homeid_s2[`PACKET_HOME_ID_X_MASK];
@@ -2437,6 +2513,7 @@ begin
     l15_hmt_write_mask_s2 = 0;
     if (hmt_op_s2 == `L15_HMT_OP_WRITE)
       l15_hmt_write_mask_s2[`L15_CSM_GHID_WIDTH-1:0] = {`L15_CSM_GHID_WIDTH{1'b1}};
+    `endif
 end
 
 ////////////////////////
@@ -2611,6 +2688,24 @@ begin
             // l15_csm_req_ticket_s2 = csm_ticket_s2;
             csm_address_s2 = address_s2;
         end
+        `ifndef NO_RTL_CSM
+        `else
+        `L15_CSM_OP_EVICT_IF_LRU_M:
+        begin
+            csm_req_val_s2 = val_s2 & lru_state_m_s2;
+            csm_address_s2 = lru_way_address_s2;
+        end
+        `L15_CSM_OP_EVICT_IF_FLUSH_M:
+        begin
+            csm_req_val_s2 = val_s2 & flush_state_m_s2;
+            csm_address_s2 = flush_way_address_s2;
+        end
+        `L15_CSM_OP_EVICT_IF_M:
+        begin
+            csm_req_val_s2 = val_s2 & tagcheck_state_m_s2;
+            csm_address_s2 = address_s2;
+        end
+        `endif
     endcase
 
     l15_csm_req_address_s2 = csm_address_s2;
@@ -3452,6 +3547,7 @@ begin
 end
 
 // helper block for expanding HMT entry to packet homeid for consumption in noc1 & noc3 encoder
+`ifndef NO_RTL_CSM
 reg [`PACKET_HOME_ID_WIDTH-1:0] expanded_hmt_homeid_s3;
 always @ *
 begin
@@ -3461,7 +3557,7 @@ begin
     expanded_hmt_homeid_s3[`PACKET_HOME_ID_Y_MASK] = hmt_l15_dout_s3[`L15_CSM_GHID_YPOS_MASK];
     expanded_hmt_homeid_s3[`PACKET_HOME_ID_X_MASK] = hmt_l15_dout_s3[`L15_CSM_GHID_XPOS_MASK];
 end
-
+`endif
 // NoC1 request logic
 reg noc1_req_val_s3;
 reg [`L15_NOC1_REQTYPE_WIDTH-1:0] noc1_type_s3;
@@ -3607,11 +3703,13 @@ begin
             l15_noc1buffer_req_homeid = csm_l15_res_data_s3;
             l15_noc1buffer_req_homeid_val = csm_l15_res_val_s3;
         end
+        `ifndef NO_RTL_CSM
         `L15_HOMEID_SRC_HMT:
         begin
             l15_noc1buffer_req_homeid = expanded_hmt_homeid_s3;
             l15_noc1buffer_req_homeid_val = 1'b1;
         end
+        `endif
     endcase
     l15_noc1buffer_req_homeid_val = l15_noc1buffer_req_homeid_val || noc1_homeid_not_required_s3;
 
@@ -3713,8 +3811,10 @@ begin
     case (noc3_homeid_source_s3)
         `L15_HOMEID_SRC_NOC2_SOURCE:
             l15_noc3encoder_req_homeid = noc2_src_homeid_s3[`PACKET_HOME_ID_WIDTH-1:0];
+        `ifndef NO_RTL_CSM
         `L15_HOMEID_SRC_HMT:
             l15_noc3encoder_req_homeid = expanded_hmt_homeid_s3;
+        `endif
     endcase
 end
 

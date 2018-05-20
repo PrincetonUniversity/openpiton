@@ -1,0 +1,8 @@
+; Characters for "DONE"
+;
+memory_initialization_radix = 16;
+memory_initialization_vector =
+44,
+4f,
+4e,
+45;

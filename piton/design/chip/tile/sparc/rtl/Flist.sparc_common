@@ -19,7 +19,8 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 // 
 // ========== Copyright Header End ============================================
--v ../srams/rtl/bw_r_tlb.v
+-v ../srams/rtl/bw_r_itlb.v
+-v ../srams/rtl/bw_r_dtlb.v
 -v ../ifu/rtl/sparc_ifu_rndrob.v
 //-v ../lsu/rtl/sparc_tlb.v
 -v ../lsu/rtl/lsu_dc_parity_gen.v

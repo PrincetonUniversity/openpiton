@@ -31,7 +31,7 @@
 // Global header file includes
 ////////////////////////////////////////////////////////////////////////
 
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 //`define MILFSM_NULL   4'b0000
 //`define MILFSM_WAIT   4'b1000

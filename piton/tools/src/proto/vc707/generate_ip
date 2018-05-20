@@ -1,0 +1,7 @@
+set MODEL_DIR $::env(MODEL_DIR)
+set DV_ROOT $::env(DV_ROOT)
+
+reset_target all [get_files  $MODEL_DIR/vc707/ip_cores/virtex7_bram_16384x512/virtex7_bram_16384x512.xci]
+delete_ip_run [get_files -of_objects [get_fileset virtex7_bram_16384x512] $MODEL_DIR/vc707/ip_cores/virtex7_bram_16384x512/virtex7_bram_16384x512.xci]
+
+generate_target all [get_files  $MODEL_DIR/vc707/ip_cores/virtex7_bram_16384x512/virtex7_bram_16384x512.xci]

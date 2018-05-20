@@ -29,7 +29,7 @@
 `include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 // `ifdef L15_EXTRA_DEBUG
 // `default_nettype none
@@ -71,28 +71,46 @@ module chip(
    //  but they are as they are right now
    // Also, oram module should be placed here before signals get out of chip
 
-`ifdef CHIP_IS_TOP
-   input                          intf_chip_data_single,
-   input  [1:0]                   intf_chip_channel,
-   output                         intf_chip_credit_back_single,
-`else 
-   input  [31:0]                  intf_chip_data,
-   input  [1:0]                   intf_chip_channel,
-   output [2:0]                   intf_chip_credit_back,
-`endif
+//`ifdef CHIP_IS_TOP
+//   input                          intf_chip_data_single,
+//   input  [1:0]                   intf_chip_channel,
+//   output                         intf_chip_credit_back_single,
+//`else 
+//   input  [31:0]                  intf_chip_data,
+//   input  [1:0]                   intf_chip_channel,
+//   output [2:0]                   intf_chip_credit_back,
+//`endif
+//
+//`ifdef CHIP_IS_TOP
+//   output                         chip_intf_data_single,
+//   // output [31:0]                 chip_intf_data,
+//   output [1:0]                   chip_intf_channel,
+//   input                          chip_intf_credit_back_single
+//   //input  [2:0]                  chip_intf_credit_back
+//`else
+//   output [31:0]                  chip_intf_data,
+//   output [1:0]                   chip_intf_channel,
+//   input  [2:0]                   chip_intf_credit_back
+//`endif
+   output                         processor_offchip_noc1_valid,
+   output [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc1_data,
+   input                          processor_offchip_noc1_yummy,
+   output                         processor_offchip_noc2_valid,
+   output [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc2_data,
+   input                          processor_offchip_noc2_yummy,
+   output                         processor_offchip_noc3_valid,
+   output [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc3_data,
+   input                          processor_offchip_noc3_yummy,
 
-`ifdef CHIP_IS_TOP
-   output                         chip_intf_data_single,
-   // output [31:0]                 chip_intf_data,
-   output [1:0]                   chip_intf_channel,
-   input                          chip_intf_credit_back_single
-   //input  [2:0]                  chip_intf_credit_back
-`else
-   output [31:0]                  chip_intf_data,
-   output [1:0]                   chip_intf_channel,
-   input  [2:0]                   chip_intf_credit_back
-`endif
-   
+   input                          offchip_processor_noc1_valid,
+   input  [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc1_data,
+   output                         offchip_processor_noc1_yummy,
+   input                          offchip_processor_noc2_valid,
+   input  [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc2_data,
+   output                         offchip_processor_noc2_yummy,
+   input                          offchip_processor_noc3_valid,
+   input  [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc3_data,
+   output                         offchip_processor_noc3_yummy
 );
 
    wire core_ref_clk_inter;
@@ -114,12 +132,12 @@ module chip(
    wire jtag_modesel_inter;
    wire jtag_datain_inter;
    wire jtag_dataout_inter;
-   wire [31:0]      		   intf_chip_data_inter;
-   wire [1:0]                  intf_chip_channel_inter;
-   wire [2:0]                  intf_chip_credit_back_inter;
-   wire [31:0]                 chip_intf_data_inter;
-   wire [1:0]                  chip_intf_channel_inter;
-   wire [2:0]                  chip_intf_credit_back_inter;
+//   wire [31:0]      		   intf_chip_data_inter;
+//   wire [1:0]                  intf_chip_channel_inter;
+//   wire [2:0]                  intf_chip_credit_back_inter;
+//   wire [31:0]                 chip_intf_data_inter;
+//   wire [1:0]                  chip_intf_channel_inter;
+//   wire [2:0]                  chip_intf_credit_back_inter;
 
 
    // Alexey
@@ -157,11 +175,11 @@ module chip(
    wire  [31:0]                chip_intf_data;
    wire  [2:0]                 chip_intf_credit_back;
 
-   assign  intf_chip_data = {32{intf_chip_data_single}};
-   assign  intf_chip_credit_back_single = |intf_chip_credit_back;
-
-   assign  chip_intf_credit_back = {3{chip_intf_credit_back_single}};
-   assign  chip_intf_data_single = |chip_intf_data_single;
+//   assign  intf_chip_data = {32{intf_chip_data_single}};
+//   assign  intf_chip_credit_back_single = |intf_chip_credit_back;
+//
+//   assign  chip_intf_credit_back = {3{chip_intf_credit_back_single}};
+//   assign  chip_intf_data_single = |chip_intf_data_single;
    // TODO: remove for simulation
 `endif
 
@@ -246,12 +264,12 @@ module chip(
    .jtag_modesel				(jtag_modesel),
    .jtag_datain					(jtag_datain),
    .jtag_dataout				(jtag_dataout),
-   .intf_chip_data				(intf_chip_data),
-   .intf_chip_channel			(intf_chip_channel),
-   .intf_chip_credit_back		(intf_chip_credit_back),
-   .chip_intf_data				(chip_intf_data),
-   .chip_intf_channel			(chip_intf_channel),
-   .chip_intf_credit_back		(chip_intf_credit_back),
+//   .intf_chip_data				(intf_chip_data),
+//   .intf_chip_channel			(intf_chip_channel),
+//   .intf_chip_credit_back		(intf_chip_credit_back),
+//   .chip_intf_data				(chip_intf_data),
+//   .chip_intf_channel			(chip_intf_channel),
+//   .chip_intf_credit_back		(chip_intf_credit_back),
    // Inside
    .core_ref_clk_inter			(core_ref_clk_inter),
    .io_clk_inter				(io_clk_inter),
@@ -270,13 +288,14 @@ module chip(
    .jtag_rst_l_inter			(jtag_rst_l_inter),
    .jtag_modesel_inter			(jtag_modesel_inter),
    .jtag_datain_inter			(jtag_datain_inter),
-   .jtag_dataout_inter			(jtag_dataout_inter),
-   .intf_chip_data_inter		(intf_chip_data_inter),
-   .intf_chip_channel_inter		(intf_chip_channel_inter),
-   .intf_chip_credit_back_inter	(intf_chip_credit_back_inter),
-   .chip_intf_data_inter		(chip_intf_data_inter),
-   .chip_intf_channel_inter		(chip_intf_channel_inter),
-   .chip_intf_credit_back_inter	(chip_intf_credit_back_inter) );
+   .jtag_dataout_inter			(jtag_dataout_inter)
+//   .intf_chip_data_inter		(intf_chip_data_inter),
+//   .intf_chip_channel_inter		(intf_chip_channel_inter),
+//   .intf_chip_credit_back_inter	(intf_chip_credit_back_inter),
+//   .chip_intf_data_inter		(chip_intf_data_inter),
+//   .chip_intf_channel_inter		(chip_intf_channel_inter),
+//   .chip_intf_credit_back_inter	(chip_intf_credit_back_inter)
+    );
    
 
 
@@ -323,27 +342,6 @@ module chip(
    // wire so_testonly_r_0;
    // wire testoutfreq;
  
-
-   wire                         processor_offchip_noc1_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc1_data;
-   wire                         processor_offchip_noc1_yummy;
-   wire                         processor_offchip_noc2_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc2_data;
-   wire                         processor_offchip_noc2_yummy;
-   wire                         processor_offchip_noc3_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc3_data;
-   wire                         processor_offchip_noc3_yummy;
-
-   wire                         offchip_processor_noc1_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc1_data;
-   wire                         offchip_processor_noc1_yummy;
-   wire                         offchip_processor_noc2_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc2_data;
-   wire                         offchip_processor_noc2_yummy;
-   wire                         offchip_processor_noc3_valid;
-   wire [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc3_data;
-   wire                         offchip_processor_noc3_yummy;
-
    // ORAM-JTAG
    wire ctap_oram_req_val;
    wire [`JTAG_ORAM_MISC_WIDTH-1:0] ctap_oram_req_misc;
@@ -624,152 +622,152 @@ assign offchip_out_E_noc3_yummy = offchip_processor_noc3_yummy;
 // chip to fpga bridge
 ////////////////////////////////////////////////////////
 
-    wire                         chip_intf_noc1_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc1_data;
-    wire                         chip_intf_noc1_rdy;
-    wire                         chip_intf_noc2_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc2_data;
-    wire                         chip_intf_noc2_rdy;
-    wire                         chip_intf_noc3_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc3_data;
-    wire                         chip_intf_noc3_rdy;
-
-    wire                         intf_chip_noc1_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc1_data;
-    wire                         intf_chip_noc1_rdy;
-    wire                         intf_chip_noc2_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc2_data;
-    wire                         intf_chip_noc2_rdy;
-    wire                         intf_chip_noc3_valid;
-    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc3_data;
-    wire                         intf_chip_noc3_rdy;
-
-
-    valrdy_to_credit #(4, 3) chip_from_intf_noc1_v2c(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(intf_chip_noc1_data),
-       .valid_in(intf_chip_noc1_valid),
-       .ready_in(chip_intf_noc1_rdy),
-
-       .data_out(offchip_processor_noc1_data),           // Data
-       .valid_out(offchip_processor_noc1_valid),       // Val signal
-       .yummy_out(processor_offchip_noc1_yummy)    // Yummy signal
-    );
-
-    credit_to_valrdy chip_to_intf_noc1_c2v(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(processor_offchip_noc1_data),
-       .valid_in(processor_offchip_noc1_valid),
-       .yummy_in(offchip_processor_noc1_yummy),
-
-       .data_out(chip_intf_noc1_data),           // Data
-       .valid_out(chip_intf_noc1_valid),       // Val signal from dynamic network to processor
-       .ready_out(intf_chip_noc1_rdy)    // Rdy signal from processor to dynamic network
-    );
-
-
-    valrdy_to_credit #(4, 3) chip_from_intf_noc2_v2c(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(intf_chip_noc2_data),
-       .valid_in(intf_chip_noc2_valid),
-       .ready_in(chip_intf_noc2_rdy),
-
-       .data_out(offchip_processor_noc2_data),           // Data
-       .valid_out(offchip_processor_noc2_valid),       // Val signal
-       .yummy_out(processor_offchip_noc2_yummy)    // Yummy signal
-    );
-
-    credit_to_valrdy chip_to_intf_noc2_c2v(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(processor_offchip_noc2_data),
-       .valid_in(processor_offchip_noc2_valid),
-       .yummy_in(offchip_processor_noc2_yummy),
-
-       .data_out(chip_intf_noc2_data),           // Data
-       .valid_out(chip_intf_noc2_valid),       // Val signal from dynamic network to processor
-       .ready_out(intf_chip_noc2_rdy)    // Rdy signal from processor to dynamic network
-    );
-
-    valrdy_to_credit #(4, 3) chip_from_intf_noc3_v2c(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(intf_chip_noc3_data),
-       .valid_in(intf_chip_noc3_valid),
-       .ready_in(chip_intf_noc3_rdy),
-
-       .data_out(offchip_processor_noc3_data),           // Data
-       .valid_out(offchip_processor_noc3_valid),       // Val signal
-       .yummy_out(processor_offchip_noc3_yummy)    // Yummy signal
-    );
-
-    credit_to_valrdy chip_to_intf_noc3_c2v(
-       .clk(clk_muxed),
-       .reset(~rst_n_inter_sync_f),
-       .data_in(processor_offchip_noc3_data),
-       .valid_in(processor_offchip_noc3_valid),
-       .yummy_in(offchip_processor_noc3_yummy),
-
-       .data_out(chip_intf_noc3_data),           // Data
-       .valid_out(chip_intf_noc3_valid),       // Val signal from dynamic network to processor
-       .ready_out(intf_chip_noc3_rdy)    // Rdy signal from processor to dynamic network
-    );
-
-
-   reg  [31:0]                 intf_chip_data_inter_buf_f;
-   reg  [1:0]                  intf_chip_channel_inter_buf_f;
-   reg  [2:0]                  chip_intf_credit_back_inter_buf_f;
+//    wire                         chip_intf_noc1_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc1_data;
+//    wire                         chip_intf_noc1_rdy;
+//    wire                         chip_intf_noc2_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc2_data;
+//    wire                         chip_intf_noc2_rdy;
+//    wire                         chip_intf_noc3_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   chip_intf_noc3_data;
+//    wire                         chip_intf_noc3_rdy;
+//
+//    wire                         intf_chip_noc1_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc1_data;
+//    wire                         intf_chip_noc1_rdy;
+//    wire                         intf_chip_noc2_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc2_data;
+//    wire                         intf_chip_noc2_rdy;
+//    wire                         intf_chip_noc3_valid;
+//    wire [`NOC_DATA_WIDTH-1:0]   intf_chip_noc3_data;
+//    wire                         intf_chip_noc3_rdy;
+//
+//
+//    valrdy_to_credit #(4, 3) chip_from_intf_noc1_v2c(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(intf_chip_noc1_data),
+//       .valid_in(intf_chip_noc1_valid),
+//       .ready_in(chip_intf_noc1_rdy),
+//
+//       .data_out(offchip_processor_noc1_data),           // Data
+//       .valid_out(offchip_processor_noc1_valid),       // Val signal
+//       .yummy_out(processor_offchip_noc1_yummy)    // Yummy signal
+//    );
+//
+//    credit_to_valrdy chip_to_intf_noc1_c2v(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(processor_offchip_noc1_data),
+//       .valid_in(processor_offchip_noc1_valid),
+//       .yummy_in(offchip_processor_noc1_yummy),
+//
+//       .data_out(chip_intf_noc1_data),           // Data
+//       .valid_out(chip_intf_noc1_valid),       // Val signal from dynamic network to processor
+//       .ready_out(intf_chip_noc1_rdy)    // Rdy signal from processor to dynamic network
+//    );
+//
+//
+//    valrdy_to_credit #(4, 3) chip_from_intf_noc2_v2c(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(intf_chip_noc2_data),
+//       .valid_in(intf_chip_noc2_valid),
+//       .ready_in(chip_intf_noc2_rdy),
+//
+//       .data_out(offchip_processor_noc2_data),           // Data
+//       .valid_out(offchip_processor_noc2_valid),       // Val signal
+//       .yummy_out(processor_offchip_noc2_yummy)    // Yummy signal
+//    );
+//
+//    credit_to_valrdy chip_to_intf_noc2_c2v(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(processor_offchip_noc2_data),
+//       .valid_in(processor_offchip_noc2_valid),
+//       .yummy_in(offchip_processor_noc2_yummy),
+//
+//       .data_out(chip_intf_noc2_data),           // Data
+//       .valid_out(chip_intf_noc2_valid),       // Val signal from dynamic network to processor
+//       .ready_out(intf_chip_noc2_rdy)    // Rdy signal from processor to dynamic network
+//    );
+//
+//    valrdy_to_credit #(4, 3) chip_from_intf_noc3_v2c(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(intf_chip_noc3_data),
+//       .valid_in(intf_chip_noc3_valid),
+//       .ready_in(chip_intf_noc3_rdy),
+//
+//       .data_out(offchip_processor_noc3_data),           // Data
+//       .valid_out(offchip_processor_noc3_valid),       // Val signal
+//       .yummy_out(processor_offchip_noc3_yummy)    // Yummy signal
+//    );
+//
+//    credit_to_valrdy chip_to_intf_noc3_c2v(
+//       .clk(clk_muxed),
+//       .reset(~rst_n_inter_sync_f),
+//       .data_in(processor_offchip_noc3_data),
+//       .valid_in(processor_offchip_noc3_valid),
+//       .yummy_in(offchip_processor_noc3_yummy),
+//
+//       .data_out(chip_intf_noc3_data),           // Data
+//       .valid_out(chip_intf_noc3_valid),       // Val signal from dynamic network to processor
+//       .ready_out(intf_chip_noc3_rdy)    // Rdy signal from processor to dynamic network
+//    );
 
 
-    always @(posedge io_clk_inter) 
-    begin
-        if(~rst_n_inter_sync_f)
-        begin
-            intf_chip_data_inter_buf_f <= 0;
-            intf_chip_channel_inter_buf_f <= 0;
-            chip_intf_credit_back_inter_buf_f <= 0; 
-        end
-        else
-        begin
-            intf_chip_data_inter_buf_f <= intf_chip_data_inter;
-            intf_chip_channel_inter_buf_f <= intf_chip_channel_inter;
-            chip_intf_credit_back_inter_buf_f <= chip_intf_credit_back_inter; 
-        end
-    end
+//   reg  [31:0]                 intf_chip_data_inter_buf_f;
+//   reg  [1:0]                  intf_chip_channel_inter_buf_f;
+//   reg  [2:0]                  chip_intf_credit_back_inter_buf_f;
 
-    chip_bridge chip_intf(
-        .rst_n                  (rst_n_inter_sync_f),
-        .chip_clk               (clk_muxed),
-        .intcnct_clk            (io_clk_inter),
-        .async_mux              (async_mux_inter),
-        .network_out_1          (chip_intf_noc1_data),
-        .network_out_2          (chip_intf_noc2_data),
-        .network_out_3          (chip_intf_noc3_data),
-        .data_out_val_1         (chip_intf_noc1_valid),
-        .data_out_val_2         (chip_intf_noc2_valid),
-        .data_out_val_3         (chip_intf_noc3_valid),
-        .data_out_rdy_1         (intf_chip_noc1_rdy),
-        .data_out_rdy_2         (intf_chip_noc2_rdy),
-        .data_out_rdy_3         (intf_chip_noc3_rdy),
-        .intcnct_data_in        (intf_chip_data_inter_buf_f),
-        .intcnct_channel_in     (intf_chip_channel_inter_buf_f),
-        .intcnct_credit_back_in (intf_chip_credit_back_inter),
-        .network_in_1           (intf_chip_noc1_data),
-        .network_in_2           (intf_chip_noc2_data),
-        .network_in_3           (intf_chip_noc3_data),
-        .data_in_val_1          (intf_chip_noc1_valid),
-        .data_in_val_2          (intf_chip_noc2_valid),
-        .data_in_val_3          (intf_chip_noc3_valid),
-        .data_in_rdy_1          (chip_intf_noc1_rdy),
-        .data_in_rdy_2          (chip_intf_noc2_rdy),
-        .data_in_rdy_3          (chip_intf_noc3_rdy),
-        .intcnct_data_out       (chip_intf_data_inter),
-        .intcnct_channel_out    (chip_intf_channel_inter),
-        .intcnct_credit_back_out(chip_intf_credit_back_inter_buf_f)
-    );
+
+//    always @(posedge io_clk_inter) 
+//    begin
+//        if(~rst_n_inter_sync_f)
+//        begin
+//            intf_chip_data_inter_buf_f <= 0;
+//            intf_chip_channel_inter_buf_f <= 0;
+//            chip_intf_credit_back_inter_buf_f <= 0; 
+//        end
+//        else
+//        begin
+//            intf_chip_data_inter_buf_f <= intf_chip_data_inter;
+//            intf_chip_channel_inter_buf_f <= intf_chip_channel_inter;
+//            chip_intf_credit_back_inter_buf_f <= chip_intf_credit_back_inter; 
+//        end
+//    end
+//
+//    chip_bridge chip_intf(
+//        .rst_n                  (rst_n_inter_sync_f),
+//        .chip_clk               (clk_muxed),
+//        .intcnct_clk            (io_clk_inter),
+//        .async_mux              (async_mux_inter),
+//        .network_out_1          (chip_intf_noc1_data),
+//        .network_out_2          (chip_intf_noc2_data),
+//        .network_out_3          (chip_intf_noc3_data),
+//        .data_out_val_1         (chip_intf_noc1_valid),
+//        .data_out_val_2         (chip_intf_noc2_valid),
+//        .data_out_val_3         (chip_intf_noc3_valid),
+//        .data_out_rdy_1         (intf_chip_noc1_rdy),
+//        .data_out_rdy_2         (intf_chip_noc2_rdy),
+//        .data_out_rdy_3         (intf_chip_noc3_rdy),
+//        .intcnct_data_in        (intf_chip_data_inter_buf_f),
+//        .intcnct_channel_in     (intf_chip_channel_inter_buf_f),
+//        .intcnct_credit_back_in (intf_chip_credit_back_inter),
+//        .network_in_1           (intf_chip_noc1_data),
+//        .network_in_2           (intf_chip_noc2_data),
+//        .network_in_3           (intf_chip_noc3_data),
+//        .data_in_val_1          (intf_chip_noc1_valid),
+//        .data_in_val_2          (intf_chip_noc2_valid),
+//        .data_in_val_3          (intf_chip_noc3_valid),
+//        .data_in_rdy_1          (chip_intf_noc1_rdy),
+//        .data_in_rdy_2          (chip_intf_noc2_rdy),
+//        .data_in_rdy_3          (chip_intf_noc3_rdy),
+//        .intcnct_data_out       (chip_intf_data_inter),
+//        .intcnct_channel_out    (chip_intf_channel_inter),
+//        .intcnct_credit_back_out(chip_intf_credit_back_inter_buf_f)
+//    );
 
 /////////////////////////////////////////////////
 // on-chip jtag interface & test access port
@@ -822,7 +820,6 @@ assign clk_muxed = core_ref_clk_inter;
 //   repeat(100)@(posedge core_ref_clk_inter);
 //   force pll_lock_inter = 1'b1;
 // end
-
 
 endmodule
 

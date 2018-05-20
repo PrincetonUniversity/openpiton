@@ -1,0 +1,38 @@
+// Copyright (c) 2016 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+// For some reason this happens after saving the design, everything seems OK though and
+// command completes successfully...kinda strange
+Error: Floorplan loading failed.
+
+// This is OK, gets fixed later. At least ground does get hooked up in the end :)
+Warning: I/O port \(VSS\) is placed at \(126180,-67\) which is outside die area\. \(PSYN-520\)
+
+// Think this is because our pins are not yet placed, we will find out in other ways
+// if this turns out to be a problem.  We do not really do block-level pin placement quite correctly
+Warning: Ignore pin \(cell \S+, port \S+\) on layer boundary\. \(ZRT-030\)
+Warning: Ignore 693 top cell ports with no pins. \(ZRT-027\)
+// Occurs when we finally place pins, correctly restricts to max routing layer
+Warning: Maximum allowed pin layers for the top block revised to \S+ due to route layer constraints \(AXU-0010\)

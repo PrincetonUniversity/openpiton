@@ -43,6 +43,14 @@ module fpu_arb_wrap
     output          fpu_arb_grant
 );
 
+`ifdef PITON_FPGA_NO_FPU
+
+    assign fpu_arb_data_rdy = 1'b0;
+    assign fpu_arb_data     = 145'b0;
+    assign fpu_arb_grant    = 1'b0;
+
+`else
+
     wire[123:0]  pcx_fpio_data_px2 = {pcx_fpio_data_px2_123_118, 
                                                            1'bx, 
                                       pcx_fpio_data_px2_116_112, 
@@ -73,5 +81,7 @@ module fpu_arb_wrap
         .si(),
         .so()
     );
+
+`endif
 
 endmodule

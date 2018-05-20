@@ -58,7 +58,7 @@ l2_priority_encoder.v
 l2_broadcast_counter.v
 l2_broadcast_counter_wrap.v
 
-sram_wrappers/sram_1rw_256x104.v
-sram_wrappers/sram_1rw_4096x144.v
-sram_wrappers/sram_2rw_256x66.v
-sram_wrappers/sram_1rw_1024x64.v
+sram_wrappers/sram_l2_tag.v
+sram_wrappers/sram_l2_data.v
+sram_wrappers/sram_l2_state.v
+sram_wrappers/sram_l2_dir.v

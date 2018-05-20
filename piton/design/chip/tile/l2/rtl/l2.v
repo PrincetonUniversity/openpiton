@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //==================================================================================================
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2(
@@ -55,12 +55,12 @@ module l2(
     output wire noc1_ready_in,
     
 
-    input wire noc3_valid_in,
-    input wire [`NOC_DATA_WIDTH-1:0] noc3_data_in,
+     input wire noc3_valid_in,
+     input wire [`NOC_DATA_WIDTH-1:0] noc3_data_in,
     output wire noc3_ready_in,
 
-    output wire noc2_valid_out,
-    output wire [`NOC_DATA_WIDTH-1:0] noc2_data_out,
+     output wire noc2_valid_out,
+     output wire [`NOC_DATA_WIDTH-1:0] noc2_data_out,
     input wire noc2_ready_out,
 
     // sram interface
@@ -171,6 +171,7 @@ wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_in_p2;
 wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_mask_in_p2;
 wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_out;
 
+`ifndef NO_RTL_CSM 
 wire smc_rd_en;
 wire smc_rd_diag_en;
 wire smc_wr_diag_en;
@@ -210,7 +211,7 @@ wire broadcast_counter_avail2;
 wire [`MSG_SRC_CHIPID_WIDTH-1:0] broadcast_chipid_out2;
 wire [`MSG_SRC_X_WIDTH-1:0] broadcast_x_out2;
 wire [`MSG_SRC_Y_WIDTH-1:0] broadcast_y_out2;
-
+`endif
 
 wire reg_rd_en;
 wire reg_wr_en;
@@ -226,7 +227,9 @@ wire [`L2_DATA_INDEX_WIDTH-1:0] data_ecc_addr;
 wire [`PHY_ADDR_WIDTH-1:0] error_addr;
 wire [`NOC_NODEID_WIDTH-1:0] my_nodeid;
 wire [`L2_COREID_WIDTH-1:0] core_max;
+`ifndef NO_RTL_CSM
 wire csm_en;
+`endif
 wire [`L2_SMT_BASE_ADDR_WIDTH-1:0] smt_base_addr;  
 
 
@@ -274,7 +277,11 @@ l2_config_regs config_regs(
     .reg_data_out           (reg_data_out),
     .my_nodeid              (my_nodeid),
     .core_max               (core_max),
+    `ifndef NO_RTL_CSM
     .csm_en                 (csm_en),
+    `else
+    .csm_en                 (),
+    `endif
     .smt_base_addr          (smt_base_addr)
 
 );
@@ -443,7 +450,7 @@ l2_data_wrap data_wrap(
     .rtap_srams_bist_data (rtap_srams_bist_data)
 );
 
-
+`ifndef NO_RTL_CSM
 l2_smc_wrap smc_wrap(
     .clk                    (clk),
     .rst_n                  (rst_n),
@@ -499,12 +506,15 @@ l2_broadcast_counter_wrap l2_broadcast_counter_wrap(
     .y_out2                 (broadcast_y_out2)
 );
 
+`endif
 
 l2_pipe1 pipe1(
     .clk                    (clk),
     .rst_n                  (rst_n),
     .my_nodeid              (my_nodeid),
+    `ifndef NO_RTL_CSM
     .csm_en                 (csm_en),
+    `endif
     .smt_base_addr          (smt_base_addr),
    
     .noc_valid_in           (noc1_valid_in),
@@ -537,12 +547,14 @@ l2_pipe1 pipe1(
     .mshr_pending_index     (mshr_pending_index),
     .mshr_empty_index       (mshr_empty_index),
 
+    `ifndef NO_RTL_CSM
     .broadcast_counter_zero (broadcast_counter_zero1),
     .broadcast_counter_max  (broadcast_counter_max1),
     .broadcast_counter_avail(broadcast_counter_avail1),
     .broadcast_chipid_out   (broadcast_chipid_out1),
     .broadcast_x_out        (broadcast_x_out1),
     .broadcast_y_out        (broadcast_y_out1),
+    `endif
 
     .state_data_out         (state_data_out),
     .tag_data_out           (tag_data_out),
@@ -594,12 +606,7 @@ l2_pipe1 pipe1(
     .dir_data_in            (dir_data_in_p1),
     .dir_data_mask_in       (dir_data_mask_in_p1),
 
-    .data_clk_en            (data_clk_en_p1),
-    .data_rdw_en            (data_rdw_en_p1),
-    .data_addr              (data_addr_p1),
-    .data_data_in           (data_data_in_p1),
-    .data_data_mask_in      (data_data_mask_in_p1),
-
+    `ifndef NO_RTL_CSM
     .broadcast_counter_op   (broadcast_counter_op_p1),
     .broadcast_counter_op_val(broadcast_counter_op_val_p1),
 
@@ -615,7 +622,15 @@ l2_pipe1 pipe1(
     .smc_hit                (smc_hit),
     .smc_data_out           (smc_data_out),
     .smc_valid_out          (smc_valid_out),
-    .smc_tag_out            (smc_tag_out)
+    .smc_tag_out            (smc_tag_out),
+    `endif
+
+    .data_clk_en            (data_clk_en_p1),
+    .data_rdw_en            (data_rdw_en_p1),
+    .data_addr              (data_addr_p1),
+    .data_data_in           (data_data_in_p1),
+    .data_data_mask_in      (data_data_mask_in_p1)
+
 );
 
 
@@ -623,8 +638,9 @@ l2_pipe1 pipe1(
 l2_pipe2 pipe2(
     .clk                    (clk),
     .rst_n                  (rst_n),
+    `ifndef NO_RTL_CSM
     .csm_en                 (csm_en),
-   
+    `endif 
     .noc_valid_in           (noc3_valid_in),
     .noc_data_in            (noc3_data_in),
     .noc_ready_in           (noc3_ready_in),
@@ -632,11 +648,13 @@ l2_pipe2 pipe2(
     .mshr_state_out         (mshr_state_out),
     .mshr_data_out          (mshr_data_out),
 
+    `ifndef NO_RTL_CSM
     .broadcast_counter_zero (broadcast_counter_zero2),
     .broadcast_counter_max  (broadcast_counter_max2),
     .broadcast_chipid_out   (broadcast_chipid_out2),
     .broadcast_x_out        (broadcast_x_out2),
     .broadcast_y_out        (broadcast_y_out2),
+    `endif
 
     .state_data_out         (state_data_out),
     .tag_data_out           (tag_data_out),
@@ -677,12 +695,15 @@ l2_pipe2 pipe2(
     .data_data_in           (data_data_in_p2),
     .data_data_mask_in      (data_data_mask_in_p2),
 
+     
+    `ifndef NO_RTL_CSM
     .broadcast_counter_op   (broadcast_counter_op_p2),
     .broadcast_counter_op_val(broadcast_counter_op_val_p2),
 
     .smc_wr_en              (smc_wr_en_p2),
     .smc_wr_addr_in         (smc_wr_addr_in_p2),
     .smc_data_in            (smc_data_in_p2),
+    `endif
 
     .valid_S1               (pipe2_valid_S1),
     .valid_S2               (pipe2_valid_S2),

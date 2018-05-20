@@ -25,20 +25,24 @@ sram_wrappers/sram_1rw_128x78.v
 
 //ifu
 -v bw_r_icd.v
-sram_wrappers/sram_1rw_256x272.v
+sram_wrappers/sram_l1i_data.v
+sram_wrappers/sram_l1i_tag.v
+-v sram_l1i_val.v
 
 //lsu
 -v bw_r_scm.v
 -v bw_r_dcd.v
-sram_wrappers/sram_1rw_128x288.v
+sram_wrappers/sram_l1d_data.v
 -v bw_r_rf32x152b.v
+sram_wrappers/sram_l1d_tag.v
+-v sram_l1d_val.v
 
 //lsu+ifu
 // -v ../../../common/rtl/cmp_sram_redhdr.v
--v bw_r_rf16x32.v
 
 //lsu+ifu+spu
--v bw_r_idct.v
+-v bw_r_ict.v
+-v bw_r_dct.v
 
 //lsu+tlu
 -v bw_r_rf32x80.v

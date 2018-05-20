@@ -21,7 +21,7 @@
 // ========== Copyright Header End ============================================
 `include "define.vh"
 `include "dmbr_define.v"
-`include "l15.vh"
+`include "l15.tmp.h"
 `include "jtag.vh"
 
 
@@ -327,7 +327,9 @@ module tile(
     wire   [4:0]                        pcx_req;
     wire                                pcx_atomic_req;
     wire   [123:0]                      pcx_data;
+`ifndef NO_RTL_CSM
     wire   [`TLB_CSM]                   pcx_csm;
+`endif
     wire [4:0]                          pcx_grant;
     // is actually cpx_data_valid
     wire                                cpx_data_ready;
@@ -728,7 +730,9 @@ wire [`CREDIT_WIDTH-1:0] from_dmbr_cred_bin_9;
         .pcx_atomic_req(pcx_atomic_req),
         .pcx_data_123_117(pcx_data[123:117]),
         .pcx_data_112_0(pcx_data[112:0]),
+    `ifndef NO_RTL_CSM
         .pcx_csm(pcx_csm),
+    `endif
         .noc1_out_rdy(router_processor_ready_noc1),
         .noc2_in_val(buffer_processor_valid_noc2),
         .noc2_in_data(buffer_processor_data_noc2),

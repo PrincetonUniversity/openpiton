@@ -39,14 +39,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_pipe1_dpath(
 
     input wire clk,
     input wire rst_n,
+    `ifndef NO_RTL_CSM
     input wire csm_en,
+    `endif
     input wire [`L2_SMT_BASE_ADDR_WIDTH-1:0] smt_base_addr,
 
     //Inputs to Stage 1   
@@ -146,24 +148,31 @@ module l2_pipe1_dpath(
     input wire [`MSG_DATA_SIZE_WIDTH-1:0] data_size_S4,
     input wire [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_S4,
     input wire [`MSG_L2_MISS_BITS-1:0] l2_miss_S4,
+    `ifndef NO_RTL_CSM
     input wire smc_miss_S4,
+    `endif
     input wire special_addr_type_S4,
     input wire [`L2_DIR_ARRAY_WIDTH-1:0] dir_data_sel_S4,
     input wire [`L2_DIR_ARRAY_WIDTH-1:0] dir_data_S4,
+    `ifndef NO_RTL_CSM
     input wire stall_smc_buf_S4,
+    `endif
     input wire msg_from_mshr_S4,
     input wire req_recycle_S4,
     input wire inv_fwd_pending_S4,
 
+    `ifndef NO_RTL_CSM
     //input from the broadcast counter
     input wire [`MSG_SRC_CHIPID_WIDTH-1:0] broadcast_chipid_out_S4,
     input wire [`MSG_SRC_X_WIDTH-1:0] broadcast_x_out_S4,
     input wire [`MSG_SRC_Y_WIDTH-1:0] broadcast_y_out_S4,
+    `endif
     //input from the smc
+    `ifndef NO_RTL_CSM
     input wire [`L2_SMC_DATA_OUT_WIDTH-1:0] smc_data_out_S4,
     input wire [`L2_SMC_VALID_WIDTH-1:0] smc_valid_out_S4,
     input wire [`L2_SMC_TAG_WIDTH-1:0] smc_tag_out_S4,
-
+    `endif
     //node id from id register
     input wire [`MSG_SRC_CHIPID_WIDTH-1:0] my_nodeid_chipid_S4,
     input wire [`MSG_SRC_X_WIDTH-1:0] my_nodeid_x_S4,
@@ -204,8 +213,10 @@ module l2_pipe1_dpath(
     output reg [`L2_DATA_ARRAY_WIDTH-1:0] data_data_in_S2,
     output reg [`L2_DATA_ARRAY_WIDTH-1:0] data_data_mask_in_S2,
 
+    `ifndef NO_RTL_CSM
     output reg [`L2_SMC_ADDR_WIDTH-1:0] smc_wr_addr_in_S2,
     output reg [`L2_SMC_DATA_IN_WIDTH-1:0] smc_data_in_S2,
+    `endif
 
     //Outputs from Stage 3
     output reg [`PHY_ADDR_WIDTH-1:0] addr_S3,
@@ -239,11 +250,14 @@ module l2_pipe1_dpath(
     output reg [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_in_S4,
     output wire [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_mask_in_S4,
 
+
+    `ifndef NO_RTL_CSM
+    output reg [`L2_SMC_ADDR_WIDTH-1:0] smc_rd_addr_in_buf_S4,
+    `endif
+
     output reg [`L2_STATE_INDEX_WIDTH-1:0] state_wr_addr_S4,
     output reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_in_S4,
-    output reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_mask_in_S4,
-
-    output reg [`L2_SMC_ADDR_WIDTH-1:0] smc_rd_addr_in_buf_S4
+    output reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_mask_in_S4
 
 );
 
@@ -770,11 +784,13 @@ end
 
 always @ *
 begin
+    `ifndef NO_RTL_CSM
     if (csm_en)
     begin
         req_from_owner_S2 = (l2_way_state_owner_S2 == lsid_S2_f) && (lsid_S2_f != `L2_PUBLIC_SHARER);
     end
     else
+    `endif
     begin
         req_from_owner_S2 = (l2_way_state_owner_S2 == {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]});
     end
@@ -861,11 +877,13 @@ begin
     else
     begin
         //track owner beyond the domain scope
+        `ifndef NO_RTL_CSM
         if (csm_en && (dir_op_S2 == `OP_LD))
         begin
             dir_data_in_S2 = {sdid_S2_f, src_chipid_S2_f, src_y_S2_f,src_x_S2_f};  
         end
-        else
+        else        
+        `endif
         begin
             dir_data_in_S2 = {`L2_DIR_ARRAY_WIDTH{1'b1}}; 
         end 
@@ -880,6 +898,7 @@ begin
     end
     else
     begin
+        `ifndef NO_RTL_CSM
         if (csm_en)
         begin
             if (dir_op_S2 == `OP_LD)
@@ -892,6 +911,7 @@ begin
             end
         end
         else    
+        `endif
         begin
             dir_data_mask_in_S2 = {{(`L2_DIR_ARRAY_WIDTH-1){1'b0}},1'b1} << {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]};
         end
@@ -1000,6 +1020,7 @@ begin
     state_owner_S2 = l2_way_state_owner_S2; 
     if (state_owner_op_S2 == `OP_LD)
     begin
+        `ifndef NO_RTL_CSM
         if (csm_en)
         begin
             if (state_load_sdid_S2)
@@ -1012,6 +1033,7 @@ begin
             end
         end
         else
+        `endif
         begin
             state_owner_S2 = {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]}; 
         end
@@ -1167,7 +1189,7 @@ begin
     end
 end
 
-
+`ifndef NO_RTL_CSM
 always @ *
 begin
     smc_wr_addr_in_S2 = addr_S2[`L2_SMC_ADDR_WIDTH+3:4];
@@ -1177,6 +1199,7 @@ always @ *
 begin
     smc_data_in_S2 = {msg_data_S2, msg_data_S2};
 end
+`endif
 
 //============================
 // Stage 2 > Stage 3
@@ -1372,7 +1395,9 @@ end
 
 reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_in_real_S4;
 reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_mask_in_real_S4;
+`ifndef NO_RTL_CSM
 reg [`L2_SMC_ADDR_WIDTH-1:0] smc_rd_addr_in_S4;
+`endif
 reg [`L2_DATA_ARRAY_WIDTH-1:0] data_data_S4;
 reg [`MSG_SDID_WIDTH-1:0] sdid_S4;
 
@@ -1396,6 +1421,7 @@ end
 
 always @ *
 begin
+    `ifndef NO_RTL_CSM
     if (csm_en && (!msg_from_mshr_S4 || recycled_S4_f) && l2_evict_S4)
     begin
         if (l2_way_state_mesi_S4 == `L2_MESI_E)
@@ -1412,6 +1438,7 @@ begin
         end
     end
     else
+    `endif
     begin
         sdid_S4 = sdid_S4_f;
     end
@@ -1419,6 +1446,7 @@ end
 
 always @ *
 begin
+    `ifndef NO_RTL_CSM
     if (csm_en && (msg_type_S4 == `MSG_TYPE_WBGUARD_REQ) && l2_tag_hit_S4
      && (l2_way_state_mesi_S4 == `L2_MESI_E) && l2_way_state_subline_S4[addr_S4[`L2_DATA_SUBLINE]])
     begin
@@ -1427,12 +1455,14 @@ begin
                          && (src_y_S4_f == dir_data_S4[`L2_DIR_CORE_Y]);
     end
     else
+    `endif
     begin
         req_from_owner_S4 = req_from_owner_S4_f;
     end
 end
 
 
+`ifndef NO_RTL_CSM
 reg [`L2_SMC_ADDR_WIDTH-1:0] smc_rd_addr_in_buf_S4_next;
 reg [`L2_SMC_ADDR_WIDTH-1:0] smc_rd_addr_in_buf_S4_f;
 
@@ -1499,7 +1529,7 @@ begin
     smc_valid_out_buf_S4_f <= smc_valid_out_buf_S4_next;
 end
 */
-
+`endif
 
 always @ *
 begin
@@ -1514,6 +1544,7 @@ begin
     //are sent out
     if(!msg_from_mshr_S4 || recycled_S4_f)
     begin
+        `ifndef NO_RTL_CSM
         if (smc_miss_S4)
         begin
             state_data_in_real_S4 = {{`L2_RB_BITS{1'b0}}, {`L2_LRU_BITS{1'b0}}, 
@@ -1521,6 +1552,7 @@ begin
             (dir_sharer_counter_S4 - mshr_inv_counter_out_S4 - `L2_OWNER_BITS'b1)}}};
         end
         else
+        `endif
         begin
             state_data_in_real_S4 = {{`L2_RB_BITS{1'b0}}, {`L2_LRU_BITS{1'b0}}, 
             {`L2_WAYS{{`L2_MESI_BITS{1'b0}}, {`L2_VD_BITS{1'b0}}, {`L2_DI_BIT{1'b0}}, {`L2_SUBLINE_BITS{1'b0}}, 
@@ -1529,6 +1561,7 @@ begin
     end
     else
     begin
+        `ifndef NO_RTL_CSM
         if (smc_miss_S4)
         begin
             state_data_in_real_S4 = {{`L2_RB_BITS{1'b0}}, {`L2_LRU_BITS{1'b0}}, 
@@ -1536,6 +1569,7 @@ begin
             (dir_sharer_counter_S4 + l2_way_state_owner_S4_f - mshr_inv_counter_out_S4 - `L2_OWNER_BITS'b1)}}};
         end
         else
+        `endif
         begin
             state_data_in_real_S4 = {{`L2_RB_BITS{1'b0}}, {`L2_LRU_BITS{1'b0}}, 
             {`L2_WAYS{{`L2_MESI_BITS{1'b0}}, {`L2_VD_BITS{1'b0}}, {`L2_DI_BIT{1'b0}}, {`L2_SUBLINE_BITS{1'b0}}, 
@@ -1722,8 +1756,9 @@ begin
     end
     else if (msg_send_type_S4 == `MSG_TYPE_NC_LOAD_REQ)
     begin
+        `ifndef NO_RTL_CSM
         if (csm_en)
-        begin  
+        begin 
             if (smc_miss_S4)
             begin 
                 msg_send_addr_S4 = {smt_base_addr, smc_rd_addr_in_S4[`L2_SMC_ADDR_TAG], 4'd0};
@@ -1734,6 +1769,7 @@ begin
             end
         end
         else
+        `endif
         begin
             msg_send_addr_S4 = addr_S4_f;
         end
@@ -1750,13 +1786,15 @@ begin
     case (msg_send_type_S4)
     `MSG_TYPE_LOAD_FWD, `MSG_TYPE_STORE_FWD: 
     begin
+        `ifndef NO_RTL_CSM
         if (csm_en)
         begin
             msg_send_dst_chipid_S4 = dir_data_S4[`L2_DIR_CORE_CHIPID];
             msg_send_dst_x_S4 = dir_data_S4[`L2_DIR_CORE_X];
             msg_send_dst_y_S4 = dir_data_S4[`L2_DIR_CORE_Y];
         end
-        else
+        else    
+        `endif
         begin
             msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
             msg_send_dst_x_S4 = {{(`MSG_SRC_X_WIDTH - `L2_OWNER_X_WIDTH){1'b0}}, 
@@ -1768,6 +1806,7 @@ begin
     end
     `MSG_TYPE_INV_FWD:
     begin
+        `ifndef NO_RTL_CSM
         if (csm_en)
         begin
             if (l2_way_state_mesi_S4_f == `L2_MESI_B)
@@ -1784,6 +1823,7 @@ begin
             end
         end
         else
+        `endif
         begin
             msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
             msg_send_dst_x_S4 = {{(`MSG_SRC_X_WIDTH - `L2_OWNER_X_WIDTH){1'b0}}, dir_sharer_S4[`L2_OWNER_X]}; 
@@ -1793,7 +1833,7 @@ begin
     end
     `MSG_TYPE_NODATA_ACK, `MSG_TYPE_DATA_ACK:
     begin
-        msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
+        msg_send_dst_chipid_S4 = src_chipid_S4_f;
         msg_send_dst_x_S4 = src_x_S4_f; 
         msg_send_dst_y_S4 = src_y_S4_f;
         msg_send_dst_fbits_S4 = `NOC_FBITS_L1;
@@ -1856,6 +1896,7 @@ begin
         begin
             msg_send_data_S4 = {2{dir_data_sel_S4}}; 
         end
+        `ifndef NO_RTL_CSM
         else if (addr_S4[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_SMC_ACCESS)
         begin
             case (addr_S4[`L2_ADDR_OP])
@@ -1877,6 +1918,7 @@ begin
             end
             endcase
         end
+        `endif
         else if (addr_S4[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_CTRL_REG 
               || addr_S4[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_COREID_REG
               || addr_S4[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_ERROR_STATUS_REG
@@ -1906,6 +1948,7 @@ begin
 end
 
 
+`ifndef NO_RTL_CSM
 always @ *
 begin
     if (special_addr_type_S4 && (addr_S4[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_SMC_ACCESS))
@@ -1921,7 +1964,10 @@ begin
         smc_rd_addr_in_S4 = {sdid_S4, l2_way_state_owner_S4_f};
     end
 end
+`endif
 
+
+`ifndef NO_RTL_CSM
 always @ *
 begin
     mshr_data_in_S4 = {inv_fwd_pending_S4,
@@ -1942,7 +1988,29 @@ begin
                        l2_way_sel_S4_f,
                        addr_S4_f};
 end
+`else
+always @ *
+begin
+    mshr_data_in_S4 = {inv_fwd_pending_S4,
+                       (req_recycle_S4 && (!msg_from_mshr_S4 || recycled_S4_f)),
+                       1'b0,
+                       {`L2_LSID_WIDTH{1'b0}},
+                       lsid_S4_f, 
+                       sdid_S4,
+                       src_fbits_S4_f,
+                       src_y_S4_f,
+                       src_x_S4_f,
+                       src_chipid_S4_f,
+                       l2_miss_S4,
+                       msg_type_S4,
+                       data_size_S4,
+                       cache_type_S4,
+                       mshrid_S4_f,
+                       l2_way_sel_S4_f,
+                       addr_S4_f};
+end
 
+`endif
 /*
 always @ *
 begin

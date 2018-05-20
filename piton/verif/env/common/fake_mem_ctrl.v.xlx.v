@@ -24,9 +24,9 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //==================================================================================================
-//  Filename      : fake_mem_ctrl.v
+//  Filename      : fake_boot_ctrl.v
 //  Created On    : 2014-04-15
-//  Last Modified : 2015-05-09 21:41:22
+//  Last Modified : 2016-01-19 01:49:35
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -37,7 +37,7 @@
 //
 //==================================================================================================
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 `include "iop.h"
 
@@ -177,7 +177,7 @@ end
 wire [`MSG_TYPE_WIDTH-1:0] msg_type;
 wire [`MSG_MSHRID_WIDTH-1:0] msg_mshrid;
 wire [`MSG_DATA_SIZE_WIDTH-1:0] msg_data_size;
-wire [`PHY_ADDR_WIDTH-1:0] msg_addr;
+ wire [`PHY_ADDR_WIDTH-1:0] msg_addr;
 wire [`MSG_SRC_CHIPID_WIDTH-1:0] msg_src_chipid;
 wire [`MSG_SRC_X_WIDTH-1:0] msg_src_x;
 wire [`MSG_SRC_Y_WIDTH-1:0] msg_src_y;
@@ -243,40 +243,59 @@ end
 //------------------------------------------------
 // Alexey
 parameter BRAM_DATA_WIDTH = 512;
-parameter BRAM_ADDR_WIDTH = 12;
+`ifdef PITON_OBP
+    parameter BRAM_ADDR_WIDTH = 16;
+`else
+    parameter BRAM_ADDR_WIDTH = 12;
+`endif
 
 wire                            bram_r_val;
+wire                            bram_r_val_hit;
 wire [BRAM_DATA_WIDTH-1:0]      bram_data_out;
 
 wire                            bram_w_val;
+wire                            bram_w_val_hit;
 wire [BRAM_DATA_WIDTH-1:0]      bram_w_mask;
 wire [BRAM_DATA_WIDTH-1:0]      bram_data_in;
 
-wire [BRAM_ADDR_WIDTH-1:0]      bram_addr;    //TODO: mapping !
+ wire [BRAM_ADDR_WIDTH-1:0]      bram_addr;    //TODO: mapping !
 
 wire [`NOC_DATA_WIDTH-1:0]      buf_out_mem [8:0];
 reg  [`NOC_DATA_WIDTH*3-1:0]    msg_send_header_r;
 wire [`MSG_TYPE_WIDTH-1:0]      msg_send_type;
 wire [`MSG_LENGTH_WIDTH-1:0]    msg_send_length;
 
-reg  [`L2_DATA_SUBLINE_WIDTH-1:0] addr_subline_r;
+ reg  [`L2_DATA_SUBLINE_WIDTH-1:0] addr_subline_r;
 wire                            hit_bram;
-reg                             hit_bram_r;
+ reg                             hit_bram_r;
 wire [BRAM_DATA_WIDTH-1:0]      read_data;
-reg  [`NOC_DATA_WIDTH-1:0]      buf_out_mem_r [8:0];
+ reg  [`NOC_DATA_WIDTH-1:0]      buf_out_mem_r [8:0];
 wire                            mem_process_next_val;
-reg                             mem_process_next_val_r;
+ reg                             mem_process_next_val_r;
 
 
-bram_map #(
-    .MEM_ADDR_WIDTH     (`MEM_ADDR_WIDTH),
-    .PHY_ADDR_WIDTH     (`PHY_ADDR_WIDTH),
-    .BRAM_ADDR_WIDTH    (BRAM_ADDR_WIDTH)
-) bram_map (
-    .msg_addr           (msg_addr       ),
-    .bram_blk_addr      (bram_addr      ),
-    .hit_any_section    (hit_bram       )
-);
+`ifdef PITON_OBP
+    bram_map_obp #(
+        .MEM_ADDR_WIDTH     (`MEM_ADDR_WIDTH),
+        .PHY_ADDR_WIDTH     (`PHY_ADDR_WIDTH),
+        .BRAM_ADDR_WIDTH    (BRAM_ADDR_WIDTH)
+    ) bram_map_obp (
+        .msg_addr           (msg_addr       ),
+        .bram_blk_addr      (bram_addr      ),
+        .hit_any_section    (hit_bram       )
+    );
+
+`else
+    bram_map #(
+        .MEM_ADDR_WIDTH     (`MEM_ADDR_WIDTH),
+        .PHY_ADDR_WIDTH     (`PHY_ADDR_WIDTH),
+        .BRAM_ADDR_WIDTH    (BRAM_ADDR_WIDTH)
+    ) bram_map (
+        .msg_addr           (msg_addr       ),
+        .bram_blk_addr      (bram_addr      ),
+        .hit_any_section    (hit_bram       )
+    );
+`endif
 
 // READ
 assign mem_process_next_val = mem_valid_in & mem_ready_in;
@@ -340,20 +359,38 @@ always @(posedge clk) begin
     buf_out_mem_r[0] <= buf_out_mem[0];
 end
 
-bram_sdp_4096x512_wrapper #(
-    .ADDR_WIDTH     (12     ),
-    .BITMASK_WIDTH  (512    ),
-    .DATA_WIDTH     (512    )
-) bram (
-    .MEMCLK         (clk            ),
-    .A              (bram_addr      ),
-    .REN            (bram_r_val     ),
-    .WEN            (bram_w_val     ),
-    .BW             (bram_w_mask    ),
-    .DIN            (bram_data_in   ),
-    .DOUT           (bram_data_out  )
+assign bram_r_val_hit = bram_r_val & hit_bram;
+assign bram_w_val_hit = bram_w_val & hit_bram;
 
-);
+`ifdef PITON_OBP
+    bram_sdp_16384x512_wrapper #(
+        .ADDR_WIDTH     (14     ),
+        .BITMASK_WIDTH  (512    ),
+        .DATA_WIDTH     (512    )
+    ) bram (
+        .MEMCLK         (clk            ),
+        .A              (bram_addr      ),
+        .REN            (bram_r_val_hit ),
+        .WEN            (bram_w_val_hit ),
+        .BW             (bram_w_mask    ),
+        .DIN            (bram_data_in   ),
+        .DOUT           (bram_data_out  )
+    );
+`else
+    bram_sdp_256x512_wrapper #(
+        .ADDR_WIDTH     (8     ),
+        .BITMASK_WIDTH  (512    ),
+        .DATA_WIDTH     (512    )
+    ) bram (
+        .MEMCLK         (clk            ),
+        .A              (bram_addr      ),
+        .REN            (bram_r_val_hit ),
+        .WEN            (bram_w_val_hit ),
+        .BW             (bram_w_mask    ),
+        .DIN            (bram_data_in   ),
+        .DOUT           (bram_data_out  )
+    );
+`endif
 
 
 /*

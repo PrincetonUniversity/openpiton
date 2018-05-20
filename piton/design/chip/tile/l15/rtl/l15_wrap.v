@@ -27,7 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // This module wraps the L1.5 and ties unused signals
 
-`include "l15.vh"
+
+`include "l15.tmp.h"
 
 module l15_wrap
 (
@@ -39,7 +40,9 @@ module l15_wrap
     
     input wire   [123:117] pcx_data_123_117,
     input wire   [112:0]   pcx_data_112_0,
+    `ifndef NO_RTL_CSM
     input wire   [`TLB_CSM_WIDTH-1:0] pcx_csm,
+    `endif
     input wire noc1_out_rdy,
     input wire noc2_in_val,
     input wire [`NOC_DATA_WIDTH-1:0] noc2_in_data,
@@ -94,7 +97,9 @@ module l15_wrap
         .pcx_req(pcx_req),
         .pcx_atomic_req(pcx_atomic_req),
         .pcx_data(pcx_data),
+        `ifndef NO_RTL_CSM
         .pcx_csm(pcx_csm),
+        `endif
         .noc1_out_rdy(noc1_out_rdy),
         .noc2_in_val(noc2_in_val),
         .noc2_in_data(noc2_in_data),

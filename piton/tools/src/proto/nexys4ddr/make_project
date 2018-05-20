@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd $MODEL_DIR/nexys4ddr
+echo "Creating Vivado project" >&2
+vivado -mode batch -source nexys4ddr_piton_project.tcl > protosyn_logs/make_project.log

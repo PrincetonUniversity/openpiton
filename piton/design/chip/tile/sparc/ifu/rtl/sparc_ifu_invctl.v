@@ -32,7 +32,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 `include "iop.h"
-`include "ifu.h"
+`include "ifu.tmp.h"
 
 module sparc_ifu_invctl(/*AUTOARG*/
    // Outputs

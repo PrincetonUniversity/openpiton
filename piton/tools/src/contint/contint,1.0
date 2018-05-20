@@ -233,7 +233,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             sys_val = ""
             for args in child :
                 # if args.tag == "sys" or args.tag == "vcs_build_args" or args.tag == "num_tile" or args.tag == "x_tiles" or args.tag == "y_tiles":
-                if args.tag in ["sys", "vcs_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
+                if args.tag in ["network_config", "sys", "vcs_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
                     build_command += " -" + args.tag + "=" + args.text
                     if args.tag == "sys" :
                         sys_val = args.text

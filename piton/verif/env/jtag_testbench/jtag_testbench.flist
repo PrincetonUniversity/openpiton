@@ -4,7 +4,7 @@ $DV_ROOT/verif/env/manycore/cross_module.h
 
 jtag_testbench_top.v
 $DV_ROOT/verif/env/manycore/jtag_mon.v
-$DV_ROOT/verif/env/manycore/initializer.v
+// $DV_ROOT/verif/env/manycore/initializer.v
 
 // Tile & core monitors
 -v $DV_ROOT/verif/env/manycore/monitor.v

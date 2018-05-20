@@ -32,7 +32,8 @@
 
 //PITON_PROTO enables all FPGA related modifications
 `ifdef PITON_PROTO
-`define FPGA_SYN_FRF
+    //`define FPGA_SYN_FRF
+    `define IBM_SRAM_FRF
 `endif
 
 
@@ -139,6 +140,7 @@ module bw_r_frf (/*AUTOARG*/
 
    wire [77:0] read_data;
 sram_1rw_128x78 regfile
+//sram_configurable_frf regfile
 (
   .MEMCLK(rclk),
   .RESET_N(!rst_tri_en),
@@ -196,7 +198,11 @@ module bw_r_frf (/*AUTOARG*/
    so, frf_dp_data,
    // Inputs
    rclk, si, se, sehold, rst_tri_en, ctl_frf_wen, ctl_frf_ren,
-   dp_frf_data, ctl_frf_addr
+   dp_frf_data, ctl_frf_addr,
+   // sram wrapper interface
+   srams_rtap_data,
+   rtap_srams_bist_command,
+   rtap_srams_bist_data
    ) ;
    input rclk;
    input si;
@@ -211,6 +217,10 @@ module bw_r_frf (/*AUTOARG*/
    output so;
    output [77:0] frf_dp_data;
 
+  output [`SRAM_WRAPPER_BUS_WIDTH-1:0] srams_rtap_data;
+  input  [`BIST_OP_WIDTH-1:0] rtap_srams_bist_command;
+  input  [`SRAM_WRAPPER_BUS_WIDTH-1:0] rtap_srams_bist_data;
+
    wire [7:0]    regfile_index;
    //XST WA CR436004
         (* keep = "yes" *) wire [7:0]   regfile_index_low;
@@ -218,8 +228,8 @@ module bw_r_frf (/*AUTOARG*/
    //
 
 `ifdef FPGA_SYN_FRF
-   reg [38:0]     regfile_high [127:0];
-   reg [38:0]     regfile_low [127:0];
+   (* ram_style = "block" *) reg [38:0]     regfile_high [127:0];
+   (* ram_style = "block" *) reg [38:0]     regfile_low [127:0];
 `else
    reg [38:0]     regfile [255:0];
 `endif

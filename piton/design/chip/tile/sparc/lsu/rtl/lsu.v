@@ -30,7 +30,7 @@
           // time scale definition
 
 `include        "iop.h"
-`include        "lsu.h"
+`include        "lsu.tmp.h"
 
 `include        "define.vh"
 ////////////////////////////////////////////////////////////////////////
@@ -3599,7 +3599,7 @@ bw_r_dcd dcache (
              .wr_en              (lsu_dtagv_wr_vld_e));
 */
 
-bw_r_rf16x32 dva (
+sram_l1d_val dva (
                   .so                   (short_scan0_1),
                   .si                   (short_si0),
                    /*AUTOINST*/
@@ -3648,7 +3648,7 @@ bw_r_rf16x32 dva (
                .reset_l                 (arst_l));
 */
 
-bw_r_idct dtag (
+bw_r_dct dtag (
                 .so                     (short_scan0_2),
                 .si                     (short_scan0_1),
 		.wrtag_w0_y		({3'b000,dtag_wdata_m[29:0]}),
@@ -7682,7 +7682,7 @@ bw_r_tlb  AUTO_TEMPLATE (
                  .cache_ptag_w3   ({dtag_rdata_w3_m[28:0], lsu_ldst_va_m[10]}));
 */
 
-bw_r_tlb dtlb  (
+bw_r_dtlb dtlb  (
                 .so                     (short_scan0_4),
                 .si                     (short_scan0_3),
           .tlb_cam_key   ( {exu_lsu_ldst_va_e[47:28], 1'b1,

@@ -40,7 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 //`timescale 1 ns / 10 ps
-`include "l15.vh"
+
+`include "l15.tmp.h"
 `include "define.vh"
 
 <%
@@ -64,8 +65,8 @@ module l15_csm(
    input wire [`L15_CSM_NUM_TICKETS_LOG2-1:0] l15_csm_read_ticket,
    input wire [`L15_CSM_NUM_TICKETS_LOG2-1:0] l15_csm_clear_ticket,
    input wire l15_csm_clear_ticket_val,
-   output reg [`PACKET_HOME_ID_WIDTH-1:0] csm_l15_read_res_data,
-   output reg csm_l15_read_res_val,
+   output wire [`PACKET_HOME_ID_WIDTH-1:0] csm_l15_read_res_data,
+   output wire csm_l15_read_res_val,
 
    // interface with pipeline
    input wire [`PHY_ADDR_WIDTH-1:0] l15_csm_req_address_s2,
@@ -80,12 +81,12 @@ module l15_csm(
 
    // noc1 interface
    input wire noc1encoder_csm_req_ack,
-   output reg csm_noc1encoder_req_val,
-   output reg [`L15_NOC1_REQTYPE_WIDTH-1:0] csm_noc1encoder_req_type,
-   output reg [`L15_CSM_NUM_TICKETS_LOG2-1:0] csm_noc1encoder_req_mshrid,
-   output reg [`PHY_ADDR_WIDTH-1:0] csm_noc1encoder_req_address,
-   output reg csm_noc1encoder_req_non_cacheable,
-   output reg  [`PCX_SIZE_WIDTH-1:0] csm_noc1encoder_req_size
+   output wire csm_noc1encoder_req_val,
+   output wire [`L15_NOC1_REQTYPE_WIDTH-1:0] csm_noc1encoder_req_type,
+   output wire [`L15_CSM_NUM_TICKETS_LOG2-1:0] csm_noc1encoder_req_mshrid,
+   output wire [`PHY_ADDR_WIDTH-1:0] csm_noc1encoder_req_address,
+   output wire csm_noc1encoder_req_non_cacheable,
+   output wire  [`PCX_SIZE_WIDTH-1:0] csm_noc1encoder_req_size
 
 );
 
@@ -401,6 +402,8 @@ end
 
 //Stage 3
 
+`ifndef NO_RTL_CSM
+
 reg [`L15_HMC_ADDR_OP_WIDTH-1:0] addr_op_s3;
 reg refill_req_val_s3;
 wire hit_s3;
@@ -574,11 +577,8 @@ end
 
 
 // read port for ghid
-always @ *
-begin
-    csm_l15_read_res_data = ghid_ticketed_cache[l15_csm_read_ticket];
-    csm_l15_read_res_val = ghid_ticketed_cache_val[l15_csm_read_ticket];
-end
+assign csm_l15_read_res_data = ghid_ticketed_cache[l15_csm_read_ticket];
+assign csm_l15_read_res_val = ghid_ticketed_cache_val[l15_csm_read_ticket];
 
 //Output buffer
 
@@ -688,15 +688,12 @@ end
 
 
 
-always @ *
-begin
-    csm_noc1encoder_req_val = refill_req_val_buf[refill_req_buf_rd_ptr] && (refill_req_buf_counter > 0);
-    csm_noc1encoder_req_type = `L15_NOC1_REQTYPE_LD_REQUEST;
-    csm_noc1encoder_req_mshrid = refill_req_ticket_buf[refill_req_buf_rd_ptr];
-    csm_noc1encoder_req_address = refill_req_addr_buf[refill_req_buf_rd_ptr];
-    csm_noc1encoder_req_non_cacheable = 1'b1;
-    csm_noc1encoder_req_size = `PCX_SZ_16B; // use pcx def because noc1enc translate it to packet def
-end
+assign csm_noc1encoder_req_val = refill_req_val_buf[refill_req_buf_rd_ptr] && (refill_req_buf_counter > 0);
+assign csm_noc1encoder_req_type = `L15_NOC1_REQTYPE_LD_REQUEST;
+assign csm_noc1encoder_req_mshrid = refill_req_ticket_buf[refill_req_buf_rd_ptr];
+assign csm_noc1encoder_req_address = refill_req_addr_buf[refill_req_buf_rd_ptr];
+assign csm_noc1encoder_req_non_cacheable = 1'b1;
+assign csm_noc1encoder_req_size = `PCX_SZ_16B; // use pcx def because noc1enc translate it to packet def
 
 /*
 // calculate (or look up ghid from address)
@@ -776,4 +773,47 @@ begin
    csm_l15_read_res_val = ghid_ticketed_cache_val[l15_csm_read_ticket];
 end
 */
+
+`else
+
+wire [`NOC_X_WIDTH-1:0] lhid_s3_x;
+wire [`NOC_Y_WIDTH-1:0] lhid_s3_y;
+
+// read port for ghid
+assign csm_l15_read_res_data = 0;
+assign csm_l15_read_res_val = 0;
+
+
+always @ *
+begin
+    csm_l15_res_val_s3 = l15_csm_req_val_s3;
+end
+
+assign csm_noc1encoder_req_val = 0;
+assign csm_noc1encoder_req_type = 0;
+assign csm_noc1encoder_req_mshrid =0;
+assign csm_noc1encoder_req_address =0;
+assign csm_noc1encoder_req_non_cacheable = 0;
+assign csm_noc1encoder_req_size = 0;
+
+always @ *
+begin
+    // csm_l15_res_data_s3 = {{`NOC_CHIPID_WIDTH{1'b0}},
+    //                       {(`NOC_X_WIDTH-`HOME_ID_Y_POS_WIDTH){1'b0}}, lhid_s3[`HOME_ID_Y_POS],
+    //                       {(`NOC_X_WIDTH-`HOME_ID_X_POS_WIDTH){1'b0}}, lhid_s3[`HOME_ID_X_POS]};
+    csm_l15_res_data_s3 = 0;
+    csm_l15_res_data_s3[`PACKET_HOME_ID_CHIP_MASK] = 1'b0; // non-csm mode only has 1 chip alone
+    csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = lhid_s3_y;
+    csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = lhid_s3_x;
+end
+
+flat_id_to_xy lhid_to_xy (
+    .flat_id(lhid_s3[`HOME_ID_Y_POS_WIDTH+`HOME_ID_X_POS_WIDTH-1:0]),
+    .x_coord(lhid_s3_x),
+    .y_coord(lhid_s3_y)
+    );
+
+`endif
+
+
 endmodule

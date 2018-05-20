@@ -32,6 +32,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * channel is 32 bits wide, splitting flits into four parts before send
  * relies on arbitration logic in fpga_net_chooser_32.v
  *
+ * Interface spec:
+ * 
+ * data_channel:
+ *		00			No channel valid
+ *		01,10,11	Channel 1,2,3 valid
+ *
+ * credit_from_chip
+ * 		For each cycle that bit i == 1, sender may send one more flit 
+ *		along channel i
  *******************************************************************/
 
 `timescale 1ns/1ps
@@ -125,56 +134,99 @@ bridge_network_chooser_32 separator(
 //input-output fixed to 64 bits
 
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_1(
-    .rreset(rst),
-    .wreset(rst),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(network_rdy_1),
-    .wval(bin_val_1),
-    .wdata(bin_data_1),
-    .rdata(network_data_1),
-    .wfull(fifo1_full),
-    .rempty(network_empty_1)
-);
+`ifdef PITON_SPARTAN6
+    afifo_send async_fifo_1(
+        .rst(rst),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(network_rdy_1),
+        .wr_en(bin_val_1),
+        .din(bin_data_1),
+        .dout(network_data_1),
+        .full(fifo1_full),
+        .empty(network_empty_1)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_1(
+        .rreset(rst),
+        .wreset(rst),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(network_rdy_1),
+        .wval(bin_val_1),
+        .wdata(bin_data_1),
+        .rdata(network_data_1),
+        .wfull(fifo1_full),
+        .rempty(network_empty_1)
+    );
+`endif
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_2(
-    .rreset(rst),
-    .wreset(rst),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(network_rdy_2),
-    .wval(bin_val_2),
-    .wdata(bin_data_2),
-    .rdata(network_data_2),
-    .wfull(fifo2_full),
-    .rempty(network_empty_2)
-);
 
-async_fifo #(
-.DSIZE(64),
-.ASIZE(9),
-.MEMSIZE(256) )
-async_fifo_3(
-    .rreset(rst),
-    .wreset(rst),
-    .wclk(wr_clk),
-    .rclk(rd_clk),
-    .ren(network_rdy_3),
-    .wval(bin_val_3),
-    .wdata(bin_data_3),
-    .rdata(network_data_3),
-    .wfull(fifo3_full),
-    .rempty(network_empty_3)
-);
+`ifdef PITON_SPARTAN6
+    afifo_send async_fifo_2(
+        .rst(rst),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(network_rdy_2),
+        .wr_en(bin_val_2),
+        .din(bin_data_2),
+        .dout(network_data_2),
+        .full(fifo2_full),
+        .empty(network_empty_2)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_2(
+        .rreset(rst),
+        .wreset(rst),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(network_rdy_2),
+        .wval(bin_val_2),
+        .wdata(bin_data_2),
+        .rdata(network_data_2),
+        .wfull(fifo2_full),
+        .rempty(network_empty_2)
+    );
+`endif
+
+`ifdef PITON_SPARTAN6
+    afifo_send async_fifo_3(
+        .rst(rst),
+        .wr_clk(wr_clk),
+        .rd_clk(rd_clk),
+        .rd_en(network_rdy_3),
+        .wr_en(bin_val_3),
+        .din(bin_data_3),
+        .dout(network_data_3),
+        .full(fifo3_full),
+        .empty(network_empty_3)
+    );
+`else
+    async_fifo #(
+    .DSIZE(64),
+    .ASIZE(9),
+    .MEMSIZE(256) )
+    async_fifo_3(
+        .rreset(rst),
+        .wreset(rst),
+        .wclk(wr_clk),
+        .rclk(rd_clk),
+        .ren(network_rdy_3),
+        .wval(bin_val_3),
+        .wdata(bin_data_3),
+        .rdata(network_data_3),
+        .wfull(fifo3_full),
+        .rempty(network_empty_3)
+    );
+`endif
 
 assign network_val_1 = ~network_empty_1;
 assign network_val_2 = ~network_empty_2;

@@ -37,7 +37,7 @@
 %>
 
 
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 `define FPGA_SYN_FRF
 `define FPGA_SYN_IDCT
 `define FPGA_SYN_IRF

@@ -2,12 +2,28 @@
 
 # OpenPiton Research Processor 
 
+OpenPiton is the world’s first open source, general purpose, multithreaded manycore processor. It is a tiled manycore framework scalable from one to 1/2 billion cores. It is a 64-bit architecture using SPARC v9 ISA with a distributed directory-based cache coherence protocol across on-chip networks. It is highly configurable in both core and uncore components. OpenPiton has been verified in both ASIC and multiple Xilinx FPGA prototypes running full-stack Debian linux. We have released both the Verilog RTL code as well as synthesis and back-end flow. We believe OpenPiton is a great framework for researchers in computer architecture, OS, compilers, EDA, security and more.
+
+OpenPiton has been published in ASPLOS 2016: Jonathan Balkind, Michael McKeown, Yaosheng Fu, Tri Nguyen, Yanqi Zhou, Alexey Lavrov, Mohammad Shahrad, Adi Fuchs, Samuel Payne, Xiaohua Liang, Matthew Matl, and David Wentzlaff. "OpenPiton: An Open Source Manycore Research Framework." In Proceedings of the 21st International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS '16), April 2016.
+
+More information about OpenPiton is available in www.openpiton.org 
+
+If you use OpenPiton in your research please reference our ASPLOS 2016 paper mentioned above and send us a citation of your work.
+
+#### Documentations
+
+There are several detailed documentations about OpenPiton in the docs folder listed below:
+
+- OpenPiton Simulation Manual
+- OpenPiton Microarchitecture Specification
+- OpenPiton FPGA Prototype Manual
+- OpenPiton Synthesis and Back-end Manual
+
+
+
 #### Environment Setup
 - The ```PITON_ROOT``` environment variable should point to the root of the OpenPiton repository
-- Synopsys environment variables should be set separately. The following variables are required:
-    - ```VERA_HOME``` should point to the root of the Synopsys Vera installation
-    - ```VCS_HOME``` should point to the root of the Synopsys VCS installation
-    - ```LM_LICENSE_FILE``` should point to the Synopsys license file or license server
+- The Synopsys environment for simulation should be setup separately by the user.  Besides adding correct paths to your ```PATH``` and ```LD_LIBRARY_PATH``` (usually accomplished by a script provided by Synopsys), the OpenPiton tools specifically reference the ```VCS_HOME``` environment variable which should   point to the root of the Synopsys VCS installation.
     - **Note**: Depending on your system setup, Synopsys tools may require the ```-full64``` flag.  This can easily be accomplished by adding a bash function as shown in the following example for VCS (also required for URG):
 
         ```bash

@@ -131,7 +131,7 @@ module sparc_ffu_ctl_visctl (/*AUTOARG*/
    wire        visop_w3_vld;
    wire        add;
    wire        align;
-   wire        logic;
+   wire        wlogic;
    wire        siam;
    wire        alignaddr;
 
@@ -257,14 +257,14 @@ module sparc_ffu_ctl_visctl (/*AUTOARG*/
    ////////////////////////////////////
    assign      add = ~opf[8] & ~opf[7] & opf[6] & ~opf[5] & opf[4] & ~opf[3];
    assign      align = ~opf[8] & ~opf[7] & opf[6] & ~opf[5] & ~opf[4] & opf[3] & ~opf[2] & ~opf[1] & ~opf[0];
-   assign      logic = ~opf[8] & ~opf[7] & opf[6] & opf[5];
+   assign      wlogic = ~opf[8] & ~opf[7] & opf[6] & opf[5];
    assign siam = ~opf[8] & opf[7] & ~opf[6] & ~opf[5] & ~opf[4] & ~opf[3] & ~opf[2] & ~opf[1] & opf[0];
    assign alignaddr = ~opf[8] & ~opf[7] & ~opf[6] & ~opf[5] & opf[4] & opf[3] & ~opf[2] & ~opf[0]; //alignaddress
 
-   assign illegal_vis_e = (visop_e & ~(add | align | logic | siam | alignaddr) | 
+   assign illegal_vis_e = (visop_e & ~(add | align | wlogic | siam | alignaddr) | 
                            illegal_rs1_e | illegal_rs2_e | illegal_siam_e);
-   assign rs1_check_nonzero_e = visop_e & (siam | (logic & (opf_log_zero | opf_log_one | opf_log_src2 | opf_log_not2)));
-   assign rs2_check_nonzero_e = visop_e & logic & (opf_log_zero | opf_log_one | opf_log_src1 | opf_log_not1);
+   assign rs1_check_nonzero_e = visop_e & (siam | (wlogic & (opf_log_zero | opf_log_one | opf_log_src2 | opf_log_not2)));
+   assign rs2_check_nonzero_e = visop_e & wlogic & (opf_log_zero | opf_log_one | opf_log_src1 | opf_log_not1);
    assign illegal_rs1_e = (frs1_e[4:0] != 5'b00000) & rs1_check_nonzero_e;
    assign illegal_rs2_e = (frs2_e[4:0] != 5'b00000) & rs2_check_nonzero_e;
    assign illegal_siam_e = ((frd_e[4:0] != 5'b00000) | frs2_e[4] | frs2_e[3]) & siam & visop_e;

@@ -1,0 +1,125 @@
+# Modified by Princeton University on April 3rd, 2016
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: rsyn,1.0
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+#######################################################################
+# Check Merge GDS script
+#
+# cmerge_gds -help for help
+#######################################################################
+
+
+use warnings;
+use strict;
+use Cwd;
+use Cwd 'chdir';
+use Getopt::Long ;
+use rcommon;
+
+$| = 1;
+
+$SIG{__DIE__} = \&sighandler ;
+
+#######################################################################
+# Global variables
+#######################################################################
+
+my $prg = $0;
+$prg =~ s/.*\/// ;
+$prg =~ s/,.*// ;
+
+my $all = 0;
+my $merge_gds_q = "";
+my $blk_list = "";
+my $strict_naming = 0;
+my $run_scr = "";
+my $blk_dir;
+
+my @blocks = ();
+my @block_list = ();
+
+$blk_list = $ENV{DV_ROOT};
+$blk_list .= "/tools/synopsys/block.list";
+$run_scr = $ENV{DV_ROOT};
+$run_scr .= ""; # Not used.
+
+#######################################################################
+# Check command line options
+#######################################################################
+
+foreach my $argv (@ARGV)
+{
+    if ($argv =~ /-all/)
+    {
+	$all = 1;
+    } elsif (($argv =~ /-h/) or ($argv =~ /-help/))
+    {
+	&usage;
+	exit(0);
+    } elsif ($argv =~ /-strict_naming/) {
+    $strict_naming = 1;
+    } else 
+    {
+	push @blocks, $argv;
+    }
+}
+
+my $blocks_info = process_blocks ($blk_list, $all, \@blocks);
+my $count = $blocks_info->{COUNT};
+my $block_list_ref = $blocks_info->{MATCHES};
+@block_list = @$block_list_ref;
+if ($count) {
+    print "$prg: Checking merge GDSII for $count modules\n";
+} else {
+    print "$prg: No matching modules found.\n";
+    &usage;
+}
+
+my $status = 0;
+foreach my $block (@block_list) {
+    print "$prg: Checking merge GDSII for $block->{ID}\n";
+    my $cmd = "";
+    $cmd .= $merge_gds_q;
+    $blk_dir = $ENV{DV_ROOT};
+    $blk_dir .= "/design/$block->{PATH}/synopsys";
+    chdir $blk_dir;
+    `rm -rf merge_gds_status.log`;
+    die ("DIE. Could not remove merge_gds_status.log file.") if ($?);
+    $cmd .= " $ENV{DV_ROOT}/tools/bin/check_log cmerge_gds";
+    if (system($cmd) != 0) {
+        $status = 1;
+    }
+}
+
+exit $status;
+
+#######################################################################
+sub usage {
+    print "\n$prg : Check Merge GDSII for OpenPiton\n\n";
+    print "Options are :\n";
+    print "  -all \n\tto check merge GDSII for all blocks\n";
+    print "  -h / -help\n\tto print help\n";
+    print "  -strict_naming\n\tto match block name exactly\n\t(block_list must be of size 1)\n";
+    print "  block_list :\n\tspecify list of blocks to check merge GDSII\n\n";
+    print "Examples:\n\n";
+    print "\t$prg -all\n\t$prg fpu_add\n\n";
+}
+#######################################################################

@@ -58,32 +58,32 @@ input reset;
 
  
 input [`DATA_WIDTH-1:0]	 data_in;
-input valid_in;			// sending data to the output
-input yummy_out;			// output consumed data
+ input valid_in;			// sending data to the output
+ input yummy_out;			// output consumed data
 
 output [`DATA_WIDTH-1:0]  data_out;
-output valid_out;
-output ready_in;		// is there space available?
+ output valid_out;
+ output ready_in;		// is there space available?
 
 
 //This is the state
-reg yummy_out_f;
-reg valid_temp_f;
-reg [BUFFER_BITS-1:0] count_f;
+ reg yummy_out_f;
+ reg valid_temp_f;
+ reg [BUFFER_BITS-1:0] count_f;
 
 reg is_one_f;
-reg is_two_or_more_f;
+ reg is_two_or_more_f;
 
 //wires
-wire [BUFFER_BITS-1:0] count_plus_1;
-wire [BUFFER_BITS-1:0] count_minus_1;
-wire up;
-wire down;
+ wire [BUFFER_BITS-1:0] count_plus_1;
+ wire [BUFFER_BITS-1:0] count_minus_1;
+ wire up;
+ wire down;
 
-wire valid_temp;
+ wire valid_temp;
 
 //wire regs
-reg [BUFFER_BITS-1:0] count_temp;
+  reg [BUFFER_BITS-1:0] count_temp;
 
 
 //assigns
@@ -134,7 +134,7 @@ begin
 end
 
 //wire top_bits_zero_temp = ~| count_temp[BUFFER_BITS-1:1];
-wire top_bits_zero_temp = count_temp < 3 ? 1 : 0;
+ wire top_bits_zero_temp = count_temp < 3 ? 1 : 0;
 
 always @ (posedge clk)
 begin

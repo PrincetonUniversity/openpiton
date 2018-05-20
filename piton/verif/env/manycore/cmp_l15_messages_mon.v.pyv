@@ -45,7 +45,7 @@ reg [5:0] pcx_interrupt_vector;
 
 
 <%
-MAX_CORE_COUNT = 64
+    from pyhplib import *
 %>
 
 task decode_predecode_reqtype;
@@ -1137,20 +1137,20 @@ end
 
 
 // Monitor FP transactions
-always @ (negedge clk)
-begin
-    if (`TILE0.fpu_arb_wrap.pcx_fpio_data_px2[123]
-            && `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[122:119] == 4'b0101)
-    begin
-        $display("TILE0 FPU th%d: Received FP%d", 
-                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[113:112],
-                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[118]);
-    end
-    if (`TILE0.fpu_arb_wrap.fpu_arb_data_rdy
-            && !`TILE0.fpu_arb_wrap.l15_fp_rdy)
-        $display("TILE0 FPU th%d: Sent FP data", 
-                    `TILE0.fpu_arb_wrap.fpu_arb_data[135:134]);
-end
+//always @ (negedge clk)
+//begin
+//    if (`TILE0.fpu_arb_wrap.pcx_fpio_data_px2[123]
+//            && `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[122:119] == 4'b0101)
+//    begin
+//        $display("TILE0 FPU th%d: Received FP%d", 
+//                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[113:112],
+//                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[118]);
+//    end
+//    if (`TILE0.fpu_arb_wrap.fpu_arb_data_rdy
+//            && !`TILE0.fpu_arb_wrap.l15_fp_rdy)
+//        $display("TILE0 FPU th%d: Sent FP data", 
+//                    `TILE0.fpu_arb_wrap.fpu_arb_data[135:134]);
+//end
 
 // monitor L1.5 way replacement error
 always @ (negedge clk)
@@ -1220,7 +1220,7 @@ end
 `endif
 '''
 
-for i in range (MAX_CORE_COUNT):
+for i in range (NUM_TILES):
     text2 = text;
     text2 = text2.replace("L15_PIPE0", "L15_PIPE" + `i`);
     text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + `i`);

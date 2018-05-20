@@ -1,0 +1,206 @@
+# Modified by Princeton University on April 3rd, 2016
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: rsyn,1.0
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+#######################################################################
+# Run RVS script
+#
+# rvs -help for help
+#######################################################################
+
+
+use warnings;
+use strict;
+use Cwd;
+use Cwd 'chdir';
+use Getopt::Long ;
+use rcommon;
+
+$| = 1;
+
+$SIG{__DIE__} = \&sighandler ;
+
+#######################################################################
+# Global variables
+#######################################################################
+
+my $prg = $0;
+$prg =~ s/.*\/// ;
+$prg =~ s/,.*// ;
+
+my $hostname = `hostname`;
+
+if ($hostname =~ /hecate/)
+{
+    print "Detected running on hecate...using hecate default parameters.\n"
+}
+
+my $all = 0;
+my $rvs_q = "/bin/sh";
+my $slurm = 0;
+my $scores = "1";
+if ($hostname =~ /hecate/)
+{
+    $scores = "6";
+}
+my $stime = "12:00:00";
+my $swait = 0;
+my $blk_list = "";
+my $strict_naming = 0;
+my $run_scr = "";
+my $blk_dir;
+
+my @blocks = ();
+my @block_list = ();
+
+$blk_list = $ENV{DV_ROOT};
+$blk_list .= "/tools/synopsys/block.list";
+$run_scr = $ENV{DV_ROOT};
+$run_scr .= ""; # Not used??
+
+#######################################################################
+# Check command line options
+#######################################################################
+
+foreach my $argv (@ARGV)
+{
+    if ($argv =~ /-all/)
+    {
+	$all = 1;
+    } elsif (($argv =~ /-h/) or ($argv =~ /-help/))
+    {
+	&usage;
+	exit(0);
+    } elsif ($argv =~ /-rvs_q_command/)
+    {
+	$rvs_q = $argv;
+	$rvs_q =~ s/-rvs_q_command=(.*)/$1/ ;
+    } elsif ($argv =~ /-slurm/)
+    {
+    $slurm = 1;
+    } elsif ($argv =~ /-scores/) 
+    {
+    $scores = $argv;
+    $scores =~ s/-scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-stime/)
+    {
+    $stime = $argv;
+    $stime =~ s/-stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-swait/) {
+    $swait = 1;
+    } elsif ($argv =~ /-strict_naming/) {
+    $strict_naming = 1; 
+    } else 
+    {
+	push @blocks, $argv;
+    }
+}
+
+my $blocks_info = process_blocks ($blk_list, $all, \@blocks);
+my $count = $blocks_info->{COUNT};
+my $block_list_ref = $blocks_info->{MATCHES};
+@block_list = @$block_list_ref;
+if ($count) {
+    print "$prg: Running RVS for $count modules\n";
+} else {
+    print "$prg: No matching modules found.\n";
+    &usage;
+}
+
+my @job_ids = ();
+foreach my $block (@block_list) {
+    print "$prg: Running RVS for $block->{ID}\n";
+    my $cmd = $rvs_q;
+    $blk_dir = $ENV{DV_ROOT};
+    $blk_dir .= "/design/$block->{PATH}/synopsys";
+    chdir $blk_dir;
+    `rm -rf fm_shell.log`;
+    die ("DIE. Could not remove fm_shell.log file.") if ($?);
+    $cmd .= " $ENV{DV_ROOT}/tools/bin/rvs_command";
+    if (!$slurm) {
+        system($cmd);
+    } else {
+        my $block_fs = $block->{PATH};
+        my $find = "/";
+        my $replace = "_";
+        $block_fs =~ s/$find/$replace/g;
+        my $cmd_script = "rvs_";
+        $cmd_script .= $block->{ID};
+        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+        print BLK_CMD "#!/bin/bash\n";
+        print BLK_CMD "#SBATCH -n $scores\n";
+        if ($hostname =~ /hecate/)
+        {
+            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+        }
+        else
+        {
+            print BLK_CMD "#SBATCH -N 1\n";
+        }
+        print BLK_CMD "#SBATCH -t $stime\n\n";
+        print BLK_CMD "$cmd\n\n";
+        print BLK_CMD "exit";
+        close(BLK_CMD);
+        my $job_output = `sbatch $cmd_script`;
+        print $job_output;
+        my $job_id = $job_output;
+        $job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+        push @job_ids, $job_id ;
+    }
+}
+
+if ($slurm && $swait) {
+    print "$prg: Waiting for RVS jobs to finish...\n";
+    my $user = $ENV{USER};
+    while (@job_ids >  0) {
+        my @remove_jobs = ();
+        foreach my $job_id (@job_ids) {
+            my $squeue_wc_out = `squeue -u $user -j $job_id | wc -l`;
+            if ($squeue_wc_out == "1\n" || $squeue_wc_out == "0\n") {
+                push @remove_jobs, $job_id ;
+            }
+        }
+
+        foreach my $job_id (@remove_jobs) {
+            @job_ids = grep { $_ != $job_id } @job_ids;
+        }
+
+        sleep 30;
+    }
+}
+
+#######################################################################
+sub usage {
+    print "\n$prg : Run RTL vs Schematic for OpenPiton\n\n";
+    print "Options are :\n";
+    print "  -all \n\tto run RVS for all blocks\n";
+    print "  -h / -help\n\tto print help\n";
+    print "  -rvs_q_command='Your job Queue command'\n\tto specify Job queue command\n";
+    print "  -slurm \n\tto run using SLURM\n";
+    print "    -scores='Number of cores to request' (default=1 (hecate=6))\n";
+    print "    -stime='Amount of time to request' (default=12:00:00)\n";
+    print "    -swait\n\tto wait for RVS jobs to finish before returning\n";
+    print "  -strict_naming\n\tto match block name exactly\n\t(block_list must be of size 1)\n";
+    print "  block_list :\n\tspecify list of blocks to place and route\n\n";
+    print "Examples:\n\n";
+    print "\t$prg -all\n\t$prg fpu_add\n\n";
+}
+#######################################################################

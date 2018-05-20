@@ -1,0 +1,131 @@
+#!/usr/bin/python
+# Copyright (c) 2016 Princeton University
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import sys, os
+import re
+
+def usage () :
+    print "Usage: " + sys.argv[0] + " <path to module 'synopsys' directory> <Calibre DRC deck file> [<Optional golden GDS file>]"
+
+def main () :
+    # Parse cmd line args
+    if len(sys.argv) < 3 :
+        usage ()
+        sys.exit(1)
+    module_syn_path = sys.argv[1]
+    drc_deck = sys.argv[2]
+    golden_gds = None
+    if len(sys.argv) > 3 :
+        golden_gds = sys.argv[3]
+
+    # Check module 'synopsys' path exists
+    if not os.path.isdir(module_syn_path) :
+        print "Error: Could not find directory '" + module_syn_path + "'"
+        sys.exit(1)
+
+    # Check DRC deck
+    if not os.path.isfile(drc_deck) :
+        print "Error: Could not find DRC deck file '" + drc_deck + "'."
+        sys.exit(1)
+
+    # Check golden GDS
+    if golden_gds and not os.path.isfile(golden_gds):
+        print "Error: Could not find golden GDS file '" + golden_gds + "'."
+        sys.exit(1)
+
+    # Check script directory exists
+    script_dir = os.path.join(module_syn_path, "script")
+    if not os.path.isdir(script_dir) :
+        print "Error: Could not find directory '" + script_dir + "'"
+        sys.exit(1)
+
+    # Check module_setup.tcl file exists in script directory
+    module_setup_file = os.path.join(script_dir, "module_setup.tcl")
+    if not os.path.isfile(module_setup_file) :
+        print "Error: Could not find required TCL script '" + module_setup_file + "'"
+        sys.exit(1)
+
+    # Parse design name out of module setup script
+    design_name = None
+    fp = open(module_setup_file, "r")
+    for line in fp :
+        match = re.match("set\s+DESIGN_NAME\s+\"(.+)\"", line)
+        if match :
+            design_name = match.group(1)
+            break
+    fp.close()
+    if design_name == None :
+        print "Error: Unable to locate 'DESIGN_NAME' variable in '" + module_setup_file + "'"
+        sys.exit(1)
+
+    # Check the results directory exists
+    results_dir = os.path.join(module_syn_path, "results")
+    if not os.path.isdir(results_dir) :
+        print "Error: Could not find directory '" + results_dir + "'"
+        sys.exit(1) 
+
+    # Check a GDSII file exists in results directory
+    gds_file = design_name + ".gds"
+    gds_file_path = os.path.join(results_dir, design_name + ".gds")
+    if not os.path.isfile(gds_file_path) :
+        print "Error: Could not find '" + gds_file_path + "'"
+        sys.exit(1)
+    print "Info: Using 'results/" + gds_file + "' GDSII file for DRC"
+
+    # Check if 'drcRun' directory exists and create it if not
+    drc_run_path = os.path.join(module_syn_path, "drcRun")
+    if not os.path.isdir(drc_run_path) :
+        os.makedirs(drc_run_path)
+
+    # Create top level rules file
+    top_rule_file = os.path.join(drc_run_path, "_openpiton.drc.cal_")
+    fp = open(top_rule_file, "w")
+
+    fp.write("LAYOUT PATH  \"../results/" + gds_file + "\"")
+    if golden_gds:
+        fp.write(" \"" + golden_gds + "\" GOLDEN")
+    fp.write("\n")
+    fp.write("LAYOUT PRIMARY \"change_names_icc\"\n")
+    fp.write("LAYOUT SYSTEM GDSII\n\n")
+
+    fp.write("DRC RESULTS DATABASE \"../results/" + design_name + ".drc.results\" ASCII\n")
+    fp.write("DRC MAXIMUM RESULTS 1000\n")
+    fp.write("DRC MAXIMUM VERTEX 4096\n\n")
+
+    fp.write("DRC CELL NAME NO\n")
+    fp.write("DRC SUMMARY REPORT \"../reports/" + design_name + ".drc.summary\" REPLACE HIER\n\n")
+
+    fp.write("VIRTUAL CONNECT COLON NO\n")
+    fp.write("VIRTUAL CONNECT REPORT NO\n\n")
+
+    fp.write("DRC ICSTATION YES\n\n")
+
+    fp.write("INCLUDE \"" + drc_deck + "\"\n")
+
+    fp.close()
+
+if __name__ == "__main__" :
+    main()

@@ -1,0 +1,78 @@
+///////////////////////
+// Xilinx IPs
+///////////////////////
+// common
+///////////////////////
+
+//----------------------
+// only for SIMULATION
+//----------------------
+-v $DV_ROOT/tools/src/proto/vivado_proto/vivado_proto.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0_funcsim.v
+
+// for Artix7
+-v $XILINX_VIVADO/data/ip/xilinx/blk_mem_gen_v8_2/simulation/blk_mem_gen_v8_2.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x160/hdl/artix7_bram_128x160.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x160/ip/artix7_bram_128x160_blk_mem_gen_0_0/sim/artix7_bram_128x160_blk_mem_gen_0_0.v
+
+///////////////////////
+// L2
+///////////////////////
+-v $DV_ROOT/design/proto/bram_sdp_4096x144_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_2048x144_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_1024x64_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_512x64_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_256x66_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_128x108_wrapper.v
+
+// for Artix7
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_256x128/hdl/artix7_bram_256x128.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_256x128/ip/artix7_bram_256x128_blk_mem_gen_0_0/sim/artix7_bram_256x128_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_4096x144/hdl/artix7_bram_4096x144.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_4096x144/ip/artix7_bram_4096x144_blk_mem_gen_0_0/sim/artix7_bram_4096x144_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2048x144/hdl/artix7_bram_2048x144.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2048x144/ip/artix7_bram_2048x144_blk_mem_gen_0_0/sim/artix7_bram_2048x144_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2p_256x176/hdl/artix7_bram_2p_256x176.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2p_256x176/ip/artix7_bram_2p_256x176_blk_mem_gen_0_0/sim/artix7_bram_2p_256x176_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2p_128x176/hdl/artix7_bram_2p_128x176.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_2p_128x176/ip/artix7_bram_2p_128x176_blk_mem_gen_0_0/sim/artix7_bram_2p_128x176_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_1024x64/hdl/artix7_bram_1024x64.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_1024x64/ip/artix7_bram_1024x64_blk_mem_gen_0_0/sim/artix7_bram_1024x64_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x64/hdl/artix7_bram_512x64.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x64/ip/artix7_bram_512x64_blk_mem_gen_0_0/sim/artix7_bram_512x64_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x108/hdl/artix7_bram_128x108.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x108/ip/artix7_bram_128x108_blk_mem_gen_0_0/sim/artix7_bram_128x108_blk_mem_gen_0_0.v
+
+
+///////////////////////
+// SPARC
+///////////////////////
+//128X132 isn't listed in sparc Flist anymore - no bram equivalent
+-v $DV_ROOT/design/proto/bram_sdp_128x80_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_256x272_wrapper.v
+-v $DV_ROOT/design/proto/bram_sdp_128x288_wrapper.v
+
+// for Artix7
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x80/hdl/artix7_bram_128x80.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x80/ip/artix7_bram_128x80_blk_mem_gen_0_0/sim/artix7_bram_128x80_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_256x272/hdl/artix7_bram_256x272.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_256x272/ip/artix7_bram_256x272_blk_mem_gen_0_0/sim/artix7_bram_256x272_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x288/hdl/artix7_bram_128x288.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x288/ip/artix7_bram_128x288_blk_mem_gen_0_0/sim/artix7_bram_128x288_blk_mem_gen_0_0.v
+
+///////////////////////
+// L15
+///////////////////////
+
+// for Artix7
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x128/hdl/artix7_bram_512x128.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x128/ip/artix7_bram_512x128_blk_mem_gen_0_0/sim/artix7_bram_512x128_blk_mem_gen_0_0.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x32/hdl/artix7_bram_512x32.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_512x32/ip/artix7_bram_512x32_blk_mem_gen_0_0/sim/artix7_bram_512x32_blk_mem_gen_0_0.v
+
+// tmp for debug; Alexey
+$DV_ROOT/design/proto/bram_sdp_128x512_wrapper.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x512/hdl/artix7_bram_128x512.v
+-v $DV_ROOT/tools/src/proto/vivado_proto/ip_cores/artix7_bram_128x512/ip/artix7_bram_128x512_blk_mem_gen_0_0/sim/artix7_bram_128x512_blk_mem_gen_0_0.v
+
+$DV_ROOT/design/proto/bram_sdp_256x512_wrapper.v
+-v $MODEL_DIR/nexys4ddr/ip_cores/artix7_bram_256x512/artix7_bram_256x512_funcsim.v

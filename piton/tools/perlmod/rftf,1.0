@@ -1,0 +1,818 @@
+# Modified by Princeton University on April 3rd, 2016
+# ========== Copyright Header Begin ==========================================
+# 
+# OpenSPARC T1 Processor File: rsyn,1.0
+# Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+# 
+# The above named program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License version 2 as published by the Free Software Foundation.
+# 
+# The above named program is distributed in the hope that it will be 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this work; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+# 
+# ========== Copyright Header End ============================================
+
+#######################################################################
+# Run Full Tool Flow script
+#
+# rftf -help for help
+#######################################################################
+
+
+use warnings;
+use strict;
+use Cwd;
+use Cwd 'chdir';
+use Getopt::Long ;
+use rcommon;
+
+$| = 1;
+
+$SIG{__DIE__} = \&sighandler ;
+
+#######################################################################
+# Global variables
+#######################################################################
+
+my $prg = $0;
+$prg =~ s/.*\/// ;
+$prg =~ s/,.*// ;
+
+my $hostname = `hostname`;
+
+if ($hostname =~ /hecate/)
+{
+    print "Detected running on hecate...using hecate default parameters.\n"
+}
+
+my $all = 0;
+my $ftf_q = "/bin/sh";
+my $slurm = 0;
+my $syn_scores = "6";
+my $syn_stime = "24:00:00";
+my $sta_scores = "1";
+if ($hostname =~ /hecate/)
+{
+    $sta_scores = "6";
+}
+my $sta_stime = "12:00:00";
+my $par_scores = "10";
+if ($hostname =~ /hecate/)
+{
+    $par_scores = "96";
+}
+my $par_stime = "96:00:00";
+my $eco_scores = "10";
+if ($hostname =~ /hecate/)
+{
+        $eco_scores = "96";
+}
+my $eco_stime = "12:00:00";
+my $mgds_scores = "1";
+if ($hostname =~ /hecate/)
+{
+    $mgds_scores = "6";
+}
+my $mgds_stime = "12:00:00";
+my $rvs_scores = "1";
+if ($hostname =~ /hecate/)
+{
+    $rvs_scores = "6";
+}
+my $rvs_stime = "12:00:00";
+my $drc_scores = "10";
+my $drc_stime = "12:00:00";
+my $lvs_scores = "10";
+my $lvs_stime = "12:00:00";
+my $swait = 0;
+my $blk_list = "";
+my $strict_naming = 0;
+my $run_scr = "";
+my $blk_dir;
+
+my @blocks = ();
+my @block_list = ();
+
+$blk_list = $ENV{DV_ROOT};
+$blk_list .= "/tools/synopsys/block.list";
+$run_scr = $ENV{DV_ROOT};
+$run_scr .= ""; # Not used!
+
+#######################################################################
+# Check command line options
+#######################################################################
+
+foreach my $argv (@ARGV)
+{
+    if ($argv =~ /-all/)
+    {
+	$all = 1;
+    } elsif (($argv =~ /-h/) or ($argv =~ /-help/))
+    {
+	&usage;
+	exit(0);
+    } elsif ($argv =~ /-ftf_q_command/)
+    {
+	$ftf_q = $argv;
+	$ftf_q =~ s/-ftf_q_command=(.*)/$1/ ;
+    } elsif ($argv =~ /-slurm/)
+    {
+    $slurm = 1;
+    } elsif ($argv =~ /-syn_scores/) 
+    {
+    $syn_scores = $argv;
+    $syn_scores =~ s/-syn_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-syn_stime/)
+    {
+    $syn_stime = $argv;
+    $syn_stime =~ s/-syn_stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-sta_scores/) 
+    {
+    $sta_scores = $argv;
+    $sta_scores =~ s/-sta_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-sta_stime/)
+    {
+    $sta_stime = $argv;
+    $sta_stime =~ s/-sta_stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-par_scores/) 
+    {
+    $par_scores = $argv;
+    $par_scores =~ s/-par_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-par_stime/)
+    {
+    $par_stime = $argv;
+    $par_stime =~ s/-par_stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-eco_scores/) 
+    {
+    $eco_scores = $argv;
+    $eco_scores =~ s/-eco_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-eco_stime/)
+    {
+    $eco_stime = $argv;
+    $eco_stime =~ s/-eco_stime=(.*)/$1/ ;
+    } 
+    elsif ($argv =~ /-mgds_scores/) 
+    {
+    $mgds_scores = $argv;
+    $mgds_scores =~ s/-mgds_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-mgds_stime/)
+    {
+    $mgds_stime = $argv;
+    $mgds_stime =~ s/-mgds_stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-rvs_scores/) 
+    {
+    $rvs_scores = $argv;
+    $rvs_scores =~ s/-rvs_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-rvs_stime/)
+    {
+    $rvs_stime = $argv;
+    $rvs_stime =~ s/-rvs_stime=(.*)/$1/ ;
+    } 
+    elsif ($argv =~ /-drc_scores/) 
+    {
+    $drc_scores = $argv;
+    $drc_scores =~ s/-drc_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-drc_stime/)
+    {
+    $drc_stime = $argv;
+    $drc_stime =~ s/-drc_stime=(.*)/$1/ ;
+    } elsif ($argv =~ /-lvs_scores/) 
+    {
+    $lvs_scores = $argv;
+    $lvs_scores =~ s/-lvs_scores=(.*)/$1/ ;
+    } elsif ($argv =~ /-lvs_stime/)
+    {
+    $lvs_stime = $argv;
+    $lvs_stime =~ s/-lvs_stime=(.*)/$1/ ; 
+    } elsif ($argv =~ /-swait/) {
+    $swait = 1;
+    } elsif ($argv =~ /-strict_naming/) {
+    $strict_naming = 1; 
+    } else 
+    {
+	push @blocks, $argv;
+    }
+}
+
+my $blocks_info = process_blocks ($blk_list, $all, \@blocks);
+my $count = $blocks_info->{COUNT};
+my $block_list_ref = $blocks_info->{MATCHES};
+@block_list = @$block_list_ref;
+if ($count) {
+    print "$prg: Running full tool flow for $count modules\n";
+} else {
+    print "$prg: No matching modules found.\n";
+    &usage;
+}
+
+my @job_ids = ();
+foreach my $block (@block_list) {
+    print "$prg: Running full tool flow for $block->{ID}\n";
+    my $cmd = $ftf_q;
+    $blk_dir = $ENV{DV_ROOT};
+    $blk_dir .= "/design/$block->{PATH}/synopsys";
+    my $block_fs = $block->{PATH};
+    my $find = "/";
+    my $replace = "_";
+    $block_fs =~ s/$find/$replace/g;
+    chdir $blk_dir;
+
+    my $passes = $block->{FTFPASSES};
+
+    my $cmd_syn = $cmd . " $ENV{DV_ROOT}/tools/bin/syn_command";
+    my $cmd_sta = $cmd . " $ENV{DV_ROOT}/tools/bin/sta_command";
+    my $cmd_rvs = $cmd . " $ENV{DV_ROOT}/tools/bin/rvs_command";
+    my $cmd_par = $cmd . " $ENV{DV_ROOT}/tools/bin/par_command";
+    my $cmd_eco = $cmd . " $ENV{DV_ROOT}/tools/bin/eco_command";
+    my $syn_job_id = "";
+    my $sta_job_id = "";
+    my $rvs_job_id = "";
+    my $par_job_id = "";
+    my $eco_job_id = "";
+    for (my $pass = 1; $pass <= $passes; $pass++) {
+        # Synthesis
+        if (!$slurm) {
+            system($cmd_syn);
+            system("mv dc_shell.log dc_shell_pass$pass.log");
+            system("mv reports/dc_shell reports/dc_shell_pass$pass");
+        } else {
+            my $cmd_script = "syn" . $pass .  "_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $syn_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+                print BLK_CMD "#SBATCH --mem $block->{SYNMEM}\n";
+            }
+            print BLK_CMD "#SBATCH -t $syn_stime\n\n";
+            print BLK_CMD "$cmd_syn\n\n";
+            print BLK_CMD "mv dc_shell.log dc_shell_pass$pass.log\n";
+            print BLK_CMD "mv reports/dc_shell reports/dc_shell_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $syn_job_id = "";
+            while (!($syn_job_id =~ /\d+/))
+            {
+                my $output = "";
+                if ($block->{ECOFLOW}) {
+                    if ($eco_job_id =~ /\d+/) {
+                        $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`
+                    } else {
+                        $output = `sbatch $cmd_script`;
+                    }
+                } elsif ($par_job_id =~ /\d+/) {
+                    $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`
+                } else {
+                    $output = `sbatch $cmd_script`;
+                }
+                $syn_job_id = $output;
+                $syn_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($syn_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting pass$pass synthesis job failed...retrying\n";
+                    sleep 30;
+                }
+            }
+            push @job_ids, $syn_job_id ;
+        }
+
+        # STA after DC (outputs ECO to ICC)
+        if (!$slurm) {
+            # Remove some results so primetime runs with DC results not ICC results
+            if ($pass > 1) {
+                system("rm results/*.sbpf.* results/*.output.sdc results/*.output.pt.v");
+            }
+            system($cmd_sta);
+            system("mv pt_shell.log pt_shell_dc_pass$pass.log");
+            system("mv reports/pt_shell_dc reports/pt_shell_dc_pass$pass");
+        } else {
+            my $cmd_script = "sta" . $pass . "_dc_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $sta_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+            } 
+            print BLK_CMD "#SBATCH -t $sta_stime\n\n";
+            if ($pass > 1) {
+                print BLK_CMD "rm results/*.sbpf.* results/*.output.sdc results/*.output.pt.v\n\n";
+            }
+            print BLK_CMD "$cmd_sta\n\n";
+            print BLK_CMD "mv pt_shell.log pt_shell_dc_pass$pass.log\n";
+            print BLK_CMD "mv reports/pt_shell_dc reports/pt_shell_dc_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $sta_job_id = "";
+            while (!($sta_job_id =~ /\d+/))
+            {
+                my $output = `sbatch --dependency=afterok:$syn_job_id $cmd_script`;
+                $sta_job_id = $output;
+                $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($sta_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting pass$pass post-syn STA job failed...retrying\n";
+                    sleep 30;
+                }
+                    
+            }
+            push @job_ids, $sta_job_id ;
+        }
+
+        # RTL vs Schematic after DC
+        if (!$slurm) {
+            # Remove resulting ICC netlist from previous pass so formality runs with DC results not ICC results
+            if ($pass > 1) {
+                system("rm results/*.output.v");
+            } 
+            system($cmd_rvs);
+            system("mv fm_shell.log fm_shell_dc_pass$pass.log");
+            system("mv reports/fm_shell_dc reports/fm_shell_dc_pass$pass");
+        } else {
+            my $cmd_script = "rvs" . $pass . "_dc_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $rvs_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+            }
+            print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
+            if ($pass > 1) {
+                print BLK_CMD "rm results/*.output.v\n\n";
+            }
+            print BLK_CMD "$cmd_rvs\n\n";
+            print BLK_CMD "mv fm_shell.log fm_shell_dc_pass$pass.log\n";
+            print BLK_CMD "mv reports/fm_shell_dc reports/fm_shell_dc_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $rvs_job_id = "";
+            while (!($rvs_job_id =~ /\d+/))        
+            {
+                my $output = `sbatch --dependency=afterok:$syn_job_id $cmd_script`;
+                $rvs_job_id = $output;
+                $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($rvs_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting RVS job failed...retrying\n";
+                    sleep 30;
+                }
+            }
+            push @job_ids, $rvs_job_id ;
+        }
+
+        # Place and route 
+        if (!$slurm) {
+            system($cmd_par);
+            system("mv icc_shell.log icc_shell_pass$pass.log");
+            system("mv reports/icc_shell reports/icc_shell_pass$pass");
+            system("mv logs logs_icc_pass$pass");
+        } else {
+            my $cmd_script = "par" . $pass . "_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $par_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+                print BLK_CMD "#SBATCH --mem $block->{PARMEM}\n";
+            }
+            print BLK_CMD "#SBATCH -t $par_stime\n\n";
+            print BLK_CMD "$cmd_par\n\n";
+            print BLK_CMD "mv icc_shell.log icc_shell_pass$pass.log\n";
+            print BLK_CMD "mv reports/icc_shell reports/icc_shell_pass$pass\n";
+            print BLK_CMD "mv logs logs_icc_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $par_job_id = "";
+            while (!($par_job_id =~ /\d+/))
+            {
+                my $output = `sbatch --dependency=afterok:$sta_job_id $cmd_script`;
+                $par_job_id = $output;
+                $par_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($par_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting pass$pass place and route job failed...retrying\n";
+                    sleep 30;       
+                }
+            }
+            push @job_ids, $par_job_id ;
+        }
+
+        # STA after PAR
+        if (!$slurm) {
+            system($cmd_sta);
+            system("mv pt_shell.log pt_shell_icc_pass$pass.log");
+            system("mv reports/pt_shell_icc reports/pt_shell_icc_pass$pass");
+        } else {
+            my $cmd_script = "sta" . $pass . "_icc_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $sta_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+            } 
+            print BLK_CMD "#SBATCH -t $sta_stime\n\n";
+            print BLK_CMD "$cmd_sta\n\n";
+            print BLK_CMD "mv pt_shell.log pt_shell_icc_pass$pass.log\n";
+            print BLK_CMD "mv reports/pt_shell_icc reports/pt_shell_icc_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $sta_job_id = "";
+            while (!($sta_job_id =~ /\d+/))
+            {
+                my $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
+                $sta_job_id = $output;
+                $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($sta_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting pass$pass post-par STA job failed...retrying\n";
+                    sleep 30;
+                }
+            }
+            push @job_ids, $sta_job_id ;
+        }
+
+        # RTL vs Schematic after PAR
+        if (!$slurm) {
+            system($cmd_rvs);
+            system("mv fm_shell.log fm_shell_icc_pass$pass.log");
+            system("mv reports/fm_shell_icc reports/fm_shell_icc_pass$pass");
+        } else {
+            my $cmd_script = "rvs_" . $pass . "_icc_";
+            $cmd_script .= $block->{ID};
+            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+            print BLK_CMD "#!/bin/bash\n";
+            print BLK_CMD "#SBATCH -n $rvs_scores\n";
+            if ($hostname =~ /hecate/)
+            {
+                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+            }
+            else
+            {
+                print BLK_CMD "#SBATCH -N 1\n";
+            }
+            print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
+            print BLK_CMD "$cmd_rvs\n\n";
+            print BLK_CMD "mv fm_shell.log fm_shell_icc_pass$pass.log\n";
+            print BLK_CMD "mv reports/fm_shell_icc reports/fm_shell_icc_pass$pass\n\n";
+            print BLK_CMD "exit";
+            close(BLK_CMD);
+            $rvs_job_id = "";
+            while (!($rvs_job_id =~ /\d+/))        
+            {
+                my $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
+                $rvs_job_id = $output;
+                $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                print $output;
+                if (!($rvs_job_id =~ /\d+/))
+                {
+                    print "$prg: Submitting RVS job failed...retrying\n";
+                    sleep 30;
+                }
+            }
+            push @job_ids, $rvs_job_id ;
+        }
+
+        # ECO Flow
+        if ($block->{ECOFLOW}) {
+            # ECO
+            if (!$slurm) {
+                system($cmd_eco);
+                system("mv eco_shell.log eco_shell_pass$pass.log");
+                system("mv reports/eco_shell reports/eco_shell_pass$pass");
+                system("mv logs logs_eco_pass$pass");
+            } else {
+                my $cmd_script = "eco" . $pass . "_";
+                $cmd_script .= $block->{ID};
+                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+                print BLK_CMD "#!/bin/bash\n";
+                print BLK_CMD "#SBATCH -n $eco_scores\n";
+                if ($hostname =~ /hecate/)
+                {
+                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+                }
+                else
+                {
+                    print BLK_CMD "#SBATCH -N 1\n";
+                    print BLK_CMD "#SBATCH --mem $block->{PARMEM}\n";
+                } 
+                print BLK_CMD "#SBATCH -t $eco_stime\n\n";
+                print BLK_CMD "$cmd_eco\n\n";
+                print BLK_CMD "mv eco_shell.log eco_shell_pass$pass.log\n";
+                print BLK_CMD "mv reports/eco_shell reports/eco_shell_pass$pass\n";
+                print BLK_CMD "mv logs logs_eco_pass$pass\n\n";
+                print BLK_CMD "exit";
+                close(BLK_CMD);
+                $eco_job_id = "";
+                while (!($eco_job_id =~ /\d+/))
+                {
+                    my $output = `sbatch --dependency=afterok:$sta_job_id $cmd_script`;
+                    $eco_job_id = $output;
+                    $eco_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                    print $output;
+                    if (!($eco_job_id =~ /\d+/))
+                    {
+                        print "$prg: Submitting pass$pass post-par ECO job failed...retrying\n";
+                        sleep 30;
+                    }
+                }
+                push @job_ids, $eco_job_id ;
+            }
+
+            # STA after ECO
+            if (!$slurm) {
+                system($cmd_sta);
+                system("mv pt_shell.log pt_shell_eco_pass$pass.log");
+                system("mv reports/pt_shell_icc reports/pt_shell_eco_pass$pass");
+            } else {
+                my $cmd_script = "sta" . $pass . "_eco_";
+                $cmd_script .= $block->{ID};
+                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+                print BLK_CMD "#!/bin/bash\n";
+                print BLK_CMD "#SBATCH -n $sta_scores\n";
+                if ($hostname =~ /hecate/)
+                {
+                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+                }
+                else
+                {
+                    print BLK_CMD "#SBATCH -N 1\n";
+                }
+                print BLK_CMD "#SBATCH -t $sta_stime\n\n";
+                print BLK_CMD "$cmd_sta\n\n";
+                print BLK_CMD "mv pt_shell.log pt_shell_eco_pass$pass.log\n";
+                print BLK_CMD "mv reports/pt_shell_icc reports/pt_shell_eco_pass$pass\n\n";
+                print BLK_CMD "exit";
+                close(BLK_CMD);
+                $sta_job_id = "";
+                while (!($sta_job_id =~ /\d+/))
+                {
+                    my $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
+                    $sta_job_id = $output;
+                    $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                    print $output;
+                    if (!($sta_job_id =~ /\d+/))
+                    {
+                        print "$prg: Submitting pass$pass post-eco STA job failed...retrying\n";
+                        sleep 30;
+                    }
+                }
+                push @job_ids, $sta_job_id ;
+            }
+
+            # RTL vs Schematic after ECO
+            if (!$slurm) {
+                system($cmd_rvs);
+                system("mv fm_shell.log fm_shell_eco_pass$pass.log");
+                system("mv reports/fm_shell_icc reports/fm_shell_eco_pass$pass");
+            } else {
+                my $cmd_script = "rvs_" . $pass . "_eco_";
+                $cmd_script .= $block->{ID};
+                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+                print BLK_CMD "#!/bin/bash\n";
+                print BLK_CMD "#SBATCH -n $rvs_scores\n";
+                if ($hostname =~ /hecate/)
+                {
+                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+                }
+                else
+                {
+                    print BLK_CMD "#SBATCH -N 1\n";
+                }
+                print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
+                print BLK_CMD "$cmd_rvs\n\n";
+                print BLK_CMD "mv fm_shell.log fm_shell_eco_pass$pass.log\n";
+                print BLK_CMD "mv reports/fm_shell_icc reports/fm_shell_eco_pass$pass\n\n";
+                print BLK_CMD "exit";
+                close(BLK_CMD);
+                $rvs_job_id = "";
+                while (!($rvs_job_id =~ /\d+/))        
+                {
+                    my $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
+                    $rvs_job_id = $output;
+                    $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+                    print $output;
+                    if (!($rvs_job_id =~ /\d+/))
+                    {
+                        print "$prg: Submitting RVS job failed...retrying\n";
+                        sleep 30;
+                    }
+                }
+                push @job_ids, $rvs_job_id ;
+            } 
+        }
+    }
+
+    # Merge GDS after PAR
+    my $cmd_mgds = $cmd;
+    $cmd_mgds .= " $ENV{DV_ROOT}/tools/bin/merge_gds_command";
+    my $mgds_job_id = "";
+    if (!$slurm) {
+        system($cmd_mgds);
+    } else {
+        my $cmd_script = "mgds_";
+        $cmd_script .= $block->{ID};
+        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+        print BLK_CMD "#!/bin/bash\n";
+        print BLK_CMD "#SBATCH -n $mgds_scores\n";
+        if ($hostname =~ /hecate/)
+        {
+            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+        }
+        else
+        {
+            print BLK_CMD "#SBATCH -N 1\n";
+        }
+        print BLK_CMD "#SBATCH -t $mgds_stime\n\n";
+        print BLK_CMD "$cmd_mgds\n\n";
+        print BLK_CMD "exit";
+        close(BLK_CMD);
+        while (!($mgds_job_id =~ /\d+/))
+        {
+            my $output = "";
+            if ($block->{ECOFLOW}) {
+                $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
+            } else {
+                $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
+            }
+            $mgds_job_id = $output;
+            $mgds_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+            print $output;
+            if (!($mgds_job_id =~ /\d+/))
+            {
+                print "$prg: Submitting merge GDSII job failed...retrying\n";
+                sleep 30;
+            }
+        }
+        push @job_ids, $mgds_job_id ;
+    }
+
+    # DRC after merge GDS
+    my $cmd_drc = $cmd;
+    $cmd_drc .= " $ENV{DV_ROOT}/tools/bin/drc_command";
+    my $drc_job_id = "";
+    if (!$slurm) {
+        system($cmd_drc);
+    } else {
+        my $cmd_script = "drc_";
+        $cmd_script .= $block->{ID};
+        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+        print BLK_CMD "#!/bin/bash\n";
+        print BLK_CMD "#SBATCH -n $drc_scores\n";
+        if ($hostname =~ /hecate/)
+        {
+            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+        }
+        else
+        {
+            print BLK_CMD "#SBATCH -N 1\n";
+        }
+        print BLK_CMD "#SBATCH -t $drc_stime\n\n";
+        print BLK_CMD "$cmd_drc\n\n";
+        print BLK_CMD "exit";
+        close(BLK_CMD);
+        while (!($drc_job_id =~ /\d+/))
+        {
+            my $output = `sbatch --dependency=afterok:$mgds_job_id $cmd_script`;
+            $drc_job_id = $output;
+            $drc_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+            print $output;
+            if (!($drc_job_id =~ /\d+/))
+            {
+                print "$prg: Submitting DRC job failed...retrying\n";
+                sleep 30;
+            }
+        }
+        push @job_ids, $drc_job_id ;
+    }
+
+    # LVS after merge GDS
+    my $cmd_lvs = $cmd;
+    $cmd_lvs .= " $ENV{DV_ROOT}/tools/bin/lvs_command";
+    my $lvs_job_id = "";
+    if (!$slurm) {
+        system($cmd_lvs);
+    } else {
+        my $cmd_script = "lvs_";
+        $cmd_script .= $block->{ID};
+        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
+        print BLK_CMD "#!/bin/bash\n";
+        print BLK_CMD "#SBATCH -n $lvs_scores\n";
+        if ($hostname =~ /hecate/)
+        {
+            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+        }
+        else
+        {
+            print BLK_CMD "#SBATCH -N 1\n";
+        }
+        print BLK_CMD "#SBATCH -t $lvs_stime\n\n";
+        print BLK_CMD "$cmd_lvs\n\n";
+        print BLK_CMD "exit";
+        close(BLK_CMD);
+        while (!($lvs_job_id =~ /\d+/))
+        {
+            my $output = `sbatch --dependency=afterok:$mgds_job_id $cmd_script`;
+            $lvs_job_id = $output;
+            $lvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+            print $output;
+            if (!($lvs_job_id =~ /\d+/))
+            {
+                print "$prg: Submitting LVS job failed...retrying\n";
+                sleep 30;
+            }
+        }
+        push @job_ids, $lvs_job_id ;
+    }
+}
+
+if ($slurm && $swait) {
+    print "$prg: Waiting for full tool flow jobs to finish...\n";
+    my $user = $ENV{USER};
+    while (@job_ids >  0) {
+        my @remove_jobs = ();
+        foreach my $job_id (@job_ids) {
+            my $squeue_wc_out = `squeue -u $user -j $job_id | wc -l`;
+            if ($squeue_wc_out == "1\n" || $squeue_wc_out == "0\n") {
+                push @remove_jobs, $job_id ;
+            }
+        }
+
+        foreach my $job_id (@remove_jobs) {
+            @job_ids = grep { $_ != $job_id } @job_ids;
+        }
+
+        sleep 30;
+    }
+}
+
+#######################################################################
+sub usage {
+    print "\n$prg : Run Full Tool Flow for OpenPiton\n\n";
+    print "Options are :\n";
+    print "  -all \n\tto run full tool flow for all blocks\n";
+    print "  -h / -help\n\tto print help\n";
+    print "  -par_q_command='Your job Queue command'\n\tto specify Job queue command\n";
+    print "  -slurm \n\tto run using SLURM\n";
+    print "    -syn_scores='Number of cores to request for synthesis' (default=6)\n";
+    print "    -syn_stime='Amount of time to request for synthesis' (default=24:00:00)\n";
+    print "    -sta_scores='Number of cores to request for STA' (default=1 (hecate 6))\n";
+    print "    -sta_stime='Amount of time to request for STA' (default=12:00:00)\n";
+    print "    -par_scores='Number of cores to request for place and route' (default=10 (hecate 96))\n";
+    print "    -par_stime='Amount of time to request for place and route' (default=96:00:00)\n";
+    print "    -eco_scores='Number of cores to request for place and route' (default=10 (hecate 96))\n";
+    print "    -eco_stime='Amount of time to request for place and route' (default=12:00:00)\n";
+    print "    -mgds_scores='Number of cores to request for GDSII merge' (default=1 (hecate 6))\n";
+    print "    -mgds_stime='Amount of time to request for GDSII merge' (default=12:00:00)\n";
+    print "    -drc_scores='Number of cores to request for DRC' (default=10)\n";
+    print "    -drc_stime='Amount of time to request for DRC' (default=12:00:00)\n";
+    print "    -lvs_scores='Number of cores to request for LVS' (default=10)\n";
+    print "    -lvs_stime='Amount of time to request for LVS' (default=12:00:00)\n";
+    print "    -swait\n\tto wait for full tool flow jobs to finish before returning\n";
+    print "  -strict_naming\n\tto match block name exactly\n\t(block_list must be of size 1)\n";
+    print "  block_list :\n\tspecify list of blocks to fun full tool flow for\n\n";
+    print "Examples:\n\n";
+    print "\t$prg -all\n\t$prg fpu_add\n\n";
+}
+#######################################################################

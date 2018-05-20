@@ -67,8 +67,13 @@
 `ifdef JTAG_TB_XMODULE
 `define TOP_MOD      jtag_testbench_top.helper
 `else
-`define TOP_MOD      cmp_top
+  `define TOP_MOD      cmp_top
+// TODO: Alexey: use PITON_PROTO define ?
+//`define TOP_MOD      fpga_top.cmp_top
 `endif
+
+`define SIM_TOP cmp_top
+//`define SIM_TOP fpga_top.cmp_top
 
 `define TOP_SHELL    cmp_top_shell
 `define TOP_MOD_INST `TOP_MOD.chip

@@ -1,0 +1,297 @@
+#!/usr/bin/python
+# Copyright (c) 2016 Princeton University
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import sys, os
+import shutil
+import re
+
+def usage () :
+    print "Usage: " + sys.argv[0] + " <path to module 'synopsys' directory> <Calibre LVS deck file> [<Optional space separated string of GDS2SP box cells> <Optional space separated string of LVS box cells>"
+
+def main () :
+    # Parse cmd line args
+    if len(sys.argv) < 3 :
+        usage ()
+        sys.exit(1)
+    module_syn_path = sys.argv[1]
+    lvs_deck = sys.argv[2]
+    gds2sp_boxcells = []
+    lvs_boxcells = []
+    if len(sys.argv) > 3:
+        gds2sp_boxcells.extend(sys.argv[3].split())
+    if len(sys.argv) > 4:
+        lvs_boxcells.extend(sys.argv[4].split())
+
+    # Get DV_ROOT environment variable
+    dv_root = os.environ.get("DV_ROOT")
+    if not dv_root:
+        print "Error: DV_ROOT environment variable not set."
+        sys.exit(1)
+
+    # Check module 'synopsys' path exists
+    if not os.path.isdir(module_syn_path) :
+        print "Error: Could not find directory '" + module_syn_path + "'."
+        sys.exit(1)
+
+    # Check LVS deck exists
+    if not os.path.isfile(lvs_deck) :
+        print "Error: Cloud not find LVS deck file '" + lvs_deck + "'."
+        sys.exit(1)
+
+    # Check script directory exists
+    script_dir = os.path.join(module_syn_path, "script")
+    if not os.path.isdir(script_dir) :
+        print "Error: Could not find directory '" + script_dir + "'"
+        sys.exit(1)
+
+    # Check module_setup.tcl file exists in script directory
+    module_setup_file = os.path.join(script_dir, "module_setup.tcl")
+    if not os.path.isfile(module_setup_file) :
+        print "Error: Could not find required TCL script '" + module_setup_file + "'"
+        sys.exit(1)
+
+    # Check process_setup.tcl file exists in common directory
+    process_setup_file = os.path.join(dv_root, "tools/synopsys/script/common/process_setup.tcl")
+    if not os.path.isfile(process_setup_file) :
+        print "Error: Could not find required TCL script '" + process_setup_file + "'"
+        sys.exit(1)
+
+    # Parse design name and other necessary variables out of module setup script
+    design_name = None
+    add_sp_merge_files = None
+    hierarchical_designs = None
+    hierarchical_designs_dirs = None
+    fp = open(module_setup_file, "r")
+    for line in fp :
+        match = re.match("set\s+DESIGN_NAME\s+\"(.+)\"", line)
+        if match :
+            design_name = match.group(1)
+            continue
+        match = re.match("set\s+ADDITIONAL_SPICE_MERGE_FILES\s+\"(.*)\"", line)
+        if match :
+            add_sp_merge_files = match.group(1).split()
+            continue      
+        match = re.match("set\s+HIERARCHICAL_DESIGNS\s+\"(.*)\"", line)
+        if match :
+            hierarchical_designs = match.group(1).split()
+            continue      
+        match = re.match("set\s+HIERARCHICAL_DESIGNS_DIRS\s+\"(.*)\"", line)
+        if match :
+            hierarchical_designs_dirs = match.group(1).split()
+            continue        
+    fp.close()
+    if design_name == None or add_sp_merge_files == None :
+        print "Error: Unable to locate 'some variable' variable in '" + module_setup_file + "'"
+        sys.exit(1)
+
+    # Parse std cell spice merge files from process setup script
+    stdcell_sp_merge_files = None
+    fp = open(process_setup_file, "r")
+    for line in fp :
+        match = re.match("set\s+TARGET_LIBRARY_SP\s+\"(.*)\"", line)
+        if match :
+            stdcell_sp_merge_files = match.group(1).split()
+            break
+    fp.close()
+    if stdcell_sp_merge_files == None :
+        print "Warning: Unable to locate TARGET_LIBRARY_SP in '" + process_setup_file + "'...continuing"
+
+    sp_merge_files = stdcell_sp_merge_files
+    sp_merge_files.extend(add_sp_merge_files)
+
+    # Expand environment variables in file names
+    sp_merge_files_expanded = []
+    for file in sp_merge_files :
+        sp_merge_files_expanded.append(os.path.expandvars(file))
+    sp_merge_files = sp_merge_files_expanded
+    
+    # Check spice merge files exist
+    for file in sp_merge_files :
+        if not os.path.isfile(file) :
+            print "Error: Could not find specified SPICE merge file '" + file + "'"
+            sys.exit(1)
+
+    # Check the results directory exists
+    results_dir = os.path.join(module_syn_path, "results")
+    if not os.path.isdir(results_dir) :
+        print "Could not find directory '" + results_dir + "'"
+        sys.exit(1) 
+
+    # Check a GDSII file exists in results directory
+    gds_file = design_name + ".gds"
+    gds_file_path = os.path.join(results_dir, gds_file)
+    if not os.path.isfile(gds_file_path) :
+        print "Could not find '" + gds_file_path + "'"
+        sys.exit(1)
+    print "Using 'results/" + gds_file + "' GDSII file for LVS"
+
+    # Check a Verilog schematic file exists in results directory
+    sch_file = design_name + ".output.pg.lvs.v"
+    sch_file_path = os.path.join(results_dir, sch_file)
+    if not os.path.isfile(sch_file_path) :
+        print "Could not find '" + sch_file + "'"
+        sys.exit(1)
+    print "Using 'results/" + sch_file + "' Verilog netlist file for LVS"
+    sp_file = sch_file + ".sp"
+
+    # Check if 'lvsRun' directory exists and create it if not
+    lvs_run_path = os.path.join(module_syn_path, "lvsRun")
+    if not os.path.isdir(lvs_run_path) :
+        os.makedirs(lvs_run_path)
+
+    # Create a simple bash script to run command to convert
+    # Verilog to SPICE
+    v2lvs_script = os.path.join(lvs_run_path, "v2lvs.sh")
+    fp = open(v2lvs_script, "w")
+
+    fp.write("#!/bin/bash\n\n")
+    fp.write("v2lvs -v ../results/" + sch_file + " -o " + sp_file + " -w 2\n")
+    
+    fp.close()
+    os.chmod(v2lvs_script, 0770)
+
+    # Create a netlist file which includes all necessary SPICE files
+    netlist_file = os.path.join(lvs_run_path, "_sources.net_")
+    fp = open(netlist_file, "w")
+
+    fp.write(".INCLUDE \"" + sp_file + "\"\n")
+
+    # Merge SP files
+    for file in sp_merge_files :
+        fp.write(".INCLUDE \"" + file + "\"\n")
+    
+    # Merge additional submodule spice
+    for design, design_dir in zip(hierarchical_designs, hierarchical_designs_dirs):
+        orig_copy = os.path.join(lvs_run_path, "../../" + design_dir + "/synopsys/lvsRun/" + design + ".output.pg.lvs.v.sp")
+        new_copy = os.path.join(lvs_run_path, design + ".output.pg.lvs.v.sp")
+        shutil.copy(orig_copy, new_copy)
+        fp.write(".INCLUDE \"" + new_copy + "\"\n")
+
+    fp.close()
+   
+    # Resolve namespace conflicts between submodule clock gating cells
+    # generated by IC compiler
+    subckt_map = dict()
+    for design, design_dir in zip(hierarchical_designs, hierarchical_designs_dirs):
+        orig_copy = os.path.join(lvs_run_path, "../../" + design_dir + "/synopsys/lvsRun/" + design + ".output.pg.lvs.v.sp")
+        new_copy = os.path.join(lvs_run_path, design + ".output.pg.lvs.v.sp") 
+        fp = open(orig_copy, "r")
+        for line in fp :
+            # Match subckt statements
+            match = re.match("\.SUBCKT\s+(SNPS_CLOCK_GATE_\S+)\s+.*", line)
+            if match:
+                subckt = match.group(1)
+                if subckt in subckt_map :
+                    new_subckt = subckt + "_" + str(subckt_map[subckt])
+                    subckt_map[subckt] += 1
+
+                    print "Found dupliate .SUBCKT statement for '" + subckt + "' in design '" + design + "'...resolving to '" + new_subckt + "'"
+
+                    fp1 = open(new_copy, "r")
+                    fp2 = open(new_copy + ".tmp", "w")
+                    for line in fp1 :
+                        fp2.write(line.replace(subckt, new_subckt))
+                    fp1.close()
+                    fp2.close()
+                    shutil.copy(new_copy + ".tmp", new_copy)
+                    os.remove(new_copy + ".tmp")
+                else :
+                    subckt_map[subckt] = 0
+        fp.close()
+    
+    # Create top level rules file
+    for rule_file_id in ["gds2sp", "lvs"]:
+        top_rule_file = os.path.join(lvs_run_path, "_openpiton." + rule_file_id + ".cal_")
+        fp = open(top_rule_file, "w")
+
+        fp.write("#!tvf\n")
+        fp.write("tvf::VERBATIM {\n\n")
+
+        if rule_file_id == "gds2sp":
+            fp.write("LAYOUT PATH  \"../results/" + gds_file + "\"\n")
+            fp.write("LAYOUT PRIMARY \"change_names_icc\"\n")
+            fp.write("LAYOUT SYSTEM GDSII\n\n")
+        else:
+            fp.write("LAYOUT PATH  \"change_names_icc.sp\"\n")
+            fp.write("LAYOUT PRIMARY \"change_names_icc\"\n")
+            fp.write("LAYOUT SYSTEM SPICE\n\n")
+
+        if rule_file_id == "lvs":
+            fp.write("SOURCE PATH \"" + netlist_file + "\"\n")
+            fp.write("SOURCE PRIMARY \"" + design_name + "\"\n")
+            fp.write("SOURCE SYSTEM SPICE\n\n")
+
+        fp.write("MASK SVDB DIRECTORY \"../results/svdb\" QUERY CCI SI\n\n")
+
+        fp.write("LVS REPORT \"../reports/" + design_name + "." + rule_file_id + ".report\"\n\n")
+
+        if rule_file_id == "gds2sp":
+            fp.write("LVS PRESERVE BOX CELLS NO\n")
+            for box_cell in gds2sp_boxcells:
+                fp.write("LVS BOX " + box_cell + "\n")
+            fp.write("\n")
+
+        for box_cell in lvs_boxcells:
+            fp.write("LVS BOX " + box_cell + "\n")
+        fp.write("\n")
+
+        fp.write("LVS REPORT OPTION FX S V\n")
+        fp.write("LVS FILTER UNUSED OPTION NONE SOURCE\n")
+        fp.write("LVS FILTER UNUSED OPTION NONE LAYOUT\n")
+        fp.write("LVS REPORT MAXIMUM 300\n\n")
+
+        fp.write("LVS RECOGNIZE GATES NONE\n\n")
+
+        fp.write("LVS ABORT ON SOFTCHK NO\n")
+        fp.write("LVS ABORT ON SUPPLY ERROR NO\n")
+        fp.write("LVS IGNORE PORTS NO\n")
+        fp.write("LVS GLOBALS ARE PORTS NO\n")
+        fp.write("LVS SHOW SEED PROMOTIONS NO\n")
+        fp.write("LVS SHOW SEED PROMOTIONS MAXIMUM 50\n\n")
+
+        fp.write("LVS ISOLATE SHORTS YES CELL PRIMARY && NAME \"?\"\n\n")
+
+        fp.write("VIRTUAL CONNECT COLON NO\n")
+        fp.write("VIRTUAL CONNECT REPORT YES\n")
+        fp.write("VIRTUAL CONNECT REPORT MAXIMUM ALL\n\n")
+
+        fp.write("LVS EXECUTE ERC YES\n")
+        fp.write("ERC RESULTS DATABASE \"../results/" + design_name + ".erc.results\"\n")
+        fp.write("ERC SUMMARY REPORT \"../reports/" + design_name + ".erc.summary\" REPLACE HIER\n")
+        fp.write("ERC CELL NAME NO\n")
+        fp.write("ERC MAXIMUM RESULTS 1000\n")
+        fp.write("ERC MAXIMUM VERTEX 4096\n\n")
+
+        fp.write("DRC ICSTATION YES\n\n")
+
+        fp.write("}\n\n")
+
+        fp.write("source \"" + lvs_deck + "\"\n")
+
+        fp.close()
+
+if __name__ == "__main__" :
+    main()

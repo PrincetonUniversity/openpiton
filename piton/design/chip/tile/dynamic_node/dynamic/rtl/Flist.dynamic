@@ -32,3 +32,10 @@ dynamic_input_top_4.v
 dynamic_output_control.v
 dynamic_output_datapath.v
 dynamic_output_top.v
+dynamic_input_control_para.v
+dynamic_input_route_request_calc_para.v
+dynamic_input_top_16_para.v
+dynamic_input_top_4_para.v
+dynamic_output_control_para.v
+dynamic_output_datapath_para.v
+dynamic_output_top_para.v

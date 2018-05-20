@@ -39,15 +39,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //====================================================================================================
 
 
-`include "l2.vh"
+`include "l2.tmp.h"
 `include "define.vh"
 
 module l2_pipe2(
 
     input wire clk,
     input wire rst_n,
+    `ifndef NO_RTL_CSM
     input wire csm_en,
-
+    `endif
     //inputs from NOC3
    
     input wire noc_valid_in,
@@ -57,11 +58,13 @@ module l2_pipe2(
     input wire [`L2_MSHR_STATE_BITS-1:0] mshr_state_out,
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_out,
 
+    `ifndef NO_RTL_CSM
     input wire broadcast_counter_zero,
     input wire broadcast_counter_max,
     input wire [`MSG_SRC_CHIPID_WIDTH-1:0] broadcast_chipid_out,
     input wire [`MSG_SRC_X_WIDTH-1:0] broadcast_x_out,
     input wire [`MSG_SRC_Y_WIDTH-1:0] broadcast_y_out,
+    `endif
 
     input wire [`L2_STATE_ARRAY_WIDTH-1:0] state_data_out,
     
@@ -106,12 +109,14 @@ module l2_pipe2(
     output wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_in,
     output wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_mask_in,
 
+    `ifndef NO_RTL_CSM
     output wire [`CS_OP_WIDTH-1:0] broadcast_counter_op,
     output wire broadcast_counter_op_val,
 
     output wire smc_wr_en,
     output wire [`L2_SMC_ADDR_WIDTH-1:0] smc_wr_addr_in,
     output wire [`L2_SMC_DATA_IN_WIDTH-1:0] smc_data_in,
+    `endif
 
     output wire valid_S1,
     output wire valid_S2,
@@ -162,7 +167,9 @@ wire [`MSG_SRC_FBITS_WIDTH-1:0] mshr_src_fbits;
 wire [`MSG_SDID_WIDTH-1:0] mshr_sdid;
 wire [`MSG_LSID_WIDTH-1:0] mshr_lsid;
 wire [`MSG_LSID_WIDTH-1:0] mshr_miss_lsid;
+`ifndef NO_RTL_CSM
 wire mshr_smc_miss;
+`endif
 wire mshr_inv_fwd_pending;
 
 wire msg_header_valid;
@@ -278,7 +285,11 @@ l2_mshr_decoder mshr_decoder(
     .sdid_out           (mshr_sdid),
     .lsid_out           (mshr_lsid),
     .miss_lsid_out      (mshr_miss_lsid),
+    `ifndef NO_RTL_CSM
     .smc_miss_out       (mshr_smc_miss),
+    `else
+    .smc_miss_out       (),
+    `endif    
     .inv_fwd_pending    (mshr_inv_fwd_pending)
 
 );
@@ -288,7 +299,9 @@ l2_pipe2_ctrl ctrl(
 
     .clk                        (clk),
     .rst_n                      (rst_n),
+    `ifndef NO_RTL_CSM
     .csm_en                     (csm_en),
+    `endif
 
     .msg_header_valid_S1        (msg_header_valid),
     .msg_type_S1                (msg_type),
@@ -300,8 +313,10 @@ l2_pipe2_ctrl ctrl(
     .mshr_msg_type_S1           (mshr_msg_type),
     .mshr_l2_miss_S1            (mshr_l2_miss),
     .mshr_data_size_S1          (mshr_data_size),
-    .mshr_cache_type_S1         (mshr_cache_type), 
+    .mshr_cache_type_S1         (mshr_cache_type),
+    `ifndef NO_RTL_CSM 
     .mshr_smc_miss_S1           (mshr_smc_miss),
+    `endif
     .mshr_state_out_S1          (mshr_state_out),
     .mshr_inv_fwd_pending_S1    (mshr_inv_fwd_pending),
     .addr_S1                    (addr_S1),
@@ -318,11 +333,13 @@ l2_pipe2_ctrl ctrl(
     .addr_l2_aligned_S2         (addr_l2_aligned_S2),
     .subline_valid_S2           (subline_valid_S2),
     .msg_data_valid_S2          (msg_data_valid),
+    `ifndef NO_RTL_CSM
     .broadcast_counter_zero_S2  (broadcast_counter_zero),
     .broadcast_counter_max_S2   (broadcast_counter_max),
     .broadcast_chipid_out_S2    (broadcast_chipid_out),
     .broadcast_x_out_S2         (broadcast_x_out),
     .broadcast_y_out_S2         (broadcast_y_out),
+    `endif
     .lsid_S2                    (lsid_S2),
     .addr_S2                    (addr_S2),
 
@@ -367,10 +384,11 @@ l2_pipe2_ctrl ctrl(
     .l2_load_64B_S2             (l2_load_64B_S2),
     .l2_load_data_subline_S2    (l2_load_data_subline_S2),
     .msg_data_ready_S2          (msg_data_ready),
+    `ifndef NO_RTL_CSM
     .smc_wr_en_S2               (smc_wr_en),
     .broadcast_counter_op_S2    (broadcast_counter_op),
     .broadcast_counter_op_val_S2(broadcast_counter_op_val),
-
+    `endif
 
     .valid_S3                   (valid_S3),    
     .stall_S3                   (stall_S3), 
@@ -467,8 +485,10 @@ l2_pipe2_dpath dpath(
     .data_addr_S2               (data_addr),
     .data_data_in_S2            (data_data_in),
     .data_data_mask_in_S2       (data_data_mask_in),
+    `ifndef NO_RTL_CSM
     .smc_wr_addr_in_S2          (smc_wr_addr_in),
     .smc_data_in_S2             (smc_data_in),
+    `endif
 
     .addr_S3                    (addr_S3),
     .mshr_wr_index_S3           (mshr_wr_index_in),

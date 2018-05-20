@@ -1072,6 +1072,7 @@ sub print_header
   print SIMS_HISTORY "\n" ;
 
   print "$prg: ====================================================\n";
+  print "$prg:   Simulation Script for OpenPiton\n";
   print "$prg:   Modified by Princeton University on June 9th, 2015\n";
   print "$prg: ====================================================\n";
 
@@ -1605,6 +1606,30 @@ sub gen_flist
           $flist = $xlxflist;
           # print("debug: Xilinx flist found: $flist\n");
        }
+
+       if ($opt{ml605}) {
+           my $ml605flist = $flist . ".ml605";
+           if (-e $ml605flist) {
+              $flist = $ml605flist;
+              # print("\n\ndebug: Virtex flist found: $flist\n");
+           }
+       }
+
+       if ($opt{artix7}) {
+           my $artix7flist = $flist . ".artix7";
+           if (-e $artix7flist) {
+              $flist = $artix7flist;
+              # print("\n\ndebug: Virtex flist found: $flist\n");
+           }
+       }
+
+        if ($opt{vc707}) {
+           my $vc707flist = $flist . ".vc707";
+           if (-e $vc707flist) {
+              $flist = $vc707flist;
+              # print("\n\ndebug: Virtex flist found: $flist\n");
+           }
+       }      
     }
     
     open (IFLIST, "< $flist") or die ("DIE. can't open flist file $flist") ;
@@ -2098,14 +2123,40 @@ sub vcs_build
     push (@{$opt{vcs_build_args}}, "-l compile.log") ;
     push (@{$opt{vcs_build_args}}, "-f flist") ;
 
-    if ($opt{xilinx})
-    {
-        push (@{$opt{config_rtl}}, "PITON_PROTO") ;
+        push (@{$opt{vcs_build_args}}, "+libext+.v") ;
+        push (@{$opt{vcs_build_args}}, "-Mupdate") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX_VIVADO}/data/verilog/src/unisims") ;
+        push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX_VIVADO}/data/verilog/src") ;
         push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/unisims") ;
         push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/XilinxCoreLib") ;
         push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX}/verilog/src") ;
+
+    if ($opt{xilinx})
+    {
+        push (@{$opt{config_rtl}}, "PITON_PROTO") ;
         push (@{$opt{vcs_build_args}}, "+libext+.v") ;
         push (@{$opt{vcs_build_args}}, "-Mupdate") ;
+    }
+
+    if ($opt{ml605})
+    {
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/unisims") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/XilinxCoreLib") ;
+        push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX}/verilog/src") ;
+    }
+
+    if ($opt{artix7})
+    {
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX_VIVADO}/data/verilog/src/unisims") ;
+        push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX_VIVADO}/data/verilog/src") ;
+    }
+
+    if ($opt{vc707})
+    {
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX_VIVADO}/data/verilog/src/unisims") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX_VIVADO}/data/vhdl/src/unisims/secureip") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX_VIVADO}/data/vhdl/src/unisims/primitive") ;
+        push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX_VIVADO}/data/verilog/src") ;
     }
 
     if ($opt{ibm})
@@ -2131,6 +2182,10 @@ sub vcs_build
     push (@{$opt{vcs_build_args}}, "+define+COPROCESSOR_ON") if ($opt{dmbr}) ;
     push (@{$opt{vcs_build_args}}, "+define+DMBR_CHECKER") if ($opt{dmbr_checker}) ;
     push (@{$opt{vcs_build_args}}, "+define+PITON_PROTO") if ($opt{xilinx}) ;
+    push (@{$opt{vcs_build_args}}, "+define+ML605_BOARD") if ($opt{ml605});
+    push (@{$opt{vcs_build_args}}, "+define+NEXYS4DDR_BOARD") if ($opt{artix7});
+    push (@{$opt{vcs_build_args}}, "+define+VC707_BOARD") if ($opt{vc707});
+    push (@{$opt{vcs_build_args}}, "+define+GENESYS2_BOARD") if ($opt{genesys2});
 
     # build the model
     print "$prg: Building rtl model\n" ;
@@ -4702,6 +4757,7 @@ sub parse_args
             'midas_use_tgseed!',
             'model=s',
             'model_dir=s',
+            'network_config=s',
             'ncv_build!',
             'ncv_build_args=s@',
             'ncv_run!',
@@ -4835,11 +4891,40 @@ sub parse_args
             'debug_all!',
             'ibm!',
             'xilinx!',
+            'ml605!',
+            'artix7!',
+            'vc707!',
             'ed_enable!',
             'ed_sync_method=s',
             'slurm!',
             'dmbr!',
             'dmbr_checker!',
+            # 'config_sram_l2_tag_height=s',
+            # 'config_sram_l2_tag_width=s',
+            # 'config_sram_l2_data_height=s',
+            # 'config_sram_l2_data_width=s',
+            # 'config_sram_l2_state_height=s',
+            # 'config_sram_l2_state_width=s',
+            # 'config_sram_l2_dir_height=s',
+            # 'config_sram_l2_dir_width=s',
+            # 'config_sram_l1i_tag_height=s',
+            # 'config_sram_l1i_tag_width=s',
+            # 'config_sram_l1i_data_height=s',
+            # 'config_sram_l1i_data_width=s',
+            # 'config_sram_l1d_tag_height=s',
+            # 'config_sram_l1d_tag_width=s',
+            # 'config_sram_l1d_data_height=s',
+            # 'config_sram_l1d_data_width=s',
+            # 'config_sram_frf_height=s',
+            # 'config_sram_frf_width=s',
+            # 'config_sram_l15_tag_height=s',
+            # 'config_sram_l15_tag_width=s',
+            # 'config_sram_l15_data_height=s',
+            # 'config_sram_l15_data_width=s',
+            # 'config_sram_l15_hmt_height=s',
+            # 'config_sram_l15_hmt_width=s',
+            # 'config_l15_entry_count=s',
+            # 'config_l15_associativity=s',
            );
 
   # print out all command line arguments + config arguments
@@ -4870,6 +4955,28 @@ sub parse_args
     }
 
     print "\@ARGV: @ARGV\n" ;
+  }
+
+
+  my @configurables = (
+    "config_l1i_size",
+    "config_l1i_associativity",
+    "config_l1d_size",
+    "config_l1d_associativity",
+    "config_l15_size",
+    "config_l15_associativity",
+    "config_l2_size",
+    "config_l2_associativity",
+    );
+
+  foreach my $config (@configurables) {
+    GetOptions (\%opt,
+            "${config}=s",
+    );
+    my $ucn = uc($config);
+    if ($opt{$config}) {
+        $ENV{$ucn} = $opt{$config};
+    }
   }
 
   # these arguments may not have any options associated with them
@@ -4938,8 +5045,26 @@ sub parse_args
   # PITON flag: disables PLL if sim_pll is not set
   push (@{$opt{config_rtl}}, "NO_SIM_PLL");
 
+  # set up network_config defines
+  if ($opt{network_config}) {
+    if (($opt{network_config} eq "xbar_config") or ($opt{network_config} eq "2dmesh_config")) {
+      $ENV{PTON_NETWORK_CONFIG}=$opt{network_config};
+    }
+    else {
+      die ("DIE. network_config can only be xbar_config or 2dmesh_config");
+    }
+  }
+  else {
+    print "network_config not specified, assuming 2dmesh configuration";
+    $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
+  }
+
   # conveniently sets up the tile RTL defines for manycore model
   if ($opt{x_tiles} && $opt{y_tiles}) {
+
+    die ("DIE. x_tiles can be at most 256") if ($opt{x_tiles} > 256) ;
+    die ("DIE. y_tiles can be at most 256") if ($opt{y_tiles} > 256) ;
+
     for (my $i = 0; $i < ($opt{x_tiles} * $opt{y_tiles}); $i++) {
         push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
     }
@@ -5166,6 +5291,18 @@ OPENPITON ARGUMENTS
             and used.  If you are planning to synthesize OpenPiton to an FPGA,
             it recommended to use this option for simulation.  Please refer to
             the OpenPiton documentation for more information on this option.
+
+    -ml605
+            use block memories generated by ISE tools, required for ML605
+            evaluation board. Can be used only in conjunction with -xilinx option.
+
+    -artix7
+            use block memories generated by Vivado tool chain, required for Artix7
+            evaluation board. Can be used only in conjunction with -xilinx option.
+
+    -vc707
+            use block memories generated by Vivado tool chain, required for Xilinx VC707 
+            evaluation board. Can be used only in conjunction with -xilinx option.
 
     -debug_all
             a shortcut for -vcs_build_args=-debug_all.  In Synopsys VCS, this
