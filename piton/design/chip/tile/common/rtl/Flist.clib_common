@@ -20,5 +20,5 @@
 // 
 // ========== Copyright Header End ============================================
 -v swrvr_clib.v
--v u1.behV
--v m1.behV
+-v u1.beh.v
+-v m1.beh.v

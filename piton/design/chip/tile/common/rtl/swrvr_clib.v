@@ -26,7 +26,7 @@
 //      Description: Design control behavioural library
 */                 
 
-`ifdef FPGA_SYN 
+`ifdef PITON_PROTO 
 `define NO_SCAN 
 `endif
 
@@ -700,7 +700,8 @@ parameter SIZE = 1;
 
 input [SIZE-1:0] in;
 
-`ifdef FPGA_SYN
+// Alexey
+// `ifdef PITON_PROTO
    // As of version 8.2 XST does not remove this module without the
    // following additional dead code
 
@@ -708,7 +709,7 @@ input [SIZE-1:0] in;
 
    assign		a = | in;
 
-`endif
+// `endif
 
 endmodule //sink
 

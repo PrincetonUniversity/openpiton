@@ -46,8 +46,8 @@
 // Local header file includes / local defines
 ////////////////////////////////////////////////////////////////////////
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_SCM
 `endif
 

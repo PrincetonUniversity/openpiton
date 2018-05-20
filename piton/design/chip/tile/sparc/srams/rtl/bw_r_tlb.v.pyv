@@ -39,14 +39,14 @@
 `endif
 
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_TLB
 `endif
 
 
-
-`ifdef FPGA_SYN_TLB
+//this macro will not be used
+`ifdef FPGA_SYN_TLB_NOT_USED
 `ifdef FPGA_SYN_8TLB
   `define TLB_ENTRIES 8
   `define TLB_INDEX_WIDTH 3

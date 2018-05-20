@@ -1,0 +1,93 @@
+// Modified by Princeton University on June 9th, 2015
+// ========== Copyright Header Begin ==========================================
+//
+// OpenSPARC T1 Processor File: cmp.flist
+// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+//
+// The above named program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License version 2 as published by the Free Software Foundation.
+//
+// The above named program is distributed in the hope that it will be
+// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public
+// License along with this work; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+//
+// ========== Copyright Header End ============================================
++incdir+../../../design/include
++incdir+.
+
+cross_module.h
+manycore_network_mon.v
+// -v tap_stub.v
+// -v one_hot_mux_mon.v
+// -v dbg_port_chk.v
+-v sas_intf.v
+// //-v tlb_mon.v
+-v monitor.v
+// -v trig_event.v
+// // -v cmp_mem.v
+-v sas_tasks.v
+-v pc_cmp.v
+-v sas_task.v
+-v l_cache_mon.v
+-v thrfsm_mon.v // monitors for X's in the processor states
+// -v spu_ma_mon.v
+// -v ch_mem.v
+// -v cmp_dram.v
+// -v cmp_dram_mon.v
+// -v dimm_if_mon.v
+-v sparc_pipe_flow.v
+-v multicycle_mon.v
+
+// Tri: taken out because is not found?
+// Should be found now. Alexey
+-v dmbr_mon.v
+
+// //-v sys_clk.v
+// -v cmp_clk.v
+-v cmp_pcxandcpx.v
+-v tso_mon.v
+-v lsu_mon.v
+-v lsu_mon2.v
+-v exu_mon.v
+// -v dram_mon.v
+// -v ctu_level_mon.v
+// -v err_inject.v
+// -v pcx_stall.v
+// -v cpx_stall.v
+-v mask_mon.v
+-v pc_muxsel_mon.v
+-v nukeint_mon.v
+-v stb_ovfl_mon.v
+-v icache_mutex_mon.v
+-v nc_inv_chk.v
+-v tlu_mon.v
+-v softint_mon.v
+// // -v ../../../verif/model/verilog/mem/dram/DIMMx4.v
+// // -v ../../../verif/model/verilog/mem/dram/HYB18T512xx0AF.v
+// -v ../../../verif/model/verilog/mem/dram/dimm.v
+// -v bw_sys.v
+ -v slam_init.v
+// // -v l2warm.v
+// // -v l1warm.v
+-v ciop_iob.v
+// -v ctu_mon.v
+// -v dbginit_inst.v
+// -v dbginit_mon.v
+-v cmp_l15_messages_mon.v
+-v jtag_mon.v
+-v l2_mon.v
+-v async_fifo_mon.v
+-v iob_mon.v
+manycore_top.v
+$MODEL_DIR/fpga/xilinx_ip/clk_18MHz.v
+$DV_ROOT/design/proto/bram_sdp_4096x512_wrapper.v
+$MODEL_DIR/fpga/xilinx_ip/bram_sdp_4096x512.v 
+$DV_ROOT/design/proto/bram_map.v
+$XILINX/verilog/src/glbl.v

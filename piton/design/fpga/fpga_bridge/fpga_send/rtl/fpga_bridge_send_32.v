@@ -185,7 +185,7 @@ always @(posedge rd_clk) begin
         serial_buffer_data [0] <= 32'd0;
         serial_buffer_data [1] <= 32'd0;
         serial_buffer_channel <= 2'd0;
-        serial_buffer_data_counter = 1'b1;
+        serial_buffer_data_counter <= 1'b1;
     end
     else begin
         if( channel_to_serial_buffer != 0 && serial_buffer_data_counter == 1) begin

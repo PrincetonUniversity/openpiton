@@ -1,0 +1,42 @@
+#!/bin/bash
+# Copyright (c) 2015 Princeton University
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+echo "Running XST design compiler" >&2
+xst -intstyle ise -ifn $MODEL_DIR/fpga/cmp_top.xst -ofn $MODEL_DIR/fpga/cmp_top.syr > $MODEL_DIR/fpga/protosyn_logs/xst.log
+echo "Inserting analyzer" >&2
+inserter -intstyle ise -mode insert -ise_project_dir $MODEL_DIR/fpga -proj chipscope.cdc -intstyle ise -dd $MODEL_DIR/fpga/_ngo -uc $MODEL_DIR/fpga/pins.ucf -sd $MODEL_DIR/fpga/xilinx_ip -p xc6vlx240t-ff1156-1 $MODEL_DIR/fpga/cmp_top.ngc cmp_top_cs.ngc > $MODEL_DIR/fpga/protosyn_logs/inserter.log
+echo "Generating a netlist with analyzer" >&2
+ngdbuild -intstyle ise -dd $MODEL_DIR/fpga/_ngo -sd $MODEL_DIR/fpga/xilinx_ip -nt timestamp -uc pins.ucf -p xc6vlx240t-ff1156-1 cmp_top_cs.ngc cmp_top.ngd > $MODEL_DIR/fpga/protosyn_logs/ngdbuild.log
+echo "Mapping" >&2
+map -intstyle ise -p xc6vlx240t-ff1156-1 -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -detail -ir off -pr off -lc off -power off -o cmp_top_map.ncd cmp_top.ngd cmp_top.pcf > $MODEL_DIR/fpga/protosyn_logs/map.log
+echo "Placing and Routing" >&2
+par -w -intstyle ise -ol high -mt 4 cmp_top_map.ncd cmp_top.ncd cmp_top.pcf > $MODEL_DIR/fpga/protosyn_logs/par.log
+echo "Tracing" >&2
+trce -intstyle ise -v 3 -s 1 -n 3 -fastpaths -xml cmp_top.twx cmp_top.ncd -o cmp_top.twr cmp_top.pcf -ucf pins.ucf > $MODEL_DIR/fpga/protosyn_logs/trce.log
+echo "Generating a bit file" >&2
+bitgen -intstyle ise -f cmp_top.ut cmp_top.ncd > $MODEL_DIR/fpga/protosyn_logs/bitgen.log
+
+

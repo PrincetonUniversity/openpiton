@@ -24,8 +24,8 @@
 // REad/Write ports can be accessed in PH1 only.
 ////////////////////////////////////////////////////////////////////////
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_16x160
 `endif
 

@@ -45,7 +45,7 @@ module cluster_header (/*AUTOARG*/
    input       se;
    output      so;
 
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 //  assign #10 rclk = gclk;
 //  assign #10 dbginit_l = gdbginit_l;
 //  assign #10 cluster_grst_l = grst_l;

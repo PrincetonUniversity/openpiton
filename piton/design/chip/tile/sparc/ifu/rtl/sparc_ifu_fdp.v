@@ -51,8 +51,8 @@
 
 //`define VERSION_REG      {`VER_MANUF, `VER_IMPL_MASK, `VER_MAXGL, 8'h06, `VER_MAXWIN}
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_CLK_EN
 `define FPGA_SYN_CLK_DFF
 `endif

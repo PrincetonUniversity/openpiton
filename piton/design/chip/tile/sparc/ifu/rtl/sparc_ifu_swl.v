@@ -1077,7 +1077,7 @@ end
 
    sparc_ifu_thrfsm  thrfsm0(
 			     // Outputs
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 			     
 			     .so	(/*so*/),
 `else
@@ -1114,7 +1114,7 @@ end
 
    sparc_ifu_thrfsm  thrfsm1(
 			     // Outputs
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 			     
 			     .so	(/*so*/),
 `else
@@ -1157,7 +1157,7 @@ assign thr3_state[4:0] = 5'b0;
 `else // ifdef CONFIG_NUM_THREADS
    sparc_ifu_thrfsm  thrfsm2(
 			     // Outputs
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 			     
 			     .so	(/*so*/),
 `else
@@ -1194,7 +1194,7 @@ assign thr3_state[4:0] = 5'b0;
    
    sparc_ifu_thrfsm  thrfsm3(
 			     // Outputs
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 			     
 			     .so	(/*so*/),
 `else

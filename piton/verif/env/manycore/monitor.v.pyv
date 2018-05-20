@@ -19,7 +19,7 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 //
 // ========== Copyright Header End ============================================
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 `include "iop.h"
 //define and will move all the define to cross.h later
 `define PLI_QUIT  1    /* None */

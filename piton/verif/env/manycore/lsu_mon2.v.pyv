@@ -28,7 +28,7 @@
 // 		pal -r -o lsu_mon2.v lsu_mon2.vpal
 ////////////////////////////////////////////////////////
 
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 `include "sys.h"
 `include "iop.h"
 

@@ -1,0 +1,13 @@
+NET "fast_clk"              LOC = "AE16";   ## 93  on U19
+NET "pin_rst"            LOC = "H10";    ## 2   on SW10 pushbutton (active-High)
+##
+NET "led_0"                 LOC = "AC22";   ## 2   on LED DS12, 1 on J62
+NET "led_1"                 LOC = "AC24";   ## 2   on LED DS11, 2 on J62
+NET "led_2"                 LOC = "AE22";   ## 2   on LED DS9,  3 on J62
+NET "led_3"                 LOC = "AE23";   ## 2   on LED DS10, 4 on J62
+NET "led_4"                 LOC = "AB23";   ## 2   on LED DS15, 5 on J62
+NET "led_5"                 LOC = "AG23";   ## 2   on LED DS14, 6 on J62
+NET "led_6"                 LOC = "AE24";   ## 2   on LED DS22, 7 on J62
+#Created by Constraints Editor (xc6vlx240t-ff1156-1) - 2015/05/03
+NET "core_ref_clk" TNM_NET = core_ref_clk;
+TIMESPEC TS_core_ref_clk = PERIOD "core_ref_clk" 55.555 ns HIGH 50%;

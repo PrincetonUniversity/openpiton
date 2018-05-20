@@ -27,8 +27,8 @@
 //				the same register concurrently produces x.
 */
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_IRF
 `endif
 

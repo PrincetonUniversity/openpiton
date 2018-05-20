@@ -1,0 +1,31 @@
+-v $DV_ROOT/design/chip/rtl/chip.v
+-v $DV_ROOT/design/proto/blinker.v
+-v $DV_ROOT/design/proto/tile_proto.v
+synchronizer.v
+// module for FPGA prototype
+$DV_ROOT/design/chip/rtl/OCI.v
+
+// Xilinx IPs
+// common
+-v $MODEL_DIR/fpga/xilinx_ip/bram_128x160.v
+
+// L2
+-v $MODEL_DIR/fpga/xilinx_ip/bram_256x128.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_4096x144.v
+-v $DV_ROOT/design/proto/bram_sdp_4096x144_wrapper.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_256x176.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_1024x64.v
+-v $DV_ROOT/design/proto/bram_sdp_1024x64_wrapper.v
+
+// SPARC
+//128X132 isn't listed in sparc Flist anymore - no bram equivalent
+-v $MODEL_DIR/fpga/xilinx_ip/bram_128x80.v
+-v $DV_ROOT/design/proto/bram_sdp_128x80_wrapper.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_256x272.v
+-v $DV_ROOT/design/proto/bram_sdp_256x272_wrapper.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_128x288.v
+-v $DV_ROOT/design/proto/bram_sdp_128x288_wrapper.v
+
+// L15
+-v $MODEL_DIR/fpga/xilinx_ip/bram_512x128.v
+-v $MODEL_DIR/fpga/xilinx_ip/bram_512x32.v

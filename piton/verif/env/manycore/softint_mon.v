@@ -28,7 +28,7 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 
 module softint_mon(/*AUTOARG*/
 	rtl_softint0,

@@ -28,7 +28,7 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 
 `define	PIB_PCR_RSVD0_HI 	63
 `define	PIB_PCR_RSVD0_LO 	10

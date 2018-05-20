@@ -1589,6 +1589,24 @@ sub gen_flist
   {
     $flist =~ s/\$(\w+)/$ENV{$1}/g ;
 
+    # look for IBM flists
+    if ($opt{ibm}){
+       my $ibmflist = $flist . ".ibm";
+       if (-e $ibmflist){
+          $flist = $ibmflist;
+          # print("debug: IBM flist found: $flist\n");
+       }
+    }
+
+    # look for Xilinx flists
+    if ($opt{xilinx}){
+       my $xlxflist = $flist . ".xlx";
+       if (-e $xlxflist){
+          $flist = $xlxflist;
+          # print("debug: Xilinx flist found: $flist\n");
+       }
+    }
+    
     open (IFLIST, "< $flist") or die ("DIE. can't open flist file $flist") ;
 
     print "$flist\n\n\n\n";
@@ -1642,28 +1660,58 @@ sub gen_flist
 
       # Tri
       # Now we run pyphp
-        # print("\$preline is $line\n");
+      # Alexey: for ISE change .v(h).tmp on .tmp.v(h)
+      # print("\$preline is $line\n");
       # my $dotvfile = 
-      my $linepyv = (split(' ',substr($line, 0, -1)))[-1] . ".pyv";
-        # print("\$linepyv is $linepyv\n");
-      my $linetmp = substr($line, 0, -1) . ".tmp";
-      my $linetmpout = (split(' ',substr($line, 0, -1)))[-1] . ".tmp";
-      if (-e $linepyv)
-      {
-        # print("original is $line\n");
-        system("pyhp.py $linepyv > $linetmpout");
-        $line = $linetmp . "\n";
-        # print("\$Running pyhp.py for $line\n");
-        # die ("randomly");
-      }
 
+      if ($opt{ibm} || $opt{xilinx}){
+         my $ibmfile = (split(' ',substr($line, 0, -1)))[-1] . ".ibm.v";
+         my $xlxfile = (split(' ',substr($line, 0, -1)))[-1] . ".xlx.v";
+
+         if (!(($opt{ibm} && -e $ibmfile) || ($opt{xilinx} && -e $xlxfile))){
+           my $linepyv = (split(' ',substr($line, 0, -1)))[-1] . ".pyv";
+           # print("\$linepyv is $linepyv\n");
+           my $linetmp = substr($line, 0, -3) . ".tmp.". substr($line, -2, 1);
+           my $linetmpout = (split(' ',substr($line, 0, -3)))[-1] . ".tmp." . substr($line, -2, 1);
+           if (-e $linepyv)
+           {
+             # print("original is $line\n");
+             system("pyhp.py $linepyv > $linetmpout");
+             $line = $linetmp . "\n";
+             # print("\$Running pyhp.py for $line\n");
+             # die ("randomly");
+           }
+         }
+      } else {
+        my $linepyv = (split(' ',substr($line, 0, -1)))[-1] . ".pyv";
+        # print("\$linepyv is $linepyv\n");
+        my $linetmp = substr($line, 0, -3) . ".tmp.". substr($line, -2, 1);
+        my $linetmpout = (split(' ',substr($line, 0, -3)))[-1] . ".tmp." . substr($line, -2, 1);
+        if (-e $linepyv)
+        {
+          # print("original is $line\n");
+          system("pyhp.py $linepyv > $linetmpout");
+          $line = $linetmp . "\n";
+          # print("\$Running pyhp.py for $line\n");
+          # die ("randomly");
+        }
+      }
 
       # look for IBM srams
       if ($opt{ibm}){
-         my $ibmfile = substr($line, 0, -1) . ".ibm";
+         my $ibmfile = (split(' ',substr($line, 0, -1)))[-1] . ".ibm.v";
          if (-e $ibmfile){
             $line = $ibmfile . "\n";
             # print("debug: IBM sram found: $line\n");
+         }
+      }
+
+      # look for Xilinx brams
+      if ($opt{xilinx}){
+         my $xlxfile = (split(' ',substr($line, 0, -1)))[-1] . ".xlx.v";
+         if (-e $xlxfile){
+            $line = $xlxfile . "\n";
+            # print("debug: Xilinx bram found: $line\n");
          }
       }
 
@@ -2050,6 +2098,24 @@ sub vcs_build
     push (@{$opt{vcs_build_args}}, "-l compile.log") ;
     push (@{$opt{vcs_build_args}}, "-f flist") ;
 
+    if ($opt{xilinx})
+    {
+        push (@{$opt{config_rtl}}, "PITON_PROTO") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/unisims") ;
+        push (@{$opt{vcs_build_args}}, "-y $ENV{XILINX}/verilog/src/XilinxCoreLib") ;
+        push (@{$opt{vcs_build_args}}, "+incdir+$ENV{XILINX}/verilog/src") ;
+        push (@{$opt{vcs_build_args}}, "+libext+.v") ;
+        push (@{$opt{vcs_build_args}}, "-Mupdate") ;
+    }
+
+    if ($opt{ibm})
+    {
+        push (@{$opt{config_rtl}}, "IBM_SRAM_RF16X160_MODEL_CHECKER") ;
+        push (@{$opt{config_rtl}}, "IBM_SRAM_RF32X80_MODEL_CHECKER") ;
+        push (@{$opt{config_rtl}}, "IBM_SRAM_CACHE_TAG_MODEL_CHECKER") ;
+        push (@{$opt{config_rtl}}, "IBM_SRAM_LSU_ICACHE_MODEL_CHECKER") ;
+    }
+
     if ($opt{zeroIn_build})
     {
       push (@{$opt{vcs_build_args}}, "$ENV{HOME_0IN}/0InPLI/vcs/lib0InvcsPLI.so") ;
@@ -2064,6 +2130,7 @@ sub vcs_build
 
     push (@{$opt{vcs_build_args}}, "+define+COPROCESSOR_ON") if ($opt{dmbr}) ;
     push (@{$opt{vcs_build_args}}, "+define+DMBR_CHECKER") if ($opt{dmbr_checker}) ;
+    push (@{$opt{vcs_build_args}}, "+define+PITON_PROTO") if ($opt{xilinx}) ;
 
     # build the model
     print "$prg: Building rtl model\n" ;
@@ -4767,6 +4834,7 @@ sub parse_args
             'gui!',
             'debug_all!',
             'ibm!',
+            'xilinx!',
             'ed_enable!',
             'ed_sync_method=s',
             'slurm!',
@@ -5071,7 +5139,7 @@ OPENPITON ARGUMENTS
             model specifies a 2D mesh topology of tiles, with X tiles
             in the x dimension and Y tiles in the y dimension. If 
             -x_tiles and -y_tiles is not specified, the default is
-            X=1 and Y=1.
+            X=1 and Y=1. The maximum value for both X and Y is 1024.
     
     -ed_enable
             enable Execution Drafting in each core.
@@ -5089,6 +5157,15 @@ OPENPITON ARGUMENTS
             to download them, there is infrastructure for them to be dropped
             in and used.  Please refer to the OpenPiton documentation for more
             information on this option.
+
+    -xilinx
+            use simulation models from Xilinx IP, e.g. BRAMS, clock gen, etc.,
+            to simulate the FPGA version of OpenPiton.  The Xilinx IP is
+            not provided with the OpenPiton download, but if the user has access
+            to download them, there is infrastructure for them to be dropped in
+            and used.  If you are planning to synthesize OpenPiton to an FPGA,
+            it recommended to use this option for simulation.  Please refer to
+            the OpenPiton documentation for more information on this option.
 
     -debug_all
             a shortcut for -vcs_build_args=-debug_all.  In Synopsys VCS, this

@@ -48,8 +48,8 @@
 `endif
 
 
-//FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+//PITON_PROTO enables all FPGA related modifications
+`ifdef PITON_PROTO
 `define FPGA_SYN_IDCT
 `endif
 
@@ -189,6 +189,10 @@ reg	[32:0]		array[511:0] /* synthesis syn_ramstyle = block_ram  syn_ramstyle = n
 integer i;
 
 initial begin
+// `ifdef DO_MEM_INIT
+//     // Add the memory init file in the database
+//     $readmemb("/import/dtg-data11/sandeep/niagara/design/sys/iop/srams/rtl/mem_init_idct.txt",array);
+// `endif
   // Tri: nonsynthesizable
   for (i = 0; i < 511; i = i + 1)
   begin

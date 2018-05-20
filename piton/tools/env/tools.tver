@@ -22,6 +22,7 @@ regreport	/	1.73
 showargv	/	1.01
 sims		/	1.262
 contint     /   1.0
+protosyn    /   1.0
 sjm_tstgen.pl	/	1.37
 tapasm		/	1.4
 tso_analyze	/	1.37

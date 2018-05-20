@@ -41,7 +41,7 @@
 //      Run pal to get .v using: pal -r -o multicycle_mon.v multicycle_mon.vpal
 ////////////////////////////////////////////////////////
 
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 `include "sys.h"
 `include "iop.h"
 

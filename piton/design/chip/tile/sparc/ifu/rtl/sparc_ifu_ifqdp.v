@@ -30,7 +30,7 @@
 */
 
 //FPGA_SYN enables all FPGA related modifications
-`ifdef FPGA_SYN
+`ifdef PITON_PROTO
 `define FPGA_SYN_CLK_EN
 `define FPGA_SYN_CLK_DFF
 `endif

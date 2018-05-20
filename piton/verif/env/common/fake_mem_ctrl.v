@@ -26,7 +26,7 @@
 //==================================================================================================
 //  Filename      : fake_mem_ctrl.v
 //  Created On    : 2014-04-15
-//  Last Modified : 2014-04-15
+//  Last Modified : 2015-05-08 00:54:50
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -500,7 +500,14 @@ begin
         noc_data_out = buf_out_mem_f[buf_out_rd_ptr_f];
 end
 
-
+always @(posedge clk) begin
+    if (noc_valid_in & noc_ready_in) begin
+        $display("FakeMem: input: %h", noc_data_in, $time);
+    end
+    if (noc_valid_out & noc_ready_out) begin
+        $display("FakeMem: output %h", noc_data_out, $time);
+    end
+end
 
 
 endmodule

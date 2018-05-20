@@ -134,6 +134,7 @@ def usage (prog) :
     print prog + ":      --check_results         Do not run simulations, just check results"
     print prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory"
     print prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass"
+    print prog + ":      --inverse               Inverts the exit code to return 0 if all tests failed and 1 otherwise, whereas the default is to return 0 if all tests pass and 1 otherwise."
 
 def parse_cmd_args (prog) :
     try :

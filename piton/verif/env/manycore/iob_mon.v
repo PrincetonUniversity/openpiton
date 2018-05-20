@@ -42,7 +42,7 @@
 
 `include "sys.h"
 `include "iop.h"
-`include "cross_module.h.tmp"
+`include "cross_module.tmp.h"
 
 module iob_mon (
     input wire clk
