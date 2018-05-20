@@ -31,6 +31,9 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 #define  BUFFER       1024
 typedef struct f_state_node{
   union{

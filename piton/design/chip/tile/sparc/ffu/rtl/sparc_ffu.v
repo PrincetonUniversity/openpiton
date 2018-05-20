@@ -85,8 +85,6 @@ module sparc_ffu (/*AUTOARG*/
 
    // input                mux_drive_disable;
    // input                mem_write_disable;
-   wire mux_drive_disable = ~grst_l;
-   wire mem_write_disable = ~grst_l;
    input                short_si0;
    /*AUTOINPUT*/
    // Beginning of automatic inputs (from unused autoinst inputs)
@@ -250,6 +248,9 @@ module sparc_ffu (/*AUTOARG*/
    wire [31:0]          ffu_exu_rsr_data_hi_m;
    wire [2:0]          ffu_exu_rsr_data_mid_m;
    wire [7:0]          ffu_exu_rsr_data_lo_m;
+
+   wire mux_drive_disable = ~grst_l;
+   wire mem_write_disable = ~grst_l;
 
    wire                short_scan_1;
    

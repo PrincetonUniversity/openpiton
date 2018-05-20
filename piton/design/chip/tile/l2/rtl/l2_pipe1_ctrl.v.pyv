@@ -719,7 +719,6 @@ begin
                  //can be optimized
                  &&((mshr_empty_slots_S1 <= 3 && (valid_S2 || valid_S3 || valid_S4))
                  ||  mshr_empty_slots_S1 == 0));
-;
 end
 
 reg stall_msg_S1;

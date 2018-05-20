@@ -232,7 +232,6 @@ module chip(
    reg                                          rst_n_inter_sync_f;
    wire                                         io_clk_rst_n_inter_sync;
    reg                                          io_clk_rst_n_inter_sync_f;
-   wire                                         jtag_rst_l_inter_sync;
 
    // PLL signals
    wire                                         core_ref_clk_inter_c;

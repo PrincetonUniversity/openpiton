@@ -42,6 +42,9 @@
 #include "veriuser.h"
 #include "acc_user.h"
 #include <stdio.h>
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 #define CMD_BUFSIZE 10240
 #define RCV_BUFSIZE 32768
 #define SEND_MAX    500

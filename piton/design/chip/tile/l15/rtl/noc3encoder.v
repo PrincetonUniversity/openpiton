@@ -145,7 +145,6 @@ end
 
 always @ *
 begin
-    noc3encoder_noc3out_data = flit;
     is_request = (l15_noc3encoder_req_type == `L15_NOC3_REQTYPE_WRITEBACK);
     is_response = !is_request;
 
@@ -317,6 +316,8 @@ begin
             flit[`NOC_DATA_WIDTH-1:0] = l15_noc3encoder_req_data_0_f;
         end
     end
+
+    noc3encoder_noc3out_data = flit;
 
     // next flit state logic
     flit_state_next = flit_state;

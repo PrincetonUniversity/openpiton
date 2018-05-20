@@ -93,14 +93,22 @@ set_property PACKAGE_PIN G19 [get_ports {sw[0]}]
 #set_property PACKAGE_PIN E18 [get_ports pin_soft_rst]
 
 # SD
-set_property IOSTANDARD LVCMOS33 [get_ports spi_clk_out]
-set_property PACKAGE_PIN R28 [get_ports spi_clk_out]
-set_property IOSTANDARD LVCMOS33 [get_ports spi_data_in]
-set_property PACKAGE_PIN R26 [get_ports spi_data_in]
-set_property IOSTANDARD LVCMOS33 [get_ports spi_data_out]
-set_property PACKAGE_PIN R29 [get_ports spi_data_out]
-set_property IOSTANDARD LVCMOS33 [get_ports spi_cs_n]
-set_property PACKAGE_PIN T30 [get_ports spi_cs_n]
+set_property IOSTANDARD LVCMOS33 [get_ports sd_clk_out]
+set_property PACKAGE_PIN R28 [get_ports sd_clk_out]
+set_property IOSTANDARD LVCMOS33 [get_ports sd_cmd]
+set_property PACKAGE_PIN R29 [get_ports sd_cmd]
+set_property IOSTANDARD LVCMOS33 [get_ports {sd_dat[0]}]
+set_property PACKAGE_PIN R26 [get_ports {sd_dat[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {sd_dat[1]}]
+set_property PACKAGE_PIN R30 [get_ports {sd_dat[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {sd_dat[2]}]
+set_property PACKAGE_PIN P29 [get_ports {sd_dat[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {sd_dat[3]}]
+set_property PACKAGE_PIN T30 [get_ports {sd_dat[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports sd_reset]
+set_property PACKAGE_PIN AE24 [get_ports sd_reset]
+set_property IOSTANDARD LVCMOS33 [get_ports sd_cd]
+set_property PACKAGE_PIN P28 [get_ports sd_cd]
 
 ## LEDs
 
@@ -529,3 +537,32 @@ set_property PACKAGE_PIN AG2 [get_ports {ddr_dqs_p[2]}]
 set_property PACKAGE_PIN AH1 [get_ports {ddr_dqs_n[2]}]
 
 set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+
+#############################################
+# SD Card Constraints for 25MHz
+#############################################
+create_generated_clock -name sd_fast_clk -source [get_pins clk_mmcm/sd_sys_clk] -divide_by 2 [get_pins chipset_impl/io_ctrl_top/piton_sd_top/sdc_controller/clock_divider0/fast_clk_reg/Q]
+create_generated_clock -name sd_slow_clk -source [get_pins clk_mmcm/sd_sys_clk] -divide_by 200 [get_pins chipset_impl/io_ctrl_top/piton_sd_top/sdc_controller/clock_divider0/slow_clk_reg/Q]
+create_generated_clock -name sd_clk_out -source [get_pins sd_clk_oddr/C] -divide_by 1 -add -master_clock sd_fast_clk [get_ports sd_clk_out]
+create_generated_clock -name sd_clk_out_1 -source [get_pins sd_clk_oddr/C] -divide_by 1 -add -master_clock sd_slow_clk [get_ports sd_clk_out]
+create_clock -period 40.000 -name VIRTUAL_sd_fast_clk -waveform {0.000 20.000}
+create_clock -period 4000.000 -name VIRTUAL_sd_slow_clk -waveform {0.000 2000.000}
+set_output_delay -clock [get_clocks sd_clk_out] -min -add_delay 5.000 [get_ports {sd_dat[*]}]
+set_output_delay -clock [get_clocks sd_clk_out] -max -add_delay 15.000 [get_ports {sd_dat[*]}]
+set_output_delay -clock [get_clocks sd_clk_out_1] -min -add_delay 5.000 [get_ports {sd_dat[*]}]
+set_output_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 1500.000 [get_ports {sd_dat[*]}]
+set_output_delay -clock [get_clocks sd_clk_out] -min -add_delay 5.000 [get_ports sd_cmd]
+set_output_delay -clock [get_clocks sd_clk_out] -max -add_delay 15.000 [get_ports sd_cmd]
+set_output_delay -clock [get_clocks sd_clk_out_1] -min -add_delay 5.000 [get_ports sd_cmd]
+set_output_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 1500.000 [get_ports sd_cmd]
+set_input_delay -clock [get_clocks VIRTUAL_sd_fast_clk] -min -add_delay 20.000 [get_ports {sd_dat[*]}]
+set_input_delay -clock [get_clocks VIRTUAL_sd_fast_clk] -max -add_delay 35.000 [get_ports {sd_dat[*]}]
+set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -min -add_delay 2000.000 [get_ports {sd_dat[*]}]
+set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -max -add_delay 3500.000 [get_ports {sd_dat[*]}]
+set_input_delay -clock [get_clocks VIRTUAL_sd_fast_clk] -min -add_delay 20.000 [get_ports sd_cmd]
+set_input_delay -clock [get_clocks VIRTUAL_sd_fast_clk] -max -add_delay 35.000 [get_ports sd_cmd]
+set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -min -add_delay 2000.000 [get_ports sd_cmd]
+set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -max -add_delay 3500.000 [get_ports sd_cmd]
+set_clock_groups -physically_exclusive -group [get_clocks -include_generated_clocks sd_clk_out] -group [get_clocks -include_generated_clocks sd_clk_out_1]
+set_clock_groups -logically_exclusive -group [get_clocks -include_generated_clocks {VIRTUAL_sd_fast_clk sd_fast_clk}] -group [get_clocks -include_generated_clocks {sd_slow_clk VIRTUAL_sd_slow_clk}]
+set_clock_groups -asynchronous -group [get_clocks [list [get_clocks -of_objects [get_pins clk_mmcm/chipset_clk]]]] -group [get_clocks -filter { NAME =~  "*sd*" }]

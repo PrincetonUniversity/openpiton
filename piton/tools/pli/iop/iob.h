@@ -33,6 +33,9 @@
 #include "device.h"
 #include <string.h>
 #include "strclass.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 //do iob operations
 
 class iob : public strclass<KeyType> {

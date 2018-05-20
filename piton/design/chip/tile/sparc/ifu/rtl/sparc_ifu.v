@@ -187,81 +187,6 @@ module sparc_ifu (/*AUTOARG*/
    );
 
 
-   // sram wrapper interface
-   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w10_rtap_data;
-   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_itag_rtap_data;
-   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w32_rtap_data;
-   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w10_rtap_data;
-   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_itag_rtap_data;
-   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w32_rtap_data;
-   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] icv_rtap_data;
-   input  [`BIST_OP_WIDTH-1:0] rtap_srams_bist_command;
-   input  [`SRAM_WRAPPER_BUS_WIDTH-1:0] rtap_srams_bist_data;
-   output [`SRAM_WRAPPER_BUS_WIDTH-1:0] srams_rtap_data;
-
-   assign srams_rtap_data = sram_itag_rtap_data
-                                 | sram_icache_w10_rtap_data
-                                 | sram_icache_w32_rtap_data;
-                                 // | icv_rtap_data;
-
-   // jtag interface
-   output wire [`CORE_JTAG_BUS_WIDTH-1:0] core_rtap_data;
-   input wire rtap_core_val;
-   input wire [1:0] rtap_core_threadid;
-   input wire [`JTAG_CORE_ID_WIDTH-1:0]  rtap_core_id;
-   input wire [`CORE_JTAG_BUS_WIDTH-1:0] rtap_core_data;
-   // assign core_rtap_data = `CORE_JTAG_BUS_WIDTH'd0;
-
-   reg [3:0] ctu_sscan_tid;
-   always @ *
-   begin
-      if (rtap_core_threadid == 2'd0)
-         ctu_sscan_tid = 4'b0001;
-      else if (rtap_core_threadid == 2'd1)
-         ctu_sscan_tid = 4'b0010;
-      else if (rtap_core_threadid == 2'd2)
-         ctu_sscan_tid = 4'b0100;
-      else if (rtap_core_threadid == 2'd3)
-         ctu_sscan_tid = 4'b1000;
-   end
-
-   // sloppy implementation of overriding icache enable
-   reg [3:0] lsu_ifu_icache_en_muxed;
-   reg [3:0] lsu_ifu_icache_en_jtag;
-   reg [3:0] lsu_ifu_icache_en_jtag_next;
-   reg lsu_ifu_icache_en_locked;
-   reg lsu_ifu_icache_en_locked_next;
-   always @ *
-   begin
-      lsu_ifu_icache_en_locked_next = lsu_ifu_icache_en_locked;
-      lsu_ifu_icache_en_jtag_next = lsu_ifu_icache_en_jtag;
-      if (rtap_core_val && rtap_core_id == `JTAG_CORE_ID_IFU_ICACHE_EN)
-      begin
-         lsu_ifu_icache_en_locked_next = rtap_core_data[4];
-         lsu_ifu_icache_en_jtag_next = rtap_core_data[3:0];
-      end
-
-      lsu_ifu_icache_en_muxed = lsu_ifu_icache_en;
-      if (lsu_ifu_icache_en_locked)
-         lsu_ifu_icache_en_muxed = lsu_ifu_icache_en_jtag;
-   end
-   always @ (posedge rclk)
-   begin
-      if (!arst_l)
-      begin
-         lsu_ifu_icache_en_locked = 1'b0;
-         lsu_ifu_icache_en_jtag = 0;
-      end
-      else
-      begin
-         lsu_ifu_icache_en_locked = lsu_ifu_icache_en_locked_next;
-         lsu_ifu_icache_en_jtag = lsu_ifu_icache_en_jtag_next;
-      end
-   end
-
-   input          mem_write_disable;
-   input          mux_drive_disable;
-
    input [2:0] 	  exu_tlu_wsr_data_m;
    input [3:0]    lsu_ictag_mrgn;
    input [7:0]    lsu_idtlb_mrgn;
@@ -1074,6 +999,81 @@ module sparc_ifu (/*AUTOARG*/
 //----------------------------------------------------------------------
 // Code start here
 //----------------------------------------------------------------------
+   // sram wrapper interface
+   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w10_rtap_data;
+   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_itag_rtap_data;
+   // output [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w32_rtap_data;
+   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w10_rtap_data;
+   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_itag_rtap_data;
+   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sram_icache_w32_rtap_data;
+   wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] icv_rtap_data;
+   input  [`BIST_OP_WIDTH-1:0] rtap_srams_bist_command;
+   input  [`SRAM_WRAPPER_BUS_WIDTH-1:0] rtap_srams_bist_data;
+   output [`SRAM_WRAPPER_BUS_WIDTH-1:0] srams_rtap_data;
+
+   assign srams_rtap_data = sram_itag_rtap_data
+                                 | sram_icache_w10_rtap_data
+                                 | sram_icache_w32_rtap_data;
+                                 // | icv_rtap_data;
+
+   // jtag interface
+   output wire [`CORE_JTAG_BUS_WIDTH-1:0] core_rtap_data;
+   input wire rtap_core_val;
+   input wire [1:0] rtap_core_threadid;
+   input wire [`JTAG_CORE_ID_WIDTH-1:0]  rtap_core_id;
+   input wire [`CORE_JTAG_BUS_WIDTH-1:0] rtap_core_data;
+   // assign core_rtap_data = `CORE_JTAG_BUS_WIDTH'd0;
+
+   reg [3:0] ctu_sscan_tid;
+   always @ *
+   begin
+      if (rtap_core_threadid == 2'd0)
+         ctu_sscan_tid = 4'b0001;
+      else if (rtap_core_threadid == 2'd1)
+         ctu_sscan_tid = 4'b0010;
+      else if (rtap_core_threadid == 2'd2)
+         ctu_sscan_tid = 4'b0100;
+      else if (rtap_core_threadid == 2'd3)
+         ctu_sscan_tid = 4'b1000;
+   end
+
+   // sloppy implementation of overriding icache enable
+   reg [3:0] lsu_ifu_icache_en_muxed;
+   reg [3:0] lsu_ifu_icache_en_jtag;
+   reg [3:0] lsu_ifu_icache_en_jtag_next;
+   reg lsu_ifu_icache_en_locked;
+   reg lsu_ifu_icache_en_locked_next;
+   always @ *
+   begin
+      lsu_ifu_icache_en_locked_next = lsu_ifu_icache_en_locked;
+      lsu_ifu_icache_en_jtag_next = lsu_ifu_icache_en_jtag;
+      if (rtap_core_val && rtap_core_id == `JTAG_CORE_ID_IFU_ICACHE_EN)
+      begin
+         lsu_ifu_icache_en_locked_next = rtap_core_data[4];
+         lsu_ifu_icache_en_jtag_next = rtap_core_data[3:0];
+      end
+
+      lsu_ifu_icache_en_muxed = lsu_ifu_icache_en;
+      if (lsu_ifu_icache_en_locked)
+         lsu_ifu_icache_en_muxed = lsu_ifu_icache_en_jtag;
+   end
+   always @ (posedge rclk)
+   begin
+      if (!arst_l)
+      begin
+         lsu_ifu_icache_en_locked = 1'b0;
+         lsu_ifu_icache_en_jtag = 0;
+      end
+      else
+      begin
+         lsu_ifu_icache_en_locked = lsu_ifu_icache_en_locked_next;
+         lsu_ifu_icache_en_jtag = lsu_ifu_icache_en_jtag_next;
+      end
+   end
+
+   input          mem_write_disable;
+   input          mux_drive_disable;
+
 
 //   sparc_ifu_dtu dtu(
 //		     .thr_config_in_w (exu_tlu_wsr_data_w[2:0]),

@@ -25,6 +25,7 @@
 `include "iop.h"
 `include "define.vh"
 `include "cross_module.tmp.h"
+`include "l15.tmp.h"
 
 module cmp_l15_messages_mon (
     input wire clk

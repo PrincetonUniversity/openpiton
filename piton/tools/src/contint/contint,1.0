@@ -510,8 +510,8 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
  
         # Set the model name and add the model name to build and run command
         item.model_name = model_name
-        item.build_command += " -vcs_rel_name=" + item.model_name
-        item.run_command += " -vcs_rel_name=" + item.model_name
+        item.build_command += " -build_id=" + item.model_name
+        item.run_command += " -build_id=" + item.model_name
 
         # If item is other, put highest verbosity
         if item.type == BundleItemType.Other :

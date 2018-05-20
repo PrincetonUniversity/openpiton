@@ -26,6 +26,9 @@
 #define _L1WARM_H_
 #include "global.h"
 #include "list.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 #define  BANK 4
 #define  BANK_NUM 16
 #define  ROW_NUM  4

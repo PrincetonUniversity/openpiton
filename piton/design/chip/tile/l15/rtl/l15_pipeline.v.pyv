@@ -2165,11 +2165,18 @@ begin
         hmt_op_s2_next = decoder_hmt_op_s1;
         `endif
     end
+end
 
+always @ *
+begin
     // Stalling logics
     // The only reason that S2 can stall is that S3 is stalled
     stall_s2 = val_s2 && stall_s3;
+end
 
+
+always @ *
+begin
     // PCX/Noc2 ack logics
     // COV: doesn't seem like anything acks in stage 2
     pcx_ack_s2 = val_s2 && !stall_s2 && (pcx_ack_stage_s2 == `L15_ACK_STAGE_S2);

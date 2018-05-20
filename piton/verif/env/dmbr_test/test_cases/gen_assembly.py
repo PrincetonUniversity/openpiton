@@ -50,8 +50,8 @@ def setDmbrConf(conf, run_num):
 def runTest(log_file, conf):
 	prev_dir = os.getcwd()
 	os.chdir('vcs_assembly_work')
-	comp_cmd = "sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_rel_name=lavrov_test"
-	run_cmd = "sims -sys=manycore -vcs_run -rtl_timeout=50000 -vcs_rel_name=lavrov_test -nouse_oolm -dmbr dmbr_stream_hyper_gen.s"
+	comp_cmd = "sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -build_id=lavrov_test"
+	run_cmd = "sims -sys=manycore -vcs_run -rtl_timeout=50000 -build_id=lavrov_test -nouse_oolm -dmbr dmbr_stream_hyper_gen.s"
 	#os.system(comp_cmd)
 	os.system(run_cmd)
 	sim_log_file = open("sims.log", "r")

@@ -2241,7 +2241,9 @@ task process_mra;
     reg all_update;
 
     begin
+`ifndef __ICARUS__
         `SAS_TASKS.mra_val(cpu_id[9:0], mra_wr_ptr_d2, mra_wdata);
+`endif
         mra_thrid  = mra_wr_ptr_d2[3:2];
         all_update = 0;
         if(trap_write_d2[mra_thrid])begin
@@ -7466,7 +7468,9 @@ always @(posedge clk)begin
                 pending_dtlb[t_ind]   = 1;
                 dtlb_idx_pend[t_ind]  = rd_idx;
                 //$bw_force_by_name(3, cpu_id[9:0], rd_idx, 1);
+`ifndef __ICARUS__
                 if(tlb_reset_on)`SAS_TASKS.tlb_reset(cpu_id[9:0], rd_idx, 1);
+`endif
             end
         end
     end // if (dtlb_reset_vld)
@@ -7477,7 +7481,9 @@ always @(posedge clk)begin
                 itlb_reset_vld[t_ind] = 0;
                 pending_itlb[t_ind]   = 1;
                 itlb_idx_pend[t_ind]  = rd_idx;
+`ifndef __ICARUS__
                 if(tlb_reset_on)`SAS_TASKS.tlb_reset(cpu_id[9:0], rd_idx, 2);
+`endif
                 //$bw_force_by_name(3, cpu_id[9:0], rd_idx, 2);
             end
         end

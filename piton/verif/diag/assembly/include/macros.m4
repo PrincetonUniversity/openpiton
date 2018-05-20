@@ -220,7 +220,7 @@ dnl Tri: old T1 routine for getting coreid, does not work
 	mov	63[[`,']] %g1
 	sub	%g1[[`,']] %l1[[`,']] %g1
 	sllx	%g3[[`,']] %g1[[`,']] %g3
-	sllx	%g3[[`,']] 1[[`,']] %g3			! Total shift of (64-thread ID) bits
+	sllx	%g3[[`,']] 1[[`,']] %g3			!dnl Total shift of (64-thread ID) bits
     ! brnz    %g3[[`,']] skip_start_th
 
 

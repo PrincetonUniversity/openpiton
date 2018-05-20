@@ -27,6 +27,9 @@
 #include "list.h"
 #include "veriuser.h"
 #include "acc_user.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 //width of jbus signals
 #define J_AD_WIDTH   128
 #define J_ADTYPE_WIDTH 8

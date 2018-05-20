@@ -120,7 +120,7 @@ module system(
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 `ifdef PITONSYS_SPI
-    input                                       spi_sys_clk,
+    input                                       sd_sys_clk,
 `endif // endif PITONSYS_SPI
 `ifdef PITONSYS_INC_PASSTHRU
     input                                       chipset_passthru_clk_p,
@@ -207,10 +207,13 @@ module system(
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
-    input                                       spi_data_in,
-    output                                      spi_data_out,
-    output                                      spi_clk_out,
-    output                                      spi_cs_n,
+    `ifndef VC707_BOARD
+    input                                       sd_cd,
+    output                                      sd_reset,
+    `endif
+    output                                      sd_clk_out,
+    inout                                       sd_cmd,
+    inout   [3:0]                               sd_dat,
 `endif // endif PITONSYS_SPI
 
 // Emaclite interface
@@ -679,7 +682,7 @@ chipset chipset(
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 `ifdef PITONSYS_SPI
-    .spi_sys_clk(spi_sys_clk),
+    .sd_sys_clk(sd_sys_clk),
 `endif // endif PITONSYS_SPI
 `endif // endif PITON_CHIPSET_CLKS_GEN
 
@@ -809,10 +812,13 @@ chipset chipset(
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
-    .spi_data_in(spi_data_in),
-    .spi_data_out(spi_data_out),
-    .spi_clk_out(spi_clk_out),
-    .spi_cs_n(spi_cs_n),
+    `ifndef VC707_BOARD
+    .sd_cd(sd_cd),
+    .sd_reset(sd_reset),
+    `endif
+    .sd_clk_out(sd_clk_out),
+    .sd_cmd(sd_cmd),
+    .sd_dat(sd_dat),
 `endif // endif PITONSYS_SPI
 
     .net_phy_txc        (net_phy_txc),

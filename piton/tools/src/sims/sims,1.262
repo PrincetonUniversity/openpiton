@@ -172,6 +172,9 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'gzip' => 1,
         'h' => 0,
         'help' => 0,
+        'icv_build' => 0,
+        'icv_build_args' => [],
+        'icv_run' => 0,
         'image_diag_name' => "",
         'image_diag_path' => "",
         'image_diag_root' => [],
@@ -209,12 +212,12 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'sas' => 0,
         'saslog' => 1,
         'sas_run_args' => [],
-        'sim_build' => 0,
+        'other_sim_build' => 0,
         'sim_build_args' => [],
-        'sim_build_cmd' => "",
-        'sim_run' => 0,
+        'other_sim_build_cmd' => "",
+        'other_sim_run' => 0,
         'sim_run_args' => [],
-        'sim_run_cmd' => "",
+        'other_sim_run_cmd' => "",
 	'sim_type' => "vcs",
 	'sim_q_command' => "/bin/sh",
         'sims_config' => "",
@@ -253,7 +256,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'vcdfile' => "",
         'vcs_build' => 0,
         'vcs_build_args' => [],
-        'vcs_clean' => 0,
+        'clean' => 0,
         'vcs_cm_args' => "",
         'vcs_cm_cond' => "",
         'vcs_cm_config' => "",
@@ -262,7 +265,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'vcs_cm_name' => "cm_data",
         'vcs_finish' => 0,
         'vcs_prof' => 0,
-        'vcs_rel_name' => "",
+        'build_id' => "",
         'vcs_run' => 0,
         'vcs_use_2state' => 0,
         'vcs_use_cm' => 0,
@@ -436,7 +439,7 @@ GetOptions (\%opt,
             'sims_config=s',
             'simslog!',
             'simslog_name=s',
-            'vcs_rel_name=s',
+            'build_id=s',
             'vera_build!',
            ) ;
 
@@ -582,15 +585,15 @@ print "$prg: regress_date = $opt{regress_date}\n" if ($opt{regress}) ;
 print "$prg: regress_time = $opt{regress_time}\n" if ($opt{regress}) ;
 
 ################################################################################
-# first check that the model and vcs_rel_name are defined
+# first check that the model and build_id are defined
 ################################################################################
 
 die ("DIE. -model is not defined") if ($opt{model} eq "") ;
 
 my $model_path ;
 
-if ($opt{vcs_rel_name} eq "") { $model_path = "$model_dir/$opt{model}/rel-0.1" ; }
-else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
+if ($opt{build_id} eq "") { $model_path = "$model_dir/$opt{model}/rel-0.1" ; }
+else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 ################################################################################
 # create the model area if necessary
@@ -601,7 +604,8 @@ else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
                           ($opt{zeroIn_checklist}) or
                           ($opt{vera_build} == 1) or
                           ($opt{vcs_build}) or
-                          ($opt{sim_build}) or
+                          ($opt{other_sim_build}) or
+                          ($opt{icv_build}) or
                           ($opt{ncv_build})
                           ) ;
 
@@ -609,7 +613,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
 # build the vera/ntb testbench
 ################################################################################
 
-&vera_build () if ((((($opt{vcs_build}) or ($opt{sim_build}) or ($opt{ncv_build})) and
+&vera_build () if ((((($opt{vcs_build}) or ($opt{other_sim_build}) or ($opt{icv_build}) or ($opt{ncv_build})) and
 			($opt{vera_build} == -1)) or
                     ($opt{vera_build} == 1)) and
                    (! $opt{dftvert})) ;
@@ -619,7 +623,8 @@ else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
 ################################################################################
 
 &pre_build () if (($opt{vlint_run}) or ($opt{vcs_build})
-                  or ($opt{verix_run}) or ($opt{sim_build}) or
+                  or ($opt{verix_run}) or ($opt{other_sim_build}) or
+                  ($opt{icv_build}) or
 		  ($opt{ncv_build})) ;
 
 ################################################################################
@@ -652,10 +657,16 @@ else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
 &ncv_build () if (($opt{ncv_build})) ;
 
 ################################################################################
+# build the icarus model
+################################################################################
+
+&icv_build () if (($opt{icv_build})) ;
+
+################################################################################
 # build the other simulator  model
 ################################################################################
 
-&sim_build () if (($opt{sim_build})) ;
+&other_sim_build () if (($opt{other_sim_build})) ;
 
 ################################################################################
 # assemble .s diag
@@ -680,7 +691,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{vcs_rel_name}" ; }
 ################################################################################
 
 &copy_efuse_image () if ($opt{efuse_image_name} ne "" and
-                        ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})) ;
+                        ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run})) ;
 
 ################################################################################
 # generate an efuse image
@@ -749,7 +760,7 @@ if ( $opt{tcl_tap} and
 # mss specific stuff
 ################################################################################
 
-if (($opt{sys} eq "mss") and ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run}))
+if (($opt{sys} eq "mss") and ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run}))
 {
   my @files = ("mem.data", "tag.data", "index.data") ;
 
@@ -767,7 +778,7 @@ if (($opt{sys} eq "mss") and ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run}))
 # dram specific stuff
 ################################################################################
 
-if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})
+if ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run})
 {
   my $file;
   if ($opt{use_denalirc} eq "") {
@@ -785,7 +796,7 @@ if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})
   }
 }
 
-if (($opt{sys} eq "dram") and ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run}))
+if (($opt{sys} eq "dram") and ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run}))
 {
   my @files = ("dram_config.doc", "mem.data", "mem1.data", "mem2.data") ;
 
@@ -805,14 +816,15 @@ if (($opt{sys} eq "dram") and ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run}))
 
 &vcs_run () if ($opt{vcs_run}) ;
 &ncv_run () if ($opt{ncv_run}) ;
-&sim_run () if ($opt{sim_run}) ;
+&icv_run () if ($opt{icv_run}) ;
+&other_sim_run () if ($opt{other_sim_run}) ;
 
 ################################################################################
 # run diag.pl if present
 ################################################################################
 
 if (    -e "diag.pl" and
-	( $opt{vcs_run} or $opt{ncv_run} or $opt{sim_run} or $opt{sas}) and
+	( $opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run} or $opt{sas}) and
 	$opt{run_diag_pl}
    )
 {
@@ -832,7 +844,7 @@ if (    -e "diag.pl" and
 # post process the output
 ################################################################################
 
-&post_process if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run} or $opt{sas}) ;
+&post_process if ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run} or $opt{sas}) ;
 
 &print_footer () ;
 
@@ -1247,29 +1259,29 @@ sub regress
         push (@dream_options, $x) if ($x =~ /\-vcs_use_ntb/) ;
       }
 
-      # figure out the name of the model release
-      my $vcs_rel_name ;
+      # figure out the name of the model build id
+      my $build_id ;
 
-      if (($opt{vcs_rel_name} eq "") and ($nobuild == 0))
+      if (($opt{build_id} eq "") and ($nobuild == 0))
       {
-        $vcs_rel_name = sprintf "%4.4d_%2.2d_%2.2d", 1900 + (localtime) [5], 1 + (localtime) [4], (localtime) [3] ;
+        $build_id = sprintf "%4.4d_%2.2d_%2.2d", 1900 + (localtime) [5], 1 + (localtime) [4], (localtime) [3] ;
         my $count = 0 ;
         open (MODEL_LOCK, "> lock") or die "DIE. Could not lock model" ;
         flock (MODEL_LOCK, LOCK_EX) ;
-        while (-d "$model_dir/$sys/${tag}_${vcs_rel_name}_${count}") {$count++;}
-        $vcs_rel_name = "${tag}_${vcs_rel_name}_${count}" ;
-        system ("mkdir -p $model_dir/$sys/$vcs_rel_name") ;
-        die "DIE. Could not create vcs_rel_name for regression" if ($?) ;
+        while (-d "$model_dir/$sys/${tag}_${build_id}_${count}") {$count++;}
+        $build_id = "${tag}_${build_id}_${count}" ;
+        system ("mkdir -p $model_dir/$sys/$build_id") ;
+        die "DIE. Could not create build_id for regression" if ($?) ;
         flock (MODEL_LOCK, LOCK_UN) ;
         close (MODEL_LOCK) ;
       }
-      elsif ($opt{vcs_rel_name} eq "")
+      elsif ($opt{build_id} eq "")
       {
-        $vcs_rel_name = "rel-0.1" ;
+        $build_id = "rel-0.1" ;
       }
       else
       {
-        $vcs_rel_name = $opt{vcs_rel_name} ;
+        $build_id = $opt{build_id} ;
       }
 
       # call sims to build this model
@@ -1280,8 +1292,10 @@ sub regress
           $cmd .= "-vcs_build " ;
       } elsif (($opt{sim_type}) eq "ncv") {
           $cmd .= "-ncv_build " ;
+      } elsif (($opt{sim_type}) eq "icv") {
+          $cmd .= "-icv_build " ;
       } else {
-          $cmd .= "-sim_build " ;
+          $cmd .= "-other_sim_build " ;
       }
       if (($opt{vera_build} == -1) or ($opt{vera_build} == 1)) {
           $cmd .= "-vera_build " ;
@@ -1289,7 +1303,7 @@ sub regress
           $cmd .= "-novera_build " ;
       }
       $cmd .= "$buildargs " ;
-      $cmd .= "-vcs_rel_name=$vcs_rel_name " ;
+      $cmd .= "-build_id=$build_id " ;
 
       foreach my $x (@argv_copy)
       {
@@ -1306,7 +1320,7 @@ sub regress
       {
         system ($cmd) ; my $build_stat = $?;
 
-        `cp -f $model_dir/$sys/$vcs_rel_name/diff_rel.log $result_dir/$regress_id/diff_rel_$tag.log` if (-f "$model_dir/$sys/$vcs_rel_name/diff_rel.log") ;
+        `cp -f $model_dir/$sys/$build_id/diff_rel.log $result_dir/$regress_id/diff_rel_$tag.log` if (-f "$model_dir/$sys/$build_id/diff_rel.log") ;
 
         die  ("DIE. Could not build model for regression") if ($build_stat) ;
       }
@@ -1360,11 +1374,13 @@ sub regress
               push (@cmd, "-vcs_run") ;
       	  } elsif (($opt{sim_type}) eq "ncv") {
               push (@cmd, "-ncv_run") ;
+      	  } elsif (($opt{sim_type}) eq "icv") {
+              push (@cmd, "-icv_run") ;
 	  } else {
-              push (@cmd, "-sim_run") ;
+              push (@cmd, "-other_sim_run") ;
 	  }
           push (@cmd, "-sys=${sys}") ;
-          push (@cmd, "-vcs_rel_name=${vcs_rel_name}") ;
+          push (@cmd, "-build_id=${build_id}") ;
           push (@cmd, "-regress_id=${regress_id}") ;
           push (@cmd, "-alias=${dirname}") ;
           push (@cmd, "-dv_root=${dv_root}") ;
@@ -1831,7 +1847,7 @@ sub create_model_path
 
     # clean up the model area as needed
 
-    if ($opt{vcs_clean})
+    if ($opt{clean})
     {
       print "$prg: cleaning up build directory\n" ;
       `rm -rf csrc simv.daidir simv AxisWork` ;
@@ -2325,6 +2341,8 @@ sub ncv_build
     $cmd .= $ncelab;
     $cmd .= " " ;
     push (@{$opt{ncv_build_args}}, $cmd);
+    push (@{$opt{ncv_build_args}}, "-arr_access");
+    push (@{$opt{ncv_build_args}}, "+access+rw");
     #push (@{$opt{ncv_build_args}}, "+compsdf") if ($opt{vcs_use_sdf}) ;
     #push (@{$opt{ncv_build_args}}, "+rad") if ($opt{vcs_use_rad}) ;
     #push (@{$opt{ncv_build_args}}, "+vcsd") if ($opt{vcs_use_fsdb} and $opt{vcs_use_vcsd}) ;
@@ -2381,11 +2399,11 @@ sub ncv_build
       push (@{$opt{ncv_build_args}}, "-f $model_path/zeroInDir/0in_seed.arg") ;
     }
 
-    my $ld_lib_path = $ENV{LD_LIBRARY_PATH};
-    $ld_lib_path .= ":$ENV{DV_ROOT}/tools/";
+    my $ld_lib_path .= "$ENV{DV_ROOT}/tools/";
     $ld_lib_path .= $os_cpu;
     $ld_lib_path .= "/lib";
-    $ld_lib_path .= ":$ENV{NCV_HOME}/tools/lib";
+    $ld_lib_path .= ":$ENV{NCV_HOME}/tools/lib/64bit:";
+    $ld_lib_path .= $ENV{LD_LIBRARY_PATH};
     $ENV{LD_LIBRARY_PATH} = $ld_lib_path;
     print "$prg: LD_LIBRARY_PATH is $ENV{LD_LIBRARY_PATH}\n";
 
@@ -2394,7 +2412,7 @@ sub ncv_build
 
     my $ncv_build_cmd = "LD_LIBRARY_PATH=";
     $ncv_build_cmd .= $ld_lib_path;
-    $ncv_build_cmd  .= " ; export LD_LIBRARY_PATH;  ncverilog " ;
+    $ncv_build_cmd  .= " ; export LD_LIBRARY_PATH;  ncverilog -C " ;
 
     # Transfer some build args to the flist
     open (IFLIST, "> flist.new") or die ("DIE. can't open flist.new") ;
@@ -2430,10 +2448,84 @@ sub ncv_build
     chdir $cur_dir ;
 }
 ################################################################################
+# Icarus build
+################################################################################
+
+sub icv_build
+{
+    my $cur_dir = $ENV{PWD};
+
+    # go to the model area
+    chdir $model_path or die ("DIE. Can't cd to $model_path") ;
+
+    $ENV{VERA_LIBDIR} = "$model_path/vera";
+    print "$prg: setenv VERA_LIBDIR $ENV{VERA_LIBDIR}\n";
+
+    print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+
+    if (!defined($ENV{NOVAS_HOME})) {
+	print "$prg: NOVAS_HOME not defined, Debussy will not be used.\n";
+        push (@{$opt{icv_build_args}}, "+define+FSDB_OFF");
+    }
+    push (@{$opt{icv_build_args}}, "+define+NO_VERA") if (!$opt{vera_build}) ;
+    push (@{$opt{icv_build_args}}, "+define+TCL_TAP_TEST") if ($opt{tcl_tap}) ;
+    push (@{$opt{icv_build_args}}, "-f flist") ;
+    push (@{$opt{icv_build_args}}, "-s cmp_top") ;
+#    push (@{$opt{icv_build_args}}, "-I $ENV{DV_ROOT}/design/include") ;
+#    push (@{$opt{icv_build_args}}, "-I $ENV{DV_ROOT}/design/chipset/include") ;
+    push (@{$opt{icv_build_args}}, "-g 2001") ;
+
+    # copy generic sim_build_args to ncv_build_args
+
+    foreach my $x (@{$opt{sim_build_args}})
+    {
+        push (@{$opt{icv_build_args}}, $x);
+    }
+
+    # build the model
+    print "$prg: Building rtl model\n" ;
+
+    my $build_cmd = "iverilog " ;
+    $build_cmd .= " ";
+
+    # Transfer some build args to the flist
+    open (IFLIST, "> flist.new") or die ("DIE. can't open flist.new") ;
+    foreach my $x (@{$opt{icv_build_args}})
+    {
+      $x =~ s/^"(.*?)"$/$1/ ;
+      if ($x =~ /\+define+|^-v |^-y |^-f (?!(flist|.*0in.*?\.arg))/) {
+        print IFLIST "$x\n";
+      } else {
+        $build_cmd .= "$x " ;
+      }
+    }
+
+    # Append flist to flist.new and rename to flist.
+    open (FLIST, "flist") or die ("DIE. can't open flist");
+    while (<FLIST>) {
+        print IFLIST "$_";
+    }
+    close FLIST;
+    close IFLIST;
+    rename "flist", "flist.orig" or die ("DIE. can't rename flist");
+    rename "flist.new", "flist" or die ("DIE. can't rename flist.new");
+
+    print "$prg: $build_cmd\n";
+
+    if (! $opt{dryrun})
+    {
+      system ($build_cmd) ;
+      die ("DIE. failed building model") if ($?) ;
+    }
+
+    # go back to where the script was invoked
+    chdir $cur_dir ;
+}
+################################################################################
 # Other simulator build
 ################################################################################
 
-sub sim_build
+sub other_sim_build
 {
     my $cur_dir = $ENV{PWD};
 
@@ -2456,11 +2548,11 @@ sub sim_build
     # build the model
     print "$prg: Building rtl model\n" ;
 
-    if (($opt{sim_build_cmd}) eq "") {
-	die ("DIE. sim_build_cmd not defined");
+    if (($opt{other_sim_build_cmd}) eq "") {
+	die ("DIE. other_sim_build_cmd not defined");
     }
 
-    my $build_cmd = $opt{sim_build_cmd};
+    my $build_cmd = $opt{other_sim_build_cmd};
     $build_cmd .= " ";
 
     # Transfer some build args to the flist
@@ -3064,6 +3156,8 @@ sub ncv_run
 
     # add in switches for signal dumping
 
+    my $ncvcommand = "\"run\"";
+
     if ($opt{vcd})
     {
       my $vcdfile = "";
@@ -3078,10 +3172,13 @@ sub ncv_run
         $vcdfile = "$opt{tmp_dir}/$opt{vcdfile}.$$" ;
       }
 
-      push (@{$opt{sim_run_args}}, "+vcd") ;
-      push (@{$opt{sim_run_args}}, "-vcd $vcdfile") ;
-      push (@{$opt{sim_run_args}}, "+vcs+dumpon+".bigtime2plus($opt{start_dump})) if ($opt{start_dump} != 0) ;
-      push (@{$opt{sim_run_args}}, "+vcs+dumpoff+".bigtime2plus($opt{stop_dump})) if ($opt{stop_dump} != 0) ;
+      $ncvcommand = "\"database -open \"myvcd\" -vcd -into \"$vcdfile\"; ";
+      $ncvcommand .= "probe -create -vcd -database myvcd cmp_top -all -depth all; ";
+      $ncvcommand .= "run\""
+      #push (@{$opt{sim_run_args}}, "+vcd") ;
+      #push (@{$opt{sim_run_args}}, "-vcd $vcdfile") ;
+      #push (@{$opt{sim_run_args}}, "+vcs+dumpon+".bigtime2plus($opt{start_dump})) if ($opt{start_dump} != 0) ;
+      #push (@{$opt{sim_run_args}}, "+vcs+dumpoff+".bigtime2plus($opt{stop_dump})) if ($opt{stop_dump} != 0) ;
     }
     else
     {
@@ -3171,11 +3268,13 @@ sub ncv_run
     $ld_lib_path .= ":$ENV{DV_ROOT}/tools/";
     $ld_lib_path .= $os_cpu;
     $ld_lib_path .= "/lib";
-    $ld_lib_path .= ":$ENV{NCV_HOME}/tools/lib";
+    $ld_lib_path .= ":$ENV{NCV_HOME}/tools/lib/64bit";
     $cmd .= "#!/bin/csh -f\nsetenv LD_LIBRARY_PATH ";
     $cmd .= $ld_lib_path;
     $cmd .= "\n" ;
-    $cmd .= "echo run 400 ms | ncverilog " ;
+    $cmd .= "echo ";
+    $cmd .= $ncvcommand;
+    $cmd .= " | ncverilog " ;
     $cmd .= "+nclibdirname+$model_path/INCA_libs " ;
     $cmd .= "-r worklib.$opt{sys}:v " ;
     $cmd .= "+name+$opt{sys} " ;
@@ -3298,10 +3397,309 @@ sub ncv_run
 }
 
 ################################################################################
+# run icarus simulator
+################################################################################
+
+sub icv_run
+{
+    # first clean up the diag area
+    `rm -rf sim.log *.rpt raw_coverage coverage`;
+    die ("DIE. could not clean up diag run area") if ($?) ;
+
+    # copy the diff release over
+    system ("cp -f $model_path/diff_rel.log .") if (-f "$model_path/diff_rel.log") ;
+
+    # copy the flist over
+    system ("cp -f $model_path/flist .") ;
+    die ("DIE. could not copy flist to $ENV{PWD}") if ($?) ;
+
+    # verify that a model was compiled
+    die ("DIE. a.out not found in $model_path") if ($opt{icv_run} and ! -e "$model_path/a.out") ;
+
+    # create the raw coverage directory
+    `mkdir raw_coverage` ;
+    die  ("DIE. Could not create raw_coverage directory") if ($?) ;
+
+    # copy spd files into the run area
+    #`cp -f $dv_root/verif/model/verilog/i2c/data/spd_single_dimm.data .` ;
+    #die ("DIE. could not copy spd_single_dimm.data to $ENV{PWD}") if ($?) ;
+    #`chmod +w spd_single_dimm.data` ;
+    #die ("DIE. could not change permission on spd_single_dimm.data") if ($?) ;
+
+    #`cp $dv_root/verif/model/verilog/i2c/data/spd_stack_dimm.data .` ;
+    #die ("DIE. could not copy spd_stack_dimm.data to $ENV{PWD}") if ($?) ;
+    #`chmod +w spd_stack_dimm.data` ;
+    #die ("DIE. could not change permission on spd_stack_dimm.data") if ($?) ;
+
+    # pass the good trap and bad trap addresses to the testbench
+    my $good_trap = "";
+    my $bad_trap = "";
+
+    if (($opt{asm_diag_name} ne "") or ($opt{image_diag_name} ne ""))
+    {
+      die ("DIE. could not find symbol.tbl file") if (!-f "symbol.tbl") ;
+
+      my @good_trap_list = `grep -w good_trap symbol.tbl`;
+      my @bad_trap_list = `grep -w bad_trap symbol.tbl`;
+      my %good_trap_list ;
+      my %bad_trap_list ;
+      my @good_trap ;
+      my @bad_trap ;
+
+      if ($#good_trap_list >= 0)
+      {
+	foreach my $trap (@good_trap_list)
+        {
+          my ($tmp1, $va, $ra, $pa) = ($trap =~ /([\w_\.]+)\s+(\w+)\s+(\w+)\s+(\w+)/) ;
+          $good_trap_list{$pa} = 1 ;
+  	}
+
+        foreach my $x (sort (keys (%good_trap_list)))
+        {
+          push (@good_trap, $x) ;
+        }
+
+        if ($#good_trap == 0) { $good_trap = "+good_trap=" . $good_trap[0] ; }
+        else { $good_trap = "+good_trap=" . join (':', @good_trap) ; }
+      }
+
+      if ($#bad_trap_list >= 0)
+      {
+	foreach my $trap (@bad_trap_list)
+        {
+          my ($tmp1, $va, $ra, $pa) = ($trap =~ /([\w_\.]+)\s+(\w+)\s+(\w+)\s+(\w+)/) ;
+	  $bad_trap_list{$pa} = $pa;
+	}
+
+        foreach my $x (sort (keys (%bad_trap_list)))
+        {
+          push (@bad_trap, $x) ;
+        }
+
+        if ($#bad_trap == 0) { $bad_trap = "+bad_trap=" . $bad_trap[0] ; }
+        else { $bad_trap = "+bad_trap=" . join (':', @bad_trap) ; }
+      }
+    }
+
+    # copy the project file over to the run area
+
+    if ((! $opt{dftvert}) and $opt{vera_run} and !$opt{vcs_use_ntb})
+    {
+      `cp $model_path/vera/$opt{model}_top.proj .` ;
+      die ("DIE. could not copy .proj file to $ENV{PWD}") if ($?) ;
+      `chmod +w $opt{model}_top.proj`;
+      die ("DIE. could not change permission of .proj file") if ($?) ;
+
+      # append diag.vro after the fact
+      if ($opt{vera_diag_name} ne "")
+      {
+        push (@{$opt{sim_run_args}}, "+vera_diag_path=$opt{vera_diag_path}") ;
+        `ls *.vro >> $opt{model}_top.proj` ;
+        die ("DIE. could not append *.vro to vera project file") if ($?) ;
+      }
+    }
+
+    # add in switches for signal dumping
+
+    if ($opt{vcd})
+    {
+      my $vcdfile = "";
+      if ($opt{vcdfile} eq "")
+      {
+        $vcdfile = "$opt{tmp_dir}/sim.vcd.$$" ;
+      } elsif ( $opt{vcdfile} =~ /^\// )
+      {	## full path name specified -- use file name as is
+        $vcdfile = $opt{vcdfile} ;
+      } else
+      { ## relative path specified -- use name under tmp dir
+        $vcdfile = "$opt{tmp_dir}/$opt{vcdfile}.$$" ;
+      }
+
+      push (@{$opt{sim_run_args}}, "+vcd") ;
+      push (@{$opt{sim_run_args}}, "-vcd $vcdfile") ;
+      push (@{$opt{sim_run_args}}, "+vcs+dumpon+".bigtime2plus($opt{start_dump})) if ($opt{start_dump} != 0) ;
+      push (@{$opt{sim_run_args}}, "+vcs+dumpoff+".bigtime2plus($opt{stop_dump})) if ($opt{stop_dump} != 0) ;
+    }
+    else
+    {
+      push (@{$opt{sim_run_args}}, "+vcs+dumpvarsoff") ;
+    }
+
+    if ($opt{debussy})
+    {
+      my $fsdbfile = "";
+      if ($opt{fsdbfile} eq "")
+      {
+        $fsdbfile = "$opt{tmp_dir}/sim.fsdb.$$" ;
+      } elsif ( $opt{fsdbfile} =~ /^\// )
+      {	## full path name specified -- use file name as is
+	$fsdbfile = $opt{fsdbfile} ;
+      } else
+      { ## relative path specified -- use name under tmp dir
+	$fsdbfile = "$opt{tmp_dir}/$opt{fsdbfile}.$$" ;
+      }
+
+      push (@{$opt{sim_run_args}}, "+debussy") ;
+      push (@{$opt{sim_run_args}}, "+fsdbfile=$fsdbfile") ;
+      push (@{$opt{sim_run_args}}, "+fsdb+dumpon+".bigtime2plus($opt{start_dump})) if ($opt{start_dump} != 0) ;
+      push (@{$opt{sim_run_args}}, "+fsdb+dumpoff+".bigtime2plus($opt{stop_dump})) if ($opt{stop_dump} != 0) ;
+      push (@{$opt{sim_run_args}}, "+fsdbDumplimit=$opt{fsdbDumplimit}") if ($opt{fsdbDumplimit} ne "") ;
+    }
+
+    # convert -args to +args
+    push (@{$opt{sim_run_args}}, "+use_sas_tasks") if ($opt{sas}) ;
+    push (@{$opt{sim_run_args}}, "+finish_mask=$opt{finish_mask}") if ($opt{finish_mask} ne "") ;
+    push (@{$opt{sim_run_args}}, "+stub_mask=$opt{stub_mask}") if ($opt{stub_mask} ne "") ;
+    push (@{$opt{sim_run_args}}, "+TIMEOUT=$opt{rtl_timeout}") if ($opt{rtl_timeout}) ;
+    push (@{$opt{sim_run_args}}, "+wait_cycle_to_kill=$opt{wait_cycle_to_kill}") if ($opt{wait_cycle_to_kill} > 0) ;
+    push (@{$opt{sim_run_args}}, "+max_cycle=$opt{max_cycle}") if ($opt{max_cycle}) ;
+
+    push (@{$opt{sim_run_args}}, "+initreg+$opt{tg_seed}") if ($opt{vcs_use_initreg}) ;
+    push (@{$opt{sim_run_args}}, "+tg_seed=$opt{tg_seed}") ;
+    push (@{$opt{sim_run_args}}, "+vcs+finish+".bigtime2plus($opt{vcs_finish})) if ($opt{vcs_finish}) ;
+    push (@{$opt{sim_run_args}},  $good_trap) if ($good_trap ne "") ;
+    push (@{$opt{sim_run_args}},  $bad_trap) if ($bad_trap ne "") ;
+    push (@{$opt{sim_run_args}}, "+ntb_load=$model_path/vera/libtb.so") if ($opt{vera_run} and $opt{ntb_lib}) ;
+    push (@{$opt{sim_run_args}}, "+vera_pload=$opt{model}_top.proj") if ((!$opt{dftvert}) and $opt{vera_run} and !$opt{vcs_use_ntb}) ;
+    push (@{$opt{sim_run_args}}, "+vera_mload=veralist.vrl") if ($opt{dftvert} and !$opt{vcs_use_ntb}) ;
+    # push (@{$opt{sim_run_args}}, "+vcs+nostdout") if ($opt{regress});
+    push (@{$opt{sim_run_args}}, "-cm $opt{vcs_cm_args}") if ($opt{vcs_use_cm});
+    push (@{$opt{sim_run_args}}, "-cm_cond $opt{vcs_cm_cond}") if ($opt{vcs_use_cm} and ($opt{vcs_cm_cond} ne ""));
+    push (@{$opt{sim_run_args}}, "-cm_hier $opt{vcs_cm_config}") if ($opt{vcs_use_cm} and ($opt{vcs_cm_config} ne ""));
+    push (@{$opt{sim_run_args}}, "-cm_name $opt{vcs_cm_name}") if ($opt{vcs_use_cm});
+    push (@{$opt{sim_run_args}}, "-cm_dir $model_path") if ($opt{vcs_use_cm}); #$ENV{PWD}
+    push (@{$opt{sim_run_args}}, "+efuse_data_file=efuse.img") if ($opt{efuse_image_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+vera_diag_name=$opt{vera_diag_name}") if ($opt{vera_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+asm_diag_name=$opt{asm_diag_name}") if ($opt{asm_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+sjm_diag_name=$opt{sjm_diag_name}") if ($opt{sjm_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+tap_diag_name=$opt{tap_diag_name}") if ($opt{tap_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+tpt_diag_name=$opt{tpt_diag_name}") if ($opt{tpt_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+pci_diag_name=$opt{pci_diag_name}") if ($opt{pci_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+image_diag_name=$opt{image_diag_name}") if ($opt{image_diag_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+efuse_image_name=$opt{efuse_image_name}") if ($opt{efuse_image_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+vera_config_name=$opt{vera_config_name}") if ($opt{vera_config_name} ne "") ;
+    push (@{$opt{sim_run_args}}, "+fast_boot") if ($opt{fast_boot}) ;
+    push (@{$opt{sim_run_args}}, "+ctu_mon_off") if ($opt{tcl_tap}) ;
+    push (@{$opt{sim_run_args}}, "+dv_root=$dv_root") ;
+
+    foreach my $obj (@{$opt{vera_cov_obj}})
+    {
+      $obj =~ tr/A-Z/a-z/ ;
+      push (@{$opt{sim_run_args}}, "+$obj") ;
+    }
+
+    my $os_cpu = `uname -s`;
+    $os_cpu =~ s/\n//g;
+    if ($os_cpu eq "SunOS") {
+      $os_cpu .= "/";
+      $os_cpu .= `uname -p`;
+    } else {
+      $os_cpu .= "/";
+      $os_cpu .= `uname -m`;
+    }
+    $os_cpu =~ s/\n//g;
+    # run the command
+
+    my $cmd = "" ; # $opt{other_sim_run_cmd};
+    $cmd .= "vvp " ;
+    $cmd .= "-M$ENV{DV_ROOT}/tools/";
+    $cmd .= $os_cpu;
+    $cmd .= "/lib ";
+    $cmd .= " -mveriuser $model_path/a.out " ;
+    $cmd .= " " ;
+    $cmd .= join (" ", @{$opt{sim_run_args}}) ;
+
+    print "$prg: $cmd\n";
+
+    print "$prg: LD_LIBRARY_PATH is $ENV{LD_LIBRARY_PATH}\n";
+
+    $ENV{FSDB_ENV_DUMP_SEQ_NUM} = 1 if ($opt{fsdb_glitch}) ; # turn on sequence dump
+    $ENV{FSDB_ENV_MAX_GLITCH_NUM} = 0 if ($opt{fsdb_glitch}) ; # turn on glitch dump
+
+    $ENV{VERA_LIBDIR} = "$model_path/vera";
+    print "$prg: setenv VERA_LIBDIR $ENV{VERA_LIBDIR}\n";
+
+    print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+
+    if (!$opt{dryrun})
+    {
+
+      $main::sim_start  = `date` ;
+      print "$prg: sim_start $main::sim_start" ;
+
+      if ($opt{regress})
+      {
+        system ("$cmd > sim.log 2>&1") ;
+        die ("DIE. simulator exited with an error") if ($?) ;
+      }
+      else
+      {
+        my $waitstatus = call_program ($cmd, "sim.log") ;
+        die ("DIE. simulator exited with an error") if ($waitstatus) ;
+      }
+      $main::sim_stop = `date` ;
+      print "$prg: sim_stop $main::sim_stop" ;
+
+      open (PERFLOG, "> sim.perf.log") ;
+      print PERFLOG "$prg: sim_start $main::sim_start" ;
+      print PERFLOG "$prg: sim_stop $main::sim_stop" ;
+      close (PERFLOG) ;
+    }
+
+    # kill sas no matter what
+
+    if ($sas_pid != 0)
+    {
+      kill -9, $sas_pid ;
+    }
+
+    # kill tcl no matter what
+    if ($tcl_pid != 0)
+    {
+      kill -9, $tcl_pid ;
+    }
+
+    # copy over debussy dump
+
+    if (-f "$opt{tmp_dir}/$opt{fsdbfile}.$$")
+    {
+      `mv $opt{tmp_dir}/$opt{fsdbfile}.$$ $opt{fsdbfile}`;
+      die ("DIE. unable to move fsdb file over\n") if ($?) ;
+
+      if ($opt{fsdb2vcd})
+      {
+        `fsdb2vcd $opt{fsdbfile} -o ${opt{fsdbfile}}.vcd`  ;
+         die ("DIE. unable to convert fsdb file to vcd\n") if ($?) ;
+      }
+    }
+
+    if (-f "$opt{tmp_dir}/sim.fsdb.$$")
+    {
+      `mv $opt{tmp_dir}/sim.fsdb.$$ sim.fsdb`;
+      die ("DIE. unable to move sim.fsdb over\n") if ($?) ;
+
+      if ($opt{fsdb2vcd})
+      {
+        `fsdb2vcd sim.fsdb -o sim.vcd` ;
+         die ("DIE. unable to convert sim.fsdb file to vcd\n") if ($?) ;
+      }
+    }
+
+    # copy over vcd dump
+
+    if (-f "$opt{tmp_dir}/$opt{vcdfile}")
+    {
+      `mv $opt{tmp_dir}/$opt{vcdfile} sim.vcd`;
+      die ("DIE. unable to move sim.vcd over\n") if ($?) ;
+    }
+}
+
+
+################################################################################
 # run other simulator
 ################################################################################
 
-sub sim_run
+sub other_sim_run
 {
     # first clean up the diag area
     `rm -rf sim.log *.rpt raw_coverage coverage`;
@@ -3488,10 +3886,10 @@ sub sim_run
 
     # run the command
 
-    if (($opt{sim_run_cmd}) eq "") {
-	die ("DIE. sim_run_cmd not defined");
+    if (($opt{other_sim_run_cmd}) eq "") {
+	die ("DIE. other_sim_run_cmd not defined");
     }
-    my $cmd = $opt{sim_run_cmd};
+    my $cmd = $opt{other_sim_run_cmd};
     $cmd .= " " ;
     $cmd .= join (" ", @{$opt{sim_run_args}}) ;
 
@@ -3860,7 +4258,7 @@ sub sas_run
     # create socket numbers for rtl-sas run
     print "$prg: creating sas sockets\n" ;
 
-    if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})
+    if ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run})
     {
       $def_sas_str .= " -DRTL ";
       $def_sas_str .= " -DVSOCKET=0 ";
@@ -3899,7 +4297,7 @@ sub sas_run
     $cmd .= " -verbose " if ($opt_debug == 1) ;
     print "$prg: $cmd\n";
 
-    if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})
+    if ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run})
     {
       $sas_pid = fork () ;
 
@@ -4007,7 +4405,7 @@ sub tcl_tap_run
     $cmd .= $expect_cmd;
     print "$prg: $cmd\n";
 
-    if ($opt{vcs_run} or $opt{ncv_run} or $opt{sim_run})
+    if ($opt{vcs_run} or $opt{ncv_run} or $opt{icv_run} or $opt{other_sim_run})
     {
       $tcl_pid = fork () ;
 
@@ -4287,6 +4685,8 @@ sub assemble_diag
     push (@{$opt{midas_args}}, "-DTG_SEED=$opt{tg_seed}") if ($opt{midas_use_tgseed}) ;
     push (@{$opt{midas_args}}, "-pal_diag_args=-seed=$opt{tg_seed}") if ($opt{pal_use_tgseed}) ;
     push (@{$opt{midas_args}}, "$diag_name") ;
+
+    push (@{$opt{midas_args}}, "-DCIOP") if ($opt{icv_run} or ($opt{sim_type} eq "icv")) ;
 
     print "$prg: assembling diag\n" ;
     my $cmd = "midas " ;
@@ -4746,6 +5146,9 @@ sub parse_args
             'group=s@',
             'group_name=s',
             'gzip!',
+            'icv_build!',
+            'icv_build_args=s@',
+            'icv_run!',
             'image_diag_name=s',
             'image_diag_path=s',
             'image_diag_root=s@',
@@ -4785,12 +5188,12 @@ sub parse_args
             'sas!',
             'saslog!',
             'sas_run_args=s@',
-	    'sim_build!',
+	    'other_sim_build!',
             'sim_build_args=s@',
-            'sim_build_cmd=s',
-	    'sim_run!',
+            'other_sim_build_cmd=s',
+	    'other_sim_run!',
             'sim_run_args=s@',
-            'sim_run_cmd=s',
+            'other_sim_run_cmd=s',
             'sim_type=s',
             'sim_q_command=s',
             'sims_config=s',
@@ -4828,7 +5231,7 @@ sub parse_args
             'vcdfile=s',
             'vcs_build!',
             'vcs_build_args=s@',
-            'vcs_clean!',
+            'clean!',
             'vcs_cm_args=s',
             'vcs_cm_cond=s',
             'vcs_cm_config=s',
@@ -4837,7 +5240,7 @@ sub parse_args
             'vcs_cm_name=s',
             'vcs_finish=i',
             'vcs_prof!',
-            'vcs_rel_name=s',
+            'build_id=s',
             'vcs_run!',
             'vcs_use_2state!',
             'vcs_use_cli!',
@@ -4984,7 +5387,8 @@ sub parse_args
   {
     $opt{vcs_build} = 0 ;
     $opt{ncv_build} = 0 ;
-    $opt{sim_build} = 0 ;
+    $opt{icv_build} = 0 ;
+    $opt{other_sim_build} = 0 ;
     $opt{vera_build} = 0 ;
     $opt{zeroIn_build} = 0 ;
     $opt{zeroInSearch_build} = 0 ;
@@ -5308,8 +5712,8 @@ OPENPITON ARGUMENTS
 
 VERILOG COMPILATION RELATED
 
-    -sim_type=vcs/ncv
-	  defines which simulator to use vcs or ncverilog, defaults to vcs.
+    -sim_type=vcs/ncv/icv
+	  defines which simulator to use vcs, ncverilog, or icarus, defaults to vcs.
 
     -sim_q_command="command"
 	  defines which job queue manager command to use to launch jobs.
@@ -5322,6 +5726,13 @@ VERILOG COMPILATION RELATED
            ncverilog compile options. multiple options can be specified using
            multiple such arguments.
 
+    -icv_build/-noicv_build
+           builds an icarus model and the vera testbench. defaults to off.
+
+    -icv_build_args=OPTION
+           icarus compile options. multiple options can be specified using
+           multiple such arguments.
+
     -vcs_build/-novcs_build
            builds a vcs model and the vera testbench. defaults to off.
 
@@ -5329,7 +5740,7 @@ VERILOG COMPILATION RELATED
            vcs compile options. multiple options can be specified using
            multiple such arguments.
 
-    -vcs_clean/-novcs_clean
+    -clean/-noclean
            wipes out the model directory and rebuilds it from scratch.
            defaults to off.
 
@@ -5399,11 +5810,11 @@ VERILOG COMPILATION RELATED
 
     -model=NAME
            the name of a model to be built. the full path to a model
-           is $ENV{MODEL_DIR}/model/vcs_rel_name.
+           is $ENV{MODEL_DIR}/model/build_id.
 
-    -vcs_rel_name=NAME
-            specify the release of the model to be built. the full path
-            to a model is $ENV{MODEL_DIR}/model/vcs_rel_name.
+    -build_id=NAME
+            specify the build id of the model to be built. the full path
+            to a model is $ENV{MODEL_DIR}/model/build_id.
 
 VERA COMPILATION RELATED
 
@@ -5994,6 +6405,10 @@ Build a ncverilog model using DV_ROOT as design root
 
   sims -sys=manycore -x_tiles=1 -y_tiles=1 -ncv_build
 
+Build an icarus model using DV_ROOT as design root
+
+  sims -sys=manycore -x_tiles=1 -y_tiles=1 -icv_build
+
 Build the vera testbench only using DV_ROOT as design root
 
   sims -sys=manycore -x_tiles=1 -y_tiles=1 -vera_build
@@ -6016,11 +6431,11 @@ Build a model and re-build the vera
 
 Build a model and turn off incremental compile
 
-  sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_clean
+  sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -clean
 
 Build a model with a given name
 
-  sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_rel_name=mymodel
+  sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -build_id=mymodel
 
 Run models
 
@@ -6031,7 +6446,7 @@ Run a diag with default model
 Run a diag with a specified model
 
   sims -sys=manycore -x_tiles=1 -y_tiles=1 
-       -vcs_rel_name=mymodel -vcs_run diag.s
+       -build_id=mymodel -vcs_run diag.s
 
 Run a diag with debussy dump with default model
 

@@ -32,6 +32,9 @@
 
 #ifndef CIRCULAR_DOUBLE_LINKED_LIST_H
 #define CIRCULAR_DOUBLE_LINKED_LIST_H
+#ifdef __ICARUS__
+#define null NULL
+#endif
 
 typedef struct _cdll_node {
   void *data;

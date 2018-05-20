@@ -23,6 +23,8 @@
 
 `include "sys.h"
 `include "iop.h"
+`include "lsu.tmp.h"
+`include "ifu.tmp.h"
 `define INTF0_WIDTH 61
 `define INTF1_WIDTH 125
 `define INTF2_WIDTH 192

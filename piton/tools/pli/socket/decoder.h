@@ -26,6 +26,9 @@
 #include "list.h"
 #include "veriuser.h"
 #include "acc_user.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 #define DECODER_REQ                     1
 #define DECODER_HANDLE DECODER_REQ    + 1
 #define DECODER_THRID  DECODER_HANDLE + 1

@@ -46,6 +46,10 @@ vcs +mon0=cpu0:25 +mon1=ccx:10 +diserr=cerr:uerr +diswarn=abc:xyz
 #include "ctype.h"  /* for toupper */
 #include <stdio.h>  /* for sscanf.h */
 
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#define null NULL
+#endif
 
 FILE *fp;
 

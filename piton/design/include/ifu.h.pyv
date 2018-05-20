@@ -270,5 +270,12 @@
 `define HSTICK_CMP       9'h05e
 `define RESUMABLE_ERR    9'h07e
 
+`ifdef __ICARUS__
+`define VER_MANUF      16'h003e
+`define VER_IMPL       16'h0023
+`define VER_MAXGL      8'h03
+`define VER_MAXWIN     8'h07
+`define VER_MAXTL      8'h06
+`endif
 
 

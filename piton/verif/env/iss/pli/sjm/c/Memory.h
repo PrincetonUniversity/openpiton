@@ -39,14 +39,20 @@ typedef unsigned long long ull;
 
 template<class T>
 class Memory {
+#ifdef __ICARUS__
+public:
+#else
 private:
+#endif
   ListTree *mem_storage;
   Range **mem_range;
   int mem_num;
 
   void translateAddr(ull, unsigned short *);
 
+#ifndef __ICARUS__
 public:
+#endif
   Memory();
   Memory(int);
   Memory(ull, ull);

@@ -34,9 +34,14 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "veriuser.h"
 #include "acc_user.h"
+#ifdef __ICARUS__
+#include <unistd.h>
+#include <stdio.h>
+#include "icarus-compat.h"
+#endif
+
 
 #define TOK_CMD               1
 #define TOK_RTL_CYCLE         2
@@ -80,9 +85,13 @@ static void socket_read_regs_all_error (int err)
  * Send command to sas
  */
 
+#ifndef __ICARUS__
 int send_cmd (fd, ptr)
      register int fd;
      register char *ptr;
+#else
+int send_cmd (int fd, char *ptr)
+#endif
 {
   int nbytes, nwritten;
 
@@ -101,11 +110,15 @@ int send_cmd (fd, ptr)
 }
 
 
+#ifndef __ICARUS__
 int recv_reply (fd, ptr, maxlen, chk)
      register int fd;
      register char *ptr;
      register int maxlen;
      register int chk;
+#else
+int recv_reply (int fd, char *ptr, int maxlen, int chk)
+#endif
 {
   int n, rc, retry_count;
   char *ptr1;

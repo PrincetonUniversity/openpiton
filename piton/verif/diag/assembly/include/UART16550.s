@@ -38,6 +38,7 @@
     .global     uart16550_puts
     .global     uart16550_putreg
     .global     uart16550_printreg
+    .global     hp_puts
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Initializes Xilinx UART16550
@@ -80,6 +81,7 @@ uart16550_init:
 ! Output:
 !   None
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    .align 4
 uart16550_puts:
     save    %sp, -96, %sp
     setx    UART_BASE_ADDR, %l0, %l1            ! Store UART address in %l1
@@ -151,5 +153,16 @@ uart16550_printreg_wait:
     sub     %l2, 4, %l2
     bne     uart16550_printreg_loop
     stb     %l3, [%l1]
+    ret
+    restore
+
+    .align 4
+hp_puts:
+    save    %sp, -96, %sp
+    ta      T_CHANGE_HPRIV
+    mov     %i0, %o0
+    call    uart16550_puts
+    nop
+    ta      T_CHANGE_NONHPRIV
     ret
     restore

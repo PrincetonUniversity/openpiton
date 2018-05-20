@@ -28,6 +28,9 @@
 #include <strings.h>
 #include "veriuser.h"
 #include "acc_user.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 #define FLOAT_X                        154
 #define FLOAT_I                        153
 #define PC                             32

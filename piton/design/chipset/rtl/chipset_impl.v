@@ -148,11 +148,12 @@ module chipset_impl(
 
     `ifdef PITONSYS_SPI
         ,
-        input                                       spi_sys_clk,
-        input                                       spi_data_in,
-        output                                      spi_clk_out,
-        output                                      spi_data_out,
-        output                                      spi_cs_n
+        input                               sd_clk,
+        input                               sd_cd,
+        output                              sd_reset,
+        output                              sd_clk_out,
+        inout                               sd_cmd,
+        inout   [3:0]                       sd_dat
     `endif // endif PITONSYS_SPI
 
         ,
@@ -528,11 +529,12 @@ io_ctrl_top io_ctrl_top(
 
     // SPI interface
 `ifdef PITONSYS_SPI
-    .spi_sys_clk(spi_sys_clk),
-    .spi_data_in(spi_data_in),
-    .spi_clk_out(spi_clk_out),
-    .spi_data_out(spi_data_out),
-    .spi_cs_n(spi_cs_n),
+    .sd_clk     (sd_clk),
+    .sd_cd      (sd_cd),
+    .sd_reset   (sd_reset),
+    .sd_clk_out (sd_clk_out),
+    .sd_cmd     (sd_cmd),
+    .sd_dat     (sd_dat),
 `endif // PITONSYS_SPI
 
     .net_axi_clk            (net_axi_clk        ),

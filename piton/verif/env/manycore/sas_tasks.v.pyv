@@ -778,6 +778,7 @@ initial begin
 end // initial begin
 
 //mra memory contets
+`ifndef __ICARUS__
 task mra_val;
     input [9:0] cpu;
     input [3:0] idx;
@@ -931,6 +932,7 @@ task tlb_reset;
         endcase // case(core)
     end
 endtask // tlb_reset
+`endif
 reg timestamp, timest;
 reg [63:0] time_stamp;
 reg         pli_flag;
@@ -970,6 +972,7 @@ always @(posedge clk)begin
         `endif // SAS_DISABLE
 
         if(sas_def)begin
+	    `ifndef __ICARUS__
             rdAndcmp;
             if(`TOP_MOD.diag_done)send_cmd(`PLI_RETRY, 0, 0, 0, 0, 0);
             if(expected_warm)begin
@@ -1008,6 +1011,7 @@ always @(posedge clk)begin
                     swap = 1;
                 end // if (`TOP_DESIGN.iob_cpx_data_ca[`CPX_VLD] &&...
             end // if (expected_warm)
+	    `endif
         end // if (sas_def)
     end // if (rst_l)
     else if(reset_status)expected_warm = 1;

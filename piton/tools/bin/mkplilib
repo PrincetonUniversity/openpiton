@@ -22,7 +22,7 @@
 # ========== Copyright Header End ============================================
 
 if ($1 == "") then
-    echo "Usage: $0 vcs/ncverilog/clean"
+    echo "Usage: $0 vcs/ncverilog/icarus/clean"
     echo "e.g. : $0 vcs"
     exit
 endif
@@ -51,7 +51,12 @@ case vcs:
     breaksw
 
 case ncverilog:
+    setenv ARCH lnx86
     make ncvpli
+    breaksw
+
+case icarus:
+    make icaruspli
     breaksw
 
 case clean:

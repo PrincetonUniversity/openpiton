@@ -103,7 +103,7 @@ module chipset(
     `endif // endif PITONSYS_NO_MC
 
     `ifdef PITONSYS_SPI
-        input                                       spi_sys_clk,
+        input                                       sd_sys_clk,
     `endif // endif PITONSYS_SPI
 `endif // endif PITON_CHIPSET_CLKS_GEN
     
@@ -253,10 +253,13 @@ module chipset(
 
 
     `ifdef PITONSYS_SPI
-        input                                       spi_data_in,
-        output                                      spi_data_out,
-        output                                      spi_clk_out,
-        output                                      spi_cs_n,
+        `ifndef VC707_BOARD
+        input                                       sd_cd,
+        output                                      sd_reset,
+        `endif
+        output                                      sd_clk_out,
+        inout                                       sd_cmd,
+        inout   [3:0]                               sd_dat,
     `endif // endif PITONSYS_SPI
 
 // Emaclite interface
@@ -542,6 +545,8 @@ reg     [3:0]   net_phy_rxd_f;
 reg     [3:0]   net_phy_rxd_ff;
 wire    [3:0]   net_phy_rxd_inter;
 
+wire            sd_clk_out_internal;
+
 //////////////////////
 // Sequential Logic //
 //////////////////////
@@ -746,7 +751,7 @@ end
 
         `ifdef PITONSYS_SPI
             // SPI system clock
-            , .spi_sys_clk(spi_sys_clk)
+            , .sd_sys_clk(sd_sys_clk)
         `endif // endif PITONSYS_SPI
         
         // Chipset<->passthru clocks
@@ -1172,11 +1177,17 @@ chipset_impl_noc_power_test  chipset_impl (
 
         `ifdef PITONSYS_SPI
             ,
-            .spi_sys_clk(spi_sys_clk),
-            .spi_data_in(spi_data_in),
-            .spi_clk_out(spi_clk_out),
-            .spi_data_out(spi_data_out),
-            .spi_cs_n(spi_cs_n)
+            .sd_clk(sd_sys_clk),
+            `ifndef VC707_BOARD
+            .sd_cd(sd_cd),
+            .sd_reset(sd_reset),
+            `else
+            .sd_cd(0),
+            .sd_reset(),
+            `endif
+            .sd_clk_out(sd_clk_out_internal),
+            .sd_cmd(sd_cmd),
+            .sd_dat(sd_dat)
         `endif // endif PITONSYS_SPI
 
             ,
@@ -1345,6 +1356,18 @@ chipset_impl_noc_power_test  chipset_impl (
     assign net_phy_rxd_inter = net_phy_rxd_ff;
 
     //-------------------------------------------------------
+    
+    `ifdef PITONSYS_SPI
+        ODDR sd_clk_oddr (
+            .Q(sd_clk_out),
+            .C(sd_clk_out_internal),
+            .CE(1),
+            .D1(1),
+            .D2(0),
+            .R(0),
+            .S(0)
+            );
+    `endif
 
 `endif  // PITONSYS_IOCTRL
 

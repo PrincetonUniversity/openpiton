@@ -25,8 +25,8 @@
 include ${DV_ROOT}/tools/env/Makefile.system
 
 INSTALL_DIR=${NCV_HOME}
-include $(INSTALL_DIR)/tools/pliwizard/src/$(NC_MAKEFILE)
-include $(INSTALL_DIR)/tools/pliwizard/src/Makefile.nc.defines
+include $(INSTALL_DIR)/tools/inca/files/$(NC_MAKEFILE)
+include $(INSTALL_DIR)/tools/inca/files/Makefile.nc.defines
 
 #CC=${CC_BIN}/cc
 #CCC=${CC_BIN}/CC
@@ -64,7 +64,7 @@ CLEAN_TARGETS=   $(PLILIBA)
 #	(ar -rc $@ $(PLI_OBJECTS))
 #		rm -f *.o
 
-include $(INSTALL_DIR)/tools/pliwizard/src/Makefile.nc.targets
+include $(INSTALL_DIR)/tools/inca/files/Makefile.nc.targets
 
 clean_local:
 		rm -f *.o

@@ -113,6 +113,7 @@ module sd_wishbone_transaction_manager (
     localparam W_ADDR_3        = 5'b01010; // Write the 32-bit SD address to the card
 
     // Copying to TX
+    localparam W_CLEAR_FIFO    = 5'b11010; // Empty the fifo before write data to it
     localparam W_DATA_WORD     = 5'b10010;
     localparam W_DATA_BYTES    = 5'b01011; // Copy 512 bytes from cache to TX queue (only for writes)
 
@@ -202,7 +203,14 @@ module sd_wishbone_transaction_manager (
             begin
                 if (req_val)
                 begin
-                    next_state = W_ADDR_0;
+                    if (req_type == `SD_WB_BLK_WR)
+                    begin
+                        next_state = W_CLEAR_FIFO;
+                    end
+                    else
+                    begin
+                        next_state = W_ADDR_0;
+                    end
                 end
             end
             W_ADDR_0:
@@ -233,16 +241,16 @@ module sd_wishbone_transaction_manager (
             begin
                 if (ack_i)
                 begin
-                    if (type == `SD_WB_BLK_WR)
-                    begin
-                        next_after_state = W_DATA_WORD;
-                        next_state       = WB_CHILL;
-                    end
-                    else
-                    begin
-                        next_after_state = W_TRANS_TYPE;
-                        next_state       = WB_CHILL;
-                    end
+                    next_after_state = W_TRANS_TYPE;
+                    next_state       = WB_CHILL;
+                end
+            end
+            W_CLEAR_FIFO:
+            begin
+                if (ack_i)
+                begin
+                    next_after_state = W_DATA_WORD;
+                    next_state = WB_CHILL;
                 end
             end
             W_DATA_WORD:
@@ -255,7 +263,7 @@ module sd_wishbone_transaction_manager (
                 begin
                     if (wcntr == `BLK_WORDS-1 && bcntr == 3'b111)
                     begin
-                        next_after_state = W_TRANS_TYPE;
+                        next_after_state = W_ADDR_0;
                         next_state       = WB_CHILL;
                     end
                     else if (bcntr == 3'b111)
@@ -490,6 +498,13 @@ module sd_wishbone_transaction_manager (
             begin
                 adr_o = `CTRL_STS_REG_BASE + `SD_ADDR_31_24_REG;
                 dat_o = addr[31:24];
+                stb_o = 1'b1;
+                we_o  = 1'b1;
+            end
+            W_CLEAR_FIFO:
+            begin
+                adr_o = `TX_FIFO_BASE + `FIFO_CONTROL_REG;
+                dat_o = 8'b00000001;
                 stb_o = 1'b1;
                 we_o  = 1'b1;
             end

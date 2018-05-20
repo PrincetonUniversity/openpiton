@@ -69,6 +69,14 @@ simics_printf:
 	nop
 	retl
 	nop
+
+    .align 4
+    .global puts
+puts:
+    mov %i0, %o0
+    call hp_puts 
+    retl
+    nop
 	
         .align 4
         .global exit

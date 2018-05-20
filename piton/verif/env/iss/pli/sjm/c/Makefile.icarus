@@ -1,0 +1,27 @@
+# Derived from piton/tools/pli/iop/Makefile
+
+include ${DV_ROOT}/tools/env/Makefile.system
+
+INC_DIR=${DV_ROOT}/verif/env/iss/pli/common/c
+CPPFLAGS = 
+CFLAGS += -I$(INC_DIR) -fpermissive -fpic $(ICARUS_CC_OPTS)
+
+LIB = libsjm_icarus.a
+CSRCS = main.cc SJM.cc Arbiter.cc InterruptControl.cc SnoopControl.cc ByteString.cc Parser.cc Command.cc Cache.cc Transaction.cc ReadOutBuffer.cc MemoryControl.cc RegisterFile.cc
+CSRCC = 
+LIB_OBJS = ${CSRCS:%.cc=%.o}
+LIB_OBJC = ${CSRCC:%.c=%.o}
+
+all: $(LIB)
+	rm -rf *.o
+
+$(LIB_OBJC):
+	$(CCC) $(CPPFLAGS) -c  $(CFLAGS) -o $*.o $*.c
+$(LIB_OBJS):
+	$(CCC) $(CPPFLAGS) -c  $(CFLAGS)  -o $*.o $*.cc
+
+$(LIB): $(LIB_OBJS) $(LIB_OBJC)
+	ar rv $(LIB) $(LIB_OBJS) $(LIB_OBJC)
+
+clean:
+	rm -rf *.o ${LIB}

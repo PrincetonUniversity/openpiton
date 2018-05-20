@@ -70,6 +70,18 @@ LIB_SO	=	$(TOOL_PLI_DIR)/mem/libmem_pli_ncv.so \
 		$(VERI_PLI_DIR)/sjm/c/libsjm_ncv.so \
 		$(VERI_PLI_DIR)/common/c/libjpcommon_ncv.so
 
+# icarus .a libraries
+
+LIB_A_ICARUS=	$(TOOL_PLI_DIR)/mem/libmem_pli_icarus.a \
+		$(TOOL_PLI_DIR)/socket/libsocket_pli_icarus.a \
+		$(TOOL_PLI_DIR)/utility/libutility_icarus.a \
+		$(TOOL_PLI_DIR)/iop/libiob_icarus.a \
+		$(TOOL_PLI_DIR)/simpledram/libsimpledram_icarus.a \
+		$(VERI_PLI_DIR)/jbus_mon/c/libjbus_mon_icarus.a \
+		$(VERI_PLI_DIR)/monitor/c/libmonitor_icarus.a \
+		$(VERI_PLI_DIR)/sjm/c/libsjm_icarus.a #\
+		$(VERI_PLI_DIR)/common/c/libjpcommon_icarus.a
+
 NCV_EXE = 	ncsim ncelab
 
 
@@ -81,6 +93,10 @@ vcspli: $(LIB_A)
 
 ncvexe: $(NCV_EXE)
 ncvpli: $(LIB_SO) $(NCV_EXE)
+
+# Icarus targets 
+
+icaruspli: veriuser.vpi
 
 # VCS .a libraries
 
@@ -172,9 +188,58 @@ $(VERI_PLI_DIR)/common/c/libjpcommon_ncv.so:
 	(rm -f $(LIB_PATH)/libjpcommon_ncv.so)
 	cp $@ $(LIB_PATH)
 
+# Icarus .a libraries
+
+$(TOOL_PLI_DIR)/mem/libmem_pli_icarus.a:
+	(cd $(TOOL_PLI_DIR)/mem; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libmem_pli_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(TOOL_PLI_DIR)/socket/libsocket_pli_icarus.a:
+	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libsocket_pli_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(TOOL_PLI_DIR)/utility/libutility_icarus.a:
+	(cd $(TOOL_PLI_DIR)/utility; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libutility_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(TOOL_PLI_DIR)/iop/libiob_icarus.a:
+	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libiob_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(VERI_PLI_DIR)/jbus_mon/c/libjbus_mon_icarus.a:
+	(cd $(VERI_PLI_DIR)/jbus_mon/c; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libjbus_mon_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(VERI_PLI_DIR)/monitor/c/libmonitor_icarus.a:
+	(cd $(VERI_PLI_DIR)/monitor/c; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libmonitor_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(VERI_PLI_DIR)/sjm/c/libsjm_icarus.a:
+	(cd $(VERI_PLI_DIR)/sjm/c; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libsjm_icarus.a)
+	cp $@ $(LIB_PATH)
+
+$(VERI_PLI_DIR)/common/c/libjpcommon_icarus.a:
+	(cd $(VERI_PLI_DIR)/common/c; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libjpcommon_icarus.a)
+	cp $@ $(LIB_PATH)
+
+# princeton trin new
+$(TOOL_PLI_DIR)/simpledram/libsimpledram_icarus.a:
+	(cd $(TOOL_PLI_DIR)/simpledram; make -f Makefile.icarus)
+	(rm -f $(LIB_PATH)/libsimpledram_icarus.a)
+	cp $@ $(LIB_PATH)
+
 clean:
 	make clean_vcs 
 	make clean_ncv
+	make clean_icarus
 
 clean_vcs:
 	rm -rf $(LIB_A)
@@ -183,10 +248,13 @@ clean_ncv:
 	rm -rf $(LIB_SO) $(LIB_A_NCV) $(NCV_EXE) veriuser.o
 	rm -rf $(BIN_PATH)/ncelab $(BIN_PATH)/ncsim
 
+clean_icarus:
+	rm -rf $(LIB_A_ICARUS)
+
 	
 ncelab: 
 	$(CCC) -o ncelab \
-	${NCV_HOME}/tools/inca/lib/ncelab.o \
+	${NCV_HOME}/tools/inca/lib/64bit/ncelab.o \
 	-L$(LIB_PATH) -lsocket_pli_ncv \
 	-lpli \
 	-lutility_ncv \
@@ -196,18 +264,18 @@ ncelab:
 	-liob_ncv \
 	-lsjm_ncv \
 	-ljpcommon_ncv \
-	-L${NCV_HOME}/tools/inca/lib -lvoids \
+	-L${NCV_HOME}/tools/inca/lib/64bit -lvoids \
 	`$(VERA_LINK)` \
 	-L${CC_BIN}/../lib/CC4 \
-	-L/usr/lib $(NCV_LD_LIBS) -lnsl -ldl -lelf \
-	-L/lib -lm -lrt -lc
+	-L/usr/lib64 $(NCV_LD_LIBS) -lnsl -ldl \
+	-L/lib64 -lm -lrt -lc
 	(rm -f $(BIN_PATH)/ncelab)
 	cp $@ $(BIN_PATH)
 	(rm -f ncelab)
 
 ncsim:  
 	$(CCC)  -o ncsim \
-	${NCV_HOME}/tools/inca/lib/ncsim.o \
+	${NCV_HOME}/tools/inca/lib/64bit/ncsim.o \
 	main.cc \
 	-L$(LIB_PATH) -lsocket_pli_ncv \
 	-lpli \
@@ -218,30 +286,52 @@ ncsim:
 	-liob_ncv \
 	-lsjm_ncv \
 	-ljpcommon_ncv \
-	-L${NCV_HOME}/tools/lib -ludm -lsimcontrol \
-	-L${NCV_HOME}/tools/inca/lib -lvoids \
+	-L${NCV_HOME}/tools/lib/64bit -ludm -lsimcontrol \
+	-L${NCV_HOME}/tools/inca/lib/64bit -lvoids \
 	`$(VERA_LINK)` \
 	-L${CC_BIN}/../lib/CC4 \
-	-L/usr/lib $(NCV_LD_LIBS) -lnsl -ldl -lelf \
-	-L/lib -lm -lrt -lc 
+	-L/usr/lib64 $(NCV_LD_LIBS) -lnsl -ldl \
+	-L/lib64 -lm -lrt -lc 
 	(rm -f $(BIN_PATH)/ncsim)
 	cp $@ $(BIN_PATH)
 	(rm -f ncsim)
 
 veriuser.o:	veriuser.c
-	$(CC) -c -o veriuser.o veriuser.c -I${NCV_HOME}/tools/include \
+	$(CC) -fPIC -c -o veriuser.o veriuser.c -I${NCV_HOME}/tools/include \
 	`$(VERA_INCLUDE)` $(NCV_CC_OPTS)
 
 $(TOOL_PLI_DIR)/libpli.so:	veriuser.o
 	$(LD) $(NCV_LD_OPTS) -o libpli.so veriuser.o
-	(rm -f $(LIB_PATH)/libpli.so)
+	(rm -f veriuser.o $(LIB_PATH)/libpli.so)
 	cp $@ $(LIB_PATH)
 
 vpi_user.o:	vpi_user.c
-	$(CC) -c -o vpi_user.o vpi_user.c -I${NCV_HOME}/tools/include \
+	$(CC) -fPIC -c -o vpi_user.o vpi_user.c -I${NCV_HOME}/tools/include \
 	`$(VERA_INCLUDE)` $(NCV_CC_OPTS)
 
 libvpi.so:	vpi_user.o
 	$(LD) $(NCV_LD_OPTS) -o libvpi.so vpi_user.o
-	(rm -f $(LIB_PATH)/libvpi.so)
+	(rm -f vpi_user.o $(LIB_PATH)/libvpi.so)
 	cp $@ $(LIB_PATH)
+
+#Icarus PLI support
+veriuser_icarus.o: veriuser.c
+	$(CC) -fpic -c -o veriuser_icarus.o veriuser.c \
+	$(ICARUS_CC_OPTS)
+
+veriuser.vpi: $(LIB_A_ICARUS) veriuser_icarus.o
+	$(CC) -shared -o $@ veriuser_icarus.o \
+	-L$(ICARUS_ROOT)/lib -lvpi \
+	-lveriuser \
+	-L$(LIB_PATH) -lsocket_pli_icarus \
+	-lsimpledram_icarus \
+	-lutility_icarus \
+	-ljbus_mon_icarus \
+	-lmonitor_icarus \
+	-lmem_pli_icarus \
+	-liob_icarus \
+	-lsjm_icarus
+	(rm -f $(LIB_PATH)/$@)
+	cp $@ $(LIB_PATH)
+	(rm -f $@)
+	(rm -f veriuser_icarus.o)

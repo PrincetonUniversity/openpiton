@@ -28,6 +28,9 @@
 #include "pcx.h"
 #include "list.h"
 #include "strclass.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 //Here we keep the pc events
 class event : public strclass<KeyType>{
 private:

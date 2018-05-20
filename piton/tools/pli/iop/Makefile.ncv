@@ -25,8 +25,8 @@
 include ${DV_ROOT}/tools/env/Makefile.system
 
 INSTALL_DIR=${NCV_HOME}
-include $(INSTALL_DIR)/tools/pliwizard/src/$(NC_MAKEFILE)
-include $(INSTALL_DIR)/tools/pliwizard/src/Makefile.nc.defines
+include $(INSTALL_DIR)/tools/inca/files/$(NC_MAKEFILE)
+include $(INSTALL_DIR)/tools/inca/files/Makefile.nc.defines
 
 CC=$(CCC)
 CFLAGS += -I${NCV_HOME}/tools/include
@@ -77,7 +77,7 @@ $(PLILIBSO):	$(PLI_OBJECTS)
 	$(LD) $(ARCH_DYNAMIC_LD) $(LD_OUT_OPT)$(QUOTE)$(PLILIBSO)$(QUOTE) $(PLI_OBJECTS); fi
 	rm -rf $(PLI_OBJECTS) ./Templates.DB
 
-include $(INSTALL_DIR)/tools/pliwizard/src/Makefile.nc.targets
+include $(INSTALL_DIR)/tools/inca/files/Makefile.nc.targets
 
 clean_local:	
 		rm -rf $(PLI_OBJECTS) ./Templates.DB

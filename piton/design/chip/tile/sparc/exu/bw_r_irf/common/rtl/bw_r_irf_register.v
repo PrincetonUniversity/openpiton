@@ -275,8 +275,9 @@ endmodule
 
 `else
 
-module bw_r_irf_register(clk, wrens, save, save_addr, restore, restore_addr, wr_data0, wr_data1, wr_data2, wr_data3, rd_thread, rd_data);
+module bw_r_irf_register(clk, reset_l, wrens, save, save_addr, restore, restore_addr, wr_data0, wr_data1, wr_data2, wr_data3, rd_thread, rd_data);
 	input		clk;
+	input		reset_l;
 	input	[3:0]	wrens;
 	input		save;
 	input	[4:0]	save_addr;
@@ -299,12 +300,12 @@ reg	[4:0]	rd_addr;
 reg	[4:0]	wr_addr;
 reg		save_d;
 
-initial begin
-  reg_th0 = 72'b0;
-  reg_th1 = 72'b0;
-  reg_th2 = 72'b0;
-  reg_th3 = 72'b0;
-end
+//initial begin
+//  reg_th0 = 72'b0;
+//  reg_th1 = 72'b0;
+//  reg_th2 = 72'b0;
+//  reg_th3 = 72'b0;
+//end
 
 bw_r_irf_72_4x1_mux mux4_1(
 	.sel(rd_thread),
@@ -384,10 +385,20 @@ bw_r_irf_72_4x1_mux mux4_1(
 
   //288 Flops
   always @(posedge clk) begin
-    if(wr_en[0]) reg_th0 <= wrdata0;
-    if(wr_en[1]) reg_th1 <= wrdata1;
-    if(wr_en[2]) reg_th2 <= wrdata2;
-    if(wr_en[3]) reg_th3 <= wrdata3;
+    if (~reset_l)
+    begin
+      reg_th0 <= 72'd0;
+      reg_th1 <= 72'd0;
+      reg_th2 <= 72'd0;
+      reg_th3 <= 72'd0;
+    end
+    else
+    begin
+      if(wr_en[0]) reg_th0 <= wrdata0;
+      if(wr_en[1]) reg_th1 <= wrdata1;
+      if(wr_en[2]) reg_th2 <= wrdata2;
+      if(wr_en[3]) reg_th3 <= wrdata3;
+    end
   end
     
 endmodule

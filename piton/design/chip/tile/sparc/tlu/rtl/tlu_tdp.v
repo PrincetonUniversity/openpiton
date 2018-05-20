@@ -3708,7 +3708,7 @@ mux2ds  #(98) trprsel (
 `elsif THREADS_1
 
    assign restore_pc_w2[48:0] = true_pc0[48:0];
-   assign restore_npc_w2[48:0] = true_npc0[48:0]
+   assign restore_npc_w2[48:0] = true_npc0[48:0];
 
 `elsif THREADS_2
 

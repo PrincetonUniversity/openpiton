@@ -71,11 +71,12 @@ module io_ctrl_top (
 
 `ifdef PITONSYS_SPI
     /* SD Card Reader Interface */
-    input                               spi_sys_clk,
-    input                               spi_data_in,
-    output                              spi_clk_out,
-    output                              spi_data_out,
-    output                              spi_cs_n,
+    input                               sd_clk,
+    input                               sd_cd,
+    output                              sd_reset,
+    output                              sd_clk_out,
+    inout                               sd_cmd,
+    inout   [3:0]                       sd_dat,
 `endif // endif PITONSYS_SPI
 
     input                               net_axi_clk,
@@ -157,31 +158,6 @@ wire                            io_converter_r_ready;
 wire [1:0]                      io_converter_b_resp; // width should be C_M_AXI_LITE_RESP_WIDTH
 wire                            io_converter_b_valid;
 wire                            io_converter_b_ready;
-
-wire [`NOC_DATA_WIDTH-1:0]      converter_sd_aw_addr;
-wire                            converter_sd_aw_valid;
-wire                            converter_sd_aw_ready;
-wire [`NOC_DATA_WIDTH-1:0]      converter_sd_w_data;
-wire [`NOC_DATA_WIDTH/8-1:0]    converter_sd_w_strb;
-wire                            converter_sd_w_valid;
-wire                            converter_sd_w_ready;
-wire [`NOC_DATA_WIDTH-1:0]      converter_sd_ar_addr;
-wire                            converter_sd_ar_valid;
-wire                            converter_sd_ar_ready;
-wire [`NOC_DATA_WIDTH-1:0]      sd_converter_r_data;
-wire [1:0]                      sd_converter_r_resp; // width should be C_M_AXI_LITE_RESP_WIDTH
-wire                            sd_converter_r_valid;
-wire                            sd_converter_r_ready;
-wire [1:0]                      sd_converter_b_resp; // width should be C_M_AXI_LITE_RESP_WIDTH
-wire                            sd_converter_b_valid;
-wire                            sd_converter_b_ready;
-
-wire                            wb_ack;
-wire [7:0]                      wb_dat_i;
-wire [7:0]                      wb_adr;
-wire [7:0]                      wb_dat_o;
-wire                            wb_stb;
-wire                            wb_we;
 
 wire net_interrupt;
 wire uart_interrupt;
@@ -365,95 +341,26 @@ net_uart_splitter  net_uart_splitter  (
 `elsif PITONSYS_SPI
 `ifdef PITON_FPGA_SD_BOOT
 
-    /* Bridge between NOCs and SD Card AXI Interface */
-    noc_axilite_bridge_boot noc_sd_bridge (
-        .clk                  (clk                  ),
-        .rst                  (~rst_n               ),
+    /* Bridge between NOCs and SD Card */
+    piton_sd_top piton_sd_top (
+        .sys_clk                (clk),
+        .sd_clk                 (sd_clk),
+        .sys_rst                (~rst_n),
+        
+        .splitter_sd_val        (splitter_boot_val),
+        .splitter_sd_data       (splitter_boot_data),
+        .sd_splitter_rdy        (boot_splitter_rdy),
 
-        .splitter_bridge_val  (splitter_boot_val  ),
-        .splitter_bridge_data (splitter_boot_data ),
-        .bridge_splitter_rdy  (boot_splitter_rdy  ),
+        .sd_splitter_val        (boot_splitter_val),
+        .sd_splitter_data       (boot_splitter_data),
+        .splitter_sd_rdy        (splitter_boot_rdy),
 
-        .bridge_splitter_val  (boot_splitter_val  ),
-        .bridge_splitter_data (boot_splitter_data ),
-        .splitter_bridge_rdy  (splitter_boot_rdy  ),
-
-        .m_axi_awaddr         (converter_sd_aw_addr),
-        .m_axi_awvalid        (converter_sd_aw_valid),
-        .m_axi_awready        (converter_sd_aw_ready),
-
-        .m_axi_wdata          (converter_sd_w_data),
-        .m_axi_wstrb          (converter_sd_w_strb),
-        .m_axi_wvalid         (converter_sd_w_valid),
-        .m_axi_wready         (converter_sd_w_ready),
-
-        .m_axi_araddr         (converter_sd_ar_addr),
-        .m_axi_arvalid        (converter_sd_ar_valid),
-        .m_axi_arready        (converter_sd_ar_ready),
-
-        .m_axi_rdata          (sd_converter_r_data),
-        .m_axi_rresp          (sd_converter_r_resp),
-        .m_axi_rvalid         (sd_converter_r_valid),
-        .m_axi_rready         (sd_converter_r_ready),
-
-        .m_axi_bresp          (sd_converter_b_resp),
-        .m_axi_bvalid         (sd_converter_b_valid),
-        .m_axi_bready         (sd_converter_b_ready)
-    );
-
-    /* Bridge between AXI-Lite and SD Wishbone Controller */
-    axi_sd_bridge axi_sd_bridge (
-        .clk           (clk                     ),
-        .rst           (~rst_n                  ),
-
-        .s_axi_awaddr  (converter_sd_aw_addr),
-        .s_axi_awvalid (converter_sd_aw_valid),
-        .s_axi_awready (converter_sd_aw_ready),
-
-        .s_axi_wdata   (converter_sd_w_data),
-        .s_axi_wstrb   (converter_sd_w_strb),
-        .s_axi_wvalid  (converter_sd_w_valid),
-        .s_axi_wready  (converter_sd_w_ready),
-
-        .s_axi_araddr  (converter_sd_ar_addr),
-        .s_axi_arvalid (converter_sd_ar_valid),
-        .s_axi_arready (converter_sd_ar_ready),
-
-        .s_axi_rdata   (sd_converter_r_data),
-        .s_axi_rresp   (sd_converter_r_resp),
-        .s_axi_rvalid  (sd_converter_r_valid),
-        .s_axi_rready  (sd_converter_r_ready),
-
-        .s_axi_bresp   (sd_converter_b_resp),
-        .s_axi_bvalid  (sd_converter_b_valid),
-        .s_axi_bready  (sd_converter_b_ready),
-
-        .ack_i         (wb_ack),
-        .dat_i         (wb_dat_i),
-        .adr_o         (wb_adr),
-        .dat_o         (wb_dat_o),
-        .stb_o         (wb_stb),
-        .we_o          (wb_we)
-    );
-
-    /* Wishbone Slave to SPI Master for SD Cards */
-    spi_master sd_master (
-        .clk_i        (clk),
-        .rst_i        (~rst_n   ),
-
-        .adr_i        (wb_adr),
-        .dat_i        (wb_dat_o),
-        .stb_i        (wb_stb),
-        .we_i         (wb_we),
-        .ack_o        (wb_ack),
-        .dat_o        (wb_dat_i),
-
-        .spi_sys_clk  (spi_sys_clk),
-        .spi_data_in  (spi_data_in),
-        .spi_clk_out  (spi_clk_out),
-        .spi_data_out (spi_data_out),
-        .spi_cs_n     (spi_cs_n)
-    );
+        .sd_cd                  (sd_cd),
+        .sd_reset               (sd_reset),
+        .sd_clk_out             (sd_clk_out),
+        .sd_cmd                 (sd_cmd),
+        .sd_dat                 (sd_dat)
+        );
 
 `endif
 `else

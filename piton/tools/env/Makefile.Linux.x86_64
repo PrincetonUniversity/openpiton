@@ -12,7 +12,8 @@ CFLAGS = -DLINUX
 
 NC_MAKEFILE = Makefile.nc.lnx86
 
-NCV_CC_OPTS= -g -DLINUX -DLITTLE_ENDIAN 
+NCV_CC_OPTS= -g -DLINUX -DLITTLE_ENDIAN -DNO_VERA
 NCV_LD_OPTS= -shared
-NCV_LD_LIBS= -DLINUX -L${NCV_HOME}/tools/lib -lrh72compat -lsimvis_ext 
+NCV_LD_LIBS= -DLINUX -L${NCV_HOME}/tools/lib/64bit -lsimvis_ext 
 
+ICARUS_CC_OPTS= -D__ICARUS__ -DNO_VERA -DLINUX -DUSE_ACC -I$(ICARUS_ROOT)/include/iverilog

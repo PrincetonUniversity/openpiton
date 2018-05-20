@@ -508,6 +508,33 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_master_wishbone_decoder.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_tx_rx_data.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/status_register_control.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/bistable_domain_cross.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/byte_en_reg.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/edge_detect.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/generic_dpram.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/generic_fifo_dc_gray.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/monostable_domain_cross.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_buffer.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_cache_tag.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_cache_manager.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_core_ctrl.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_define.vh" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_init.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_top.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/piton_sd_transaction_manager.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_clock_divider.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_cmd_master.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_cmd_serial_host.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_controller_wb.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_crc_16.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_crc_7.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_data_master.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_data_serial_host.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_data_xfer_trig.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_defines.h" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_fifo_filler.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sd_wb_sel_ctrl.v" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/sdc_controller.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/valrdy_to_credit.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/credit_to_valrdy.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/common/rtl/network_input_blk_multi_out.v" \
@@ -554,6 +581,8 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_16384x512/bram_16384x512" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_8192x512/bram_8192x512" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_0/mig_7series_0" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_fifo/sd_fifo" \
+    "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_cache_bram/sd_cache_bram" \
     "${DV_ROOT}/design/common/fpga_bridge/common/xilinx/${BOARD}/ip_cores/afifo_w64/afifo_w64" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_rcv/xilinx/${BOARD}/ip_cores/afifo_w3/afifo_w3" \
 ]

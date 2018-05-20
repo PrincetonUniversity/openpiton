@@ -117,12 +117,14 @@ bw_r_irf irf
     .irf_byp_rs3h_data_d_l (irf_byp_rs3h_data_d_l)
     
     `ifndef PITON_PROTO
+    `ifndef CONFIG_NUM_THREADS
     ,
     .core_rtap_data (core_rtap_data),
     .rtap_core_val (rtap_core_val),
     .rtap_core_threadid ({1'bx, rtap_core_threadid}),
     .rtap_core_id (rtap_core_id),
     .rtap_core_data ({89'bx, rtap_core_data}) 
+    `endif
     `endif
 );
 

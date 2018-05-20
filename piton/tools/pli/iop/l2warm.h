@@ -26,6 +26,9 @@
 #define _L2WARM_H_
 #include "global.h"
 #include "list.h"
+#ifdef __ICARUS__
+#include "icarus-compat.h"
+#endif
 
 //macro here.
 #define TAG   12

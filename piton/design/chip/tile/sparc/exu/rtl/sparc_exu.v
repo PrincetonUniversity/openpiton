@@ -92,8 +92,6 @@ input wire [`CORE_JTAG_BUS_WIDTH-1:0] rtap_core_data;
    // input mem_write_disable;
    // wire mux_drive_disable = 0;
    // wire mem_write_disable = 0;
-wire mux_drive_disable = ~grst_l;
-wire mem_write_disable = ~grst_l;
    input short_si0;
    input short_si1;
    input si0;
@@ -482,6 +480,9 @@ wire mem_write_disable = ~grst_l;
    output [7:0]         exu_ifu_err_synd_m;
    wire [1:0]           rml_irf_old_e_cwp_e;
    wire [1:0]           rml_irf_new_e_cwp_e;
+
+wire mux_drive_disable = ~grst_l;
+wire mem_write_disable = ~grst_l;
  
    bw_r_irf_wrap irf(
                 .reset_l (arst_l),

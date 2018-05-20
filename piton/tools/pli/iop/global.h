@@ -122,7 +122,9 @@
 //event type
 #define INT_TYPE 1
 //global define
+#ifndef __ICARUS__
 extern "C" void io_printf(char*, ...);
+#endif
 extern "C" void write_dram_call(long long* addr, ...);
 #define KeyType unsigned long long
 //define event record.

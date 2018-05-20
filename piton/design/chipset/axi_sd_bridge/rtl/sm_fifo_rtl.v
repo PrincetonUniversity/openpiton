@@ -110,17 +110,17 @@ module sm_fifo_rtl
             buffer_out_index <= 0;
             fifo_r_en_delayed <= 1'b0;
         end
-            else begin
-                fifo_r_en_delayed <= fifo_r_en;
-                if (fifo_r_en == 1'b1 && fifo_r_en_delayed == 1'b0) begin
-                    data_out         <= data_from_mem;
-                    buffer_out_index <= buffer_out_index + 1'b1;
-                end
-                if (buffer_in_index_sync_to_rd_clk == buffer_out_index)
-                    fifo_empty <= 1'b1;
-                else
-                    fifo_empty <= 1'b0;
+        else begin
+            fifo_r_en_delayed <= fifo_r_en;
+            if (fifo_r_en == 1'b1 && fifo_r_en_delayed == 1'b0) begin
+                data_out         <= data_from_mem;
+                buffer_out_index <= buffer_out_index + 1'b1;
             end
+            if (buffer_in_index_sync_to_rd_clk == buffer_out_index)
+                fifo_empty <= 1'b1;
+            else
+                fifo_empty <= 1'b0;
+        end
     end
 
 

@@ -25,7 +25,11 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "veriuser.h"
+#ifndef __ICARUS__
 #include "vxl_veriuser.h"
+#else
+#include <vpi_user.h>
+#endif
 
 #ifndef NO_VERA
 #include "vmc_veri_funext.h"
@@ -34,7 +38,11 @@
 char *veriuser_version_str = 
 "=== OpenSPARC T1 PLI Version 1.0 ===\nCopyright (c) 2001-2006 Sun Microsystems, Inc. All rights reserved.\n";
 
+#ifndef __ICARUS__
 int (*endofcompile_routines[TF_MAXARRAY])() =
+#else
+int (*endofcompile_routines[])() =
+#endif
 {
     /*** my_eoc_routine, ***/
     0 /*** final entry must be 0 ***/
@@ -46,6 +54,9 @@ int level; char *facility; char *code;
 printf("OpenSPARC T1 PLI: err_intercept: %d %s %s\n",level,facility,code);
 return(true); 
 }
+
+extern  int read_64b_call();
+extern  int write_64b_call();
 
 extern  int init_jbus_model_call();
 extern  int jbus_snoop_call();
@@ -155,11 +166,20 @@ extern int sjm_get_out_state();
 int Size_32() { return (32); }
 int Size_64() { return (64); }
 
+#ifndef __ICARUS__
 s_tfcell veriusertfs[TF_MAXARRAY] =
+#else
+s_tfcell veriusertfs[] =
+#endif
 {
 
 #ifndef NO_VERA
 #include "vmc_veri_fundef.c" 
+#endif
+
+#ifdef __ICARUS__
+    {usertask, 0, 0, 0, read_64b_call, 0, "$read_64b"},
+    {usertask, 0, 0, 0, write_64b_call, 0, "$write_64b"},
 #endif
 
     {usertask, 0, 0, 0, init_jbus_model_call, 0, "$init_jbus_model"},
@@ -191,6 +211,9 @@ s_tfcell veriusertfs[TF_MAXARRAY] =
     {usertask, 0, 0, 0, mon_event_call, 0, "$mon_event"},
     {userfunction, 0, 0, Size_64, read_dram_call, 0, "$read_dram"},
 
+    {usertask, 0, 0, 0, read_64b_call, 0, "$read_64b"},
+    {usertask, 0, 0, 0, write_64b_call, 0, "$write_64b"},
+
     {userfunction, 0, 0, Size_32, bw_list_call, 0, "$bw_list"},
     {userfunction, 0, 0, Size_32, bw_sas_recv_call, 0, "$bw_sas_recv"},
     {userfunction, 0, 0, Size_32, bw_sas_send_call, 0, "$bw_sas_send"},
@@ -221,6 +244,7 @@ s_tfcell veriusertfs[TF_MAXARRAY] =
     {usertask, 0, 0, 0, jbus_mon_do_finish, 0, "$jbus_mon_finish"},
 #endif
 
+#ifndef __ICARUS__
     {usertask, 0, 0, 0, dispmon, dispmon_misc, "$dispmon"},
     {usertask, 0, 0, 0, writemon, 0, "$writemon"},
     {usertask, 0, 0, 0, initmon, 0, "$initmon"},
@@ -255,6 +279,15 @@ s_tfcell veriusertfs[TF_MAXARRAY] =
     {userfunction, 0, 0, Size_32, sjm_get_outq, 0, "$sjm_get_outq"},
     {userfunction, 0, 0, Size_32, sjm_get_rdrq, 0, "$sjm_get_rdrq"},
     {userfunction, 0, 0, Size_32, sjm_get_out_state, 0, "$sjm_get_out_state"},
+#endif
     {0}
 };
 
+#ifdef __ICARUS__
+static void veriusertfs_register(void)
+{
+    veriusertfs_register_table(veriusertfs);
+}
+
+void (*vlog_startup_routines[])() = { &veriusertfs_register, 0 };
+#endif
