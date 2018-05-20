@@ -30,6 +30,7 @@
 // can be used for other purposes though
 `ifdef PITON_FPGA_SYNTH
     `define PITON_NO_JTAG
+    `define USE_FAKE_IOS
 `endif // endif PITON_FPGA_SYNTH
 
 // If we are doing FPGA prototype,
@@ -47,6 +48,39 @@
     `define PITONSYS_UART
     `define PITONSYS_SPI
 `endif
+
+`ifdef PITON_NOC_POWER_CHIPSET_TEST
+    `define PITONSYS_NO_MC
+    // Oddly this needs to be set, but
+    // no io_ctrl is used, it just
+    // makes it so there are no additional
+    // interface signals to chipset_impl
+    `define PITONSYS_IOCTRL
+// Only for FPGA synthesis
+`ifdef PITON_FPGA_SYNTH
+    `define PITON_CHIPSET_CLKS_GEN
+    `ifdef PITON_ASIC_CHIPSET
+        `define PITON_CLKS_PASSTHRU
+        `define PITONSYS_INC_PASSTHRU
+    `endif
+    `ifdef PITON_BOARD_CHIPSET
+        `define PITON_CLKS_CHIPSET
+    `endif
+    `ifndef PITON_NOC_POWER_CHIPSET_TEST_HOP_COUNT
+        `define PITON_NOC_POWER_CHIPSET_TEST_HOP_COUNT 0
+    `endif // PITON_NOC_POWER_CHIPSET_TEST_HOP_COUNT
+    // Don't actually need UART, but
+    // constraints complain for piton board
+    // fpga synthesis if we don't have it
+    `define PITONSYS_UART
+    // Don't want everything from PITON_ASIC_CHIPSET
+    `undef PITON_ASIC_CHIPSET
+    // Don't want everything from PITON_BOARD_CHIPSET
+    `undef PITON_BOARD_CHIPSET
+    // Don't want SPI
+    `undef PITON_FPGA_SD_BOOT
+`endif // endif PITON_FPGA_SYNTH
+`endif // PITON_NOC_POWER_CHIPSET_TEST
 
 // If we are synthesizing chipset
 // for use with piton ASIC, we need

@@ -26,7 +26,7 @@
 //==================================================================================================
 //  Filename      : ciop_iob.v.xlx.v
 //  Created On    : 2014-05-09
-//  Last Modified : 2016-08-24 22:21:28
+//  Last Modified : 2017-02-23 18:20:19
 //  Revision      :
 //  Author        : Alexey Lavrov
 //  Company       : Princeton University
@@ -36,7 +36,6 @@
 //
 //
 //==================================================================================================
-
 
 module ciop_iob (
     input                               chip_clk,
@@ -48,7 +47,7 @@ module ciop_iob (
     output reg                          noc1_in_rdy,
 
     output                              noc2_out_val,
-    output [`NOC_DATA_WIDTH-1:0]        noc2_out_data,
+    output reg [`NOC_DATA_WIDTH-1:0]        noc2_out_data,
     input                               noc2_out_rdy,
 
     input                               noc2_in_val,
@@ -59,11 +58,12 @@ module ciop_iob (
     output [`NOC_DATA_WIDTH-1:0]        noc3_out_data,
     input                               noc3_out_rdy,
 
-    input                               uart_interrupt  
+    input                               uart_interrupt,
+    input                               net_interrupt
 
 );
 
-parameter OK_IOB_CNT = 10000;   // ? Alexey: taken from simulation
+   parameter OK_IOB_CNT = 10000;   // ? Alexey: taken from simulation
 
 
 wire                    ok_iob;
@@ -87,60 +87,192 @@ wire [63:0]         iob_buffer_flit1;
 wire [63:0]         iob_buffer_flit2;
 reg                 iob_buffer_val;
 reg  [1:0]          flit_cnt;
+reg  [1:0]          net_flit_cnt;
+reg  [1:0]          uart_flit_cnt;
 
 assign iob_buffer_flit1     = 64'h0000_0000_0048_4000;
 assign iob_buffer_flit2     = 64'h0000_0000_0001_0001;
 
-// Hardware interrupt packets (use same first packet as wake up)
+reg                 ok_iob_sent;
+// Ethernet interrupt packets (use same first packet as wake up)
+wire [63:0]         iob_buffer_net_flit2;
+reg                 pending_net_interrupt;
+reg                 net_interrupt_in_prog;
+reg                 prev_net_interrupt;
+reg                 buf_prev_net_int;
+   
+// UART interrupt packets (use same first packet as wake up)
 wire [63:0]         iob_buffer_uart_flit2;
 reg                 pending_uart_interrupt;
-reg                 ok_iob_sent;
+reg                 uart_interrupt_in_prog;
 reg                 prev_uart_interrupt;
+reg                 buf_prev_uart_int;
+   
 
-//0x1f = 31 = VECINTR_DEV
-assign iob_buffer_uart_flit2 = 64'h0000_0000_0001_001f;
-
+//0x1d = 29 = VECINTR_SNET
+assign iob_buffer_net_flit2 = 64'h0000_0000_0000_001d;
+//0x1c = 28 = VECINTR_CONSOLE
+assign iob_buffer_uart_flit2 = 64'h0000_0000_0000_001c;
+   
 always @(posedge fpga_clk) begin
     if (~rst_n) begin
         flit_cnt <= 2'b0;
+        // Ethernet
+        net_flit_cnt <= 2'b0;
+        pending_net_interrupt <= 1'b0;
+        net_interrupt_in_prog <= 1'b0;
+        // UART
+        uart_flit_cnt <= 2'b0;
         pending_uart_interrupt <= 1'b0;
+        uart_interrupt_in_prog <= 1'b0;
     end
     else if (~ok_iob_sent) begin
         flit_cnt <= noc2_out_val & noc2_out_rdy ? flit_cnt + 1 : flit_cnt;
     end 
-`ifdef PITON_UART_INTR 
     else begin
-        if (pending_uart_interrupt) begin
-            flit_cnt <= 2'b0; 
-            pending_uart_interrupt <= 1'b0;
-        end else begin             
-            flit_cnt <= noc2_out_val & noc2_out_rdy ? flit_cnt + 1 : flit_cnt;
-        end 
-        if (!pending_uart_interrupt & !prev_uart_interrupt & uart_interrupt)
-            pending_uart_interrupt <= 1'b1;
-    end
+        flit_cnt <= flit_cnt;
+`ifdef PITON_FPGA_ETHERNETLITE
+        if (pending_net_interrupt & ~uart_interrupt_in_prog) begin
+            net_flit_cnt <= 2'b0; 
+            pending_net_interrupt <= 1'b0;
+            net_interrupt_in_prog <= 1'b1;
+        end
+        else if (!buf_prev_net_int & net_interrupt) begin
+            pending_net_interrupt <= 1'b1;
+        end
+        else if (net_interrupt_in_prog & (net_flit_cnt < FLIT_TO_SEND)) begin             
+            net_flit_cnt <= noc2_out_val & noc2_out_rdy ? net_flit_cnt + 1 : net_flit_cnt;
+        end else if (net_interrupt_in_prog & (net_flit_cnt == FLIT_TO_SEND)) begin
+            net_interrupt_in_prog <= 1'b0;
+        end     
 `endif
+`ifdef PITON_UART_INTR
+        if (pending_uart_interrupt & ~net_interrupt_in_prog) begin
+            uart_flit_cnt <= 2'b0; 
+            pending_uart_interrupt <= 1'b0;
+            uart_interrupt_in_prog <= 1'b1;
+        end
+        else if (!buf_prev_uart_int & uart_interrupt) begin
+            pending_uart_interrupt <= 1'b1;
+        end
+        else if (uart_interrupt_in_prog & (uart_flit_cnt < FLIT_TO_SEND)) begin             
+            uart_flit_cnt <= noc2_out_val & noc2_out_rdy ? uart_flit_cnt + 1 : uart_flit_cnt;
+        end else if (uart_interrupt_in_prog & (uart_flit_cnt == FLIT_TO_SEND)) begin
+            uart_interrupt_in_prog <= 1'b0;
+        end     
+`endif
+    end
 end
 
-always @(posedge fpga_clk)
-    prev_uart_interrupt <= uart_interrupt;
+   
+always @(posedge fpga_clk) begin
+    if (~rst_n) begin
+       prev_net_interrupt <= 1'b0;
+       buf_prev_net_int <= 1'b0;
+       prev_uart_interrupt <= 1'b0;
+       buf_prev_uart_int <= 1'b0;
+    end
+    else begin
+       prev_net_interrupt <= net_interrupt;
+       buf_prev_net_int <= prev_net_interrupt;
+       prev_uart_interrupt <= uart_interrupt;
+       buf_prev_uart_int <= prev_uart_interrupt;
+    end
+end
 
 always @(posedge fpga_clk)
     iob_buffer_val <= ok_iob;
 
-assign noc2_out_val = iob_buffer_val & (flit_cnt < FLIT_TO_SEND);
+assign noc2_out_val = iob_buffer_val & (((flit_cnt < FLIT_TO_SEND) && !ok_iob_sent)
+`ifdef PITON_FPGA_ETHERNETLITE
+                    || (ok_iob_sent & net_interrupt_in_prog & (net_flit_cnt < FLIT_TO_SEND))
+`endif
+`ifdef PITON_UART_INTR
+                    || (ok_iob_sent & uart_interrupt_in_prog & (uart_flit_cnt < FLIT_TO_SEND))
+`endif
+                    );
 
-assign noc2_out_data = flit_cnt == 2'b0 ? iob_buffer_flit1 : 
-                       flit_cnt == 2'b1 ? 
-                           (ok_iob_sent == 1'b0 ? iob_buffer_flit2 : iob_buffer_uart_flit2) 
-                           : {`NOC_DATA_WIDTH{1'b0}};
+always @(*) begin
+    if (!ok_iob_sent) begin
+        if(flit_cnt == 2'b0) begin
+            noc2_out_data = iob_buffer_flit1;
+        end else if (flit_cnt == 2'b1) begin
+            noc2_out_data = iob_buffer_flit2;
+        end 
+        else begin
+            noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+        end
+    end 
+    else begin
+`ifdef PITON_FPGA_ETHERNETLITE
+        if (net_interrupt_in_prog) begin
+            if(net_flit_cnt == 2'b0) begin
+                noc2_out_data = iob_buffer_flit1;
+            end else if (net_flit_cnt == 2'b1) begin
+                noc2_out_data = iob_buffer_net_flit2;
+            end
+            else begin
+                noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+            end
+        end
+`ifndef PITON_UART_INTR
+        else begin
+            noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+        end
+`endif
+`endif
+
+`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_UART_INTR
+    // Make the uart_ one an else if in the case they're both defined
+        else
+`endif
+`endif
+
+`ifdef PITON_UART_INTR
+        if (uart_interrupt_in_prog) begin
+            if(uart_flit_cnt == 2'b0) begin
+                noc2_out_data = iob_buffer_flit1;
+            end else if (uart_flit_cnt == 2'b1) begin
+                noc2_out_data = iob_buffer_uart_flit2;
+            end
+            else begin
+                noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+            end
+        end
+`ifndef PITON_FPGA_ETHERNETLITE
+        else begin
+            noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+        end
+`endif
+`endif
+
+`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_UART_INTR
+        else begin
+            noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+        end
+`endif
+`endif
+
+`ifndef PITON_FPGA_ETHERNETLITE
+`ifndef PITON_UART_INTR
+        noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+`endif
+`endif
+    end
+end
 
 // Note when ok_iob finishes sending both packets
-always @(posedge fpga_clk)
-    if (~rst_n)
+// ok_iob_sent could technically be a wire fed by flit_cnt?
+always @(posedge fpga_clk) begin
+    if (~rst_n) begin
         ok_iob_sent <= 1'b0;
-    else
-        ok_iob_sent <= (flit_cnt == FLIT_TO_SEND) ? ok_iob_sent + 1 : ok_iob_sent;
+    end
+    else if (flit_cnt == FLIT_TO_SEND) begin
+       ok_iob_sent <= 1'b1;
+    end
+end
 
 // noc data out is sent on chip_clk
 

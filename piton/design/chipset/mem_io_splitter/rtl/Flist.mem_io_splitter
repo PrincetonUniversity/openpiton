@@ -28,3 +28,4 @@
 mem_io_splitter.v
 uart_boot_splitter.v
 iob_splitter.v
+net_uart_splitter.v

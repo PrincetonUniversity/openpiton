@@ -51,9 +51,7 @@
 `define FPGA_SYN_SCM
 `endif
 
-`ifndef NO_USE_IBM_SRAMS
-`define FPGA_SYN_SCM // use FPGA synthesis for now
-`endif
+`define FPGA_SYN_SCM // always use FPGA synthesis
 
 module bw_r_scm (/*AUTOARG*/
    // Outputs

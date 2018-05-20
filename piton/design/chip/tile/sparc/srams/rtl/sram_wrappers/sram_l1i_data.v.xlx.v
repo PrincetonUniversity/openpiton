@@ -40,7 +40,7 @@ input wire RESET_N,
 input wire CE,
 input wire [`IC_SET_IDX_HI+1:0] A,
 input wire RDWEN,
-input wire [271:0] BW,
+input wire [271:0] BW,  // magic number?
 input wire [271:0] DIN,
 output wire [271:0] DOUT,
 
@@ -50,23 +50,15 @@ output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
 
-
-sink #(`BIST_OP_WIDTH) s0(.in (BIST_COMMAND));
-sink #(`SRAM_WRAPPER_BUS_WIDTH) s1(.in (BIST_DIN));
-sink #(`BIST_ID_WIDTH) s2(.in (SRAMID));
-sink #(1) s3(.in (RESET_N));
-always @ *
-begin
-   BIST_DOUT = 0;
-end
-
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-bram_sdp_256x272_wrapper #(
-   .ADDR_WIDTH    ((`IC_SET_IDX_HI+2)),
-   .BITMASK_WIDTH (272        ),
-   .DATA_WIDTH    (272        )
+bram_sdp_wrapper #(
+   .NAME          ("l1i_data"          ),
+   .DEPTH         (`IC_SET_COUNT*2     ),
+   .ADDR_WIDTH    (`IC_SET_IDX_HI+2    ),
+   .BITMASK_WIDTH (272                 ),
+   .DATA_WIDTH    (272                 )
 )   bram_wrapper (
    .MEMCLK        (MEMCLK     ),
    .CE            (CE         ),

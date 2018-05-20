@@ -32,7 +32,7 @@ input wire RESET_N,
 input wire CE,
 input wire [`IC_SET_IDX_HI:0] A,
 input wire RDWEN,
-input wire [131:0] BW,
+input wire [131:0] BW,  // magic number?
 input wire [131:0] DIN,
 output wire [131:0] DOUT,
 
@@ -42,127 +42,24 @@ output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
 
-
-sink #(`BIST_OP_WIDTH) s0(.in (BIST_COMMAND));
-sink #(`SRAM_WRAPPER_BUS_WIDTH) s1(.in (BIST_DIN));
-sink #(`BIST_ID_WIDTH) s2(.in (SRAMID));
-sink #(1) s3(.in (RESET_N));
-always @ *
-begin
-   BIST_DOUT = 0;
-end
-
-wire           write_en;
-wire           read_en;
-wire  [19:0]   wen_mask;
-wire  [159:0]  data_in;
-wire  [159:0]  data_out;
-
-
-assign write_en   = CE & (RDWEN == 1'b0);
-assign read_en    = CE & (RDWEN == 1'b1);
-assign wen_mask   = {{5{BW[99]}},{5{BW[66]}},{5{BW[33]}},{5{BW[0]}}};
-assign data_in    = {7'b0,DIN[131:99],7'b0,DIN[98:66],7'b0,DIN[65:33],7'b0,DIN[32:0]};
-assign DOUT       = {data_out[152:120],data_out[112:80],data_out[72:40],data_out[32:0]};
-
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-
-`ifdef L1I_8KB_4WAY
-`ifdef VIRTEX6_BOARD
-bram_64x160 mem (
-   .clka    (MEMCLK     ),
-   .ena     (write_en   ),
-   .wea     (wen_mask   ),
-   .addra   (A          ),
-   .dina    (data_in    ),
-   
-   .clkb    (MEMCLK     ),
-   .enb     (read_en    ),
-   .addrb   (A          ),
-   .doutb   (data_out   )
+bram_sdp_wrapper #(
+   .NAME          ("l1i_tag"           ),
+   .DEPTH         (`IC_SET_COUNT       ),
+   .ADDR_WIDTH    (`IC_SET_IDX_HI+1    ),
+   .BITMASK_WIDTH (132                 ),
+   .DATA_WIDTH    (132                 )
+)   bram_wrapper (
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
 );
-`elsif ARTIX7_BOARD
-// trin: 64 and 256 configurations don't work with artix7 for now
-// 1/14/16
-artix7_bram_64x160 mem (
-   .BRAM_PORTA_clk    (MEMCLK     ),
-   .BRAM_PORTA_en     (write_en   ),
-   .BRAM_PORTA_we     (wen_mask   ),
-   .BRAM_PORTA_addr   (A          ),
-   .BRAM_PORTA_din    (data_in    ),
-   
-   .BRAM_PORTB_clk    (MEMCLK     ),
-   .BRAM_PORTB_en     (read_en    ),
-   .BRAM_PORTB_addr   (A          ),
-   .BRAM_PORTB_dout   (data_out   )
-);
-`endif
-`endif // L1I_8KB_4WAY
-
-`ifdef L1I_16KB_4WAY
-`ifdef VIRTEX6_BOARD
-bram_128x160 mem (
-   .clka    (MEMCLK     ),
-   .ena     (write_en   ),
-   .wea     (wen_mask   ),
-   .addra   (A          ),
-   .dina    (data_in    ),
-   
-   .clkb    (MEMCLK     ),
-   .enb     (read_en    ),
-   .addrb   (A          ),
-   .doutb   (data_out   )
-);
-`elsif ARTIX7_BOARD
-artix7_bram_128x160 mem (
-   .BRAM_PORTA_clk    (MEMCLK     ),
-   .BRAM_PORTA_en     (write_en   ),
-   .BRAM_PORTA_we     (wen_mask   ),
-   .BRAM_PORTA_addr   (A          ),
-   .BRAM_PORTA_din    (data_in    ),
-   
-   .BRAM_PORTB_clk    (MEMCLK     ),
-   .BRAM_PORTB_en     (read_en    ),
-   .BRAM_PORTB_addr   (A          ),
-   .BRAM_PORTB_dout   (data_out   )
-);
-`endif
-`endif // L1I_16KB_4WAY
-
-`ifdef L1I_32KB_4WAY
-`ifdef VIRTEX6_BOARD
-bram_256x160 mem (
-   .clka    (MEMCLK     ),
-   .ena     (write_en   ),
-   .wea     (wen_mask   ),
-   .addra   (A          ),
-   .dina    (data_in    ),
-   
-   .clkb    (MEMCLK     ),
-   .enb     (read_en    ),
-   .addrb   (A          ),
-   .doutb   (data_out   )
-);
-`elsif ARTIX7_BOARD
-// trin: 64 and 256 configurations don't work with artix7 for now
-// 1/14/16
-artix7_bram_256x160 mem (
-   .BRAM_PORTA_clk    (MEMCLK     ),
-   .BRAM_PORTA_en     (write_en   ),
-   .BRAM_PORTA_we     (wen_mask   ),
-   .BRAM_PORTA_addr   (A          ),
-   .BRAM_PORTA_din    (data_in    ),
-   
-   .BRAM_PORTB_clk    (MEMCLK     ),
-   .BRAM_PORTB_en     (read_en    ),
-   .BRAM_PORTB_addr   (A          ),
-   .BRAM_PORTB_dout   (data_out   )
-);
-`endif
-`endif // L1I_32KB_4WAY
-
 
 
 endmodule

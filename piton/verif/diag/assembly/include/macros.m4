@@ -239,7 +239,7 @@ foreachbit([i], 128, M4_thread_mask_minus_lsb, [
 #ifndef CIOP
 	nop	! $EV trig_pc_d(1,expr(@VA(.RED_EXT_SEC.[[$1_]]eval(i)) + (4*((THREAD_START_X * i) % THREAD_START_Y)), 16, 16)) -> intp(eval(i,16), 1, 1)
 #else
-    mov eval(i,16)[[`,']] %g1
+    mov eval(i,10)[[`,']] %g1
 #ifdef PORTABLE_CORE
 	add	%g1[[`,']] %l1[[`,']] %g1
 #endif

@@ -1,0 +1,656 @@
+#!/usr/bin/python
+# Copyright (c) 2015 Princeton University
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#####################################################################
+#  Filename      : protosyn.py
+#  Version       : 2.5
+#  Created On    : 2014-05-10
+#  Author        : Alexey Lavrov
+#  Company       : Princeton University
+#  Email         : openpiton@princeton.edu
+#
+#  Description   : top level script for Piton synthesis flow
+#
+#####################################################################
+
+import os, sys, re, make_mem_map, subprocess, stat, time
+import image2stream as i2s
+from optparse import OptionParser
+from fpga_lib import *
+from dbg import *
+
+DV_ROOT = os.environ['DV_ROOT']
+MODEL_DIR = os.environ['MODEL_DIR']
+DESIGN_BLOCK_LIST = os.path.join(DV_ROOT, "tools/src/proto/block.list")
+BOARD_TOOL_LIST = os.path.join(DV_ROOT, "tools/src/proto/board.list")
+
+FLOW_STEP_OPTIONS = ["project", "impl"]
+
+def usage():
+    print >> sys.stderr
+    print >> sys.stderr, "Usage:\nprotosyn -b <board_type> [-d <design>] [--bram-test <test_name>]",
+    print >> sys.stderr, "[--from <FPGA flow step>] [--to <FPGA flow step>] [--no-ddr] [--uart-dmw ddr] [--eth] [--oled <string>]"
+    print >> sys.stderr
+    print >> sys.stderr, "       -b, --board  <board_type>"
+    print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
+    print >> sys.stderr, "                  vc707"
+    print >> sys.stderr, "                  genesys2"
+    print >> sys.stderr, "                  nexysVideo"
+    print >> sys.stderr, "\n       -d, --design <design>"
+    print >> sys.stderr, "              Name of design module to synthesize.  The default is 'system', which"
+    print >> sys.stderr, "              synthesizes a full system with chip and chipset. See"
+    print >> sys.stderr, "              $DV_ROOT/tools/src/proto/block.list for supported design modules"
+    print >> sys.stderr, "\n       --bram-test <test_name>"
+    print >> sys.stderr, "              Name of the test to be mapped into BRAM"
+    print >> sys.stderr, "\n       --no-ddr"
+    print >> sys.stderr, "              Implement design without DDR memory"
+    print >> sys.stderr, "\n       --eth"
+    print >> sys.stderr, "              Add Ethernet controller to implementation"
+    print >> sys.stderr, "\n       --uart-dmw <storage type>"
+    print >> sys.stderr, "              Implement design with Direct Memory Write (DMW) from UART module turned on."
+    print >> sys.stderr, "              Storage type: \"ddr\""
+    print >> sys.stderr, "\n       --asic-rtl"
+    print >> sys.stderr, "              Implement design with ASIC RTL."
+    print >> sys.stderr, "\n       --chip-bridge"
+    print >> sys.stderr, "              Implement full system including the chip bridge"
+    print >> sys.stderr, "\n       --inc-passthru"
+    print >> sys.stderr, "              Include passthru between chip and chipset (requires --chip-bridge)"
+    print >> sys.stderr, "\n       --passthru-dec"
+    print >> sys.stderr, "              Use decode version of passthru (requires --inc-passthru if design"
+    print >> sys.stderr, "              is not 'passthru' or 'passthru_loopback')"
+    print >> sys.stderr, "\n       --passthru-dec-uart-pkttrace"
+    print >> sys.stderr, "              Dumps packet trace seen by decode version of passthrough to UART"
+    print >> sys.stderr, "              for debugging (requires --passthru-dec)"
+    print >> sys.stderr, "\n       --define <comma separated list of defines>"
+    print >> sys.stderr, "              Comma separated list of custom Verilog macro defines"
+    print >> sys.stderr, "\n       --make-mem-map"
+    print >> sys.stderr, "              Create a mapping of test specified by --bram-test option to a BRAM"
+    print >> sys.stderr, "\n       --from <step>"
+    print >> sys.stderr, "              Start FPGA flow from a specified step. Available options are:"
+    print >> sys.stderr, "                  project"
+    print >> sys.stderr, "                  impl"
+    print >> sys.stderr, "\n       --to  <step>"
+    print >> sys.stderr, "              Run FPGA flow to a specified step (including). Available options are:"
+    print >> sys.stderr, "                  project"
+    print >> sys.stderr, "                  impl"
+    print >> sys.stderr, "\n       --oled <string>"
+    print >> sys.stderr, "\n            String to be displayed on OLED display."
+    print >> sys.stderr, "\n            (Genesys2 and nexysVideo boards only"
+    print >> sys.stderr, "\n       --slurm"
+    print >> sys.stderr, "              Run steps of flow using SLURM job scheduler"
+    print >> sys.stderr, "\n       -h, --help"
+    print >> sys.stderr, "              Display this help message and exit"
+    print >> sys.stderr, "\n"
+
+def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
+    # Write slurm batch file
+    slurm_file = jname + ".slurm"
+    fp = open(slurm_file, "w")
+    fp.write("#!/bin/sh\n")
+    fp.write("#SBATCH -N 1                          # nodes=1\n")
+    fp.write("#SBATCH --ntasks-per-node=%d          # ppn=%d\n" % (tpn, tpn))
+    fp.write("#SBATCH --mem=%d                      # mem=%dMB\n" % (mem_mb, mem_mb))
+    fp.write("#SBATCH -t %s                         # walltime=%s\n" % (time_str, time_str))
+    fp.write("#SBATCH -J %s                         # jobname=%s\n\n" % (jname, jname))
+    
+    fp.write(' '.join(cmd) + " > " + log)
+
+    fp.close()
+    os.chmod(slurm_file, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+    
+    # Submit job, retrying on fails
+    slurm_cmd = ["sbatch"]
+    if dep_list != None and len(dep_list) > 0:
+        slurm_cmd.append("--dependency=afterok:" + ':'.join(dep_list))
+    slurm_cmd.append(slurm_file)
+    proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    while proc.returncode != 0:
+        print "Submit failed, retrying in 30 seconds..."
+        time.sleep(30)
+        print "Retrying..."
+        proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+
+    # Get job ID and return for dependencies
+    match = re.match("Submitted batch job (\d+)\n", out)
+    if match:
+        print "Submitted batch job %s" % match.group(1)
+        return match.group(1)
+    else:
+        print "Error submitting batch job."
+        return None
+
+def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
+    # Variables passed to TCL scripts
+    os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
+    os.environ['PROTOSYN_RUNTIME_BOARD'] = board
+
+    cmd = ["vivado", "-mode", "batch", "-source", script]
+    if slurm:
+        return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
+    else:
+        flog = open(log, "w")
+        subprocess.call(cmd, stdout=flog)
+        flog.close()
+        return None
+
+def run_ise(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
+    # Variables passed to TCL scripts
+    os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
+    os.environ['PROTOSYN_RUNTIME_BOARD'] = board
+
+    cmd = ["xtclsh", script]
+    if slurm:
+        return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
+    else:
+        flog = open(log, "w")
+        subprocess.call(cmd, stdout=flog, stderr=flog)
+        flog.close()
+        return None 
+
+def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
+    prev_dir = os.getcwd()
+
+    os.chdir(work_dir)
+
+    tool = find_board_tool(board)
+
+    #os.system('cp -r $DV_ROOT/tools/src/proto/%s/* .' % board)
+    #os.system('cp -r -n $DV_ROOT/tools/src/proto/common/* .')
+    print_info("Creating project for design '%s' on board '%s'" % (design_data["ID"],board))
+    proj_script = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/gen_project.tcl")
+    proj_log = os.path.join(log_dir, "make_project.log")
+    jname = "protosyn_mkproj_%s_%s" % (board, design_data["ID"])
+    jid = None
+    if (tool == "vivado"):
+        jid = run_vivado(proj_log, proj_script, design_data["PATH"], board, \
+                         slurm, 1, 4096, "1:00:00", jname, dep_list)
+    elif (tool == "ise") :
+        jid = run_ise(proj_log, proj_script, design_data["PATH"], board, \
+                      slurm, 1, 4096, "1:00:00", jname, dep_list)
+
+    os.chdir(prev_dir)
+
+    return jid
+
+def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
+    prev_dir = os.getcwd()
+
+    os.chdir(work_dir)
+    #f = open("flow", "w")
+    #print >> f, "open_project %s_piton.xpr" % board
+    #print >> sys.stderr, "Using next defines:"
+    #all_def = ' '.join(DEFAULT_DEFINES) + ' ' + ' '.join(def_list)
+    #print >> sys.stderr, all_def
+    #print >> f, "set_property verilog_define \"%s\" [get_fileset sources_1]" % all_def
+    ## dealing with Vivado case, when it locks IPs as old ones
+    #print >> f, "upgrade_ip [get_ips -all]"
+    #print >> f, "close_project"
+    ## extra open/close to make Vivado use defines for a project,
+    ## not only for synthesis
+    #print >> f, "open_project %s_piton.xpr" % board
+    #print >> f, "launch_run impl_1 -to_step write_bitstream"
+    #f.close()
+
+    # Generate additional defines file that will be sourced in tcl script
+    f = open("additional_defines.tcl", "w")
+    print >> f, "set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list)
+    f.close()
+
+    tool = find_board_tool(board)
+
+    #dname = board + "_piton"
+    #os.chdir(dname)
+    print_info("Running FPGA implementation down to bitstream generation")
+    design_board_dir = os.path.join(design_data["PATH"], board)
+    impl_log = os.path.join(log_dir, "implementation.log")
+    impl_flow = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/impl_flow.tcl")
+    jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
+    jid = None
+    if (tool == "vivado"):
+        jid = run_vivado(impl_log, impl_flow, design_data["PATH"], board, \
+                         slurm, 8, 64000, "6:00:00", jname, dep_list)
+    elif (tool == "ise"):
+        jid = run_ise(impl_log, impl_flow, design_data["PATH"], board, \
+                      slurm, 8, 64000, "6:00:00", jname, dep_list)
+
+    os.chdir(prev_dir)
+
+    return jid
+
+def check_timing(board, design):
+    board_design = board + "_" + design
+    rpt_name = design + "_timing_summary_routed.rpt"
+    fname = os.path.join(MODEL_DIR, board, design, board_design, board_design + ".runs",
+                         "impl_1", rpt_name)
+    try:
+        fin = open(fname, 'r')
+    except:
+        print_warning("Can't open timing report: %s" % fname)
+        return
+
+    found_status = False
+    for l in fin:
+        # Search for failed timing
+        m = re.search("Timing constraints are not met", l)
+        if m != None:
+            print_warning("Implemented design has timing violations!")
+            print_warning("Check %s to see failing paths" % fname)
+            found_status = True
+            break
+        # Search for met timing
+        m = re.search("timing constraints are met", l)
+        if m != None:
+            print_info("All timing constraints are met!")
+            found_status = True
+            break
+
+    fin.close()
+
+    if not found_status:
+        print_warning("Have not found timing status in %s" % fname)
+
+
+def find_board_tool(board):
+    fp = open(BOARD_TOOL_LIST, 'r')
+    for line in fp:
+        # Check for comments
+        if not re.match('\s*#.*', line) :
+            # Process board line
+            line_split = line.split()
+            if line_split[0] == board:
+                fp.close()
+                return line_split[1]
+    fp.close()
+
+    return None
+
+def checkCmdOptions(options):
+    if (options.help):
+        usage()
+        exit(0)
+
+    # Check if design is specified 
+    # (It has a default value so always should be)
+    if (options.design == None):
+        print_error("Invalid parameters")
+        usage()
+        exit(2)
+
+    # Check if design module is found
+    design_data = find_design_block(options.design)
+    if (design_data == None):
+        print_error("Could not find design module '" + options.design + "'")
+        usage()
+        exit(2)
+
+    # Check if board name is provided
+    if (options.board == None):
+        print_error("Invalid parameters")
+        usage()
+        exit(2)
+
+    # Check if board is supported
+    if (options.board not in design_data["BOARDS"]):
+        print_error("Unsupported board")
+        usage()
+        exit(2) 
+
+    # Check board exists in board list
+    if (find_board_tool(options.board) == None):
+        print_error("Board not specified in board.list")
+        usage()
+        exit(2)
+
+    # Check if FPGA steps are valid (if provided)
+    if (options.from_step != None):
+        if (options.from_step not in FLOW_STEP_OPTIONS):
+            print_error("%s is not a valid FPGA flow step" % options.from_step)
+            usage()
+            exit(2)
+
+    if (options.to_step != None):
+        if (options.to_step not in FLOW_STEP_OPTIONS):
+            print_error("%s is not a valid FPGA flow step" % options.to_step);
+            usage()
+            exit(2)
+
+    if (options.inc_passthru and (not options.chip_bridge)):
+        print_error("Conflicting options")
+        usage()
+        exit(2)
+
+    if (options.passthru_dec and ((not options.inc_passthru) and options.design != "passthru" and options.design != "passthru_loopback")):
+        print_error("Conflicting options")
+        usage()
+        exit(2)
+
+    if (options.passthru_dec_uart_pkttrace and not options.passthru_dec):
+        print_error("Conflicting options")
+        usage()
+        exit(2)
+
+    if (options.make_mem_map and (options.test_name == None)):
+        print_error("Test name is required to make a mapping to a BRAM")
+        usage()
+        exit(2)
+
+    if options.uart_dmw not in ["bram", "ddr", None]:
+        print_error("Unexpected storage type")
+        usage()
+        exit(2)
+
+    return design_data
+
+def setParserOptions(parser):
+    parser.add_option("-b", "--board", dest="board", action="store")
+    parser.add_option("-d", "--design", dest="design", action="store", default="system")
+    parser.add_option("--bram-test", dest="test_name", action="store")
+    parser.add_option("--from", dest="from_step", action="store", default=None)
+    parser.add_option("--to", dest="to_step", action="store", default=None)
+    parser.add_option("--no-ddr", dest="no_ddr", action="store_true", default=False)
+    parser.add_option("--eth", dest="eth", action="store_true", default=False)
+    parser.add_option("--uart-dmw", dest="uart_dmw", action="store", default=None)
+    parser.add_option("--asic-rtl", dest="asic_rtl", action="store_true", default=False)
+    parser.add_option("--chip-bridge", dest="chip_bridge", action="store_true", default=False)
+    parser.add_option("--inc-passthru", dest="inc_passthru", action="store_true", default=False)
+    parser.add_option("--passthru-dec", dest="passthru_dec", action="store_true", default=False)
+    parser.add_option("--passthru-dec-uart-pkttrace", dest="passthru_dec_uart_pkttrace", action="store_true", default=False)
+    parser.add_option("--define", dest="define", action="store", default=None)
+    parser.add_option("--oled", dest="oled", action="store")
+    parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
+    parser.add_option("--gen-test-bram", dest="gen_test_bram", action="store_true", default=False)  # depricated ?
+    parser.add_option("--make-mem-map", dest="make_mem_map", action="store_true", default=False)
+    parser.add_option("--slurm", dest="slurm", action="store_true", default=False)
+
+    return parser
+
+def makeDefList(options):
+    defines = list()
+
+    #df = options.board.upper() + "_BOARD"
+    #defines.append(df)
+
+    # --no-ddr option
+    if (options.no_ddr == True) or (options.board == "piton_board"):
+        defines.append("PITONSYS_NO_MC")
+    else:   # default option
+        defines.append("PITON_FPGA_MC_DDR3")
+
+    # do not use SD controller if BRAM is used for boot or a test
+    if (options.test_name != None) or (options.board == "piton_board"):
+        pass
+    else:   # default option
+        defines.append("PITON_FPGA_SD_BOOT")
+
+    # --bram-test option
+    if options.test_name != None:
+        defines.append("PITON_FPGA_BRAM_TEST")
+        defines.append("PITONSYS_NO_MC")
+
+    # --uart-dmw option
+    if options.uart_dmw == "ddr":
+        defines.append("PITONSYS_UART_BOOT")
+    elif options.uart_dmw == "bram":
+        defines.append("PITONSYS_UART_BOOT")
+        defines.append("PITON_FPGA_BRAM_TEST")
+
+    # --asic-rtl option
+    if options.asic_rtl == True:
+        defines.append("PITON_ASIC_RTL")
+
+    # --chip-bridge option
+    if (options.board == "piton_board") and (options.design == "chipset"):
+        pass
+    # chip-bridge is used for chipset by default
+    elif options.chip_bridge == False and options.design != "chipset":
+        defines.append("PITON_NO_CHIP_BRIDGE")
+
+    # --inc-passthru option
+    if options.inc_passthru == True:
+        defines.append("PITONSYS_INC_PASSTHRU")
+
+    # --passthru-dec option
+    if options.passthru_dec == True:
+        defines.append("PITON_PASSTHRU_DEC")
+
+    # --passthru-dec-uart-pkttrace option
+    if options.passthru_dec_uart_pkttrace == True:
+        defines.append("PITON_PASSTHRU_DEC_UART_PKTTRACE")
+
+    if options.design == "passthru" or options.design == "passthru_loopback" or \
+        options.design == "chip_bridge_test_chip":
+        defines.append("PITONSYS_PASSTHRU_TOP")
+
+    if options.design == "chipset":
+        defines.append("PITONSYS_CHIPSET_TOP")
+
+    # Custom defines
+    if options.define != None:
+        defines.extend(options.define.split(","))
+
+    # Specific options for chipset implementations on piton_board:
+    if options.design == "chipset":
+        if options.board == "piton_board":
+            defines.append("PITON_BOARD_CHIPSET")
+        else:
+            defines.append("PITON_ASIC_CHIPSET")
+
+    # Define for  UART16550 required (so for all except Piton Board)
+    if options.board != "piton_board":
+        defines.append("PITON_UART16550")
+
+    # --eth CL options is default for chipset
+    if options.eth or options.design == "chipset" or options.design == "system":
+        # Ethernet controller is supported on Genesys2 and nexysVideo only
+        if options.board == "genesys2" or options.board == "nexysVideo":
+            defines.append("PITON_FPGA_ETHERNETLITE")
+        else:
+            print_warning("--eth option is ignored for %s" % options.board)
+
+    # --oled option for String on a display
+    if options.oled != None:
+        if options.board == "genesys2" or options.board == "nexysVideo":
+            if len(options.oled) > OLED_STRING_LEN:
+                disp_string = options.oled[0:64]
+                # strip is important. Vivado fails if there is whitespace at the end
+                disp_string = disp_string.strip()
+                print_warning("\"%s\" is too long string for OLED. \
+                                Cutting down to \"%s\"" % (options.oled, disp_string))
+            else:
+                # strip is important. Vivado fails if there is whitespace at the end
+                disp_string = options.oled.strip()
+            defines.append("{OLED_STRING=\\\"%s\\\"}" % disp_string)
+        else:
+            print_warning("--oled option is ignored for %s" % options.board)
+    elif options.design == "chipset" and (options.board == "genesys2" or options.board == "nexysVideo"):
+        disp_string = "Heeey!          I am a chipset  for (Open)Piton Enjoy debugging!"
+        defines.append("{OLED_STRING=\\\"%s\\\"}" % disp_string)
+
+    return defines
+
+def makeMemMapping(st_brd, work_dir, log_dir):
+    prev_dir = os.getcwd()
+
+    os.chdir(work_dir)
+    print_info("Starting mapping of a test to %s" % st_brd.storage.upper())
+    make_mem_map.makeMapping(st_brd)
+    # These are always in MODEL_DIR
+    os.chdir(MODEL_DIR)
+
+    test_proto_dir = os.path.join(DV_ROOT, "design/chipset/io_ctrl/xilinx/common/ip_cores/bram_256x512/")
+    os.system('mv test_proto.coe %s' % test_proto_dir)
+    bram_map_dir = os.path.join(DV_ROOT, "design/chipset/rtl/")
+    os.system('mv storage_addr_trans.v %s' % bram_map_dir)
+    # These are always in work_dir
+    os.chdir(work_dir)
+    print_info("Creating UART stream for a test...")
+    i2s.makeStreamFile("bram_map.log")
+    os.system('mv make_mem_map.log %s' % log_dir)
+    os.system('mv bram_map.log %s' % log_dir)
+
+    os.chdir(prev_dir)
+
+def genUARTInit(board, design_data):
+    print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][board]["FREQ"])
+    div = calcUARTLatch(design_data, board)
+    path = os.path.join(DV_ROOT, "design/chipset/io_ctrl/xilinx/")
+    path = os.path.join(path, board, "ip_cores/atg_uart_init/uart_data.coe")
+    f = open(path, 'w')
+    print >> f, "memory_initialization_radix=16;"
+    print >> f, """memory_initialization_vector=00000080 %08x 00000000 00000003 00000003 00000000 \
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000;""" % div
+    f.close()
+
+def main():
+    parser = OptionParser(add_help_option=False)
+    parser = setParserOptions(parser)
+    (options, args) = parser.parse_args()
+
+    design_data = checkCmdOptions(options)
+
+    ###################################################
+    # All options are considered valid from this point
+    ###################################################
+
+    board_dir = os.path.join(MODEL_DIR, options.board)
+    work_dir = os.path.join(board_dir, design_data["ID"])
+    log_dir = os.path.join(work_dir, 'protosyn_logs/')
+
+    # Make a list of configuration specific defines
+    defines = makeDefList(options)
+
+    run_sim                 = False
+    run_map_test            = False
+    run_make_project        = True
+    run_fpga_impl           = True
+    run_gen_test_bram       = False
+
+    if options.test_name != None:
+        run_sim             = True
+        run_map_test        = True
+
+    if options.from_step == 'impl':
+        run_make_project    = False
+
+    if options.to_step == 'project':
+        run_fpga_impl       = False
+
+    if options.gen_test_bram == True:
+        run_make_project    = False
+        run_fpga_impl       = False
+        run_gen_test_bram   = True
+
+    if options.make_mem_map == True:
+        run_map_test        = True
+        run_make_project    = False
+        run_fpga_impl       = False
+
+    ##################################
+    # Setting directory structure
+    ##################################
+    prev_dir = os.getcwd()
+    os.chdir(MODEL_DIR)
+    os.system('mkdir -p %s' % log_dir)
+
+    ##################################
+    # Get a trace
+    ##################################
+    if run_sim:
+        print_info("Synthesizing a test: %s" % options.test_name)
+        print_info("Compilation started")
+        ret_val = os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % log_dir)
+        if ret_val != 0:
+            print_error("Compilation didn't finish successfully!")
+            print_info("See for Errors in %scompilation.log" % log_dir)
+            exit(1)
+        print_info("Simulation started")
+        print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][options.board]["FREQ"])
+        div = calcUARTLatch(design_data, options.board)
+        os.system('sims -sys=manycore -vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, log_dir))
+
+        f = open('%s/simulation.log' % log_dir, 'r')
+        cont = f.read()
+        f.close()
+        match = re.search(r'(HIT GOOD TRAP)', cont)
+        if match == None:
+            print_error("Test failed!")
+            exit(1)
+        else:
+            print_info("Test Passed!")
+
+    ###################################
+    # Make Mapping
+    ###################################
+
+    if run_map_test:
+        if options.test_name != None:
+            strg_type = "bram"
+        else:
+            strg_type = options.uart_dmw
+        st_brd = StorageBoard(strg_type, options.board)
+        makeMemMapping(st_brd, work_dir, log_dir)
+
+    ################################################
+    # Generate UART init sequence for ASM tests 
+    # based on system frequency
+    ################################################
+    if options.uart_dmw != None:
+        print_info("Generating UART init sequence")
+        genUARTInit(options.board, design_data)
+
+    ##################################
+    # Run FPGA flow
+    ##################################
+    jid = None
+    if run_make_project:
+        jid = makeProject(options.board, design_data, work_dir, log_dir, options.slurm, None)
+
+    dep_list = []
+    if jid != None:
+        dep_list.append(jid)
+
+    ## TODO: update this options for simulations from VCS
+    if run_gen_test_bram:
+        print_info("Regenerating a bram with a test")
+        os.chdir(work_dir)
+        gen_test_bram_script = os.path.join(DV_ROOT, "tools/src/proto/gen_test_bram.tcl")
+        os.system('vivado -mode batch -source %s' % gen_test_bram_script)
+
+    if run_fpga_impl:
+        runImplFlow(options.board, design_data, work_dir, log_dir, defines, options.slurm, dep_list)
+        print_info("Implementation finished!")
+        check_timing(options.board, options.design)
+
+
+    os.chdir(prev_dir)
+
+    print_info("Protosyn finished!")
+
+
+if __name__ == "__main__":
+    main()

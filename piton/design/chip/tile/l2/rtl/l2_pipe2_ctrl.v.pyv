@@ -623,6 +623,10 @@ begin
                 cs_S2 = {n,     n,         rd,         n,       n,         `OP_CLR,      n,           `OP_CLR,    n,       
                          n,      `L2_VD_ERROR,  n,      `L2_MESI_I,  n,      `L2_LRU_CLR};
             end
+            default:
+            begin
+                cs_S2 = {`CS_SIZE_P2S2{1'bx}};
+            end
             endcase
         end
         `MSG_TYPE_STORE_FWDACK:
@@ -678,6 +682,10 @@ begin
             begin
                 cs_S2 = {n,     n,         rd,         n,       n,         `OP_CLR,     n,           `OP_CLR,    n,       
                          n,      `L2_VD_ERROR,  n,      `L2_MESI_I,  n,      `L2_LRU_CLR};
+            end
+            default:
+            begin
+                cs_S2 = {`CS_SIZE_P2S2{1'bx}};
             end
             endcase
         end

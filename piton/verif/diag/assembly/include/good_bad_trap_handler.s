@@ -51,6 +51,9 @@ good_trap_end:
 
 proc_bad_trap:   
 	rd %asr26, %g1
+	PITON_PUTS(hboot_thread_stat_string, %l0)
+	PITON_PRINT_REG(%g1)
+	PITON_PUTS(hboot_nl, %l0)
 	srl %g1, 0x8, %g1	! Shift & Mask
 	and %g1, 0x3, %g1	! Thread ID
 	or %g0, 0x1, %g3
@@ -59,8 +62,17 @@ proc_bad_trap:
 	or %g0, 0xf, %g4	! Fail Status
 	sllx %g4, 0x20, %g4
 	or %g3, %g4, %g4	! Fail status in top 32 bits, TID mask
-
 	
+	rdpr 	%tt, %l0
+	PITON_PUTS(hboot_trap_type_string, %l1)
+	PITON_PRINT_REG(%l0)
+	PITON_PUTS(hboot_nl, %l1)
+
+	rdpr 	%tpc, %l0
+	PITON_PUTS(hboot_trap_pc, %l1)
+	PITON_PRINT_REG(%l0)
+	PITON_PUTS(hboot_nl, %l1)
+
 	setx thread_status_mem, %g1, %g2
 	stx %g4, [%g2]
 

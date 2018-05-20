@@ -58,11 +58,6 @@ wire                        piton_ready;
 // don't see any reason that cannot be
 assign jtag_rst_n = chip_rst_n;
 
-// Since we no longer wait 10,000 cycles for
-// piton to be ready because that is now handled
-// in ciop_iob, this signal is just the reset signal
-assign piton_ready = chip_rst_n;
-
 // Invert sense of piton_ready
 assign piton_ready_n = ~piton_ready;
 
@@ -86,14 +81,12 @@ alarm_counter #(.COUNTER_WIDTH(10), .ALARM_THRESHOLD(10'd1000)) chip_jtag_rst_al
     .trigger (chip_rst_n)
 );
 
-// Don't think we need the below anymore because
-// ciop_iob waits
 // Wait 10,000 cycles for chip to be ready
-/*alarm_counter #(.COUNTER_WIDTH(14), .ALARM_THRESHOLD(14'd10000)) piton_ready_alarm_counter (
+alarm_counter #(.COUNTER_WIDTH(14), .ALARM_THRESHOLD(14'd10000)) piton_ready_alarm_counter (
     .clk (clk),
     .rst_n (rst_n),
     .en (chip_rst_n),
     .trigger (piton_ready)
-);*/
+);
 
 endmodule

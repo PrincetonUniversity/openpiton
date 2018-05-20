@@ -188,7 +188,9 @@ Warning: Please close or open the cell \(change_names_icc\) in read-only mode\. 
 
 // This occurs for ECOs and some signals have error in the name
 Disconnecting net '\S*error\S*' from pin '\S+'\.
+Disconnecting net '\S+' from pin '\S*error\S*'\.
 Connecting net '\S*error\S*' to pin '\S+'\.
+Connecting net '\S+' to pin '\S*error\S*'\.
 
 // This stuff happens in ECO, not sure why but seems OK.  I think its actually just in generating reports
 Warning: Many cells are placed far from legal locations. When the cells
@@ -196,3 +198,23 @@ Warning: The following cells were placed more than \d+ rows \([\d\.]+ um\)
 // Seems to be a timing thing, but timing turns out OK
 Warning: Found cells with large displacements during legalization. If the
 Warning: There is high fragmentation caused by many blockages or fixed cells.
+
+// Don't exactly know why this occurs, but doesn't seem too harmless and timing turns out OK. 
+// Seems to always choose maximum, so should be OK
+Warning: Net '\S+' already has '\s+[\d\.]+ \((max|min)\)' for annotated (resistance|capacitance)\. '\s+[\d\.]+ \((max|min)\)' is discarded\. \(OPT-80[56]\)
+
+// These are OK, as they are physical only cells and have no operation.  Anonymizing names a bit
+Warning: The following physical-only library cells don't have power description that matches design's operation condition:(DTCAP\S+)*\s*(PCIB\S+)*\s*(MICRO\S+)*\s*\(PWR-681\)
+
+// These are for runtime not correctness.  This occurs for our SRAMs and for submodules in hierarchical
+// runs.  Not much we can do about it, as we want to route through sub-blocks and SRAM blockages cannot
+// be changed, they are provided by the foundry, assume they are correct
+Warning: Cell \S+ contains more than 100000 obstructions \(\d+\).  This may increase routing runtime.  You may wish to re-run BPV.  \(ZRT-092\)
+
+// Not sure why this occurs, seems to turn out OK though.  It actually typically does not occur and if it
+// does this seems to fix the problem in addition to warn us about it
+Warning: Shape {\d+ \d+ \d+ \d+\} on layer \S+ is not on min manufacturing grid. Snap it to \{\d+ \d+ \d+ \d+\}\. The shape belongs to Net: \S+\. \(ZRT-543\)
+
+// Optimizing net with error in the name
+\s+\d+:\d+:\d+\s+-?[\d\.]+\s+-?[\d\.]+\s+-?[\d\.]+\s+-?[\d\.]+\s+\S*error\S*\s+-?[\d\.]+\s*-?[\d\.]*
+FOPT: Endpoint \S*error\S*\s*

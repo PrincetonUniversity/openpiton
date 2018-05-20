@@ -42,6 +42,7 @@
 import re, os, sys, math
 from optparse import OptionParser
 from fpga_lib import *
+from dbg import *
 
 HEX_ADDR_WIDTH = 16
 OUT = 0
@@ -126,11 +127,35 @@ class TestSections:
                 print >> flog, "Error: Trying to add a section which overlaps with an existant one!"
                 print >> flog, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
                 print >> flog, "Existant section: [%x, %x]" % (s.s_start, s.s_end)
-                print >> sys.stderr, "Error: Trying to add a section which overlaps with existant!"
-                print >> sys.stderr, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
-                print >> sys.stderr, "Existant section: [%x, %x]" % (s.s_start, s.s_end)
+                print_error("Error: Trying to add a section which overlaps with existant!")
+                print_error("New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end))
+                print_error("Existant section: [%x, %x]" % (s.s_start, s.s_end))
                 exit(1)
         self.sections.append(new_sect)
+
+def usage():
+    print >> sys.stderr
+    print >> sys.stderr, "Usage:\nmake_mem_map -b <board type> -s <storage type> -t <test name>"
+    print >> sys.stderr
+    print >> sys.stderr, "\n        -b, --board <board type>"
+    print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
+    print >> sys.stderr, "                  nexys4ddr*"
+    print >> sys.stderr, "                  vc707"
+    print >> sys.stderr, "                  genesys2"
+    print >> sys.stderr, "                  nexysVideo"
+    print >> sys.stderr, "\n                  * current configuration of design doesn't fit on this board"
+    print >> sys.stderr, "\n        -s, --storage <storage type>"
+    print >> sys.stderr, "              Type of a storage to store an assembly test in"
+    print >> sys.stderr, "                  bram - default"
+    print >> sys.stderr, "                  ddr"
+    print >> sys.stderr, "\n        -t, --test <test name>"
+    print >> sys.stderr, "              Name of an assembly test to put into storage"
+
+def checkCmdOptions(options):
+    if options.tname == None:
+        print >> sys.stderr,  "ERROR: provide a test name"
+        usage()
+        exit(2)
 
 
 def fullAddr(val):
@@ -290,9 +315,9 @@ def mapToBram(section_list, st_brd):
 
     f.close()
 
-    print >> sys.stderr, "Used %d out of %d blocks of storage" % (bram_addr, max_block_num)
+    print_info("Used %d out of %d blocks of storage" % (bram_addr, max_block_num))
     if limit_exceeded:
-        print >> sys.stderr, "Error: Limit of storage is exceeded!"
+        print_error("Error: Limit of storage is exceeded!")
         return 1
 
     return 0
@@ -301,7 +326,7 @@ def makeAddrDataTestDict(fname, memimage_map, flog):
     try:
         f = open(fname, 'r')
     except:
-        print >> sys.stderr, "Can't open file %s" % fname
+        print_error("Can't open file %s" % fname)
         exit(2)
 
     test_map = dict()
@@ -359,7 +384,7 @@ def memTestData(st_brd, test_map, flog):
     test_sections.addSection(Section(sect_first, addr, test_map, st_brd), flog)
     # print >> sys.stderr, "Created %d sections for test in memory" % len(test_sections.getSections())
  
-    print >> sys.stderr, "Checking correctness of section mapping... ",
+    print_info("Checking correctness of section mapping... ")
 
     sections = test_sections.getSections()
     for k in test_map.keys():
@@ -369,10 +394,10 @@ def memTestData(st_brd, test_map, flog):
                 k_is_found = True
                 break
         if not k_is_found:
-            print >> sys.stderr, "Error: %s is not mapped!" % k
+            print_error("Error: %s is not mapped!" % k)
             exit(1)
 
-    print >> sys.stderr, "Correct!"
+    print_info("Correct!")
 
     return sections
 
@@ -387,7 +412,7 @@ def makeMapping(st_brd, tname="unknown"):
 
     
     mem_image_data = memImageData(fname_image)
-    print "Length of image file: %d" % len(mem_image_data.keys())
+    print_info("Length of image file: %d" % len(mem_image_data.keys()))
     addr_data_test_map = makeAddrDataTestDict(fsim_log, mem_image_data, flog)
     sections = memTestData(st_brd, addr_data_test_map, flog)
     # print "Length of used data: %d" % len(sections)
@@ -404,18 +429,29 @@ def makeMapping(st_brd, tname="unknown"):
 
     flog.close()
     # print block_list
-      
-def main():
-    parser = OptionParser()
+
+def setParserOptions(parser):
     parser.add_option("-t", "--test", dest="tname", action="store", help="Name of a test")
+    parser.add_option("-b", "--board", dest="board", action="store", default="genesys2")
+    parser.add_option("-s", "--storage", dest="storage", action="store", default="bram")
+
+    return parser
+
+
+def main():
+    parser = OptionParser(add_help_option=False)
+    parser = setParserOptions(parser)
     (options, args) = parser.parse_args()
 
-    if options.tname == None:
-        print >> sys.stderr, "Error: provide a test name"
-        exit(2)
+    checkCmdOptions(options)
 
-    makeMapping(options.tname)
-    print >> sys.stderr, "Completed!" 
+    print_info("Using board type: %s" % options.board)
+    print_info("Using storage type: %s" % options.storage)
+
+    st_brd = StorageBoard(options.storage, options.board)
+
+    makeMapping(st_brd, options.tname)
+    print_info("Completed!")
 
 
 if __name__ == '__main__':

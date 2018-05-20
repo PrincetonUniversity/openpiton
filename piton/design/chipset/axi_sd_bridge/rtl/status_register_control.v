@@ -92,11 +92,11 @@ module status_register_control (
     //==========================================================================
     // Internal Wires and Registers
     //==========================================================================
-    reg [5:0] rst_shift;
+    reg [20:0] rst_shift;
     reg       rst_from_bus;
 
     reg       rst_sync_to_spi_clk_first;
-    reg [5:0] spi_trans_ctrl_shift;
+    reg [20:0] spi_trans_ctrl_shift;
     reg       spi_trans_status_reg_1;
     reg       spi_trans_status_reg_2;
     reg       spi_trans_status_reg_3;
@@ -174,16 +174,16 @@ module status_register_control (
     end
 
     //==========================================================================
-    // Reset synchronization (assuming freq of clk_i < 5*spi_sys_clk)
+    // Reset synchronization (assuming freq of clk_i < 20*spi_sys_clk)
     //==========================================================================
 
     // Generate rst_sync_to_bus_clk, which is 1 while resetting for at least
-    // six cycles of clk_i
+    // 21 cycles of clk_i
     always @(posedge clk_i) begin
         if (rst_i == 1'b1 || rst_from_bus == 1'b1)
-            rst_shift <= 6'b111111;
+            rst_shift <= 21'b111111111111111111111;
         else
-            rst_shift <= { 1'b0, rst_shift[5:1] };
+            rst_shift <= { 1'b0, rst_shift[20:1] };
     end
 
     always @( * ) begin
@@ -198,18 +198,18 @@ module status_register_control (
 
 
     //==========================================================================
-    // SPI Transaction Control (assuming freq of clk_i < 5*spi_sys_clk)
+    // SPI Transaction Control (assuming freq of clk_i < 20*spi_sys_clk)
     //==========================================================================
 
     // Generate spi_trans_ctrl_shift, whose bottom bit is 1 for at least
-    // six cycles of clk_i when a transaction is initiated
+    // 21 cycles of clk_i when a transaction is initiated
     always @(posedge clk_i) begin
         if (rst_sync_to_bus_clk == 1'b1)
-            spi_trans_ctrl_shift <= 6'b000000;
+            spi_trans_ctrl_shift <= 21'b000000000000000000000;
         else if (spi_trans_ctrl_stb == 1'b1)
-            spi_trans_ctrl_shift <= 6'b111111;
+            spi_trans_ctrl_shift <= 21'b111111111111111111111;
         else
-            spi_trans_ctrl_shift <= { 1'b0, spi_trans_ctrl_shift[5:1] };
+            spi_trans_ctrl_shift <= { 1'b0, spi_trans_ctrl_shift[20:1] };
     end
 
     // Sync back across clock domains to set spi_trans_ctrl

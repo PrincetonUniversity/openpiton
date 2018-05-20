@@ -38,16 +38,12 @@ input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
 
-`ifdef L2_32K_4WAY
-   input wire [8:0] A,
-`else  // assume 64K in other case
-   input wire [9:0] A,
-`endif
+input wire [`L2_DIR_ARRAY_HEIGHT_LOG2-1:0] A,
 
 input wire RDWEN,
-input wire [63:0] BW,
-input wire [63:0] DIN,
-output wire [63:0] DOUT,
+input wire [`L2_DIR_ARRAY_WIDTH-1:0] BW,
+input wire [`L2_DIR_ARRAY_WIDTH-1:0] DIN,
+output wire [`L2_DIR_ARRAY_WIDTH-1:0] DOUT,
 input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
 input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
 output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
@@ -57,34 +53,20 @@ input wire [`BIST_ID_WIDTH-1:0] SRAMID
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-`ifdef L2_32K_4WAY
-   bram_sdp_512x64_wrapper #(
-      .ADDR_WIDTH    (9          ),
-      .BITMASK_WIDTH (64         ),
-      .DATA_WIDTH    (64         )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`else
-   bram_sdp_1024x64_wrapper #(
-      .ADDR_WIDTH    (10         ),
-      .BITMASK_WIDTH (64         ),
-      .DATA_WIDTH    (64         )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`endif
+bram_sdp_wrapper #(
+   .NAME          ("l2_dir"                     ),
+   .DEPTH         (`L2_DIR_ARRAY_HEIGHT         ),
+   .ADDR_WIDTH    (`L2_DIR_ARRAY_HEIGHT_LOG2    ),
+   .BITMASK_WIDTH (`L2_DIR_ARRAY_WIDTH          ),
+   .DATA_WIDTH    (`L2_DIR_ARRAY_WIDTH          )
+)   bram_wrapper (
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
+);
 
 endmodule

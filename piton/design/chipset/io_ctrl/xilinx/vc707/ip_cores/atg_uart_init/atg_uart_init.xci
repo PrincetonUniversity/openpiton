@@ -122,9 +122,9 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_CH5_HIGH">0x000004FF</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_CH5_LOW">0x00000400</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_CMD_MAX_RETRY">256</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_ADDR_MIF">./uart_addr.coe</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_ADDR_MIF">uart_addr.coe</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_CTRL_MIF">no_coe_file_loaded</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_DATA_MIF">./uart_data.coe</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_DATA_MIF">uart_data.coe</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_INIT_MASK_MIF">no_coe_file_loaded</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_MAX_CHANNELS">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_ATG_SYSTEM_TEST_MAX_CLKS">5000</spirit:configurableElementValue>

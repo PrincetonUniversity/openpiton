@@ -26,7 +26,7 @@
 //==================================================================================================
 //  Filename      : fake_boot_ctrl.v
 //  Created On    : 2014-04-15
-//  Last Modified : 2016-10-20 14:16:06
+//  Last Modified : 2017-02-21 22:56:43
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -187,6 +187,9 @@ wire [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits;
 reg [`NOC_DATA_WIDTH-1:0] msg_send_data [7:0];
 reg [`NOC_DATA_WIDTH-1:0] mem_temp;
 wire [`NOC_DATA_WIDTH*3-1:0] msg_send_header;
+
+wire    bram_ce;
+wire    bram_rdwen;
 
 
 
@@ -354,51 +357,25 @@ end
 assign bram_r_val_hit = bram_r_val & hit_bram_r;
 assign bram_w_val_hit = bram_w_val & hit_bram_r;
 
-`ifdef PITON_BOARD
-    bram_sdp_256x512_wrapper #(
-        .ADDR_WIDTH     (8      ),
-        .BITMASK_WIDTH  (512    ),
-        .DATA_WIDTH     (512    )
-    ) bram (
-        .MEMCLK         (clk            ),
-        .A              (bram_addr      ),
-        .REN            (bram_r_val_hit ),
-        .WEN            (bram_w_val_hit ),
-        .BW             (bram_w_mask    ),
-        .DIN            (bram_data_in   ),
-        .DOUT           (bram_data_out  )
-    );
-`else   // PITON_BOARD
-    `ifdef PITONSYS_UART_BOOT
-        bram_sdp_16384x512_wrapper #(
-            .ADDR_WIDTH     (14     ),
-            .BITMASK_WIDTH  (512    ),
-            .DATA_WIDTH     (512    )
-        ) bram (
-            .MEMCLK         (clk            ),
-            .A              (bram_addr      ),
-            .REN            (bram_r_val_hit ),
-            .WEN            (bram_w_val_hit ),
-            .BW             (bram_w_mask    ),
-            .DIN            (bram_data_in   ),
-            .DOUT           (bram_data_out  )
-        );
-    `else   // not PITONSYS_UART_BOOT
-        bram_sdp_256x512_wrapper #(
-            .ADDR_WIDTH     (8      ),
-            .BITMASK_WIDTH  (512    ),
-            .DATA_WIDTH     (512    )
-        ) bram (
-            .MEMCLK         (clk            ),
-            .A              (bram_addr      ),
-            .REN            (bram_r_val_hit ),
-            .WEN            (bram_w_val_hit ),
-            .BW             (bram_w_mask    ),
-            .DIN            (bram_data_in   ),
-            .DOUT           (bram_data_out  )
-        );
-    `endif  // end PITONSYS_UART_BOOT
-`endif   // end PITON_BOARD
+assign bram_ce      = bram_r_val_hit | bram_w_val_hit;
+assign bram_rdwen   = bram_r_val_hit;
+
+bram_sdp_wrapper #(
+    .NAME           ("bram_boot"                    ),
+    .DEPTH          (`PITON_BOOT_BRAM_DEPTH         ),
+    .ADDR_WIDTH     (`PITON_BOOT_BRAM_ADDR_WIDTH    ),
+    .BITMASK_WIDTH  (`PITON_BOOT_BRAM_DATA_WIDTH    ),
+    .DATA_WIDTH     (`PITON_BOOT_BRAM_DATA_WIDTH    )
+) bram (
+    .MEMCLK         (clk            ),
+    .A              (bram_addr      ),
+    .CE             (bram_ce        ),
+    .RDWEN          (bram_rdwen     ),
+    .BW             (bram_w_mask    ),
+    .DIN            (bram_data_in   ),
+    .DOUT           (bram_data_out  )
+);
+
 
 l2_encoder encoder(
     .msg_dst_chipid             (msg_src_chipid),

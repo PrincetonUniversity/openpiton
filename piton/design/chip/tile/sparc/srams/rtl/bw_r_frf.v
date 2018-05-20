@@ -26,23 +26,12 @@
 //     78 bits (64 bits data, 14 bits ecc) wide.
 */
 
-// `define NO_USE_IBM_SRAMS
-`define IBM_SRAM_FRF
+`define SRAM_FRF
 // trin 4/18/16: always use nowrapper implementation
 //  all others will fail floating point tests
 
-`ifndef NO_USE_IBM_SRAMS
-`define IBM_SRAM_FRF
-`endif
 
-//PITON_PROTO enables all FPGA related modifications
-`ifdef PITON_PROTO
-    //`define FPGA_SYN_FRF
-    `define IBM_SRAM_FRF
-`endif
-
-
-`ifdef IBM_SRAM_FRF
+`ifdef SRAM_FRF
 `include "define.vh"
 
 module bw_r_frf (/*AUTOARG*/
@@ -124,25 +113,6 @@ module bw_r_frf (/*AUTOARG*/
    wire [77:0] write_mask = {{39{ctl_frf_wen[1]}},{39{ctl_frf_wen[0]}}};
    wire ctl_frf_wens = ctl_frf_wen[1] | ctl_frf_wen[0];
 
-`ifdef IBM_SRAM_FRF_MODEL
-   reg [77:0] read_data;
-   reg [77:0] regfile [127:0];
-   always @ (posedge rclk) begin
-      // Write port
-      // write is gated by rst_tri_en
-      if (ctl_frf_wens & ~rst_tri_en)
-      begin
-         regfile[ctl_frf_addr] <= (dp_frf_data & write_mask) | (regfile[ctl_frf_addr] & ~write_mask);
-      end
-      else
-      begin
-         if (ctl_frf_ren)
-            read_data <= regfile[ctl_frf_addr];
-      end
-   end
-
-`else
-
    wire [77:0] read_data;
 sram_1rw_128x78 regfile
 //sram_configurable_frf regfile
@@ -161,9 +131,6 @@ sram_1rw_128x78 regfile
   .BIST_DOUT(srams_rtap_data),
   .SRAMID(`BIST_ID_L1_FRF)
 );
-
-
-`endif
 
    always @ (posedge rclk)
    begin
@@ -186,8 +153,9 @@ sram_1rw_128x78 regfile
 endmodule // sparc_ffu_frf
 
 
-`else // when NO_USE_IBM_SRAMS is defined
+`else // `ifdef SRAM_FRF
 
+TRIN_NOT_USED; // FPGA should be using the SRAM implmentation above
 
 module bw_r_frf (/*AUTOARG*/
    // Outputs

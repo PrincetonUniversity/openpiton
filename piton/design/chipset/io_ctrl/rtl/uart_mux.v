@@ -40,6 +40,7 @@ module uart_mux (
     input               axi_rst_n,
 
     input               uart_boot_en,
+    input               uart_timeout_en,
 
     input               init_done,
     
@@ -150,11 +151,13 @@ wire                    pc_good_trap;
 wire                    pc_bad_trap;
 
 reg     [2:0]       mux_sel;
-reg     [31:0]      asm_test_cycle_cnt;
+reg     [63:0]      asm_test_cycle_cnt;
 reg                 uart_boot_en_ff;
+reg                 uart_timeout_en_ff;
 
 always @(posedge axi_clk) begin
     uart_boot_en_ff <= uart_boot_en;
+    uart_timeout_en_ff <= uart_timeout_en;
 end
 
 assign mux_sel_rst_state  = uart_boot_en_ff ? INIT_SEL : TEST_SEL ;
@@ -287,17 +290,17 @@ end
 
 always @(posedge axi_clk) begin
     if (~axi_rst_n)
-        asm_test_cycle_cnt <= 32'b0;
+        asm_test_cycle_cnt <= 64'b0;
     else
-        asm_test_cycle_cnt <=   reader_start & reader_stop      ?   32'b0                   :
+        asm_test_cycle_cnt <=   reader_start & reader_stop      ?   64'b0                   :
                                 test_start & ~asm_test_timeout  ?   asm_test_cycle_cnt + 1  :
                                                                     asm_test_cycle_cnt      ;
 end
 
 `ifdef PITONSYS_UART_BOOT
-    assign asm_test_timeout = uart_boot_en_ff ? asm_test_cycle_cnt == `ASM_TIMEOUT_CYCLES : 1'b0;
-    assign pc_good_trap     = uart_boot_en_ff ? test_good_end   : 1'b0;
-    assign pc_bad_trap      = uart_boot_en_ff ? test_bad_end    : 1'b0;
+    assign asm_test_timeout = uart_boot_en_ff & uart_timeout_en_ff ? asm_test_cycle_cnt == `ASM_TIMEOUT_CYCLES : 1'b0;
+    assign pc_good_trap     = uart_boot_en_ff                      ? test_good_end   : 1'b0;
+    assign pc_bad_trap      = uart_boot_en_ff                      ? test_bad_end    : 1'b0;
 `else   // PITONSYS_UART_BOOT
     assign asm_test_timeout = 1'b0;
     assign pc_good_trap     = 1'b0;

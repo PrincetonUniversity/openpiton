@@ -50,13 +50,21 @@
 //`include "iop.h"
 //`include "fabric.h"
 
+
+`ifdef SIM_FPGA_SYN_SRAM_LSU_DCACHE // simulation flag
+`define PITON_PROTO
+`endif
+
+`ifdef FPGA_FORCE_SRAM_LSU_DCACHE
+`undef PITON_PROTO
+`endif
+
+
 //PITON_PROTO enables all FPGA related modifications
 `ifdef PITON_PROTO
 `define FPGA_SYN_DCD
-`endif
-
-`ifndef NO_USE_IBM_SRAMS
-`define IBM_SRAM_LSU_DCACHE
+`else
+`define SRAM_LSU_DCACHE
 `endif
 
 ////////////////////////////////////////////////////////////////////////
@@ -158,7 +166,7 @@ output [1:0]    dcd_fuse_repair_en;     //enable bits out
 wire  [`L1D_ADDRESS_HI:3]    dcache_rwaddr_e ;
 wire  [`L1D_ADDRESS_HI:3]    dcache_raddr_e ;
 
-`ifdef IBM_SRAM_LSU_DCACHE
+`ifdef SRAM_LSU_DCACHE
 
 // wire [`L1D_DATA_ENTRY_WIDTH-1:0]   temp_w0a;
 // wire [`L1D_DATA_ENTRY_WIDTH-1:0]   temp_w1a;
@@ -219,8 +227,8 @@ wire [`L1D_DATA_ENTRY_WIDTH-1:0] way_mask_e =
 
 
 
-`ifdef PRESERVE_PITON_SRAM
-// PRESERVE_PITON_SRAM && IBM_SRAM_LSU_DCACHE
+`ifndef SPLIT_L1_DCACHE
+// !SPLIT_L1_DCACHE && SRAM_LSU_DCACHE
 
 
 sram_l1d_data_piton dcache_way_01
@@ -257,8 +265,7 @@ sram_l1d_data_piton dcache_way_23
   .SRAMID(`BIST_ID_L1_DCACHE_W23)
 );
 
-`else // PRESERVE_PITON_SRAM
-// !PRESERVE_PITON_SRAM && IBM_SRAM_LSU_DCACHE
+`else // SPLIT_L1_DCACHE == 1, use the parameterised implementation
 
 wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0]   temp_a_reg;
 wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0]   temp_in_reg;
@@ -296,10 +303,10 @@ sram_l1d_data dcache
   GenFor(template, CONFIG_L1D_ASSOCIATIVITY);
 %>
 
-`endif // PRESERVE_PITON_SRAM
+`endif // SPLIT_L1_DCACHE
 
 
-`else // !IBM_SRAM_LSU_DCACHE
+`else // !SRAM_LSU_DCACHE
 // FPGA implementation or default
 
 
@@ -337,7 +344,7 @@ integer       i,j;
 reg [7:0]     ctr;
 
 
-`endif // IBM_SRAM_LSU_DCACHE
+`endif // SRAM_LSU_DCACHE
 
 reg [`L1D_ADDRESS_HI:3]    dcache_rwaddr_m ;
 reg [`L1D_ADDRESS_HI:3]    dcache_raddr_m ;
@@ -441,88 +448,26 @@ always @ (posedge clk)
 
 assign  dcache_wvld_m = wvld_m & ~rst_tri_en ;
 
-`ifndef IBM_SRAM_LSU_DCACHE
+`ifndef SRAM_LSU_DCACHE
 // for FPGA
-
-//=========================================================================================
-//  generate wordlines
-//=========================================================================================
-
-// Generate at posedge of clk.
-// JC modified begin
-/*
-always @ (posedge clk)
-  begin
-    for (ctr=8'h00;ctr<128;ctr=ctr+1)
-      begin
-      if (clk & ({1'b0,dcache_rwaddr_e[`L1D_ADDRESS_HI:4]} == ctr) &
-         (dcache_rvld_e | dcache_wvld_e))
-        rw_wdline[ctr]  = 1'b1;
-      else
-        rw_wdline[ctr]  = 1'b0;
-      end
-  end
-*/
-
-`ifdef FPGA_SYN_DCD
-
-`else // FPGA_SYN_DCD
-// !IBM_SRAM_LSU_DCACHE && !FPGA_SYN_DCD
-TRIN_DONT_USE_SIMULATION_MODEL;
-always @ (clk or dcache_rwaddr_m or dcache_wvld_m or dcache_rvld_m)
-  begin
-   if (clk) begin
-    for (ctr=8'h00;ctr<128;ctr=ctr+1)
-      begin
-      if (({1'b0,dcache_rwaddr_m[`L1D_ADDRESS_HI:4]} == ctr) &
-         (dcache_rvld_m | dcache_wvld_m))
-        rw_wdline[ctr]  = 1'b1;
-      else
-        rw_wdline[ctr]  = 1'b0;
-      end
-   end
-  end
-// JC modified end
-`endif // for FPGA_SYN_DCD
-
 
 //=========================================================================================
 //  Read from Memory.
 //=========================================================================================
 
-`ifdef FPGA_SYN_DCD
 always @(posedge clk) begin
   temp_w0a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] = w0[dcache_raddr_e[`L1D_ADDRESS_HI:4]];
   temp_w1a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] = w1[dcache_raddr_e[`L1D_ADDRESS_HI:4]];
   temp_w2a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] = w2[dcache_raddr_e[`L1D_ADDRESS_HI:4]];
   temp_w3a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] = w3[dcache_raddr_e[`L1D_ADDRESS_HI:4]];
 end
-`else // FPGA_SYN_DCD
-// !IBM_SRAM_LSU_DCACHE && !FPGA_SYN_DCD
-TRIN_DONT_USE_SIMULATION_MODEL;
-// Read
-always @ (negedge clk)
-  begin
-    for (i=0;i<128;i=i+1)
-      begin
-        if (rw_wdline[i] & dcache_rvld_m)
-          begin
-            temp_w0a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] <= w0[i];
-            temp_w1a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] <= w1[i];
-            temp_w2a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] <= w2[i];
-            temp_w3a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] <= w3[i];
-          end
-      end
-  end
-`endif // for FPGA_SYN_DCD
-
 //removed stablizer, zero out without read
 assign  temp_w0a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w0a_reg[`L1D_DATA_ENTRY_WIDTH-1:0]: 144'b0;
 assign  temp_w1a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w1a_reg[`L1D_DATA_ENTRY_WIDTH-1:0]: 144'b0;
 assign  temp_w2a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w2a_reg[`L1D_DATA_ENTRY_WIDTH-1:0]: 144'b0;
 assign  temp_w3a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w3a_reg[`L1D_DATA_ENTRY_WIDTH-1:0]: 144'b0;
 
-`else // == IBM_SRAM_LSU_DCACHE
+`else // `ifndef SRAM_LSU_DCACHE
 
 //removed stablizer, zero out without read (for IBM sram too)
 // assign  temp_w0a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w0a_reg[`L1D_DATA_ENTRY_WIDTH-1:0]: 144'b0;
@@ -537,7 +482,7 @@ assign  temp_w3a[`L1D_DATA_ENTRY_WIDTH-1:0] = dcache_rvld_m? temp_w3a_reg[`L1D_D
   GenFor(template, CONFIG_L1D_ASSOCIATIVITY);
 %>
 
-`endif // IBM_SRAM_LSU_DCACHE
+`endif // `ifndef SRAM_LSU_DCACHE
 
 // Prior to SA, column mux (64(D)+8(P))x4 bits. Assume parity is
 // at the end of the 144b line. Entry is wX||Parity
@@ -859,7 +804,7 @@ assign dcache_rd_sel_way_wb[`L1D_WAY_COUNT-1:0] = dcache_alt_mx_sel_wb ? dcache_
   GenOr(inputs, sels, outputs, num);
 %>
 
-`ifndef IBM_SRAM_LSU_DCACHE
+`ifndef SRAM_LSU_DCACHE // FPGA
 
 //=========================================================================================
 //  Write to Memory
@@ -883,9 +828,6 @@ assign way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0] =  ~way_mask[`L1D_DATA_ENTRY_WIDT
 always @ (negedge clk)
   begin
 
-`ifdef FPGA_SYN_DCD
-// !IBM_SRAM_LSU_DCACHE && FPGA_SYN_DCD
-
   if(dcache_wvld_m & dcache_wr_rway_m[0]) begin
     w0[dcache_rwaddr_m[`L1D_ADDRESS_HI:4]] = (temp_w0a_reg[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0]) |
              (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
@@ -903,50 +845,17 @@ always @ (negedge clk)
              (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
   end
 
-`else // !`ifdef FPGA_SYN_DCD
-// !IBM_SRAM_LSU_DCACHE && !FPGA_SYN_DCD
-TRIN_DONT_USE_SIMULATION_MODEL;
-
-    for (j=0;j<128;j=j+1)
-      begin
-      if (rw_wdline[j] & dcache_wvld_m & dcache_wr_rway_m[0])
-        begin
-        // read
-        temp_w0[`L1D_DATA_ENTRY_WIDTH-1:0] = w0[j];
-        // modify & write
-        w0[j] = (temp_w0[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0]) |
-            (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
-        end
-      if (rw_wdline[j] & dcache_wvld_m & dcache_wr_rway_m[1])
-        begin
-        // read
-             temp_w1[`L1D_DATA_ENTRY_WIDTH-1:0] = w1[j];
-        // modify & write
-        w1[j] = (temp_w1[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0]) |
-            (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
-        end
-      if (rw_wdline[j] & dcache_wvld_m & dcache_wr_rway_m[2])
-        begin
-        // read
-        temp_w2[`L1D_DATA_ENTRY_WIDTH-1:0] = w2[j];
-        // modify & write
-        w2[j] = (temp_w2[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0]) |
-            (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
-        end
-      if (rw_wdline[j] & dcache_wvld_m & dcache_wr_rway_m[3])
-        begin
-        // read
-        temp_w3[`L1D_DATA_ENTRY_WIDTH-1:0] = w3[j];
-        // modify & write.
-        w3[j] = (temp_w3[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask_inv[`L1D_DATA_ENTRY_WIDTH-1:0])  |
-                (dcache_wdata_m[`L1D_DATA_ENTRY_WIDTH-1:0] & way_mask[`L1D_DATA_ENTRY_WIDTH-1:0]) ;
-        end
-      end
-`endif // !`ifdef FPGA_SYN_DCD
-
   end // always @ (negedge clk)
 
-`endif // IBM_SRAM_LSU_DCACHE
+`endif // `ifndef SRAM_LSU_DCACHE // FPGA
 
 endmodule
 
+
+`ifdef SIM_FPGA_SYN_SRAM_LSU_DCACHE // simulation flag
+`undef PITON_PROTO
+`endif
+
+`ifdef FPGA_FORCE_SRAM_LSU_DCACHE
+`define PITON_PROTO
+`endif

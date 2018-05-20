@@ -42,7 +42,7 @@
 module manycore_network_mon (
     input wire clk
     );
-
+`ifndef DISABLE_ALL_MONITORS
 `ifndef XBAR_CONFIG
 // check boundary communication
 // There are two parts to the check
@@ -295,6 +295,7 @@ begin
     // end
 end
 `endif
+`endif // DISABLE_ALL_MONITORS
 endmodule
 
 `endif

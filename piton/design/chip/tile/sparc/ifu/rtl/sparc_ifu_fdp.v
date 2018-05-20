@@ -64,12 +64,58 @@ module sparc_ifu_fdp(/*AUTOARG*/
    ifu_exu_rs2_s, ifu_exu_rs3_s, ifu_tlu_pc_m, ifu_tlu_npc_m,
    ifu_tlu_pc_oor_e, ifu_exu_pcver_e, fdp_fcl_swc_s2,
    fdp_fcl_pc_oor_vec_f, fdp_fcl_pc_oor_e, fdp_fcl_op_s,
-   fdp_fcl_op3_s, fdp_fcl_ibit_s, fdp_esl_t0inst_next_s2,
-   fdp_esl_t1inst_next_s2, fdp_esl_t2inst_next_s2,
-   fdp_esl_t3inst_next_s2, fdp_esl_t0inst_paddr_next_s2,
-   fdp_esl_t1inst_paddr_next_s2, fdp_esl_t2inst_paddr_next_s2,
-   fdp_esl_t3inst_paddr_next_s2, fdp_esl_t0pc_next_s2,
-   fdp_esl_t1pc_next_s2, fdp_esl_t2pc_next_s2, fdp_esl_t3pc_next_s2,
+   fdp_fcl_op3_s, fdp_fcl_ibit_s,
+   fdp_esl_t0inst_next_s2,
+`ifndef CONFIG_NUM_THREADS
+   fdp_esl_t1inst_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   fdp_esl_t1inst_next_s2,
+`elsif THREADS_3
+   fdp_esl_t1inst_next_s2,
+   fdp_esl_t2inst_next_s2,
+`else
+   fdp_esl_t1inst_next_s2,
+   fdp_esl_t2inst_next_s2,
+   fdp_esl_t3inst_next_s2,
+`endif
+`endif
+   fdp_esl_t0inst_paddr_next_s2,
+`ifndef CONFIG_NUM_THREADS
+   fdp_esl_t1inst_paddr_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   fdp_esl_t1inst_paddr_next_s2,
+`elsif THREADS_3
+   fdp_esl_t1inst_paddr_next_s2,
+   fdp_esl_t2inst_paddr_next_s2,
+`else
+   fdp_esl_t1inst_paddr_next_s2,
+   fdp_esl_t2inst_paddr_next_s2,
+   fdp_esl_t3inst_paddr_next_s2,
+`endif
+`endif
+   fdp_esl_t0pc_next_s2,
+`ifndef CONFIG_NUM_THREADS
+   fdp_esl_t1pc_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   fdp_esl_t1pc_next_s2,
+`elsif THREADS_3
+   fdp_esl_t1pc_next_s2,
+   fdp_esl_t2pc_next_s2,
+`else
+   fdp_esl_t1pc_next_s2,
+   fdp_esl_t2pc_next_s2,
+   fdp_esl_t3pc_next_s2,
+`endif
+`endif
    fdp_esl_brtrp_target_pc_bf_f,
    // Inputs
    rclk, se, si, const_maskid, lsu_t0_pctxt_state,
@@ -258,19 +304,58 @@ module sparc_ifu_fdp(/*AUTOARG*/
    output               fdp_fcl_ibit_s;
 
    output [32:0]        fdp_esl_t0inst_next_s2;
+`ifndef CONFIG_NUM_THREADS
+   output [32:0]        fdp_esl_t1inst_next_s2;
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   output [32:0]        fdp_esl_t1inst_next_s2;
+`elsif THREADS_3
+   output [32:0]        fdp_esl_t1inst_next_s2;
+   output [32:0]        fdp_esl_t2inst_next_s2;
+`else
    output [32:0]        fdp_esl_t1inst_next_s2;
    output [32:0]        fdp_esl_t2inst_next_s2;
    output [32:0]        fdp_esl_t3inst_next_s2;
+`endif
+`endif
 
    output [39:2]        fdp_esl_t0inst_paddr_next_s2;
+`ifndef CONFIG_NUM_THREADS
+   output [39:2]        fdp_esl_t1inst_paddr_next_s2;
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   output [39:2]        fdp_esl_t1inst_paddr_next_s2;
+`elsif THREADS_3
+   output [39:2]        fdp_esl_t1inst_paddr_next_s2;
+   output [39:2]        fdp_esl_t2inst_paddr_next_s2;
+`else
    output [39:2]        fdp_esl_t1inst_paddr_next_s2;
    output [39:2]        fdp_esl_t2inst_paddr_next_s2;
    output [39:2]        fdp_esl_t3inst_paddr_next_s2;
+`endif
+`endif
 
    output [48:0]        fdp_esl_t0pc_next_s2;
+`ifndef CONFIG_NUM_THREADS
+   output [48:0]        fdp_esl_t1pc_next_s2;
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+   output [48:0]        fdp_esl_t1pc_next_s2;
+`elsif THREADS_3
+   output [48:0]        fdp_esl_t1pc_next_s2;
+   output [48:0]        fdp_esl_t2pc_next_s2;
+`else
    output [48:0]        fdp_esl_t1pc_next_s2;
    output [48:0]        fdp_esl_t2pc_next_s2;
    output [48:0]        fdp_esl_t3pc_next_s2;
+`endif
+`endif
 
    output [3:0]         fdp_esl_brtrp_target_pc_bf_f;
 

@@ -1,0 +1,45 @@
+// Copyright (c) 2017 Princeton University
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+// These turn out OK, functionality should be maintained
+Warning:  \S+\/piton\/design\/chip\/tile\/common\/rtl\/valrdy_to_credit\.v:137: signed to unsigned assignment occurs\. \(VER-318\)
+
+// These occur because two sublocks use modules of the same name
+Warning: The block design or subdesign named SNPS_CLOCK_GATE_HIGH_network_input_blk_multi_out_LOG2_NUMBER_FIFO_ELEMENTS2_\d in file tile\.CEL has the same name as another design; it has been renamed to tile_CEL_SNPS_CLOCK_GATE_HIGH_network_input_blk_multi_out_LOG2_NUMBER_FIFO_ELEMENTS2_\d\. \(TL-50\)
+Warning: The 'cgni_blk1_data_clk_gate_elements_in_array_f_reg' instance in the 'tile' design is updated to refer to the renamed design 'tile_CEL_SNPS_CLOCK_GATE_HIGH_network_input_blk_multi_out_LOG2_NUMBER_FIFO_ELEMENTS2_\d'\. \(TL-51\)
+Warning: The 'dynamic_node_top_(west|south)_input_NIB_clk_gate_elements_in_array_f_reg' instance in the 'dynamic_node_top_wrap_1' design is updated to refer to the renamed design 'tile_CEL_SNPS_CLOCK_GATE_HIGH_network_input_blk_multi_out_LOG2_NUMBER_FIFO_ELEMENTS2_\d'\. \(TL-51\)
+Warning: The 'dynamic_node_top_(west|south)_input_NIB_clk_gate_storage_data_f_reg_\d_' instance in the 'dynamic_node_top_wrap_1' design is updated to refer to the renamed design 'tile_CEL_SNPS_CLOCK_GATE_HIGH_network_input_blk_multi_out_LOG2_NUMBER_FIFO_ELEMENTS2_\d'\. \(TL-51\)
+
+// Not sure why this occurs, it should be able to find it as we create it
+Warning: Can't find clock 'core_clk,' in design 'chip'\. \(UID-95\)
+
+// Think this happens because of clock muxing
+Warning: A non-unate path in clock network for clock 'core_ref_clk'
+
+// Functionality turns out OK
+Warning: In design chip, there are sequential cells not driving any load\. \(OPT-109\)
+
+// Just a warning, we have high utilization...good :)
+Warning: Placement utilization is 99.90%\. \(PSYN-427\)

@@ -26,6 +26,7 @@
 // This occurs on the first encounter of any module not already declared.  They
 // get resolved later.  If they don't you will get LVS mismatches
 Warning: No module declaration for module \S+ first encountered in module \S+
+Warning: \S+ instantiates new port CO in undeclared module \S+
 
 // This is a command
 LVS ABORT ON SUPPLY ERROR NO

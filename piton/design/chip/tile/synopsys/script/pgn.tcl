@@ -23,24 +23,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# SRAM paths
+source -echo script/sram_paths.tcl
+
 # Ignore discrete metal width rule
 set_preroute_drc_strategy -ignore_discrete_metal_width_rule
 
 # Create the power plan regions
 create_power_plan_regions l2_data_ppr \
-    -group_of_macros [get_cells -all l2/data_wrap_l2_data_l2_data_array_ibmsram]
+    -group_of_macros [get_cells -all $l2_data_path]
 create_power_plan_regions l2_dir_ppr \
-    -group_of_macros [get_cells -all l2/dir_wrap_l2_dir_l2_dir_array_ibmsram]
+    -group_of_macros [get_cells -all $l2_dir_path]
 create_power_plan_regions l2_tag_ppr \
-    -group_of_macros [get_cells -all l2/tag_wrap_l2_tag_l2_tag_array_ibmsram]
+    -group_of_macros [get_cells -all $l2_tag_path]
 create_power_plan_regions l2_state_ppr \
-    -group_of_macros [get_cells -all l2/state_wrap_l2_state_l2_state_array_ibmsram]
+    -group_of_macros [get_cells -all $l2_state_path]
 create_power_plan_regions l15_data_ppr \
-    -group_of_macros [get_cells -all l15/l15_dcache_ibmsram]
+    -group_of_macros [get_cells -all $l15_data_path]
 create_power_plan_regions l15_hmt_ppr \
-    -group_of_macros [get_cells -all l15/l15_hmt_ibmsram]
+    -group_of_macros [get_cells -all $l15_hmt_path]
 create_power_plan_regions l15_tag_ppr \
-    -group_of_macros [get_cells -all l15/l15_dtag_sram_l15_tag_sram_ibmsram]
+    -group_of_macros [get_cells -all $l15_tag_path]
 
 # Determine core area
 set core_area [get_attribute [get_core_area] bbox]

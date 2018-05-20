@@ -5018,7 +5018,9 @@ sub parse_args
   }
 
   # PITON flag: disables PLL if sim_pll is not set
-  push (@{$opt{config_rtl}}, "NO_SIM_PLL");
+  push (@{$opt{config_rtl}}, "USE_FAKE_PLL_AND_CLKMUX");
+  # Disable IOs
+  push (@{$opt{config_rtl}}, "USE_FAKE_IOS");
 
   # set up network_config defines
   if ($opt{network_config}) {
@@ -5089,6 +5091,12 @@ sub parse_args
     push (@{$opt{midas_args}}, "-DPTON_Y_TILES=$pton_y_tiles");
     push (@{$opt{midas_args}}, "-DPTON_NUM_TILES=$pton_num_tiles");
     # die("TRITEST");
+  }
+
+  # Alexey: set default value for UART_DIV_LATCH define
+  if (index("@{$opt{midas_args}}", "UART_DIV_LATCH") == -1) {
+    print "Setting UART_DIV_LATCH to 0xb\n";
+    push (@{$opt{midas_args}}, "-DUART_DIV_LATCH=0xb");
   }
 
   #

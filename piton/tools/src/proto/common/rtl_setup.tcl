@@ -44,7 +44,7 @@ set GLOBAL_INCLUDE_FILES [list \
     "${DV_ROOT}/design/chipset/include/chipset_define.vh" \
 ]
 
-set GLOBAL_DEFAULT_VERILOG_MACROS "NO_SCAN FPGA_SYN NO_USE_IBM_SRAMS PITON_FPGA_SYNTH PITON_PROTO"
+set GLOBAL_DEFAULT_VERILOG_MACROS "NO_SCAN FPGA_SYN PITON_FPGA_SYNTH PITON_PROTO"
 
 # RTL implementation files
 
@@ -65,9 +65,13 @@ set SYSTEM_PRJ_IP_FILES [list \
 ]
 
 set CHIP_RTL_IMPL_FILES [list \
+    "${DV_ROOT}/design/common/rtl/bram_sdp_wrapper.v" \
     "${DV_ROOT}/design/chip/rtl/synchronizer.v" \
     "${DV_ROOT}/design/chip/rtl/OCI.v" \
     "${DV_ROOT}/design/chip/rtl/chip.v" \
+    "${DV_ROOT}/design/chip/pll/rtl/pll_top.v" \
+    "${DV_ROOT}/design/chip/pll/rtl/clk_mux.v" \
+    "${DV_ROOT}/design/chip/pll/rtl/clk_se_to_diff.v" \
     "${DV_ROOT}/design/chip/jtag/rtl/jtag.v" \
     "${DV_ROOT}/design/chip/jtag/rtl/jtag_interface_tap.v" \
     "${DV_ROOT}/design/chip/jtag/rtl/jtag_ucb_transmitter.v" \
@@ -118,12 +122,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_state.v.xlx.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_dir.v.xlx.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_data.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_256x104_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_128x108_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_1024x64_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_512x64_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_4096x144_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/bram_wrappers/bram_sdp_2048x144_wrapper.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_wrap.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_wmt.v" \
@@ -375,9 +373,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_tag.v.xlx.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_data.v.xlx.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_tag.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/bram_wrappers/bram_sdp_128x288_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/bram_wrappers/bram_sdp_128x80_wrapper.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/bram_wrappers/bram_sdp_256x272_wrapper.v" \
 ]
 
 set CHIP_INCLUDE_FILES [list \
@@ -389,18 +384,18 @@ set CHIP_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/afifo_w3_d16/afifo_w3_d16" \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/fifo_w64_d16/fifo_w64_d16" \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/fifo_w3_d16/fifo_w3_d16" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_512x64/bram_512x64" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2p_128x176/bram_2p_128x176" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2p_256x176/bram_2p_256x176" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_128x108/bram_128x108" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_256x104/bram_256x104" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_1024x64/bram_1024x64" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2048x144/bram_2048x144" \
     "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_4096x144/bram_4096x144" \
     "${DV_ROOT}/design/chip/tile/l15/xilinx/${BOARD}/ip_cores/bram_512x32/bram_512x32" \
     "${DV_ROOT}/design/chip/tile/l15/xilinx/${BOARD}/ip_cores/bram_512x128/bram_512x128" \
-    "${DV_ROOT}/design/chip/tile/common/xilinx/${BOARD}/ip_cores/bram_128x160/bram_128x160" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x80/bram_128x80" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x78/bram_128x78" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x576/bram_128x576" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_256x272/bram_256x272" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x132/bram_128x132" \
 ]
 
 set CHIP_COE_IP_FILES [list \
@@ -447,8 +442,8 @@ set PASSTHRU_INCLUDE_FILES [list \
 
 set PASSTHRU_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/passthru/xilinx/${BOARD}/ip_cores/clk_dcm/clk_dcm" \
-    "${DV_ROOT}/design/passthru/passthru_nodec/xilinx/${BOARD}/ip_cores/afifo_w34_d2048/afifo_w34_d2048" \
-    "${DV_ROOT}/design/passthru/passthru_nodec/xilinx/${BOARD}/ip_cores/afifo_w3_d2048/afifo_w3_d2048" \
+    "${DV_ROOT}/design/passthru/passthru_nodec/xilinx/${BOARD}/ip_cores/afifo_w66_d1024/afifo_w66_d1024" \
+    "${DV_ROOT}/design/passthru/passthru_nodec/xilinx/${BOARD}/ip_cores/afifo_w3_d1024/afifo_w3_d1024" \
     "${DV_ROOT}/design/common/fpga_bridge/common/xilinx/${BOARD}/ip_cores/afifo_w64/afifo_w64" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_rcv/xilinx/${BOARD}/ip_cores/afifo_w3/afifo_w3" \
 ]
@@ -460,11 +455,14 @@ set PASSTHRU_PRJ_IP_FILES [list \
 ]
 
 set CHIPSET_RTL_IMPL_FILES [list \
+    "${DV_ROOT}/design/common/rtl/bram_sdp_wrapper.v" \
     "${DV_ROOT}/design/chipset/rtl/chipset.v" \
     "${DV_ROOT}/design/chipset/rtl/chipset_impl.v" \
+    "${DV_ROOT}/design/chipset/rtl/chipset_impl_noc_power_test.v" \
     "${DV_ROOT}/design/chipset/rtl/blinker.v" \
     "${DV_ROOT}/design/chipset/rtl/storage_addr_trans.v" \
     "${DV_ROOT}/design/chipset/rtl/storage_addr_trans_unified.v" \
+    "${DV_ROOT}/design/chipset/common/rtl/noc_bidir_afifo.v" \
     "${DV_ROOT}/design/common/fpga_bridge/rtl/fpga_bridge.v" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_send/rtl/fpga_net_chooser_32.v" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_send/rtl/fpga_bridge_send_32.v" \
@@ -472,24 +470,24 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/mem_io_splitter.v" \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/iob_splitter.v" \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/uart_boot_splitter.v" \
+    "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/net_uart_splitter.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/io_ctrl_top.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/ciop_iob.v" \
+    "${DV_ROOT}/design/chipset/io_ctrl/rtl/net_int_sync.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_top.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_writer.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_reader.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_mux.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/fake_boot_ctrl.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/bram_wrappers/bram_sdp_16384x512_wrapper.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/bram_wrappers/bram_sdp_8192x512_wrapper.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/bram_wrappers/bram_sdp_256x512_wrapper.v" \
+    "${DV_ROOT}/design/chipset/io_ctrl/rtl/eth_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mc_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mig_mux.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/pkt_trans_dp_wide.v" \
-    "${DV_ROOT}/design/chipset/mc/rtl/mig_async_fifo.v" \
     "${DV_ROOT}/design/chipset/iosplitter_axi_lite/rtl/iosplitter_axi_lite.v" \
     "${DV_ROOT}/design/chipset/iosplitter_axi_lite/rtl/iosplitter_axi_lite_updated.v" \
     "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge.v" \
     "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge_boot.v" \
+    "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge_emaclite.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/axi_sd_bridge.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_master.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/init_sd.v" \
@@ -545,8 +543,8 @@ set CHIPSET_INCLUDE_FILES [list \
 set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/clk_dcm/clk_dcm" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/clk_mmcm/clk_mmcm" \
-    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_mem_splitter/afifo_mem_splitter" \
-    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_splitter_mem/afifo_splitter_mem" \
+    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_w64_d128_std/afifo_w64_d128_std" \
+    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_mig_afifo/uart_mig_afifo" \

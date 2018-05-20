@@ -45,6 +45,7 @@ set_false_path -to [get_cells -hierarchical *afifo_ui_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_sync_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_syn_rst_delayed*]
 set_false_path -to [get_cells -hierarchical *init_calib_complete_f*]
+set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_clk_clk_mmcm]
 
 set_clock_groups -name sync_gr1 -logically_exclusive -group chipset_clk_clk_mmcm -group [get_clocks -include_generated_clocks mc_sys_clk_clk_mmcm]
 
@@ -55,8 +56,23 @@ set_property PACKAGE_PIN AU36 [get_ports uart_tx]
 set_property IOSTANDARD LVCMOS18 [get_ports uart_rx]
 set_property PACKAGE_PIN AU33 [get_ports uart_rx]
 
-set_property IOSTANDARD LVCMOS18 [get_ports uart_boot_en]
-set_property PACKAGE_PIN BB31 [get_ports uart_boot_en]
+# Switches
+set_property PACKAGE_PIN AV30 [get_ports sw[0]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[0]]
+set_property PACKAGE_PIN AY33 [get_ports sw[1]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[1]]
+set_property PACKAGE_PIN BA31 [get_ports sw[2]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[2]]
+set_property PACKAGE_PIN BA32 [get_ports sw[3]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[3]]
+set_property PACKAGE_PIN AW30 [get_ports sw[4]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[4]]
+set_property PACKAGE_PIN AY30 [get_ports sw[5]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[5]]
+set_property PACKAGE_PIN BA30 [get_ports sw[6]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[6]]
+set_property PACKAGE_PIN BB31 [get_ports sw[7]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[7]]
 
 # SD
 set_property IOSTANDARD LVCMOS18 [get_ports spi_clk_out]

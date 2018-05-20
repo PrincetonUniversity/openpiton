@@ -154,7 +154,13 @@ always @(posedge sys_clk) begin
     char_map_table[55] <= 64'h3F3330180C0C0C00;   // 7
     char_map_table[56] <= 64'h1E33331E33331E00;   // 8
     char_map_table[57] <= 64'h1E33333E30180E00;   // 9
-
+    char_map_table[58] <= 64'h000C0C00000C0Cx00;   // :
+    char_map_table[59] <= 64'h000C0C00000C0Cx06;   // //
+    char_map_table[60] <= 64'h180C0603060C18x00;   // <
+    char_map_table[61] <= 64'h00003F00003F00x00;   // =
+    char_map_table[62] <= 64'h060C1830180C06x00;   // >
+    char_map_table[63] <= 64'h1E3330180C000Cx00;   // ?
+    char_map_table[64] <= 64'h3E637B7B7B031Ex00;   // @
     char_map_table[65] <= 64'h0C1E33333F333300;  // A
     char_map_table[66] <= 64'h3F66663E66663F00;  // B
     char_map_table[67] <= 64'h3C66030303663C00;  // C
@@ -181,33 +187,43 @@ always @(posedge sys_clk) begin
     char_map_table[88] <= 64'h6363361C1C366300;  // X
     char_map_table[89] <= 64'h3333331E0C0C1E00;  // Y
     char_map_table[90] <= 64'h7F6331184C667F00;  // Z
-
-    char_map_table[97] = 64'h00001E303E336E00;      //  a
-    char_map_table[98] = 64'h0706063E66663B00;      //  b
-    char_map_table[99] = 64'h00001E3303331E00;      //  c
-    char_map_table[100] = 64'h3830303e33336E00;     //  d
-    char_map_table[101] = 64'h00001E333f031E00;     //  e
-    char_map_table[102] = 64'h1C36060f06060F00;     //  f
-    char_map_table[103] = 64'h00006E33333E301F;     //  g
-    char_map_table[104] = 64'h0706366E66666700;     //  h
-    char_map_table[105] = 64'h0C000E0C0C0C1E00;     //  i
-    char_map_table[106] = 64'h300030303033331E;     //  j
-    char_map_table[107] = 64'h070666361E366700;     //  k
-    char_map_table[108] = 64'h0E0C0C0C0C0C1E00;     //  l
-    char_map_table[109] = 64'h0000337F7F6B6300;     //  m
-    char_map_table[110] = 64'h00001F3333333300;     //  n
-    char_map_table[111] = 64'h00001E3333331E00;     //  o
-    char_map_table[112] = 64'h00003B66663E060F;     //  p
-    char_map_table[113] = 64'h00006E33333E3078;     //  q
-    char_map_table[114] = 64'h00003B6E66060F00;     //  r
-    char_map_table[115] = 64'h00003E031E301F00;     //  s
-    char_map_table[116] = 64'h080C3E0C0C2C1800;     //  t
-    char_map_table[117] = 64'h0000333333336E00;     //  u
-    char_map_table[118] = 64'h00003333331E0C00;     //  v
-    char_map_table[119] = 64'h0000636B7F7F3600;     //  w
-    char_map_table[120] = 64'h000063361C366300;     //  x
-    char_map_table[121] = 64'h00003333333E301F;     //  y
-    char_map_table[122] = 64'h00003F190C263F00;     //  z
+    char_map_table[91] <= 64'h1E06060606061E00;   // [
+    char_map_table[92] <= 64'h03060C1830604000;   // \
+    char_map_table[93] <= 64'h1E18181818181E00;   // ]
+    char_map_table[94] <= 64'h081C366300000000;   // ^
+    char_map_table[95] <= 64'h00000000000000FF;   // _
+    char_map_table[96] <= 64'h0C0C180000000000;   // `
+    char_map_table[97] <= 64'h00001E303E336E00;      //  a
+    char_map_table[98] <= 64'h0706063E66663B00;      //  b
+    char_map_table[99] <= 64'h00001E3303331E00;      //  c
+    char_map_table[100] <= 64'h3830303e33336E00;     //  d
+    char_map_table[101] <= 64'h00001E333f031E00;     //  e
+    char_map_table[102] <= 64'h1C36060f06060F00;     //  f
+    char_map_table[103] <= 64'h00006E33333E301F;     //  g
+    char_map_table[104] <= 64'h0706366E66666700;     //  h
+    char_map_table[105] <= 64'h0C000E0C0C0C1E00;     //  i
+    char_map_table[106] <= 64'h300030303033331E;     //  j
+    char_map_table[107] <= 64'h070666361E366700;     //  k
+    char_map_table[108] <= 64'h0E0C0C0C0C0C1E00;     //  l
+    char_map_table[109] <= 64'h0000337F7F6B6300;     //  m
+    char_map_table[110] <= 64'h00001F3333333300;     //  n
+    char_map_table[111] <= 64'h00001E3333331E00;     //  o
+    char_map_table[112] <= 64'h00003B66663E060F;     //  p
+    char_map_table[113] <= 64'h00006E33333E3078;     //  q
+    char_map_table[114] <= 64'h00003B6E66060F00;     //  r
+    char_map_table[115] <= 64'h00003E031E301F00;     //  s
+    char_map_table[116] <= 64'h080C3E0C0C2C1800;     //  t
+    char_map_table[117] <= 64'h0000333333336E00;     //  u
+    char_map_table[118] <= 64'h00003333331E0C00;     //  v
+    char_map_table[119] <= 64'h0000636B7F7F3600;     //  w
+    char_map_table[120] <= 64'h000063361C366300;     //  x
+    char_map_table[121] <= 64'h00003333333E301F;     //  y
+    char_map_table[122] <= 64'h00003F190C263F00;     //  z
+    char_map_table[123] <= 64'h380C0C070C0C3800;   //  {
+    char_map_table[124] <= 64'h1818180018181800;   //  |
+    char_map_table[125] <= 64'h070C0C380C0C0700;   //  }
+    char_map_table[126] <= 64'h6E3B000000000000;   //  ~
+    char_map_table[127] <= 64'h0000000000000000;   // 
 end
 
 

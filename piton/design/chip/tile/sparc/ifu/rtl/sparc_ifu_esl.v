@@ -70,21 +70,60 @@ module sparc_ifu_esl
 
     // Instructions to be in S2 TIRs next
     input [32:0]        fdp_esl_t0inst_next_s2,
+`ifndef CONFIG_NUM_THREADS
+    input [32:0]        fdp_esl_t1inst_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+    input [32:0]        fdp_esl_t1inst_next_s2,
+`elsif THREADS_3
+    input [32:0]        fdp_esl_t1inst_next_s2,
+    input [32:0]        fdp_esl_t2inst_next_s2,
+`else
     input [32:0]        fdp_esl_t1inst_next_s2,
     input [32:0]        fdp_esl_t2inst_next_s2,
     input [32:0]        fdp_esl_t3inst_next_s2,
+`endif
+`endif
 
     // Physical address of above instructions
     input [39:2]        fdp_esl_t0inst_paddr_next_s2,
+`ifndef CONFIG_NUM_THREADS
+    input [39:2]        fdp_esl_t1inst_paddr_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+    input [39:2]        fdp_esl_t1inst_paddr_next_s2,
+`elsif THREADS_3
+    input [39:2]        fdp_esl_t1inst_paddr_next_s2,
+    input [39:2]        fdp_esl_t2inst_paddr_next_s2,
+`else
     input [39:2]        fdp_esl_t1inst_paddr_next_s2,
     input [39:2]        fdp_esl_t2inst_paddr_next_s2,
     input [39:2]        fdp_esl_t3inst_paddr_next_s2,
+`endif
+`endif
 
     // Virtual address of above instructions
     input [48:0]        fdp_esl_t0pc_next_s2,
+`ifndef CONFIG_NUM_THREADS
+    input [48:0]        fdp_esl_t1pc_next_s2,
+`else
+`ifdef FPGA_SYN_1THREAD
+`elsif THREADS_1
+`elsif THREADS_2
+    input [48:0]        fdp_esl_t1pc_next_s2,
+`elsif THREADS_3
+    input [48:0]        fdp_esl_t1pc_next_s2,
+    input [48:0]        fdp_esl_t2pc_next_s2,
+`else
     input [48:0]        fdp_esl_t1pc_next_s2,
     input [48:0]        fdp_esl_t2pc_next_s2,
     input [48:0]        fdp_esl_t3pc_next_s2,
+`endif
+`endif
 
     // Above instructions valid on the next cycle?
     input [3:0]         fcl_esl_tinst_vld_next_s,
@@ -208,6 +247,18 @@ module sparc_ifu_esl
     // Control outputs from ESL FSM to offset register
     wire        esl_pc_va_diff_offset_we;
     wire        esl_pc_va_diff_offset_clear;
+
+`ifdef CONFIG_NUM_THREADS
+`ifdef FPGA_SYN_1THREAD
+    wire [32:0]        fdp_esl_t1inst_next_s2;
+    wire [39:2]        fdp_esl_t1inst_paddr_next_s2;
+    wire [48:0]        fdp_esl_t1pc_next_s2;
+`elsif THREADS_1
+    wire [32:0]        fdp_esl_t1inst_next_s2;
+    wire [39:2]        fdp_esl_t1inst_paddr_next_s2;
+    wire [48:0]        fdp_esl_t1pc_next_s2;
+`endif
+`endif
 
     //
     // Sequential Logic

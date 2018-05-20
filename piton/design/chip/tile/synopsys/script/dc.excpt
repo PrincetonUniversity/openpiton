@@ -34,4 +34,4 @@ Warning: In design tile, there are sequential cells not driving any load\. \(OPT
 
 // These turn out OK, functionality should be maintained
 Warning:  \S+\/piton\/design\/chip\/tile\/common\/rtl\/valrdy_to_credit\.v:137: signed to unsigned assignment occurs\. \(VER-318\)
-Warning:  \S+\/piton\/design\/chip\/tile\/dmbr\/rtl\/dmbr\.tmp\.v:213: signed to unsigned conversion occurs\. \(VER-318\)
+Warning:  \S+\/piton\/design\/chip\/tile\/dmbr\/rtl\/dmbr\.tmp\.v:\d+: signed to unsigned conversion occurs\. \(VER-318\)

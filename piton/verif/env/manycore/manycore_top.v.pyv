@@ -108,7 +108,7 @@ reg [3:0]                       stub_pass;
 // Simulated Clocks
 ////////////////////
 
-`ifndef NO_SIM_PLL
+`ifndef USE_FAKE_PLL_AND_CLKMUX
 always #5000 core_ref_clk = ~core_ref_clk;                      // 100MHz
 `else
 always #500 core_ref_clk = ~core_ref_clk;                       // 1000MHz
@@ -369,11 +369,6 @@ system system(
     // not supported in simulation
     .uart_tx(),
     .uart_rx(),
-`ifdef PITONSYS_UART_BOOT
-`ifdef PITONSYS_NON_UART_BOOT
-    .uart_boot_en(),
-`endif // endif PITONSYS_NON_UART_BOOT
-`endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
@@ -401,6 +396,13 @@ system system(
     .io_chipset_data(io_chipset_data),
     .io_chipset_rdy(io_chipset_rdy), 
 `endif // endif PITONSYS_IOCTRL
+
+    // Switches
+`ifdef PITON_NOC_POWER_CHIPSET_TEST
+    .sw({4'bz, 4'd`PITON_NOC_POWER_CHIPSET_TEST_HOP_COUNT}),
+`else // ifndef PITON_NOC_POWER_CHIPSET_TEST
+    .sw(),
+`endif // endif PITON_NOC_POWER_CHIPSET_TEST
 
     // Do not provide any functionality
     .leds()
@@ -515,6 +517,7 @@ iosplitter_axi_lite_updated iosplitter_axi_lite(
 ////////////////////////////////////////////////////////
 // MONITOR STUFF
 ////////////////////////////////////////////////////////
+`ifndef DISABLE_ALL_MONITORS
     integer j;
 
     // Tri: slam init is taken out because it's too complicated to extend to 64 cores
@@ -645,6 +648,7 @@ iosplitter_axi_lite_updated iosplitter_axi_lite(
 
     manycore_network_mon network_mon (`CHIP_INT_CLK);
 
+`endif // DISABLE_ALL_MONITORS
     // Alexey
     // UART monitor
     /*reg      prev_tx_state;

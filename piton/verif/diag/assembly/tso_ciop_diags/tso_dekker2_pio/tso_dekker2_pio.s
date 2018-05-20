@@ -47,7 +47,7 @@
 #define backoff_hlp1  			%i5
 
 
-#define TIMEOUT 	  		0x100
+#define TIMEOUT 	  		0x400
 #define ITERATIONS 	  		0x2
 
 #include "boot.s"

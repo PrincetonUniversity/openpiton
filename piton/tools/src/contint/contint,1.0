@@ -591,8 +591,10 @@ def check_status_log (prog, diag) :
     found_sim_cyc = False
     wall_sec = 0
     sim_cyc = 0
+    exec_cyc = 0
     last_sas = "non known"
     errline_num = 0
+    num_tiles = 0
 
     status = "unfi"
 
@@ -617,11 +619,18 @@ def check_status_log (prog, diag) :
         for line in fp :
             diag_match = re.match("^Diag", line)
             stat_match = re.match("cyc=\s+([\.\d]+),\s+sec=\s+([\.\d]+)", line, re.IGNORECASE)
+            exec_stat_match = re.match("execcyc=\s+([\.\d]+),\s+sec=\s+([\.\d]+)", line, re.IGNORECASE)
+            num_tiles_match = re.match("numtiles=\s+(\d+)", line, re.IGNORECASE)
             if diag_match :
                 status = get_status (line)
             elif stat_match :
                 sim_cyc = float(stat_match.group(1))
                 wall_sec = float(stat_match.group(2))
+            elif exec_stat_match :
+                exec_cyc = float(exec_stat_match.group(1))
+                assert(wall_sec == float(exec_stat_match.group(2)))
+            elif num_tiles_match :
+                num_tiles = int(num_tiles_match.group(1))
             templist.append(line)
         fp.close()
 
@@ -678,7 +687,7 @@ def check_status_log (prog, diag) :
         templist.append(("=" * 10) + "\n")
     
     os.chdir(curr_dir)
-    return status, templist, sim_cyc, wall_sec
+    return status, templist, sim_cyc, wall_sec, exec_cyc, num_tiles
 
 def check_asmregress_results (prog, contint_dir, item) :
     # Check results for each test in regression
@@ -700,6 +709,10 @@ def check_asmregress_results (prog, contint_dir, item) :
     pass_fail_count = dict()
     pass_fail_cyc = dict()
     pass_fail_sec = dict()
+    pass_fail_exec_cyc = dict()
+    pass_fail_num_tiles = dict()
+    pass_fail_sum_cyc_sec_tile = dict()
+    pass_fail_sum_exec_cyc_sec_tile = dict()
     stats = dict()
     stat_details = dict()
 
@@ -722,6 +735,10 @@ def check_asmregress_results (prog, contint_dir, item) :
         pass_fail_count[group] = 0
         pass_fail_cyc[group] = 0
         pass_fail_sec[group] = 0
+        pass_fail_exec_cyc[group] = 0
+        pass_fail_num_tiles[group] = 0
+        pass_fail_sum_cyc_sec_tile[group] = 0
+        pass_fail_sum_exec_cyc_sec_tile[group] = 0
         for status in STATUS_NAME :
             group_count_stat[group][status] = 0
 
@@ -747,7 +764,13 @@ def check_asmregress_results (prog, contint_dir, item) :
             sys.stdout.write(diag_name)
             sys.stdout.flush()
 
-            status, status_details, cyc, sec = check_status_log(prog, diag)
+            #curr_dir = os.getcwd()
+            #if os.path.isdir(diag) :
+            #    os.chdir(diag)
+            #    os.system("regreport -1 > status.log") 
+            #    os.chdir(curr_dir)
+
+            status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, diag)
             stats[diag] = status
             stat_details[diag] = status_details
         
@@ -761,9 +784,19 @@ def check_asmregress_results (prog, contint_dir, item) :
                     pass_fail_count[group] += 1
                     pass_fail_cyc[group] += cyc
                     pass_fail_sec[group] += sec
+                    pass_fail_exec_cyc[group] += exec_cyc
+                    pass_fail_num_tiles[group] += num_tiles
+                    if sec > 0 :
+                        pass_fail_sum_cyc_sec_tile[group] += ((cyc/sec) * num_tiles)
+                        pass_fail_sum_exec_cyc_sec_tile[group] += ((exec_cyc/sec) * num_tiles)
                 pass_fail_count["ALL"] += 1
                 pass_fail_cyc["ALL"] += cyc
                 pass_fail_sec["ALL"] += sec
+                pass_fail_exec_cyc["ALL"] += exec_cyc
+                pass_fail_num_tiles["ALL"] += num_tiles
+                if sec > 0 :
+                    pass_fail_sum_cyc_sec_tile["ALL"] += ((cyc/sec) * num_tiles)
+                    pass_fail_sum_exec_cyc_sec_tile["ALL"] += ((exec_cyc/sec) * num_tiles)
 
             sys.stdout.write("\b" * len(diag_name))
             sys.stdout.flush()
@@ -777,6 +810,10 @@ def check_asmregress_results (prog, contint_dir, item) :
     item.stats["pass_fail_count"] = pass_fail_count
     item.stats["pass_fail_cyc"] = pass_fail_cyc
     item.stats["pass_fail_sec"] = pass_fail_sec
+    item.stats["pass_fail_exec_cyc"] = pass_fail_exec_cyc
+    item.stats["pass_fail_num_tiles"] = pass_fail_num_tiles
+    item.stats["pass_fail_sum_cyc_sec_tile"] = pass_fail_sum_cyc_sec_tile
+    item.stats["pass_fail_sum_exec_cyc_sec_tile"] = pass_fail_sum_exec_cyc_sec_tile
     item.stats["diags_status"] = stats
     item.stats["diags_status_details"] = stat_details
 
@@ -791,8 +828,14 @@ def check_asmtest_results (prog, item) :
     sys.stdout.write(diag_name)
     sys.stdout.flush()
 
+    #curr_dir = os.getcwd()
+    #if os.path.isdir(item.model_name) :
+    #    os.chdir(item.model_name)
+    #    os.system("regreport -1 > status.log") 
+    #    os.chdir(curr_dir)
+
     # Check status of status and log file
-    status, status_details, cyc, sec = check_status_log(prog, item.model_name)
+    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name)
 
     # Clear diag name
     sys.stdout.write("\b" * len(diag_name))
@@ -806,14 +849,19 @@ def check_asmtest_results (prog, item) :
     item.stats["status_details"] = status_details
     item.stats["cyc"] = cyc
     item.stats["sec"] = sec
+    item.stats["exec_cyc"] = exec_cyc
+    item.stats["num_tiles"] = num_tiles
 
 def grep_sim_log (fp) :
     found_wall_sec = False
     found_sim_cyc = False
+    found_first_inst = False
     wall_sec = 0
     sim_cyc = 0
+    exec_start_cyc = 0
+    num_tiles = 0
     errlines = []
-    errline_num = 0 
+    errline_num = 0
 
     in_diag_match = False
     diag_match_err_string = ""
@@ -827,6 +875,7 @@ def grep_sim_log (fp) :
         sig_match = re.search("Caught a SIG", line, re.IGNORECASE)
         sim_match = re.search("Time: (\d+) ps", line)
         wall_match = re.search("CPU Time:\s*(\d+\.\d+)", line)
+        inst_match = re.search("(\d+):pc-updated -> spc\((\d+)\)", line)
         if in_diag_match :
             if line == "\n" :
                 errlines.append(diag_match_err_string)
@@ -860,8 +909,16 @@ def grep_sim_log (fp) :
         elif wall_match :
             wall_sec = float(wall_match.group(1))
             found_wall_sec = True 
+        elif inst_match :
+            if not found_first_inst :
+                # Assume 1Ghz cycle time
+                exec_start_cyc = int(float(inst_match.group(1)) / 1000.0)
+                found_first_inst = True
+            if (int(inst_match.group(2)) + 1) > num_tiles :
+                num_tiles = int(inst_match.group(2)) + 1
+        
 
-    return found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num
+    return found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, exec_start_cyc, errlines, errline_num, num_tiles
 
 def analyze_failure (errlines) :
     # Analyze failure
@@ -929,6 +986,8 @@ def generate_status_log (sim_start, item, diag_dir) :
     found_sim_cyc = False
     wall_sec = 0
     sim_cyc = 0
+    exec_start_cyc = 0
+    num_tiles = 0
     errline_num = 0
     errlines = []
     status = "unkn"
@@ -943,7 +1002,7 @@ def generate_status_log (sim_start, item, diag_dir) :
     # If we were successful, grep the sim.log
     something = False
     if not fp is None :
-        found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num = grep_sim_log(fp)
+        found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, exec_start_cyc, errlines, errline_num, num_tiles = grep_sim_log(fp)
         fp.close()
         something = True
     else :
@@ -960,7 +1019,7 @@ def generate_status_log (sim_start, item, diag_dir) :
                 fp = open(jobq_file, "r")
 
             if not fp is None :
-                found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, errlines, errline_num = grep_sim_log(fp)
+                found_wall_sec, found_sim_cyc, wall_sec, sim_cyc, exec_start_cyc, errlines, errline_num, num_tiles = grep_sim_log(fp)
                 fp.close ()
                 something = True
     
@@ -999,6 +1058,12 @@ def generate_status_log (sim_start, item, diag_dir) :
     if (status == "pass" or status == "fail") and found_sim_cyc and found_wall_sec :
         fp.write("Cyc= %10s, Sec=%10s, C/S=%4.1f\n" % (sim_cyc, wall_sec, sim_cyc/wall_sec))
 
+    if (status == "pass" or status == "fail") and found_sim_cyc and found_wall_sec :
+        fp.write("ExecCyc= %10s, Sec=%10s, EC/S=%4.1f\n" % (sim_cyc-exec_start_cyc, wall_sec, (sim_cyc-exec_start_cyc)/wall_sec)) 
+    
+    if status == "pass" or status == "fail" :
+        fp.write("NumTiles=%10s\n" % num_tiles)
+
     fp.close()
 
 def check_other_results (prog, sim_start, contint_dir, item) :
@@ -1026,7 +1091,7 @@ def check_other_results (prog, sim_start, contint_dir, item) :
     sys.stdout.flush()
 
     # Check status of status and log file
-    status, status_details, cyc, sec = check_status_log(prog, item.model_name) 
+    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name) 
 
     # Clear diag name
     sys.stdout.write("\b" * len(diag_name))
@@ -1040,6 +1105,8 @@ def check_other_results (prog, sim_start, contint_dir, item) :
     item.stats["status_details"] = status_details
     item.stats["cyc"] = cyc
     item.stats["sec"] = sec
+    item.stats["exec_cyc"] = exec_cyc
+    item.stats["num_tiles"] = num_tiles
 
 def check_bundle_results (prog, sim_start, contint_dir, bundle_items) :
     # Loop over items and check results based on
@@ -1078,6 +1145,10 @@ def aggregate_results (bundle_items) :
     asm_regress_stats["pass_fail_count"] = 0
     asm_regress_stats["pass_fail_cyc"] = 0
     asm_regress_stats["pass_fail_sec"] = 0
+    asm_regress_stats["pass_fail_exec_cyc"] = 0
+    asm_regress_stats["pass_fail_num_tiles"] = 0
+    asm_regress_stats["pass_fail_sum_cyc_sec_tile"] = 0
+    asm_regress_stats["pass_fail_sum_exec_cyc_sec_tile"] = 0
     asm_test_build_passed = True
     asm_test_run_passed = True
     asm_test_stats = dict()
@@ -1090,6 +1161,10 @@ def aggregate_results (bundle_items) :
     asm_test_stats["pass_fail_count"] = 0
     asm_test_stats["pass_fail_cyc"] = 0
     asm_test_stats["pass_fail_sec"] = 0
+    asm_test_stats["pass_fail_exec_cyc"] = 0
+    asm_test_stats["pass_fail_num_tiles"] = 0
+    asm_test_stats["pass_fail_sum_cyc_sec_tile"] = 0
+    asm_test_stats["pass_fail_sum_exec_cyc_sec_tile"] = 0
     other_build_passed = True
     other_run_passed = True
     other_stats = dict()
@@ -1102,6 +1177,10 @@ def aggregate_results (bundle_items) :
     other_stats["pass_fail_count"] = 0
     other_stats["pass_fail_cyc"] = 0
     other_stats["pass_fail_sec"] = 0
+    other_stats["pass_fail_exec_cyc"] = 0
+    other_stats["pass_fail_num_tiles"] = 0
+    other_stats["pass_fail_sum_cyc_sec_tile"] = 0
+    other_stats["pass_fail_sum_exec_cyc_sec_tile"] = 0
     all_build_passed = True
     all_run_passed = True
     all_stats = dict()
@@ -1114,6 +1193,10 @@ def aggregate_results (bundle_items) :
     all_stats["pass_fail_count"] = 0
     all_stats["pass_fail_cyc"] = 0
     all_stats["pass_fail_sec"] = 0
+    all_stats["pass_fail_exec_cyc"] = 0
+    all_stats["pass_fail_num_tiles"] = 0
+    all_stats["pass_fail_sum_cyc_sec_tile"] = 0
+    all_stats["pass_fail_sum_exec_cyc_sec_tile"] = 0
 
     # Initialize status counts
     for status in STATUS_NAME :
@@ -1153,6 +1236,14 @@ def aggregate_results (bundle_items) :
                 all_stats["pass_fail_cyc"] += item.stats["pass_fail_cyc"]["ALL"]
                 asm_regress_stats["pass_fail_sec"] += item.stats["pass_fail_sec"]["ALL"]
                 all_stats["pass_fail_sec"] += item.stats["pass_fail_sec"]["ALL"] 
+                asm_regress_stats["pass_fail_exec_cyc"] += item.stats["pass_fail_exec_cyc"]["ALL"]
+                all_stats["pass_fail_exec_cyc"] += item.stats["pass_fail_exec_cyc"]["ALL"]
+                asm_regress_stats["pass_fail_num_tiles"] += item.stats["pass_fail_num_tiles"]["ALL"]
+                all_stats["pass_fail_num_tiles"] += item.stats["pass_fail_num_tiles"]["ALL"]
+                asm_regress_stats["pass_fail_sum_cyc_sec_tile"] += item.stats["pass_fail_sum_cyc_sec_tile"]["ALL"]
+                all_stats["pass_fail_sum_cyc_sec_tile"] += item.stats["pass_fail_sum_cyc_sec_tile"]["ALL"]
+                asm_regress_stats["pass_fail_sum_exec_cyc_sec_tile"] += item.stats["pass_fail_sum_exec_cyc_sec_tile"]["ALL"]
+                all_stats["pass_fail_sum_exec_cyc_sec_tile"] += item.stats["pass_fail_sum_exec_cyc_sec_tile"]["ALL"]
         elif item.type == BundleItemType.AssemblyTest :
             if not item.build_passed :
                 asm_test_build_passed = False
@@ -1183,6 +1274,19 @@ def aggregate_results (bundle_items) :
                     all_stats["pass_fail_cyc"] += item.stats["cyc"]
                     asm_test_stats["pass_fail_sec"] += item.stats["sec"]
                     all_stats["pass_fail_sec"] += item.stats["sec"]
+                    asm_test_stats["pass_fail_exec_cyc"] += item.stats["exec_cyc"]
+                    all_stats["pass_fail_exec_cyc"] += item.stats["exec_cyc"]
+                    asm_test_stats["pass_fail_num_tiles"] += item.stats["num_tiles"]
+                    all_stats["pass_fail_num_tiles"] += item.stats["num_tiles"]
+                    if item.stats["sec"] > 0 :
+                        asm_test_stats["pass_fail_sum_cyc_sec_tile"] += \
+                            ((item.stats["cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        all_stats["pass_fail_sum_cyc_sec_tile"] += \
+                            ((item.stats["cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        asm_test_stats["pass_fail_sum_exec_cyc_sec_tile"] += \
+                            ((item.stats["exec_cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        all_stats["pass_fail_sum_exec_cyc_sec_tile"] += \
+                            ((item.stats["exec_cyc"]/item.stats["sec"])*item.stats["num_tiles"])
         elif item.type == BundleItemType.Other :
             if not item.build_passed :
                 other_build_passed = False
@@ -1213,6 +1317,19 @@ def aggregate_results (bundle_items) :
                     all_stats["pass_fail_cyc"] += item.stats["cyc"]
                     other_stats["pass_fail_sec"] += item.stats["sec"]
                     all_stats["pass_fail_sec"] += item.stats["sec"]
+                    other_stats["pass_fail_exec_cyc"] += item.stats["exec_cyc"]
+                    all_stats["pass_fail_exec_cyc"] += item.stats["exec_cyc"]
+                    other_stats["pass_fail_num_tiles"] += item.stats["num_tiles"]
+                    all_stats["pass_fail_num_tiles"] += item.stats["num_tiles"]
+                    if item.stats["sec"] > 0 :
+                        other_stats["pass_fail_sum_cyc_sec_tile"] += \
+                            ((item.stats["cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        all_stats["pass_fail_sum_cyc_sec_tile"] += \
+                            ((item.stats["cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        other_stats["pass_fail_sum_exec_cyc_sec_tile"] += \
+                            ((item.stats["exec_cyc"]/item.stats["sec"])*item.stats["num_tiles"])
+                        all_stats["pass_fail_sum_exec_cyc_sec_tile"] += \
+                            ((item.stats["exec_cyc"]/item.stats["sec"])*item.stats["num_tiles"]) 
 
     # Create a bundle item representing all
     # assembly regression bundle items
@@ -1322,6 +1439,36 @@ def print_results (contint_dir, bundle_items) :
         if item.type == BundleItemType.Aggregate :
             if item.stats["pass_fail_sec"] :
                 sys.stdout.write("%11s |" % int(item.stats["pass_fail_cyc"] / item.stats["pass_fail_sec"]))
+            else :
+                sys.stdout.write("%11s |" % "-NA-")
+    sys.stdout.write("\n")
+
+    # Print exec cycles per second
+    sys.stdout.write("%15s:" % "ExecCycles/Sec")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            if item.stats["pass_fail_sec"] :
+                sys.stdout.write("%11s |" % int(item.stats["pass_fail_exec_cyc"] / item.stats["pass_fail_sec"]))
+            else :
+                sys.stdout.write("%11s |" % "-NA-")
+    sys.stdout.write("\n")
+
+    # Print cycles per second per tile
+    sys.stdout.write("%15s:" % "Cycles/Sec/Tile")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            if item.stats["pass_fail_count"] and item.stats["pass_fail_num_tiles"] :
+                sys.stdout.write("%11s |" % int(item.stats["pass_fail_sum_cyc_sec_tile"] / item.stats["pass_fail_count"]))
+            else :
+                sys.stdout.write("%11s |" % "-NA-")
+    sys.stdout.write("\n")
+
+    # Print exec cycles per second per tile
+    sys.stdout.write("%15s:" % "ExecCyc/Sec/Til")
+    for item in bundle_items :
+        if item.type == BundleItemType.Aggregate :
+            if item.stats["pass_fail_count"] and item.stats["pass_fail_num_tiles"] :
+                sys.stdout.write("%11s |" % int(item.stats["pass_fail_sum_exec_cyc_sec_tile"] / item.stats["pass_fail_count"]))
             else :
                 sys.stdout.write("%11s |" % "-NA-")
     sys.stdout.write("\n")

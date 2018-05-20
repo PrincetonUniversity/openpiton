@@ -30,11 +30,11 @@ module sram_l15_data
 input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
-input wire [8:0] A,
+input wire [`L15_NUM_ENTRIES_LOG2-1:0] A,
 input wire RDWEN,
-input wire [127:0] BW,
-input wire [127:0] DIN,
-output wire [127:0] DOUT,
+input wire [`L15_CACHELINE_WIDTH-1:0] BW,
+input wire [`L15_CACHELINE_WIDTH-1:0] DIN,
+output wire [`L15_CACHELINE_WIDTH-1:0] DOUT,
 
 input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
 input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
@@ -42,32 +42,23 @@ output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
 
-wire           write_en;
-wire           read_en;
-wire  [15:0]   wen_mask;
-
-
-assign write_en   = CE & (RDWEN == 1'b0);
-assign read_en    = CE & (RDWEN == 1'b1);
-assign wen_mask   = {BW[120],BW[112],BW[104],BW[96],BW[88],BW[80],BW[72],BW[64],
-                     BW[56] ,BW[48], BW[40], BW[32],BW[24],BW[16],BW[8], BW[0]};
-
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-
-
-bram_512x128 mem (
-   .clka    (MEMCLK     ),
-   .ena     (write_en   ),
-   .wea     (wen_mask   ),
-   .addra   (A          ),
-   .dina    (DIN        ),
-   
-   .clkb    (MEMCLK     ),
-   .enb     (read_en    ),
-   .addrb   (A          ),
-   .doutb   (DOUT       )
+bram_sdp_wrapper #(
+   .NAME          ("l15_data"             ),
+   .DEPTH         (`L15_NUM_ENTRIES       ),
+   .ADDR_WIDTH    (`L15_NUM_ENTRIES_LOG2  ),
+   .BITMASK_WIDTH (`L15_CACHELINE_WIDTH   ),
+   .DATA_WIDTH    (`L15_CACHELINE_WIDTH   )
+)   bram_wrapper (
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
 );
 
 endmodule

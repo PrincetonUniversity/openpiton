@@ -37,58 +37,34 @@ module sram_l2_tag
 input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
-`ifdef L2_32K_4WAY
-   input wire [6:0] A,
-   input wire [107:0] BW,
-   input wire [107:0] DIN,
-   output wire [107:0] DOUT,
-`else    // assume 64K L2
-   input wire [7:0] A,
-   input wire [103:0] BW,
-   input wire [103:0] DIN,
-   output wire [103:0] DOUT,
-`endif
-
+input wire [`L2_TAG_ARRAY_HEIGHT_LOG2-1:0] A,
 input wire RDWEN,
-
+input wire [`L2_TAG_ARRAY_WIDTH-1:0] BW,
+input wire [`L2_TAG_ARRAY_WIDTH-1:0] DIN,
+output wire [`L2_TAG_ARRAY_WIDTH-1:0] DOUT,
 input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
 input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
 output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
 input wire [`BIST_ID_WIDTH-1:0] SRAMID
 );
 
-
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-`ifdef L2_32K_4WAY
-   bram_sdp_128x108_wrapper #(
-      .ADDR_WIDTH    (7         ),
-      .BITMASK_WIDTH (108        ),
-      .DATA_WIDTH    (108        )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`else
-   bram_sdp_256x104_wrapper #(
-      .ADDR_WIDTH    (8          ),
-      .BITMASK_WIDTH (104        ),
-      .DATA_WIDTH    (104        )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`endif
+bram_sdp_wrapper #(
+   .NAME          ("l2_tag"                     ),
+   .DEPTH         (`L2_TAG_ARRAY_HEIGHT         ),
+   .ADDR_WIDTH    (`L2_TAG_ARRAY_HEIGHT_LOG2    ),
+   .BITMASK_WIDTH (`L2_TAG_ARRAY_WIDTH          ),
+   .DATA_WIDTH    (`L2_TAG_ARRAY_WIDTH          )
+)   bram_wrapper (
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
+);
 
 endmodule

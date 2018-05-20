@@ -64,8 +64,19 @@ Warning: Design '.*' contains 1 high-fanout nets\. A fanout number of 1000 will 
 Information: The port .* does not have a user-defined location\. \(DCT-042\)
 Information: Ungrouping hierarchy .* before Pass 1 \(OPT-776\)
 
+// Renaming of port with error in the name
+The new name of the port is '\S*error\S*'. \(OPT-319\)
+
 // Should be OK
 Warning:  Starting with the 2000\.11-1 release, the Presto Verilog reader treats Verilog 'integer' types as signed; synthesized result may not match earlier versions of HDL Compiler\. \(VER-314\)
 
 // Ignore high fanout warnings
 Warning: Design .* contains \d+ high-fanout nets\. A fanout number of \d+ will be used for delay calculations involving these nets\. \(TIM-134\)
+
+// These occur on second pass for synthesis, generally occur when reading in DEF file
+// which is main difference between first and second pass
+Warning: NAMECASESENSITIVITY always assumed to be ON\. \(DDEFR-005\)
+Warning: Reference of cell \S+ in the DEF file is different than its reference in the netlist\. \(DEFR-110\)
+Warning: Unmapped cell '\S+' in DEF is ignored to extract physical constraints\. \(DEFR-103\)
+Warning: Unmapped cell \S+ is ignored to set location, is_fixed and orientation\. \(PSYN-950\)
+Warning: Can't get VIA_INFO contact code \(number = \d+\) in library\. \(MWLIBP-032\)

@@ -78,7 +78,10 @@ module chip(
 `else // ifdef PITON_CHIP_FPGA
    // Need to output this to chipset, since there will
    // be no passthru in the case of synthesizing chip on its own
+   output                                       piton_prsnt_n,
    output                                       piton_ready_n,
+
+   input                                        chipset_prsnt_n,
  
    output [7:0]                                 leds,
 `endif // endif PITON_CHIP_FPGA
@@ -210,7 +213,6 @@ module chip(
    wire [1:0]                                   clk_mux_sel_inter;
    wire                                         jtag_clk_inter;
    wire                                         jtag_rst_l_inter;
-   wire                                         jtag_rst_l_inter_sync;
    wire                                         jtag_modesel_inter;
    wire                                         jtag_datain_inter;
    wire                                         jtag_dataout_inter;
@@ -483,6 +485,7 @@ module chip(
    assign oram_traffic_gen = 1'b0;
    assign oram_dummy_gen = 1'b0;
 
+   assign piton_prsnt_n = ~rst_n_inter_sync;
    assign piton_ready_n = ~rst_n_inter_sync;
 
 `ifdef PITON_FPGA_CLKS_GEN
@@ -499,23 +502,6 @@ module chip(
    assign leds[7] = 1'b0;
 
 `endif // endif PITON_CHIP_FPGA
-
-   // PLL and clkmux alternatives
-`ifdef PITON_FPGA_SYNTH
-   assign clk_muxed = core_ref_clk_inter;
-   assign pll_lock_inter = pll_rst_n_inter;
-`elsif NO_SIM_PLL
-   assign clk_muxed = core_ref_clk_inter;
-   initial
-   begin
-     force pll_lock_inter = 1'b0;
-     wait(pll_rst_n_inter == 1'b0);
-     wait(pll_rst_n_inter == 1'b1);
-     repeat(100)@(posedge core_ref_clk_inter);
-     force pll_lock_inter = 1'b1;
-   end
-`endif
-
 
    // Connecting chip_bridge data to tiles/ORAM
 <%
@@ -703,7 +689,11 @@ module chip(
    .impsel2						(impsel2),
    .core_ref_clk				(core_ref_clk),
    .io_clk						(io_clk),
+`ifndef PITON_CHIP_FPGA
    .rst_n						(rst_n),
+`else // ifndef PITON_CHIP_FPGA
+   .rst_n                       (rst_n & (~chipset_prsnt_n)),
+`endif
    .pll_rst_n					(pll_rst_n),
    .pll_rangea					(pll_rangea),
    .clk_mux_sel					(clk_mux_sel),

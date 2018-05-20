@@ -79,7 +79,7 @@ module sd_wishbone_transaction_manager (
     reg [4:0]                 state,       next_state;
     reg [4:0]                 after_state, next_after_state;
 
-    reg [5:0]                 wcntr, next_wcntr;
+    reg [6:0]                 wcntr, next_wcntr;
     reg [2:0]                 bcntr, next_bcntr;
 
     reg [`AXI_ADDR_WIDTH-1:0] addr,  next_addr;
@@ -89,7 +89,7 @@ module sd_wishbone_transaction_manager (
 
     wire [`AXI_DATA_WIDTH-1:0] rdata_shift = (cache_r_data >> ({bcntr, 3'b000}));
 
-    localparam INIT_WAIT_TIME = 20;
+    localparam INIT_WAIT_TIME = 80;
 
     //----------------------------------------------------------------------------
     // FSM States
@@ -404,9 +404,9 @@ module sd_wishbone_transaction_manager (
 
         next_succ  = succ;
 
-        cache_r_addr = wcntr;
+        cache_r_addr = wcntr[5:0];
         cache_w_en   = 0;
-        cache_w_addr = wcntr;
+        cache_w_addr = wcntr[5:0];
         cache_w_data = rword;
         next_rword  = rword;
 
@@ -495,7 +495,7 @@ module sd_wishbone_transaction_manager (
             end
             W_DATA_WORD:
             begin
-                cache_r_addr = wcntr;
+                cache_r_addr = wcntr[5:0];
             end
             W_DATA_BYTES:
             begin
@@ -504,7 +504,7 @@ module sd_wishbone_transaction_manager (
                 stb_o = 1'b1;
                 we_o  = 1'b1;
 
-                cache_r_addr = wcntr;
+                cache_r_addr = wcntr[5:0];
 
                 if (ack_i)
                 begin

@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `default_nettype none
 `endif
 
-`ifdef PRESERVE_PITON_SRAM
+`ifndef SPLIT_L1_DCACHE
 
 module sram_l1d_data_piton
 (

@@ -1,7 +1,8 @@
 # Modified by Princeton University on April 3, 2016
 # Format:
 # BlockID           BlockPath                                                                   BlockSynMemReq  BlockPARMemReq  FTFPasses  ECO
+chip                chip                                                                        48000          128000           1          Y 
 tile                chip/tile                                                                   32000          128000           1          Y
 dynamic_node        chip/tile/dynamic_node                                                       8000           16000           1          N
-sparc               chip/tile/sparc                                                             48000          128000           1          Y
+sparc               chip/tile/sparc                                                             64000          128000           1          Y
 ffu                 chip/tile/sparc/ffu                                                          8000           12000           1          Y

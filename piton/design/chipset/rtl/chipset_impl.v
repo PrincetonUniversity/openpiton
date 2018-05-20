@@ -69,6 +69,8 @@ module chipset_impl(
     input                                       chipset_rst_n,
     input                                       piton_ready_n,
 
+    output                                      test_start,
+
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     input                                       mc_clk,
@@ -139,7 +141,7 @@ module chipset_impl(
             `ifdef PITONSYS_NON_UART_BOOT
                 ,
                 input                                       uart_boot_en,
-                output                                      test_start
+                input                                       uart_timeout_en
             `endif // endif PITONSYS_NON_UART_BOOT
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
@@ -152,6 +154,22 @@ module chipset_impl(
         output                                      spi_data_out,
         output                                      spi_cs_n
     `endif // endif PITONSYS_SPI
+
+        ,
+        input                               net_axi_clk,
+        output                              net_phy_rst_n,
+        
+        input                               net_phy_tx_clk,
+        output                              net_phy_tx_en,
+        output  [3 : 0]                     net_phy_tx_data,
+        
+        input                               net_phy_rx_clk,
+        input                               net_phy_dv,
+        input  [3 : 0]                      net_phy_rx_data,
+        input                               net_phy_rx_er,
+        
+        inout                               net_phy_mdio_io,
+        output                              net_phy_mdc
 
 `else // ifndef PITONSYS_IOCTRL
     ,
@@ -202,15 +220,19 @@ reg                                             io_ctrl_rst_n;
 
 `ifndef PITONSYS_IOCTRL
 wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
 `else // ifdef PITONSYS_IOCTRL
 `ifndef PITONSYS_UART
 wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
 `else // ifdef PITONSYS_UART
 `ifndef PITONSYS_UART_BOOT
 wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
 `else // ifdef PITONSYS_UART_BOOT
 `ifndef PITONSYS_NON_UART_BOOT
 wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
 `endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
@@ -314,12 +336,15 @@ assign intf_chipset_rdy_noc3 = 1'b0;
 
 `ifndef PITONSYS_IOCTRL
     assign uart_boot_en = 1'b0;
+    assign uart_timeout_en = 1'b0;
 `else // ifdef PITONSYS_IOCTRL
     `ifndef PITONSYS_UART
         assign uart_boot_en = 1'b0;
+        assign uart_timeout_en = 1'b0;
     `else // ifdef PITONSYS_UART
         `ifndef PITONSYS_UART_BOOT
             assign uart_boot_en = 1'b0;
+            assign uart_timeout_en = 1'b0;
         `else // ifdef PITONSYS_UART_BOOT
             `ifndef PITONSYS_NON_UART_BOOT
                 assign uart_boot_en = 1'b1;
@@ -510,16 +535,34 @@ io_ctrl_top io_ctrl_top(
     .spi_cs_n(spi_cs_n),
 `endif // PITONSYS_SPI
 
-    .uart_boot_en(uart_boot_en),
-
-    .test_good_end  (test_good_end  ),
-    .test_bad_end   (test_bad_end   ),
+    .net_axi_clk            (net_axi_clk        ),
+    .net_phy_rst_n          (net_phy_rst_n      ),  
     
-    .test_start(test_start),
+    .net_phy_tx_clk         (net_phy_tx_clk     ), 
+    .net_phy_tx_en          (net_phy_tx_en      ),  
+    .net_phy_tx_data        (net_phy_tx_data    ),
+    
+    .net_phy_rx_clk         (net_phy_rx_clk     ), 
+    .net_phy_dv             (net_phy_dv         ),     
+    .net_phy_rx_data        (net_phy_rx_data    ),
+    .net_phy_rx_er          (net_phy_rx_er      ),
 
-    .uart_noc_valid     (uart_noc_valid ),
-    .uart_noc_data      (uart_noc_data  ),
-    .uart_noc_ready     (uart_noc_ready )
+    .net_phy_mdio_io        (net_phy_mdio_io    ), 
+    .net_phy_mdc            (net_phy_mdc        ),
+
+    .uart_boot_en(uart_boot_en),
+    // Uncomment to connect to the switch
+    // .uart_timeout_en(uart_timeout_en),
+    .uart_timeout_en        (1'b1),
+
+    .test_good_end          (test_good_end      ),
+    .test_bad_end           (test_bad_end       ),
+    
+    .test_start             (test_start         ),
+
+    .uart_noc_valid         (uart_noc_valid     ),
+    .uart_noc_data          (uart_noc_data      ),
+    .uart_noc_ready         (uart_noc_ready     )
 );
 `endif // endif PITONSYS_IOCTRL
 

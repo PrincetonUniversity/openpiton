@@ -30,6 +30,11 @@ hboot_pton_init:
 #include "hboot_execd_init.s"
 #include "hboot_dmbr_init.s"
 
+	! Change L2 Home allocation  bits
+	setx    PITON_L2_HOME_ALLOC_REG, %l1, %l0
+	mov     PITON_L2_HOME_MID_BITS, %l1
+	stx 	%l1, [%l0]
+
     ! Jump back to the rest of the reset code
     setx HRedmode_Reset_Handler, %g1, %g2
     jmp %g2

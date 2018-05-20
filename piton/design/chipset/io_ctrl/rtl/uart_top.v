@@ -40,6 +40,7 @@ module uart_top (
     input                                   uart_lb_sw,
 
     input                                   uart_boot_en,
+    input                                   uart_timeout_en,
     output                                  test_start,
     input                                   test_good_end,
     input                                   test_bad_end,
@@ -235,6 +236,7 @@ uart_mux   uart_mux (
   .axi_rst_n            (rst_n              ),
 
   .uart_boot_en         (uart_boot_en       ),
+  .uart_timeout_en      (uart_timeout_en    ),
   .init_done            (init_done          ),
   .writer_start         (writer_start       ),
   .writer_finish        (writer_finish      ),

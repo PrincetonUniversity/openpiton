@@ -73,16 +73,7 @@ export SYN_LIB=$SYN_HOME/libraries/syn
 export SYN_BIN=$SYN_HOME/sparcOS5/syn/bin
 
 # Set Perl related variables
-
-if [ `uname -s` = "SunOS" -a `uname -p` = "sparc" ]
-then
-  export PERL_VER=5.8.7
-  export PERL_PATH=$DV_ROOT/tools/perl-$PERL_VER
-  export PERL5_PATH=$DV_ROOT/tools/perl-$PERL_VER/lib/perl5
-  export PERL_CMD="$PERL_PATH/bin/perl"
-else
-  export PERL_CMD="/usr/bin/perl"
-fi
+export PERL_CMD="/usr/bin/perl"
 
 # Set path
 

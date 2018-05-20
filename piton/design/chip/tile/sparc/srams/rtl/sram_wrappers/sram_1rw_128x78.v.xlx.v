@@ -45,26 +45,21 @@ input wire [`BIST_ID_WIDTH-1:0] SRAMID
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-wire  [79:0]   bram_data_in;
-wire  [79:0]   bram_data_out;
-wire  [79:0]   bram_bw_in;
 
-assign bram_data_in  = {2'b0, DIN};
-assign DOUT          = bram_data_out[77:0];
-assign bram_bw_in    = {2'b0, BW};
-
-bram_sdp_128x80_wrapper #(
+bram_sdp_wrapper #(
+   .NAME          ("fp_regfile"  ),
+   .DEPTH         (128           ),
    .ADDR_WIDTH    (7             ),
-   .BITMASK_WIDTH (80            ),
-   .DATA_WIDTH    (80            )
+   .BITMASK_WIDTH (78            ),
+   .DATA_WIDTH    (78            )
 )   bram_wrapper (
-   .MEMCLK        (MEMCLK        ),
-   .CE            (CE            ),
-   .A             (A             ),
-   .RDWEN         (RDWEN         ),
-   .BW            (bram_bw_in    ),
-   .DIN           (bram_data_in  ),
-   .DOUT          (bram_data_out )
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
 );
 
 endmodule

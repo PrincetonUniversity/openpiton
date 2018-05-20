@@ -611,7 +611,7 @@ module jtag_testbench_top;
     integer i;
     reg clk_en;
 
-`ifndef NO_SIM_PLL
+`ifndef USE_FAKE_PLL_AND_CLKMUX
     always #5000 core_ref_clk = ~core_ref_clk;     // 100MHz
 `else
     always #500 core_ref_clk = ~core_ref_clk;    // 1000MHz

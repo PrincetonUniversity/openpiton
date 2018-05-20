@@ -1,3 +1,4 @@
 chipset.v
 chipset_impl.v
+chipset_impl_noc_power_test.v
 storage_addr_trans.v

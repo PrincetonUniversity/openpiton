@@ -25,29 +25,20 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-// 17/02/2015 17:18:31
-// This file is auto-generated
-// Author: Tri Nguyen
 `include "define.vh"
-`ifdef L15_EXTRA_DEBUG
-`default_nettype none
-`endif
+
 module sram_l2_data
 (
 input wire MEMCLK,
 input wire RESET_N,
 input wire CE,
 
-`ifdef L2_32K_4WAY
-   input wire [10:0] A,
-`else    // assume 64K L2
-   input wire [11:0] A,
-`endif
+input wire [`L2_DATA_ARRAY_HEIGHT_LOG2-1:0] A,
 
 input wire RDWEN,
-input wire [143:0] BW,
-input wire [143:0] DIN,
-output wire [143:0] DOUT,
+input wire [`L2_DATA_ARRAY_WIDTH-1:0] BW,
+input wire [`L2_DATA_ARRAY_WIDTH-1:0] DIN,
+output wire [`L2_DATA_ARRAY_WIDTH-1:0] DOUT,
 input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
 input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
 output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
@@ -57,33 +48,20 @@ input wire [`BIST_ID_WIDTH-1:0] SRAMID
 always @*
    BIST_DOUT = {`SRAM_WRAPPER_BUS_WIDTH{1'b0}};
 
-`ifdef L2_32K_4WAY
-   bram_sdp_2048x144_wrapper #(
-      .ADDR_WIDTH    (11         ),
-      .BITMASK_WIDTH (144        ),
-      .DATA_WIDTH    (144        )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`else
-   bram_sdp_4096x144_wrapper #(
-      .ADDR_WIDTH    (12         ),
-      .BITMASK_WIDTH (144        ),
-      .DATA_WIDTH    (144        )
-   )   bram_wrapper (
-      .MEMCLK        (MEMCLK     ),
-      .CE            (CE         ),
-      .A             (A          ),
-      .RDWEN         (RDWEN      ),
-      .BW            (BW         ),
-      .DIN           (DIN        ),
-      .DOUT          (DOUT       )
-   );
-`endif
+bram_sdp_wrapper #(
+   .NAME          ("l2_data"                    ),
+   .DEPTH         (`L2_DATA_ARRAY_HEIGHT        ),
+   .ADDR_WIDTH    (`L2_DATA_ARRAY_HEIGHT_LOG2   ),
+   .BITMASK_WIDTH (`L2_DATA_ARRAY_WIDTH         ),
+   .DATA_WIDTH    (`L2_DATA_ARRAY_WIDTH         )
+)   bram_wrapper (
+   .MEMCLK        (MEMCLK     ),
+   .CE            (CE         ),
+   .A             (A          ),
+   .RDWEN         (RDWEN      ),
+   .BW            (BW         ),
+   .DIN           (DIN        ),
+   .DOUT          (DOUT       )
+);
+
 endmodule

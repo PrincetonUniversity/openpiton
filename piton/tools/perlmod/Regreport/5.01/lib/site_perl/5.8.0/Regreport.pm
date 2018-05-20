@@ -103,7 +103,7 @@ my($bad_trap_va)  	= 422020;
 my($hbad_trap_va)  	= 82020;
 my($main_va)  		= 20000000;
 
-my($ctime) = 1;		# cycle time
+my($ctime) = 1000.0;		# cycle time (1GHz default)
 
 #--------------------------------------------------------------
 my($drawline)		= ("=" x 80) . "\n";
@@ -112,6 +112,8 @@ my($found_wall_sec) 	= 0;
 my($found_sim_cyc) 	= 0;
 my($wall_sec)		= 0;
 my($sim_cyc)		= 0;
+my($exec_start_cyc) = 0;
+my($num_tiles)      = 0;
 
 my($last_sas);
 my(%main_vartlcycle);
@@ -142,6 +144,8 @@ sub	chk_single_diag {
   $found_sim_cyc  = 0;
   $wall_sec 	  = 0;
   $sim_cyc     	  = 0;
+  $exec_start_cyc = 0;
+  $num_tiles      = 0;
   $last_sas       = "not known";
   $errline_num    = 0;
   @errlines       = ();
@@ -204,6 +208,16 @@ sub	chk_single_diag {
       if(-r    "sim.log")  	{ open (FUT, " sim.log ");}
       elsif(-r "sim.log.gz")	{ open (FUT, "$GUNZIP sim.log.gz |");}
       &getfreq;
+      close(FUT);
+
+      if(-r    "sim.log")   { open (FUT, " sim.log ");}
+      elsif(-r "sim.log.gz")    { open (FUT, "$GUNZIP sim.log.gz |");}
+      &getexecstart;
+      close(FUT); 
+
+      if(-r    "sim.log")   { open (FUT, " sim.log ");}
+      elsif(-r "sim.log.gz")    { open (FUT, "$GUNZIP sim.log.gz |");}
+      &getnumtiles;
       close(FUT);
 
       if($full){
@@ -420,6 +434,14 @@ sub	chk_single_diag {
 #====================
   if(($status eq 'pass' || $status eq 'fail')  && $found_sim_cyc && $found_wall_sec) {
     printf $rsfh "Cyc= %10s, Sec=%10s, C/S=%4.1f\n", $sim_cyc, $wall_sec, $sim_cyc/($wall_sec+0);
+  }
+
+  if(($status eq 'pass' || $status eq 'fail')  && $found_sim_cyc && $found_wall_sec) {
+    printf $rsfh "ExecCyc= %10s, Sec=%10s, EC/S=%4.1f\n", $sim_cyc - $exec_start_cyc, $wall_sec, ($sim_cyc - $exec_start_cyc)/($wall_sec+0);
+  }
+
+  if($status eq 'pass' || $status eq 'fail') {
+    printf $rsfh "NumTiles=%10s\n", $num_tiles;
   }
 
   if($diagplerr){
@@ -798,6 +820,31 @@ sub getfreq{
       $ctime = int (1000000 / $1);
       print "cycle time is $ctime\n" if($debug);
       last;
+    }
+  }
+}
+
+#===================================================================
+# get the first instructions execution cycle
+#===================================================================
+sub getexecstart{
+  while(<FUT>){
+    if (/^(\d+):pc-updated ->/){
+      $exec_start_cyc = ($1 / $ctime);
+      last;
+    }
+  }
+} 
+
+#===================================================================
+# get the number of tiles
+#===================================================================
+sub getnumtiles{
+  while(<FUT>){
+    if (/^\d+:pc-updated -> spc\((\d+)\)/){
+      if (($1 + 1) > $num_tiles){
+        $num_tiles = ($1 + 1);
+      }
     }
   }
 }

@@ -24,13 +24,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Paths to SRAMs
-set l2_data_path                "l2/data_wrap_l2_data_l2_data_array_ibmsram"
-set l2_dir_path                 "l2/dir_wrap_l2_dir_l2_dir_array_ibmsram"
-set l2_tag_path                 "l2/tag_wrap_l2_tag_l2_tag_array_ibmsram"
-set l2_state_path               "l2/state_wrap_l2_state_l2_state_array_ibmsram"
-set l15_hmt_path                "l15/l15_hmt_ibmsram"
-set l15_data_path               "l15/l15_dcache_ibmsram"
-set l15_tag_path                "l15/l15_dtag_ibmsram"
+source -echo script/sram_paths.tcl
 
 # Get dimensions of modules
 set l2_data_height              [lindex [get_attribute [get_cells $l2_data_path] height] 0]

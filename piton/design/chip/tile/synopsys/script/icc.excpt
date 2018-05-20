@@ -1,0 +1,106 @@
+// Copyright (c) 2017 Princeton University
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+// This seems to come up for hierarchical cells when reading
+// in leaf cells, not sure why but seems to be OK
+Error: Unable to reset attribute in CEL 
+
+// These are OK, as we do not specifically have VSS, VDD, and VCS in the
+// verilog.  I think these get connected later on, but we also just
+// manually connect them in PGN routing
+Warning: No driver connected with the (Ground|Power) net 'core/V\S*'. \(MWDC-284\)
+
+// These happend during PGN routing in the core, turns out OK though
+WARNING:  Failed to make a connection for the following pin:
+
+// These happen when setting pin constraints.  Not sure why its a warning....
+Warning: Setting constraint for pin  at offset \d+\.\d+ on side \d. \(PDC-008\)
+
+// These happend when assigning pins, turns out OK though
+Warning: Unable to assign physical constrained pin dyn2_dSo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dNo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dSo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_yummyOut_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_yummyOut_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dNo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dSo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dNo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dSo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_yummyOut_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_yummyOut_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dNo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dSo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dNo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dSo_valid to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_yummyOut_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_yummyOut_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dNo\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dataIn_S\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_validIn_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_validIn_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dNo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dSo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn2_dataIn_N\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dataIn_S\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_validIn_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_validIn_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dNo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dSo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dSo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn1_dataIn_N\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dataIn_S\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_validIn_N to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_validIn_S to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dNo_yummy to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin dyn0_dataIn_N\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin clk to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin rst_n to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin clk_en to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin default_chipid\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin default_coreid_x\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin default_coreid_y\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin flat_tileid\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin jtag_tiles_ucb_val to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin jtag_tiles_ucb_data\[0\] to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin tile_jtag_ucb_val to position as specified. \(FPHSM-1615\)
+Warning: Unable to assign physical constrained pin tile_jtag_ucb_data\[0\] to position as specified. \(FPHSM-1615\)
+
+// These happen before clock routing
+Warning: Design 'tile' contains 5 high-fanout nets. A fanout number of 500 will be used for delay calculations involving these nets. \(TIM-134\)
+Warning: Design 'tile' contains 4 high-fanout nets. A fanout number of 500 will be used for delay calculations involving these nets. \(TIM-134\)
+
+// These occur during clock tree synthesis, not sure why but seems to turn out OK
+Warning: Cell \S+ is a fixed cell instance. \(CTS-261\)
+Warning: no delay insertion on the net \S+ inside block. \(CTS-612\)
+Warning: The shortest path under Worst operating condition for clock clk of root pin clk ends on pin \S+ inside block. \(CTS-596\)
+
+// CTS net names with error in the name
+CTS:\s+(clock net|driving pin) = \S*error\S*
+
+// This occurs after clock routing and should be reset, should be OK
+Warning: Design 'tile' contains 1 high-fanout nets. A fanout number of 500 will be used for delay calculations involving these nets. \(TIM-134\)
+
+// Not sure why these occur, but turns out OK
+Error: Cannot modify attribute on object '\S+'. \(MWUI-040\)

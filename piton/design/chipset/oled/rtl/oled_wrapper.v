@@ -61,6 +61,7 @@ wire                oled_done;
 reg     [1:0]       oled_state;
 reg     [7:0]       char_cnt;
 reg     [7:0]       disp_buf[DISP_CHAR_NUM-1:0];
+reg     [0:8*DISP_CHAR_NUM-1]            disp_string;
 reg                 btnl_r;
 reg                 btnr_r;
 reg                 btnu_r;
@@ -149,78 +150,16 @@ assign btnr_pulse = btnr & ~btnr_r;
 assign btnd_pulse = btnd & ~btnd_r;
 assign btnu_pulse = btnu & ~btnu_r;
 
+always @(posedge sys_clk) begin
+    disp_string <= `OLED_STRING;
+end
 
 generate begin
     genvar i;
     for (i = 0; i < 64; i = i + 1) begin: disp_buf_change
     always @(posedge sys_clk) begin
         if (~sys_rst_n) begin
-            case (i)
-                0: disp_buf[i] <= "O";
-                1: disp_buf[i] <= "p";
-                2: disp_buf[i] <= "e";
-                3: disp_buf[i] <= "n";
-                4: disp_buf[i] <= "P";
-                5: disp_buf[i] <= "i";
-                6: disp_buf[i] <= "t";
-                7: disp_buf[i] <= "o";
-                8: disp_buf[i] <= "n";
-                9: disp_buf[i] <= " ";
-                10: disp_buf[i] <= " ";
-                11: disp_buf[i] <= "r";
-                12: disp_buf[i] <= "e";
-                13: disp_buf[i] <= "l";
-                14: disp_buf[i] <= " ";
-                15: disp_buf[i] <= "4";
-                16: disp_buf[i] <= "P";
-                17: disp_buf[i] <= "r";
-                18: disp_buf[i] <= "i";
-                19: disp_buf[i] <= "n";
-                20: disp_buf[i] <= "c";
-                21: disp_buf[i] <= "e";
-                22: disp_buf[i] <= "t";
-                23: disp_buf[i] <= "o";
-                24: disp_buf[i] <= "n";
-                25: disp_buf[i] <= " ";
-                26: disp_buf[i] <= " ";
-                27: disp_buf[i] <= " ";
-                28: disp_buf[i] <= " ";
-                29: disp_buf[i] <= " ";
-                30: disp_buf[i] <= " ";
-                31: disp_buf[i] <= " ";
-                32: disp_buf[i] <= " ";
-                33: disp_buf[i] <= " ";
-                34: disp_buf[i] <= " ";
-                35: disp_buf[i] <= " ";
-                36: disp_buf[i] <= " ";
-                37: disp_buf[i] <= "P";
-                38: disp_buf[i] <= "a";
-                39: disp_buf[i] <= "r";
-                40: disp_buf[i] <= "a";
-                41: disp_buf[i] <= "l";
-                42: disp_buf[i] <= "l";
-                43: disp_buf[i] <= "e";
-                44: disp_buf[i] <= "l";
-                45: disp_buf[i] <= " "; 
-                46: disp_buf[i] <= " "; 
-                47: disp_buf[i] <= " "; 
-                48: disp_buf[i] <= " "; 
-                49: disp_buf[i] <= " "; 
-                50: disp_buf[i] <= " "; 
-                51: disp_buf[i] <= " "; 
-                52: disp_buf[i] <= " "; 
-                53: disp_buf[i] <= " "; 
-                54: disp_buf[i] <= " "; 
-                55: disp_buf[i] <= " "; 
-                56: disp_buf[i] <= " "; 
-                57: disp_buf[i] <= " "; 
-                58: disp_buf[i] <= " "; 
-                59: disp_buf[i] <= "G";
-                60: disp_buf[i] <= "r";
-                61: disp_buf[i] <= "o";
-                62: disp_buf[i] <= "u";
-                63: disp_buf[i] <= "p";
-            endcase
+            disp_buf[i] <= disp_string[8*i:8*(i+1)-1];
         end
         else begin
                 disp_buf[i] <= btnl_pulse & (i > 15) ? (i == 31 | i == 47 | i == 63 ? disp_buf[i-15] : disp_buf[i+1]     ) :

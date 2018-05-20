@@ -42,6 +42,7 @@ module io_ctrl_top (
     input                               piton_ready_n,
 
     input                               uart_boot_en,
+    input                               uart_timeout_en,
     output                              test_start,
     input                               test_good_end,
     input                               test_bad_end,
@@ -77,6 +78,21 @@ module io_ctrl_top (
     output                              spi_cs_n,
 `endif // endif PITONSYS_SPI
 
+    input                               net_axi_clk,
+    output                              net_phy_rst_n,
+
+    input                               net_phy_tx_clk,
+    output                              net_phy_tx_en,
+    output  [3 : 0]                     net_phy_tx_data,
+    
+    input                               net_phy_rx_clk,
+    input                               net_phy_dv,    
+    input  [3 : 0]                      net_phy_rx_data,
+    input                               net_phy_rx_er,
+    
+    inout                               net_phy_mdio_io,
+    output                              net_phy_mdc,
+
     output                              uart_noc_valid,
     output  [`NOC_DATA_WIDTH-1:0]       uart_noc_data,
     input                               uart_noc_ready
@@ -109,6 +125,20 @@ wire                            splitter_boot_rdy;
 wire                            boot_splitter_val;
 wire    [`NOC_DATA_WIDTH-1:0]   boot_splitter_data;
 wire                            boot_splitter_rdy;
+
+wire                            splitter_uart_val;
+wire    [`NOC_DATA_WIDTH-1:0]   splitter_uart_data;
+wire                            splitter_uart_rdy;
+wire                            uart_splitter_val;
+wire    [`NOC_DATA_WIDTH-1:0]   uart_splitter_data;
+wire                            uart_splitter_rdy;
+
+wire                            splitter_net_val;
+wire    [`NOC_DATA_WIDTH-1:0]   splitter_net_data;
+wire                            net_splitter_rdy;
+wire                            net_splitter_val;
+wire    [`NOC_DATA_WIDTH-1:0]   net_splitter_data;
+wire                            splitter_net_rdy;
 
 wire [`NOC_DATA_WIDTH-1:0]      converter_io_aw_addr;
 wire                            converter_io_aw_valid;
@@ -153,6 +183,7 @@ wire [7:0]                      wb_dat_o;
 wire                            wb_stb;
 wire                            wb_we;
 
+wire net_interrupt;
 wire uart_interrupt;
 
 wire ciop_iob_rst_n = rst_n & test_start & ~piton_ready_n;
@@ -178,7 +209,8 @@ ciop_iob ciop_iob     (
     .noc3_out_data   (iob_splitter_data      ),
     .noc3_out_rdy    (splitter_iob_rdy     ),
 
-    .uart_interrupt (uart_interrupt         )
+    .uart_interrupt (uart_interrupt         ),
+    .net_interrupt  (net_interrupt         )
 );
 
 iob_splitter iob_splitter (
@@ -259,6 +291,45 @@ uart_boot_splitter  uart_boot_splitter  (
     .axi_splitter_val       (axi_splitter_val           ),
     .axi_splitter_data      (axi_splitter_data          ),
     .splitter_axi_rdy       (splitter_axi_rdy           )
+); 
+
+net_uart_splitter  net_uart_splitter  (
+    .clk                    (clk                        ),
+    .rst_n                  (~rst_n                      ),
+
+    // TODO: NOC1 interface is not used for this splitter
+    .noc1_splitter_val      (1'b0                       ),
+    .noc1_splitter_data     ({`NOC_DATA_WIDTH{1'b0}}    ),
+    .splitter_noc1_rdy      (),
+
+    .splitter_noc1sink_val  (       ),
+    .splitter_noc1sink_data (       ),
+    .noc1sink_splitter_rdy  (1'b0   ),
+    // TODO: NOC1 interface is not used for this splitter
+
+    .noc2_splitter_val      (splitter_axi_val               ),
+    .noc2_splitter_data     (splitter_axi_data              ),
+    .splitter_noc2_rdy      (axi_splitter_rdy               ),
+                                                
+    .splitter_noc3_val      (axi_splitter_val               ),
+    .splitter_noc3_data     (axi_splitter_data              ),
+    .noc3_splitter_rdy      (splitter_axi_rdy               ),
+
+    .splitter_uart_val      (splitter_uart_val          ),
+    .splitter_uart_data     (splitter_uart_data         ),
+    .uart_splitter_rdy      (uart_splitter_rdy          ),
+
+    .uart_splitter_val      (uart_splitter_val          ),
+    .uart_splitter_data     (uart_splitter_data         ),
+    .splitter_uart_rdy      (splitter_uart_rdy          ),
+
+    .splitter_net_val       (splitter_net_val           ),
+    .splitter_net_data      (splitter_net_data          ),
+    .net_splitter_rdy       (net_splitter_rdy           ),
+
+    .net_splitter_val       (net_splitter_val           ),
+    .net_splitter_data      (net_splitter_data          ),
+    .splitter_net_rdy       (splitter_net_rdy           )
 ); 
 
 `ifdef PITON_FPGA_BRAM_TEST
@@ -394,18 +465,17 @@ uart_boot_splitter  uart_boot_splitter  (
 `endif
 
 
-
 noc_axilite_bridge     noc_axilite_bridge   (
     .clk                    (clk                ),
     .rst                    (~rst_n             ),  // TODO: rewrite to positive ?
            
-    .splitter_bridge_val    (splitter_axi_val   ),
-    .splitter_bridge_data   (splitter_axi_data  ),
-    .bridge_splitter_rdy    (axi_splitter_rdy   ),
+    .splitter_bridge_val    (splitter_uart_val   ),
+    .splitter_bridge_data   (splitter_uart_data  ),
+    .bridge_splitter_rdy    (uart_splitter_rdy   ),
 
-    .bridge_splitter_val    (axi_splitter_val   ),
-    .bridge_splitter_data   (axi_splitter_data  ),
-    .splitter_bridge_rdy    (splitter_axi_rdy   ),
+    .bridge_splitter_val    (uart_splitter_val   ),
+    .bridge_splitter_data   (uart_splitter_data  ),
+    .splitter_bridge_rdy    (splitter_uart_rdy   ),
        
     //axi lite signals             
     //write address channel
@@ -455,6 +525,7 @@ uart_top        uart_top (
     .uart_lb_sw                 (uart_lb_sw                 ),
 
     .uart_boot_en               (uart_boot_en               ),
+    .uart_timeout_en            (uart_timeout_en            ),
     .test_start                 (test_start                 ),
     .test_good_end              (test_good_end              ),
     .test_bad_end               (test_bad_end               ),
@@ -494,5 +565,36 @@ uart_top        uart_top (
     assign io_converter_r_valid = 1'b0;
     assign uart_noc_valid = 1'b0;
 `endif // endif PITONSYS_UART
+
+
+eth_top  eth_top (
+    .chipset_clk            (clk                ),
+    .rst_n                  (rst_n              ),
+
+    .net_interrupt          (net_interrupt      ),
+
+    .noc_in_val             (splitter_net_val   ),
+    .noc_in_data            (splitter_net_data  ),
+    .noc_in_rdy             (net_splitter_rdy   ),
+
+    .noc_out_val            (net_splitter_val   ),
+    .noc_out_data           (net_splitter_data  ),
+    .noc_out_rdy            (splitter_net_rdy   ),
+
+    .net_axi_clk            (net_axi_clk        ),
+    .net_phy_rst_n          (net_phy_rst_n      ),
+
+    .net_phy_tx_clk         (net_phy_tx_clk     ),
+    .net_phy_tx_en          (net_phy_tx_en      ),
+    .net_phy_tx_data        (net_phy_tx_data    ),
+    
+    .net_phy_rx_clk         (net_phy_rx_clk     ),
+    .net_phy_dv             (net_phy_dv         ),    
+    .net_phy_rx_data        (net_phy_rx_data    ),
+    .net_phy_rx_er          (net_phy_rx_er      ),
+    
+    .net_phy_mdio_io        (net_phy_mdio_io    ),
+    .net_phy_mdc            (net_phy_mdc        )
+);
 
 endmodule

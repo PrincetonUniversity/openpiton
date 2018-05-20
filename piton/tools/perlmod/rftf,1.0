@@ -46,47 +46,20 @@ my $prg = $0;
 $prg =~ s/.*\/// ;
 $prg =~ s/,.*// ;
 
-my $hostname = `hostname`;
-
-if ($hostname =~ /hecate/)
-{
-    print "Detected running on hecate...using hecate default parameters.\n"
-}
-
 my $all = 0;
 my $ftf_q = "/bin/sh";
 my $slurm = 0;
 my $syn_scores = "6";
 my $syn_stime = "24:00:00";
 my $sta_scores = "1";
-if ($hostname =~ /hecate/)
-{
-    $sta_scores = "6";
-}
 my $sta_stime = "12:00:00";
 my $par_scores = "10";
-if ($hostname =~ /hecate/)
-{
-    $par_scores = "96";
-}
 my $par_stime = "96:00:00";
 my $eco_scores = "10";
-if ($hostname =~ /hecate/)
-{
-        $eco_scores = "96";
-}
 my $eco_stime = "12:00:00";
 my $mgds_scores = "1";
-if ($hostname =~ /hecate/)
-{
-    $mgds_scores = "6";
-}
 my $mgds_stime = "12:00:00";
 my $rvs_scores = "1";
-if ($hostname =~ /hecate/)
-{
-    $rvs_scores = "6";
-}
 my $rvs_stime = "12:00:00";
 my $drc_scores = "10";
 my $drc_stime = "12:00:00";
@@ -246,48 +219,23 @@ foreach my $block (@block_list) {
         } else {
             my $cmd_script = "syn" . $pass .  "_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $syn_scores\n";
-            if ($hostname =~ /hecate/)
-            {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-            }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-                print BLK_CMD "#SBATCH --mem $block->{SYNMEM}\n";
-            }
-            print BLK_CMD "#SBATCH -t $syn_stime\n\n";
-            print BLK_CMD "$cmd_syn\n\n";
-            print BLK_CMD "mv dc_shell.log dc_shell_pass$pass.log\n";
-            print BLK_CMD "mv reports/dc_shell reports/dc_shell_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $syn_job_id = "";
-            while (!($syn_job_id =~ /\d+/))
-            {
-                my $output = "";
-                if ($block->{ECOFLOW}) {
-                    if ($eco_job_id =~ /\d+/) {
-                        $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`
-                    } else {
-                        $output = `sbatch $cmd_script`;
-                    }
-                } elsif ($par_job_id =~ /\d+/) {
-                    $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`
-                } else {
-                    $output = `sbatch $cmd_script`;
+            my $pre_cmd = "";
+            my $post_cmd = "mv dc_shell.log dc_shell_pass$pass.log\n";
+            $post_cmd .= "mv reports/dc_shell reports/dc_shell_pass$pass";
+            create_slurm_script ($cmd_script, $cmd_syn, $syn_scores, $syn_stime, $block->{SYNMEM}, $pre_cmd, $post_cmd);
+
+            my $depend_job_id = "";
+            if ($block->{ECOFLOW}) {
+                if ($eco_job_id ne "") {
+                    $depend_job_id = $eco_job_id;
                 }
-                $syn_job_id = $output;
-                $syn_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($syn_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting pass$pass synthesis job failed...retrying\n";
-                    sleep 30;
+            } else {
+                if ($par_job_id ne "") {
+                    $depend_job_id = $par_job_id;
                 }
             }
+            
+            $syn_job_id = submit_slurm_job ($prg, $cmd_script, $depend_job_id);
             push @job_ids, $syn_job_id ;
         }
 
@@ -303,40 +251,18 @@ foreach my $block (@block_list) {
         } else {
             my $cmd_script = "sta" . $pass . "_dc_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $sta_scores\n";
-            if ($hostname =~ /hecate/)
+
+            my $pre_cmd = "";
+            if ($pass > 1)
             {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+                $pre_cmd = "rm results/*.sbpf.* results/*.output.sdc results/*.output.pt.v";
             }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-            } 
-            print BLK_CMD "#SBATCH -t $sta_stime\n\n";
-            if ($pass > 1) {
-                print BLK_CMD "rm results/*.sbpf.* results/*.output.sdc results/*.output.pt.v\n\n";
-            }
-            print BLK_CMD "$cmd_sta\n\n";
-            print BLK_CMD "mv pt_shell.log pt_shell_dc_pass$pass.log\n";
-            print BLK_CMD "mv reports/pt_shell_dc reports/pt_shell_dc_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $sta_job_id = "";
-            while (!($sta_job_id =~ /\d+/))
-            {
-                my $output = `sbatch --dependency=afterok:$syn_job_id $cmd_script`;
-                $sta_job_id = $output;
-                $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($sta_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting pass$pass post-syn STA job failed...retrying\n";
-                    sleep 30;
-                }
-                    
-            }
+            my $post_cmd = "mv pt_shell.log pt_shell_dc_pass$pass.log\n";
+            $post_cmd .= "mv reports/pt_shell_dc reports/pt_shell_dc_pass$pass";
+
+            create_slurm_script ($cmd_script, $cmd_sta, $sta_scores, $sta_stime, "", $pre_cmd, $post_cmd);
+
+            $sta_job_id = submit_slurm_job ($prg, $cmd_script, $syn_job_id);
             push @job_ids, $sta_job_id ;
         }
 
@@ -352,39 +278,18 @@ foreach my $block (@block_list) {
         } else {
             my $cmd_script = "rvs" . $pass . "_dc_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $rvs_scores\n";
-            if ($hostname =~ /hecate/)
+    
+            my $pre_cmd = "";
+            if ($pass > 1)
             {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+                $pre_cmd = "rm results/*.output.v";
             }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-            }
-            print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
-            if ($pass > 1) {
-                print BLK_CMD "rm results/*.output.v\n\n";
-            }
-            print BLK_CMD "$cmd_rvs\n\n";
-            print BLK_CMD "mv fm_shell.log fm_shell_dc_pass$pass.log\n";
-            print BLK_CMD "mv reports/fm_shell_dc reports/fm_shell_dc_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $rvs_job_id = "";
-            while (!($rvs_job_id =~ /\d+/))        
-            {
-                my $output = `sbatch --dependency=afterok:$syn_job_id $cmd_script`;
-                $rvs_job_id = $output;
-                $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($rvs_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting RVS job failed...retrying\n";
-                    sleep 30;
-                }
-            }
+            my $post_cmd = "mv fm_shell.log fm_shell_dc_pass$pass.log\n";
+            $post_cmd .= "mv reports/fm_shell_dc reports/fm_shell_dc_pass$pass";
+
+            create_slurm_script ($cmd_script, $cmd_rvs, $rvs_scores, $rvs_stime, "", $pre_cmd, $post_cmd);
+
+            $rvs_job_id = submit_slurm_job ($prg, $cmd_script, $syn_job_id);
             push @job_ids, $rvs_job_id ;
         }
 
@@ -397,38 +302,15 @@ foreach my $block (@block_list) {
         } else {
             my $cmd_script = "par" . $pass . "_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $par_scores\n";
-            if ($hostname =~ /hecate/)
-            {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-            }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-                print BLK_CMD "#SBATCH --mem $block->{PARMEM}\n";
-            }
-            print BLK_CMD "#SBATCH -t $par_stime\n\n";
-            print BLK_CMD "$cmd_par\n\n";
-            print BLK_CMD "mv icc_shell.log icc_shell_pass$pass.log\n";
-            print BLK_CMD "mv reports/icc_shell reports/icc_shell_pass$pass\n";
-            print BLK_CMD "mv logs logs_icc_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $par_job_id = "";
-            while (!($par_job_id =~ /\d+/))
-            {
-                my $output = `sbatch --dependency=afterok:$sta_job_id $cmd_script`;
-                $par_job_id = $output;
-                $par_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($par_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting pass$pass place and route job failed...retrying\n";
-                    sleep 30;       
-                }
-            }
+
+            my $pre_cmd = "";
+            my $post_cmd = "mv icc_shell.log icc_shell_pass$pass.log\n";
+            $post_cmd .= "mv reports/icc_shell reports/icc_shell_pass$pass\n";
+            $post_cmd .= "mv logs logs_icc_pass$pass";
+
+            create_slurm_script ($cmd_script, $cmd_par, $par_scores, $par_stime, $block->{PARMEM}, $pre_cmd, $post_cmd);
+
+            $par_job_id = submit_slurm_job ($prg, $cmd_script, $sta_job_id);
             push @job_ids, $par_job_id ;
         }
 
@@ -440,36 +322,14 @@ foreach my $block (@block_list) {
         } else {
             my $cmd_script = "sta" . $pass . "_icc_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $sta_scores\n";
-            if ($hostname =~ /hecate/)
-            {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-            }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-            } 
-            print BLK_CMD "#SBATCH -t $sta_stime\n\n";
-            print BLK_CMD "$cmd_sta\n\n";
-            print BLK_CMD "mv pt_shell.log pt_shell_icc_pass$pass.log\n";
-            print BLK_CMD "mv reports/pt_shell_icc reports/pt_shell_icc_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $sta_job_id = "";
-            while (!($sta_job_id =~ /\d+/))
-            {
-                my $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
-                $sta_job_id = $output;
-                $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($sta_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting pass$pass post-par STA job failed...retrying\n";
-                    sleep 30;
-                }
-            }
+            
+            my $pre_cmd = "";
+            my $post_cmd = "mv pt_shell.log pt_shell_icc_pass$pass.log\n";
+            $post_cmd .= "mv reports/pt_shell_icc reports/pt_shell_icc_pass$pass";
+
+            create_slurm_script ($cmd_script, $cmd_sta, $sta_scores, $sta_stime, "", $pre_cmd, $post_cmd);
+
+            $sta_job_id = submit_slurm_job($prg, $cmd_script, $par_job_id);
             push @job_ids, $sta_job_id ;
         }
 
@@ -479,38 +339,16 @@ foreach my $block (@block_list) {
             system("mv fm_shell.log fm_shell_icc_pass$pass.log");
             system("mv reports/fm_shell_icc reports/fm_shell_icc_pass$pass");
         } else {
-            my $cmd_script = "rvs_" . $pass . "_icc_";
+            my $cmd_script = "rvs" . $pass . "_icc_";
             $cmd_script .= $block->{ID};
-            open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-            print BLK_CMD "#!/bin/bash\n";
-            print BLK_CMD "#SBATCH -n $rvs_scores\n";
-            if ($hostname =~ /hecate/)
-            {
-                print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-            }
-            else
-            {
-                print BLK_CMD "#SBATCH -N 1\n";
-            }
-            print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
-            print BLK_CMD "$cmd_rvs\n\n";
-            print BLK_CMD "mv fm_shell.log fm_shell_icc_pass$pass.log\n";
-            print BLK_CMD "mv reports/fm_shell_icc reports/fm_shell_icc_pass$pass\n\n";
-            print BLK_CMD "exit";
-            close(BLK_CMD);
-            $rvs_job_id = "";
-            while (!($rvs_job_id =~ /\d+/))        
-            {
-                my $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
-                $rvs_job_id = $output;
-                $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                print $output;
-                if (!($rvs_job_id =~ /\d+/))
-                {
-                    print "$prg: Submitting RVS job failed...retrying\n";
-                    sleep 30;
-                }
-            }
+
+            my $pre_cmd = "";
+            my $post_cmd = "mv fm_shell.log fm_shell_icc_pass$pass.log\n";
+            $post_cmd .= "mv reports/fm_shell_icc reports/fm_shell_icc_pass$pass";
+
+            create_slurm_script ($cmd_script, $cmd_rvs, $rvs_scores, $rvs_stime, "", $pre_cmd, $post_cmd);
+
+            $rvs_job_id = submit_slurm_job ($prg, $cmd_script, $par_job_id);
             push @job_ids, $rvs_job_id ;
         }
 
@@ -525,38 +363,15 @@ foreach my $block (@block_list) {
             } else {
                 my $cmd_script = "eco" . $pass . "_";
                 $cmd_script .= $block->{ID};
-                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-                print BLK_CMD "#!/bin/bash\n";
-                print BLK_CMD "#SBATCH -n $eco_scores\n";
-                if ($hostname =~ /hecate/)
-                {
-                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-                }
-                else
-                {
-                    print BLK_CMD "#SBATCH -N 1\n";
-                    print BLK_CMD "#SBATCH --mem $block->{PARMEM}\n";
-                } 
-                print BLK_CMD "#SBATCH -t $eco_stime\n\n";
-                print BLK_CMD "$cmd_eco\n\n";
-                print BLK_CMD "mv eco_shell.log eco_shell_pass$pass.log\n";
-                print BLK_CMD "mv reports/eco_shell reports/eco_shell_pass$pass\n";
-                print BLK_CMD "mv logs logs_eco_pass$pass\n\n";
-                print BLK_CMD "exit";
-                close(BLK_CMD);
-                $eco_job_id = "";
-                while (!($eco_job_id =~ /\d+/))
-                {
-                    my $output = `sbatch --dependency=afterok:$sta_job_id $cmd_script`;
-                    $eco_job_id = $output;
-                    $eco_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                    print $output;
-                    if (!($eco_job_id =~ /\d+/))
-                    {
-                        print "$prg: Submitting pass$pass post-par ECO job failed...retrying\n";
-                        sleep 30;
-                    }
-                }
+
+                my $pre_cmd = "";
+                my $post_cmd = "mv eco_shell.log eco_shell_pass$pass.log\n";
+                $post_cmd .= "mv reports/eco_shell reports/eco_shell_pass$pass\n";
+                $post_cmd .= "mv logs logs_eco_pass$pass";
+
+                create_slurm_script ($cmd_script, $cmd_eco, $eco_scores, $eco_stime, $block->{PARMEM}, $pre_cmd, $post_cmd);
+
+                $eco_job_id = submit_slurm_job ($prg, $cmd_script, $sta_job_id);
                 push @job_ids, $eco_job_id ;
             }
 
@@ -568,36 +383,14 @@ foreach my $block (@block_list) {
             } else {
                 my $cmd_script = "sta" . $pass . "_eco_";
                 $cmd_script .= $block->{ID};
-                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-                print BLK_CMD "#!/bin/bash\n";
-                print BLK_CMD "#SBATCH -n $sta_scores\n";
-                if ($hostname =~ /hecate/)
-                {
-                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-                }
-                else
-                {
-                    print BLK_CMD "#SBATCH -N 1\n";
-                }
-                print BLK_CMD "#SBATCH -t $sta_stime\n\n";
-                print BLK_CMD "$cmd_sta\n\n";
-                print BLK_CMD "mv pt_shell.log pt_shell_eco_pass$pass.log\n";
-                print BLK_CMD "mv reports/pt_shell_icc reports/pt_shell_eco_pass$pass\n\n";
-                print BLK_CMD "exit";
-                close(BLK_CMD);
-                $sta_job_id = "";
-                while (!($sta_job_id =~ /\d+/))
-                {
-                    my $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
-                    $sta_job_id = $output;
-                    $sta_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                    print $output;
-                    if (!($sta_job_id =~ /\d+/))
-                    {
-                        print "$prg: Submitting pass$pass post-eco STA job failed...retrying\n";
-                        sleep 30;
-                    }
-                }
+
+                my $pre_cmd = "";
+                my $post_cmd = "mv pt_shell.log pt_shell_eco_pass$pass.log\n";
+                $post_cmd .= "mv reports/pt_shell_icc reports/pt_shell_eco_pass$pass";
+
+                create_slurm_script ($cmd_script, $cmd_sta, $sta_scores, $sta_stime, "", $pre_cmd, $post_cmd);
+
+                $sta_job_id = submit_slurm_job ($prg, $cmd_script, $eco_job_id);
                 push @job_ids, $sta_job_id ;
             }
 
@@ -609,36 +402,14 @@ foreach my $block (@block_list) {
             } else {
                 my $cmd_script = "rvs_" . $pass . "_eco_";
                 $cmd_script .= $block->{ID};
-                open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-                print BLK_CMD "#!/bin/bash\n";
-                print BLK_CMD "#SBATCH -n $rvs_scores\n";
-                if ($hostname =~ /hecate/)
-                {
-                    print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-                }
-                else
-                {
-                    print BLK_CMD "#SBATCH -N 1\n";
-                }
-                print BLK_CMD "#SBATCH -t $rvs_stime\n\n";
-                print BLK_CMD "$cmd_rvs\n\n";
-                print BLK_CMD "mv fm_shell.log fm_shell_eco_pass$pass.log\n";
-                print BLK_CMD "mv reports/fm_shell_icc reports/fm_shell_eco_pass$pass\n\n";
-                print BLK_CMD "exit";
-                close(BLK_CMD);
-                $rvs_job_id = "";
-                while (!($rvs_job_id =~ /\d+/))        
-                {
-                    my $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
-                    $rvs_job_id = $output;
-                    $rvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-                    print $output;
-                    if (!($rvs_job_id =~ /\d+/))
-                    {
-                        print "$prg: Submitting RVS job failed...retrying\n";
-                        sleep 30;
-                    }
-                }
+
+                my $pre_cmd = "";
+                my $post_cmd = "mv fm_shell.log fm_shell_eco_pass$pass.log\n";
+                $post_cmd .= "mv reports/fm_shell_icc reports/fm_shell_eco_pass$pass";
+
+                create_slurm_script ($cmd_script, $cmd_rvs, $rvs_scores, $rvs_stime, "", $pre_cmd, $post_cmd);
+
+                $rvs_job_id = submit_slurm_job ($prg, $cmd_script, $eco_job_id);
                 push @job_ids, $rvs_job_id ;
             } 
         }
@@ -653,38 +424,17 @@ foreach my $block (@block_list) {
     } else {
         my $cmd_script = "mgds_";
         $cmd_script .= $block->{ID};
-        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-        print BLK_CMD "#!/bin/bash\n";
-        print BLK_CMD "#SBATCH -n $mgds_scores\n";
-        if ($hostname =~ /hecate/)
-        {
-            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
+        
+        create_slurm_script ($cmd_script, $cmd_mgds, $mgds_scores, $mgds_stime);
+
+        my $depend_job_id = "";
+        if ($block->{ECOFLOW}) {
+            $depend_job_id = $eco_job_id;
+        } else {
+            $depend_job_id = $par_job_id;
         }
-        else
-        {
-            print BLK_CMD "#SBATCH -N 1\n";
-        }
-        print BLK_CMD "#SBATCH -t $mgds_stime\n\n";
-        print BLK_CMD "$cmd_mgds\n\n";
-        print BLK_CMD "exit";
-        close(BLK_CMD);
-        while (!($mgds_job_id =~ /\d+/))
-        {
-            my $output = "";
-            if ($block->{ECOFLOW}) {
-                $output = `sbatch --dependency=afterok:$eco_job_id $cmd_script`;
-            } else {
-                $output = `sbatch --dependency=afterok:$par_job_id $cmd_script`;
-            }
-            $mgds_job_id = $output;
-            $mgds_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-            print $output;
-            if (!($mgds_job_id =~ /\d+/))
-            {
-                print "$prg: Submitting merge GDSII job failed...retrying\n";
-                sleep 30;
-            }
-        }
+
+        $mgds_job_id = submit_slurm_job ($prg, $cmd_script, $depend_job_id);
         push @job_ids, $mgds_job_id ;
     }
 
@@ -697,33 +447,10 @@ foreach my $block (@block_list) {
     } else {
         my $cmd_script = "drc_";
         $cmd_script .= $block->{ID};
-        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-        print BLK_CMD "#!/bin/bash\n";
-        print BLK_CMD "#SBATCH -n $drc_scores\n";
-        if ($hostname =~ /hecate/)
-        {
-            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-        }
-        else
-        {
-            print BLK_CMD "#SBATCH -N 1\n";
-        }
-        print BLK_CMD "#SBATCH -t $drc_stime\n\n";
-        print BLK_CMD "$cmd_drc\n\n";
-        print BLK_CMD "exit";
-        close(BLK_CMD);
-        while (!($drc_job_id =~ /\d+/))
-        {
-            my $output = `sbatch --dependency=afterok:$mgds_job_id $cmd_script`;
-            $drc_job_id = $output;
-            $drc_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-            print $output;
-            if (!($drc_job_id =~ /\d+/))
-            {
-                print "$prg: Submitting DRC job failed...retrying\n";
-                sleep 30;
-            }
-        }
+
+        create_slurm_script ($cmd_script, $cmd_drc, $drc_scores, $drc_stime);
+        
+        $drc_job_id = submit_slurm_job ($prg, $cmd_script, $mgds_job_id);
         push @job_ids, $drc_job_id ;
     }
 
@@ -736,55 +463,17 @@ foreach my $block (@block_list) {
     } else {
         my $cmd_script = "lvs_";
         $cmd_script .= $block->{ID};
-        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-        print BLK_CMD "#!/bin/bash\n";
-        print BLK_CMD "#SBATCH -n $lvs_scores\n";
-        if ($hostname =~ /hecate/)
-        {
-            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-        }
-        else
-        {
-            print BLK_CMD "#SBATCH -N 1\n";
-        }
-        print BLK_CMD "#SBATCH -t $lvs_stime\n\n";
-        print BLK_CMD "$cmd_lvs\n\n";
-        print BLK_CMD "exit";
-        close(BLK_CMD);
-        while (!($lvs_job_id =~ /\d+/))
-        {
-            my $output = `sbatch --dependency=afterok:$mgds_job_id $cmd_script`;
-            $lvs_job_id = $output;
-            $lvs_job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
-            print $output;
-            if (!($lvs_job_id =~ /\d+/))
-            {
-                print "$prg: Submitting LVS job failed...retrying\n";
-                sleep 30;
-            }
-        }
+
+        create_slurm_script ($cmd_script, $cmd_lvs, $lvs_scores, $lvs_stime);
+
+        $lvs_job_id = submit_slurm_job ($prg, $cmd_script, $mgds_job_id);
         push @job_ids, $lvs_job_id ;
     }
 }
 
 if ($slurm && $swait) {
     print "$prg: Waiting for full tool flow jobs to finish...\n";
-    my $user = $ENV{USER};
-    while (@job_ids >  0) {
-        my @remove_jobs = ();
-        foreach my $job_id (@job_ids) {
-            my $squeue_wc_out = `squeue -u $user -j $job_id | wc -l`;
-            if ($squeue_wc_out == "1\n" || $squeue_wc_out == "0\n") {
-                push @remove_jobs, $job_id ;
-            }
-        }
-
-        foreach my $job_id (@remove_jobs) {
-            @job_ids = grep { $_ != $job_id } @job_ids;
-        }
-
-        sleep 30;
-    }
+    wait_slurm_jobs (\@job_ids);
 }
 
 #######################################################################

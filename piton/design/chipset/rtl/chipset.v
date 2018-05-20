@@ -79,6 +79,9 @@
 //  PITONSYS_SPI                Set to include a SPI in the Piton system chipset.  SPI is generally
 //                              used for SD card boot, but could potentially be used for other
 //                              purposes
+//  PITON_NOC_POWER_CHIPSET_TEST This indicates to use a completely different
+//                               chipset that just sends dummy network packets
+//                               into the chip for testing NoC power
 
 
 module chipset(
@@ -136,6 +139,7 @@ module chipset(
     // Piton ready input
 `ifndef PITON_BOARD
     input                                       piton_ready_n,
+    input                                       piton_prsnt_n,
     output                                      chipset_prsnt_n,
 `endif  // PITON_BOARD
 
@@ -240,7 +244,6 @@ module chipset(
         input                                       uart_rx,
         `ifdef PITONSYS_UART_BOOT
         `ifdef PITONSYS_NON_UART_BOOT
-            input                                       uart_boot_en,
             `ifndef PITONSYS_CHIPSET_TOP
                 output                                      test_start,
             `endif
@@ -255,6 +258,20 @@ module chipset(
         output                                      spi_clk_out,
         output                                      spi_cs_n,
     `endif // endif PITONSYS_SPI
+
+// Emaclite interface
+    output                                          net_phy_txc,
+    output                                          net_phy_txctl,
+    output      [3:0]                               net_phy_txd,
+
+    input                                           net_phy_rxc,
+    input                                           net_phy_rxctl,
+    input       [3:0]                               net_phy_rxd,
+    
+    output                                          net_phy_rst_n,
+    
+    inout                                           net_phy_mdio_io,
+    output                                          net_phy_mdc,
 
 `else // ifndef PITONSYS_IOCTRL
     output                                      chipset_fake_iob_val,
@@ -331,7 +348,7 @@ module chipset(
     input                                               F4_P,
     input                                               F6_N,
     input                                               F6_P,
-    input                                               F47_N,
+    //input                                               F47_N,
     input                                               F47_P,
     input                                               F78_N,
     input                                               F78_P,
@@ -364,6 +381,7 @@ module chipset(
         output                                              oled_rst_n,
     `endif
 
+    input  [7:0]                                        sw,
     output [7:0]                                        leds
 
 `endif  // PITON_BOARD
@@ -416,6 +434,13 @@ reg                                             chipset_rst_n_ff;
     wire                                        chipset_passthru_clk_oddr2_out;
     wire                                        passthru_chipset_clk;
 `endif
+
+// UART boot stuff
+wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
+
+// NoC power test hop count from switches if enabled
+wire  [3:0]                                     noc_power_test_hop_count;
 
 // Intermediate val/rdy signals from fpga_bridge, not used if no chip bridge
 wire  [`NOC_DATA_WIDTH-1:0]                     fpga_intf_data_noc1;
@@ -496,7 +521,26 @@ wire  [2:0]                                     chip_intf_credit_back;
 // Chipset DRAM initialization/calibration complete
 wire                                            init_calib_complete;
 
-wire                                            test_start;
+wire                                        test_start;
+
+// Ethernet
+wire            net_phy_clk_inter;
+wire            net_axi_clk;
+wire            net_phy_txctl_inter;
+wire    [3:0]   net_phy_txd_inter;
+
+wire            net_phy_rxc_ibufg_out;
+wire            net_phy_rxc_inter;
+wire            net_phy_rxc_delayed;
+reg             net_phy_rx_dv_f;
+reg             net_phy_rx_err_f;
+reg             net_phy_rx_dv_ff;
+reg             net_phy_rx_err_ff;
+wire            net_phy_rx_dv_inter;
+wire            net_phy_rx_err_inter;
+reg     [3:0]   net_phy_rxd_f;
+reg     [3:0]   net_phy_rxd_ff;
+wire    [3:0]   net_phy_rxd_inter;
 
 //////////////////////
 // Sequential Logic //
@@ -555,7 +599,7 @@ begin
 `ifdef PITON_BOARD
     chipset_rst_n = rst_n_rect & clk_locked & (~chip_rst_seq_complete_n);
 `else
-    chipset_rst_n = rst_n_rect & clk_locked;
+    chipset_rst_n = rst_n_rect & clk_locked & (~piton_prsnt_n);
 `endif  // PITON_BOARD
 
 end
@@ -575,6 +619,20 @@ end
     end
 `endif  // PITON_BOARD
 
+`ifdef PITONSYS_IOCTRL
+    `ifdef PITONSYS_UART
+        `ifdef PITONSYS_UART_BOOT
+            `ifdef PITONSYS_NON_UART_BOOT
+                assign uart_boot_en = sw[7];
+                assign uart_timeout_en = sw[6];
+            `endif // endif PITONSYS_NON_UART_BOOT
+        `endif // endif PITONSYS_UART_BOOT
+    `endif // endif PITONSYS_UART
+`endif // endif PITONSYS_IOCTRL
+
+`ifdef PITON_NOC_POWER_CHIPSET_TEST
+    assign noc_power_test_hop_count = sw[3:0];
+`endif // endif PITON_NOC_POWER_CHIPSET_TEST
 
 `ifdef PITON_BOARD
     assign sma_clk_out_p = 2'b00;
@@ -610,25 +668,29 @@ end
     assign leds[0] = clk_locked;
     assign leds[1] = ~piton_ready_n;
     assign leds[2] = init_calib_complete;
-    assign leds[3] = processor_offchip_noc1_valid;
-    assign leds[4] = processor_offchip_noc2_valid;
-    assign leds[5] = offchip_processor_noc2_valid;
-    assign leds[6] = offchip_processor_noc3_valid;
+    assign leds[3] = processor_offchip_noc2_valid;
+    assign leds[4] = offchip_processor_noc3_valid;
+    assign leds[5] = 1'b0;
     `ifdef PITONSYS_IOCTRL
         `ifdef PITONSYS_UART
             `ifdef PITONSYS_UART_BOOT
                 `ifdef PITONSYS_NON_UART_BOOT
+                    assign leds[6] = uart_timeout_en;
                     assign leds[7] = uart_boot_en;
                 `else // ifndef PITONSYS_NON_UART_BOOT
+                    assign leds[6] = uart_timeout_en;
                     assign leds[7] = 1'b1;
                 `endif // endif PITONSYS_NON_UART_BOOT
             `else // ifndef PITONSYS_UART_BOOT
+                assign leds[6] = 1'b0;
                 assign leds[7] = 1'b0;
             `endif // endif PITONSYS_UART_BOOT
         `else // ifndef PITONSYS_UART
+            assign leds[6] = 1'b0;
             assign leds[7] = 1'b0;
         `endif // endif PITONSYS_UART
     `else // ifndef PITONSYS_IOCTRL
+        assign leds[6] = 1'b0;
         assign leds[7] = 1'b0;
     `endif // endif PITONSYS_IOCTRL
 
@@ -693,6 +755,12 @@ end
             , .chipset_passthru_clk(chipset_passthru_clk),
             .chipset_passthru_clk_n(chipset_passthru_clk_inter_n)
         `endif // PITONSYS_INC_PASSTHRU
+
+        `ifdef PITON_FPGA_ETHERNETLITE
+            ,
+            .net_phy_clk    (net_phy_clk_inter  ),
+            .net_axi_clk    (net_axi_clk        )
+        `endif
     );
     `endif // endif PITON_CHIPSET_CLKS_GEN
 `endif // PITON_BOARD
@@ -1013,10 +1081,20 @@ credit_to_valrdy processor_offchip_noc3_c2v(
 `endif  // PITON_BOARD
 
 // Intantiate the actual chipset implementation
+`ifndef PITON_NOC_POWER_CHIPSET_TEST
 chipset_impl    chipset_impl    (
+`else // ifdef PITON_NOC_POWER_CHIPSET_TEST
+chipset_impl_noc_power_test  chipset_impl (
+`endif
     .chipset_clk        (chipset_clk        ),
     .chipset_rst_n      (chipset_rst_n_ff   ),
     .piton_ready_n      (piton_ready_n      ),
+
+    .test_start         (test_start         ),
+
+`ifdef PITON_NOC_POWER_CHIPSET_TEST
+    .noc_power_test_hop_count (noc_power_test_hop_count),
+`endif
 
     `ifndef PITONSYS_NO_MC
     `ifdef PITON_FPGA_MC_DDR3
@@ -1087,7 +1165,7 @@ chipset_impl    chipset_impl    (
             `ifdef PITONSYS_NON_UART_BOOT
                 ,
                 .uart_boot_en(uart_boot_en),
-                .test_start(test_start)
+                .uart_timeout_en(uart_timeout_en)
             `endif // endif PITONSYS_NON_UART_BOOT
             `endif // endif PITONSYS_UART_BOOT
         `endif // endif PITONSYS_UART
@@ -1100,6 +1178,23 @@ chipset_impl    chipset_impl    (
             .spi_data_out(spi_data_out),
             .spi_cs_n(spi_cs_n)
         `endif // endif PITONSYS_SPI
+
+            ,
+            .net_axi_clk        (net_axi_clk            ),
+            .net_phy_rst_n      (net_phy_rst_n          ),
+            
+            .net_phy_tx_clk     (net_phy_clk_inter      ), 
+            .net_phy_tx_en      (net_phy_txctl_inter    ),  
+            .net_phy_tx_data    (net_phy_txd_inter      ),
+            
+            .net_phy_rx_clk     (net_phy_rxc_inter      ),
+            .net_phy_dv         (net_phy_rx_dv_inter    ),     
+            .net_phy_rx_data    (net_phy_rxd_inter      ),
+            .net_phy_rx_er      (net_phy_rx_err_inter   ),
+
+            .net_phy_mdio_io    (net_phy_mdio_io        ), 
+            .net_phy_mdc        (net_phy_mdc            )     
+
     `else // ifndef PITONSYS_IOCTRL
         ,
         .chipset_fake_iob_val(chipset_fake_iob_val),
@@ -1118,6 +1213,140 @@ chipset_impl    chipset_impl    (
     `endif // endif PITONSYS_IOCTRL
 
 );
+
+
+`ifdef PITONSYS_IOCTRL
+
+    // Simplified RGMII <-> MII converter
+    // TX clk is 25 MHz
+
+    //------------- TX ------------------------------------
+    ODDR net_phy_txc_oddr (
+      .Q(net_phy_txc),   // 1-bit DDR output
+      .C(net_phy_clk_inter),   // 1-bit clock input
+      .CE(1'b1), // 1-bit clock enable input
+      .D1(1'b0), // 1-bit data input (positive edge)
+      .D2(1'b1), // 1-bit data input (negative edge)
+      .R(1'b0),   // 1-bit reset
+      .S(1'b0)    // 1-bit set
+    );
+
+    FD net_ph_txctl_fd (
+        .Q(net_phy_txctl),
+        .D(net_phy_txctl_inter),
+        .C(net_phy_clk_inter)
+    );
+
+    FD net_ph_txd_0_fd (
+        .Q(net_phy_txd[0]),
+        .D(net_phy_txd_inter[0]),
+        .C(net_phy_clk_inter)
+    );
+
+    FD net_ph_txd_1_fd (
+        .Q(net_phy_txd[1]),
+        .D(net_phy_txd_inter[1]),
+        .C(net_phy_clk_inter)
+    );
+
+    FD net_ph_txd_2_fd (
+        .Q(net_phy_txd[2]),
+        .D(net_phy_txd_inter[2]),
+        .C(net_phy_clk_inter)
+    );
+
+    FD net_ph_txd_3_fd (
+        .Q(net_phy_txd[3]),
+        .D(net_phy_txd_inter[3]),
+        .C(net_phy_clk_inter)
+    );
+
+    //------------- RX -------------------------------------
+
+    IBUFG net_phy_rxc_ibufg (
+        .I(net_phy_rxc          ),
+        .O(net_phy_rxc_ibufg_out)
+    );
+
+    // Delay by RXC 31*78 (IDELAY_VALUE*tap_delay@200MHz) to put in RXD/RXCTL eye
+    (* IODELAY_GROUP = "NET_PHY_RXC" *)
+    IDELAYE2 #(
+      .CINVCTRL_SEL("FALSE"),          // Enable dynamic clock inversion (FALSE, TRUE)
+      .DELAY_SRC("IDATAIN"),           // Delay input (IDATAIN, DATAIN)
+      .HIGH_PERFORMANCE_MODE("FALSE"), // Reduced jitter ("TRUE"), Reduced power ("FALSE")
+      .IDELAY_TYPE("FIXED"),           // FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
+      .IDELAY_VALUE(31),                // Input delay tap setting (0-31)
+      .PIPE_SEL("FALSE"),              // Select pipelined mode, FALSE, TRUE
+      .REFCLK_FREQUENCY(200.0),        // IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
+      .SIGNAL_PATTERN("DATA")          // DATA, CLOCK input signal
+   )
+   IDELAYE2_inst (
+      .CNTVALUEOUT(), // 5-bit output: Counter value output
+      .DATAOUT(net_phy_rxc_delayed),         // 1-bit output: Delayed data output
+      .C(1'b0),                     // 1-bit input: Clock input
+      .CE(1'b0),                   // 1-bit input: Active high enable increment/decrement input
+      .CINVCTRL(),       // 1-bit input: Dynamic clock inversion input
+      .CNTVALUEIN(5'b0),   // 5-bit input: Counter value input
+      .DATAIN(1'b0),           // 1-bit input: Internal delay data input
+      .IDATAIN(net_phy_rxc_ibufg_out),         // 1-bit input: Data input from the I/O
+      .INC(1'b0),                 // 1-bit input: Increment / Decrement tap delay input
+      .LD(1'b0),                   // 1-bit input: Load IDELAY_VALUE input
+      .LDPIPEEN(1'b0),       // 1-bit input: Enable PIPELINE register to load data input
+      .REGRST(1'b0)            // 1-bit input: Active-high reset tap-delay input
+   );
+
+   (* IODELAY_GROUP = "NET_PHY_RXC" *)
+   IDELAYCTRL IDELAYCTRL_inst (
+      .RDY(),           // 1-bit output: Ready output
+      // 200-MHz for g2, clk_mmccm drives clocks through BUFG
+      .REFCLK(mc_clk),  // 1-bit input: Reference clock input
+      .RST(1'b0)        // 1-bit input: Active high reset input
+   );
+
+    BUFG BUFG_inst (
+      .O(net_phy_rxc_inter      ),
+      .I(net_phy_rxc_delayed    )
+   );
+
+    always @(posedge net_phy_rxc_inter) begin
+        if (~net_phy_rst_n)
+            net_phy_rx_dv_f <= 1'b0;
+        else
+            net_phy_rx_dv_f <= net_phy_rxctl;
+    end
+
+    always @(negedge net_phy_rxc_inter) begin
+        if (~net_phy_rst_n)
+            net_phy_rx_err_f <= 1'b0;
+        else
+            net_phy_rx_err_f <= net_phy_rxctl;
+    end
+
+    always @(posedge net_phy_rxc_inter) begin
+        if (~net_phy_rst_n) begin
+            net_phy_rx_dv_ff <= 1'b0;
+            net_phy_rx_err_ff <= 1'b0;
+        end
+        else begin
+            net_phy_rx_dv_ff <= net_phy_rx_dv_f;
+            net_phy_rx_err_ff <= net_phy_rx_err_f;
+        end
+    end
+
+    assign net_phy_rx_dv_inter = net_phy_rx_dv_ff;
+    assign net_phy_rx_err_inter = net_phy_rx_dv_ff ^ net_phy_rx_err_ff;
+
+    // Make data to be aligned with dv/err
+    always @(posedge net_phy_rxc_inter) begin
+        net_phy_rxd_f <= net_phy_rxd;
+        net_phy_rxd_ff <= net_phy_rxd_f;
+    end
+
+    assign net_phy_rxd_inter = net_phy_rxd_ff;
+
+    //-------------------------------------------------------
+
+`endif  // PITONSYS_IOCTRL
 
 
 `ifdef GENESYS2_BOARD

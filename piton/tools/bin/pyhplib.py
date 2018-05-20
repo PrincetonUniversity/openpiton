@@ -1,6 +1,6 @@
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -69,6 +69,32 @@ CONFIG_L1I_ASSOCIATIVITY = int(os.environ.get('CONFIG_L1I_ASSOCIATIVITY', '4'))
 CONFIG_L2_SIZE = int(os.environ.get('CONFIG_L2_SIZE', '65536'))
 CONFIG_L2_ASSOCIATIVITY = int(os.environ.get('CONFIG_L2_ASSOCIATIVITY', '4'))
 
+#########################################################
+# BRAM configurations
+#########################################################
+class BramCfg:
+    def __init__(self, d, w):
+        self.depth = d
+        self.width = w
+
+BRAM_CONFIG = dict()
+linesize = 16   # TODO: magic number from lsu.h.pyv?
+bram_l1d_tag_entries = CONFIG_L1D_SIZE / linesize
+bram_l1d_depth = bram_l1d_tag_entries /  CONFIG_L1D_ASSOCIATIVITY
+
+# TODO: change magic numbers to defines/parameters
+BRAM_CONFIG["fp_regfile"] = BramCfg(128, 78)
+BRAM_CONFIG["l1d_data"]   = BramCfg(128, 576)
+BRAM_CONFIG["l1i_data"]   = BramCfg(256, 272)
+BRAM_CONFIG["l1d_tag"]    = BramCfg(128, 132)
+BRAM_CONFIG["l1i_tag"]    = BramCfg(128, 132)
+BRAM_CONFIG["l15_data"]   = BramCfg(512, 128)
+BRAM_CONFIG["l15_tag"]    = BramCfg(128, 132)
+BRAM_CONFIG["l15_hmt"]    = BramCfg(512, 32)
+BRAM_CONFIG["l2_data"]    = BramCfg(4096, 144)
+BRAM_CONFIG["l2_tag"]     = BramCfg(256, 104)
+BRAM_CONFIG["l2_dir"]     = BramCfg(1024, 64)
+BRAM_CONFIG["bram_boot"]  = BramCfg(256, 512)
 
 # CONFIG_SRAM_L2_TAG_HEIGHT = int(os.environ.get('CONFIG_SRAM_L2_TAG_HEIGHT', '256'))
 # CONFIG_SRAM_L2_TAG_WIDTH = int(os.environ.get('CONFIG_SRAM_L2_TAG_WIDTH', '104'))

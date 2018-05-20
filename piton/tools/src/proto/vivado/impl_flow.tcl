@@ -42,8 +42,8 @@ puts "INFO: Using the following Verilog defines: ${ALL_VERILOG_MACROS}"
 open_project ${VIVADO_PROJECT_FILE}
 
 # Update Verilog MACROs property
-set_property "verilog_define" "${ALL_VERILOG_MACROS}" [get_fileset sources_1]
-set_property "verilog_define" "${ALL_VERILOG_MACROS}" [get_fileset sim_1]
+set_property verilog_define ${ALL_VERILOG_MACROS} [get_fileset sources_1]
+set_property verilog_define ${ALL_VERILOG_MACROS} [get_fileset sim_1]
 
 # Dealing with Vivado case, when it locks IPs as old ones
 upgrade_ip [get_ips -all]

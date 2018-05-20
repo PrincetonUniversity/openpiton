@@ -4202,7 +4202,14 @@ lsu_dctldp dctldp (
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
-                   .rst_tri_en          (mux_drive_disable));     // Templated
+                   .rst_tri_en          (mux_drive_disable),
+                   
+                   // .core_rtap_data          (core_rtap_data),
+                   .rtap_core_val         (rtap_core_val),
+                   .rtap_core_threadid         (rtap_core_threadid),
+                   .rtap_core_id         (rtap_core_id),
+                   .rtap_core_data         (rtap_core_data)
+                   );     // Templated
 
 `elsif THREADS_1
 
@@ -4332,7 +4339,14 @@ lsu_dctldp dctldp (
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
-                   .rst_tri_en          (mux_drive_disable));     // Templated
+                   .rst_tri_en          (mux_drive_disable),
+                   
+                   // .core_rtap_data          (core_rtap_data),
+                   .rtap_core_val         (rtap_core_val),
+                   .rtap_core_threadid         (rtap_core_threadid),
+                   .rtap_core_id         (rtap_core_id),
+                   .rtap_core_data         (rtap_core_data)
+                   );     // Templated
 
 `elsif THREADS_2
 
@@ -4462,7 +4476,14 @@ lsu_dctldp dctldp (
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
-                   .rst_tri_en          (mux_drive_disable));     // Templated
+                   .rst_tri_en          (mux_drive_disable),
+                   
+                   // .core_rtap_data          (core_rtap_data),
+                   .rtap_core_val         (rtap_core_val),
+                   .rtap_core_threadid         (rtap_core_threadid),
+                   .rtap_core_id         (rtap_core_id),
+                   .rtap_core_data         (rtap_core_data)
+                   );     // Templated
 
 `elsif THREADS_3
 
@@ -4723,7 +4744,14 @@ lsu_dctldp dctldp (
                    .lsu_error_pa_m      (lsu_error_pa_m[28:0]),
                    .stb_ldst_byte_msk   (stb_ldst_byte_msk[7:0]),
                    .lsu_diagnstc_va_sel (lsu_diagnstc_va_sel[3:0]),
-                   .rst_tri_en          (mux_drive_disable));     // Templated
+                   .rst_tri_en          (mux_drive_disable),
+                   
+                   // .core_rtap_data          (core_rtap_data),
+                   .rtap_core_val         (rtap_core_val),
+                   .rtap_core_threadid         (rtap_core_threadid),
+                   .rtap_core_id         (rtap_core_id),
+                   .rtap_core_data         (rtap_core_data)
+                   );     // Templated
 `endif // !`ifdef FPGA_SYN_1THREAD
 
 `endif // `ifndef CONFIG_NUM_THREADS

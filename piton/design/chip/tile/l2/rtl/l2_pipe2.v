@@ -170,6 +170,7 @@ wire [`MSG_LSID_WIDTH-1:0] mshr_miss_lsid;
 `ifndef NO_RTL_CSM
 wire mshr_smc_miss;
 `endif
+wire mshr_recycled;
 wire mshr_inv_fwd_pending;
 
 wire msg_header_valid;
@@ -290,6 +291,7 @@ l2_mshr_decoder mshr_decoder(
     `else
     .smc_miss_out       (),
     `endif    
+    .recycled           (mshr_recycled),
     .inv_fwd_pending    (mshr_inv_fwd_pending)
 
 );

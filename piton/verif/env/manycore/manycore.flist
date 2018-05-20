@@ -85,4 +85,5 @@ manycore_network_mon.v
 -v l2_mon.v
 -v async_fifo_mon.v
 -v iob_mon.v
+fake_pll.v
 manycore_top.v

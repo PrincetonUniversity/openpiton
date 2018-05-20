@@ -162,28 +162,30 @@ assign app_zq_req = 1'b0;
  wire    [`NOC_DATA_WIDTH-1:0]     fifo_trans_data;
  wire                              fifo_trans_rdy;
 
-// ui_clk - fast mem clk - clk2
-// 
-mig_async_fifo  mig_async_fifo  (
+noc_bidir_afifo  mig_afifo  (
     .clk_1           (core_ref_clk      ),
     .rst_1           (afifo_rst_1       ),
+
+    .clk_2           (ui_clk            ),
+    .rst_2           (afifo_rst_2       ),
+
+    // CPU --> MIG
     .flit_in_val_1   (mc_flit_in_val    ),
     .flit_in_data_1  (mc_flit_in_data   ),
     .flit_in_rdy_1   (mc_flit_in_rdy    ),
 
-    .clk_2           (ui_clk            ),
-    .rst_2           (afifo_rst_2       ),
+    .flit_out_val_2  (fifo_trans_val    ),
+    .flit_out_data_2 (fifo_trans_data   ),
+    .flit_out_rdy_2  (fifo_trans_rdy    ),
+
+    // MIG --> CPU
     .flit_in_val_2   (trans_fifo_val    ),
     .flit_in_data_2  (trans_fifo_data   ),
     .flit_in_rdy_2   (trans_fifo_rdy    ),
 
-    .flit_out_data_1 (mc_flit_out_data  ),
     .flit_out_val_1  (mc_flit_out_val   ),
-    .flit_out_rdy_1  (mc_flit_out_rdy   ),
-
-    .flit_out_val_2  (fifo_trans_val    ),
-    .flit_out_data_2 (fifo_trans_data   ),
-    .flit_out_rdy_2  (fifo_trans_rdy    )
+    .flit_out_data_1 (mc_flit_out_data  ),
+    .flit_out_rdy_1  (mc_flit_out_rdy   )
 );
 
 pkt_trans_dp_wide    #  (

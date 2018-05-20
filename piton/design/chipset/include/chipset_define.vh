@@ -33,6 +33,20 @@
     `define     PITON_BRAM_TEST_DEPTH   16384
 `endif
 
+`ifdef PITON_BOARD
+    `define     PITON_BOOT_BRAM_DEPTH       256
+    `define     PITON_BOOT_BRAM_ADDR_WIDTH  8
+`else   // PITON_BOARD
+    `ifdef PITONSYS_UART_BOOT
+        `define     PITON_BOOT_BRAM_DEPTH       16384
+        `define     PITON_BOOT_BRAM_ADDR_WIDTH  14
+    `else   // PITONSYS_UART_BOOT
+        `define     PITON_BOOT_BRAM_DEPTH       256
+        `define     PITON_BOOT_BRAM_ADDR_WIDTH  8
+    `endif
+`endif  // PITON_BOARD
+`define     PITON_BOOT_BRAM_DATA_WIDTH  512
+
 `define RD_START_ADDR       40'haaaaaaaaaa
 `define RD_STOP_ADDR        40'hffffffffff
 
@@ -61,7 +75,21 @@
 `define PC_FLITS_IN_BLK_NUM     1
 `define PC_FLITS_IN_BLK         `PC_BLK_WIDTH/`PC_FLIT_WIDTH
 
-`define ASM_TIMEOUT_CYCLES  1000000000
+`ifdef PITON_FPGA_BRAM_TEST // 64-bit PHY
+    `define ADDR_TRANS_PHYS_WIDTH_ALIGN     6
+    `define ADDR_TRANS_SECTION_MULT         1
+`elsif NEXYSVIDEO_BOARD     // 16-bit PHY
+    `define ADDR_TRANS_PHYS_WIDTH_ALIGN     4
+    `define ADDR_TRANS_SECTION_MULT         4
+`elsif GENESYS2_BOARD       // 32-bit PHY
+    `define ADDR_TRANS_PHYS_WIDTH_ALIGN     5
+    `define ADDR_TRANS_SECTION_MULT         2
+`else   // 64-bit interface by default
+    `define ADDR_TRANS_PHYS_WIDTH_ALIGN     6
+    `define ADDR_TRANS_SECTION_MULT         1
+`endif
+
+`define ASM_TIMEOUT_CYCLES  64'd5000000000
 
 `define CFG_DONE_STRING     0
 `define PASSED_STRING       1
@@ -75,3 +103,5 @@
 
 `define PITON_TEST_GOOD_END     40'h8100000000
 `define PITON_TEST_BAD_END      40'h8200000000
+
+`define OLED_STRING "OpenPiton  rel 5Princeton            Parallel              Group"

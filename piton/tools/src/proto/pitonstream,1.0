@@ -37,18 +37,20 @@
 #
 #####################################################################
 
-import time, re, sys, os, serial, shlex, subprocess
+import time, re, sys, os, serial, shlex, subprocess, csv
 import make_mem_map as mmm
 import image2stream as i2s
 from optparse import OptionParser
+from time import sleep
 DEBUG = False
 INFO = False
 from fpga_lib import *
+from dbg import *
 
 class bcolors:
-    PASSED = '\033[92m'
-    TIMEOUT = '\033[93m'
-    FAILED = '\033[91m'
+    PASSED = '\033[32m'
+    TIMEOUT = '\033[33m'
+    FAILED = '\033[31m'
     ENDC = '\033[0m'
 
 
@@ -63,6 +65,11 @@ CFG_DONE_EVENT      = 0
 TEST_PASSED_EVENT   = 1
 TEST_FAILED_EVENT   = 2
 TEST_TIMEOUT_EVENT  = 3
+
+KEY_EVENT_MAP = {CFG_DONE_KEY:CFG_DONE_EVENT,
+                 TEST_PASSED_KEY:TEST_PASSED_EVENT,
+                 TEST_FAILED_KEY:TEST_FAILED_EVENT,
+                 TEST_TIMEOUT_KEY:TEST_TIMEOUT_EVENT}
 
 MEM_SIZE = 33554432 # 1 GB = 32B * 33554432
 
@@ -79,12 +86,24 @@ def usage():
     print >> sys.stderr, "                  genesys2"
     print >> sys.stderr, "                  nexysVideo"
     print >> sys.stderr, "\n                  * current configuration of design doesn't fit on this board"
+    print >> sys.stderr, "\n       -d, --design <design>"
+    print >> sys.stderr, "              Name of design used to determine frequency. Default is 'system'."
+    print >> sys.stderr, "              See $DV_ROOT/tools/src/proto/block.list for supported design modules"
     print >> sys.stderr, "\n       -f, --file <filename>"
     print >> sys.stderr, "              File name with test names. If option --ustr is not specified,"
     print >> sys.stderr, "              they should be assembly test names, otherwise list of generated"
     print >> sys.stderr, "              .ustr files"
+    print >> sys.stderr, "\n       -p, --port <portname>"
+    print >> sys.stderr, "              Port name for serial device of FPGA board. Default is 'ttyUSB0'"
+    print >> sys.stderr, "              Check your /dev directory to determine serial device name"
+    print >> sys.stderr, "\n       --midas_args <midas args>"
+    print >> sys.stderr, "              Optional.  String containing arguments to midas to add during "
+    print >> sys.stderr, "              compilation of the assembly test"
     print >> sys.stderr, "\n       --ustr"
     print >> sys.stderr, "              Specifies that test names in the file should be treated as .ustr file names"
+    print >> sys.stderr, "\n       --no_wait_fpga_config"
+    print >> sys.stderr, "              Do not wait for signal that FPGA is configured before running tests."
+    print >> sys.stderr, "              Assume FPGA is configured at launch."
     print >> sys.stderr, "\n       -h, --help"
     print >> sys.stderr, "              Display this help message and exit"
     print >> sys.stderr, "\n"
@@ -95,52 +114,59 @@ def checkCmdOptions(options):
         return False
 
     if options.fname == None:
-        print >> sys.stderr, "ERROR: File with assembly test is not given"
+        print_error("File with assembly test is not given")
         usage()
         return False
 
     # Check if design is specified 
     # (It has a default value so always should be)
     if (options.design == None):
-        print >> sys.stderr, "ERROR: invalid parameters"
+        print_error("Invalid parameters")
         usage()
         return False
 
     # Check if design module is found
     design_data = find_design_block(options.design)
     if (design_data == None):
-        print >> sys.stderr, "ERROR: Could not find design module '" + options.design + "'"
+        print_error("Can not find design module '" + options.design + "'")
         usage()
         return False
 
-    # Check if board is supported 
     if not options.board:
-        print >> sys.stderr, "ERROR: Board name is not provided"
+        print_error("Board name is not provided")
         usage()
         return False
 
     # Check if board is supported
     if (options.board not in design_data["BOARDS"]):
-        print >> sys.stderr,  "ERROR: unsupported board"
+        print_error("Unsupported board")
         usage()
         return False
 
     if options.storage not in ["bram", "ddr", None]:
-        print >> sys.stderr, "ERROR: unexpected storage type"
+        print_error("Unexpected storage type")
         usage()
         return False
 
     return True
 
-def configureUART():
-    print >> sys.stderr, "UART will be configured for %d baud rate" % UART_BAUD_RATE
-    ser = serial.Serial (
-        port='/dev/ttyS0',
-        baudrate=UART_BAUD_RATE,
-        bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE
-    )
+def configureUART(port):
+    print_info("UART will be configured for %d baud rate" % UART_BAUD_RATE)
+    port_full = '/dev/' + port
+    try:
+        ser = serial.Serial (
+            port=port_full,
+            baudrate=UART_BAUD_RATE,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=0
+        )
+    except:
+        print_error("Can not open serial device %s" % port_full)
+        print_error("Provide correct device name using -p option")
+        return None
+
     return ser
 
 def writeSTDOUT(s):
@@ -148,34 +174,34 @@ def writeSTDOUT(s):
     sys.stdout.flush()
 
 def pollUART(ser):
-    has_key = False
     rdata_all = ""
+    tstop = None
     while True:
-        if ser.inWaiting() > 0:
-            rdata = ser.read(ser.inWaiting())
+        rdata = ser.read(2048)
+        if len(rdata) > 0:
+            # have to store all data in case of a key
+            # is split between two different reads from serial device
             rdata_all += rdata
-            if CFG_DONE_KEY in rdata_all:
-                event = CFG_DONE_EVENT
-                key_index = rdata_all.index(CFG_DONE_KEY)
-                rdata_all = rdata_all[:key_index]
+
+            was_key = False
+            for key in KEY_EVENT_MAP.keys():
+                # because of split keyword, have to search in all read data
+                m = re.search("%s" % key, rdata_all)
+                if m != None:
+                    tstop = time.time()
+                    event = KEY_EVENT_MAP[key]
+                    # if keyword was in the current read chunk of data,
+                    # we can remove it, since it's not test output            
+                    rdata = re.sub("%s" % key, "", rdata)
+                    was_key = True
+                    break
+            
+            writeSTDOUT("%s" % rdata)
+            # exit polling as soon as key found
+            if was_key:
                 break
-            elif TEST_PASSED_KEY in rdata_all:
-                event = TEST_PASSED_EVENT
-                key_index = rdata_all.index(TEST_PASSED_KEY)
-                rdata_all = rdata_all[:key_index]
-                break
-            elif TEST_FAILED_KEY in rdata_all:
-                event = TEST_FAILED_EVENT
-                key_index = rdata_all.index(TEST_FAILED_KEY)
-                rdata_all = rdata_all[:key_index]
-                break
-            elif TEST_TIMEOUT_KEY in rdata_all:
-                event = TEST_TIMEOUT_EVENT
-                key_index = rdata_all.index(TEST_TIMEOUT_KEY)
-                rdata_all = rdata_all[:key_index]
-                break
-    writeSTDOUT("%s\n" % rdata_all)
-    return event
+
+    return (event, tstop)
 
 def loadTest(tname, ser):
     prev_dir = os.getcwd()
@@ -184,8 +210,8 @@ def loadTest(tname, ser):
     try:
         num_lines = sum(1 for line in open(tname))
     except IOError:
-        print >> sys.stderr, "ERROR: file %s does not appear to exist" % tname
-        return 1
+        print_error("File %s does not appear to exist" % tname)
+        return (1, None)
 
     f = open(tname, 'r')
 
@@ -202,16 +228,18 @@ def loadTest(tname, ser):
             sys.stdout.flush()
             prev_perc = perc
 
+    tstart = time.time()
     writeSTDOUT("\nTEST OUTPUT >>>\n")
     f.close()
 
     os.chdir(prev_dir)
-    return 0
+    return (0, tstart)
 
 def exitProgram(exit_code, ser, flog):
     writeSTDOUT("\nExiting...\n\n")
     flog.close()
-    ser.close()
+    if ser != None:
+        ser.close()
     exit(exit_code)
 
 def processKeyboardInterrupt(ser, flog):
@@ -227,11 +255,11 @@ def addrDataFromC(fname):
     # Make addr:data map for a test
     test_addr_data_map = dict()
     test_sec_list = re.findall(r"uint64_t MI_[0-9a-f]+.*\n[^}]+}", cont)
-    printInfo("Found %d sections" % len(test_sec_list))
+    print_info("Found %d sections" % len(test_sec_list))
     for sec in test_sec_list:
         m = re.search(r"MI_([0-9a-f]{16})", sec);
         if m == None:
-            print >> sys.stderr, "Can't extract section address"
+            print_warning("Can no extract section address")
             return None
         sec_addr = int(m.group(1), 16)
         dw_list = re.findall(r"0x[0-9a-f]{16}", sec)
@@ -243,23 +271,23 @@ def addrDataFromC(fname):
 
     return test_addr_data_map
 
-def compileASMTest(tname, uart_div_latch, st_brd, flog):
+def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None):
     prev_dir = os.getcwd()
     os.chdir(MODEL_DIR)
-    printInfo("Compiling %s" % tname)
+    print_info("Compiling %s" % tname)
     # Run midas only to get mem.image file
-    rv = runMidas(tname, uart_div_latch, flog)
+    rv = runMidas(tname, uart_div_latch, flog, midas_args)
     if rv != 0:
         return rv
 
     # Generate mbfw_diag_memimage.c file with all uncompressed sections for a test
-    printInfo("Compiling C test from mem.image for %s" % tname)
+    print_info("Compiling C test from mem.image for %s" % tname)
     rv = runGenmemimage(tname, flog)
     if rv != 0:
         return rv
 
     # Extract sections and their size from C generated test
-    printInfo("Creating addr:data map for the test")
+    print_info("Creating addr:data map for the test")
     addr_data_map = addrDataFromC("mbfw_diag_memimage.c")
     if rv == None:
         return None
@@ -268,12 +296,12 @@ def compileASMTest(tname, uart_div_latch, st_brd, flog):
     # that all sections of new tests are mapped
     rv = isTranslatorOK(addr_data_map, flog)
     if not rv:
-        print >> sys.stderr, "ERROR: Can't use existent storage_addr_trans.v for %s" % tname
+        print_error("Can't use existent storage_addr_trans.v for %s" % tname)
         return 1
     
     # Use available functions in make_mem_map.py to generate sections
     # and map them to contiguos memory
-    printInfo("Extracting test sections") #NOTE: can be optimized and extracted from mem.image
+    print_info("Extracting test sections") #NOTE: can be optimized and extracted from mem.image
     test_sections = mmm.memTestData(st_brd, addr_data_map, flog)
     # generates bram_map.log as one of outputs
     rv = mmm.mapToBram(test_sections, st_brd) #TODO: change mem_size for each board (although the limit is always never reached)
@@ -292,7 +320,10 @@ def setParserOptions(parser):
     parser.add_option("-s", "--storage", dest="storage", action="store", default="ddr")
     parser.add_option("-b", "--board", dest="board", action="store")
     parser.add_option("-d", "--design", dest="design", action="store", default="system")
+    parser.add_option("-p", "--port", dest="port", action="store", default="ttyUSB0")
+    parser.add_option("--midas_args", dest="midas_args", action="store")
     parser.add_option("--ustr", dest="ustr", action="store_true", default=False)
+    parser.add_option("--no_wait_fpga_config", dest="no_wait_fpga_config", action="store_true", default=False)
     parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
 
     return parser
@@ -301,22 +332,17 @@ def printDebug(s):
     if DEBUG:
         print >> sys.stderr, "DEBUG: " + s
 
-def printInfo(s):
-    if INFO:
-        print >> sys.stderr, "INFO: " + s
-
 def main():
-    ser = configureUART()
-    flog = open(FLOG_NAME, 'w')
-
     parser = OptionParser(add_help_option=False)
     parser = setParserOptions(parser)
     (options, args) = parser.parse_args()
 
+    flog = open(FLOG_NAME, 'w')
+    
     # Check input options
     rv = checkCmdOptions(options)
     if not rv:
-        exitProgram(1, ser, flog)
+        exitProgram(1, None, flog)
     
     if options.storage == "bram":
         st_brd = StorageBoard("bram", options.board)
@@ -326,38 +352,47 @@ def main():
     
     # Get list of tests and board configuration
     tests = getTestList(options.fname, flog, options.ustr)
-    printDebug(str(tests))
     # Calculate UART divider latch before test compilation
     design_data = find_design_block(options.design)
     uart_div_latch = calcUARTLatch(design_data, options.board)
+    print_info("UART DIV Latch value: 0x%x" % uart_div_latch)
 
+
+    print_info("Configuring port /dev/%s" % options.port)
+    ser = configureUART(options.port)
+    if ser == None:
+        exitProgram(1, None, flog)
 
     # Wait until FPGA is configure
-    writeSTDOUT("Press reset button on FPGA\n")
-    writeSTDOUT("Waiting...\n")
-    while True:
-        try:
-            event = pollUART(ser)
-            if event == CFG_DONE_EVENT:
-                writeSTDOUT("Configuration is complete\n\n")
-                break
-        except KeyboardInterrupt:
-            processKeyboardInterrupt(ser, flog)
-            return
+    if not options.no_wait_fpga_config:
+    	writeSTDOUT("Press reset button on FPGA\n")
+    	writeSTDOUT("Waiting...\n")
+    	while True:
+    	    try:
+    	        event = pollUART(ser)[0]
+    	        if event == CFG_DONE_EVENT:
+    	            writeSTDOUT("\nConfiguration is complete\n\n")
+    	            break
+    	    except KeyboardInterrupt:
+    	        processKeyboardInterrupt(ser, flog)
+    	        return
 
     # Main test loop
+    fp = open("pitonstream_summary.csv", "wb")
+    csvwriter = csv.writer(fp, delimiter=',', quotechar='|')
+    csvwriter.writerow(["seqID","test","status","walltime (seconds)"])
     test_num = len(tests)
     test_cnt = 0
     for tname in tests:
         test_cnt += 1
-        print >> sys.stderr, "Running %s: %d out of %d test" % (tname, test_cnt, test_num)
+        print_info("Running %s: %d out of %d test" % (tname, test_cnt, test_num))
         # Compile .s tests to get .ustr
         if options.ustr == False:
-            rv = compileASMTest(tname, uart_div_latch, st_brd, flog)
+            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args)
             if rv != 0:
-                print >> sys.stderr, "ERROR: Test compilation failed"
-                print >> sys.stderr, "ERROR: Skipping %s" % tname
-                print >> sys.stderr, "ERROR: See %s for more information\n\n" % FLOG_NAME
+                print_error("Test compilation failed")
+                print_error("Skipping %s" % tname)
+                print_error("See %s for more information\n\n" % FLOG_NAME)
                 continue
             ustr_name = "test.ustr"
         # Use pregenerated .ustr files
@@ -365,26 +400,41 @@ def main():
             ustr_name = tname
 
         try:
-            rv = loadTest(ustr_name, ser)
+            (rv, tstart) = loadTest(ustr_name, ser)
             if rv != 0:
-                print >> sys.stderr, "ERROR: Can not upload a stream. Skipping %s" % tname
+                print_error("Can not upload a stream. Skipping %s" % tname)
                 continue
-            event = pollUART(ser)
+            (event, tstop) = pollUART(ser)
+
+            tstatus = "UNKNOWN"
+            if event == CFG_DONE_EVENT:
+                writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
+                writeSTDOUT("%s : %sInterrupted by HW reset%s\n\n" % (tname, bcolors.FAILED, bcolors.ENDC))
+                tstatus = "HWRESET"
             
             if event == TEST_PASSED_EVENT:
-                writeSTDOUT("<<< END OF TEST OUTPUT\n")
-                writeSTDOUT("%s : %sPASSED%s\n\n" % (tname, bcolors.PASSED, bcolors.ENDC))
+                writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
+                writeSTDOUT("%s : %sPASSED%s\n" % (tname, bcolors.PASSED, bcolors.ENDC))
+                tstatus = "PASS"
 
             if event == TEST_FAILED_EVENT:
-                writeSTDOUT("<<< END OF TEST OUTPUT\n")
+                writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
                 writeSTDOUT("%s : %sFAILED%s\n\n" % (tname, bcolors.FAILED, bcolors.ENDC))
+                tstatus = "FAIL"
 
             if event == TEST_TIMEOUT_EVENT:
-                writeSTDOUT("<<< END OF TEST OUTPUT\n")
-                writeSTDOUT("%s : %sTIMEOUT%s\n\n" % (tname, bcolors.TIMEOUT, bcolors.ENDC))             
+                writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
+                writeSTDOUT("%s : %sTIMEOUT%s\n\n" % (tname, bcolors.TIMEOUT, bcolors.ENDC))      
+                tstatus = "TIMEOUT"
+
+            test_time = tstop - tstart
+            print_info("Execution time: %.8f sec\n\n" % test_time)
+	    csvwriter.writerow([test_cnt-1,tname,tstatus,"%.8f" % test_time]) 
+ 
         except KeyboardInterrupt:
             processKeyboardInterrupt(ser, flog)
             return
+    fp.close()
 
     writeSTDOUT("\n==============================\n")
     writeSTDOUT("All tests finished\n")

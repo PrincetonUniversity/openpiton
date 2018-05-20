@@ -329,7 +329,14 @@ module axi_sd_bridge (
             begin
                 s_axi_arready = 1;
 
-                next_raddr_buf = {36'b0, s_axi_araddr[27:0]};
+                if (s_axi_araddr[31:28] == 4'hF)
+                begin
+                    next_raddr_buf = {36'b0, s_axi_araddr[27:0]};
+                end
+                else
+                begin
+                    next_raddr_buf = {32'b0, s_axi_araddr[31:0]};
+                end
                 next_ttype_buf = TTYPE_READ;
             end
             if (wr_req_go)
@@ -337,8 +344,15 @@ module axi_sd_bridge (
                 s_axi_awready = 1;
                 s_axi_wready  = 1;
 
-                next_waddr_buf = {36'b0, s_axi_awaddr[27:0]};
-                next_wdata_buf = s_axi_wdata;
+                if (s_axi_awaddr[31:28] == 4'hF)
+                begin
+                    next_waddr_buf = {36'b0, s_axi_awaddr[27:0]};
+                end
+                else
+                begin
+                    next_waddr_buf = {32'b0, s_axi_awaddr[31:0]};
+                end
+                next_wdata_buf =  {s_axi_wdata[7:0], s_axi_wdata[15:8], s_axi_wdata[23:16], s_axi_wdata[31:24], s_axi_wdata[39:32], s_axi_wdata[47:40], s_axi_wdata[55:48], s_axi_wdata[63:56]};
                 next_wstrb_buf = s_axi_wstrb;
                 next_ttype_buf = TTYPE_WRITE;
             end
@@ -373,7 +387,7 @@ module axi_sd_bridge (
 
     always @( * )
     begin
-        s_axi_rdata  = cache_r_data;
+        s_axi_rdata  = {cache_r_data[7:0], cache_r_data[15:8], cache_r_data[23:16], cache_r_data[31:24], cache_r_data[39:32], cache_r_data[47:40], cache_r_data[55:48], cache_r_data[63:56]};
         s_axi_rresp  = (block_val[entry_sel]) ? `AXI_RESP_OKAY : `AXI_RESP_ERROR;
         s_axi_rvalid = 0;
 

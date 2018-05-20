@@ -177,7 +177,7 @@ th_main_127:
     !********************************
     ! Loop that just adds some stuff
     !********************************
-    set loop_array, %g1             ! Loop starting address
+    setx loop_array, %g2, %g1             ! Loop starting address
     add %g0, LOOP_ITERATIONS, %g2   ! Loop iterations
     sll %g2, 0x3, %g2               ! Multiply loop iterations by 8 (shift left by 3)
     add %g0, %g0, %g3               ! Loop counter
@@ -205,11 +205,26 @@ end:
     nop
     nop
 
-!==========================
-.data
-.align 0x1fff+1
+    .align 0x3fff+1
+    nop
 
-.global test_data
+
+SECTION .USER_DATA DATA_VA=0xd0000000
+
+attr_data {
+    Name = .USER_DATA,
+    VA= 0xd0000000,
+    PA= ra2pa(0xd0000000,0),
+    RA= 0xd0000000,
+    part_0_d_ctx_nonzero_ps0_tsb,
+    TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+    TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+    TTE_L=0, TTE_CP=1, TTE_CV=1, TTE_E=0, TTE_P=0, TTE_W=1
+}
+
+.data
+
+.global loop_array
 loop_array:
     .word 0x00000000, 0x00000000
     .word 0x00000000, 0x00000001

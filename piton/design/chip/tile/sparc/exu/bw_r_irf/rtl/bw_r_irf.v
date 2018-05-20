@@ -1813,6 +1813,7 @@ wire [71:0] wr_data = wr_en ? active_win_thr_rd_w_neg : active_win_thr_rd_w2_neg
 //GLOBALs
 bw_r_irf_register register00(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00000)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1824,6 +1825,7 @@ bw_r_irf_register register00(
 
 bw_r_irf_register register01(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00001)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1835,6 +1837,7 @@ bw_r_irf_register register01(
 
 bw_r_irf_register register02(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00010)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1846,6 +1849,7 @@ bw_r_irf_register register02(
 
 bw_r_irf_register register03(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00011)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1857,6 +1861,7 @@ bw_r_irf_register register03(
 
 bw_r_irf_register register04(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00100)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1868,6 +1873,7 @@ bw_r_irf_register register04(
 
 bw_r_irf_register register05(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00101)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1879,6 +1885,7 @@ bw_r_irf_register register05(
 
 bw_r_irf_register register06(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00110)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1890,6 +1897,7 @@ bw_r_irf_register register06(
 
 bw_r_irf_register register07(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b00111)),
 		.save(swap_global_d1_vld),
 		.save_addr({1'b0,old_agp_d1[1:0]}),
@@ -1902,6 +1910,7 @@ bw_r_irf_register register07(
 //ODDs
 bw_r_irf_register register08(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01000)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1913,6 +1922,7 @@ bw_r_irf_register register08(
 
 bw_r_irf_register register09(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01001)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1924,6 +1934,7 @@ bw_r_irf_register register09(
 
 bw_r_irf_register register10(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01010)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1935,6 +1946,7 @@ bw_r_irf_register register10(
 
 bw_r_irf_register register11(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01011)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1946,6 +1958,7 @@ bw_r_irf_register register11(
 
 bw_r_irf_register register12(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01100)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1957,6 +1970,7 @@ bw_r_irf_register register12(
 
 bw_r_irf_register register13(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01101)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1968,6 +1982,7 @@ bw_r_irf_register register13(
 
 bw_r_irf_register register14(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01110)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1979,6 +1994,7 @@ bw_r_irf_register register14(
 
 bw_r_irf_register register15(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b01111)),
 		.save(swap_odd_m_vld),
 		.save_addr({1'b0,old_lo_cwp_m[2:1]}),
@@ -1991,6 +2007,7 @@ bw_r_irf_register register15(
 //LOCALs
 bw_r_irf_register register16(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10000)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2002,6 +2019,7 @@ bw_r_irf_register register16(
 
 bw_r_irf_register register17(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10001)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2013,6 +2031,7 @@ bw_r_irf_register register17(
 
 bw_r_irf_register register18(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10010)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2024,6 +2043,7 @@ bw_r_irf_register register18(
 
 bw_r_irf_register register19(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10011)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2035,6 +2055,7 @@ bw_r_irf_register register19(
 
 bw_r_irf_register register20(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10100)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2046,6 +2067,7 @@ bw_r_irf_register register20(
 
 bw_r_irf_register register21(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10101)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2057,6 +2079,7 @@ bw_r_irf_register register21(
 
 bw_r_irf_register register22(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10110)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2068,6 +2091,7 @@ bw_r_irf_register register22(
 
 bw_r_irf_register register23(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b10111)),
 		.save(swap_local_m_vld),
 		.save_addr({old_lo_cwp_m[2:0]}),
@@ -2080,6 +2104,7 @@ bw_r_irf_register register23(
 //EVENs
 bw_r_irf_register register24(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11000)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2091,6 +2116,7 @@ bw_r_irf_register register24(
 
 bw_r_irf_register register25(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11001)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2102,6 +2128,7 @@ bw_r_irf_register register25(
 
 bw_r_irf_register register26(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11010)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2113,6 +2140,7 @@ bw_r_irf_register register26(
 
 bw_r_irf_register register27(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11011)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2124,6 +2152,7 @@ bw_r_irf_register register27(
 
 bw_r_irf_register register28(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11100)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2135,6 +2164,7 @@ bw_r_irf_register register28(
 
 bw_r_irf_register register29(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11101)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2146,6 +2176,7 @@ bw_r_irf_register register29(
 
 bw_r_irf_register register30(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11110)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),
@@ -2157,6 +2188,7 @@ bw_r_irf_register register30(
 
 bw_r_irf_register register31(
 		.clk(clk),
+		.reset_l			(reset_l),
 		.wren(wren & (wr_addr == 5'b11111)),
 		.save(swap_even_m_vld),
 		.save_addr({1'b0,old_e_cwp_m[1:0]}),

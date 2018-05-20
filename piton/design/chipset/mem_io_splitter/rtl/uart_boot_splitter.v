@@ -217,13 +217,17 @@ module uart_boot_splitter (
             : (noc2_splitter_msg_state_f == msg_state_data) ? msg_state_data
             : msg_state_inval;
 
-   // Note: for testing, IO address space is limited to addr[39:32] = 0x9A, should be switch back to addr[39] = 1
-    assign  noc2_splitter_buf0_dest_next 
-            = (rst_n) ? MSG_DEST_INVAL
-            :   (noc2_splitter_data[`MSG_ADDR_HI_ : `MSG_ADDR_HI_-27] == 28'hfff0c2c) ? MSG_DEST_AXI
-//            :   (noc2_splitter_data[`MSG_ADDR_HI_ : `MSG_ADDR_HI_-7] == 8'h9a) ? MSG_DEST_AXI
-            //: (noc2_splitter_data[`MSG_ADDR_HI_]) ? MSG_DEST_AXI
-            : MSG_DEST_BOOT;
+    `ifdef  PITON_FPGA_BRAM_TEST
+        assign  noc2_splitter_buf0_dest_next 
+                = (rst_n) ? MSG_DEST_INVAL
+                :   (noc2_splitter_data[`MSG_ADDR_HI_ : `MSG_ADDR_HI_-27] == 28'hfff0c2c) ? MSG_DEST_AXI
+                : MSG_DEST_BOOT;
+    `else
+        assign  noc2_splitter_buf0_dest_next 
+                = (rst_n) ? MSG_DEST_INVAL
+                :   (noc2_splitter_data[`MSG_ADDR_HI_ : `MSG_ADDR_HI_-17] == 18'h3ffc3) ? MSG_DEST_AXI
+                : MSG_DEST_BOOT;
+    `endif
    
     assign  noc2_splitter_buf0_val = (noc2_splitter_buf0_state_f != msg_state_inval);
     assign  stall_noc2_splitter_buf0 = stall_noc2_splitter_buf1 && (noc2_splitter_buf0_state_f != msg_state_inval);

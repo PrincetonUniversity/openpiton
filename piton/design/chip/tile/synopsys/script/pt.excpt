@@ -32,3 +32,16 @@ Warning: Default minimum operating conditions per library resulted in
 Warning: Port 'default_chipid\[\d+\]' is unconstrained\.  \(MV-001\)
 Warning: Port 'default_coreid_[xy]\[\d+\]' is unconstrained\.  \(MV-001\)
 Warning: Port 'flat_tileid\[\d+\]' is unconstrained\.  \(MV-001\)
+
+// For post-PAR STA, we actually read in the interface timing descriptions of leaf blocks
+// for hierarchical blocks.  Thus, when reading in the SDC produced by ICC, PT does
+// not see signals inside core.  We can make an exception for these errors
+Warning: No pin objects matched 'core/\S*' \(SEL-004\)
+// These occur as a result of above, hopefully does not mask other errors that may occur.
+// I think it should be Ok, as we use all synopsys generated files for it.  So should not
+// really be any other errors like this that could occur
+Error: Nothing matched for pins \(SEL-005\)
+Error: Nothing matched for port_or_pin_list \(SEL-005\)
+
+// Summary of resukts
+Diagnostics summary: \d+ errors, \d+ warnings, \d+ informationals

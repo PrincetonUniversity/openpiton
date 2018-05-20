@@ -24,20 +24,23 @@
 // REad/Write ports can be accessed in PH1 only.
 ////////////////////////////////////////////////////////////////////////
 
+`ifdef SIM_FPGA_SYN_SRAM_RF16X160 // simulation flag
+`define PITON_PROTO
+`endif
+
+`ifdef FPGA_FORCE_SRAM_RF16X160
+`undef PITON_PROTO
+`endif
+
 //PITON_PROTO enables all FPGA related modifications
 `ifdef PITON_PROTO
 `define FPGA_SYN_16x160
-`endif
-
-`ifndef NO_USE_IBM_SRAMS
-`define IBM_SRAM_RF16X160
-`endif
-
-`ifndef IBM_SRAM_RF16X160
-module bw_r_rf16x160(/*AUTOARG*/
 `else
-module bw_r_rf16x160_ref(/*AUTOARG*/
+`define SRAM_RF16X160
 `endif
+
+`ifdef FPGA_SYN_16x160
+module bw_r_rf16x160(/*AUTOARG*/
    // Outputs
    dout, so_w, so_r,
    // Inputs
@@ -85,42 +88,7 @@ module bw_r_rf16x160_ref(/*AUTOARG*/
    reg 	          wr_en_d1;
 
 
-`ifdef DEFINE_0IN
    wire          so;
-`else
-   wire          so;
-
-`ifdef FPGA_SYN_16x160
-`else
-   reg [159:0] dout;
-   // memory array
-   reg [159:0]  inq_ary [15:0];
-
-`ifdef IBM_SRAM_RF16X160_MODEL_CHECK
-   initial
-   begin
-      inq_ary[0] <= 0;
-      inq_ary[1] <= 0;
-      inq_ary[2] <= 0;
-      inq_ary[3] <= 0;
-      inq_ary[4] <= 0;
-      inq_ary[5] <= 0;
-      inq_ary[6] <= 0;
-      inq_ary[7] <= 0;
-      inq_ary[8] <= 0;
-      inq_ary[9] <= 0;
-      inq_ary[10] <= 0;
-      inq_ary[11] <= 0;
-      inq_ary[12] <= 0;
-      inq_ary[13] <= 0;
-      inq_ary[14] <= 0;
-      inq_ary[15] <= 0;
-   end
-`endif
-
-`endif
-`endif
-
    // internal variable
    integer          i, j;
    reg     [159:0]  temp, data_in, tmp_dout;
@@ -147,174 +115,6 @@ end
 //-------
 
 
-`ifdef DEFINE_0IN
-   wire [159:0] bit_en_d1;
-
-  assign bit_en_d1[0]  = word_wen_d1[0] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[1]  = word_wen_d1[1] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[2]  = word_wen_d1[2] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[3]  = word_wen_d1[3] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[4]  = word_wen_d1[0] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[5]  = word_wen_d1[1] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[6]  = word_wen_d1[2] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[7]  = word_wen_d1[3] & byte_wen_d1[0] & ~rst_tri_en;
-  assign bit_en_d1[8]  = word_wen_d1[0] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[9]  = word_wen_d1[1] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[10] = word_wen_d1[2] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[11] = word_wen_d1[3] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[12] = word_wen_d1[0] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[13] = word_wen_d1[1] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[14] = word_wen_d1[2] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[15] = word_wen_d1[3] & byte_wen_d1[1] & ~rst_tri_en;
-  assign bit_en_d1[16] = word_wen_d1[0] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[17] = word_wen_d1[1] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[18] = word_wen_d1[2] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[19] = word_wen_d1[3] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[20] = word_wen_d1[0] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[21] = word_wen_d1[1] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[22] = word_wen_d1[2] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[23] = word_wen_d1[3] & byte_wen_d1[2] & ~rst_tri_en;
-  assign bit_en_d1[24] = word_wen_d1[0] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[25] = word_wen_d1[1] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[26] = word_wen_d1[2] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[27] = word_wen_d1[3] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[28] = word_wen_d1[0] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[29] = word_wen_d1[1] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[30] = word_wen_d1[2] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[31] = word_wen_d1[3] & byte_wen_d1[3] & ~rst_tri_en;
-  assign bit_en_d1[32] = word_wen_d1[0] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[33] = word_wen_d1[1] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[34] = word_wen_d1[2] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[35] = word_wen_d1[3] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[36] = word_wen_d1[0] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[37] = word_wen_d1[1] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[38] = word_wen_d1[2] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[39] = word_wen_d1[3] & byte_wen_d1[4] & ~rst_tri_en;
-  assign bit_en_d1[40] = word_wen_d1[0] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[41] = word_wen_d1[1] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[42] = word_wen_d1[2] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[43] = word_wen_d1[3] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[44] = word_wen_d1[0] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[45] = word_wen_d1[1] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[46] = word_wen_d1[2] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[47] = word_wen_d1[3] & byte_wen_d1[5] & ~rst_tri_en;
-  assign bit_en_d1[48] = word_wen_d1[0] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[49] = word_wen_d1[1] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[50] = word_wen_d1[2] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[51] = word_wen_d1[3] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[52] = word_wen_d1[0] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[53] = word_wen_d1[1] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[54] = word_wen_d1[2] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[55] = word_wen_d1[3] & byte_wen_d1[6] & ~rst_tri_en;
-  assign bit_en_d1[56] = word_wen_d1[0] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[57] = word_wen_d1[1] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[58] = word_wen_d1[2] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[59] = word_wen_d1[3] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[60] = word_wen_d1[0] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[61] = word_wen_d1[1] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[62] = word_wen_d1[2] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[63] = word_wen_d1[3] & byte_wen_d1[7] & ~rst_tri_en;
-  assign bit_en_d1[64] = word_wen_d1[0] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[65] = word_wen_d1[1] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[66] = word_wen_d1[2] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[67] = word_wen_d1[3] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[68] = word_wen_d1[0] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[69] = word_wen_d1[1] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[70] = word_wen_d1[2] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[71] = word_wen_d1[3] & byte_wen_d1[8] & ~rst_tri_en;
-  assign bit_en_d1[72] = word_wen_d1[0] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[73] = word_wen_d1[1] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[74] = word_wen_d1[2] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[75] = word_wen_d1[3] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[76] = word_wen_d1[0] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[77] = word_wen_d1[1] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[78] = word_wen_d1[2] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[79] = word_wen_d1[3] & byte_wen_d1[9] & ~rst_tri_en;
-  assign bit_en_d1[80] = word_wen_d1[0] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[81] = word_wen_d1[1] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[82] = word_wen_d1[2] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[83] = word_wen_d1[3] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[84] = word_wen_d1[0] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[85] = word_wen_d1[1] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[86] = word_wen_d1[2] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[87] = word_wen_d1[3] & byte_wen_d1[10] & ~rst_tri_en;
-  assign bit_en_d1[88] = word_wen_d1[0] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[89] = word_wen_d1[1] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[90] = word_wen_d1[2] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[91] = word_wen_d1[3] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[92] = word_wen_d1[0] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[93] = word_wen_d1[1] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[94] = word_wen_d1[2] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[95] = word_wen_d1[3] & byte_wen_d1[11] & ~rst_tri_en;
-  assign bit_en_d1[96] = word_wen_d1[0] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[97] = word_wen_d1[1] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[98] = word_wen_d1[2] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[99] = word_wen_d1[3] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[100] = word_wen_d1[0] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[101] = word_wen_d1[1] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[102] = word_wen_d1[2] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[103] = word_wen_d1[3] & byte_wen_d1[12] & ~rst_tri_en;
-  assign bit_en_d1[104] = word_wen_d1[0] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[105] = word_wen_d1[1] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[106] = word_wen_d1[2] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[107] = word_wen_d1[3] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[108] = word_wen_d1[0] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[109] = word_wen_d1[1] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[110] = word_wen_d1[2] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[111] = word_wen_d1[3] & byte_wen_d1[13] & ~rst_tri_en;
-  assign bit_en_d1[112] = word_wen_d1[0] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[113] = word_wen_d1[1] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[114] = word_wen_d1[2] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[115] = word_wen_d1[3] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[116] = word_wen_d1[0] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[117] = word_wen_d1[1] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[118] = word_wen_d1[2] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[119] = word_wen_d1[3] & byte_wen_d1[14] & ~rst_tri_en;
-  assign bit_en_d1[120] = word_wen_d1[0] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[121] = word_wen_d1[1] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[122] = word_wen_d1[2] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[123] = word_wen_d1[3] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[124] = word_wen_d1[0] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[125] = word_wen_d1[1] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[126] = word_wen_d1[2] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[127] = word_wen_d1[3] & byte_wen_d1[15] & ~rst_tri_en;
-  assign bit_en_d1[128] = word_wen_d1[0] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[129] = word_wen_d1[1] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[130] = word_wen_d1[2] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[131] = word_wen_d1[3] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[132] = word_wen_d1[0] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[133] = word_wen_d1[1] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[134] = word_wen_d1[2] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[135] = word_wen_d1[3] & byte_wen_d1[16] & ~rst_tri_en;
-  assign bit_en_d1[136] = word_wen_d1[0] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[137] = word_wen_d1[1] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[138] = word_wen_d1[2] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[139] = word_wen_d1[3] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[140] = word_wen_d1[0] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[141] = word_wen_d1[1] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[142] = word_wen_d1[2] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[143] = word_wen_d1[3] & byte_wen_d1[17] & ~rst_tri_en;
-  assign bit_en_d1[144] = word_wen_d1[0] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[145] = word_wen_d1[1] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[146] = word_wen_d1[2] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[147] = word_wen_d1[3] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[148] = word_wen_d1[0] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[149] = word_wen_d1[1] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[150] = word_wen_d1[2] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[151] = word_wen_d1[3] & byte_wen_d1[18] & ~rst_tri_en;
-  assign bit_en_d1[152] = word_wen_d1[0] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[153] = word_wen_d1[1] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[154] = word_wen_d1[2] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[155] = word_wen_d1[3] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[156] = word_wen_d1[0] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[157] = word_wen_d1[1] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[158] = word_wen_d1[2] & byte_wen_d1[19] & ~rst_tri_en;
-  assign bit_en_d1[159] = word_wen_d1[3] & byte_wen_d1[19] & ~rst_tri_en;
-`else
-
-`endif
-//-------
-
 always @ (posedge rd_clk)
 begin
   ren_d1        <= (sehold) ? ren_d1        : read_en;
@@ -322,13 +122,6 @@ begin
 end
 //-------
 
-
-`ifdef DEFINE_0IN
-rf16x160 rf16x160 ( .rdclk(rd_clk), .wrclk(~wr_clk), .radr(rdptr_d1), .wadr(wrptr_d1), .ren(ren_d1),
-                        .we(wr_en_d1), .wm(bit_en_d1), .din(wrdata_d1), .dout(dout) );
-`else
-
-`ifdef FPGA_SYN_16x160
 
 bw_r_rf16x2 arr0 (
 	.word_wen(word_wen_d2),
@@ -570,162 +363,7 @@ bw_r_rf16x2 arr19(
 	.rd_clk(rd_clk),
 	.reset_l(reset_l));
 
-
-`else
-//
-// Read Operation
-//
-
-  always @(/*AUTOSENSE*/ /*memory or*/ byte_wen_d1 or rdptr_d1
-           or ren_d1 or reset_l or rst_tri_en_d1 or word_wen_d1
-           or wr_en_d1 or wrptr_d1)
-    begin
-      if (reset_l)
-        begin
-          if (ren_d1==1'b1)
-            begin
-            // Checking for Xs on the rd pointer input when read is enabled
-
-// synopsys translate_off
-
-`ifdef INNO_MUXEX
-`else
-              if (rdptr_d1 == 4'bx)
-                begin
-                  $error("rf_error"," read pointer error %h ", rdptr_d1[3:0]);
-                end
-`endif
-
-// synopsys translate_on
-
-              tmp_dout = inq_ary[rdptr_d1] ;
-              j = 0;
-
-              for (i=0; i<= 159; i=i+8)
-                begin
-                  if (rdptr_d1 == wrptr_d1)
-                    begin
-                      //dout[i]   = (wr_en_d1 & bit_en_d1[i]) ? 1'bx : tmp_dout[i];
-
-                      dout[i]   = (wr_en_d1 & word_wen_d1[0] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i] ;
-                      dout[i+1] = (wr_en_d1 & word_wen_d1[1] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+1] ;
-                      dout[i+2] = (wr_en_d1 & word_wen_d1[2] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+2] ;
-                      dout[i+3] = (wr_en_d1 & word_wen_d1[3] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+3] ;
-                      dout[i+4] = (wr_en_d1 & word_wen_d1[0] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+4] ;
-                      dout[i+5] = (wr_en_d1 & word_wen_d1[1] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+5] ;
-                      dout[i+6] = (wr_en_d1 & word_wen_d1[2] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+6] ;
-                      dout[i+7] = (wr_en_d1 & word_wen_d1[3] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                      1'bx : tmp_dout[i+7] ;
-                      j = j+1;
-                    end
-                  else
-                    begin
-                      //dout[i]   = tmp_dout[i] ;
-                      dout[i]   = tmp_dout[i] ;
-                      dout[i+1] = tmp_dout[i+1] ;
-                      dout[i+2] = tmp_dout[i+2] ;
-                      dout[i+3] = tmp_dout[i+3] ;
-                      dout[i+4] = tmp_dout[i+4] ;
-                      dout[i+5] = tmp_dout[i+5] ;
-                      dout[i+6] = tmp_dout[i+6] ;
-                      dout[i+7] = tmp_dout[i+7] ;
-                    end
-                end
-            end
-        end
-      else dout[159:0] = 160'b0 ;
-  end // always @ (...
-
-
-
-//
-// Write Operation
-//
-  always @ (/*AUTOSENSE*/byte_wen_d1 or reset_l or rst_tri_en_d1
-            or word_wen_d1 or wr_en_d1 or wrdata_d1 or wrptr_d1)
-    begin
-      if (reset_l)
-        begin
-        // Checking for Xs on bit write enables that are derived from
-        // the word_enables and wr enable input.
-
-// synopsys translate_off
-
-`ifdef INNO_MUXEX
-`else
-          if (wr_en_d1 == 1'bx)
-            begin
-              $error("rf_error"," write enable error %h ", wr_en_d1);
-            end
-          if (word_wen_d1 == 4'bx)
-            begin
-              $error("rf_error"," word enable error %h ", word_wen_d1[3:0]);
-            end
-          if (byte_wen_d1 == 20'bx)
-            begin
-              $error("rf_error"," byte enable error %h ", byte_wen_d1[19:0]);
-            end
-`endif
-
-// synopsys translate_on
-
-          if (wr_en_d1 & ~rst_tri_en)
-            begin
-
-// synopsys translate_off
-
-`ifdef INNO_MUXEX
-`else
-              if (wrptr_d1 == 4'bx)
-                begin
-                  $error("rf_error"," write pointer error %h ", wrptr_d1[3:0]);
-                end
-`endif
-
-// synopsys translate_on
-
-              temp = inq_ary[wrptr_d1];
-              j = 0;
-
-              for (i=0; i<=159; i=i+8)
-                begin
-                  //data_in[i] = (bit_en_d1[i]) ? wrdata_d1[i] : temp[i] ;
-                  data_in[i]   = (wr_en_d1 & word_wen_d1[0] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i]   : temp[i] ;
-                  data_in[i+1] = (wr_en_d1 & word_wen_d1[1] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+1] : temp[i+1] ;
-                  data_in[i+2] = (wr_en_d1 & word_wen_d1[2] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+2] : temp[i+2] ;
-                  data_in[i+3] = (wr_en_d1 & word_wen_d1[3] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+3] : temp[i+3] ;
-                  data_in[i+4] = (wr_en_d1 & word_wen_d1[0] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+4] : temp[i+4] ;
-                  data_in[i+5] = (wr_en_d1 & word_wen_d1[1] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+5] : temp[i+5] ;
-                  data_in[i+6] = (wr_en_d1 & word_wen_d1[2] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+6] : temp[i+6] ;
-                  data_in[i+7] = (wr_en_d1 & word_wen_d1[3] & byte_wen_d1[j] & ~rst_tri_en) ?
-                                   wrdata_d1[i+7] : temp[i+7] ;
-                  j = j+1;
-                end
-              inq_ary[wrptr_d1] = data_in ;
-            end
-        end
-    end // always @ (...
-
-`endif
-`endif
-
 endmodule // rf_16x160
-
-`ifdef FPGA_SYN_16x160
 
 module bw_r_rf16x2(word_wen, wen, ren, wr_addr, rd_addr, wr_data,
 	rd_data, clk, rd_clk, reset_l);
@@ -747,15 +385,6 @@ module bw_r_rf16x2(word_wen, wen, ren, wr_addr, rd_addr, wr_data,
   reg [1:0] inq_ary2[15:0];
   reg [1:0] inq_ary3[15:0];
 
-`ifdef IBM_SRAM_RF16X160_MODEL_CHECK
-   initial
-   begin
-      inq_ary0 <= 0;
-      inq_ary1 <= 0;
-      inq_ary2 <= 0;
-      inq_ary3 <= 0;
-   end
-`endif
   always @(posedge clk) begin
     if(reset_l & wen & word_wen[0])
       inq_ary0[wr_addr] = {wr_data[4],wr_data[0]};
@@ -783,7 +412,7 @@ endmodule
 `endif
 
 
-`ifdef IBM_SRAM_RF16X160
+`ifdef SRAM_RF16X160
 
 module bw_r_rf16x160(/*AUTOARG*/
    // Outputs
@@ -1050,50 +679,15 @@ module bw_r_rf16x160(/*AUTOARG*/
    assign bit_en[158] = word_wen[2] & byte_wen[19] & ~rst_tri_en;
    assign bit_en[159] = word_wen[3] & byte_wen[19] & ~rst_tri_en;
 
-
-`ifdef IBM_SRAM_RF16X160_MODEL_CHECKER
-
-   wire [159:0] dout_ref;
-
-   bw_r_rf16x160_ref sram_orig(
-      .din(din),
-      .rd_adr(rd_adr),
-      .wr_adr(wr_adr),
-      .read_en(read_en),
-      .wr_en(wr_en),
-
-      .rst_tri_en(rst_tri_en),
-      .word_wen(word_wen),
-
-      .byte_wen(byte_wen),
-
-      .rd_clk(rd_clk),
-      .wr_clk(wr_clk),
-      .se(se),
-      .si_r(si_r),
-      .si_w(si_w),
-      .reset_l(reset_l),
-      .sehold(sehold),
-
-      .dout(dout_ref),
-      .so_w(),
-      .so_r()
-   );
-
-
-always @ (negedge wr_clk)
-begin
-   if (read_en_d1 == 1'b1 && (dout[159:0] != dout_ref[159:0]))
-   begin
-      $display("%d : Simulation -> FAIL(%0s)", $time, "bw_r_rf16x160_ref not same");
-      repeat(5)@(posedge wr_clk);
-      `MONITOR_PATH.fail("w_r_rf16x160_ref not same");
-   end
-end
-
-`endif
-
 endmodule
 
 
+`endif
+
+`ifdef SIM_FPGA_SYN_SRAM_RF16X160 // simulation flag
+`undef PITON_PROTO
+`endif
+
+`ifdef FPGA_FORCE_SRAM_RF16X160
+`define PITON_PROTO
 `endif

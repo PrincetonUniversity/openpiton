@@ -27,21 +27,5 @@
 Warning: Design 'sparc_core' contains 3 high-fanout nets\. A fanout number of 500 will be used for delay calculations involving these nets\. \(TIM-134\)
 Warning: Design 'sparc_core' contains 2 high-fanout nets\. A fanout number of 500 will be used for delay calculations involving these nets\. \(TIM-134\)
 
-// Don't exactly know why this occurs, but doesn't seem too harmless and timing turns out OK
-Warning: Net '\S+' already has '\s+[\d\.]+ \((max|min)\)' for annotated (resistance|capacitance)\. '\s+[\d\.]+ \((max|min)\)' is discarded\. \(OPT-80[56]\)
-
-// This happens for two SRAMs, not sure why but assuming foundry did correct thing with BPV
-Warning: Cell \S+ contains more than 100000 obstructions \(\d+\).  This may increase routing runtime\.  You may wish to re-run BPV\.  \(ZRT-092\)
-
-// Not sure why this occurs here, seems to turn out OK though.  It actually typically does not occur and if it
-// does this seems to fix the problem in addition to warn us about it
-Warning: Shape {\d+ \d+ \d+ \d+\} on layer \S+ is not on min manufacturing grid. Snap it to \{\d+ \d+ \d+ \d+\}\. The shape belongs to Net: \S+\. \(ZRT-543\)
-
-// Place pins in floorplan for this module
-Warning: File 'script/place_pins\.tcl' was not found in search path\. \(CMD-030\)
-
-// This occurs for our physical only capacitors, not a big deal
-Warning: The following physical-only library cells don't have power description that matches design's operation condition:DTCAP\S+   \(PWR-681\)
-
-// Optimizing net with error in the name
-    \d+:\d+:\d+  [\d\.]+    [\d\.]+   [\d\.]+    [\d\.]+ \S*error\S*  [\d\.]+ [-\d\.]+
+// Don't exactly know why this occurs - it started showing up in March 2017
+Warning: The non-constant Milkyway net '\S+' \(0x\d+\) has a hierarchical load pin '\S+/gdbginit_l' but no driver\. It will now be driven by logic zero\. \(MWDC-229\)

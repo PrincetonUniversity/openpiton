@@ -46,21 +46,10 @@ my $prg = $0;
 $prg =~ s/.*\/// ;
 $prg =~ s/,.*// ;
 
-my $hostname = `hostname`;
-
-if ($hostname =~ /hecate/)
-{
-    print "Detected running on hecate...using hecate default parameters.\n"
-}
-
 my $all = 0;
 my $sta_q = "/bin/sh";
 my $slurm = 0;
 my $scores = "1";
-if ($hostname =~ /hecate/)
-{
-    $scores = "6";
-}
 my $stime = "12:00:00";
 my $swait = 0;
 my $blk_list = "";
@@ -144,47 +133,17 @@ foreach my $block (@block_list) {
         $block_fs =~ s/$find/$replace/g;
         my $cmd_script = "sta_";
         $cmd_script .= $block->{ID};
-        open(BLK_CMD, "> $cmd_script") or die ("DIE. could not open $cmd_script");
-        print BLK_CMD "#!/bin/bash\n";
-        print BLK_CMD "#SBATCH -n $scores\n";
-        if ($hostname =~ /hecate/)
-        {
-            print BLK_CMD "#SBATCH --ntasks-per-socket 6\n";
-        }
-        else
-        {
-            print BLK_CMD "#SBATCH -N 1\n";
-        } 
-        print BLK_CMD "#SBATCH -t $stime\n\n";
-        print BLK_CMD "$cmd\n\n";
-        print BLK_CMD "exit";
-        close(BLK_CMD);
-        my $job_output = `sbatch $cmd_script`;
-        print $job_output;
-        my $job_id = $job_output;
-        $job_id =~ s/Submitted batch job (\d+)\n/$1/ ;
+
+        create_slurm_script ($cmd_script, $cmd, $scores, $stime);
+        
+        my $job_id = submit_slurm_job ($prg, $cmd_script);
         push @job_ids, $job_id ;
     }
 }
 
 if ($slurm && $swait) {
     print "$prg: Waiting for STA jobs to finish...\n";
-    my $user = $ENV{USER};
-    while (@job_ids >  0) {
-        my @remove_jobs = ();
-        foreach my $job_id (@job_ids) {
-            my $squeue_wc_out = `squeue -u $user -j $job_id | wc -l`;
-            if ($squeue_wc_out == "1\n" || $squeue_wc_out == "0\n") {
-                push @remove_jobs, $job_id ;
-            }
-        }
-
-        foreach my $job_id (@remove_jobs) {
-            @job_ids = grep { $_ != $job_id } @job_ids;
-        }
-
-        sleep 30;
-    }
+    wait_slurm_jobs (\@job_ids);
 }
 
 #######################################################################

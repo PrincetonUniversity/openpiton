@@ -1028,8 +1028,6 @@ dff_s  #(`TLB_CSM_WIDTH) lmq_csm3 (
 `endif
 `endif
 
-`endif // `ifndef CONFIG_NUM_THREADS
-
 //bug2705 - speculative pick in w-cycle
 wire    lmq3_pcx_pkt_vld ;
 assign  lmq3_pcx_pkt_vld  =  lmq3_pcx_pkt_tmp[`LMQ_VLD] & ~lsu_ld3_spec_vld_kill_w2 ;
@@ -1069,6 +1067,8 @@ mux4ds  #(`TLB_CSM_WIDTH) lmq_csm_pthrd_sel (
   .sel3   (ld_pcx_rq_sel[3]),
   .dout (load_pcx_csm)
 );
+
+`endif // `ifndef CONFIG_NUM_THREADS
 
 
 `endif

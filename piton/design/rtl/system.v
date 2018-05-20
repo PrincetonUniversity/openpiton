@@ -204,9 +204,6 @@ module system(
 `ifdef PITONSYS_UART
     output                                      uart_tx,
     input                                       uart_rx,
-
-    input                                       uart_boot_en,
-
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
@@ -215,6 +212,29 @@ module system(
     output                                      spi_clk_out,
     output                                      spi_cs_n,
 `endif // endif PITONSYS_SPI
+
+// Emaclite interface
+`ifdef GENESYS2_BOARD
+    output                                          net_phy_txc,
+    output                                          net_phy_txctl,
+    output      [3:0]                               net_phy_txd,
+    input                                           net_phy_rxc,
+    input                                           net_phy_rxctl,
+    input       [3:0]                               net_phy_rxd,
+    output                                          net_phy_rst_n,
+    inout                                           net_phy_mdio_io,
+    output                                          net_phy_mdc,
+`elsif NEXYSVIDEO_BOARD
+    output                                          net_phy_txc,
+    output                                          net_phy_txctl,
+    output      [3:0]                               net_phy_txd,
+    input                                           net_phy_rxc,
+    input                                           net_phy_rxctl,
+    input       [3:0]                               net_phy_rxd,
+    output                                          net_phy_rst_n,
+    inout                                           net_phy_mdio_io,
+    output                                          net_phy_mdc,
+`endif 
 
 `else // ifndef PITONSYS_IOCTRL
     output                                      chipset_fake_iob_val,
@@ -258,6 +278,7 @@ module system(
     output                                      oled_rst_n,
 `endif
 
+    input  [7:0]                                sw,
     output [7:0]                                leds
 
 );
@@ -306,6 +327,7 @@ wire                pll_lock;
 
 // Signal from passthru to chipset to signal
 // when Piton comes out of reset and is ready
+wire                piton_prsnt_n;
 wire                piton_ready_n;
 
 // Chip interface signals with a chip bridge
@@ -592,6 +614,7 @@ passthru passthru(
 
     // Piton ready signal, used to signal to chipset
     // when Piton is out of reset and ready for action.
+    .piton_prsnt_n(piton_prsnt_n),
     .piton_ready_n(piton_ready_n),
 
     // Chip<->passthru interface.  Synchronous to io_clk. 
@@ -681,8 +704,10 @@ chipset chipset(
     // separate reset from the chipset. Otherwise,
     // assume piton is always ready (same reset)
 `ifdef PITONSYS_INC_PASSTHRU
+    .piton_prsnt_n(piton_prsnt_n),
     .piton_ready_n(piton_ready_n),
 `else // ifndef PITONSYS_INC_PASSTHRU
+    .piton_prsnt_n(1'b0),
     .piton_ready_n(1'b0),
 `endif // endif PITONSYS_INC_PASSTHRU
 
@@ -778,7 +803,6 @@ chipset chipset(
     .uart_rx(uart_rx),
 `ifdef PITONSYS_UART_BOOT
 `ifdef PITONSYS_NON_UART_BOOT
-    .uart_boot_en(uart_boot_en),
     .test_start(test_start),
 `endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
@@ -790,6 +814,16 @@ chipset chipset(
     .spi_clk_out(spi_clk_out),
     .spi_cs_n(spi_cs_n),
 `endif // endif PITONSYS_SPI
+
+    .net_phy_txc        (net_phy_txc),
+    .net_phy_txctl      (net_phy_txctl),
+    .net_phy_txd        (net_phy_txd),
+    .net_phy_rxc        (net_phy_rxc),
+    .net_phy_rxctl      (net_phy_rxctl),
+    .net_phy_rxd        (net_phy_rxd),
+    .net_phy_rst_n      (net_phy_rst_n),
+    .net_phy_mdio_io    (net_phy_mdio_io),
+    .net_phy_mdc        (net_phy_mdc),
 
 `else // ifndef PITONSYS_IOCTRL
     .chipset_fake_iob_val(chipset_fake_iob_val),
@@ -833,6 +867,7 @@ chipset chipset(
     .oled_rst_n(oled_rst_n),
 `endif
 
+    .sw(sw),
     .leds(leds)
 
 

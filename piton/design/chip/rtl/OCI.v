@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Princeton University
+// Copyright (c) 2017 Princeton University
 // All rights reserved.
 // 
 // Redistribution and use in source and binary forms, with or without
@@ -22,6 +22,10 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+// Project: Off-Chip Interface (OCI)
+// Creation date: 1/11/15
+// Author: Mohammad Shahrad
 
 // Notes:
 // You can instantiate yout IO cells, pads, and other off-chip interface in
@@ -84,32 +88,64 @@ module OCI (
    input  [1:0]                  chip_intf_channel_inter,
    output [2:0]                  chip_intf_credit_back_inter
    );
-   
-   assign core_ref_clk_inter = core_ref_clk;
-   assign io_clk_inter = io_clk;
-   assign rst_n_inter = rst_n;
-   assign pll_rst_n_inter = pll_rst_n;
-   assign pll_rangea_inter = pll_rangea;
-   assign clk_mux_sel_inter = clk_mux_sel;
-   assign clk_en_inter = clk_en;
-   assign pll_bypass_inter = pll_bypass;
-   assign async_mux_inter = async_mux;
-   assign oram_on_inter = oram_on;
-   assign oram_traffic_gen_inter = oram_traffic_gen;
-   assign oram_dummy_gen_inter = oram_dummy_gen;
-   assign pll_lock = pll_lock_inter;
-   assign jtag_clk_inter = jtag_clk;
-   assign jtag_rst_l_inter = jtag_rst_l;
-   assign jtag_modesel_inter = jtag_modesel;
-   assign jtag_datain_inter = jtag_datain;
-   assign jtag_dataout = jtag_dataout_inter;
-   assign intf_chip_data_inter = intf_chip_data;
-   assign intf_chip_channel_inter = intf_chip_channel;
-   assign intf_chip_credit_back = intf_chip_credit_back_inter;
-   assign chip_intf_data = chip_intf_data_inter;
-   assign chip_intf_channel = chip_intf_channel_inter;
-   assign chip_intf_credit_back_inter = chip_intf_credit_back;
 
+`ifdef USE_FAKE_IOS
+
+    assign core_ref_clk_inter = core_ref_clk;
+    assign io_clk_inter = io_clk;
+    assign rst_n_inter = rst_n;
+    assign pll_rst_n_inter = pll_rst_n;
+    assign pll_rangea_inter = pll_rangea;
+    assign clk_mux_sel_inter = clk_mux_sel;
+    assign clk_en_inter = clk_en;
+    assign pll_bypass_inter = pll_bypass;
+    assign async_mux_inter = async_mux;
+    assign oram_on_inter = oram_on;
+    assign oram_traffic_gen_inter = oram_traffic_gen;
+    assign oram_dummy_gen_inter = oram_dummy_gen;
+    assign pll_lock = pll_lock_inter;
+    assign jtag_clk_inter = jtag_clk;
+    assign jtag_rst_l_inter = jtag_rst_l;
+    assign jtag_modesel_inter = jtag_modesel;
+    assign jtag_datain_inter = jtag_datain;
+    assign jtag_dataout = jtag_dataout_inter;
+    assign intf_chip_data_inter = intf_chip_data;
+    assign intf_chip_channel_inter = intf_chip_channel;
+    assign intf_chip_credit_back = intf_chip_credit_back_inter;
+    assign chip_intf_data = chip_intf_data_inter;
+    assign chip_intf_channel = chip_intf_channel_inter;
+    assign chip_intf_credit_back_inter = chip_intf_credit_back;
+
+`else // `ifndef USE_FAKE_IOS
+    
+    // PUT REAL PADS AND I/Os HERE FOR SYNTHESIS AND BACKEND
+    // BELOW IS A DUMMY SO FUNCTIONALITY IS MAINTAINED
+    assign core_ref_clk_inter = core_ref_clk;
+    assign io_clk_inter = io_clk;
+    assign rst_n_inter = rst_n;
+    assign pll_rst_n_inter = pll_rst_n;
+    assign pll_rangea_inter = pll_rangea;
+    assign clk_mux_sel_inter = clk_mux_sel;
+    assign clk_en_inter = clk_en;
+    assign pll_bypass_inter = pll_bypass;
+    assign async_mux_inter = async_mux;
+    assign oram_on_inter = oram_on;
+    assign oram_traffic_gen_inter = oram_traffic_gen;
+    assign oram_dummy_gen_inter = oram_dummy_gen;
+    assign pll_lock = pll_lock_inter;
+    assign jtag_clk_inter = jtag_clk;
+    assign jtag_rst_l_inter = jtag_rst_l;
+    assign jtag_modesel_inter = jtag_modesel;
+    assign jtag_datain_inter = jtag_datain;
+    assign jtag_dataout = jtag_dataout_inter;
+    assign intf_chip_data_inter = intf_chip_data;
+    assign intf_chip_channel_inter = intf_chip_channel;
+    assign intf_chip_credit_back = intf_chip_credit_back_inter;
+    assign chip_intf_data = chip_intf_data_inter;
+    assign chip_intf_channel = chip_intf_channel_inter;
+    assign chip_intf_credit_back_inter = chip_intf_credit_back; 
+
+`endif
    
    endmodule
    

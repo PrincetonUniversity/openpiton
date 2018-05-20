@@ -44,6 +44,7 @@
 #include "macros.h"	/* macro from SUN legacy diags */
 #endif	
 
+#include "piton_def.h"
 	
 .global Power_On_Reset
 
@@ -166,6 +167,9 @@ RED_Mode_Other_Reset:
 #include "hboot_dramctl_init.s"
 #include "hboot_pton_init.s"
 
+.align 32
+#include "UART16550.s"
+
 .data
 .global check_bisi_flag
 check_bisi_flag:
@@ -173,6 +177,20 @@ check_bisi_flag:
 .global done_bisi_flag
 done_bisi_flag:
 	.xword	0x0000000000000000
+.global hboot_thread_stat_string
+hboot_thread_stat_string:
+	.asciz 	"Thread Status Register: 0x"
+.global hboot_nl
+hboot_nl:
+	.asciz 	"\t\n"
+.global hboot_trap_type_string
+hboot_trap_type_string:
+	.asciz 	"TT  : 0x"
+.global hboot_trap_pc
+hboot_trap_pc:
+	.asciz 	"TPC : 0x"
+	.align 4
+
 
 SECTION .RED_EXT_SEC TEXT_VA = HV_RED_TEXT_PA, DATA_VA = HV_RED_DATA_PA
 
