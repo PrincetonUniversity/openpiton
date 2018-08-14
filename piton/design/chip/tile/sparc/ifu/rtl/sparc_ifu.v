@@ -52,8 +52,6 @@ module sparc_ifu (/*AUTOARG*/
    rtap_srams_bist_data,
    srams_rtap_data,
    
-   spc_efc_ifuse_data,
-
    // mbist_icache_fail, mbist_done,
    // mbist_dcache_write, mbist_dcache_word, mbist_dcache_way,
    // mbist_dcache_read, mbist_dcache_index, mbist_dcache_fail,
@@ -234,13 +232,6 @@ module sparc_ifu (/*AUTOARG*/
    // input                rtap_sscan_se;           // To sscan of sparc_ifu_sscan.v
    // input                ctu_tck;                // To sscan of sparc_ifu_sscan.v
 
-   // trin: not used
-   // input                efc_spc_fuse_clk1;      // To icdhdr of cmp_sram_redhdr.v, ...
-   // input                efc_spc_fuse_clk2;      // To icdhdr of cmp_sram_redhdr.v
-   // input                efc_spc_ifuse_ashift;   // To icdhdr of cmp_sram_redhdr.v
-   // input                efc_spc_ifuse_data;     // To icdhdr of cmp_sram_redhdr.v
-   // input                efc_spc_ifuse_dshift;   // To icdhdr of cmp_sram_redhdr.v
-
    input [47:0]         exu_ifu_brpc_e;         // To fdp of sparc_ifu_fdp.v
    input [7:0]          exu_ifu_cc_d;           // To dcl of sparc_ifu_dcl.v
    input                exu_ifu_ecc_ce_m;       // To fcl of sparc_ifu_fcl.v, ...
@@ -333,7 +324,6 @@ module sparc_ifu (/*AUTOARG*/
    input                spu_ifu_ttype_vld_w2;   // To fcl of sparc_ifu_fcl.v
    input                spu_ifu_ttype_w2;       // To fcl of sparc_ifu_fcl.v
    input                spu_ifu_unc_err_w1;     // To errctl of sparc_ifu_errctl.v
-   // input                testmode_l;             // To icdhdr of cmp_sram_redhdr.v
    input [3:0]          tlu_hpstate_enb;        // To fcl of sparc_ifu_fcl.v
    input [3:0]          tlu_hpstate_ibe;        // To swl of sparc_ifu_swl.v
    input [3:0]          tlu_hpstate_priv;       // To fcl of sparc_ifu_fcl.v
@@ -525,8 +515,6 @@ module sparc_ifu (/*AUTOARG*/
    output [1:0]         ifu_tlu_thrid_e;        // From fcl of sparc_ifu_fcl.v
    output               ifu_tlu_trap_m;         // From fcl of sparc_ifu_fcl.v
    output [8:0]         ifu_tlu_ttype_m;        // From fcl of sparc_ifu_fcl.v
-   output               spc_efc_ifuse_data;     // From icdhdr of cmp_sram_redhdr.v
-   assign spc_efc_ifuse_data = 1'b0;
    // End of automatics
    `ifndef NO_RTL_CSM
    output [`TLB_CSM]     ifu_lsu_pcxcsm_e;       // From ifqdp of sparc_ifu_ifqdp.v
@@ -804,11 +792,6 @@ module sparc_ifu (/*AUTOARG*/
    wire [3:0]           fdp_esl_brtrp_target_pc_bf_f;
    wire [`IC_IDX_HI:5]          fdp_icv_index_bf;       // From fdp of sparc_ifu_fdp.v
 
-   // trin
-   // wire [1:0]           fuse_icd_repair_en;     // From icdhdr of cmp_sram_redhdr.v
-   // wire [7:0]           fuse_icd_repair_value;  // From icdhdr of cmp_sram_redhdr.v
-   // wire [5:0]           fuse_icd_rid;           // From icdhdr of cmp_sram_redhdr.v
-   // wire                 fuse_icd_wren;          // From icdhdr of cmp_sram_redhdr.v
    wire [1:0]           icd_fuse_repair_en;     // From icd of bw_r_icd.v
    assign icd_fuse_repair_en = 2'b0;
    wire [7:0]           icd_fuse_repair_value;  // From icd of bw_r_icd.v
@@ -2077,44 +2060,6 @@ module sparc_ifu (/*AUTOARG*/
                            .itlb_wsel_waysel_s1(itlb_wsel_waysel_s1[`IC_WAY_ARRAY_MASK]),
                            .ifq_erb_asiway_f(ifq_erb_asiway_f[`IC_WAY_MASK]));
 
-
-/*   cmp_sram_redhdr AUTO_TEMPLATE(
-                            .fuse_ary_wren(fuse_icd_wren),
-                            .fuse_ary_rid(fuse_icd_rid[5:0]),
-                            .fuse_ary_repair_value(fuse_icd_repair_value[7:0]),
-                            .fuse_ary_repair_en(fuse_icd_repair_en[1:0]),
-                            .spc_efc_xfuse_data(spc_efc_ifuse_data),
-
-                            .efc_spc_xfuse_data(efc_spc_ifuse_data),
-                            .efc_spc_xfuse_ashift(efc_spc_ifuse_ashift),
-                            .efc_spc_xfuse_dshift(efc_spc_ifuse_dshift),
-                            .ary_fuse_repair_value(icd_fuse_repair_value[7:0]),
-                            .ary_fuse_repair_en(icd_fuse_repair_en[1:0]),
-                            .scanin   (scan0_6));
- */
-
-   // cmp_sram_redhdr icdhdr(
-   //                        .scanout      (scan0_7),
-   //                        /*AUTOINST*/
-   //                        // Outputs
-   //                        .fuse_ary_wren(fuse_icd_wren),         // Templated
-   //                        .fuse_ary_rid (fuse_icd_rid[5:0]),     // Templated
-   //                        .fuse_ary_repair_value(fuse_icd_repair_value[7:0]), // Templated
-   //                        .fuse_ary_repair_en(fuse_icd_repair_en[1:0]), // Templated
-   //                        .spc_efc_xfuse_data(spc_efc_ifuse_data), // Templated
-   //                        // Inputs
-   //                        .rclk         (rclk),
-   //                        .se           (se),
-   //                        .scanin       (scan0_6),               // Templated
-   //                        .arst_l       (arst_l),
-   //                        .testmode_l   (testmode_l),
-   //                        .efc_spc_fuse_clk1(efc_spc_fuse_clk1),
-   //                        .efc_spc_fuse_clk2(efc_spc_fuse_clk2),
-   //                        .efc_spc_xfuse_data(efc_spc_ifuse_data), // Templated
-   //                        .efc_spc_xfuse_ashift(efc_spc_ifuse_ashift), // Templated
-   //                        .efc_spc_xfuse_dshift(efc_spc_ifuse_dshift), // Templated
-   //                        .ary_fuse_repair_value(icd_fuse_repair_value[7:0]), // Templated
-   //                        .ary_fuse_repair_en(icd_fuse_repair_en[1:0])); // Templated
 
 //   sparc_ifu_icd icd
    bw_r_icd icd(

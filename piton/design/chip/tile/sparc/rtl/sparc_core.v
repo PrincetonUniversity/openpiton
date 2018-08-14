@@ -66,21 +66,11 @@ module sparc_core(
 // wire     spc_scanout1;
 // wire     tst_ctu_mbist_done;
 // wire     tst_ctu_mbist_fail;
-// wire     spc_efc_ifuse_data;
-// wire     spc_efc_dfuse_data;
 
 // WIRE Definitions for constraint
 // wire  [3:0] const_cpuid = 4'b0000;
 // wire  [7:0] const_maskid = 8'h20;
 // wire     ctu_tst_mbist_enable = 1'b0;
-// wire     efc_spc_fuse_clk1 = 1'b0;
-// wire     efc_spc_fuse_clk2 = 1'b0;
-// wire     efc_spc_ifuse_ashift = 1'b0;
-// wire     efc_spc_ifuse_dshift = 1'b0;
-// wire     efc_spc_ifuse_data = 1'b0;
-// wire     efc_spc_dfuse_ashift = 1'b0;
-// wire     efc_spc_dfuse_dshift = 1'b0;
-// wire     efc_spc_dfuse_data = 1'b0;
 // wire     ctu_tst_macrotest = 1'b0;
 // wire     ctu_tst_scan_disable = 1'b0;
 // wire     ctu_tst_short_chain = 1'b0;
@@ -147,22 +137,12 @@ sparc sparc0 (
     // .spc_scanout1        (spc_scanout1),
     // .tst_ctu_mbist_done     (tst_ctu_mbist_done),
     // .tst_ctu_mbist_fail     (tst_ctu_mbist_fail),
-    // .spc_efc_ifuse_data     (spc_efc_ifuse_data),
-    // .spc_efc_dfuse_data     (spc_efc_dfuse_data),
     .pcx_spc_grant_px    ({4'bx, pcx_spc0_grant_px}),
     .cpx_spc_data_rdy_cx2      (1'bx),
     .cpx_spc_data_cx2    (cpx_spc0_data_cx2),
     // .const_cpuid         (const_cpuid),
     // .const_maskid        (const_maskid),
     // .ctu_tst_mbist_enable      (ctu_tst_mbist_enable),
-    // .efc_spc_fuse_clk1      (efc_spc_fuse_clk1),
-    // .efc_spc_fuse_clk2      (efc_spc_fuse_clk2),
-    // .efc_spc_ifuse_ashift      (efc_spc_ifuse_ashift),
-    // .efc_spc_ifuse_dshift      (efc_spc_ifuse_dshift),
-    // .efc_spc_ifuse_data     (efc_spc_ifuse_data),
-    // .efc_spc_dfuse_ashift      (efc_spc_dfuse_ashift),
-    // .efc_spc_dfuse_dshift      (efc_spc_dfuse_dshift),
-    // .efc_spc_dfuse_data     (efc_spc_dfuse_data),
     // .ctu_tst_macrotest      (ctu_tst_macrotest),
     // .ctu_tst_scan_disable      (ctu_tst_scan_disable),
     // .ctu_tst_short_chain    (ctu_tst_short_chain),

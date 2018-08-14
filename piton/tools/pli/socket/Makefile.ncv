@@ -43,9 +43,7 @@ O_TARGETS=
 FIRST_TARGET=    $(PLILIB) clean_local
 
 _VERIUSER_O=
-PLI_OBJECTS=     bw_socket.$(OBJ_POSTFIX) \
-                 decoder.$(OBJ_POSTFIX) \
-                 list.$(OBJ_POSTFIX)
+PLI_OBJECTS=     decoder.$(OBJ_POSTFIX)
 
 USR_INCLUDES=    -I.
 USR_DEFINES=	-DUSE_ACC $(NCV_CC_OPTS)

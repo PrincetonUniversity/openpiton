@@ -1258,31 +1258,6 @@ end // always @ (posedge rst_l or ifu_rstint_m)
 reg [2:0] thrid_ind;
 reg [63:0] ver_val;
 
-always @(posedge rst_l)begin
-    // .in0  ({{16{pc_e[47]}}, pc_e[47:0]}),
-    //.in1  ({`VER_MANUF,
-    //        `VER_IMPL,
-    //const_maskid[7:0],
-    //                    `VER_MAXGL,
-    //                  `VER_MAXTL,
-    //                `VER_MAXWIN}),
-    //-sim_run_args=+to_2_0
-    if(`SAS_DEF &&
-            $test$plusargs("force_version_reg"))begin
-        ver_val = {`VER_MANUF,
-                   `VER_IMPL,
-                   const_maskid[7:0],
-                   `VER_MAXGL,
-                   `VER_MAXTL,
-                   `VER_MAXWIN};
-        for(thrid_ind = 0; thrid_ind < 4;thrid_ind = thrid_ind +1)
-        begin
-            `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], thrid_ind[1:0]}, 0, `VER, 0, ver_val);
-        end
-        $display("%0t BW_LIST: Forcing value %x to version register of core %d", $time, ver_val, cpu_id[9:0]);
-    end
-end
-
 reg [3:0] float_delay ;
 reg [23:0] dsfsr_din_del;
 reg [23:0] isfsr_din_del;
@@ -1325,8 +1300,7 @@ reg [3:0]  spu_illgl;
 reg [3:0]  spu_step;
 reg 	      ifu_tlu_inst_vld_w;
 reg [3:0]  throw_pc_m;
-reg [3:0]  itlb_pending_send, dtlb_pending_send;
-reg [3:0]  itlb_pending_wait, dtlb_pending_wait;
+reg [3:0]  dtlb_pending_wait;
 reg 	      mmu_fiveregs_off;
 //internal load, register commited late.
 reg [3:0]  late_load_m, late_load_w, late_load;
@@ -2021,33 +1995,6 @@ SL:111 L2DMISS
 
 reg 	     pic_on;
 
-task permCounter;
-    begin
-        if(tlu_final_ttype_w2 == 8'h4f)begin
-            pic_on = 0;
-
-            case(thrid_w2)
-                2'b00 :
-                    if((pcr0[2] || pcr0[1]) && pcr0[6] && sftint0[15])pic_on = 1;
-                2'b01 :
-                    if((pcr1[2] || pcr1[1]) && pcr1[6] && sftint1[15])pic_on = 1;
-                2'b10 :
-                    if((pcr2[2] || pcr2[1]) && pcr2[6] && sftint2[15])pic_on = 1;
-                2'b11 :
-                    if((pcr3[2] || pcr3[1]) && pcr3[6] && sftint3[15])pic_on = 1;
-            endcase // case(thrid_w2)
-            if(pic_on)begin
-                if(ok_push[thrid_w2])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid_w2}, 0, 0, 0, 8'h4f);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid_w2},
-                                        `PLI_FORCE_TRAP_TYPE, 8'h4f);
-            end
-
-        end // if (tlu_final_ttype_w2 == 8'h4f)
-    end
-endtask // permCounter
-
 reg [3:0] pic_over;
 reg [3:0] ignore_step, ignore_step_w2;
 
@@ -2065,36 +2012,6 @@ reg [3:0] not_4e;
 reg [3:0] ok_4f;
 reg [3:0] pic_m, pic_w, pic_w2;
 
-task picSync;
-    input [1:0] thrid;
-    input pic;
-    input [63:0] reg_val;
-    reg [3:0] idx;
-
-    begin
-        if(!pic_over[thrid])begin
-            if(ok_push[thrid])begin
-                `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], thrid}, 0, `SOFTINT, 0, reg_val);
-                `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, 8'h4f);
-            end
-            else begin
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_WRITE_TH_CTL_REG, 0, `SOFTINT, reg_val);
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_FORCE_TRAP_TYPE, 8'h4f);
-            end
-            pic_over[thrid]    = 1;
-            ignore_step[thrid] = 1;
-            pic_m[thrid] = 1;
-
-        end // if (pic && !pic_over[thrid])
-
-        for(idx = 0; idx < 4; idx = idx + 1)
-            if(ignore_step[idx])begin
-                ignore_step_w2[idx] = ignore_step[idx];
-                ignore_step[idx] = 0;
-            end
-
-    end
-endtask // picSync
 always @(posedge clk)begin
     pic_w  <= pic_m;
     pic_w2 <= pic_w;
@@ -2103,58 +2020,6 @@ end
 initial pcr_def_enable = 0;
 
 wire pcr_def_enable_m = pib_picl_wrap;
-
-//send soft int value to simics
-task picOverFlow;
-    reg [63:0] reg_val;
-    begin
-        if(ignore_step_w2[thrid_w2] && tlu_ifu_trappc_vld_w1 && tlu_final_ttype_w2 != 8'h4f && pic_w[thrid_w2])ignore_step_w2[thrid_w2] = 0;
-        if(pcr_def_enable_m)begin
-            case(pib_picl_wrap)
-                4'b0001 : pcr_def_enable[0] = 1;
-                4'b0010 : pcr_def_enable[1] = 1;
-                4'b0100 : pcr_def_enable[2] = 1;
-                4'b1000 : pcr_def_enable[3] = 1;
-            endcase // case(pib_picl_wrap)
-        end
-        pcr_on  = 0;
-        pcr_int = 0;
-        not_4e  = 0;
-        ok_4f   = 0;
-        pic_m   = 0;
-
-        case(thrid_m)
-            0: begin not_4e[0] = (sftint0[16] || sftint0[14] || sftint0[0]) && !sftint0[15];ok_4f[0]=sftint0[15];end
-            1: begin not_4e[1] = (sftint1[16] || sftint1[14] || sftint1[0]) && !sftint1[15];ok_4f[1]=sftint1[15];end
-            2: begin not_4e[2] = (sftint2[16] || sftint2[14] || sftint2[0]) && !sftint2[15];ok_4f[2]=sftint2[15];end
-            3: begin not_4e[3] = (sftint3[16] || sftint3[14] || sftint3[0]) && !sftint3[15];ok_4f[3]=sftint3[15];end
-        endcase // case(thrid_m)
-
-        if(pcr0[7])pcr_int[0] = 1;
-        if(pcr1[7])pcr_int[1] = 1;
-        if(pcr2[7])pcr_int[2] = 1;
-        if(pcr3[7])pcr_int[3] = 1;
-
-        if(pcr0[6] || pcr0[7])pcr_on[0] = 1;
-        if(pcr1[6] || pcr1[7])pcr_on[1] = 1;
-        if(pcr2[6] || pcr2[7])pcr_on[2] = 1;
-        if(pcr3[6] || pcr3[7])pcr_on[3] = 1;
-
-        if(!ifu_tlu_flush_m && ((pcr_on[thrid_m] || pcr_def_enable[thrid_m]) && sync_trap_taken_m && ifu_tlu_swint_m && !not_4e[thrid_m] ||
-                                sync_trap_taken_m &&  pib_pich_wrap_m[thrid_m] && tlu_pic_cnt_en_m))begin
-            case(thrid_m)
-                0 : picSync(0, pcr0[6] && (pcr0[2] || pcr0[1]), {sftint0[16], 1'b1, sftint0[14:0]});
-                1 : picSync(1, pcr1[6] && (pcr1[2] || pcr1[1]), {sftint1[16], 1'b1, sftint1[14:0]});
-                2 : picSync(2, pcr2[6] && (pcr2[2] || pcr2[1]), {sftint2[16], 1'b1, sftint2[14:0]});
-                3 : picSync(3, pcr3[6] && (pcr3[2] || pcr3[1]), {sftint3[16], 1'b1, sftint3[14:0]});
-            endcase // case(spc0_thread_pc)
-            //if(!ifu_tlu_swint_m && sync_trap_taken_m &&
-            // pib_pich_wrap_m[thrid_m] && pcr_int[thrid_m] && ignore_step_w2[thrid_m])ignore_step_w2[thrid_m] = 0;
-            pcr_def_enable[thrid_m] = 0;
-        end
-        else pic_over[thrid_m] = 0;
-    end
-endtask // picOverflow
 
 //check mmu
 task check_mmu_miss;
@@ -2241,7 +2106,7 @@ task process_mra;
     reg all_update;
 
     begin
-`ifndef __ICARUS__
+`ifndef NO_MRA_VAL
         `SAS_TASKS.mra_val(cpu_id[9:0], mra_wr_ptr_d2, mra_wdata);
 `endif
         mra_thrid  = mra_wr_ptr_d2[3:2];
@@ -2565,19 +2430,6 @@ task spc0_command;
                 step_pc            = rtl_reg_val;
                 warm_pc            = warm_rst[thread] && sec_rst[thread];
                 //save instruction
-                if(`SAS_DEF      &&
-                        inst_vld      &&
-                        ~inst_retract &&
-                        inst_rvld     &&
-                        ~spc0_flush_happen &&
-                        (good[thread] != active[thread]) &&
-                        !warm_pc)//save instruction word.
-                begin
-                    dummy  = $bw_list(`TOP_MOD.list_handle, 20,  {cpu_id[9:0], thread}, inst_w, 1);
-                end
-                else if(`SAS_DEF) begin
-                    dummy  = $bw_list(`TOP_MOD.list_handle, 20,  {cpu_id[9:0], thread}, inst_w, 0);
-                end // else: !if(`SAS_DEF      &&...
                 warm_rst[thread] = 0;
             end // case: `PC
             `NPC            : begin
@@ -2600,13 +2452,6 @@ task spc0_command;
                 active_thread      = ccr_tid;
                 cond               = muls[ccr_tid];
                 cond               = muls_ccr[ccr_tid];
-                if(cond && `SAS_DEF)begin
-                    if(ok_push[ccr_tid])
-                        `SAS_SEND(`PLI_WRITE_TH_XCC_REG, {cpu_id[9:0], ccr_tid}, rtl_reg_val[7:4], 0, 0, 0);
-                    else
-                        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], ccr_tid},
-                                            `PLI_WRITE_TH_XCC_REG, 0, 0, rtl_reg_val[7:4]);
-                end
                 muls_pvld[ccr_tid]= muls_ccr[ccr_tid];
                 /*if(cond && !spc0_inst_done)begin
                 next_mul[ccr_tid] = 1;
@@ -3053,7 +2898,6 @@ reg [47:0] sfar_force_val[3:0];
 
 initial
 begin
-    //	if(`SAS_DEF)decoder_handle = $bw_decoder(1);//create handle for this core.
     spu_illgl       = 0;
     tlb_force_trap  = 0;
     dsfsr_force_vld = 0;
@@ -3149,73 +2993,6 @@ function  check_intr_recv;
         end // if ((ifu_tlu_thrid_w == thrid) &&...
     end
 endfunction // check_intr_recv
-/*-------------------------------------------------------------
-handle the hardware interrupt.
---------------------------------------------------------------*/
-task push;
-    input [8:0] type;
-    input [1:0] thread;
-    input [2:0] c_cwp;
-    input [5:0] rtl_reg_addr;
-    input [63:0]rtl_reg_val;
-    input [4:0] cond;
-    input [4:0] updated;
-    reg         dum;
-    reg [3:0]   t_cond;
-    reg [63:0]  val;
-    reg [2:0]   win;
-
-    begin
-
-        if(hint_wait[thread] &&
-                spc0_inst_done    &&
-                (spc0_thread_pc == thread))begin
-            if(wake_int[thread])begin
-                t_cond            = hint_cond[thread];
-                val               = hint_val[thread];
-                win               = hint_cwp[thread];
-                dum               = hint_updated[thread];
-                if(intr_next[thread])intr_next[thread] = 0;
-                else if(check_intr_recv(thread))begin
-                    if(ok_push[thread])begin
-                        if(dum && good[thread] != active[thread])`SAS_SEND(`PLI_READ_TH_CTL_REG, {cpu_id[9:0], thread},`INTR_RECEIVE , 0, 0, 0);
-                        if(good[thread] != active[thread])
-                        begin
-                            dummy = $bw_list(`TOP_MOD.list_handle,  3, `INTR_RECEIVE, cpu_id[9:0],
-                                             {cpu_id[9:0], thread}, win, 0, val, t_cond, dum);
-                            if (debug_sas)
-                                $display("%0t BW_LIST: Push data type INTR_RECV core(%d) thread(%d) win(%d) val(%0x)", $time, cpu_id[9:0], thread, win, val);
-                        end
-                    end
-                    else
-                    begin
-                        if(dum)dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thread[1:0]}, `PLI_READ_TH_CTL_REG, 0, `INTR_RECEIVE , 0);
-                        if(good[thread] != active[thread])
-                            dummy = $bw_decoder(4, `TOP_MOD.list_handle, `INTR_RECEIVE, {cpu_id[9:0],thread}, win, 0, val, t_cond, dum);
-                    end // else: !if(ok_push[thread])
-                end
-                else intr_next[thread] = 1'b1;
-                wake_int[thread]  = 0;
-                hint_wait[thread] = 0;
-            end
-        end // if (hint_wait[thread])
-        if(ok_push[thread])begin
-            if((type == `INTR_RECEIVE) && updated && good[thread] != active[thread])begin
-                `SAS_SEND(`PLI_READ_TH_CTL_REG, {cpu_id[9:0], thread},`INTR_RECEIVE , 0, 0, 0);
-            end
-            if(good[thread] != active[thread])
-            begin
-                dummy = $bw_list(`TOP_MOD.list_handle, 3, type, cpu_id[9:0], {cpu_id[9:0], thread},
-                                 c_cwp, rtl_reg_addr, rtl_reg_val, cond, updated);
-                if(debug_sas)
-                    $display("%0t BW_LIST: Push data type(%d) core(%d) thread(%d) win(%d) reg_num(%d) val(%0x)", $time, type, cpu_id[9:0], thread, c_cwp, rtl_reg_addr, rtl_reg_val);
-            end
-        end
-        else //pending for mmu miss
-            dummy = $bw_decoder(4, `TOP_MOD.list_handle, type, {cpu_id[9:0], thread},
-                                c_cwp, rtl_reg_addr, rtl_reg_val, cond, updated);
-    end
-endtask // push
 //up32 bit
 reg  up32, check_only;
 reg [63:0] full_val, up_temp;
@@ -3298,13 +3075,6 @@ task  updated_reg_list;
                                 (thr0_spc [{thread, wind, windex[4:0]}] != 0);
 
                         tmp_val= invalid  ? 0 : thr0_spc[{thread, pcur, windex[4:0]}];
-                        if( thr0_vld [{thread, pcur, windex[4:0]}] &&
-                                (thr0_spc [{thread, pcur, windex[4:0]}] != thr0_spc[{thread, wind, windex[4:0]}]) || invalid)begin
-                            if(`SAS_DEF && don) begin
-                                push(`REG_WRITE_BACK, thread[1:0], wind, windex[4:0], tmp_val, 0, 0);
-                            end
-
-                        end
                         //  $display("DATA %d val = %x val = %x pcur %x win=%x invalid=%x done=%x",$time, thr0_spc [{thread, pcur, windex[4:0]}],
                         //         thr0_spc[{thread, wind, windex[4:0]}], pcur, wind, invalid, don);
 
@@ -3323,12 +3093,6 @@ task  updated_reg_list;
                                 thr0_vld[{thread, wind, pindex[4:0]}]       &&
                                 (thr0_spc[{thread, wind, pindex[4:0]}] != 0);
                         tmp_val= invalid ? 0 :thr0_spc[{thread, pcur, windex[4:0]}];
-                        if(thr0_vld [{thread, pcur, windex[4:0]}] &&
-                                (thr0_spc [{thread, pcur, windex[4:0]}] != thr0_spc[{thread, wind, pindex[4:0]}]) || invalid)begin
-                            if(`SAS_DEF && don)begin
-                                push(`REG_WRITE_BACK, thread[1:0], wind, pindex, tmp_val, 0, 0);
-                            end
-                        end
                         if(don)begin
                             thr0_vld[{thread, wind, pindex[4:0]}]  =  invalid ? 1 :thr0_vld[{thread, pcur, windex[4:0]}];
                             thr0_spc[{thread, wind, pindex[4:0]}]  =  tmp_val;
@@ -3664,21 +3428,6 @@ initial begin
     up_reset1 = 0;
 
 end
-//force value into simics register.
-/*task send_register;
-input [1:0]  thrid;
-input [5:0]  reg_num;
-input [2:0]  cwp;
-input [63:0] val;
-begin
-if(ok_push[thrid])
-`SAS_SEND(`PLI_WRITE_TH_REG, {cpu_id[9:0], thrid}, cwp, reg_num, 0, val);
-else
-dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_WRITE_TH_REG,
-cwp, reg_num, val);
-end
-endtask // send_register
-*/
 //keep register and window in one instruction boundary.
 reg [5:0] force_reg [3:0];
 reg [2:0] force_cwp [3:0];
@@ -3730,122 +3479,15 @@ task process_signal;
                 end
                 if((good[spc0_thread_w] != active[spc0_thread_w]) &&
                         !icc_wr[spc0_thread_w])begin
-                    if(`SAS_DEF && (is_fsr_w[spc0_thread_w] == 0))begin
-                        if(quad_load[spc0_thread_w] && (quad_cnt[spc0_thread_w] == 2))begin
-                            temp_addr = rtl_reg_addr_w - 1;
-                            updated_reg_list(which_signal, cur_cwp, spc0_thread_w, temp_addr, quad_val[spc0_thread_w], cond);
-                            if(updated_reg_list_reg && temp_addr)begin
-                                if(ok_push[spc0_thread_w])
-                                    `SAS_SEND(`PLI_READ_TH_REG, {cpu_id[9:0], spc0_thread_w}, cur_cwp, temp_addr, 0, 0);
-                                else //save tlb action
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w}, `PLI_READ_TH_REG,
-                                                        cur_cwp, temp_addr, 0);
-                            end
-                            if(is_fsr_w[spc0_thread_w] == 0)begin
-                                val = quad_val[spc0_thread_w];
-                                if(`SAS_DEF && temp_addr)
-                                    push(which_signal, spc0_thread_w[1:0], cur_cwp, temp_addr, val, cond, updated_reg_list_reg);
-                                else
-                                begin
-                                    // $display("ttt: 1");
-                                    `SAS_TASKS.register_cmp(which_signal, spc, spc0_thread_w, cur_cwp,
-                                                            temp_addr, val, sas_reg_val, sas_sps_val,
-                                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                                end
-                            end
-                            quad_load[spc0_thread_w] = 0;
-                        end // if (quad_load[spc0_thread_w])
-                        force_read = 0;
-                        if((coreavl[spc0_thread_w] || reset_stat[spc0_thread_w] ||
-                                ctu_stat[spc0_thread_w]) && wait_load[spc0_thread_w])begin
-                            send_register(spc0_thread_w, rtl_reg_addr_w, cur_cwp,  rtl_reg_val);
-                            if(coreavl[spc0_thread_w])coreavl[spc0_thread_w]            = 1'b0;
-                            else if(reset_stat[spc0_thread_w])reset_stat[spc0_thread_w] = 0;
-                            else if(ctu_stat[spc0_thread_w])ctu_stat[spc0_thread_w]     = 0;
-                            force_read               = 1;
-                            force_vld[spc0_thread_w] = 1;
-                            force_reg[spc0_thread_w] = rtl_reg_addr_w;
-                            force_cwp[spc0_thread_w] = cur_cwp;
-                        end // if ((coreavl[spc0_thread_w] || reset_stat[spc0_thread_w] ||...
-                        if(cond && `SAS_DEF)begin
-                            val = get_val(cur_cwp, spc0_thread_w, rtl_reg_addr_w);
-                            updated_reg_list(which_signal, cur_cwp, spc0_thread_w, rtl_reg_addr_w, rtl_reg_val, cond);
-                            if((rtl_reg_val == 0) && (val == 64'h1_0000_0000))updated_reg_list_reg = 1;
-                        end
-                        else updated_reg_list(which_signal, cur_cwp, spc0_thread_w, rtl_reg_addr_w, rtl_reg_val, cond);
-                        updated = force_read || up_reset0 || late_load[spc0_thread_w] ? 1 : updated_reg_list_reg;
-                        late_load[spc0_thread_w] = 0;
-                        if(force_vld[spc0_thread_w] &&
-                                (force_reg[spc0_thread_w] == rtl_reg_addr_w) &&
-                                (force_cwp[spc0_thread_w] == cur_cwp))updated = 1;
-
-                        //b2b the same register committed with mulcc instruction.
-                        val        = prev_val[spc0_thread_w];
-                        if(prev_vld[spc0_thread_w]                      &&
-                                (prev_addr[spc0_thread_w] == rtl_reg_addr_w) &&
-                                (prev_win[spc0_thread_w]  == cur_cwp)        &&
-                                (val[31:0] == rtl_reg_val[31:0]))updated = 1;
-
-                        if(updated && rtl_reg_addr_w)begin
-                            if(ok_push[spc0_thread_w])
-                                `SAS_SEND(`PLI_READ_TH_REG, {cpu_id[9:0], spc0_thread_w}, cur_cwp, rtl_reg_addr_w, 0, 0);
-                            else //save tlb action
-                                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w}, `PLI_READ_TH_REG,
-                                                    cur_cwp, rtl_reg_addr_w, 0);
-                        end
-                    end // if (`SAS_DEF && (is_fsr_w[spc0_thread_w] == 0))
 
                     if(is_fsr_w[spc0_thread_w] == 0)begin
-                        if(`SAS_DEF && rtl_reg_addr_w)begin
-                            send_pcr(spc0_thread_w);//pcr register
-                            if(not_pcr)begin
-                                cond[2] = 1;
-                                case(spc0_thread_w)
-                                    0 :
-                                        if(pcr0[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    1 :
-                                        if(pcr1[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    2 :
-                                        if(pcr2[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    3 :
-                                        if(pcr3[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                endcase // case(spc0_thread_w)
-                            end
-
-                            if(force_read)push(which_signal, spc0_thread_w[1:0], cur_cwp, rtl_reg_addr_w, rtl_reg_val, cond, 15);
-                            else push(which_signal, spc0_thread_w[1:0], cur_cwp, rtl_reg_addr_w, rtl_reg_val, cond, updated);
-                        end
-                        else begin
-                            // $display("ttt: 2");
-                            `SAS_TASKS.register_cmp(which_signal, spc, spc0_thread_w, cur_cwp,
-                                                    rtl_reg_addr_w, rtl_reg_val, sas_reg_val, sas_sps_val,
-                                                    rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                        end
+                        // $display("ttt: 2");
+                        `SAS_TASKS.register_cmp(which_signal, spc, spc0_thread_w, cur_cwp,
+                                                rtl_reg_addr_w, rtl_reg_val, sas_reg_val, sas_sps_val,
+                                                rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
                     end
-                    if(cond && `SAS_DEF)begin
-                        if(ok_push[spc0_thread_w]) begin
-                            `SAS_SEND(`PLI_WRITE_TH_REG_HI, {cpu_id[9:0], spc0_thread_w}, cur_cwp, rtl_reg_addr_w, 0, rtl_reg_val[63:32]);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x for upper 32 bits of reg %d win %d core %d thread %d", $time, rtl_reg_val[63:32], rtl_reg_addr_w, cur_cwp, cpu_id[9:0], spc0_thread_w);
-                        end
-                        else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w}, `PLI_WRITE_TH_REG_HI,
-                                                cur_cwp, rtl_reg_addr_w, rtl_reg_val[63:32]);
-                        if(rtl_reg_addr_w)begin
-                            mul_val[spc0_thread_w]   = rtl_reg_val;
-                            mul_win[spc0_thread_w]   = cur_cwp;
-                            mul_addr[spc0_thread_w]  = rtl_reg_addr_w;
-                            mul_thread[spc0_thread_w]= spc0_thread_w;
-                            mul_vld[spc0_thread_w]   = 1;
-                            mul_cntl[spc0_thread_w]  = 1;
-                            mul_cc[spc0_thread_w]    = 1;
-                        end
-                    end // if (cond && `SAS_DEF)
 
-                    else mul_cc[spc0_thread_w] = 0;
+                    mul_cc[spc0_thread_w] = 0;
                     isfsr[spc0_thread_w] = 1'b0;
                 end
                 icc_wr[spc0_thread_w] = 0;
@@ -3876,127 +3518,17 @@ task process_signal;
 
                 if(good[spc0_thread_w2] != active[spc0_thread_w2] &&
                         !icc_wr[spc0_thread_w2])begin
-                    if(`SAS_DEF && (is_fsr_w[spc0_thread_w2] == 0))begin
-                        if(quad_load[spc0_thread_w2] && (quad_cnt[spc0_thread_w2] == 2))begin
-                            temp_addr = rtl_reg_addr_w2 - 1;
-                            updated_reg_list(which_signal, cur_cwp, spc0_thread_w2, temp_addr, quad_val[spc0_thread_w2], cond);
-                            if(updated_reg_list_reg && temp_addr)begin
-                                if(ok_push[spc0_thread_w2])
-                                    `SAS_SEND(`PLI_READ_TH_REG, {cpu_id[9:0], spc0_thread_w2}, cur_cwp, temp_addr, 0, 0);
-                                else //save tlb action
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w2}, `PLI_READ_TH_REG,
-                                                        cur_cwp, temp_addr, 0);
-                            end
-                            if(is_fsr_w[spc0_thread_w2] == 0)begin
-                                val = quad_val[spc0_thread_w2];
-                                if(`SAS_DEF && temp_addr)
-                                    push(which_signal, spc0_thread_w2[1:0], cur_cwp, temp_addr, val, cond, updated_reg_list_reg);
-                                else
-                                begin
-                                    // $display("ttt: 3");
-                                    `SAS_TASKS.register_cmp(which_signal, spc, spc0_thread_w2, cur_cwp,
-                                                            temp_addr, val, sas_reg_val, sas_sps_val,
-                                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                                end
-                            end
-                            quad_load[spc0_thread_w2] = 0;
-                        end // if (quad_load[spc0_thread_w2])
-                        force_read = 0;
-                        if((coreavl[spc0_thread_w2] || reset_stat[spc0_thread_w2] ||
-                                ctu_stat[spc0_thread_w2] ) && wait_load[spc0_thread_w2])begin
-                            send_register(spc0_thread_w2, rtl_reg_addr_w2, cur_cwp,  rtl_reg_val);
-                            if(coreavl[spc0_thread_w2])coreavl[spc0_thread_w] = 1'b0;
-                            else if(reset_stat[spc0_thread_w2])reset_stat[spc0_thread_w2] = 0;
-                            else if(ctu_stat[spc0_thread_w2])ctu_stat[spc0_thread_w2] = 0;
-                            force_read = 1;
-                            force_vld[spc0_thread_w2] = 1;
-                            force_reg[spc0_thread_w2] = rtl_reg_addr_w2;
-                            force_cwp[spc0_thread_w2] = cur_cwp;
-                        end // if ((coreavl[spc0_thread_w2] || reset_stat[spc0_thread_w2] ||...
-                        if(cond && `SAS_DEF)begin
-                            val = get_val(cur_cwp, spc0_thread_w2, rtl_reg_addr_w2);
-                            updated_reg_list(which_signal, cur_cwp, spc0_thread_w2, rtl_reg_addr_w2, rtl_reg_val, cond);
-                            //special mulcc case.
-                            if((rtl_reg_val == 0) && (val == 64'h1_0000_0000))updated_reg_list_reg = 1;
-                        end
-                        else updated_reg_list(which_signal, cur_cwp, spc0_thread_w2, rtl_reg_addr_w2, rtl_reg_val, cond);
-                        updated =  force_read || up_reset1 || late_load[spc0_thread_w2] ? 1 : updated_reg_list_reg;
-                        late_load[spc0_thread_w2] = 0;
-
-                        if( force_vld[spc0_thread_w2]                     &&
-                                (force_reg[spc0_thread_w2] == rtl_reg_addr_w2) &&
-                                (force_cwp[spc0_thread_w2] == cur_cwp))updated = 1;
-                        //b2b register committed
-                        val        = prev_val[spc0_thread_w2];//val     = rtl_reg_val;
-                        if(prev_vld[spc0_thread_w2]                       &&
-                                (prev_addr[spc0_thread_w2] == rtl_reg_addr_w2) &&
-                                (prev_win[spc0_thread_w2]  == cur_cwp)         &&
-                                (val[31:0] == rtl_reg_val[31:0]))updated = 1;
-
-                        if(updated && rtl_reg_addr_w2)begin
-                            if(ok_push[spc0_thread_w2])
-                                `SAS_SEND(`PLI_READ_TH_REG, {cpu_id[9:0], spc0_thread_w2}, cur_cwp, rtl_reg_addr_w2, 0, 0);
-                            else
-                                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w2}, `PLI_READ_TH_REG, cur_cwp, rtl_reg_addr_w2, 0);
-                        end
-
-                    end
-                    if(is_fsr_w[spc0_thread_w2] == 0)
-                        if(`SAS_DEF && rtl_reg_addr_w2)begin
-                            send_pcr(spc0_thread_w2);//pcr register
-                            if(not_pcr)begin
-                                cond[2] = 1;
-                                case(spc0_thread_w2)
-                                    0 :
-                                        if(pcr0[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    1 :
-                                        if(pcr1[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    2 :
-                                        if(pcr2[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                    3 :
-                                        if(pcr3[7])rtl_reg_val =  rtl_reg_val & 10'h1ff;
-                                        else rtl_reg_val =  rtl_reg_val & 10'hff;
-                                endcase // case(spc0_thread_w)
-                            end
-                            if(force_read) push(which_signal, spc0_thread_w2[1:0], cur_cwp, rtl_reg_addr_w2, rtl_reg_val, cond, 15);
-                            else push(which_signal, spc0_thread_w2[1:0], cur_cwp, rtl_reg_addr_w2, rtl_reg_val, cond, updated);
-                        end
-
-                        else
-                        begin
-                            // $display("ttt: 4");
+                    if(is_fsr_w[spc0_thread_w2] == 0) begin
                             `SAS_TASKS.register_cmp(which_signal, spc, spc0_thread_w2, cur_cwp,
                                                     rtl_reg_addr_w2, rtl_reg_val, sas_reg_val, sas_sps_val,
                                                     rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                        end
+                    end
                     isfsr[spc0_thread_w2] = 1'b0;
 
                 end // if (good[spc0_thread_w2] != mask[spc0_thread_w2])
                 if(gen_w2[spc0_thread_w2])gen_w2[spc0_thread_w2] = gen_w2[spc0_thread_w2] - 1;
                 icc_wr[spc0_thread_w2] = 0;
-                if(cond && `SAS_DEF)begin
-                    if(ok_push[spc0_thread_w2]) begin
-                        `SAS_SEND(`PLI_WRITE_TH_REG_HI, {cpu_id[9:0], spc0_thread_w2}, cur_cwp, rtl_reg_addr_w2, 0, rtl_reg_val[63:32]);
-                        if(debug_sas) $display("%0t BW_LIST: Forcing value %x for upper 32 bits of reg %d win %d core %d thread %d", $time, rtl_reg_val[63:32], rtl_reg_addr_w2, cur_cwp, cpu_id[9:0], spc0_thread_w2);
-                    end
-                    else
-                        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],spc0_thread_w2}, `PLI_WRITE_TH_REG_HI, cur_cwp, rtl_reg_addr_w2, rtl_reg_val[63:32]);
-                    if(`SAS_DEF && rtl_reg_addr_w2)begin
-                        mul_val[spc0_thread_w2]    = rtl_reg_val;
-                        mul_win[spc0_thread_w2]    = cur_cwp;
-                        mul_addr[spc0_thread_w2]   = rtl_reg_addr_w2;
-                        mul_thread[spc0_thread_w2] = spc0_thread_w2;
-                        mul_vld[spc0_thread_w2]    = 1;
-                        mul_cntl[spc0_thread_w2]   = 1;
-                        mul_cc[spc0_thread_w2]     = 1;
-                        //   $display("SAVEM %d %d %x", $time, spc0_thread_w2, mul_addr[spc0_thread_w2]);
-
-                    end
-                end // if (cond)
-                else mul_cc[spc0_thread_w2] = 0;
+                mul_cc[spc0_thread_w2] = 0;
 
             end // if (ecl_irf_wen_w2)
 
@@ -4004,168 +3536,26 @@ task process_signal;
         else if(which_signal == `FLOAT_I)begin
             if(!(ecl_irf_wen_w || ecl_irf_wen_w2))prev_vld[float_tid] = 0;
             if(float_wen[float_tid] == 2'b11)begin
-                if(`SAS_DEF)begin
-                    if(block_enable[float_tid])begin
-                        block_enable[float_tid] = 1'b0;
-                        for(i = 0; i < 7;i = i + 1)begin
-                            case(float_tid)//process block load
-                                2'b00 : begin
-                                    updated   = float_up0[i];
-                                    temp_addr = delay_addr0[i];
-                                    temp_val  = delay_float0[i];
-                                    push(`FLOAT_X, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                                    if(updated)begin
-                                        if(ok_push[float_tid[1:0]] && good[float_tid] != active[float_tid])
-                                            `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                                        else if(good[float_tid] != active[float_tid])
-                                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], float_tid[1:0]}, `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                                    end
-                                end
-                                2'b01 : begin
-                                    updated   = float_up1[i];
-                                    temp_addr = delay_addr1[i];
-                                    temp_val  = delay_float1[i];
-                                    push(`FLOAT_X, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                                    if(updated)begin
-                                        if(ok_push[float_tid[1:0]] && good[float_tid] != active[float_tid])
-                                            `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                                        else  if(good[float_tid] != active[float_tid])
-                                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]}, `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                                    end
-                                end
-                                2'b10 : begin
-                                    updated   = float_up2[i];
-                                    temp_addr = delay_addr2[i];
-                                    temp_val  = delay_float2[i];
-                                    push(`FLOAT_X, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                                    if(updated)begin
-                                        if(ok_push[float_tid[1:0]] && good[float_tid] != active[float_tid])
-                                            `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                                        else  if(good[float_tid] != active[float_tid])
-                                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]}, `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                                    end
-                                end
-                                2'b11 : begin
-                                    updated   = float_up3[i];
-                                    temp_addr = delay_addr3[i];
-                                    temp_val  = delay_float3[i];
-                                    push(`FLOAT_X, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                                    if(updated)begin
-                                        if(ok_push[float_tid[1:0]] && good[float_tid] != active[float_tid])
-                                            `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                                        else if(good[float_tid] != active[float_tid])
-                                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]}, `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                                    end
-                                end
-                            endcase // case(float_tid)
-                        end
-                    end // if (block_enable[float_tid])
-
-
-                    temp_val = float_val[float_tid];
-                    temp_addr= float_low[float_tid];
-                    updated_reg_list(`FLOAT_X, float_wen[float_tid], float_tid, temp_addr, temp_val, cond);
-                    updated =  updated_reg_list_reg;
-                    //$display("FLOATINGUPDATE %d thread = %d val = %x addr = %x updated= %d", $time, float_tid, float_val[float_tid],
-                    //    temp_addr, updated);
-                    push(`FLOAT_X, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                    if(updated)begin
-                        if(ok_push[float_tid[1:0]] && good[float_tid] != active[float_tid])
-                            `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                        else if(good[float_tid] != active[float_tid])
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]}, `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                    end
-
-                end // if (`SAS_DEF)
-                else
-                begin
-                    // $display("ttt: 5");
-                    `SAS_TASKS.register_cmp(`FLOAT_X, spc, float_tid, 0, float_low[float_tid],
-                                            float_val[float_tid], sas_reg_val, sas_sps_val,
-                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                end
+                // $display("ttt: 5");
+                `SAS_TASKS.register_cmp(`FLOAT_X, spc, float_tid, 0, float_low[float_tid],
+                                        float_val[float_tid], sas_reg_val, sas_sps_val,
+                                        rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
                 reg_ptr   = reg_index[float_tid];
 
             end
             else begin//process odd register
                 if(float_wen[float_tid] == 2'b01)begin
-                    if(`SAS_DEF)begin
-                        temp_val = float_uval[float_tid];
-                        temp_addr= float_up[float_tid];
-                        updated_reg_list(which_signal, float_wen[float_tid], float_tid, temp_addr, temp_val, cond);
-                        updated =  updated_reg_list_reg;
-                        push(which_signal, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                        if(updated)begin
-                            if(ok_push[float_tid])begin
-                                if(temp_addr > 31)begin
-                                    f_tmp    = temp_addr;
-                                    f_tmp[0] = 0;//make even address
-                                    if(good[float_tid] != active[float_tid])begin
-                                        `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, f_tmp, 0, 0);
-                                    end
-                                end
-                                else if(good[float_tid] != active[float_tid])
-                                    `SAS_SEND(`PLI_READ_TH_FP_REG_I, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                            end // if (ok_push[float_tid])
-                            else if(good[float_tid] != active[float_tid])begin
-                                if(temp_addr > 31)
-                                begin
-                                    f_tmp    = temp_addr;
-                                    f_tmp[0] = 0;//make even address
-                                    dummy    = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], float_tid[1:0]},
-                                                           `PLI_READ_TH_FP_REG_X, 0, f_tmp, 0);
-                                end
-                                else
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], float_tid[1:0]},
-                                                        `PLI_READ_TH_FP_REG_I, 0, temp_addr, 0);
-                            end
-                        end // if (updated)
-                    end
-                    else
-                    begin
-                        // $display("ttt: 6");
-                        `SAS_TASKS.register_cmp(which_signal, spc, float_tid , 0, float_up[float_tid],
-                                                float_uval[float_tid], sas_reg_val, sas_sps_val,
-                                                rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                    end
+                    // $display("ttt: 6");
+                    `SAS_TASKS.register_cmp(which_signal, spc, float_tid , 0, float_up[float_tid],
+                                            float_uval[float_tid], sas_reg_val, sas_sps_val,
+                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
                     reg_ptr   = reg_index[float_tid];
                 end
                 if(float_wen[float_tid] == 2'b10)begin
-                    if(`SAS_DEF)begin
-                        temp_val = float_val[float_tid];
-                        temp_addr= float_low[float_tid];
-                        updated_reg_list(which_signal, float_wen[float_tid], float_tid, temp_addr, temp_val, cond);
-                        updated =  updated_reg_list_reg;
-                        push(which_signal, float_tid[1:0],  0, temp_addr, temp_val, cond, updated);
-                        temp_addr= float_low[float_tid];
-                        if(updated)begin
-                            if(ok_push[float_tid[1:0]])begin
-                                if(temp_addr > 31)begin
-                                    f_tmp    = temp_addr;
-                                    f_tmp[0] = 0;
-                                    if(good[float_tid] != active[float_tid])
-                                        `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], float_tid}, 0, f_tmp, 0, 0);
-                                end
-                                else if(good[float_tid] != active[float_tid])
-                                    `SAS_SEND(`PLI_READ_TH_FP_REG_I, {cpu_id[9:0], float_tid}, 0, temp_addr, 0, 0);
-                            end
-                            else if(good[float_tid] != active[float_tid])begin
-                                if(temp_addr > 31)
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]},
-                                                        `PLI_READ_TH_FP_REG_X, 0, temp_addr, 0);
-                                else
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],float_tid[1:0]},
-                                                        `PLI_READ_TH_FP_REG_I, 0, temp_addr, 0);
-                            end
-                        end
-                    end // if (`SAS_DEF)
-                    else
-                    begin
-                        // $display("ttt: 7");
-                        `SAS_TASKS.register_cmp(which_signal, spc, float_tid, 0, float_low[float_tid],
-                                                float_val[float_tid], sas_reg_val, sas_sps_val,
-                                                rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                    end
+                    // $display("ttt: 7");
+                    `SAS_TASKS.register_cmp(which_signal, spc, float_tid, 0, float_low[float_tid],
+                                            float_val[float_tid], sas_reg_val, sas_sps_val,
+                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
                     reg_ptr                = reg_index[float_tid];
                 end // if (ctl_frf_wen[1])
             end
@@ -4177,130 +3567,10 @@ task process_signal;
             // if(!(ecl_irf_wen_w2 || ecl_irf_wen_w))prev_vld[thread] = 0;
             cur_cwp = spc0_cwp_cntl && cwp_cntl[active_thread] ? cwp_val[active_thread] : cwp[spc0_thread_w2];
             if(good[active_thread] != active[active_thread])begin
-                if(`SAS_DEF)begin
-                    updated_reg_list(which_signal, cur_cwp , active_thread, rtl_reg_addr, rtl_reg_val, cond);
-                    updated =  updated_reg_list_reg;
-                    //$dplay("UPDATE PC %d signal = %d update= %d thread = %d val =%x ", $time, which_signal, updated, thread,rtl_reg_val );
-
-                    if(which_signal == `SOFTINT   &&
-                            sft_match[active_thread]   &&
-                            !tlu_wr_sftint_l_g         &&
-                            active_thread == next_sft_wr_id)updated = 1;
-                    if(updated_reg_list_reg &&
-                            which_signal == `SOFTINT   &&
-                            psft_flush[active_thread])updated = 0;
-                    if(which_signal == `INTR_RECEIVE)begin
-                        if(hint_wait[active_thread]      &&
-                                //  ignore_int_rec[active_thread] &&
-                                (intr_next[active_thread] == 0))begin
-                            t_cond = hint_cond[active_thread];
-                            val    = hint_val[active_thread];
-                            win    = hint_cwp[active_thread];
-                            t_up   = hint_updated[active_thread];
-                            if(t_up)begin
-                                if(ok_push[active_thread] && good[active_thread] != active[active_thread])
-                                    `SAS_SEND(`PLI_READ_TH_CTL_REG, {cpu_id[9:0], active_thread}, which_signal, 0, 0, 0);
-                                else if(good[active_thread] != active[active_thread])
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],active_thread},
-                                                        `PLI_READ_TH_CTL_REG, 0, which_signal, 0);
-                            end
-                            if(good[active_thread] != active[active_thread])begin
-                                if(ok_push[active_thread])
-                                begin
-                                    t_up   = $bw_list(`TOP_MOD.list_handle,  3, `INTR_RECEIVE, cpu_id[9:0],
-                                                      {cpu_id[9:0], active_thread}, win, 0, val, t_cond, t_up);
-                                    if (debug_sas)
-                                        $display("%0t BW_LIST: Push data type INTR_RECV core(%d) thread(%d) win(%d) val(%0x)", $time, cpu_id[9:0], active_thread, win, val);
-                                end
-                                else
-                                    dummy = $bw_decoder(4, `TOP_MOD.list_handle, `INTR_RECEIVE, {cpu_id[9:0], thread},
-                                                        win, 0, val, t_cond, t_up);
-                            end
-                            wake_int[active_thread] = 1'b0;
-                        end
-                        if(intr_next[active_thread] == 0)begin
-                            if(updated == 0)begin
-                                hint_wait[active_thread]    = 1'b1;
-                                hint_cwp[active_thread]     = cur_cwp;
-                                hint_val[active_thread]     = rtl_reg_val;
-                                hint_cond[active_thread]    = cond;
-                                hint_updated[active_thread] = updated;
-                            end
-                            else begin
-
-                                if(warm_pc && (which_signal == `PC || which_signal == `NPC) )
-                                    push(which_signal, active_thread[1:0], cur_cwp, rtl_reg_addr, rtl_reg_val, cond, 15);
-                                else push(which_signal, active_thread[1:0], cur_cwp, rtl_reg_addr, rtl_reg_val, cond, updated);
-                            end
-
-                        end
-                        else intr_next[active_thread] = 0;
-                        ignore_int_rec[active_thread] = 0;
-                    end // if (which_signal == `INTR_RECEIVE)
-                    else begin
-                        if(!(spc0_flush_happen                  &&
-                                (spc0_thread_pc == active_thread)  &&
-                                ((which_signal == `GL)         || (which_signal == `TL_SAS)  ||
-                                 (which_signal == `PSTATE_SAS) || (which_signal == `HPSTATE_SAS))
-                            ) || updated == 0)begin
-                            //warm and power reset case, just compare bit[63] only.
-                            if((which_signal == `TICK_CMPR) && (tickcmp_rst[active_thread[1:0]] ||
-                                                                tickcmpi_rst[active_thread[1:0]]))begin
-                                cond =  7;
-                                if(tickcmp_rst[active_thread[1:0]])begin
-                                    tickcmp_rst[active_thread[1:0]]       = 1'b0;
-                                    tickcmp_rst_after[active_thread[1:0]] = 1;
-                                end
-                                tickcmpi_rst[active_thread[1:0]] = 1'b0;
-                            end
-                            else if((which_signal == `STICK_CMPR) && (stickcmp_rst[active_thread[1:0]] ||
-                                    stickcmpi_rst[active_thread[1:0]]))begin
-                                cond =  7;
-                                if(stickcmp_rst[active_thread[1:0]])begin
-                                    stickcmp_rst[active_thread[1:0]] = 1'b0;
-                                    stickcmp_rst_after[active_thread[1:0]] = 1;
-                                end
-                                stickcmpi_rst[active_thread[1:0]] = 1'b0;
-                            end
-                            else if((which_signal == `HSTICK_CMPR) && (htickcmp_rst[active_thread[1:0]] ||
-                                    htickcmpi_rst[active_thread[1:0]]))begin
-                                cond =  7;
-                                if(htickcmp_rst[active_thread[1:0]])begin
-                                    htickcmp_rst[active_thread[1:0]] = 1'b0;
-                                    htickcmp_rst_after[active_thread[1:0]] = 1;
-                                end
-                                htickcmpi_rst[active_thread[1:0]] = 0;
-                            end
-                            if(warm_pc && (which_signal == `PC || which_signal == `NPC) )
-                                push(which_signal, active_thread[1:0], cur_cwp, rtl_reg_addr, rtl_reg_val, cond, 15);
-                            else if(warm_rst[ active_thread[1:0]] &&  (which_signal == `TPC6 ||
-                                    which_signal == `TNPC6 ||
-                                    which_signal == `TSTATE6 ||
-                                    which_signal == `HTSTATE6))
-                            begin
-                                cond[2] = 1;
-                                push(which_signal, active_thread[1:0], cur_cwp, rtl_reg_addr, rtl_reg_val, cond, updated);
-                            end
-                            else push(which_signal, active_thread[1:0], cur_cwp, rtl_reg_addr, rtl_reg_val, cond, updated);
-                            if(updated && which_signal != `HINTP_SAS)begin
-                                if(ok_push[active_thread])
-                                begin
-                                    `SAS_SEND(`PLI_READ_TH_CTL_REG, {cpu_id[9:0], active_thread}, which_signal, 0, 0, 0);
-                                end
-                                else
-                                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],active_thread},
-                                                        `PLI_READ_TH_CTL_REG, 0, which_signal, 0, 0);
-                            end
-                        end
-                    end // else: !if(which_signal == `INTR_RECEIVE)
-                end // if (`SAS_DEF)
-                else
-                begin
-                    // $display("ttt: 8"); // Tri: this is where most of the misc registers are printed
-                    `SAS_TASKS.register_cmp(which_signal, spc, active_thread, cur_cwp, rtl_reg_addr,
-                                            rtl_reg_val, sas_reg_val, sas_sps_val,
-                                            rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                end
+                // $display("ttt: 8"); // Tri: this is where most of the misc registers are printed
+                `SAS_TASKS.register_cmp(which_signal, spc, active_thread, cur_cwp, rtl_reg_addr,
+                                        rtl_reg_val, sas_reg_val, sas_sps_val,
+                                        rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
             end // if (good[active_thread] != active[active_thread])
         end // else: !if(which_signal == `FLOAT_I)
     end
@@ -4351,35 +3621,10 @@ task special_command;
         if(good[thread] != active[thread])begin
             used_thread = 1;
             spc0_command(`CCR, thread);
-            if(`SAS_DEF)begin
-                push(`CCR, thread, 0, rtl_reg_addr, rtl_reg_val, cond, updated);
-                if(ok_push[thread])
-                    `SAS_SEND(`PLI_READ_TH_CTL_REG, {cpu_id[9:0], thread}, cmd, 0, 0, 0);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],thread}, `PLI_READ_TH_CTL_REG, 0, cmd, 0);
-            end
             used_thread = 0;
         end
     end
 endtask // special_cmd
-//force value into simics register.
-task send_register;
-    input [1:0]  thrid;
-    input [5:0]  reg_num;
-    input [2:0]  cwp;
-    input [63:0] val;
-    begin
-        if(`SAS_DEF)begin
-            if(ok_push[thrid]) begin
-                `SAS_SEND(`PLI_WRITE_TH_REG, {cpu_id[9:0], thrid}, cwp, reg_num, 0, val);
-                if(debug_sas) $display("%0t BW_LIST: Forcing value %x on reg %d win %d core %d thread %d", $time, val, reg_num, cwp, cpu_id[9:0], thrid);
-            end
-            else
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_WRITE_TH_REG,
-                                    cwp, reg_num, val);
-        end
-    end
-endtask // send_register
 reg [2:0] current_cwp;
 reg [5:0] reg_addr_w;
 //get the current register number and window.
@@ -4927,10 +4172,6 @@ task get_delay_control;
             else begin
                 //if(pure_load[spc0_thread_w])wait_load[spc0_thread_w] = 1;
                 if(pure_load[spc0_thread_w])begin
-                    if((coreavl[spc0_thread_w] || reset_stat[spc0_thread_w] || ctu_stat[spc0_thread_w]))begin
-                        get_current_win0;
-                        send_register(spc0_thread_w, reg_addr_w, current_cwp,  rtl_reg_val);
-                    end
                     wait_load[spc0_thread_w] = 1;
                 end
                 quad_cnt[spc0_thread_w]     = quad_cnt[spc0_thread_w] + 1;
@@ -4956,7 +4197,6 @@ task get_delay_control;
                 if(pure_load[spc0_thread_w2])begin
                     if((coreavl[spc0_thread_w2] || reset_stat[spc0_thread_w2] || ctu_stat[spc0_thread_w2]))begin
                         get_current_win2;
-                        send_register(spc0_thread_w2, reg_addr_w, current_cwp,  rtl_reg_val);
                         wait_load[spc0_thread_w2] = 1;
                     end
                 end
@@ -5366,48 +4606,10 @@ task get_delay_control;
                     if(block_load[float_tid])begin//process the block load
                         t_idx                  = block_count[float_tid];
                         block_count[float_tid] = block_count[float_tid] + 1;
-                        if(`SAS_DEF && (block_count[float_tid] < 8))begin
-                            temp_val              = float_val[float_tid];
-                            temp_addr             = float_low[float_tid];
-
-                            if(fcc_wr[float_tid])begin// && (frd_ws[float_tid] ==  ctl_frf_addr[4:0]))begin
-                                fcc_wr[float_tid] = 0;
-                            end
-                            else begin
-                                float_wen[float_tid]  = ctl_frf_wen;
-                                updated_reg_list(`FLOAT_X, float_wen[float_tid], float_tid, temp_addr, temp_val, cond);
-                                t_tmp =  updated_reg_list_reg;
-                            end
-                            case(float_tid)
-                                2'b00 : begin
-                                    delay_float0[t_idx] = temp_val;
-                                    delay_addr0[t_idx]  = temp_addr;
-                                    float_up0[t_idx]    = t_tmp;
-                                end
-                                2'b01 : begin
-                                    delay_float1[t_idx] = temp_val;
-                                    delay_addr1[t_idx]  = temp_addr;
-                                    float_up1[t_idx]    = t_tmp;
-                                end
-                                2'b10 : begin
-                                    delay_float2[t_idx] = temp_val;
-                                    delay_addr2[t_idx]  = temp_addr;
-                                    float_up2[t_idx]    = t_tmp;
-                                end
-                                2'b11 : begin
-                                    delay_float3[t_idx] = temp_val;
-                                    delay_addr3[t_idx]  = temp_addr;
-                                    float_up3[t_idx]    = t_tmp;
-                                end
-                            endcase // case(float_tid)
-                        end
-                        if(`SAS_DEF == 0)
-                        begin
-                            // $display("ttt: 9");
-                            `SAS_TASKS.register_cmp(`FLOAT_X, cpu_id, float_tid, 0, float_low[float_tid],
-                                                    float_val[float_tid], sas_reg_val, sas_sps_val,
-                                                    rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
-                        end
+                        // $display("ttt: 9");
+                        `SAS_TASKS.register_cmp(`FLOAT_X, cpu_id, float_tid, 0, float_low[float_tid],
+                                                float_val[float_tid], sas_reg_val, sas_sps_val,
+                                                rs1_w2, alu_rs1_w2, rs2_w2, alu_rs2_w2, cond);
                         if(t_idx == 7)begin
                             block_enable[float_tid] = 1'b1;
                             block_load[float_tid]   = 1'b0;
@@ -7020,140 +6222,11 @@ function  send_mulx;
     end
 endfunction // send_mulx
 
-function send_mul;
-    input [1:0] thread;
-    input [4:0] target;
-
-    reg [2:0] wind;//window
-    reg [2:0] pcur, c_cwp, nwind;
-    reg [5:0] windex, pindex,t_addr;
-    reg invalid, don;
-    reg [9:0]   tmp_keep0,tmp_keep2;
-
-    begin
-        case(thread)
-            2'b00 : wind = cwp_thr0_next;
-            2'b01 : wind = cwp_thr1_next;
-            2'b10 : wind = cwp_thr2_next;
-            2'b11 : wind = cwp_thr3_next;
-        endcase // case(flush_tid)
-
-        tmp_keep0 = 0;tmp_keep2 = 0;
-        send_mul  = 0;
-        if(ecl_irf_wen_w)begin
-            if(spc0_cwp_cntl && cwp_cntl[spc0_thread_w])begin
-                t_addr = {thr_rd_w[4]  ^ (thr_rd_w[3]  & cwp_val[spc0_thread_w]) , thr_rd_w[3:0]};
-                c_cwp  = cwp_val[spc0_thread_w];
-            end
-            else begin
-                t_addr   = {thr_rd_w[4]  ^ (thr_rd_w[3]  & cwp[spc0_thread_w]), thr_rd_w[3:0]};
-                c_cwp  = cwp[spc0_thread_w];
-            end
-            tmp_keep0 = spc0_thread_w == thread ? { 1'b1, c_cwp[2:0], t_addr[5:0]} : 0;
-        end // if (ecl_irf_wen_w)
-        if(ecl_irf_wen_w2)begin
-            if(spc0_cwp_cntl && cwp_cntl[spc0_thread_w2])begin
-                t_addr   = {thr_rd_w2[4]  ^ (thr_rd_w2[3]  & cwp_val[spc0_thread_w2]) , thr_rd_w2[3:0]};
-                c_cwp    = cwp_val[spc0_thread_w2];
-            end
-            else begin
-                t_addr  = {thr_rd_w2[4]  ^ (thr_rd_w2[3]  & cwp[spc0_thread_w2]), thr_rd_w2[3:0]};
-                c_cwp   = cwp[spc0_thread_w2];
-            end
-            tmp_keep2 = spc0_thread_w2 == thread ? {1'b1, c_cwp[2:0], t_addr[5:0]} : 0;
-        end // if (ecl_irf_wen_w2)
-
-        pcur = cwp[thread];
-        for(windex = 16; windex < 24;windex = windex + 1)begin
-            don     = !(tmp_keep0[9] && (tmp_keep0[8:6] == wind) && (tmp_keep0[4:0] == windex[4:0]) ||
-                        tmp_keep2[9] && (tmp_keep2[8:6] == wind) && (tmp_keep2[4:0] == windex[4:0]));
-            invalid =  (thr0_vld [{thread, pcur, windex[4:0]}] == 0) &&
-                    thr0_vld [{thread, wind, windex[4:0]}]        &&
-                    (thr0_spc [{thread, wind, windex[4:0]}] != 0);
-            if(//thr0_vld[{thread, pcur, windex[4:0]}]  &&
-                (thr0_spc [{thread, pcur, windex[4:0]}] != thr0_spc[{thread, wind, windex[4:0]}]) || invalid)begin
-                if(`SAS_DEF && don)begin
-                    if(target ==  windex[4:0])begin
-                        send_mul = 1;
-                        windex   = 24;
-                    end
-                end
-            end
-        end // for (windex = 16; windex < 24;windex = windex + 1)
-        if(!send_mul)begin
-            pindex = 8;
-            for(windex = 24; windex < 32;windex = windex + 1)begin
-                don = !(tmp_keep0[9] && (tmp_keep0[8:6] == wind) && (tmp_keep0[4:0] == pindex[4:0]) ||
-                        tmp_keep2[9] && (tmp_keep2[8:6] == wind) && (tmp_keep2[4:0] == pindex[4:0]));
-
-                invalid = (thr0_vld[{thread, pcur, windex[4:0]}] == 0) &&
-                        thr0_vld[{thread, wind, pindex[4:0]}]        &&
-                        (thr0_spc[{thread, wind, pindex[4:0]}] != 0);
-
-                if(thr0_vld [{thread, pcur, windex[4:0]}] &&
-                        (thr0_spc [{thread, pcur, windex[4:0]}] != thr0_spc[{thread, wind, pindex[4:0]}]) || invalid)begin
-                    if(`SAS_DEF && don)begin
-                        if(target == pindex[4:0])begin
-                            send_mul = 1;
-                            windex   = 32;
-                        end
-                    end
-                end
-                pindex = pindex + 1;
-            end // for (windex = 24; windex < 32;windex = windex + 1)
-        end // if (!send_mul)
-    end
-endfunction // send_mul
-
 //--------------------------------------------
 // There is a tlb read/write operaton. So,
 // we need to wait for actual tlb operation.
 //--------------------------------------------
 reg lsu_tlu_tlb_st_inst_w, lsu_tlu_tlb_ld_inst_w;
-
-task tlb_lock_operation;
-    input [1:0] thrid;
-    reg [2:0] idx;
-
-    begin
-        tlb_lock_s = tlb_lock;
-        if((spc0_inst_done ||
-                spc0_flush_happen) && tlb_lock[thrid])begin
-            if(tlu_ifu_flush_pipe_w ||
-                    (dmmu_async_illgl_va_g &&  (lsu_tlu_tlb_st_inst_w || lsu_tlu_tlb_ld_inst_w)) ||
-                    (immu_async_illgl_va_g &&  (lsu_tlu_tlb_st_inst_w || lsu_tlu_tlb_ld_inst_w)))begin
-                if(ok_push[thrid] == 0)begin
-                    unlock_thrid[thrid] = 1'b1;
-                    read_step_data;
-                end
-                tlb_lock[thrid] = 1'b0;
-            end
-            else if(tlb_lock_pc[thrid] == spc0_rtl_pc)begin
-                ok_push[thrid] = 1'b0;
-            end
-        end // if ((spc0_inst_done ||...
-        //Flush will be occured at w-state, but sas look like that it needs the stepping signal at m-stage.
-        if(spc0_flush_happen_m && tlb_lock[ifu_tlu_thrid_m])begin
-            if(ok_push[ifu_tlu_thrid_m] == 0)begin
-                unlock_thrid[ifu_tlu_thrid_m] = 1'b1;
-                read_step_data;
-            end
-            tlb_lock[ifu_tlu_thrid_m] = 1'b0;
-        end
-        //unlock for hardware interrup.
-        if(spc0_hintp_cntl)begin
-            for(idx = 0;idx < 4;idx = idx + 1)begin
-                if((hintp_del[idx] == 0) && tlb_lock[idx])begin
-                    if(ok_push[idx] == 0)begin
-                        unlock_thrid[idx] = 1'b1;
-                        read_step_data;
-                        tlb_lock[idx]     = 1'b0;
-                    end
-                end
-            end // for (idx = 0;idx < 4;idx = idx + 1)
-        end // if (spc0_hintp_cntl)
-    end
-endtask // tlb_lock_operation
 
 //--------------------------------------------
 // There are tlb read/write signals.
@@ -7175,43 +6248,6 @@ end
 //unlock mmu pending operation
 reg tlb_unlock_m;
 
-task tlb_unlock_operation;
-    input [1:0] thrid;
-    begin
-        //itlb
-        if(itlb_demap ||
-                itlb_rd_tag_vld  ||
-                itlb_rd_data_vld)begin
-
-            if(tlb_lock[thrid] && (tlb_cmd[thrid] == 1))begin
-                tlb_lock[thrid]      = 1'b0;
-                unlock_thrid [thrid] = 1'b1;
-                tlb_unlock_m =1;
-            end
-        end // if (...
-        //dtlb
-        if(dtlb_demap       ||
-                dtlb_rd_tag_vld  ||
-                dtlb_rd_data_vld )begin
-            if(tlb_lock[thrid] && (tlb_cmd[thrid] == 2))begin
-                tlb_lock[thrid]     = 1'b0;
-                unlock_thrid[thrid] = 1'b1;
-                tlb_unlock_m        = 1;
-            end
-        end
-
-        //itlb unlock when tlu takes a trap.
-        if((ifu_tlu_ttype_vld_m && ifu_tlu_ttype_m == 8'h5e ||
-                ifu_tlu_hwint_m ||
-                ifu_tlu_swint_m && (tlb_cmd[thrid] != 3) ||
-                ifu_tlu_rstint_m) && !ifu_tlu_flush_m)begin
-            tlb_lock[thrid]     = 1'b0;
-            unlock_thrid[thrid] = 1'b1;
-            tlb_unlock_m        = 1;
-        end
-    end
-endtask // tlb_lock_operation
-
 //delay tlb replayment operation.
 task tlb_unlock_wr_operation;
     input [1:0] thrid;
@@ -7228,59 +6264,6 @@ task tlb_unlock_wr_operation;
         end
     end
 endtask // tlb_unlock_wr_operation
-
-//------------------------------------------
-// This routine sends the holding requests
-// when tlb operation id done.
-//------------------------------------------
-task read_step_data;
-    reg [63:0] val;
-    reg [7:0]  num;
-    reg [2:0]  win;
-    reg [7:0]  type;
-    reg [3:0]  i;
-    reg [63:0] tlb_pc;
-    reg empty;
-
-    begin
-        for(i = 0; i < 4;i = i+1)begin
-            if(unlock_thrid[i])begin
-                while($bw_decoder(6, decoder_handle, type, {cpu_id[9:0], i[1:0]}, num, win, val, `TOP_MOD.list_handle, empty))begin
-                    case(type)
-                        `PLI_SSTEP            : begin
-                            `SAS_SEND(`PLI_SSTEP,            {cpu_id[9:0], i[1:0]},  0, 0, 0, 0);
-                            if(debug_sas) $display("%0t BW_LIST: Sending step to simics for core %d, thread %d", $time, cpu_id[9:0], i[1:0]);
-                        end
-                        `PLI_WRITE_TH_XCC_REG : `SAS_SEND(`PLI_WRITE_TH_XCC_REG, {cpu_id[9:0], i[1:0]}, val[3:0], 0, 0, 0);
-                        `PLI_READ_TH_CTL_REG  : `SAS_SEND(`PLI_READ_TH_CTL_REG,  {cpu_id[9:0], i[1:0]}, num , 0, 0, 0);
-                        `PLI_READ_TH_REG      : `SAS_SEND(`PLI_READ_TH_REG,      {cpu_id[9:0], i[1:0]}, win, num, 0, 0);
-                        `PLI_WRITE_TH_REG_HI  : begin
-                            `SAS_SEND(`PLI_WRITE_TH_REG_HI,  {cpu_id[9:0], i[1:0]}, win, num, 0, val);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x on upper 32 bits of reg %d win %d core %d thread %d", $time, val, num, win, cpu_id[9:0], i[1:0]);
-                        end
-                        `PLI_WRITE_TH_REG     : begin
-                            `SAS_SEND(`PLI_WRITE_TH_REG,     {cpu_id[9:0], i[1:0]}, win, num, 0, val);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x on reg %d win %d core %d thread %d", $time, val, num, win, cpu_id[9:0], i[1:0]);
-                        end
-                        `PLI_READ_TH_FP_REG_X : `SAS_SEND(`PLI_READ_TH_FP_REG_X, {cpu_id[9:0], i[1:0]}, 0, num, 0, 0);
-                        `PLI_READ_TH_FP_REG_I : `SAS_SEND(`PLI_READ_TH_FP_REG_I, {cpu_id[9:0], i[1:0]}, 0, num, 0, 0);
-                        `PLI_WRITE_TH_CTL_REG : begin
-                            `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], i[1:0]}, 0, num, 0, val);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x on control reg %d core %d thread %d", $time, val, num, cpu_id[9:0], i[1:0]);
-                        end
-                        `PLI_FORCE_TRAP_TYPE  : `SAS_SEND(`PLI_FORCE_TRAP_TYPE , {cpu_id[9:0], i[1:0]}, 0, 0,   0, val);
-                        `PLI_RESET_TLB_ENTRY  : `SAS_SEND(`PLI_RESET_TLB_ENTRY,  {cpu_id[9:0], i[1:0]}, win, num, 0, 0);
-                        `PLI_INST_TTE         : `SAS_SEND(`PLI_INST_TTE,         {cpu_id[9:0], i[1:0]}, 0, 0, 0, val);
-                        `PLI_DATA_TTE         : `SAS_SEND(`PLI_DATA_TTE,         {cpu_id[9:0], i[1:0]}, 0, 0, 0, val);
-                    endcase // case(type)
-                end // while ($bw_decoder(6, decoder_handle, type, {cpu_id[9:0], i[1:0]}, num, win, val, `TOP_MOD.list_handle, empty))
-                unlock_thrid[i] = 1'b0;
-                ok_push[i]      = 1'b1;
-            end // if (unlock_thrid[i])
-            //if(!tlb_lock[i] && !empty)ok_push[i] = 1'b1;
-        end
-    end
-endtask // read_step_data
 
 reg        tlb_id_vld;
 reg [1:0]  tlb_thrid;
@@ -7340,46 +6323,6 @@ always @(posedge clk)begin
         2'b11 : tick_delay[3] <= {tick_npt3_d, tick_del, 2'b00};
     endcase // case(thrid_m)
 end
-
-//send tick value for tick read.
-task send_tick;
-    reg [63:0] reg_val;
-    begin
-        if(tick_read_w)begin
-            case(spc0_thread_pc)
-                2'b00 : reg_val = tick_delay[0] ;
-                2'b01 : reg_val = tick_delay[1] ;
-                2'b10 : reg_val = tick_delay[2] ;
-                2'b11 : reg_val = tick_delay[3] ;
-            endcase // case(spc0_thread_pc)
-            $display("(%0t)Info ->tick value sent thread(%0d) value(%x)", $time,
-                     {cpu_id[9:0], spc0_thread_pc[1:0]}, reg_val);
-            if(ok_push[spc0_thread_pc])
-                `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], spc0_thread_pc[1:0]}, 0, `TICK_SAS, 0, reg_val);
-            else
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], spc0_thread_pc[1:0]},
-                                    `PLI_WRITE_TH_CTL_REG, 0, `TICK_SAS, reg_val);
-        end
-    end
-endtask // send_tick
-//-----------------------------------------
-//one step
-task send_step;
-    input [1:0] thrid;
-    begin
-        // $display("ttt: send_step");
-        process_signal(`PC, cpu_id, thrid);
-        process_signal(`NPC, cpu_id, thrid);
-        if(ok_push[thrid])begin
-            `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], thrid}, 0, 0, 0, 0);
-            if(debug_sas) $display("%0t BW_LIST: Sending step to simics for core %d, thread %d", $time, cpu_id[9:0], thrid);
-        end
-        else
-            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_SSTEP, step_pc, 0, 0);
-        stepping[thrid]  = 1'b1;
-        once_step[thrid] = 1'b1;
-    end
-endtask // send_step
 //------------------------------------------
 // tlb error monitor.
 // Here, check itlb and dtlb read operation  every cycle.
@@ -7429,9 +6372,6 @@ reg 	      dtlb_tte_vld_w2;
 reg 	      ifu_lsu_pref_inst_m, ifu_lsu_pref_inst_w;
 
 initial begin
-    itlb_pending_send = 0;
-    itlb_pending_wait = 0;
-    dtlb_pending_send = 0;
     dtlb_pending_wait = 0;
     throw_pc_m        = 0;
     dtlb_reset_vld    = 0;
@@ -7458,59 +6398,7 @@ always @(posedge clk)begin
     ifu_lsu_pref_inst_m  <= ifu_lsu_pref_inst_e;
     ifu_lsu_pref_inst_w  <= ifu_lsu_pref_inst_m;
 end
-//reset valid bit of dtlb or itlb
-always @(posedge clk)begin
-    if(dtlb_reset_vld)begin
-        for(t_ind = 0; t_ind < 4; t_ind = t_ind +1)begin
-            if(dtlb_reset_vld[t_ind])begin
-                rd_idx                = dtlb_idx[t_ind];
-                dtlb_reset_vld[t_ind] = 0;
-                pending_dtlb[t_ind]   = 1;
-                dtlb_idx_pend[t_ind]  = rd_idx;
-                //$bw_force_by_name(3, cpu_id[9:0], rd_idx, 1);
-`ifndef __ICARUS__
-                if(tlb_reset_on)`SAS_TASKS.tlb_reset(cpu_id[9:0], rd_idx, 1);
-`endif
-            end
-        end
-    end // if (dtlb_reset_vld)
-    if(itlb_reset_vld)begin
-        for(t_ind = 0; t_ind < 4; t_ind = t_ind +1)begin
-            if(itlb_reset_vld[t_ind])begin
-                rd_idx                = itlb_idx[t_ind];
-                itlb_reset_vld[t_ind] = 0;
-                pending_itlb[t_ind]   = 1;
-                itlb_idx_pend[t_ind]  = rd_idx;
-`ifndef __ICARUS__
-                if(tlb_reset_on)`SAS_TASKS.tlb_reset(cpu_id[9:0], rd_idx, 2);
-`endif
-                //$bw_force_by_name(3, cpu_id[9:0], rd_idx, 2);
-            end
-        end
-    end // if (itlb_reset_vld)
-end // always @ (negedge clk)
 
-task tlb_send;
-    input [3:0] pending_tlb;
-    input tlb;
-
-    begin
-        if(pending_tlb)begin
-            for(t_ind = 0; t_ind < 4; t_ind = t_ind +1)begin
-                if(pending_tlb[t_ind])begin
-                    rd_idx = tlb ? dtlb_idx_pend[t_ind] : itlb_idx_pend[t_ind];
-                    if(ok_push[t_ind])
-                        `SAS_SEND(`PLI_RESET_TLB_ENTRY, {cpu_id[9:0], t_ind[1:0]}, tlb, rd_idx, 0, 0);
-                    else
-                        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], t_ind[1:0]},
-                                            `PLI_RESET_TLB_ENTRY, tlb, rd_idx);
-                    if(tlb)pending_dtlb[t_ind] = 0;
-                    else   pending_itlb[t_ind] = 0;
-                end
-            end
-        end
-    end
-endtask // dtlb_send
 //monitor itlb tag and data read operation to find the parity error
 //
 // don't include v(26) and u(24) bits in parity
@@ -7553,37 +6441,8 @@ task turn_off_throw;
             end
         end
 
-        //need to qualify with instruction done.
-        if(dtlb_pending_send[spc0_thread_pc] &&
-                just_done_w[spc0_thread_pc])begin
-            if(!(inst_done_w_for_sas || tlu_ifu_flush_pipe_w))begin
-                spc0_force_flush_w[spc0_thread_pc] = 0;
-                dtlb_pending_send[spc0_thread_pc]  = 0;
-                dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], spc0_thread_pc }, 3, rd_idx);
-            end
-        end
-        else if(dtlb_pending_send[thrid] && spc0_trap_write)begin
-            spc0_force_flush_w[thrid]= 0;
-            dtlb_pending_send[thrid] = 0;
-            dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 3, rd_idx);
-        end
-        else if(dtlb_pending_wait && spc0_trap_write)begin
+        if(dtlb_pending_wait && spc0_trap_write)begin
             dtlb_pending_wait[thrid] = 0;
-        end
-
-        //itlb site
-        //drop itlb parity error
-        if(itlb_pending_send[spc0_thread_pc] &&
-                spc0_inst_done                    &&
-                !tlu_ifu_flush_pipe_w)begin
-            thrid = spc0_thread_pc;
-            if($bw_decoder(23,  {cpu_id[9:0], thrid}, 2, pc_trap))begin//shift from tlbQ.
-                temp_pc = which_pc(thrid);
-                if(temp_pc[47:4] == pc_trap[47:4])begin
-                    dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 2, rd_idx);
-                    itlb_pending_send[thrid] = 0;
-                end
-            end
         end
     end
 endtask // turn_off_throw
@@ -7599,87 +6458,6 @@ function [1:0] one_hot;
     end
 endfunction // one_hot
 reg [1:0] thr_id;
-//-----------------------------------------------------------------
-//ITLB PARITY monitor.
-
-always @(icam_hit_del or
-             cam_vld_s1   or
-             val_thr_s1   or
-             itlb_rd_tte_data_del or
-             itlb_entry_vld
-            )begin
-    //when xlation
-    if(`SAS_DEF     &&
-            icam_hit_del &&
-            cam_vld_m    &&
-            val_thr_s1)begin
-        thr_id = one_hot(val_thr_s1);
-        for(rd_idx = 0; rd_idx < 64;rd_idx = rd_idx + 1)begin
-            if(icam_hit_del[rd_idx] && itlb_entry_vld[rd_idx])begin
-                if(calpar32({itlb_rd_tte_tag_del[33:27], itlb_rd_tte_tag_del[25], itlb_rd_tte_tag_del[23:0]}) ^
-                        calpar32({7'b0, itlb_rd_tte_tag_del[58:34]}) ||
-                        calpar32(itlb_rd_tte_data_del[31:0]) ^
-                        calpar16({5'b0, itlb_rd_tte_data_del[42:32]}))begin
-                    itlb_pending_send[thr_id] = 1;
-                    dummy = $bw_decoder(20, `TOP_MOD.list_handle, {cpu_id[9:0], thr_id},
-                                        rd_idx, itlb_rd_tte_tag_del, ipc_m, 2);
-                end
-                rd_idx = 64;
-            end
-        end
-    end // if (icam_hit_del &&...
-end // always @ (icam_hit_del or...
-
-task itlb_mon;
-    reg [1:0] thr_id;
-    begin
-        //when read
-        if(itlb_rw_index_vld && itlb_entry_vld[itlb_rw_index])begin
-            if(itlb_rd_tag_vld &&
-                    (calpar32({itlb_rd_tte_tag[33:27], itlb_rd_tte_tag[25], itlb_rd_tte_tag[23:0]}) ^
-                     calpar32({7'b0, 	itlb_rd_tte_tag[58:34]})) ||
-                    itlb_rd_data_vld &&
-                    (calpar32(itlb_rd_tte_data[31:0])  ^
-                     calpar16({5'b0, itlb_rd_tte_data[42:32]})))begin
-                itlb_pending_send[thrid_m] = 1;
-                dummy = $bw_decoder(20, `TOP_MOD.list_handle, {cpu_id[9:0], thrid_m},
-                                    itlb_rw_index, itlb_rd_tte_tag, pc_m, 2);
-            end
-        end // if (itlb)
-    end
-endtask // itlb_mon
-
-//trap request from lsu
-task itlb_send;
-    input [1:0] thrid;
-    reg [47:0]  temp_pc;
-
-    begin
-        if(itlb_pending_wait[thrid])begin
-            if(irf_err_vld[thrid])begin
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, trap_type);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                        `PLI_FORCE_TRAP_TYPE, trap_type);
-                itlb_pending_wait[thrid] = 0;
-                irf_err_vld[thrid]         = 0;
-            end
-            else begin
-                dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 2, rd_idx);
-                itlb_idx[thrid]       = rd_idx;
-                trap_type             = itrap_type[thrid];
-                itlb_reset_vld[thrid] = 1;
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, trap_type);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                        `PLI_FORCE_TRAP_TYPE, trap_type);
-                itlb_pending_wait[thrid] = 0;
-            end // else: !if(irf_err_vld[thrid])
-        end // if (itlb_pending_wait[thrid])
-    end
-endtask // dtlb_send
 
 //trap request from ifu
 //save itlb error to fluch b2b flush case.
@@ -7703,34 +6481,6 @@ always @(posedge clk) begin
 
 end // always @ (posedge clk)
 
-task iasync_mon;
-    input [1:0] thrid;
-    begin
-        if(ifu_tlu_ttype_vld_w && ~back2back_flush[thrid])begin
-            if((ifu_tlu_ttype_w == 9'h78  || //data
-                    ifu_tlu_ttype_w == 9'h0a && !lsu_tlu_defr_trp_taken_g && !ifu_tlu_flush_w) && tlu_exu_early_flush_pipe_w &&
-                    !(trap_taken_g && (rst_hwint_ttype_g == 7'h5f))//high prioty
-              )begin//instrcution fetch
-                itrap_type[thrid]          = ifu_tlu_ttype_w;
-                itlb_pending_wait[thrid]   = 1;
-                itlb_pending_send[thrid]   = 0;
-            end // if (lsu_tlu_async_ttype_vld_w2   &&...
-            else if(itlb_pending_send[thrid] &&
-                    $bw_decoder(22, {cpu_id[9:0], thrid}, 2, rd_idx, tag_tlb, tlb_time))begin
-                $display("%0t:Info:Expected ITLB Parity TRAP, but not happen index(%0d) tag(%x)",
-                         tlb_time, rd_idx, tag_tlb );
-                `MONITOR_PATH.fail("Missed ITLB PARITY ERROR TRAP");
-            end
-            //check irf error
-            else if((ifu_tlu_ttype_w == 9'h63) && ceen[thrid])begin//irf error case
-                itrap_type[thrid]        = ifu_tlu_ttype_w;
-                itlb_pending_wait[thrid] = 1;
-                irf_err_vld[thrid]       = 1;
-            end
-        end // if (ifu_tlu_ttype_vld_m)
-    end
-endtask // iasync_mon
-
 //--------------------------------------------------
 //monitor dtlb operations
 //
@@ -7740,78 +6490,7 @@ endtask // iasync_mon
 //                                 tlb_rd_tte_tag_buf[25],   tlb_rd_tte_tag_buf[23:0]} ;
 //smaple data at negedge whether there is parity error or not.
 //Because of error injection happened at negedge.
-always @(dtlb_rd_tte_data or
-             dcam_hit         or
-             dtlb_entry_vld   or
-             nceen            or
-             clk
-            )begin
-    //when xlation
-    if(`SAS_DEF && dcam_hit && nceen[thrid_m] && !dtlb_pending_wait[thrid_m])begin
-        for(rd_idx = 0; rd_idx < 64;rd_idx = rd_idx + 1)begin
-            if(dcam_hit[rd_idx] && dtlb_entry_vld[rd_idx])begin
-                if((^{dtlb_rd_tte_tag[58:55], dtlb_rd_tte_tag[53:27],
-                        dtlb_rd_tte_tag[25],    dtlb_rd_tte_tag[23:0]}) ^ dtlb_rd_tte_tag[54] ||
-                        (^dtlb_rd_tte_data[42:0]))begin
-                    dtlb_parity_occur = 1;
-                end
-                rd_idx = 64;
-            end
-        end
-    end
-end
 assign throw_pc = throw_pc_w;
-
-
-task dtlb_mon;
-    begin
-        //when xlation
-        just_done = 0;
-        spc0_force_flush = 0;
-
-        if(dtlb_parity_occur         &&
-                (^dtlb_rd_tte_data[42:0]) &&
-                ifu_tlu_inst_vld_m        &&
-                !ifu_lsu_pref_inst_m      &&//prefetch instruction
-                cam_vld                   &&
-                !(ifu_tlu_ttype_m   == 8'h10  && ifu_tlu_ttype_vld_m) &&
-                !((lsu_tlu_ttype_m2 == 8'h68 ||
-                   lsu_tlu_ttype_m2 == 8'h62 ||
-                   lsu_tlu_ttype_m2 == 8'h6c) && lsu_tlu_ttype_vld_m2 &&
-                  thrid_m == spc0_thread_pc))begin
-            dtlb_pending_send[thrid_m] = 1;
-            just_done[thrid_m]         = 1;
-            dummy = $bw_decoder(20, `TOP_MOD.list_handle, {cpu_id[9:0], thrid_m},
-                                rd_idx, dtlb_rd_tte_tag, pc_m, 1);
-            if(ifu_lsu_st_inst_m)begin
-                throw_pc_m[thrid_m] = 1;
-                if(thrid_m == thrid_e)throw_pcv[thrid_m] = pc_e;
-                else throw_st[thrid_m] = 1;
-                throw_not_st[thrid_m]  = 0;
-            end
-            else begin
-                throw_st[thrid_m]      = 0;
-                throw_not_st[thrid_m]  = 1;
-            end // else: !if(ifu_lsu_st_inst_m)
-            spc0_force_flush_w[thrid_m] = ifu_tlu_inst_vld_m;
-            spc0_force_flush[thrid_m]   = ifu_tlu_inst_vld_m;
-        end // if (dtlb_parity_occur && (^dtlb_rd_tte_data[42:0]))
-        dtlb_parity_occur = 0;
-        //when an asi read is issued.
-        if(dtlb_rw_index_vld && dtlb_entry_vld[dtlb_rw_index])begin
-            if(dtlb_rd_tag_vld &&
-                    ((^{dtlb_rd_tte_tag[58:55], dtlb_rd_tte_tag[53:27],
-                        dtlb_rd_tte_tag[25], dtlb_rd_tte_tag[23:0]}) ^ dtlb_rd_tte_tag[54]) ||
-                    dtlb_rd_data_vld &&
-                    ((^dtlb_rd_tte_data[41:0]) ^ dtlb_rd_tte_data[42]))begin
-                dtlb_pending_send[thrid_m] = 1;
-                just_done[thrid_m]         = 1;
-                dummy = $bw_decoder(20, `TOP_MOD.list_handle, {cpu_id[9:0], thrid_m},
-                                    dtlb_rw_index, dtlb_rd_tte_tag, pc_m, 1);
-            end
-        end
-    end
-endtask // dtlb_mon
 
 
 //got the correct pc.
@@ -7823,137 +6502,6 @@ function [63:0] which_pc;
         else which_pc[63:0] = spc0_rtl_pc;
     end
 endfunction // which_pc
-
-//trap request from lsu
-task dtlb_send;
-    input [1:0] thrid;
-    begin
-        if(dtlb_pending_send[thrid])begin
-            target_pc = which_pc(thrid);
-            if($bw_decoder(23, {cpu_id[9:0], thrid}, 1, pc_trap, pc_traps))begin
-                if(!lsu_tlu_defr_trp_taken_g && lsu_tlu_ttype_vld_m2 &&
-                        (lsu_tlu_ttype_m2 == 9'h34  ||
-                         lsu_tlu_ttype_m2 == 9'h35  ||
-                         lsu_tlu_ttype_m2 == 9'h36  ||
-                         lsu_tlu_ttype_m2 == 9'h37) ||
-                        trap_taken_g && (rst_hwint_ttype_g == 7'h5f)
-                  )begin
-                    dtlb_pending_send[thrid] = 0;//reset previous trap
-                    spc0_force_flush_w[thrid]  = 0;
-                    throw_pc_m[thrid]        = 0;
-                    dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 3, rd_idx);
-                end // if (!lsu_tlu_defr_trp_taken_g && lsu_tlu_ttype_vld_m2 &&...
-                else if(lsu_tlu_ttype_vld_m2 &&
-                        (lsu_tlu_ttype_m2 == 9'h62))begin//not tlb error trap
-                    dtlb_pending_send[thrid]  = 0;
-                    spc0_force_flush_w[thrid] = 0;
-                    throw_pc_m[thrid]         = 0;
-                    dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 3, rd_idx);
-                end
-                else if(target_pc == pc_trap)begin
-                    $display("%t:Info->DTLB request sent thread(%d) pc(%x)", $time, thrid, pc_trap);
-                    if(((lsu_tlu_ttype_m2 == 9'h30) && dtlb_tte_vld_g || lsu_tlu_ttype_m2 == 9'h6c) &&
-                            lsu_tlu_ttype_vld_m2 &&
-                            !spu_tlu_rsrv_illgl_m)begin
-                        if(lsu_tlu_ttype_m2 == 9'h30)data_exception[thrid] = 0;
-                        trap_type = lsu_tlu_ttype_m2;//data exception case
-                        dtlb_pending_send[thrid] = 0;//reset previous trap
-                        spc0_force_flush_w[thrid]  = 0;
-                        dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 3, rd_idx);
-                        if(ok_push[thrid])
-                            `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, trap_type);
-                        else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                                `PLI_FORCE_TRAP_TYPE, trap_type);
-                        throw_pc_m[thrid]        = 0;
-                    end
-                    else begin
-                        dtlb_pending_send[thrid] = 0;
-                        dtlb_pending_wait[thrid] = 1;
-                        throw_not_st[thrid]      = 0;
-                        throw_pc_w[thrid]        = throw_pc_m[thrid];
-                        spc0_force_flush_w[thrid]= 0;
-                        throw_pc_m[thrid]        = 0;
-                    end
-                end // else: !if(lsu_tlu_ttype_vld_m2 &&...
-                //throw_pc_m[thrid]        = 0;
-            end // if (which_pc(thrid) == pc_trap)
-        end // if ($bw_decoder(23,  {cpu_id[9:0], thrid}, 1, pc_trap))
-        else if((lsu_tlu_ttype_m2 == 9'h34 ||
-                 lsu_tlu_ttype_m2 == 9'h35 ||
-                 lsu_tlu_ttype_m2 == 9'h36)&&
-                lsu_tlu_ttype_vld_m2)begin
-            dtlb_pending_send[thrid] = 0;//reset previous trap
-            spc0_force_flush_w[thrid]= 0;
-            throw_pc_m[thrid]        = 0;
-            dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 3, rd_idx);
-        end
-        tlb_force_trap[thrid] = dtlb_pending_wait[thrid];
-    end
-
-endtask // dtlb_send
-
-//trap request from lsu
-//dtlb_entry_vld reset
-task dasync_mon;
-    reg [1:0] thrid;
-    begin
-        thrid = lsu_tlu_async_ttype_vld_w2 && lsu_tlu_async_ttype_w2 == 7'h32 ? lsu_tlu_async_tid_w2 : thrid_w2;
-        if(lsu_tlu_async_ttype_vld_w2   &&
-                (lsu_tlu_async_ttype_w2 == 7'h32) ||
-                lsu_tlu_defr_trp_taken_w2)begin
-            if(dtlb_pending_wait[thrid])begin
-                //pop the top of element.
-                dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 1, rd_idx);
-                dtlb_idx[thrid]       = rd_idx;
-                dtlb_reset_vld[thrid] = 1;
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, 9'h32);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_FORCE_TRAP_TYPE, 9'h32);
-            end
-            else if(pmem_unc_error_w)begin
-                if(delay_done[thrid] && is_load[thrid])begin
-                    delay_done[thrid]    = 0;
-                    is_load[thrid]       = 0;
-                    cancel_steppc[thrid] = 1;
-                end
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, 9'h32);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_FORCE_TRAP_TYPE, 9'h32);
-            end
-            else begin
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, 9'h32);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_FORCE_TRAP_TYPE, 9'h32);
-                dtlb_pending_wait[thrid] = 0;
-                throw_pc_w[thrid]        = 0;
-            end
-            dtlb_pending_wait[thrid] = 0;
-        end // if (lsu_tlu_async_ttype_vld_w2   &&...
-        else if(dtlb_pending_wait[thrid] && $bw_decoder(22, {cpu_id[9:0], thrid}, 1, rd_idx, tag_tlb, tlb_time))begin
-            dtlb_pending_wait[thrid] = 0;
-            throw_pc_w[thrid]        = 0;
-        end
-        //multi hit
-        if(lsu_tlu_async_ttype_vld_w2 && lsu_tlu_defr_trp_taken_w2)begin
-            thrid = thrid_w2;
-            if(dtlb_pending_wait[thrid])begin
-                //pop the top of element.
-                dummy = $bw_decoder(21, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, 1, rd_idx);
-                dtlb_idx[thrid]       = rd_idx;
-                dtlb_reset_vld[thrid] = 1;
-                if(ok_push[thrid])
-                    `SAS_SEND(`PLI_FORCE_TRAP_TYPE, {cpu_id[9:0], thrid}, 0, 0, 0, 9'h32);
-                else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_FORCE_TRAP_TYPE, 9'h32);
-                dtlb_pending_wait[thrid] = 0;
-            end
-        end
-    end
-endtask // dasync_mon
 
 //mmu register compare
 task mmu_register_cmp;
@@ -8132,353 +6680,10 @@ task get_tte;
         end // if (use_rtl_tte)
     end
 endtask
-//---------------------------------------------------------------------
-//send tte data to simics before stepping the target thread.
-//if tte data is zero, no valid tte data or no translation happen.
-task send_tte;
-    input [1:0] thrid;
-    reg dummy, vld;
-    reg [63:0] tte, vpc;
-    reg [2:0] ind;
-
-    begin
-        if(use_rtl_tte)begin
-            vpc = delay_done[thrid]   ||
-                float_delay[thrid]  ||
-                is_it_load[thrid]   ||
-                cancel_steppc[thrid] ? delay_pc[thrid] : spc0_rtl_pc;
-            tte = 0;
-            case(thrid)
-                2'b00 :
-                    if((tte_rd0 != tte_wr0)  &&
-                            itte_data0[tte_rd0]   &&
-                            (vpc == itte_pc0[tte_rd0]))begin
-                        tte                 = itte_data0[tte_rd0];
-                        itte_data0[tte_rd0] = 0;
-                        tte_rd0             = tte_rd0 + 1;
-                    end
-                2'b01 :
-                    if((tte_rd1 != tte_wr1)  &&
-                            itte_data1[tte_rd1]   &&
-                            (vpc == itte_pc1[tte_rd1]))begin
-                        tte                 = itte_data1[tte_rd1];
-                        itte_data1[tte_rd1] = 0;
-                        tte_rd1             = tte_rd1 + 1;
-                    end
-                2'b10 :
-                    if((tte_rd2 != tte_wr2)  &&
-                            itte_data2[tte_rd2]   &&
-                            (vpc == itte_pc2[tte_rd2]))begin
-                        tte                 = itte_data2[tte_rd2];
-                        itte_data2[tte_rd2] = 0;
-                        tte_rd2             = tte_rd2 + 1;
-                    end
-                2'b11 :
-                    if((tte_rd3 != tte_wr3)  &&
-                            itte_data3[tte_rd3]   &&
-                            (vpc == itte_pc3[tte_rd3]))begin
-                        tte                 = itte_data3[tte_rd3];
-                        itte_data3[tte_rd1] = 0;
-                        tte_rd3             = tte_rd3 + 1;
-                    end
-            endcase // case(thrid)
-
-            if(tte)begin
-                for(ind = 0; ind < 4; ind = ind + 1)begin
-                    if(ok_push[ind])`SAS_SEND(`PLI_INST_TTE, {cpu_id[9:0], ind[1:0]}, 0, 0, 0, tte);
-                    else dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], ind[1:0]}, `PLI_INST_TTE, tte);
-                end
-                $display("Info: (%0t) Sent tte data", $time);
-            end
-
-            //dtlb site
-            if(delay_done[thrid]   ||
-                    float_delay[thrid]  ||
-                    is_it_load[thrid]   ||
-                    cancel_steppc[thrid])begin
-                tte = dtte[thrid];
-                vld = dtte_inst[thrid];
-            end
-            else begin
-                tte = dformatted_tte_data;
-                vld = dtlb_cam_vld_w;
-            end // else: !if(delay_done[thrid]   ||...
-
-
-            if(vld && tte[63])begin
-                if(ok_push[thrid])`SAS_SEND(`PLI_DATA_TTE, {cpu_id[9:0], thrid}, 0, 0, 0, tte);
-                else dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_DATA_TTE, tte);
-            end
-        end // if (use_rtl_tte)
-        if(!ignore_step_w2[thrid])begin// || ignore_step_w2[thrid] && tlu_exu_early_flush_pipe_w)begin
-            if(ok_push[thrid])begin
-                `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], thrid}, 0, 0, 0, 0);
-                if(debug_sas) $display("%0t BW_LIST: Sending step to simics for core %d, thread %d", $time, cpu_id[9:0], thrid);
-            end
-            else dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_SSTEP, step_pc, 0, 0);
-            // if(ignore_step_w2[thrid] && tlu_exu_early_flush_pipe_w)ignore_step_w2[thrid] = 0;
-        end
-        else ignore_step_w2[thrid] = 0;
-
-    end
-endtask // send_step
 
 //----------------------------------------------------------------------------
 //warm reset process
 reg [3:0] after_rst;
-
-//-----------------------------------------------
-//reset clean up
-task reset_clean;
-    integer i, j;
-
-    begin
-        itlb_pending_send = 0;
-        itlb_pending_wait = 0;
-        dtlb_pending_send = 0;
-        dtlb_pending_wait = 0;
-        throw_pc_m        = 0;
-        dtlb_reset_vld    = 0;
-        itlb_reset_vld    = 0;
-        pending_itlb      = 0;
-        pending_dtlb      = 0;
-        irf_err_vld       = 0;
-        tlb_reset_on      = 1;
-        dtlb_parity_occur = 0;
-        throw_st          = 0;
-        throw_not_st      = 0;
-        htickcmp_rst      = 0;
-        stickcmp_rst      = 0;
-        tickcmp_rst       = 0;
-        htickcmpi_rst     = 0;
-        stickcmpi_rst = 0;
-        tickcmpi_rst  = 0;
-        cpx_rst       = 0;//power or wram reset
-        htickcmp_rst_after = 0;
-        stickcmp_rst_after = 0;
-        tickcmp_rst_after  = 0;
-        cancel_steppc = 0;
-        spu_step         = 0;
-        spc0_force_flush_w = 0;
-        precise_trap_step= 0;
-        spec_load      = 0;
-        pure_load      = 0;
-        coreavl        = 0;
-        reset_stat     = 0;
-        ctu_stat       = 0;
-        quad_load      = 0;
-        ok_push        = 4'hf;
-        unlock_thrid   = 0;
-        psft_flush     = 0;
-        csft_flush     = 0;
-        tlb_lock       = 0;
-        sfar_cntl      = 0;
-        float_delay    = 0;
-        icc_wr         = 0;
-        fcc_wr         = 0;
-        which_y_cntl   = 0;
-        block_load     = 0;
-        used_thread    = 0;
-        wake_int       = 0;
-        invr_hold      = 0;
-        save_happen    = 0;
-        restore_happen = 0;
-        once_step      = 0;
-        on_spc         = 0;
-        //	 set0_pc        = 0;
-        //	 delay_done     = 0;
-        thread_status  = 0;
-        spc_reg        = 0;
-        fsr_first      = 0;
-        muls           = 0;
-
-        invr_cntl      = 0;
-        muls_ccr       = 0;
-        isfsr          = 0;
-        is_fsr_m       = 0;
-        is_fsr_w       = 0;
-        previous_flush_happen = 0;
-        //pwr_tpc        = 0;
-        //pwr_tnpc       = 0;
-        //pwr_tstate     = 0;
-        //pwr_hstate     = 0;
-        for(i = 0; i < 4;i = i+1)begin
-            //   delay_pc[i]   = 0;
-            //    delay_npc[i]  = 0;
-            cwp[i]        = 0;
-            special[i]    = 0;
-            pstate[i]     = 'h014;
-        end
-        for(i = 0; i < 8; i = i + 1)begin
-            th_vec[i] = 3'b101;
-        end
-        dctxt_nztxt_ps0_cntl = 0;
-        ictxt_nztxt_ps0_cntl = 0;
-        dctxt_nztxt_ps1_cntl = 0;
-        ictxt_nztxt_ps1_cntl = 0;
-        dctxt_nzcfg_cntl     = 0;
-        ictxt_nzcfg_cntl     = 0;
-        dctxt_ztxt_ps0_cntl  = 0;
-        ictxt_ztxt_ps0_cntl  = 0;
-        dctxt_ztxt_ps1_cntl  = 0;
-        ictxt_ztxt_ps1_cntl  = 0;
-        dctxt_zcfg_cntl      = 0;
-        ictxt_zcfg_cntl      = 0;
-        dtag_access_cntl     = 0;
-        itag_access_cntl     = 0;
-        dmmu_idx             = 0;
-        immu_idx             = 0;
-        immu_miss            = 0;
-        dmmu_miss            = 0;
-        trap_write_d2        = 0;
-        throw_pc_w        = 0;
-        delay_spu       = 0;
-        sft_vld0        = 0;
-        sft_vld1        = 0;
-        sft_vld2        = 0;
-        sft_vld3        = 0;
-        sft_match       = 0;
-        sft_match0      = 0;
-        sft_match1      = 0;
-        sft_match2      = 0;
-        sft_match3      = 0;
-        stickcmp_cntl   = 0;
-        stick_cntl      = 0;
-        htick_cntl      = 0;
-        hint_wait       = 0;
-        float_cntl      = 0;
-        float_cntl_next = 0;
-        y_cntl          = 0;
-        ccr_cntl        = 0;
-        asi_cntl        = 0;
-        // tpc_cntl        = 0;
-        //tnpc_cntl       = 0;
-        //tstate_cntl     = 0;
-        //ttype_cntl      = 0;
-        tick_cntl       = 0;
-        fsr_cntl        = 0;
-        sft_cntl        = 0;
-        tcmp_cntl       = 0;
-        gsr_cntl        = 0;
-        gl_cntl         = 0;
-        hpstate_cntl    = 0;
-        htstate_cntl    = 0;
-        trap_cntl       = 0;
-        hintp_cntl      = 0;hintp_cntl_2 = 0;
-        pstate_cntl     = 0;
-        intr_next       = 0;
-        dsfsr_cntl      = 0;
-        isfsr_cntl      = 0;
-        pid_cntl        = 0;
-        sctxt_cntl      = 0;
-        pctxt_cntl      = 0;
-        wtchpt_cntl     = 0;
-        pil_cntl        = 0;
-        tba_cntl        = 0;
-        htba_cntl       = 0;
-
-        for(j = 0; j < 4; j = j + 1)begin
-            gen_w[j]  = 0;
-            gen_w2[j] = 0;
-            cpx_int[j]= 0;
-            pstate_val[j] = 'h014;
-        end
-        restore[0]      = 1;
-        restore[1]      = 1;
-        restore[2]      = 1;
-        restore[3]      = 1;
-        is_restore      = 8;
-        exu_tlu_spill_m = 0;
-        ifu_exu_save_m  = 0;
-        spu_illgl       = 0;
-        tlb_force_trap  = 0;
-
-        holdup_id    = 0;
-        sft_spct     = 0;
-        prev_vld     = 0;
-        update_by_sft= 0;
-        mul_vld      = 0;
-        block_enable = 0;
-        ccr_early    = 0;
-        hintp_early  = 0;
-        pstate_early = 0;
-        gl_early     = 0;
-        tl_early     = 0;
-        hpstate_early= 0;
-        ignore_int_rec = 0;
-        flush_after_intr = 0;
-        gsr_early    = 0;
-        y_early      = 0;
-        hint_flag    = 0;
-
-        //float
-        fp0_vld      = 0;
-        fp1_vld      = 0;
-        fp2_vld      = 0;
-        fp3_vld      = 0;
-        //global
-        gl0_vld      = 0;
-        gl1_vld      = 0;
-        gl2_vld      = 0;
-        gl3_vld      = 0;
-
-        gl0_mul      = 0;
-        gl1_mul      = 0;
-        gl2_mul      = 0;
-        gl3_mul      = 0;
-        thr0_vld     = 0;
-
-        thr0_reg_vld = 0;
-        thr1_reg_vld = 0;
-        thr2_reg_vld = 0;
-        thr3_reg_vld = 0;
-        //current
-        lcl0_vld     = 0;
-        lcl1_vld     = 0;
-        lcl2_vld     = 0;
-        lcl3_vld     = 0;
-        lcl0_mul     = 0;
-        lcl1_mul     = 0;
-        lcl2_mul     = 0;
-        lcl3_mul     = 0;
-        for(i = 0; i < 1024; i = i + 1)thr0_spc[i] = 0;
-        for(i = 0; i < 32; i = i + 1)begin
-            lcl0_val[i] = 0;
-            lcl1_val[i] = 0;
-            lcl2_val[i] = 0;
-            lcl3_val[i] = 0;
-            gl0_reg[i]  = 0;
-            gl1_reg[i]  = 0;
-            gl2_reg[i]  = 0;
-            gl3_reg[i]  = 0;
-        end
-        for(i = 0; i < 64; i = i + 1)begin
-            fp0_reg[i] = 0;
-            fp1_reg[i] = 0;
-            fp2_reg[i] = 0;
-            fp3_reg[i] = 0;
-        end
-        for(i = 0; i < `MONITOR_SIGNAL; i = i + 1)begin
-            thr0_reg[i] = 0;
-            thr1_reg[i] = 0;
-            thr2_reg[i] = 0;
-            thr3_reg[i] = 0;
-        end
-        check_only = 0;
-        mul_cc    = 0;
-        up_reset0 = 0;
-        up_reset1 = 0;
-        force_vld = 0;
-        fpdis = 0;
-        fpdis_first = 4'hf;
-        tlb_thrid = 0;
-        tlb_id_vld= 0;
-        //need to be ored all delay instruction.
-        after_rst = is_load;
-        is_load        = 0;
-        read_step_data;
-    end
-endtask // reset_clean
 
 reg [4:0]  c_reg;
 reg [2:0]  c_cwp;
@@ -8509,40 +6714,6 @@ task winAndreg;
         end
     end
 endtask // winAndreg
-
-task send_pcr;
-    input [1:0] thrid;
-    begin
-        if(pcr_read_enable && ecl_irf_wen_w && (thrid == ecl_irf_tid_w) )begin
-            not_pcr = 1;
-            c_thrid = thrid;
-            winAndreg(spc0_thread_w, thr_rd_w, spc0_rtl_reg_val_w);
-            if(ok_push[thrid])
-                `SAS_SEND(`PLI_WRITE_TH_REG, {cpu_id[9:0], thrid}, c_cwp, c_reg, 0, c_val);
-            else
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_WRITE_TH_REG, c_cwp, c_reg, c_val);
-        end
-        else if(pcr_read_enable && ecl_irf_wen_w2 && (thrid == ecl_irf_tid_w2) )begin
-            not_pcr = 1;
-            c_thrid = thrid;
-            winAndreg(spc0_thread_w2, thr_rd_w2, spc0_rtl_reg_val_w2);
-            if(ok_push[thrid])
-                `SAS_SEND(`PLI_WRITE_TH_REG, {cpu_id[9:0], thrid}, c_cwp, c_reg, 0, c_val);
-            else
-                dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid}, `PLI_WRITE_TH_REG, c_cwp, c_reg, c_val);
-        end
-        else not_pcr = 0;
-    end
-endtask // send_pcr
-
-task save_pcr;
-    begin
-        if(`SAS_DEF && not_pcr)begin
-            push(`REG_WRITE_BACK, c_thrid, c_cwp, c_reg, c_val, 1, 2);
-            not_pcr = 0;
-        end
-    end
-endtask // save_pcr
 
 task cleanup_ctls;
     begin
@@ -8584,68 +6755,6 @@ task process;
         //------------------------------------------------------
         // tlb pending checker.
         //------------------------------------------------------
-        if(`SAS_DEF)begin
-            //do the stepping of delayed tlb operation,
-            // which is not committed in some reason.
-            tlb_thrid_update;
-            if(unlock_thrid)read_step_data;
-            //process the normal tlb operation.
-            tlb_unlock_wr_operation(tlb_thrid_delay);
-            //processing the rest of the pending tlb only if true tlb operation happens.
-            //if tlu trap occurs, unlock mmu operation.
-            tlb_unlock_operation(tlb_access_tid_g);
-            tlb_unlock_m = 0;
-            // if(tlb_lock[thrid_m] && unlock_thrid == 0)begin
-            //    tlb_unlock_operation(thrid_m);
-            // end
-            //if(spc0_flush_happen && ignore_step_w2[spc0_thread_pc])ignore_step_w2[spc0_thread_pc] = 0;
-            if(unlock_thrid)begin
-                read_step_data;
-                pending_tlb = 1;
-            end
-            else pending_tlb = 0;
-            /*if(pending_tlb && (ok_push != 4'hf))begin
-            //process the pending thread when demap happen.
-            //demap operation wait for demap.
-            for(ind = 0; ind < 4; ind = ind +1)begin
-            if(!ok_push[ind]   &&
-            !idemap_is[ind] &&
-            !ddemap_is[ind])tlb_unlock_operation(ind);
-            end
-            end*/ // if (`SAS_DEF)
-
-            if(spc0_inst_done && sent_4f_flag[spc0_thread_pc])sent_4f_flag[spc0_thread_pc] = 0;
-
-            if(spc0_inst_done     ||
-                    spc0_flush_happen_m||
-                    spc0_hintp_cntl    ||
-                    spc0_flush_happen)begin
-                // if(!tlb_lock[spc0_thread_pc] || thrid_m == spc0_thread_pc )tlb_lock_operation(spc0_thread_pc);
-                if(!tlb_unlock_m ||
-                        tlb_unlock_m &&(thrid_m == spc0_thread_pc) ||
-                        spc0_hintp_cntl)tlb_lock_operation(spc0_thread_pc);
-                /* if(tlb_lock[spc0_thread_pc] == 0)begin
-                cmd = $bw_decoder(3, decoder_handle, {cpu_id[9:0], spc0_thread_pc}, tmp_pc);
-                if(cmd)begin
-                tlb_lock[spc0_thread_pc]    = 1'b1;
-                tlb_lock_pc[spc0_thread_pc] = tmp_pc;
-                tlb_cmd[spc0_thread_pc]     = cmd;
-                end
-                end
-                tlb_lock_operation(spc0_thread_pc);*/
-            end
-            if(unlock_thrid)read_step_data;
-            if(tlb_lock)dummy = $bw_decoder(8, decoder_handle, ok_push, {cpu_id[9:0], 2'b0});
-            check_mmu_miss;
-            if(spc0_flush_happen)smash_mmu_asi(spc0_thread_pc);
-
-            if(!ok_push[thrid_m] &&
-                    ifu_tlu_ttype_vld_m && ifu_tlu_ttype_m == 8'h74)begin
-                unlock_thrid[thrid_m] = 1'b1;
-                read_step_data;
-            end
-
-        end // if (`SAS_DEF)
 
         for(ind = 0;ind < 4; ind = ind + 1)begin
             if(delay_spu_done[ind])delay_spu[ind] = 0;
@@ -8658,58 +6767,7 @@ task process;
         //prcoess the pending spec write
         stepping  = 0;
 
-        if(`SAS_DEF && spec_load)begin
-            for(ind = 0; ind < 4; ind = ind +1)begin
-                if(spec_load[ind]  &&
-                        delay_done[ind] &&
-                        (wrt_counter[ind] == 0))begin
-                    send_step(ind);
-                    delay_done[ind] = 1'b0;
-                    spec_load[ind]  = 0;
-                    is_load[ind]    = 0;
-                end
-                else if(wrt_counter[ind])wrt_counter[ind] = wrt_counter[ind] - 1;
-            end
-        end // if (spec_load)
-
         pcx_parser;//pcx checker for core available
-
-        /*	 if(next_mul[spc0_thread_pc] && `SAS_DEF)begin
-        rtl_reg_val =  next_val[spc0_thread_pc];
-        if(ok_push[spc0_thread_pc])
-        `SAS_SEND(`PLI_WRITE_TH_XCC_REG, {cpu_id[9:0], spc0_thread_pc}, rtl_reg_val[7:4], 0, 0, 0);
-        else
-        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], spc0_thread_pc},
-        `PLI_WRITE_TH_XCC_REG, 0, 0, rtl_reg_val[7:4]);
-        next_mul[spc0_thread_pc] = 0;
-        end*/
-        if(`SAS_DEF)begin
-            if(spc0_flush_happen &&
-                    dtlb_pending_send[spc0_thread_pc])begin
-                if(ifu_lsu_st_inst_w &&
-                        !tlu_ifu_flush_pipe_w &&
-                        !tlu_exu_early_flush_pipe_w)
-                    store_delay_flush[spc0_thread_pc] = 1;
-            end
-            if(tlu_ifu_flush_pipe_w || tlu_exu_early_flush_pipe_w)store_delay_flush[spc0_thread_pc] = 0;
-            tlb_send(pending_dtlb, 1);
-            tlb_send(pending_itlb, 0);
-            //itlb monitor
-            itlb_mon;
-            iasync_mon(thrid_w);
-            if(spc0_inst_done || spc0_flush_happen)itlb_send(spc0_thread_pc);
-            //dtlb monitor
-            dtlb_mon;
-            data_exception = 4'hf;
-            if(spc0_inst_done || spc0_flush_happen ||
-                    spc0_inst_done_trap && spc0_force_flush_w[spc0_thread_pc])dtlb_send(spc0_thread_pc);
-            dasync_mon;
-            //do the performance counter.
-            //permCounter;
-
-            //cleanup_ctls;
-
-        end
 
         float_load = 0;
         get_step_vector;
@@ -8731,65 +6789,7 @@ task process;
             end
             if(wake_int[spc0_thread_pc])ignore_int_rec[spc0_thread_pc] = 1;
             flush_tid = spc0_thread_pc;
-            /*
-            if(`SAS_DEF && muls_ccr[flush_tid])begin//force mulscc value
-            t_int[7:0]   = ccr_val[flush_tid];
-            if(ok_push[flush_tid])
-            `SAS_SEND(`PLI_WRITE_TH_XCC_REG, {cpu_id[9:0], flush_tid}, t_int[7:4], 0, 0, 0);
-            else
-            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], flush_tid},
-            `PLI_WRITE_TH_XCC_REG, 0, 0, t_int[7:4]);
-            end
-            */
             //exception. there is no the pending spec update.
-            if(`SAS_DEF              &&
-                    delay_done[flush_tid] &&
-                    ifu_rstint_w          &&
-                    sec_rst[flush_tid])begin
-                // $display("ttt: sas_def pc&npc");
-                process_signal(`PC, cpu_id, flush_tid);
-                process_signal(`NPC, cpu_id,  flush_tid);
-                delay_done[flush_tid] = 0;
-            end
-
-            if(`SAS_DEF && (delay_done[flush_tid] == 0))begin
-                updated_reg_list(`PC, 0, flush_tid, 0, spc0_rtl_pc, 0);
-                if(updated_reg_list_reg == 0)begin
-                    //force nop into pipe.
-                    dummy  = $bw_list(`TOP_MOD.list_handle, 20,  {cpu_id[9:0], flush_tid}, 32'h01000000, 0);
-                    if(!(ifu_rstint_w && sec_rst[flush_tid]))push(`PC, flush_tid, 0,  0, spc0_rtl_pc,  0, 0);
-                end
-                else if (sft_cntl[spc0_thread_pc] && ifu_tlu_swint_w)
-                    dummy  = $bw_list(`TOP_MOD.list_handle, 20,  {cpu_id[9:0], flush_tid}, 32'h01000000, 0);
-                //process the warm reset dummy pc.
-                if(sec_rst[flush_tid] && ifu_rstint_w && set0_pc[flush_tid] )begin
-                    tmp_pc = after_rst[flush_tid] ? delay_pc[flush_tid] : prev_pc[flush_tid];
-                    updated_reg_list(`PC, 0, flush_tid, 0, tmp_pc, 0);
-                    push(`PC, flush_tid, 0,  0, tmp_pc,  0, 0);
-                end
-                updated_reg_list(`NPC, 0, flush_tid, 0, spc0_rtl_npc, 0);
-                if(updated_reg_list_reg == 0 &&
-                        !(ifu_rstint_w && sec_rst[flush_tid]))push(`NPC, flush_tid, 0,  0, spc0_rtl_npc, 0, 0);
-                //process the warm reset dummy pc.
-                if(sec_rst[flush_tid] && ifu_rstint_w && set0_pc[flush_tid])begin
-                    tmp_pc = after_rst[flush_tid] ? delay_npc[flush_tid] : prev_npc[flush_tid];
-                    updated_reg_list(`NPC, 0, flush_tid, 0, tmp_pc, 0);
-                    push(`NPC, flush_tid, 0,  0, tmp_pc, 0, 0);
-                end
-                //if(spc0_rtl_pc != spc0_rtl_npc)push(`NPC, flush_tid, 0,  0, spc0_rtl_npc, 0, 0);
-                if(mul_vld[flush_tid])begin
-                    if(!send_mulx(mul_addr[flush_tid], mul_win[flush_tid], mul_thread[flush_tid]))
-                        if(!(save_w && spc0_cansave_cntl && send_mul(flush_tid, mul_addr[spc0_thread_pc])))
-                            push(`REG_WRITE_BACK, mul_thread[flush_tid], mul_win[flush_tid],
-                                 mul_addr[flush_tid], mul_val[flush_tid], 1, 2);
-                    mul_vld[flush_tid] = 0;
-                    prev_addr[spc0_thread_pc] = mul_addr[spc0_thread_pc];
-                    prev_val[spc0_thread_pc]  = mul_val[spc0_thread_pc];
-                    prev_win[spc0_thread_pc]  = mul_win[spc0_thread_pc];
-                    prev_vld[spc0_thread_pc]  = 1;
-                    //	  $display("MULP %d %d %x", $time, spc0_thread_pc, prev_addr[spc0_thread_pc]);
-                end
-            end
             wake_int[flush_tid] = 1;
         end // if (spc0_flush_happen &&...
         //main check
@@ -8880,7 +6880,6 @@ task process;
                 // $display("ttt: spc_trap_cntl");
                 process_signal(`PC, cpu_id, ind);
                 process_signal(`NPC, cpu_id, ind);
-                if(`SAS_DEF)send_tte(ind);
                 stepping[ind]   = 1'b1;
                 once_step[ind]  = 1'b1;
                 delay_done[ind] = 1'b0;
@@ -8890,12 +6889,6 @@ task process;
                 // $display("ttt: spc_trap_cntl");
                 process_signal(`PC, cpu_id, spc0_thread_pc);
                 process_signal(`NPC, cpu_id, spc0_thread_pc);
-                if(`SAS_DEF)begin
-                    if(spc0_inst_done)send_tick;
-                    send_tte(spc0_thread_pc);
-                    stepping[spc0_thread_pc]  = 1'b1;
-                    once_step[spc0_thread_pc] = 1'b1;
-                end
                 delay_done[spc0_thread_pc] = 1'b0;
                 if(is_load_m[spc0_thread_pc] == 0)is_load[spc0_thread_pc] = 0;
             end // else: !if(spu_lsu_ldxa_illgl_va_w2 && spu_lsu_ldxa_data_vld_w2 && spu_delay)
@@ -8914,7 +6907,6 @@ task process;
                     // $display("ttt: spc_trap_cntl");
                     process_signal(`PC, cpu_id, ind[1:0]);
                     process_signal(`NPC, cpu_id, ind[1:0]);
-                    if(`SAS_DEF)send_tte(ind);
                     stepping[ind]   = 1'b1;
                     once_step[ind]  = 1'b1;
                     delay_done[ind] = 1'b0;
@@ -9046,23 +7038,6 @@ task process;
         end // if (spc0_mon_sign[`SOFTINT])
         //send the stepping to the previous missing trap.
         precise_step = 0;
-        if(precise_trap_step && `SAS_DEF)begin
-            for(ind = 0;ind < 4;ind = ind +1)begin
-                if(precise_trap_step[ind])begin
-                    /*
-                    if(ok_push[ind[1:0]])begin
-                    `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], ind[1:0]}, 0, 0, 0, 0);
-                    end
-                    else
-                    dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],ind[1:0]}, `PLI_SSTEP, step_pc, 0, 0);
-                    */
-                    send_tte(ind[1:0]);
-
-                    precise_step[ind] = 1;
-                end
-                precise_trap_step[ind] = 0;
-            end
-        end // if (precise_trap_step)
         float_delay = 0;
         if(mul_vld[spc0_thread_pc] &&
                 on_spc[1]               &&
@@ -9087,12 +7062,6 @@ task process;
             end
         end
 
-        //-------------------------------------------------------------------
-        //warm reset case, need to throw the first stepping data.
-        // if(ifu_rstint_w &&
-        //   `SAS_DEF)begin
-        // dummy =  $bw_sas_recv(0, {cpu_id[9:0], spc0_thread_pc}, 0, 0, 500);
-        //end
         //process mmu register before stepping.
         mmu_register_cmp;
 
@@ -9107,19 +7076,6 @@ task process;
                         // $display("ttt: mmu_register_cmp");
                         process_signal(`PC, cpu_id, ind);
                         process_signal(`NPC, cpu_id, ind);
-                        if(`SAS_DEF)begin
-                            if((spc0_thread_pc == ind) && spc0_inst_done)send_tick;
-                            send_tte(ind[1:0]);
-                            /*
-                            if(ok_push[ind[1:0]])begin
-                            `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], ind[1:0]}, 0, 0, 0, 0);
-                            end
-                            else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],ind[1:0]}, `PLI_SSTEP, step_pc, 0, 0);
-                            */
-                            stepping[ind]  = 1'b1;
-                            once_step[ind] = 1'b1;
-                        end
                         delay_done[ind] = 1'b0;
                         float_done[ind] = 1'b1;
                         if(spu_step[ind])spu_step[ind] = 0;
@@ -9139,38 +7095,8 @@ task process;
                         // $display("ttt: spu_step");
                         process_signal(`PC, cpu_id, ind);
                         process_signal(`NPC, cpu_id, ind);
-                        if(`SAS_DEF)begin
-                            if((spc0_thread_pc == ind) && spc0_inst_done)send_tick;
-                            //send_pcr(ind[1:0]);
-
-                            send_tte(ind[1:0]);
-                            //send_pcr(ind[1:0]);
-                            /*
-                            if(ok_push[ind[1:0]])begin
-                            //   if((spc0_thread_pc == ind) && spc0_inst_done)send_tick;
-                            `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], ind[1:0]}, 0, 0, 0, 0);
-                            end
-                            else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],ind[1:0]}, `PLI_SSTEP, step_pc, 0, 0);
-                            */
-                            stepping[ind]  = 1'b1;
-                            once_step[ind] = 1'b1;
-                        end
                     end // if (set0_pc[ind] &&  (ind == spc0_thread_pc) && (is_load[ind]   == 1'b0) && on_spc[1])
                     else if(on_spc[1] && is_load[ind] && set0_pc[ind] && dup)delay_done[ind] = 1'b1;
-                    else if(on_spc[0] && (set0_pc[ind] == 0))
-                        if(`SAS_DEF)begin
-                            if((spc0_thread_pc == ind) && spc0_inst_done)send_tick;
-                            send_tte(ind[1:0]);/*
-                            if(ok_push[ind[1:0]])begin
-                            //if((spc0_thread_pc == ind) && spc0_inst_done)send_tick;
-                            `SAS_SEND(`PLI_SSTEP, {cpu_id[9:0], ind[1:0]}, 0, 0, 0, 0);
-                            end
-                            else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0],ind[1:0]}, `PLI_SSTEP, step_pc, 0, 0);*/
-                            stepping[ind]  = 1'b1;
-                            once_step[ind] = 1'b1;
-                        end
                     set0_pc[ind]    = 1'b1;
                 end // if (thread_status[ind] && (active[ind] != good[ind]) && !(tlu_ifu_flush_pipe_w && ifu_tlu_flush_w &&...
             end // for (ind = 0; ind < 4; ind = ind + 1)
@@ -9300,12 +7226,6 @@ task process;
                     (active[spc0_thread_pc] != good[spc0_thread_pc]))begin
                 if(!send_mulx(mul_addr[spc0_thread_pc], mul_win[spc0_thread_pc], mul_thread[spc0_thread_pc]))//cansave, it will drop.
                 begin
-                    if(`SAS_DEF &&
-                            !(save_w && spc0_cansave_cntl && set_mul))begin
-                        push(`REG_WRITE_BACK, mul_thread[spc0_thread_pc], mul_win[spc0_thread_pc],
-                             mul_addr[spc0_thread_pc], mul_val[spc0_thread_pc], 1, 2);
-                        //   $display("MULM %d %d %x", $time, spc0_thread_pc,mul_addr[spc0_thread_pc]);
-                    end
                     prev_addr[spc0_thread_pc] = mul_addr[spc0_thread_pc];
                     prev_val[spc0_thread_pc]  = mul_val[spc0_thread_pc];
                     prev_win[spc0_thread_pc]  = mul_win[spc0_thread_pc];
@@ -9348,7 +7268,6 @@ task process;
                 if(late_load_w[spc0_thread_pc])late_load[spc0_thread_pc] = 1;
             end
         end
-        save_pcr;
 
         if(spc0_inst_done && active[spc0_thread_pc] != good[spc0_thread_pc])begin
             $display("(%0t)Info-perm spc(%1d) thread(%d) pc(%x) npc(%x) opcode(%x)", $time, cpu_id[9:0], spc0_thread_pc, spc0_rtl_pc, spc0_rtl_npc, dtu_inst_w);
@@ -9357,93 +7276,6 @@ task process;
         //find the itlb & dtlb invalid instruction.
         //latch e-stage signals.
         //------------------------------------------------
-        if(`SAS_DEF)begin
-            picOverFlow;
-            if(fcl_dtu_inst_vld_e        &&
-                    lsu_ifu_ldsta_internal_e  &&
-                    ifu_lsu_alt_space_e)begin
-                mmu_asi_operation;
-                //cmd = $bw_decoder(2, decoder_handle, {cpu_id[9:0],ifu_tlu_thrid_e[1:0]},   pc_e,
-                //		 asi_state_e,  exu_lsu_ldst_va_e[9:0], itlb_entry_vld, dtlb_entry_vld);
-                cmd = tlb_asi(asi_state_e, exu_lsu_ldst_va_e[9:0], itlb_entry_vld, dtlb_entry_vld);
-                if(cmd)begin
-                    if(tlb_lock[ifu_tlu_thrid_e])begin
-                        unlock_thrid[ifu_tlu_thrid_e] = 1'b1;
-                        read_step_data;
-                    end
-                    tlb_lock[ifu_tlu_thrid_e]    = 1'b1;
-                    tlb_lock_pc[ifu_tlu_thrid_e] = pc_e;
-                    tlb_cmd[ifu_tlu_thrid_e]     = cmd;
-                    tlb_rs3[ifu_tlu_thrid_e]     = exu_lsu_rs3_data_e;
-                    idemap_is[ifu_tlu_thrid_e]   = asi_state_e == 8'h57 || asi_state_e == 8'h55;
-                    ddemap_is[ifu_tlu_thrid_e]   = asi_state_e == 8'h5f || asi_state_e == 8'h5d;
-                end
-            end // if (fcl_dtu_inst_vld_e        &&...
-            if((ifu_tlu_hwint_m || ifu_tlu_swint_m ) && muls_ccr[ifu_tlu_thrid_m] ||
-                    (ifu_tlu_ttype_vld_m && ifu_tlu_ttype_m == 8'h5e) && muls_ccr[thrid_m])begin
-                thrid =  ifu_tlu_thrid_m;
-
-                if(`SAS_DEF)begin
-                    rtl_reg_val[7:0]   =  ccr_val[thrid];
-                    if(ok_push[thrid])
-                        `SAS_SEND(`PLI_WRITE_TH_XCC_REG, {cpu_id[9:0], thrid}, rtl_reg_val[7:4], 0, 0, 0);
-                    else
-                        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                            `PLI_WRITE_TH_XCC_REG, 0, 0, rtl_reg_val[7:4]);
-                end
-                muls_ccr[thrid] = 0;
-            end // if (ifu_tlu_hwint_m && muls_ccr[ifu_tlu_thrid_m])
-
-            //process delay mmu register
-            if(spc0_inst_done || spc0_flush_happen)begin
-                thrid = spc0_thread_pc;
-                tmp_pc = delay_dsfsr_val[thrid];
-                if(delay_dsfsr[thrid])begin
-                    push(`DSFSR, thrid, 0, 0, tmp_pc, 0, 0);
-                    delay_dsfsr[thrid] = 0;
-                end
-                tmp_pc = delay_sfar_val[thrid];
-                if(delay_sfar[thrid])begin
-                    push(`SFAR, thrid, 0, 0, tmp_pc, 0, 0);
-                    delay_sfar[thrid] = 0;
-                end
-            end
-            if(spc0_inst_done)begin
-                thrid = spc0_thread_pc;
-                if(dsfsr_force_vld[thrid])begin
-                    tmp_pc = dsfsr_force_val[thrid];
-                    updated_reg_list(`DSFSR, 0 , thrid, 0, tmp_pc, 0);
-                    if(!updated_reg_list_reg)begin
-                        if(ok_push[thrid]) begin
-                            `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], thrid}, 0, `DSFSR, 0, tmp_pc);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x on DSFSR of core %d thread %d", $time, tmp_pc, cpu_id[9:0], thrid);
-                        end
-                        else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                                `PLI_WRITE_TH_CTL_REG, 0, `DSFSR, tmp_pc);
-                        delay_dsfsr[thrid]     = 1;
-                        delay_dsfsr_val[thrid] = tmp_pc;
-                    end
-                    dsfsr_force_vld[thrid] = 0;
-                end
-                if(sfar_force_vld[thrid])begin
-                    tmp_pc = sfar_force_val[thrid];
-                    updated_reg_list(`SFAR, 0 , thrid, 0, tmp_pc, 0);
-                    if(!updated_reg_list_reg)begin
-                        if(ok_push[thrid]) begin
-                            `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], thrid}, 0, `SFAR, 0, tmp_pc);
-                            if(debug_sas) $display("%0t BW_LIST: Forcing value %x on SFAR of core %d thread %d", $time, tmp_pc, cpu_id[9:0], thrid);
-                        end
-                        else
-                            dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], thrid},
-                                                `PLI_WRITE_TH_CTL_REG, 0, `SFAR, tmp_pc);
-                        delay_sfar[thrid]     = 1;
-                        delay_sfar_val[thrid] = tmp_pc;
-                    end
-                    sfar_force_vld[thrid] = 0;
-                end
-            end // if (spc0_inst_done)
-        end // if (`SAS_DEF)
         //if(spc0_inst_done && stepping[spc0_thread_pc])delay_spu_done[spc0_thread_pc] = 1;
 
         delay_spu_done = stepping;
@@ -9456,16 +7288,6 @@ task process;
                 (tlu_exu_early_flush_pipe_w ||
                  tlu_ifu_flush_pipe_w))previous_flush_happen[spc0_thread_pc] = ~stepping[spc0_thread_pc];
         if(spc0_inst_done && previous_flush_happen[spc0_thread_pc])previous_flush_happen[spc0_thread_pc] = 0;
-        /*
-        if(prev_tstate_cmd)begin
-        if(ok_push[spc0_thread_pc])
-        `SAS_SEND(`PLI_WRITE_TH_CTL_REG, {cpu_id[9:0], spc0_thread_pc[1:0]}, 0, prev_tstate_cmd, 0, prev_tstate);
-        else
-        dummy = $bw_decoder(5, `TOP_MOD.list_handle, {cpu_id[9:0], spc0_thread_pc[1:0]},
-        `PLI_WRITE_TH_CTL_REG, 0, prev_tstate_cmd,  prev_tstate);
-
-        end
-        */
         if(spc_ccr_cntl)prev_ccr[ccr_tid] = ccr_val[ccr_tid];
     end
 endtask // process

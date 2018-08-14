@@ -60,7 +60,6 @@ begin
         $display("Iob NOC2 sent a packet: %h", `FAKE_IOB.noc_out_data);
     end
     
-`ifndef __ICARUS__
     if(`FAKE_IOB.pcx_iob_data[123])
     begin
         $display("Iob PCX received a packet: %h\n", `FAKE_IOB.pcx_iob_data);
@@ -69,8 +68,6 @@ begin
     begin
         $display("Iob CPX sent a packet: %h\n", `FAKE_IOB.cpx_data);
     end
-`endif
-
 end
 
 

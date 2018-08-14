@@ -1589,11 +1589,8 @@ module sparc_ifu_fcl(/*AUTOARG*/
 		 // 0in <fire -message "ERROR: sparc_ifu_fcl: rd and wr req to I$ at the same time"
 `ifdef DEFINE_0IN
 `else           
-		`ifdef MODELSIM
 			 $display( "CACHE_CONTENTION", "ERROR: sparc_ifu_fcl: rd and wr req to I$ at the same time");
-		`else
-	         $error("CACHE_CONTENTION", "ERROR: sparc_ifu_fcl: rd and wr req to I$ at the same time");
-		`endif	 
+             $finish();
 `endif
 	      end
    end

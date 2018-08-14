@@ -33,7 +33,7 @@ if (`env | grep DV_ROOT` == "") then
 endif
 
 setenv OS `uname -s`
-setenv CPU `uname -p`
+setenv CPU `uname -m`
 
 if ( -f $DV_ROOT/tools/env/Makefile.$OS.$CPU ) then
   \rm -f $DV_ROOT/tools/env/Makefile.system
@@ -57,6 +57,10 @@ case ncverilog:
 
 case icarus:
     make icaruspli
+    breaksw
+
+case modelsim:
+    make modelsimpli
     breaksw
 
 case clean:

@@ -2463,7 +2463,7 @@ HT0_Trap_Function_0x12a:
 	mov	0x10, %g1
 	stxa	%o2, [%g1] 0x21	! set SCONTEXT
 	xor	%o3, 0x1, %o3	! invert bit so that later can
-	xor	%o4, 0x1, %o4	!    be xor'ed using wrpr 
+	xor	%o4, 0x1, %o4	!    be xored using wrpr 
 	sllx	%o3, 10, %o3	! align priv bit
 	sllx	%o4, 2, %o4	! align hpriv bit
 	rdpr 	%tstate, %g1
@@ -2765,7 +2765,7 @@ HT0_ChangeCtx_0x18a:
 	mov	0x10, %g1
 	stxa	%o2, [%g1] 0x21	! set SCONTEXT
 	xor	%o3, 0x1, %o3	! invert bit so that later can
-	xor	%o4, 0x1, %o4	!    be xor'ed using wrpr 
+	xor	%o4, 0x1, %o4	!    be xored using wrpr 
 	sllx	%o3, 10, %o3	! align priv bit
 	sllx	%o4, 2, %o4	! align hpriv bit
 	rdpr 	%tstate, %g1

@@ -42,16 +42,16 @@ VERSION = 1.11
 
 
 DEFINES = -DVERSION='"$(VERSION)"'
-CFLAGS = $(DEFINES) $(OPT)
+CFLAGS += $(DEFINES) $(OPT)
 
 
 LEXFLAGS = 
 YACCFLAGS = -d 
 INSTALL = .
 
-INCLUDES = -I/scratch/gpfs/yanqiz/temp/local/include
-LIBS = -lelf
-LDS = -L/scratch/gpfs/yanqiz/temp/local/lib
+INCLUDES +=
+LIBS += -lelf
+LDS += 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)

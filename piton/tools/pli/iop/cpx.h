@@ -50,7 +50,6 @@ public:
   void  xlation(pcx* pkt, char* data);
   void  xlation(pcx* pkt, int* data);
   void  xlation(pcx* pkt);
-  void  jxlation(pcx* pkt, int* data);
   int*  get_cpx();
   void  dec_wait();
   int   get_req_wait(){return (req_wait == 0) && (req_sent == 1);}

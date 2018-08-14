@@ -38,7 +38,7 @@ exu_irf_local		exu_irf_local.s			-max_cycle=850000
 tr_trap_inst		tr_tixcc0.s		      	-max_cycle=500000
 </runargs>
 
-<runargs -sim_run_args=+asm_err_en -sim_run_args=+err_inj_dbg -nosas -sim_run_args=+turn_mmu_checks_off>
+<runargs -sim_run_args=+asm_err_en -sim_run_args=+err_inj_dbg -sim_run_args=+turn_mmu_checks_off>
 //FAIL(HIT BAD TRAP) - Error event injection (see issue #123)
 //exu_ecc_rs1_ce		exu_ecc_rs1_ce.s		      -max_cycle=500000
 //exu_ecc_rs2_ce		exu_ecc_rs2_ce.s		      -max_cycle=500000

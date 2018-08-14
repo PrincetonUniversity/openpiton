@@ -69,15 +69,59 @@ export PERL_MODULE_BASE=$DV_ROOT/tools/perlmod
 
 # Synopsys variables from $SYN_HOME
 
+if [ ! -z $SYN_HOME ]
+then
 export SYN_LIB=$SYN_HOME/libraries/syn
 export SYN_BIN=$SYN_HOME/sparcOS5/syn/bin
+fi
 
 # Set Perl related variables
 export PERL_CMD="/usr/bin/perl"
 
 # Set path
 
-export PATH=".:$DV_ROOT/tools/bin:$NCV_HOME/tools/bin:$VCS_HOME/bin:$VERA_HOME/bin:$SYN_BIN/:$CC_BIN/:$PATH"
+NEWPATH=".:$DV_ROOT/tools/bin"
+
+if [ ! -z $VCS_HOME ]
+then
+NEWPATH=$NEWPATH:$VCS_HOME/bin
+fi
+
+if [ ! -z $NCV_HOME ]
+then
+NEWPATH=$NEWPATH:$NCV_HOME/tools.lnx86/bin/64bit
+fi
+
+if [ ! -z $ICARUS_HOME ]
+then
+NEWPATH=$NEWPATH:$ICARUS_HOME/bin
+fi
+
+if [ ! -z $MODELSIM_HOME ]
+then
+NEWPATH=$NEWPATH:$MODELSIM_HOME/bin
+fi
+
+if [ ! -z $SYN_BIN ]
+then
+NEWPATH=$NEWPATH:$SYN_BIN
+fi
+
+if [ ! -z $CC_BIN ]
+then
+NEWPATH=$NEWPATH:$CC_BIN
+fi
+
+export PATH="$NEWPATH:$PATH"
+
+# Set a couple of paths for MacOS
+OS=`uname -s`
+if [ $OS = "Darwin" ]
+then
+CPU=`uname -m`
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$DV_ROOT/tools/$OS/$CPU/lib
+export M4PATH=$DV_ROOT/tools/$OS/$CPU/lib/m4
+fi
 
 # Set library path for the new goldfinger
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DV_ROOT/tools/src/goldfinger/lib

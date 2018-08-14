@@ -25,23 +25,16 @@
     mon_pli.c
 ********************************************************************************
 $mon_init();
-$info (level, farmat-string, args ...);
-$error (tag-string, farmat-string, args ...);
-$warn (tag-string, farmat-string, args ...);
-
-$infow (level, farmat-string, args ...);
-will not add newline after print.
 
 Monitor activation example:
 
-vcs +mon0=cpu0:25 +mon1=ccx:10 +diserr=cerr:uerr +diswarn=abc:xyz
+vcs +mon0=cpu0:25 +mon1=ccx:10
 
 */
 
 #include "veriuser.h"
 #include "acc_user.h"
 #include <stdlib.h>
-#include "malloc.h"
 #include "string.h"
 #include "ctype.h"  /* for toupper */
 #include "stdio.h"  /* for sscanf.h */
@@ -58,12 +51,7 @@ static char *mon_inst_path[128];
 static int  mon_level[128];
 static int mon_path_num;
 
-static char *diserr_arr[64];
-static char *diswarn_arr[64];
-static int diserr_num;
-static int diswarn_num;
 static int monInit_done = 0 ;
-static int error_disable = 0 ;
 
 char format_buffer[4096];
 
@@ -170,19 +158,6 @@ char *format(char *mipname)
 }
 
 
-/*
- * string match function
- */
-int strmatch (char* s0, char* s1)
-{
-  char *p0;
-
-  p0 = strstr (s1, s0);
-  if (p0 == NULL) return 1;
-  else return 0;
-}
-
-
 /************************************************************************/
 /* $monInit check routine                                        */
 /************************************************************************/
@@ -225,48 +200,6 @@ void monInit_check(int data, int reason)
      }
      mon_path_num++;
    }
-
-   /* 
-    * plus args for diserr.
-    * +diserr=uce:cer:xyz
-    */
-   diserr_num = 0;
-   string = mc_scan_plusargs("diserr=");
-   if (string != 0) {
-     ptr = strtok (string, ":");
-     if (ptr == 0) {
-       tf_error("Syntax error in diserr plus arg\n");
-       tf_dofinish();
-       return;
-     }
-     while (1) {
-       diserr_arr[diserr_num] = strdup (ptr);
-       diserr_num++;
-       ptr = strtok (NULL, ":");
-       if (ptr == 0) break;
-     }
-   }
-
-   /* 
-    * plus args for diswarn.
-    * +diswarn=mem0:mem3
-    */
-   diswarn_num = 0;
-   string = mc_scan_plusargs("diswarn=");
-   if (string != 0) {
-     ptr = strtok (string, ":");
-     if (ptr == 0) {
-       tf_error("Syntax error in diswarn plus arg\n");
-       tf_dofinish();
-       return;
-     }
-     while (1) {
-       diswarn_arr[diswarn_num] = strdup (ptr);
-       diswarn_num++;
-       ptr = strtok (NULL, ":");
-       if (ptr == 0) break;
-     }
-   }
 }
 
 /************************************************************************/
@@ -277,245 +210,3 @@ void monInit_call(int data, int reason)
 {
     return;
 }
-
-
-/************************************************************************/
-/* $info check routine                                        */
-/************************************************************************/
-void info_check(int data, int reason)
-{
-  return;
-}
-
-/************************************************************************/
-/* $info call routine                                         */
-/************************************************************************/
-
-void infow_call(int data, int reason)
-{
-    char *ptr_mipname;
-    int i, level;
-
-    int ms, us, ns, ps;
-    get_time (&ms, &us, &ns, &ps);
-
-    ptr_mipname =  tf_mipname();
-
-   /* Requires at least two arguments */
-  if (tf_nump() < ARG2) {
-      tf_error("$info requires at least two arguments, info-level and format-string");
-      tf_dofinish();
-      return;
-   }
-
-   /*  First argument to $info() must be a value */
-   if (tf_typep(ARG1) != tf_readonly) {
-      tf_error("First argument to $info must be a value");
-      tf_dofinish();
-   }
-
-   /*  Second argument to $info() must be a string */
-   if (tf_typep(ARG2) != tf_string) {
-      tf_error("Second argument to $info must be a formating string");
-      tf_dofinish();
-   }
-
-   level = tf_getp(ARG1);
-   if (level == 0) {
-       io_printf ("%05d.%03d.%03d.%03d: INFO (%d): %s:%s",  ms,us,ns,ps, level, ptr_mipname, format(ptr_mipname));
-   }
-   else {
-     for (i = 0; i < mon_path_num; i++) {
-       if ((level <= mon_level[i]) &&
-	   (strmatch (mon_inst_path[i], ptr_mipname) == 0)
-	   ) {
-	 io_printf ("%05d.%03d.%03d.%03d: INFO (%d): %s:%s",  ms,us,ns,ps, level, ptr_mipname, format(ptr_mipname));
-       }
-     }
-   }
-    return;
-}
-
-void info_call(int data, int reason)
-{
-    char *ptr_mipname;
-    int i, level;
-
-    int ms, us, ns, ps;
-    get_time (&ms, &us, &ns, &ps);
-	 
-    ptr_mipname =  tf_mipname();
-
-   /* Requires at least two arguments */
-  if (tf_nump() < ARG2) {
-      tf_error("$info requires at least two arguments, info-level and format-string");
-      tf_dofinish();
-      return;
-   }
-
-   /*  First argument to $info() must be a value */
-   if (tf_typep(ARG1) != tf_readonly) {
-      tf_error("First argument to $info must be a value");
-      tf_dofinish();
-   }
-
-   /*  Second argument to $info() must be a string */
-   if (tf_typep(ARG2) != tf_string) {
-      tf_error("Second argument to $info must be a formating string");
-      tf_dofinish();
-   }
-
-   level = tf_getp(ARG1);
-
-   if (level == 0) {
-     io_printf ("%05d.%03d.%03d.%03d: INFO(%d): %s:%s\n",  ms,us,ns,ps, level, ptr_mipname, format(ptr_mipname));
-   }
-   else {
-     for (i = 0; i < mon_path_num; i++) {
-       if ((level <= mon_level[i]) &&
-	   (strmatch (mon_inst_path[i], ptr_mipname) == 0)
-	   ) {
-	 io_printf ("%05d.%03d.%03d.%03d: INFO(%d): %s:%s\n",  ms,us,ns,ps, level, ptr_mipname, format(ptr_mipname));
-       }
-     }
-   }
-    return;
-}
-
-/************************************************************************/
-/* $error check routine                                        */
-/************************************************************************/
-void error_check(int data, int reason)
-{
-   return;
-}
-
-/************************************************************************/
-/* $error call routine                                         */
-/************************************************************************/
-
-void error_call(int data, int reason)
-{
-  char *ptr_mipname;
-  char *ptr;
-  int i;
-
-  int ms, us, ns, ps;
-
-  get_time (&ms, &us, &ns, &ps);
-
-  ptr_mipname =  tf_mipname();
-
-  /* Requires at least two arguments */
-  if (tf_nump() < ARG2) {
-      tf_error("$error requires at least two arguments, error-disable-tag, and format-string");
-      tf_dofinish();
-      return;
-   }
-
-   /*  First argument to $error() must be a string */
-   if (tf_typep(ARG1) != tf_string) {
-      tf_error("First argument to $error must be a value");
-      tf_dofinish();
-   }
-
-   /*  Second argument to $error() must be a string */
-   if (tf_typep(ARG2) != tf_string) {
-      tf_error("Second argument to $error must be a formating string");
-      tf_dofinish();
-   }
-
-   for (i = 0; i < diserr_num; i++) {
-     ptr = strchr(diserr_arr[i], '.');
-     if (ptr == NULL) {
-       if (strcmp (tf_getcstringp(ARG1), diserr_arr[i]) == 0) {
-	   io_printf ("%05d.%03d.%03d.%03d: ERROR: %s:%s\n",  ms,us,ns,ps, ptr_mipname, format(ptr_mipname));
-	 return;
-       }
-     }
-     else {
-       sprintf (format_buffer, "%s.%s\0", tf_getcstringp(ARG1), ptr_mipname);
-       if (strcmp (format_buffer, diserr_arr[i]) == 0) {
-	 io_printf ("%05d.%03d.%03d.%03d: ERROR: %s:%s\n",  ms,us,ns,ps, ptr_mipname, format(ptr_mipname));
-	 return;
-       }
-     }
-   }
-   io_printf ("%05d.%03d.%03d.%03d: ERROR: %s:%s\n",  ms,us,ns,ps, ptr_mipname, format(ptr_mipname));
-   if (!error_disable) tf_dofinish();
-
-   return;
-}
-
-/************************************************************************/
-/* $warn check routine                                        */
-/************************************************************************/
-void warn_check(int data, int reason)
-{
-   return;
-}
-
-/************************************************************************/
-/* $warn call routine                                         */
-/************************************************************************/
-
-void warn_call(int data, int reason)
-{
-  char *ptr_mipname;
-  int i;
-
-  int ms, us, ns, ps;
-  get_time (&ms, &us, &ns, &ps);
-
-  ptr_mipname =  tf_mipname();
-
-  /* Requires at least two arguments */
-  if (tf_nump() < ARG2) {
-      tf_error("$warn requires at least two arguments, warn-disable-tag, and format-string");
-      tf_dofinish();
-      return;
-   }
-
-   /*  First argument to $warn() must be a string */
-   if (tf_typep(ARG1) != tf_string) {
-      tf_error("First argument to $warn must be a value");
-      tf_dofinish();
-   }
-
-   /*  Second argument to $warn() must be a string */
-   if (tf_typep(ARG2) != tf_string) {
-      tf_error("Second argument to $warn must be a formating string");
-      tf_dofinish();
-   }
-
-   for (i = 0; i < diswarn_num; i++) {
-     if (strcmp (tf_getcstringp(ARG1), diswarn_arr[i]) == 0) return;
-   }
-   io_printf ("%05d.%03d.%03d.%03d: WARN: %s:%s\n",  ms,us,ns,ps, ptr_mipname, format(ptr_mipname));
-
-   return;
-}
-
-/************************************************************************/
-/* disable exit on error during runtime                                 */
-/************************************************************************/
-
-void monErrorDisable_call ()
-{
-  error_disable = 1 ;
-}
-
-/************************************************************************/
-/* enable exit on error during runtime                                 */
-/************************************************************************/
-
-void monErrorEnable_call ()
-{
-  error_disable = 0 ;
-}
-
-
-
-
-
-

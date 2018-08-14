@@ -140,6 +140,10 @@ if [ $OS = "Linux" ]; then
     user=`/usr/bin/whoami`
     CPU=`uname -m`
 fi
+if [ $OS = "Darwin" ]; then
+    user=`/usr/bin/whoami`
+    CPU=`uname -m`
+fi
 
 TRE_ROOT=$TRE_PROJECT/tools/$OS/$CPU
 

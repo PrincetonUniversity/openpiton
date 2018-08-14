@@ -190,12 +190,6 @@ reg       inst_checker_off;
 reg       fprs_on;
 
 `ifdef SAS_DISABLE
-reg  sas_def;
-initial begin
-    if($test$plusargs("use_sas_tasks"))sas_def = 1;
-    else sas_def = 0;
-    // sas_def = 1;
-end // initial
 `else
 initial begin
     in_used = 0;
@@ -726,7 +720,6 @@ end
 %>
 
 `endif // SAS_DISABLE
-reg         sas_def;
 // asdf;
 reg [71:0] active_window [127:0];
 reg [71:0] locals        [255:0];
@@ -738,7 +731,6 @@ reg [38:0] regfile       [255:0];
 time    sas_time;
 reg [63:0] sas_timer;
 
-reg [7:0]  sas_which;
 reg [9:0]  sas_spc; // seems to be unused
 reg [1:0]  sas_thread;
 reg [2:0]  sas_win;
@@ -757,28 +749,11 @@ initial begin
     expected_warm= 0;
     swap         = 0;
 
-    if($test$plusargs("use_sas_tasks"))
-    begin
-        sas_def = 1;
-        $display("ttt:sas_def = 1");
-    end
-    else
-    begin
-        sas_def = 0;
-        $display("ttt:sas_def = 0");
-    end
-
-    // sas_def = 1; //ttttttt
-    if(sas_def)begin
-        dummy = $bw_decoder(1);//create handle for this core.
-        $bw_force_by_name(1);
-    end
     if($test$plusargs("debug_sas")) debug_sas =1;
     else debug_sas = 0;
 end // initial begin
 
 //mra memory contets
-`ifndef __ICARUS__
 task mra_val;
     input [9:0] cpu;
     input [3:0] idx;
@@ -911,28 +886,6 @@ task mra_val;
         endcase // case(cpu)
     end
 endtask // mra_val
-//do reset tlb valid bit.
-task tlb_reset;
-    input [9:0] core;
-    input [5:0] idx;
-    input [1:0] which_tlb;
-
-    begin
-        case(core)
-        <%
-            t = r'''
-                `ifdef RTL_SPARC0
-                            10'd0 : if(which_tlb == 1)$bw_force_by_name(3, `DTLBPATH0.tlb_entry_vld, idx);
-                                else $bw_force_by_name(3, `ITLBPATH0.tlb_entry_vld, idx);
-                `endif
-            '''
-            tt = ReplicatePatternSpecial(t, ["RTL_SPARC0", "10'd0", "PATH0"])
-            print tt;
-        %>
-        endcase // case(core)
-    end
-endtask // tlb_reset
-`endif
 reg timestamp, timest;
 reg [63:0] time_stamp;
 reg         pli_flag;
@@ -947,15 +900,6 @@ always @(posedge clk)begin
     if(rst_l)begin
         sas_int      = 0;
         reset_status = 1;
-        if(sas_def)begin
-            if(timest)begin
-                timest = 0;
-                time_stamp = $time;
-            end
-            `SAS_INTER.send_model;
-            rtl_counter = rtl_counter + 1;
-            //if(pli_flag)$display("Info:Debug Time(%0t) rtl_cycle(%0d)", $time, rtl_counter);
-        end
         sas_int      = 1;
 
         `ifdef SAS_DISABLE
@@ -971,48 +915,6 @@ always @(posedge clk)begin
         %>
         `endif // SAS_DISABLE
 
-        if(sas_def)begin
-	    `ifndef __ICARUS__
-            rdAndcmp;
-            if(`TOP_MOD.diag_done)send_cmd(`PLI_RETRY, 0, 0, 0, 0, 0);
-            if(expected_warm)begin
-                //if(`TOP_MOD.init_done)begin
-                if(`FAKE_IOB.cpx_data[`CPX_VLD]                            &&
-                        (`FAKE_IOB.cpx_data[`CPX_RQ_HI:`CPX_RQ_LO] == `INT_RET) &&
-                        `FAKE_IOB.cpx_data[17:16] == 1)begin
-                    expected_warm = 0;
-                    //reset list and buffer
-                    $bw_reset_buf();//always send C0T0
-                    //dummy = $bw_list(`TOP_MOD.list_handle, `RESET_COMMAND);//clean instruction and register buffer
-                    dummy = $bw_decoder(`RESET_COMMAND, `TOP_MOD.list_handle);
-                    dummy = $bw_sas_send(`PLI_FORCE_TRAP_TYPE, 0, 8'b0000_0001);//trap type one
-
-                    <%
-                        t = r'''
-                            `ifdef RTL_SPARC0
-                              `SAS_TASKS.task0.reset_clean;
-                            `endif
-                        '''
-                        tt = ReplicatePatternSpecial(t, ["RTL_SPARC0", "task0"])
-                        print tt;
-                    %>
-
-                    for(i = 0; i < `NUM_TILES;i = i + 1)begin
-                        `TOP_MOD.monitor.pc_cmp.timeout[i]       = 0;
-                        `TOP_MOD.monitor.pc_cmp.active_thread[i] = 0;
-                    end
-                    //set active thread.
-                    //`TOP_MOD.monitor.pc_cmp.active_thread[0] = 1;
-                    $display("Get wake up signal from cpx");
-                    $display("wake up thread: %b", `FAKE_IOB.cpx_data[12:8]);
-                    `TOP_MOD.monitor.pc_cmp.active_thread[`FAKE_IOB.cpx_data[12:8]] = 1;
-                    max = `TOP_MOD.monitor.pc_cmp.max;
-                    `TOP_MOD.monitor.pc_cmp.max = 4000000;//waiting for dram wake up.
-                    swap = 1;
-                end // if (`TOP_DESIGN.iob_cpx_data_ca[`CPX_VLD] &&...
-            end // if (expected_warm)
-	    `endif
-        end // if (sas_def)
     end // if (rst_l)
     else if(reset_status)expected_warm = 1;
     if(swap &&
@@ -1159,8 +1061,6 @@ reg [4:0]   next_thread;
 reg [3:0]   recv_status;
 reg [3:0]   ready;
 reg [240:0] t_str;
-reg [7:0]   which;
-reg [9:0]   next_which;
 reg [63:0]  rtl_val;
 integer     good_timeout;
 //keep the drop invr data
@@ -1217,383 +1117,9 @@ always @(posedge clk)begin
                 end
             end
         end
-        if(less)begin
-            if(which == `INTR_RECEIVE || which == `HINTP_SAS)begin
-                dummy = $bw_list(`TOP_MOD.list_handle, 2,sas_which, sas_spc,  sas_thread,
-                                 sas_win, sas_addr,      sas_reg,   sas_cond, sas_timer);
-                sas_time = sas_timer;
-
-                if (debug_sas)
-                    $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) win(%d) reg_num(%d) val(%0x)",$time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-            end
-            else begin
-                if(wasthere)begin
-                    // tri: disable bc of segfault when calling bw_list
-                    // `MONITOR_PATH.fail("sas_fault");
-                    // dummy = $bw_list(`TOP_MOD.list_handle, 1,  next_thread,
-                    //                  sas_win, sas_addr, which, ready, rtl_val, sas_timer);
-                    // sas_time = sas_timer;
-                    // wasthere = 0;
-                    // if(!dummy)begin
-                    //     $display("%0t:Info-> empty list", $time);
-                    //     `MONITOR_PATH.fail("No empty list(sas_task)");
-                    // end
-                    // else begin
-                    //     if(once_try && $bw_empty())begin
-                    //         dummy = $bw_list(`TOP_MOD.list_handle, 11);
-                    //         once_try = 0;
-
-                    //     end
-                    //     else begin
-                    //         $display("%0t:Info->No response from simics", $time);
-                    //         $display("Info:debug for no response thread(%d) command(%s) type(%d)", next_thread, str[which], ready);
-                    //         `MONITOR_PATH.fail("No response from bas");
-                    //     end
-                    // end
-
-                end
-            end
-        end
     end // if (good_timeout > 2000)
 end
-//compare instruction
-task check_inst;
-    begin
-        dummy = $bw_sas_recv(sas_val, inst_thread, sas_win, sas_addr, 200, ready,
-                             sas_timer, next_which, mul, mulv, mulr, mulw);//got phyical address
-        if(sas_def && dummy)begin
-            dummy = $bw_list(`TOP_MOD.list_handle, 21, sas_reg,  sas_timer, inst_cond);
-            sas_time = sas_timer;
-            //      if(mul_vld[inst_thread])mul_vld[inst_thread]  = 0;
-            if(inst_cond)begin
-                if(sas_val[31:0] == sas_reg[31:0])begin
-                    $display("%0t:instruction-MATCH -> spc(%1d) thread(%d) physical_pc(%x) instruction(%x)",
-                             sas_time, inst_thread[4:2], inst_thread[1:0], mulv, sas_val[31:0]);
-                end
-                else begin
-                    if(inst_checker_off)begin
-                        $display("%0t:(Warning)-instruction -> spc(%1d) thread(%d)  physical_pc(%x) rtl_inst_reg = %x, sas_inst_reg =%x",
-                                 sas_time, inst_thread[4:2], inst_thread[1:0], mulv, sas_reg[31:0], sas_val[31:0]);
-                        recv_status  = 0;
-                    end
-                    else if(mulv)begin
-                        $display("%0t:MISMATCH-instruction -> spc(%1d) thread(%d)  physical_pc(%x) rtl_inst_reg = %x, sas_inst_reg =%x",
-                                 sas_time, inst_thread[4:2], inst_thread[1:0], mulv, sas_reg[31:0], sas_val[31:0]);
-                        recv_status  = 0;
-                        `MONITOR_PATH.fail("instruction-MISMATCH");
-                    end
-                end
-            end // if (mulv)
-        end // if (sas_def && dummy)
-    end
-endtask // check_inst
-//we want to compare the instruction after virtual pc match.
-reg [7:0] save_which;
 
-task rdAndcmp;
-    begin
-        if(sas_def)begin
-            recv_status = 1;
-            while($bw_list(`TOP_MOD.list_handle, 1,  next_thread,
-                           sas_win, sas_addr, which, ready, rtl_val, sas_timer) && recv_status && (`TOP_MOD.fail_flag == 0))begin
-                sas_time = sas_timer;
-                if(which == `HINTP_SAS && ready)begin
-                    dummy = $bw_list(`TOP_MOD.list_handle, 2, sas_which, sas_spc,  sas_thread,
-                                     sas_win, sas_addr,  sas_reg,   sas_cond, sas_timer);
-                    if (debug_sas)
-                        $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) win(%d) reg_num(%d) val(%0x)",$time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                    sas_time = sas_timer;
-                    register_cmp(sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg,
-                                 sas_reg, sas_reg, 0, 0, 0, 0, sas_cond);
-                end
-                else begin
-                    save_which = which;
-                    //if((which == `PC) && $bw_list(`TOP_MOD.list_handle, 22, inst_thread))check_inst;
-                    //process the core registers.
-                    mul  = mul_vld[next_thread];
-                    mulv = mul_val[next_thread];
-                    mulr = mul_reg[next_thread];
-                    mulw = mul_win[next_thread];
-
-                    if(which == `REG_WRITE_BACK         &&
-                            smul_vld[next_thread]            &&
-                            smul_val[next_thread] == rtl_val &&
-                            // ready < 2                        &&
-                            smul_reg[next_thread] == sas_addr)begin
-                        sas_val = smul_val[next_thread];
-                        dummy = $bw_list(`TOP_MOD.list_handle, 2, sas_which, sas_spc,  sas_thread,
-                                         sas_win, sas_addr,  sas_reg,   sas_cond, sas_timer);
-                        if (debug_sas)
-                            $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) win(%d) reg_num(%d) val(%0x)",$time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                        sas_time = sas_timer;
-                        if(ready < 2)
-                            register_cmp(sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg,
-                                         sas_val, sas_val, 0, 0, 0, 0, sas_cond);
-                        smul_vld[next_thread] = 0;
-                        recv_status           = 0;
-                        dummy = $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, which, ready, sas_timer, next_which,
-                                             mul, mulv, mulr, mulw);
-                    end
-                    else begin
-                        if(which == `REG_WRITE_BACK)smul_vld[next_thread] = 0;
-                        case($bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, which, ready, sas_timer, next_which,
-                                              mul, mulv, mulr, mulw))
-                            0 : begin
-                                recv_status                   = 0;
-                                if(!mulv)mul_vld[next_thread] = mulv;
-                            end
-                            1 : begin
-                                // if(!((which == `PC || which == `NPC) && !sas_val))begin
-                                if((which == `INTR_RECEIVE) &&
-                                        drop_vld[next_thread]    &&
-                                        (sas_val == drop_val[next_thread]))begin
-                                    sas_val   = drop_val[next_thread];
-                                    sas_which = which;
-                                    sas_spc   = next_thread[4:2];
-                                    sas_win   = drop_win[next_thread];
-                                    sas_cond  = drop_cond[next_thread];
-
-                                    if(sas_val != sas_reg)begin
-                                        dummy = $bw_list(`TOP_MOD.list_handle, 2, sas_which, sas_spc,  sas_thread,
-                                                         sas_win, sas_addr,       sas_reg,   sas_cond, sas_timer);
-                                        if (debug_sas)
-                                            $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) win(%d) reg_num(%d) val(%0x)",$time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                                        sas_time = sas_timer;
-                                    end
-
-                                    else
-                                        register_cmp(sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg,
-                                                     sas_val, sas_val, 0, 0, 0, 0, sas_cond);
-                                    drop_vld[next_thread] = 0;
-                                end
-                                else begin
-                                    if(mul_vld[next_thread]               &&
-                                            (mul_val[next_thread] == sas_val)  &&
-                                            (sas_win == mul_win[next_thread])  &&
-                                            (mul_reg[next_thread] == sas_addr) &&
-                                            (sas_val != rtl_val) &&
-                                            (ready != 1))begin
-                                        mul_vld[next_thread] = 0;
-                                        $display("Info:Mulcc data thread(%d) reg(%d) val(%x)", next_thread, sas_addr, sas_val);
-                                    end
-                                    else begin
-                                        dummy = $bw_list(`TOP_MOD.list_handle, 2,sas_which, sas_spc,  sas_thread,
-                                                         sas_win, sas_addr,      sas_reg,   sas_cond, sas_timer);
-                                        if (debug_sas)
-                                            $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) window(%d) reg(%d) val(%0x)\n", $time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                                        sas_time = sas_timer;
-                                        if((which == `REG_WRITE_BACK) &&
-                                                mul_vld[next_thread])begin
-                                            if(mul_reg[next_thread] == sas_addr)mul_vld[next_thread] = 0;
-                                        end
-                                        if(ready >= 2 || (which == `INTR_RECEIVE))begin//dummy compare
-                                            if(sas_reg != sas_val)begin
-                                                if(which == `INTR_RECEIVE)
-                                                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, 9, sas_timer);
-                                                else
-                                                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, ready, sas_timer);
-                                            end
-                                            else if(which == `INTR_RECEIVE && ready == 1)begin
-                                                $display("(%0t):drop intr_receive = %x thread(%d)", sas_time, sas_val, next_thread);
-                                            end
-                                            if(ready >= 2)begin
-                                                if(mul_vld[sas_thread])begin
-                                                    smul_vld[sas_thread] = 1;
-                                                    $display("Info: dummy mulcc data thread(%d) reg(%d) value(%x)",
-                                                             sas_thread, sas_addr, sas_val);
-                                                end
-                                                mul_vld[sas_thread] = 0;
-                                                //smul_vld[sas_thread] = 1;
-                                                smul_val[sas_thread] = sas_val;
-                                                smul_reg[sas_thread] = sas_addr;
-                                                smul_win[sas_thread] = sas_win;
-                                            end
-                                        end
-                                        else begin
-                                            register_cmp(sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg,
-                                                         sas_val, sas_val, 0, 0, 0, 0, sas_cond);
-                                        end // else: !if(ready >= 2 || (which == `INTR_RECEIVE))
-
-                                        if(which == `INTR_RECEIVE)drop_vld[next_thread] = 0;
-                                    end // else: !if(mul_vld[next_thread])
-                                end // else: !if((which == `INTR_RECEIVE) &&...
-                                //end // if (!((which == `PC || which == `NPC) && !sas_val))
-
-                                good_timeout = 0;
-                            end
-                            2 : begin
-                                recv_status = 0;
-                                dead_socket = 1;
-                                $display("Info:type(%0s) thread(%x) rtl-expected(%x)", str[which], next_thread, sas_reg);
-                                `MONITOR_PATH.fail("missed_trigger");
-                            end
-                            3 : begin
-                                dummy = $bw_list(`TOP_MOD.list_handle, 2,         sas_which, sas_spc, sas_thread,
-                                                 sas_win, sas_addr,     sas_reg,  sas_cond, sas_timer);
-                                if (debug_sas)
-                                    $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) window(%d) reg(%d) val(%0x)\n", $time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                                sas_time = sas_timer;
-                                if(!(ready >= 2))begin
-                                    if(which == `REG_WRITE_BACK)begin
-                                        if(sas_addr < 8)
-                                            $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(global) reg(%d) rtl-expected(%x)",
-                                                     sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                        else if(sas_addr < 16)
-                                            $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(out) reg(%d) rtl-expected(%x)",
-                                                     sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                        else if(sas_addr < 24)
-                                            $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(local) reg(%d) rtl-expected(%x)",
-                                                     sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                        else
-                                            $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(in) reg(%d) rtl-expected(%x)",
-                                                     sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                    end // if (which == `REG_WRITE_BACK)
-                                    else $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(%0s) reg(%d) rtl-expected(%x)",
-                                                      sas_time, sas_spc, sas_thread, sas_win, str[which], sas_addr, sas_reg);
-                                    dead_socket = 1;
-                                    `MONITOR_PATH.fail("Wrong_trigger");
-                                end // if (ready != 2)
-                                else begin //drop data.
-                                    $display("Info: pop thread(%x) addr(%d) val(%x)", next_thread, sas_addr, sas_reg);
-                                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, 10, sas_which, sas_reg);
-                                end // else: !if(!(ready >= 2))
-                                recv_status = 0;
-                            end
-                            4 : begin
-                                recv_status = 0;
-                                dead_socket = 1;
-                                $display("%0t:Info->Cannot send data to simics", $time);
-                                `MONITOR_PATH.fail("simics socket dead");
-                            end
-                            5 : begin//interrupt receiver register
-
-                                tmp_val = $bw_list(`TOP_MOD.list_handle, 4, sas_val, sas_win, sas_cond, next_thread);
-                                if(tmp_val == 1)begin
-                                    drop_vld[next_thread]  = 1;
-                                    drop_val[next_thread]  = sas_val;
-                                    drop_win[next_thread]  = sas_win;
-                                    drop_cond[next_thread] = sas_cond;
-                                end
-                                else if(tmp_val == 2)begin
-                                    mul_vld[next_thread]   = 1;
-                                    mul_val[next_thread]   = sas_val;
-                                    mul_reg[next_thread]   = sas_cond;
-                                    mul_win[next_thread]   = sas_win;
-                                end
-                                recv_status = 0;
-                            end
-                            7 : begin//shift by one
-                                dummy       = $bw_list(`TOP_MOD.list_handle, 5);
-                                recv_status = 0;
-                            end
-                            8: begin
-                                recv_status = 0;
-                                dead_socket = 1;
-                                $display("%0t:Info->Maybe simics in infinite loop.", $time);
-                                `MONITOR_PATH.fail("simics doesn't send data to RTL.");
-                            end
-                            9 : begin//search for the potential matching value.
-                                if($bw_list(`TOP_MOD.list_handle, 6, next_which))begin
-                                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, 11, sas_which);
-                                    if(!(ready >= 2))begin
-                                        dummy = $bw_list(`TOP_MOD.list_handle, 2, sas_which, sas_spc, sas_thread,
-                                                         sas_win, sas_addr, sas_reg,  sas_cond, sas_timer);
-                                        if (debug_sas)
-                                            $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) window(%d) reg(%d) val(%0x)\n", $time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                                        sas_time = sas_timer;
-                                        if(which == `REG_WRITE_BACK)begin
-                                            if(sas_addr < 8)
-                                                $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(global) reg(%d) rtl-expected(%x)",
-                                                         sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                            else if(sas_addr < 16)
-                                                $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(out) reg(%d) rtl-expected(%x)",
-                                                         sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                            else if(sas_addr < 24)
-                                                $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(local) reg(%d) rtl-expected(%x)",
-                                                         sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                            else
-                                                $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(in) reg(%d) rtl-expected(%x)",
-                                                         sas_time, sas_spc, sas_thread, sas_win,  sas_addr[2:0], sas_reg);
-                                        end
-                                        else $display("%0t:wrong_trigger->spc(%1d) thread(%x) window(%x) type(%0s) reg(%d) rtl-expected(%x)",
-                                                          sas_time, sas_spc, sas_thread, sas_win, str[which], sas_addr, sas_reg);
-                                        dead_socket = 1;
-                                        `MONITOR_PATH.fail("Wrong_trigger");
-                                    end
-                                end // if ($bw_list(`TOP_MOD.list_handle, 6, next_which))
-                                else begin
-                                    recv_status = 0;
-                                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, 12, next_which);
-                                end // else: !if($bw_list(`TOP_MOD.list_handle, 6, next_which))
-
-                            end // case: 9
-                            10 : //hit good trap
-                            begin
-                                dummy = $bw_list(`TOP_MOD.list_handle, 2,sas_which, sas_spc,  sas_thread,
-                                                 sas_win, sas_addr,      sas_reg,   sas_cond, sas_timer);
-                                if (debug_sas)
-                                    $display("%0t BW_LIST: Pop data type(%d) core(%d) thread(%d) window(%d) reg(%d) val(%0x)\n", $time, sas_which, sas_spc, sas_thread, sas_win, sas_addr, sas_reg);
-                                sas_time = sas_timer;
-                                recv_status = 0;
-                            end
-                        endcase // case($bw_sas_recv(sas_val, next_thread, sas_win, sas_addr))
-                    end // else: !if(which == `REG_WRITE_BACK &&...
-
-                    if((which == `PC) && $bw_list(`TOP_MOD.list_handle, 22, inst_thread))check_inst;
-
-                end
-            end // if (sas_def)
-        end // if (sas_def)
-    end
-endtask // endtask
-
-//integrate all socket send request to prevent the deadlock case.
-/*   task send_cmd;
-input [7:0]    cmd;
-input [7:0]    thr;
-input [7:0]    win;
-input [7:0]    addr;
-input [10:0]   counter;
-input [4287:0] data;//4288
-
-
-begin
-case(cmd)
-`PLI_QUIT             : sent = sent + 1;
-`PLI_SSTEP            : sent = sent + 2;
-`PLI_READ_TH_REG      : sent = sent + 4;
-`PLI_READ_TH_CTL_REG  : sent = sent + 3;
-`PLI_READ_TH_FP_REG_I : sent = sent + 3;
-`PLI_READ_TH_FP_REG_X : sent = sent + 3;
-`PLI_RTL_CYCLE        : sent = sent + counter ;
-`PLI_RTL_DATA         : sent = sent + 536;
-`PLI_WRITE_TH_XCC_REG : sent = sent + 3;
-endcase // case(cmd)
-if((sent >=  `CMD_BUFSIZE) && (cmd != `PLI_QUIT))begin
-while(sent != 0)begin
-sent = $bw_sas_send(`PLI_RETRY);
-rdAndcmp;
-if(dead_socket)begin
-sent = `CMD_BUFSIZE;
-@ (posedge clk);
-end
-end
-end
-case(cmd)
-`PLI_QUIT             : sent = $bw_sas_send(`PLI_QUIT);
-`PLI_SSTEP            : sent = $bw_sas_send(`PLI_SSTEP, thr);
-`PLI_READ_TH_REG      : sent = $bw_sas_send(`PLI_READ_TH_REG, thr, win, addr);
-`PLI_READ_TH_CTL_REG  : sent = $bw_sas_send(`PLI_READ_TH_CTL_REG, thr, win);
-`PLI_READ_TH_FP_REG_I : sent = $bw_sas_send(`PLI_READ_TH_FP_REG_I, thr, addr);
-`PLI_READ_TH_FP_REG_X : sent = $bw_sas_send(`PLI_READ_TH_FP_REG_X, thr, addr);
-`PLI_RTL_CYCLE        : sent = $bw_sas_send(`PLI_RTL_CYCLE, counter);
-`PLI_RTL_DATA         : sent = $bw_sas_send(`PLI_RTL_DATA, data);
-`PLI_WRITE_TH_XCC_REG : sent = $bw_sas_send(`PLI_WRITE_TH_XCC_REG, thr, win);
-`PLI_RETRY            : sent = $bw_sas_send(`PLI_RETRY);
-endcase // case(cmd)
-end
-endtask // send_cmd
-*/
 // reg timestamp;
 // reg [63:0] time_stamp;
 
@@ -1607,64 +1133,6 @@ begin
     if($test$plusargs("debug_cycle"))pli_flag = 1;
 end
 
-
-
-task send_cmd;
-    input [7:0]    cmd;
-    input [7:0]    thr;
-    input [7:0]    win;
-    input [7:0]    addr;
-    input [10:0]   counter;
-    input [4287:0] data;//4288
-
-    begin //send rtl cycle before sending any request to simics.
-        if(sas_int && `SAS_INTER.counter)begin
-            sent = $bw_sas_send(`PLI_RTL_CYCLE, `SAS_INTER.counter);
-            `SAS_INTER.counter = 0;
-        end
-        case(cmd)
-            `PLI_QUIT             : sent = $bw_sas_send(`PLI_QUIT);
-            `PLI_SSTEP            : sent = $bw_sas_send(`PLI_SSTEP, thr);
-            `PLI_READ_TH_REG      : sent = $bw_sas_send(`PLI_READ_TH_REG, thr, win, addr);
-            `PLI_READ_TH_CTL_REG  : sent = $bw_sas_send(`PLI_READ_TH_CTL_REG, thr, win);
-            `PLI_READ_TH_FP_REG_I : sent = $bw_sas_send(`PLI_READ_TH_FP_REG_I, thr, addr);
-            `PLI_READ_TH_FP_REG_X : sent = $bw_sas_send(`PLI_READ_TH_FP_REG_X, thr, addr);
-            `PLI_RTL_CYCLE        : begin
-                if(timestamp)begin
-                    timestamp  = 0;
-                    sent = $bw_sas_send(`TIMESTAMP, time_stamp[63:56], time_stamp[55:48],  time_stamp[47:40], time_stamp[39:32],
-                                        time_stamp[31:24], time_stamp[23:16],  time_stamp[15:8],  time_stamp[7:0]);
-
-                end
-                sent = $bw_sas_send(`PLI_RTL_CYCLE, counter);
-
-            end
-
-            `PLI_RTL_DATA         : begin
-                sent = $bw_sas_send(`PLI_RTL_DATA, data);
-            end
-
-            `PLI_WRITE_TH_XCC_REG : sent = $bw_sas_send(`PLI_WRITE_TH_XCC_REG, thr, win);
-            `PLI_WRITE_TH_REG_HI  : sent = $bw_sas_send(`PLI_WRITE_TH_REG_HI, thr, win, addr,
-                        data[31:24], data[23:16],  data[15:8], data[7:0]);
-            `PLI_WRITE_TH_REG     : sent = $bw_sas_send(`PLI_WRITE_TH_REG, thr, win, addr,
-                        data[63:56], data[55:48],  data[47:40], data[39:32],
-                        data[31:24], data[23:16],  data[15:8], data[7:0]);
-            `PLI_WRITE_TH_CTL_REG : sent = $bw_sas_send(`PLI_WRITE_TH_CTL_REG, thr, addr,
-                        data[63:56], data[55:48],  data[47:40], data[39:32],
-                        data[31:24], data[23:16],  data[15:8],  data[7:0]);
-            `PLI_RETRY            : sent = $bw_sas_send(`PLI_RETRY);
-            `PLI_FORCE_TRAP_TYPE  : sent = $bw_sas_send(`PLI_FORCE_TRAP_TYPE, thr, data[7:0]);
-            `PLI_RESET_TLB_ENTRY  : sent = $bw_sas_send(`PLI_RESET_TLB_ENTRY, thr, win, addr);
-            `PLI_INST_TTE         : sent = $bw_sas_send(`PLI_INST_TTE, thr,
-                        data[63:56], data[55:48],  data[47:40], data[39:32],
-                        data[31:24], data[23:16],  data[15:8],  data[7:0]);
-            `PLI_DATA_TTE         : sent = $bw_sas_send(`PLI_DATA_TTE, thr,
-                        data[63:56], data[55:48],  data[47:40], data[39:32],
-                        data[31:24], data[23:16],  data[15:8],  data[7:0]);
-        endcase // case(cmd)
-    end
-endtask // send_cmd
 task register_cmp;
     input [7:0]  type;
     input [9:0]  spc;
@@ -1685,1144 +1153,262 @@ task register_cmp;
         case(type)
             `REG_WRITE_BACK : begin
                 sym = sym_tab[rtl_reg_addr[5:3]];
-                if(sas_def == 0)begin
-                    $display("%0t:reg_updated -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
-                             $time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val);
-                end
-
-                else if(rtl_reg_addr == 6'b00_0000)begin
-                    /*$display("%0d:Warning : reg-MISMATCH -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) rtl_reg_val = %x, sas_reg_val =%x",
-                    $time, spc, thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val, sas_reg_val);*/
-                end // if (rtl_reg_addr == 6'b00_0000)
-                else if(cond)begin
-                    if(cond[2])begin
-                        if(rtl_reg_val[7:0] == sas_reg_val[7:0])begin
-                            $display("%0t:reg-MATCH -> spc(%1d)  thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
-                                     sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val[7:0]);
-                        end
-                        else begin
-                            $display("%0t:reg-MISMATCH -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) rtl_reg_val = %x, sas_reg_val =%x",
-                                     sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val[15:0], sas_reg_val[15:0]);
-                            `MONITOR_PATH.fail("reg-MISMATCH");
-                        end
-                    end
-                    else if(rtl_reg_val[31:0] == sas_reg_val[31:0])begin
-                        $display("%0t:reg-MATCH -> spc(%1d)  thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
-                                 sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val[31:0]);
-                    end
-                    else begin
-                        $display("%0t:reg-MISMATCH -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) rtl_reg_val = %x, sas_reg_val =%x",
-                                 sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val[31:0], sas_reg_val[31:0]);
-                        `MONITOR_PATH.fail("reg-MISMATCH");
-                    end
-                end
-                else  if(rtl_reg_val == sas_reg_val)begin
-                    $display("%0t:reg-MATCH -> spc(%1d)  thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
-                             sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val);
-                end
-                else begin
-                    dummy =  $bw_sas_recv(sas_val, next_thread, sas_win, sas_addr, 254, 77, sas_which, sas_temp);
-                    //  $display("MISM %x %x %x\n", dummy, sas_temp, sas_reg_val);
-
-                    if(dummy && (sas_temp == sas_reg_val) )begin
-                        dummy  = $bw_list(`TOP_MOD.list_handle, 7);//push back
-                    end
-                    else begin
-                        $display("%0t:reg-MISMATCH -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) rtl_reg_val = %x, sas_reg_val =%x",
-                                 sas_time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val, sas_reg_val);
-                        `MONITOR_PATH.fail("reg-MISMATCH");
-                    end
-                end
+                $display("%0t:reg_updated -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
+                         $time, spc,  thread, window, rs1, val1, rs2, val2, sym, rtl_reg_addr[2:0], rtl_reg_val);
             end
-            `PC             : begin
-                if(sas_def == 0)begin
-                    $display("%0t:pc-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(cond[3])begin//AM bit set
-                    if(rtl_reg_val[31:0] == sas_sps_val[31:0])begin
-                        $display("%0t:pc-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[31:0]);
-                    end
-                    else begin
-                        $display("%0t:pc-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_pc_reg = %x, sas_pc_reg =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[31:0], sas_sps_val[31:0]);
-                        `MONITOR_PATH.fail("pc-MISMATCH");
-                    end
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:pc-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:pc-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_pc_reg = %x, sas_pc_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("pc-MISMATCH");
-                end
+            `PC         : begin
+                $display("%0t:pc-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end
-            `NPC             : begin
-                if(sas_def == 0)begin
-                    $display("%0t:npc-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(cond[3])begin//PSTATE.AM=1
-                    if(rtl_reg_val[31:0] == sas_sps_val[31:0])begin
-                        $display("%0t:npc-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[31:0]);
-                    end
-                    else begin
-                        $display("%0t:npc-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_npc_reg = %x, sas_npc_reg =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[31:0], sas_sps_val[31:0]);
-                        `MONITOR_PATH.fail("npc-MISMATCH");
-                    end
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:npc-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-
-                else begin
-                    $display("%0t:npc-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_npc_reg = %x, sas_npc_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("npc-MISMATCH");
-                end
+            `NPC         : begin
+                $display("%0t:npc-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end
-            `Y              : begin
-                if(sas_def == 0)begin
-                    $display("%0t:y_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[31:0]);
-                end
-                else if(rtl_reg_val[31:0] == sas_sps_val[31:0])begin
-                    $display("%0t:y_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[31:0]);
-
-                end
-                else begin
-                    $display("%0t:y_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_y_reg = %x, sas_y_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[31:0], sas_sps_val[31:0]);
-                    `MONITOR_PATH.fail("Y_reg-MISMATCH");
-                end
+            `Y          : begin
+                $display("%0t:y_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[31:0]);
             end
-            `CCR            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ccr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[7:0]);
-                end
-                else if(cond)begin
-                    if(rtl_reg_val[7:0] == sas_sps_val[7:0])begin
-
-                        $display("%0t:ccr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[7:0]);
-
-
-                    end
-                    else begin
-                        dummy =  $bw_sas_recv(ccr_req, thread, sas_win, sas_addr, 254, 35, sas_timer, sas_sps_val[7:0]);
-                        //$display("MISMATC CCR", ccr_req);
-
-                        if(rtl_reg_val[7:0] == ccr_req[7:0])begin
-                            $display("%0t:ccr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                     sas_time, spc, thread, window, rtl_reg_val[7:0]);
-                        end
-                        else begin
-                            $display("%0t:ccr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_ccr_reg = %x, sas_ccr_reg =%x",
-                                     sas_time, spc, thread, window, rtl_reg_val[7:0], sas_sps_val[7:0]);
-                            `MONITOR_PATH.fail("ccr_reg-MISMATCH");
-                        end
-
-                    end
-                end
-                else if(rtl_reg_val[7:0] == sas_sps_val[7:0])begin
-                    $display("%0t:ccr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[7:0]);
-
-                end
-                else begin
-                    dummy =  $bw_sas_recv(ccr_req, thread, sas_win, sas_addr, 254, 35, sas_timer, sas_sps_val[7:0]);
-                    //$display("MISMATC CCR", ccr_req);
-                    if(rtl_reg_val[7:0] == ccr_req[7:0])begin
-                        $display("%0t:ccr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[7:0]);
-                    end
-                    else begin
-                        $display("%0t:ccr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_ccr_reg = %x, sas_ccr_reg =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[7:0], sas_sps_val[7:0]);
-                        `MONITOR_PATH.fail("ccr_reg-MISMATCH");
-                    end
-                end
+            `CCR        : begin
+                $display("%0t:ccr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[7:0]);
             end
-            `FPRS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:fprs_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, cond ? rtl_reg_val[2:0] : rtl_reg_val[1:0] );
-                end
-                else if(fprs_on)begin
-                    if(cond)begin
-                        if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                            $display("%0t:fprs_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                     sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                        end
-                        else begin
-                            $display("%0t:fprs_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_fprs_reg = %x, sas_fprs_reg =%x",
-                                     sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                            `MONITOR_PATH.fail("fprs_reg-MISMATCH");
-                        end
-                    end // if (cond)
-                    else begin
-                        if(rtl_reg_val[1:0] == sas_sps_val[1:0])begin
-                            $display("%0t:fprs_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                     sas_time, spc, thread, window, rtl_reg_val[1:0]);
-                        end
-                        else begin
-                            if((sas_sps_val[0] == 0) && rtl_reg_val[0] || (sas_sps_val[1] == 0) && rtl_reg_val[1])begin
-                                $display("%0t:fprs_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                         sas_time, spc, thread, window, rtl_reg_val[1:0]);
-                            end
-                            else begin
-                                $display("%0t:fprs_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_fprs_reg = %x, sas_fprs_reg =%x",
-                                         sas_time, spc, thread, window, rtl_reg_val[1:0], sas_sps_val[1:0]);
-                                `MONITOR_PATH.fail("fprs_reg-MISMATCH");
-                            end
-                        end
-                    end // else: !if(cond)
-                end // if (fprs_on)
+            `FPRS        : begin
+                $display("%0t:fprs_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, cond ? rtl_reg_val[2:0] : rtl_reg_val[1:0] );
             end // case: `FPRS
-            `FSR            : begin
+            `FSR        : begin
                 rtl_reg_val[22] = 0;//mask ns
                 sas_sps_val[22] = 0;
                 rtl_reg_val[13] = 0;//mask gne
                 sas_sps_val[13] = 0;
-                if(sas_def == 0)begin
-                    $display("%0t:fsr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[37:0]);
-                end
-                else if(rtl_reg_val[37:0] == sas_sps_val[37:0])begin//temp.
-                    $display("%0t:fsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[37:0]);
-                end
-                /* else if(rtl_reg_val[0] == 0)begin
-                $display("%0t:WARNING fsr_reg -> spc(%1d) thread(%d)  window(%d)  rtl_fsr_reg = %x, sas_fsr_reg =%x",
-                $time, spc, thread, window, rtl_reg_val[37:0], sas_sps_val[37:0]);
-                end*/
-                else begin
-                    $display("%0t:fsr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_fsr_reg = %x, sas_fsr_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[37:0], sas_sps_val[37:0]);
-                    `MONITOR_PATH.fail("fsr_reg-MISMATCH");
-                end
+                $display("%0t:fsr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[37:0]);
             end
-            `ASI            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:asi_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[7:0]);
-                end
-                else if(rtl_reg_val[7:0] == sas_sps_val[7:0])begin
-                    $display("%0t:asi_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[7:0]);
-                end
-                else begin
-                    $display("%0t:asi_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_asi_reg = %x, sas_asi_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[7:0], sas_sps_val[7:0]);
-                    `MONITOR_PATH.fail("ccr_reg-MISMATCH");
-                end
+            `ASI        : begin
+                $display("%0t:asi_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[7:0]);
             end // case: `CCR
-            `TICK_SAS           : begin
+            `TICK_SAS       : begin
                 sas_temp = sas_sps_val - 1;
 
-                if(sas_def == 0)begin
-                    $display("%0t:tick_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else if(rtl_reg_val[63:4] == sas_temp[63:4])begin
-                    $display("%0t:tick_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    $display("%0t:tick_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tick_reg = %x, sas_tick_reg =%x",
-                             $time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    // `MONITOR_PATH.fail("tick_reg-MISMATCH");
-                end
+                $display("%0t:tick_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[63:0]);
             end
-            `TICK_CMPR           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-
-                else if((cond == 7) && (rtl_reg_val[63] == sas_sps_val[63]))begin
-                    $display("%0t:tick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63]);
-                end
-                else if((cond == 0) && (rtl_reg_val[63:0] == sas_sps_val[63:0]))begin
-                    $display("%0t:tick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    if(cond == 7)
-                        $display("%0t:tick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tick_cmpr_reg[63] = %x, sas_tick_cmpr_reg[63] =%x",
-                                 $time, spc, thread, window, rtl_reg_val[63], sas_sps_val[63]);
-                    else $display("%0t:tick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tick_cmpr_reg = %x, sas_tick_cmpr_reg =%x",
-                                      $time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    `MONITOR_PATH.fail("tick_cmpr_reg-MISMATCH");
-                end
+            `TICK_CMPR       : begin
+                $display("%0t:tick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[63:0]);
             end
-            `STICK_CMPR           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:stick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else if((cond == 7) && (rtl_reg_val[63] == sas_sps_val[63]))begin
-                    $display("%0t:stick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63]);
-                end
-                else if((cond == 0) && (rtl_reg_val[63:0] == sas_sps_val[63:0]))begin
-                    $display("%0t:stick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    if(cond == 7)
-                        $display("%0t:stick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_stick_cmpr_reg[63] = %x, sas_stick_cmpr_reg[63] =%x",
-                                 $time, spc, thread, window, rtl_reg_val[63], sas_sps_val[63]);
-                    else $display("%0t:stick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_stick_cmpr_reg = %x, sas_stick_cmpr_reg =%x",
-                                      $time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    `MONITOR_PATH.fail("stick_cmpr_reg-MISMATCH");
-                end
+            `STICK_CMPR       : begin
+                $display("%0t:stick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[63:0]);
             end
-            `GSR            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:gsr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-
-                else if(rtl_reg_val[63:0] == sas_sps_val[63:0])begin
-                    $display("%0t:gsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    $display("%0t:gsr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_gsr_reg = %x, sas_gsr_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    `MONITOR_PATH.fail("gsr_reg-MISMATCH");
-                end
+            `GSR        : begin
+                $display("%0t:gsr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[63:0]);
             end // case: `TICK_CMPR
             `PSTATE_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:pstate_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[11:0]);
-                end
-                else if(rtl_reg_val[11:0] == sas_sps_val[11:0])begin
-                    $display("%0t:pstate_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[11:0]);
-                end
-                else begin
-                    $display("%0t:pstate_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_pstate_reg = %x, sas_pstate_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[11:0], sas_sps_val[11:0]);
-                    `MONITOR_PATH.fail("pstate_reg MISMATCH");
-                end
+                $display("%0t:pstate_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[11:0]);
             end
             `TL_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tl_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:tl_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:tl_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tl_reg = %x, sas_tl_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("tl_reg-MISMATCH");
-                end
+                $display("%0t:tl_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `PIL_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:pil_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[3:0]);
-                end
-                else if(rtl_reg_val[3:0] == sas_sps_val[3:0])begin
-                    $display("%0t:pil_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[3:0]);
-                end
-                else begin
-                    $display("%0t:pil_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_pil_reg = %x, sas_pil_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[3:0], sas_sps_val[3:0]);
-                    `MONITOR_PATH.fail("pil_reg-MISMATCH");
-                end
+                $display("%0t:pil_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[3:0]);
             end
             `TPC1, `TPC2, `TPC3, `TPC4, `TPC5, `TPC6 : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(!cond[2])begin
-                    if(cond[3])//pstaet.am bit
-                    begin
-                        if(rtl_reg_val[31:0] == sas_sps_val[31:0])begin
-                            $display("%0t:tpc%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                     sas_time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[31:0]);
-                        end // if (rtl_reg_val[31:0] == sas_sps_val[31:0])
-                        else begin
-                            $display("%0t:tpc%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tpc_reg = %x, sas_tpc_reg =%x",
-                                     sas_time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[31:0], sas_sps_val[31:0]);
-                            `MONITOR_PATH.fail("tpc_reg-MISMATCH");
-                        end
-                    end
-                    else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                        $display("%0t:tpc%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0]);
-                    end
-                    else begin
-                        $display("%0t:tpc%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tpc_reg = %x, sas_tpc_reg =%x",
-                                 sas_time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                        `MONITOR_PATH.fail("tpc_reg-MISMATCH");
-                    end
-                end
+                $display("%0t:tpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0]);
             end
             `TNPC1, `TNPC2, `TNPC3, `TNPC4, `TNPC5, `TNPC6 : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tnpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, type - 56, spc, thread, window, rtl_reg_val[47:0]);
-                end
-
-                else if(!cond[2])begin
-                    if(cond[3])begin
-                        if(rtl_reg_val[31:0] == sas_sps_val[31:0])begin
-                            $display("%0t:tnpc%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                     sas_time, type - 56, spc, thread, window, rtl_reg_val[31:0]);
-                        end
-                        else begin
-                            $display("%0t:tnpc%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tnpc_reg = %x, sas_tnpc_reg =%x",
-                                     sas_time, type - 56, spc, thread, window, rtl_reg_val[31:0], sas_sps_val[31:0]);
-                            `MONITOR_PATH.fail("tnpc_reg-MISMATCH");
-                        end
-                    end
-                    else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                        $display("%0t:tnpc%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, type - 56, spc, thread, window, rtl_reg_val[47:0]);
-                    end
-                    else begin
-                        $display("%0t:tnpc%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tnpc_reg = %x, sas_tnpc_reg =%x",
-                                 sas_time, type - 56, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                        `MONITOR_PATH.fail("tnpc_reg-MISMATCH");
-                    end
-                end
+                $display("%0t:tnpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, type - 56, spc, thread, window, rtl_reg_val[47:0]);
             end
             `TSTATE1, `TSTATE2, `TSTATE3, `TSTATE4, `TSTATE5, `TSTATE6 : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, type - 66, spc, thread, window, rtl_reg_val[39:0]);
-                end
-                else if(!cond[2])begin
-                    if(rtl_reg_val[39:0] == sas_sps_val[39:0])begin
-                        $display("%0t:tstate%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, type - 66, spc, thread, window, rtl_reg_val[39:0]);
-                    end
-                    else begin
-                        $display("%0t:tstate%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tstate_reg = %x, sas_tstate_reg =%x",
-                                 sas_time, type - 66, spc, thread, window, rtl_reg_val[39:0], sas_sps_val[39:0]);
-                        `MONITOR_PATH.fail("tstate_reg-MISMATCH");
-                    end
-                end
+                $display("%0t:tstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, type - 66, spc, thread, window, rtl_reg_val[39:0]);
             end
             `TT1, `TT2, `TT3, `TT4, `TT5, `TT6 : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ttype%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, type - 76, spc, thread, window, rtl_reg_val[8:0]);
-                end
-                else if(rtl_reg_val[8:0] == sas_sps_val[8:0])begin
-                    $display("%0t:ttype%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, type - 76, spc, thread, window, rtl_reg_val[8:0]);
-                end
-                else begin
-                    $display("%0t:ttype%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_ttype_reg = %x, sas_ttype_reg =%x",
-                             sas_time, type - 76, spc, thread, window, rtl_reg_val[8:0], sas_sps_val[8:0]);
-                    `MONITOR_PATH.fail("ttype_reg-MISMATCH");
-                end
+                $display("%0t:ttype%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, type - 76, spc, thread, window, rtl_reg_val[8:0]);
             end // case: `TT1, `TT2, `TT3, `TT4, `TT5, `TT6
 
             `TBA_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:tba_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:15] == sas_sps_val[47:15])begin
-                    $display("%0t:tba_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:15]);
-                end
-                else begin
-                    $display("%0t:tba_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tba_reg = %x, sas_tba_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:15], sas_sps_val[47:15]);
-                    `MONITOR_PATH.fail("tba_reg-MISMATCH");
-                end
+                $display("%0t:tba_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `TBA
             `VER            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ver_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[32:0]);
-                end
-                else if(rtl_reg_val[32:0] == sas_sps_val[32:0])begin
-                    $display("%0t:ver_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[32:0]);
-                end
-                else begin
-                    $display("%0t:ver_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_tba_reg = %x, sas_tba_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[32:0], sas_sps_val[47:15]);
-                    `MONITOR_PATH.fail("ver_reg-MISMATCH");
-                end
+                $display("%0t:ver_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[32:0]);
             end // case: `TBA
             `CWP            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:cwp_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:cwp_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:cwp_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cwp_reg = %x, sas_cwp_reg =%x",
-                             $time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("cwp_reg-MISMATCH");
-                end
+                $display("%0t:cwp_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `CANSAVE            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:cansave_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:cansave_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:cansave_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cansave_reg = %x, sas_cansave_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("cansave_reg-MISMATCH");
-                end
+                $display("%0t:cansave_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `CANRESTORE           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:canrestore_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:canrestore_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:canrestore_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_restore_reg = %x, sas_restore_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("canrestore_reg-MISMATCH");
-                end
+                $display("%0t:canrestore_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `OTHERWIN           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:otherwin_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:otherwin_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:otherwin_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_otherwin_reg = %x, sas_otherwin_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("otherwin_reg-MISMATCH");
-                end
+                $display("%0t:otherwin_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `WSTATE           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:wstate_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[5:0]);
-
-                end
-                else if(rtl_reg_val[5:0] == sas_sps_val[5:0])begin
-                    $display("%0t:wstate_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else begin
-                    $display("%0t:wstate_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_wstate_reg = %x, sas_wstate_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0], sas_sps_val[5:0]);
-                    `MONITOR_PATH.fail("wstate_reg-MISMATCH");
-                end
+                $display("%0t:wstate_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[5:0]);
             end
             `CLEANWIN           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:cleanwin_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:cleanwin_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:cleanwin_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cleanwin_reg = %x, sas_cleanwin_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("cleanwin_reg-MISMATCH");
-                end
+                $display("%0t:cleanwin_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `CLEANWIN
             `SOFTINT           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:softint_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, 1'b1);
-                end
-
-                else if(rtl_reg_val[16:0] == sas_sps_val[16:0])begin
-                    $display("%0t:softint_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[16:0]);
-                end
-                else begin
-                    $display("%0t:softint_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_soft_reg = %x, sas_soft_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[16:0], sas_sps_val[16:0]);
-                    `MONITOR_PATH.fail("softint_reg-MISMATCH");
-                end
+                $display("%0t:softint_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, 1'b1);
             end
             `ECACHE_ERROR_ENABLE           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ecache_error_enable_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:ecache_error_enable_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:ecache_error_enable_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cleanwin_reg = %x, sas_cleanwin_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("ecache_error_enable_reg-MISMATCH");
-                end
+                $display("%0t:ecache_error_enable_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `UPAD_CONFIG
             `ASYNCHRONOUS_FAULT_STATUS           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:asynchronous_fault_status_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:asynchronous_fault_status_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:asynchronous_fault_status_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cleanwin_reg = %x, sas_cleanwin_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("asynchronous_fault_status_reg-MISMATCH");
-                end
+                $display("%0t:asynchronous_fault_status_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `UPAD_CONFIG
             `ASYNCHRONOUS_FAULT_ADDRESS           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:asynchronous_fault_address_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:asynchronous_fault_address_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:asynchronous_fault_address_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_cleanwin_reg = %x, sas_cleanwin_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("asynchronous_fault_status_reg-MISMATCH");
-                end
+                $display("%0t:asynchronous_fault_address_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end
             `INTR_DISPATCH_STATUS           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:intr_dispatch_status_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[10:0]);
-                end
-                else if(rtl_reg_val[10:0] == sas_sps_val[10:0])begin
-                    $display("%0t:intr_dispatch_status_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[10:0]);
-                end
-                else begin
-                    $display("%0t:intr_dispatch_status_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_intr_dispatch_status_reg = %x, sas_intr_dispatch_status_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[10:0], sas_sps_val[10:0]);
-                    `MONITOR_PATH.fail("intr_dispatch_status_reg-MISMATCH");
-                end
+                $display("%0t:intr_dispatch_status_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[10:0]);
             end
             `INTR_RECEIVE          : begin
-                if(sas_def == 0)begin
-                    $display("%0t:intr_receive_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[63:0] == sas_sps_val[63:0])begin
-                    $display("%0t:intr_receive_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    $display("%0t:intr_receive_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_intr_receive_reg = %x, sas_intr_receive_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    `MONITOR_PATH.fail("intr_receive_reg-MISMATCH");
-                end
+                $display("%0t:intr_receive_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `IN_INTR_DATA2
             `FLOAT_I           : begin
                 if((rtl_reg_addr > 31) && rtl_reg_addr[1])sas_reg_val[31:0] = sas_reg_val[63:32];
-                if(sas_def == 0)begin
-                    $display("%0t:float_reg-updated -> spc(%1d) thread(%d) reg#(%0d) val = %x",
-                             $time, spc, thread, rtl_reg_addr, rtl_reg_val[31:0]);
-                end
-                else if(rtl_reg_val[31:0] == sas_reg_val[31:0])begin
-                    $display("%0t:float_reg-MATCH -> spc(%1d) thread(%d) reg#(f%0d) val = %x",
-                             sas_time, spc, thread, rtl_reg_addr, rtl_reg_val[31:0]);
-                end
-                else begin
-                    $display("%0t:float_reg-MISMATCH -> spc(%1d) thread(%d)  reg#(f%0d) rtl_float_reg = %x, sas_float_reg =%x",
-                             sas_time, spc, thread, rtl_reg_addr, rtl_reg_val[31:0], sas_reg_val[31:0]);
-                    `MONITOR_PATH.fail("float_reg-MISMATCH");
-                end
+                $display("%0t:float_reg-updated -> spc(%1d) thread(%d) reg#(%0d) val = %x",
+                         $time, spc, thread, rtl_reg_addr, rtl_reg_val[31:0]);
             end // case: `FLOAT_I
             `FLOAT_X           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:float_reg-updated -> spc(%1d) thread(%d) reg#(f%0d) val = %x",
-                             $time, spc, thread, rtl_reg_addr, rtl_reg_val[63:0]);
-                end
-                else if(rtl_reg_val[63:0] == sas_reg_val[63:0])begin
-                    $display("%0t:float_reg-MATCH -> spc(%1d) thread(%d) reg#(f%0d) val = %x",
-                             sas_time, spc, thread, rtl_reg_addr, rtl_reg_val[63:0]);
-                end
-                else begin
-                    $display("%0t:float_reg-MISMATCH -> spc(%1d) thread(%d)  reg#(f%0d) rtl_float_reg = %x, sas_float_reg =%x",
-                             sas_time, spc, thread, rtl_reg_addr, rtl_reg_val[63:0], sas_reg_val[63:0]);
-                    `MONITOR_PATH.fail("float_reg-MISMATCH");
-                end
+                $display("%0t:float_reg-updated -> spc(%1d) thread(%d) reg#(f%0d) val = %x",
+                         $time, spc, thread, rtl_reg_addr, rtl_reg_val[63:0]);
             end // case: `FLOAT_I
             `HTBA_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:htba_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[33:0]);
-                end
-                else if(rtl_reg_val[33:0] == sas_sps_val[33:0])begin
-                    $display("%0t:htba_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[33:0]);
-                end
-                else begin
-                    $display("%0t:htba_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_htba_reg = %x, sas_htba_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[33:0], sas_sps_val[33:0]);
-                    `MONITOR_PATH.fail("htba_reg-MISMATCH");
-                end
+                $display("%0t:htba_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[33:0]);
             end // case: `TBA
             `HINTP_SAS            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:hintp_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[3:0]);
-                end
-                else if(rtl_reg_val[3:0] == sas_sps_val[3:0])begin
-                    $display("%0t:hintp_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[3:0]);
-                end
-                else begin
-                    $display("%0t:hintp_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_hintp_reg = %x, sas_hintp_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[3:0], sas_sps_val[3:0]);
-                    `MONITOR_PATH.fail("hintp_reg-MISMATCH");
-                end
+                $display("%0t:hintp_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[3:0]);
             end // case: `HINTP
             `HSTICK_CMPR            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:hstick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else if((cond == 7) && (rtl_reg_val[63] == sas_sps_val[63]))begin
-                    $display("%0t:hstick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63]);
-                end
-                else if((cond == 0) && (rtl_reg_val[63:0] == sas_sps_val[63:0]))begin
-                    $display("%0t:hstick_cmpr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[63:0]);
-                end
-                else begin
-                    if(cond == 7)
-                        $display("%0t:hstick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_stick_cmpr_reg[63] = %x, sas_hstick_cmpr_reg[63] =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[63], sas_sps_val[63]);
-                    else  $display("%0t:hstick_cmpr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_stick_cmpr_reg = %x, sas_hstick_cmpr_reg =%x",
-                                       sas_time, spc, thread, window, rtl_reg_val[63:0], sas_sps_val[63:0]);
-                    `MONITOR_PATH.fail("hstick_cmpr_reg-MISMATCH");
-                end
+                $display("%0t:hstick_cmpr_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[63:0]);
             end // case: `HINTP
             `HPSTATE_SAS            : begin
                 sas_sps_val[4:0] = {sas_sps_val[10], sas_sps_val[11], sas_sps_val[5], sas_sps_val[2], sas_sps_val[0]};
 
-                if(sas_def == 0)begin
-                    $display("%0t:hpstate_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[3:0]);
-                end
-                else if(rtl_reg_val[4:0] == sas_sps_val[4:0])begin
-                    $display("%0t:hpstate_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[4:0]);
-                end
-                else begin
-                    $display("%0t:hpstate_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_hpstate_reg = %x, sas_hpstate_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[4:0], sas_sps_val[4:0]);
-                    `MONITOR_PATH.fail("hpstate_reg MISMATCH");
-                end
+                $display("%0t:hpstate_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[3:0]);
             end // case: `HPSTATE
             `GL            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:gl_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[1:0]);
-                end
-                else if(rtl_reg_val[1:0] == sas_sps_val[1:0])begin
-                    $display("%0t:gl_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[1:0]);
-                end
-                else begin
-                    $display("%0t:gl_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_gl_reg = %x, sas_gl_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[1:0], sas_sps_val[1:0]);
-                    `MONITOR_PATH.fail("gl_reg MISMATCH");
-                end
+                $display("%0t:gl_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[1:0]);
             end // case: `HPSTATE
             `HTSTATE1, `HTSTATE2, `HTSTATE3, `HTSTATE4, `HTSTATE5, `HTSTATE6 : begin
-                if(sas_def == 0)begin
-                    $display("%0t:htstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, type - 108, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(!cond[2])begin
-                    if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                        $display("%0t:htstate%0d_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, type - 108, spc, thread, window, rtl_reg_val[2:0]);
-                    end
-                    else begin
-                        $display("%0t:htstate%0d_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_htstate_reg = %x, sas_htstate_reg =%x",
-                                 sas_time, type - 108, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                        `MONITOR_PATH.fail("htstate_reg-MISMATCH");
-                    end
-                end // if (!cond[2])
-
+                $display("%0t:htstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, type - 108, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `HTSTATE1, `HTSTATE2, `HTSTATE3, `HTSTATE4, `HTSTATE5, `HTSTATE6
             `ISFSR            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:isfsr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[23:0]);
-                end
-                else if(rtl_reg_val[23:0] == sas_sps_val[23:0])begin
-                    $display("%0t:isfsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[23:0]);
-                end
-                else begin
-                    rtl_reg_val[4:3] = 2'b00;
-                    sas_sps_val[4:3] = 2'b00;
-                    if(rtl_reg_val[23:0] == sas_sps_val[23:0])begin
-                        $display("%0t:isfsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[23:0]);
-                    end
-                    else begin
-                        $display("%0t:isfsr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_isfsr_reg = %x, sas_isfsr_reg =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[23:0], sas_sps_val[23:0]);
-                        `MONITOR_PATH.fail("isfsr_reg MISMATCH");
-                    end
-                end
+                $display("%0t:isfsr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[23:0]);
             end // case: `HPSTATE
             `DSFSR            : begin
-                if(sas_def == 0)begin
-                    $display("%0t:dsfsr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[23:0]);
-                end
-                else if(rtl_reg_val[23:0] == sas_sps_val[23:0])begin
-                    $display("%0t:dsfsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[23:0]);
-                end
-                else begin
-                    // modified for bug 3323
-                    //assign  tlu_isfsr_din_g[23:0] =
-                    //{isfsr_asi_g[7:0],2'b0,isfsr_ftype_g[6:0],1'b0, isfsr_ctxt_g[1:0], 2'b0,isfsr_flt_vld_g, 1'b1};
-                    rtl_reg_val[4:3] = 2'b00;
-                    sas_sps_val[4:3] = 2'b00;
-                    rtl_reg_val[7]   = 0;
-                    rtl_reg_val[11:10] = 2'b00;
-                    rtl_reg_val[5:4]   = 2'b00;
-                    sas_sps_val[7]     = 0;
-                    sas_sps_val[11:10] = 2'b00;
-                    sas_sps_val[5:4]   = 2'b00;
-                    if(rtl_reg_val[23:0] == sas_sps_val[23:0])
-                        $display("%0t:dsfsr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                                 sas_time, spc, thread, window, rtl_reg_val[23:0]);
-                    else begin
-                        $display("%0t:dsfsr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_dsfsr_reg = %x, sas_dsfsr_reg =%x",
-                                 sas_time, spc, thread, window, rtl_reg_val[23:0], sas_sps_val[23:0]);
-                        `MONITOR_PATH.fail("dsfsr_reg MISMATCH");
-                    end
-                end
+                $display("%0t:dsfsr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[23:0]);
             end // case: `HPSTATE
             `SFAR           : begin
-                if(sas_def == 0)begin
-                    $display("%0t:sfar_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:sfar_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:sfar_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_sfar_reg = %x, sas_sfar_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("sfar_reg MISMATCH");
-                end
+                $display("%0t:sfar_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `HPSTATE
             `I_TAG_ACCESS          : begin
-                if(sas_def == 0)begin
-                    $display("%0t:itag_access_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:itag_access_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:itag_access_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_itag_access_reg = %x, sas_itag_access_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("itag_access_reg MISMATCH");
-                end
+                $display("%0t:itag_access_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `I_TAG_ACCESS
             `D_TAG_ACCESS          : begin
-                if(sas_def == 0)begin
-                    $display("%0t:dtag_access_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:dtag_access_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:dtag_access_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_dtag_access_reg = %x, sas_dtag_access_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("dtag_access_reg MISMATCH");
-                end
+                $display("%0t:dtag_access_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `D_TAG_ACCESS
             `CTXT_PRIM   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ctxt_prim_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[12:0]);
-                end
-                else if(rtl_reg_val[12:0] == sas_sps_val[12:0])begin
-                    $display("%0t:ctxt_prim_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[12:0]);
-                end
-                else begin
-                    $display("%0t:ctxt_prim_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_ctxt_prim_reg = %x, sas_ctxt_prim_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[12:0], sas_sps_val[12:0]);
-                    `MONITOR_PATH.fail("ctxt_prim_reg MISMATCH");
-                end
+                $display("%0t:ctxt_prim_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[12:0]);
             end // case: `CTXT_PRIM
             `CTXT_SEC   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:ctxt_sec_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[12:0]);
-                end
-                else if(rtl_reg_val[12:0] == sas_sps_val[12:0])begin
-                    $display("%0t:ctxt_sec_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[12:0]);
-                end
-                else begin
-                    $display("%0t:ctxt_sec_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_ctxt_sec_reg = %x, sas_ctxt_sec_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[12:0], sas_sps_val[12:0]);
-                    `MONITOR_PATH.fail("ctxt_sec_reg MISMATCH");
-                end
+                $display("%0t:ctxt_sec_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[12:0]);
             end // case: `CTXT_SEC
             `I_CTXT_ZERO_PS0   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_zero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:i_ctxt_zero_ps0_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_zero_ps0_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_zero_ps0_reg = %x, sas_i_ctxt_zero_ps0_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("i_ctxt_zero_ps0_reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_zero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `I_CTXT_ZERO_PS0
             `D_CTXT_ZERO_PS0   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_zero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:d_ctxt_zero_ps0_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_zero_ps0_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_zero_ps0_reg = %x, sas_d_ctxt_zero_ps0_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("d_ctxt_zero_ps0_reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_zero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `D_CTXT_ZERO_PS0
             `I_CTXT_ZERO_PS1   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_zero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:i_ctxt_zero_ps1_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_zero_ps1_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_zero_ps1_reg = %x, sas_i_ctxt_zero_ps1_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("i_ctxt_zero_ps1_reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_zero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `I_CTXT_ZERO_PS1
             `D_CTXT_ZERO_PS1   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_zero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:d_ctxt_zero_ps1_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_zero_ps1_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_zero_ps1_reg = %x, sas_d_ctxt_zero_ps1_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("d_ctxt_zero_ps1_reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_zero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `D_CTXT_ZERO_PS0
             `I_CTXT_ZERO_CONFIG   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_zero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else if(rtl_reg_val[5:0] == sas_sps_val[5:0])begin
-                    $display("%0t:i_ctxt_zero_config_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_zero_config_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_zero_config_reg = %x, sas_i_ctxt_zero_config_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0], sas_sps_val[5:0]);
-                    `MONITOR_PATH.fail("i_ctxt_zero_config_reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_zero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[5:0]);
             end // case: `I_CTXT_ZERO_CONFIG
             `D_CTXT_ZERO_CONFIG   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_zero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else if(rtl_reg_val[5:0] == sas_sps_val[5:0])begin
-                    $display("%0t:d_ctxt_zero_config_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_zero_config_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_zero_config_reg = %x, sas_d_ctxt_zero_config_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0], sas_sps_val[5:0]);
-                    `MONITOR_PATH.fail("d_ctxt_zero_config_reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_zero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[5:0]);
             end // case: `D_CTXT_ZERO_CONFIG
             `I_CTXT_NONZERO_PS0   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_nonzero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:i_ctxt_nonzero_ps0_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_nonzero_ps0_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_nonzero_ps0_reg = %x, sas_i_ctxt_nonzero_ps0__reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("i_ctxt_nonzero_ps0__reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_nonzero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `I_CTXT_ZERO_PS0
             `D_CTXT_NONZERO_PS0   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_nonzero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:d_ctxt_nonzero_ps0_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_nonzero_ps0_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_nonzero_ps0_reg = %x, sasd_ctxt_nonzero_ps0_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("d_ctxt_nonzero_ps0_reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_nonzero_ps0_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `D_CTXT_ZERO_PS0
             `I_CTXT_NONZERO_PS1   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_nonzero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:i_ctxt_nonzero_ps1_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_nonzero_ps1_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_nonzero_ps1_reg = %x, sasi_ctxt_nonzero_ps1_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("i_ctxt_nonzero_ps1_reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_nonzero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `I_CTXT_ZERO_PS1
             `D_CTXT_NONZERO_PS1   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_nonzero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else if(rtl_reg_val[47:0] == sas_sps_val[47:0])begin
-                    $display("%0t:d_ctxt_nonzero_ps1_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_nonzero_ps1_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_nonzero_ps1_reg = %x, sasd_ctxt_nonzero_ps1_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[47:0], sas_sps_val[47:0]);
-                    `MONITOR_PATH.fail("d_ctxt_nonzero_ps1__reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_nonzero_ps1_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[47:0]);
             end // case: `D_CTXT_ZERO_PS0
             `I_CTXT_NONZERO_CONFIG   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:i_ctxt_nonzero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else if(rtl_reg_val[5:0] == sas_sps_val[5:0])begin
-                    $display("%0t:i_ctxt_nonzero_config_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else begin
-                    $display("%0t:i_ctxt_nonzero_config_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_i_ctxt_nonzero_config_reg = %x, sas_i_ctxt_nonzero_config_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0], sas_sps_val[5:0]);
-                    `MONITOR_PATH.fail("i_ctxt_nonzero_config_reg MISMATCH");
-                end
+                $display("%0t:i_ctxt_nonzero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[5:0]);
             end // case: `I_CTXT_ZERO_CONFIG
             `D_CTXT_NONZERO_CONFIG   : begin
-                if(sas_def == 0)begin
-                    $display("%0t:d_ctxt_nonzero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else if(rtl_reg_val[5:0] == sas_sps_val[5:0])begin
-                    $display("%0t:d_ctxt_nonzero_config_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0]);
-                end
-                else begin
-                    $display("%0t:d_ctxt_nonzero_config_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_d_ctxt_nonzero_configreg = %x, sas_d_ctxt_nonzero_config_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[5:0], sas_sps_val[5:0]);
-                    `MONITOR_PATH.fail("d_ctxt_nonzero_config_reg MISMATCH");
-                end
+                $display("%0t:d_ctxt_nonzero_config_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[5:0]);
             end // case: `D_CTXT_NONZERO_CONFIG
             `VA_WP_ADDR  : begin
-                if(sas_def == 0)begin
-                    $display("%0t:va_wp_addr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[44:0]);
-                end
-                else if(rtl_reg_val[44:0] == sas_sps_val[44:0])begin
-                    $display("%0t:va_wp_addr_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[44:0]);
-                end
-                else begin
-                    $display("%0t:va_wp_addr_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_va_wp_addr_reg = %x, sas_va_wp_addr_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[44:0], sas_sps_val[44:0]);
-                    `MONITOR_PATH.fail("va_wp_addr_reg MISMATCH");
-                end
+                $display("%0t:va_wp_addr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[44:0]);
             end // case: `VA_WP_ADDR
             `PID  : begin
-                if(sas_def == 0)begin
-                    $display("%0t:pid_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
-                             $time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else if(rtl_reg_val[2:0] == sas_sps_val[2:0])begin
-                    $display("%0t:pid_reg-MATCH -> spc(%1d) thread(%d) window(%d) val = %x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0]);
-                end
-                else begin
-                    $display("%0t:pid_reg-MISMATCH -> spc(%1d) thread(%d)  window(%d)  rtl_pid_reg = %x, sas_pid_reg =%x",
-                             sas_time, spc, thread, window, rtl_reg_val[2:0], sas_sps_val[2:0]);
-                    `MONITOR_PATH.fail("pid_reg MISMATCH");
-                end
+                $display("%0t:pid_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",
+                         $time, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `VA_WP_ADDR
         endcase
     end

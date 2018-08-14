@@ -7,7 +7,7 @@ CFLAGS += -I../ -fpermissive -fpic $(ICARUS_CC_OPTS)
 
 LIB = libutility_icarus.a
 CSRCS = 
-CSRCC = gen_dump_mod.c mon_pli.c parse.c value.c
+CSRCC = mon_pli.c parse.c
 LIB_OBJS = ${CSRCS:%.cc=%.o}
 LIB_OBJC = ${CSRCC:%.c=%.o}
 

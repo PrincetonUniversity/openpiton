@@ -39,19 +39,14 @@ sub create_from_dir {
   my $dir = shift;
 
   my $vcslog = File::Spec->catfile($dir, 'sim.log');
-  my $saslog = File::Spec->catfile($dir, 'sas.log');
 
   my $log;
   if(-e $vcslog) {
     # RTL Run
     $log = AnalyzeDiag::Logfile::Rtl->new();
     $log->filename($vcslog);
-  } elsif(-e $saslog) {
-    # Simulator Run
-    $log = AnalyzeDiag::Logfile::Mom->new();
-    $log->filename($saslog);
-  } else {
-    script_die "Cannot find '$vcslog' or '$saslog'.\n";
+  }else {
+    script_die "Cannot find '$vcslog'.\n";
   }
   return $log;
 }

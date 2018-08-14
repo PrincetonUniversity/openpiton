@@ -131,6 +131,8 @@ module l2_pipe1_dpath(
     input wire stall_S2,
     input wire stall_before_S2,
     input wire state_load_sdid_S2, 
+    input wire data_clk_en_S2,
+    input wire stall_real_S2,
 
     //Inputs to Stage 3
 
@@ -1235,7 +1237,7 @@ reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_in_S3_f;
 reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_mask_in_S3_f;
 reg [`L2_DATA_INDEX_WIDTH-1:0] data_addr_S3_f;
 reg recycled_S3_f;
-
+reg data_clk_en_S3_f; // trin: added for stalled skid buffer
 
 always @ (posedge clk)
 begin
@@ -1265,6 +1267,7 @@ begin
         state_data_mask_in_S3_f <= 0;
         data_addr_S3_f <= 0;
         recycled_S3_f <= 0;
+        data_clk_en_S3_f <= 0;
     end
     else if (!stall_S3)
     begin
@@ -1293,6 +1296,7 @@ begin
         data_addr_S3_f <= data_addr_S2;
         recycled_S3_f <= recycled_S2_f;
     end
+    data_clk_en_S3_f <= (data_clk_en_S2 && valid_S2 && !stall_real_S2); // note: should not be qualified by stall_S3
 end
 
 
@@ -1333,6 +1337,9 @@ reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_mask_in_S4_f;
 reg [`L2_DATA_ARRAY_WIDTH-1:0] data_data_S4_f;
 reg [`L2_DATA_INDEX_WIDTH-1:0] data_addr_S4_f;
 reg recycled_S4_f;
+
+reg data_stalled_skid_buffer_en_S3_f;
+reg [`L2_DATA_ARRAY_WIDTH-1:0] data_stalled_skid_buffer_S3_f;
 
 always @ (posedge clk)
 begin
@@ -1391,8 +1398,40 @@ begin
         data_data_S4_f <= data_data_S3;
         data_addr_S4_f <= data_addr_S3_f;
         recycled_S4_f <= recycled_S3_f;
+        if (data_stalled_skid_buffer_en_S3_f) begin
+            data_data_S4_f <= data_stalled_skid_buffer_S3_f;
+        end
     end
 end
+
+// trin: skid buffer for data read (bug 7/11/18)
+wire data_stalled_skid_buffer_en_S3 = data_clk_en_S3_f && valid_S3 && stall_S3;
+wire data_stalled_skid_buffer_consume_S3 = valid_S3 && !stall_S3;
+
+always @ (posedge clk) begin
+    if (data_stalled_skid_buffer_en_S3) begin
+        data_stalled_skid_buffer_S3_f <= data_data_S3;
+        data_stalled_skid_buffer_en_S3_f <= 1'b1;
+    end
+    if (data_stalled_skid_buffer_consume_S3) begin
+        data_stalled_skid_buffer_en_S3_f <= 1'b0;
+    end
+end
+
+
+`ifndef SYNTHESIS
+// monitor for checking race condition
+always @ (posedge clk) begin
+    if (data_stalled_skid_buffer_en_S3_f) begin
+        if (data_stalled_skid_buffer_S3_f != data_data_S3) begin
+            // check whether the saved data is equaled to the current data
+            $display("Error: L2 pipe1 data access race condition!");
+            $finish();
+        end
+    end
+end
+
+`endif
 
 
 //============================

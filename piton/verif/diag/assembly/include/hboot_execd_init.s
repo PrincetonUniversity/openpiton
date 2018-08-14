@@ -89,6 +89,7 @@ hboot_execd_init:
     or %g1, ED_ENABLE_MASK, %g1
     stxa %g1, [%l1] CFG_REG_ASI
 
-#endif ! #ifdef ED_ENABLE
+#endif
+! #ifdef ED_ENABLE
 
 

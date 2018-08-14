@@ -1,0 +1,26 @@
+# Derived from piton/tools/pli/iop/Makefile
+
+include ${DV_ROOT}/tools/env/Makefile.system
+
+CPPFLAGS = 
+CFLAGS += -I../ -fpermissive -fpic -DLINUX -DUSE_ACC -I${MODELSIM_HOME}/include
+
+LIB = libiob_modelsim.a
+CSRCS = cpx.cc iob.cc iob_main.cc pcx.cc
+CSRCC = b_ary.c bw_lib.c
+LIB_OBJS = ${CSRCS:%.cc=%.o}
+LIB_OBJC = ${CSRCC:%.c=%.o}
+
+all: $(LIB)
+	rm -rf *.o
+
+$(LIB_OBJC):
+	$(CCC) $(CPPFLAGS) -c  $(CFLAGS) -o $*.o $*.c
+$(LIB_OBJS):
+	$(CCC) $(CPPFLAGS) -c  $(CFLAGS)  -o $*.o $*.cc
+
+$(LIB): $(LIB_OBJS) $(LIB_OBJC)
+	ar rv $(LIB) $(LIB_OBJS) $(LIB_OBJC)
+
+clean:
+	rm -rf *.o ${LIB}

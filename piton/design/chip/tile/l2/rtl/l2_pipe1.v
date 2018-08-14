@@ -234,6 +234,7 @@ wire dis_flush_S1;
 wire valid_S2; 
 wire stall_S2;  
 wire stall_before_S2; 
+wire stall_real_S2; 
 wire msg_from_mshr_S2;
 wire [`MSG_TYPE_WIDTH-1:0] msg_type_S2;
 wire [`MSG_DATA_SIZE_WIDTH-1:0] data_size_S2;
@@ -497,6 +498,7 @@ l2_pipe1_ctrl ctrl(
     .valid_S2                   (valid_S2),    
     .stall_S2                   (stall_S2), 
     .stall_before_S2            (stall_before_S2), 
+    .stall_real_S2              (stall_real_S2),
     .msg_type_S2                (msg_type_S2),
     .msg_from_mshr_S2           (msg_from_mshr_S2),
     .special_addr_type_S2       (special_addr_type_S2),
@@ -656,7 +658,8 @@ l2_pipe1_dpath dpath(
     .valid_S2                   (valid_S2),
     .stall_S2                   (stall_S2),
     .stall_before_S2            (stall_before_S2), 
-
+    .data_clk_en_S2             (data_clk_en),
+    .stall_real_S2              (stall_real_S2),
 
     .valid_S3                   (valid_S3),
     .stall_S3                   (stall_S3),

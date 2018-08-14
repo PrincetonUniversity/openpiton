@@ -277,6 +277,9 @@
     <include>tile4_dmbr</include>
 
     <asm_regress name="dmbr_nightly_asm">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
         <group>dmbr_nightly_asm</group>
         <vcs_use_cm/>
     </asm_regress>
@@ -713,7 +716,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_2">
         <sys>dmbr_source_sink</sys>
@@ -721,7 +723,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_3">
         <sys>dmbr_source_sink</sys>
@@ -729,7 +730,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_4">
         <sys>dmbr_source_sink</sys>
@@ -737,7 +737,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_5">
         <sys>dmbr_source_sink</sys>
@@ -745,7 +744,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_6">
         <sys>dmbr_source_sink</sys>
@@ -753,7 +751,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_7">
         <sys>dmbr_source_sink</sys>
@@ -761,7 +758,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_8">
         <sys>dmbr_source_sink</sys>
@@ -769,7 +765,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_9">
         <sys>dmbr_source_sink</sys>
@@ -777,7 +772,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_10">
         <sys>dmbr_source_sink</sys>
@@ -785,7 +779,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_11">
         <sys>dmbr_source_sink</sys>
@@ -793,7 +786,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_12">
         <sys>dmbr_source_sink</sys>
@@ -801,7 +793,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_13">
         <sys>dmbr_source_sink</sys>
@@ -809,7 +800,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_14">
         <sys>dmbr_source_sink</sys>
@@ -817,7 +807,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_15">
         <sys>dmbr_source_sink</sys>
@@ -825,7 +814,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_16">
         <sys>dmbr_source_sink</sys>
@@ -833,7 +821,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_17">
         <sys>dmbr_source_sink</sys>
@@ -841,7 +828,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_18">
         <sys>dmbr_source_sink</sys>
@@ -849,7 +835,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_19">
         <sys>dmbr_source_sink</sys>
@@ -857,7 +842,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_20">
         <sys>dmbr_source_sink</sys>
@@ -865,7 +849,6 @@
         <y_tiles>1</y_tiles>
         <dmbr/>
         <vcs_use_cm/>
-        <nouse_oolm/>
     </other>
 
 </nightly>

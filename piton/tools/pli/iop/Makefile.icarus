@@ -6,7 +6,7 @@ CPPFLAGS =
 CFLAGS += -I../ -fpermissive -fpic $(ICARUS_CC_OPTS)
 
 LIB = libiob_icarus.a
-CSRCS = bw_sys.cc cpx.cc device.cc event.cc iob.cc iob_main.cc l1warm.cc l2warm.cc pcx.cc utility.cc
+CSRCS = cpx.cc iob.cc iob_main.cc pcx.cc
 CSRCC = b_ary.c bw_lib.c
 LIB_OBJS = ${CSRCS:%.cc=%.o}
 LIB_OBJC = ${CSRCC:%.c=%.o}

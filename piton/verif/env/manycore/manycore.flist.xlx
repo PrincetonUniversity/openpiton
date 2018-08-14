@@ -30,8 +30,6 @@ manycore_network_mon.v
 -v sas_intf.v
 // //-v tlb_mon.v
 -v monitor.v
-// -v trig_event.v
-// // -v cmp_mem.v
 -v sas_tasks.v
 -v pc_cmp.v
 -v sas_task.v
@@ -59,8 +57,6 @@ manycore_network_mon.v
 // -v dram_mon.v
 // -v ctu_level_mon.v
 // -v err_inject.v
-// -v pcx_stall.v
-// -v cpx_stall.v
 -v mask_mon.v
 -v pc_muxsel_mon.v
 -v nukeint_mon.v
@@ -72,10 +68,7 @@ manycore_network_mon.v
 // // -v ../../../verif/model/verilog/mem/dram/DIMMx4.v
 // // -v ../../../verif/model/verilog/mem/dram/HYB18T512xx0AF.v
 // -v ../../../verif/model/verilog/mem/dram/dimm.v
-// -v bw_sys.v
  -v slam_init.v
-// // -v l2warm.v
-// // -v l1warm.v
 -v ciop_iob.v
 // -v ctu_mon.v
 // -v dbginit_inst.v

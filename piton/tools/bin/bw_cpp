@@ -34,8 +34,13 @@ cpp -V < /dev/null >& /dev/null
 # if GNU style, add traditional-cpp flag and remove -B flag
 
 if ($status == 1) then
-  cpp -E -traditional-cpp `/bin/echo $* | /bin/sed 's/-B/ /g' ` | \
-  sed 's/\/\/.*//'
+  if ("`uname -s`" == "Darwin") then
+    cpp-8 -E -traditional-cpp `/bin/echo $* | sed 's/-B/ /g' ` | \
+    sed 's/\/\/.*//'
+  else
+    cpp -E -traditional-cpp `/bin/echo $* | /bin/sed 's/-B/ /g' ` | \
+    sed 's/\/\/.*//'
+  endif
 else
   cpp $*
 endif

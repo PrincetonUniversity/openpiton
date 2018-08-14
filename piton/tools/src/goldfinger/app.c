@@ -510,9 +510,11 @@ process_elf_file(app_vector_el_t *appp, process_app_args_t *args) {
   }
 
 
+#ifndef MACOS
   iterate_vector(&(app->blocks),
 		 (vector_elem_func_t) block_check_link_section_exists,
 		 NULL);
+#endif
 
 
   /* If we found a symbol table section, add symbols to all linked sections */

@@ -23,7 +23,7 @@
 */
 immu_miss_handler_ext:
 immu_ps0:
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, immu_ptr_chase
 #ifdef CSM_ENABLE
     srlx      %g7, 1, %g7
@@ -60,7 +60,7 @@ immu_ps0:
 immu_ps1:
 	ldxa	[%g0] 0x52, %g1		! immu ps1 ptr
 	ldda	[%g1] 0x24, %g4		! load tte from ps1 tsb
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, immu_ptr_chase
 #ifdef CSM_ENABLE
     or      %g7, 1, %g7
@@ -418,7 +418,8 @@ immu_st_csm:
 
 #endif
 
-#ifndef SUN4V    mov     0x18, %g2
+#ifndef SUN4V
+        mov     0x18, %g2
 	stxa	%g5, [ %g0 ] 0x54	! data-in
 #else
 	mov	0x400, %g6

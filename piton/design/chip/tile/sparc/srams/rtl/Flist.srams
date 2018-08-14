@@ -37,9 +37,6 @@ sram_wrappers/sram_l1d_data.v
 sram_wrappers/sram_l1d_tag.v
 -v sram_l1d_val.v
 
-//lsu+ifu
-// -v ../../../common/rtl/cmp_sram_redhdr.v
-
 //lsu+ifu+spu
 -v bw_r_ict.v
 -v bw_r_dct.v

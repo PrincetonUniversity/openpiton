@@ -256,13 +256,9 @@ module sparc_ifu_milfsm(/*AUTOARG*/
 `else
                if ($time > (4* `CMP_CLK_PERIOD))
                  begin
-				`ifdef MODELSIM
-					  $display ("MILSTATE", 
+					$display ("MILSTATE", 
                             "Error: SPARC/IFU/MILFSM: unknown state! %b\n",milstate);
-				`else
-	                  $error ("MILSTATE", 
-                            "Error: SPARC/IFU/MILFSM: unknown state! %b\n",milstate);
-				`endif
+                    $finish();
                  end
 `endif
                // synopsys translate_on               

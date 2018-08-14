@@ -226,7 +226,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/common/rtl/test_stub_bist.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/ucb_flow_jbi.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/ucb_noflow.v" \
-    "${DV_ROOT}/design/chip/tile/common/rtl/cmp_sram_redhdr.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header_ctu.v" \
     "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc.v" \
@@ -577,8 +576,6 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_mig_afifo/uart_mig_afifo" \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/mem_uart_done/mem_uart_done" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/mem_uart_timeout/mem_uart_timeout" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_256x512/bram_256x512" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_16384x512/bram_16384x512" \

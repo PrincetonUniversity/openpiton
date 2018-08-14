@@ -22,7 +22,7 @@
 # ========== Copyright Header End ============================================
 
 setenv OS `uname -s`
-setenv CPU `uname -p`
+setenv CPU `uname -m`
 
 if ( -f $DV_ROOT/tools/env/Makefile.$OS.$CPU ) then
   \rm -f $DV_ROOT/tools/env/Makefile.system

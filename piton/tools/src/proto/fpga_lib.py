@@ -227,10 +227,10 @@ def getTestList(fname, flog, ustr_files=False):
 def runMidas(tname, uart_div_latch, flog, midas_args=None):
     cmd = ""
     if midas_args is None:
-        cmd = "sims -sys=manycore -novcs_build -novera_build -midas_only \
+        cmd = "sims -sys=manycore -novcs_build -midas_only \
               -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC' %s" % (uart_div_latch, tname)
     else:
-       	cmd = "sims -sys=manycore -novcs_build -novera_build -midas_only \
+       	cmd = "sims -sys=manycore -novcs_build -midas_only \
               -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC %s' %s" % \
               (uart_div_latch, midas_args, tname)
     rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)

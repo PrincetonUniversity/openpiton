@@ -24,7 +24,6 @@
 
 #include "veriuser.h"
 #include "acc_user.h"
-#include "malloc.h"
 #include "string.h"
 #include "ctype.h"  /* for toupper */
 #include "stdio.h"  /* for sscanf.h */
@@ -38,7 +37,7 @@ void parse_check(int data, int reason)
 {
   parse_debug = 0;
    return;
-} /* value_check */
+}
 
 
 

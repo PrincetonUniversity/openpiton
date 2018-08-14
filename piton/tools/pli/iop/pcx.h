@@ -38,12 +38,9 @@ public:
   char  thrid, size,  pa_10_6, way_vld;
   int true_id;
 
-  char  io_wait, wait ;
+  char  wait ;
   int up, low;
-  int dev, dram_channel;
   //pkt holds the pcx packet.
-  int aval;
-  int available;
   int pkt[4];
   KeyType addr, mask_addr;
   //constructor
@@ -55,7 +52,5 @@ public:
   void set_delay(){wait = 1;}
   //clean
   void clean();
-  //start funcs and variable here
-  void set_dev();
 };
 #endif

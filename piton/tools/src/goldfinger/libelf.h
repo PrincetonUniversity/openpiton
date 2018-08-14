@@ -52,7 +52,11 @@
 #include <sys/types.h>
 
 /* Get the ELF types.  */
+#ifdef MACOS
+#include <gelf.h>
+#else
 #include <elf.h>
+#endif
 
 
 /* Known translation types.  */

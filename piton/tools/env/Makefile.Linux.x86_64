@@ -1,19 +1,22 @@
 # Linux / i686 specific Makefile
 
-CCC = /usr/bin/c++
-CC = /usr/bin/cc
-LD = /usr/bin/cc
+CCC = g++
+CC = gcc
+LD = gcc
 
 LEX = /usr/bin/flex
 YACC = /usr/bin/bison
 
 OPT = -DLITTLE_ENDIAN
 CFLAGS = -DLINUX
+INCLUDES = -I/scratch/gpfs/yanqiz/temp/local/include
+LDS = -L/scratch/gpfs/yanqiz/temp/local/lib
 
 NC_MAKEFILE = Makefile.nc.lnx86
 
-NCV_CC_OPTS= -g -DLINUX -DLITTLE_ENDIAN -DNO_VERA
+NCV_CC_OPTS= -g -DLINUX -DLITTLE_ENDIAN
 NCV_LD_OPTS= -shared
-NCV_LD_LIBS= -DLINUX -L${NCV_HOME}/tools/lib/64bit -lsimvis_ext 
+NCV_LD_LIBS= -DLINUX -L${NCV_HOME}/tools/lib/64bit -lsimvis_ext -lpthread -lnmp_sh -lcdsCommon_sh
 
-ICARUS_CC_OPTS= -D__ICARUS__ -DNO_VERA -DLINUX -DUSE_ACC -I$(ICARUS_ROOT)/include/iverilog
+ICARUS_CC_OPTS= -D__ICARUS__ -DUSE_VPI -DLINUX -DUSE_ACC -I$(ICARUS_HOME)/include/iverilog
+MODELSIM_CC_OPTS= -DMODELSIM -DUSE_VPI -DLINUX -DUSE_ACC -I$(MODELSIM_HOME)/include

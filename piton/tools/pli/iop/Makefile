@@ -26,8 +26,7 @@ AR = ar
 OS=`uname -r | cut -f1 -d.`
 CPPFLAGS = -w  -DFIFO_METHOD
 CFLAGS += -I${VCS_HOME}/include
-CSRCS = iob_main.cc cpx.cc pcx.cc iob.cc\
-	 event.cc device.cc bw_sys.cc l2warm.cc l1warm.cc slam.cc
+CSRCS = iob_main.cc cpx.cc pcx.cc iob.cc
 CSRCC = b_ary.c bw_lib.c
 # Object files to go into the library.
 LIB_OBJS = ${CSRCS:%.cc=%.o}
