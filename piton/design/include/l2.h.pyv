@@ -43,12 +43,8 @@ import math
 import pyhplib
 from pyhplib import *
 
-L2_LINE_SIZE = 64
-# L2_SIZE = CONFIG_L2_ENTRY_COUNT * L2_LINE_SIZE
 L2_SIZE = CONFIG_L2_SIZE
 L2_WAYS = CONFIG_L2_ASSOCIATIVITY
-#L2_SIZE = 65536
-#L2_WAYS  = 4
 L2_NUM_SETS = int(L2_SIZE / (L2_LINE_SIZE * L2_WAYS))
 %>
 
@@ -286,7 +282,7 @@ print "`define L2_STATE_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS,2))
 
 `define L2_MSHR_ARRAY_WIDTH     120+`L2_WAYS_WIDTH
 
-`define L2_MSHR_CMP_ADDR        13:6
+`define L2_MSHR_CMP_ADDR        `L2_TAG_INDEX
 `define L2_MSHR_ADDR            39:0
 `define L2_MSHR_WAY             39+`L2_WAYS_WIDTH:40
 `define L2_MSHR_MSHRID          47+`L2_WAYS_WIDTH:40+`L2_WAYS_WIDTH

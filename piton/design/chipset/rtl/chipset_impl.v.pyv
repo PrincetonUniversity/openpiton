@@ -1,0 +1,788 @@
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+`include "define.vh"
+`include "piton_system.vh"
+`include "mc_define.h"
+`include "uart16550_define.vh"
+`include "chipset_define.vh"
+
+// Filename: chipset_impl.v
+// Author: mmckeown
+// Description: Top-level chipset implementation.  Instantiates
+//              different versions of chipsets based on different
+//              macros.  Some logic is common to all chipset implementations.
+
+// Macros used in this file:
+//  PITON_FPGA_MC_DDR3                  Set to indicate an FPGA implementation will
+//                                      use a DDR2/3 memory controller.  If
+//                                      this is not set, a default "fake"
+//                                      simulated DRAM is used.
+//  PITONSYS_NO_MC                      If set, no memory controller is used. This is used
+//                                      in the testing of the Piton system, where a small test
+//                                      can be run on the chip with DRAM
+//                                      emulated in BRAMs
+//  PITONSYS_IOCTRL                     Set to use real I/O controller, otherwise a fake I/O bridge 
+//                                      is used and emulates I/O in PLI C calls.  This may not be compatible
+//                                      with the "fake" memory controller or no memory controller at all
+//  PITONSYS_UART                       Set to include a UART in the Piton system chipset.  The UART
+//                                      can be used as an I/O device and/or a device for bootloading
+//                                      test programs (see PITONSYS_UART_BOOT)
+//  PITONSYS_UART_LOOBACK               Set to looback UART to itself.  Used for testing purposes
+//  PITONSYS_UART_BOOT                  Set for UART boot hardware to be included.  If this is the 
+//                                      only boot option set, it is always used.  If there is another
+//                                      boot option, a switch can be used to enable UART boot
+//  PITONSYS_NON_UART_BOOT              This is set whenever another boot method is specified besides UART.
+//                                      This is important so UART knows if it needs to be enabled or not.
+//                                      This is only used if PITONSYS_UART_BOOT is set
+//  PITONSYS_SPI                        Set to include a SPI in the Piton system chipset.  SPI is generally
+//                                      used for SD card boot, but could potentially be used for other
+//                                      purposes
+//  NEXYS4DDR_BOARD NEXYSVIDEO_BOARD    Used to indicate which board this code is 
+//                                      being synthesized for. There are more than just these
+<%
+import pyhplib
+from pyhplib import * 
+
+devices = pyhplib.ReadDevicesXMLFile()
+%>
+module chipset_impl(
+    // Clocks and resets
+    input                                       chipset_clk,
+    input                                       chipset_rst_n,
+    input                                       piton_ready_n,
+
+    output                                      test_start,
+
+`ifndef PITONSYS_NO_MC
+`ifdef PITON_FPGA_MC_DDR3
+    input                                       mc_clk,
+`endif // endif PITON_FPGA_MC_DDR3
+`endif // endif PITONSYS_NO_MC
+
+    // Main chip interface
+    output [`NOC_DATA_WIDTH-1:0]                chipset_intf_data_noc1,
+    output [`NOC_DATA_WIDTH-1:0]                chipset_intf_data_noc2,
+    output [`NOC_DATA_WIDTH-1:0]                chipset_intf_data_noc3,
+    output                                      chipset_intf_val_noc1,
+    output                                      chipset_intf_val_noc2,
+    output                                      chipset_intf_val_noc3,
+    input                                       chipset_intf_rdy_noc1,
+    input                                       chipset_intf_rdy_noc2,
+    input                                       chipset_intf_rdy_noc3,
+
+    input  [`NOC_DATA_WIDTH-1:0]                intf_chipset_data_noc1,
+    input  [`NOC_DATA_WIDTH-1:0]                intf_chipset_data_noc2,
+    input  [`NOC_DATA_WIDTH-1:0]                intf_chipset_data_noc3,
+    input                                       intf_chipset_val_noc1,
+    input                                       intf_chipset_val_noc2,
+    input                                       intf_chipset_val_noc3,
+    output                                      intf_chipset_rdy_noc1,
+    output                                      intf_chipset_rdy_noc2,
+    output                                      intf_chipset_rdy_noc3
+
+    // DRAM and I/O interfaces
+`ifndef PITONSYS_NO_MC
+    ,
+`ifdef PITON_FPGA_MC_DDR3
+    output                                      init_calib_complete,
+    // Generalized interface for any FPGA board we support.
+    // Not all signals will be used for all FPGA boards (see constraints)
+    output [`DDR3_ADDR_WIDTH-1:0]               ddr_addr,
+    output [`DDR3_BA_WIDTH-1:0]                 ddr_ba,
+    output                                      ddr_cas_n,
+    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_n,
+    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_p,
+    output [`DDR3_CKE_WIDTH-1:0]                ddr_cke,
+    output                                      ddr_ras_n,
+    output                                      ddr_reset_n,
+    output                                      ddr_we_n,
+    inout  [`DDR3_DQ_WIDTH-1:0]                 ddr_dq,
+    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_n,
+    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_p,
+`ifndef NEXYSVIDEO_BOARD
+    output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
+`endif // endif NEXYSVIDEO_BOARD
+    output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
+    output                                      ddr_odt
+`else // ifndef PITON_FPGA_MC_DDR3
+`ifndef PITON_FPGA_SYNTH
+    output                                      chipset_mem_val,
+    output [`NOC_DATA_WIDTH-1:0]                chipset_mem_data,
+    input                                       chipset_mem_rdy,
+    input                                       mem_chipset_val,
+    input  [`NOC_DATA_WIDTH-1:0]                mem_chipset_data,
+    output                                      mem_chipset_rdy
+`endif // endif PITON_FPGA_SYNTH
+`endif // endif PITON_FPGA_MC_DDR3
+`endif // endif PITONSYS_NO_MC
+
+`ifdef PITONSYS_IOCTRL
+    `ifdef PITONSYS_UART
+        ,
+        output                                      uart_tx,
+        input                                       uart_rx
+        `ifdef PITONSYS_UART_BOOT
+            `ifdef PITONSYS_NON_UART_BOOT
+                ,
+                input                                       uart_boot_en,
+                input                                       uart_timeout_en
+            `endif // endif PITONSYS_NON_UART_BOOT
+        `endif // endif PITONSYS_UART_BOOT
+    `endif // endif PITONSYS_UART
+
+    `ifdef PITONSYS_SPI
+        ,
+        input                               sd_clk,
+        input                               sd_cd,
+        output                              sd_reset,
+        output                              sd_clk_out,
+        inout                               sd_cmd,
+        inout   [3:0]                       sd_dat
+    `endif // endif PITONSYS_SPI
+
+        ,
+        input                               net_axi_clk,
+        output                              net_phy_rst_n,
+        
+        input                               net_phy_tx_clk,
+        output                              net_phy_tx_en,
+        output  [3 : 0]                     net_phy_tx_data,
+        
+        input                               net_phy_rx_clk,
+        input                               net_phy_dv,
+        input  [3 : 0]                      net_phy_rx_data,
+        input                               net_phy_rx_er,
+        
+        inout                               net_phy_mdio_io,
+        output                              net_phy_mdc
+
+`else // ifndef PITONSYS_IOCTRL
+    ,
+    output                                      chipset_fake_iob_val,
+    output [`NOC_DATA_WIDTH-1:0]                chipset_fake_iob_data,
+    input                                       chipset_fake_iob_rdy,
+    input                                       fake_iob_chipset_val,
+    input  [`NOC_DATA_WIDTH-1:0]                fake_iob_chipset_data,
+    output                                      fake_iob_chipset_rdy,
+
+    output                                      chipset_io_val,
+    output [`NOC_DATA_WIDTH-1:0]                chipset_io_data,
+    input                                       chipset_io_rdy,
+    input                                       io_chipset_val,
+    input  [`NOC_DATA_WIDTH-1:0]                io_chipset_data,
+    output                                      io_chipset_rdy
+`endif // endif PITONSYS_IO_CTRL
+);
+
+///////////////////////
+// Type declarations //
+///////////////////////
+wire                                            mc_ui_clk_sync_rst;
+
+reg                                             init_calib_complete_f;
+reg                                             init_calib_complete_ff;
+
+reg                                             io_ctrl_rst_n;
+
+`ifndef PITONSYS_IOCTRL
+wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
+`else // ifdef PITONSYS_IOCTRL
+`ifndef PITONSYS_UART
+wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
+`else // ifdef PITONSYS_UART
+`ifndef PITONSYS_UART_BOOT
+wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
+`else // ifdef PITONSYS_UART_BOOT
+`ifndef PITONSYS_NON_UART_BOOT
+wire                                            uart_boot_en;
+wire                                            uart_timeout_en;
+`endif // endif PITONSYS_NON_UART_BOOT
+`endif // endif PITONSYS_UART_BOOT
+`endif // endif PITONSYS_UART
+`endif // endif PITONSYS_IOCTRL
+
+wire                                            cpu_mem_traffic;
+wire                                            chip_filter_noc2_valid;
+wire    [`NOC_DATA_WIDTH-1:0]                   chip_filter_noc2_data;
+wire                                            filter_chip_noc2_ready;
+wire                                            filter_chip_noc3_valid;
+wire    [`NOC_DATA_WIDTH-1:0]                   filter_chip_noc3_data;
+wire                                            chip_filter_noc3_ready;
+
+
+wire                                            test_good_end;
+wire                                            test_bad_end;
+
+<%
+for i in range(len(devices)):
+# wires for the noc2 crossbar
+    print """
+wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc2_data;
+wire                   %s_buf_xbar_noc2_valid;
+wire                   %s_buf_xbar_noc2_yummy;
+wire [`DATA_WIDTH-1:0] xbar_buf_%s_noc2_data;
+wire                   xbar_buf_%s_noc2_valid;
+wire                   xbar_buf_%s_noc2_yummy;
+
+wire [`DATA_WIDTH-1:0] buf_%s_noc2_data;
+wire                   buf_%s_noc2_valid;
+wire                   %s_buf_noc2_ready;
+                                   
+wire [`DATA_WIDTH-1:0] %s_buf_noc2_data;
+wire                   %s_buf_noc2_valid;
+wire                   buf_%s_noc2_ready;
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],
+       devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+    
+# wires for the noc3 crossbar
+    print """
+wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc3_data;
+wire                   %s_buf_xbar_noc3_valid;
+wire                   %s_buf_xbar_noc3_yummy;
+wire [`DATA_WIDTH-1:0] xbar_buf_%s_noc3_data;
+wire                   xbar_buf_%s_noc3_valid;
+wire                   xbar_buf_%s_noc3_yummy;
+
+wire [`DATA_WIDTH-1:0] buf_%s_noc3_data;
+wire                   buf_%s_noc3_valid;
+wire                   %s_buf_noc3_ready;
+                                   
+wire [`DATA_WIDTH-1:0] %s_buf_noc3_data;
+wire                   %s_buf_noc3_valid;
+wire                   buf_%s_noc3_ready;
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],
+       devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+    # if the device doesn't have a noc2 input, tie off unused wires
+    if not (devices[i]["noc2_in"]):
+        print """
+assign %s_buf_noc2_data = `DATA_WIDTH'b0;
+assign %s_buf_noc2_valid = 1'b0;
+assign %s_buf_noc3_ready = 1'b0;
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
+    # otherwise, give it a set of packet filter wires except for the chip (for now)
+    elif (i > 0):
+        print """
+wire [`DATA_WIDTH-1:0]            %s_filter_noc2_data;
+wire                              %s_filter_noc2_valid;
+wire                              filter_%s_noc2_ready;
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
+        print """
+wire [`DATA_WIDTH-1:0]             filter_%s_noc3_data;
+wire                               filter_%s_noc3_valid;
+wire                               %s_filter_noc3_ready;
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+%>
+
+//////////////////////
+// Sequential Logic //
+//////////////////////
+
+`ifdef PITONSYS_IOCTRL
+`ifndef PITONSYS_NO_MC
+`ifdef PITON_FPGA_MC_DDR3
+always @ (posedge chipset_clk)
+begin
+    init_calib_complete_f <= init_calib_complete;
+    init_calib_complete_ff <= init_calib_complete_f;
+end
+`endif // endif PITON_FPGA_MC_DDR3
+`endif // endif PITONSYS_NO_MC
+`endif // endif PITONSYS_IOCTRL
+
+/////////////////////////
+// Combinational Logic //
+/////////////////////////
+
+// Currently NoC 1 from chipset to interface is not used
+// by any chipset implementation
+assign chipset_intf_data_noc1 = {`NOC_DATA_WIDTH{1'b0}};
+assign chipset_intf_val_noc1 = 1'b0;
+
+// Currently NoC 3 from interface to chipset is not used
+// by any chipset implementation
+assign intf_chipset_rdy_noc3 = 1'b0;
+assign chip_buf_noc3_valid = 1'b0;
+assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
+
+`ifdef PITONSYS_NO_MC
+`ifndef PITON_FPGA_SYNTH
+    // Tie off splitter memory interface
+    assign mem_buf_noc2_ready = 1'b0;
+    assign mem_buf_noc3_valid = 1'b0;
+    assign mem_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
+`endif // endif PITON_FPGA_SYNTH
+`endif // endif PITONSYS_NO_MC
+
+`ifndef PITONSYS_NO_MC
+`ifndef PITON_FPGA_MC_DDR3
+    // Need to pass the generic mem interface up to fake memory in manycore_top
+    assign chipset_mem_val = buf_mem_noc2_valid;
+    assign chipset_mem_data = buf_mem_noc2_data;
+    assign mem_buf_noc2_ready = chipset_mem_rdy;
+    assign mem_buf_noc3_valid = mem_chipset_val;
+    assign mem_buf_noc3_data = mem_chipset_data;
+    assign mem_chipset_rdy = buf_mem_noc3_ready;
+`endif // endif PITON_FPGA_MC_DDR3
+`endif // endif PITONSYS_NO_MC
+
+`ifndef PITONSYS_IOCTRL
+    // Need to pass the generic iob interface up to fake iob in mayncore_top
+    assign chipset_fake_iob_val = intf_chipset_val_noc1;
+    assign chipset_fake_iob_data = intf_chipset_data_noc1;
+    assign intf_chipset_rdy_noc1 = chipset_fake_iob_rdy;
+    assign chipset_intf_val_noc2 = fake_iob_chipset_val;
+    assign chipset_intf_data_noc2 = fake_iob_chipset_data;
+    assign fake_iob_chipset_rdy = chipset_intf_rdy_noc2;
+
+    assign chipset_io_val = buf_uart_noc2_valid;
+    assign chipset_io_data = buf_uart_noc2_data;
+    assign uart_buf_noc2_ready = chipset_io_rdy;
+    assign uart_buf_noc3_valid = io_chipset_val;
+    assign uart_buf_noc3_data = io_chipset_data;
+    assign io_chipset_rdy = buf_uart_noc3_ready;
+`endif // endif PITONSYS_IOCTRL
+
+`ifdef PITONSYS_IOCTRL
+    always @ *
+    begin
+    `ifndef PITONSYS_NO_MC
+    `ifdef PITON_FPGA_MC_DDR3
+        // Reset I/O ctrl as long as DRAM ctrl is not reset 
+        // and not calibrated or initialized
+        io_ctrl_rst_n = ~mc_ui_clk_sync_rst & init_calib_complete_ff;
+    `else // ifndef PITON_FPGA_MC_DDR3
+        io_ctrl_rst_n = chipset_rst_n;
+    `endif // endif PITON_FPGA_MC_DDR3
+    `else // ifdef PITONSYS_NO_MC
+        io_ctrl_rst_n = chipset_rst_n;
+    `endif // PITONSYS_NO_MC
+    end
+`endif // endif PITONSYS_IOCTRL
+
+`ifndef PITONSYS_IOCTRL
+    assign uart_boot_en = 1'b0;
+    assign uart_timeout_en = 1'b0;
+`else // ifdef PITONSYS_IOCTRL
+    `ifndef PITONSYS_UART
+        assign uart_boot_en = 1'b0;
+        assign uart_timeout_en = 1'b0;
+    `else // ifdef PITONSYS_UART
+        `ifndef PITONSYS_UART_BOOT
+            assign uart_boot_en = 1'b0;
+            assign uart_timeout_en = 1'b0;
+        `else // ifdef PITONSYS_UART_BOOT
+            `ifndef PITONSYS_NON_UART_BOOT
+                assign uart_boot_en = 1'b1;
+            `endif // endif PITONSYS_NON_UART_BOOT
+        `endif // endif PITONSYS_UART_BOOT
+    `endif // endif PITONSYS_UART
+`endif // endif PITONSYS_IOCTRL
+
+//////////////////////////
+// Sub-module Instances //
+//////////////////////////
+`ifdef PITONSYS_IOCTRL
+    assign cpu_mem_traffic = test_start | (~uart_boot_en);
+`else
+    assign cpu_mem_traffic = 1'b1;
+`endif
+
+assign chip_filter_noc2_valid = intf_chipset_val_noc2; 
+assign chip_filter_noc2_data = intf_chipset_data_noc2;
+assign intf_chipset_rdy_noc2    = filter_chip_noc2_ready & cpu_mem_traffic;
+
+// NoC 3
+assign chipset_intf_val_noc3    = cpu_mem_traffic & filter_chip_noc3_valid;
+assign chipset_intf_data_noc3   = filter_chip_noc3_data;
+
+assign chip_filter_noc3_ready  = cpu_mem_traffic ? chipset_intf_rdy_noc3 : 1'b1;
+
+`ifdef PITONSYS_UART_BOOT
+test_end_checker test_end_checker(
+    .clk                    (chipset_clk),
+    .rst_n                  (chipset_rst_n),
+
+    .src_checker_noc2_val   (chip_filter_noc2_valid),
+    .src_checker_noc2_data  (chip_filter_noc2_data),
+    .src_checker_noc2_rdy   (filter_chip_noc2_ready),
+
+    .uart_boot_en           (uart_boot_en),
+    .test_good_end          (test_good_end),
+    .test_bad_end           (test_bad_end)
+);
+`else
+    assign test_good_end = 1'b0;
+    assign test_bad_end = 1'b0;
+`endif
+
+<%
+for i in range(len(devices)):
+    if devices[i]["noc2_in"]:
+        print """
+packet_filter %s_packet_filter(
+    .clk(chipset_clk),
+    .rst_n(chipset_rst_n),
+
+    // noc2 to filter wires
+    .noc2_filter_val(%s_filter_noc2_valid),
+    .noc2_filter_data(%s_filter_noc2_data),
+    .filter_noc2_rdy(filter_%s_noc2_ready),
+
+    // filter to noc3 wires
+    .filter_noc3_val(filter_%s_noc3_valid),
+    .filter_noc3_data(filter_%s_noc3_data),
+    .noc3_filter_rdy(%s_filter_noc3_ready),
+
+    // filter to xbar wires
+    .filter_xbar_val(%s_buf_noc2_valid),
+    .filter_xbar_data(%s_buf_noc2_data),
+    .xbar_filter_rdy(buf_%s_noc2_ready),
+
+    // xbar to filter wires
+    .xbar_filter_val(buf_%s_noc3_valid),
+    .xbar_filter_data(buf_%s_noc3_data),
+    .filter_xbar_rdy(%s_buf_noc3_ready),
+
+    .uart_boot_en(uart_boot_en)
+);
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],devices[i]["name"],
+)
+%>
+
+<%
+
+xbartemplate = r'''
+io_xbar_top_wrap io_xbar_noc2 (
+    .clk                (chipset_clk),
+    .reset_in           (~chipset_rst_n),
+    
+    .myChipID                   (14'b10000000000000),    // the first chip
+    .myLocX                     (8'b0),  // not used
+    .myLocY                     (8'b0),  // not used
+
+'''
+
+for i in range(len(devices)):
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc2_data),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc2_valid),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc2_yummy),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc2_data),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc2_valid),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc2_yummy),\n\n" % (i, devices[i]["name"])
+       
+xbartemplate = xbartemplate[:-3] + r'''
+);'''
+
+print xbartemplate
+
+xbartemplate = r'''
+io_xbar_top_wrap io_xbar_noc3 (
+    .clk                (chipset_clk),
+    .reset_in           (~chipset_rst_n),
+    
+    .myChipID                   (14'b10000000000000),    // the first chip
+    .myLocX                     (8'b0),  // not used
+    .myLocY                     (8'b0),  // not used
+
+'''
+
+for i in range(len(devices)):
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc3_data),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc3_valid),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc3_yummy),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc3_data),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc3_valid),\n"  % (i, devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc3_yummy),\n\n" % (i, devices[i]["name"])
+       
+xbartemplate = xbartemplate[:-3] + r'''
+);'''
+
+print xbartemplate
+
+for i in range(len(devices)):
+    valrdy_credit_template = r'''
+valrdy_to_credit noc2_%s_to_xbar (
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n),
+
+      .data_in(%s_buf_noc2_data),
+      .valid_in(%s_buf_noc2_valid),
+      .ready_in(buf_%s_noc2_ready),
+
+      .data_out(%s_buf_xbar_noc2_data),           // Data
+      .valid_out(%s_buf_xbar_noc2_valid),       // Val signal
+      .yummy_out(xbar_buf_%s_noc2_yummy)    // Yummy signal
+);''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+        devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    credit_valrdy_template = r'''
+credit_to_valrdy noc2_xbar_to_%s(
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n),
+
+      .data_in(xbar_buf_%s_noc2_data),
+      .valid_in(xbar_buf_%s_noc2_valid),
+      .yummy_in(%s_buf_xbar_noc2_yummy),
+
+      .data_out(buf_%s_noc2_data),           // Data
+      .valid_out(buf_%s_noc2_valid),       // Val signal from dynamic network to processor
+      .ready_out(%s_buf_noc2_ready)    // Rdy signal from processor to dynamic network
+);''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+         devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    print valrdy_credit_template
+    print credit_valrdy_template
+
+    valrdy_credit_template = r'''
+valrdy_to_credit noc3_%s_to_xbar (
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n),
+
+      .data_in(%s_buf_noc3_data),
+      .valid_in(%s_buf_noc3_valid),
+      .ready_in(buf_%s_noc3_ready),
+
+      .data_out(%s_buf_xbar_noc3_data),           // Data
+      .valid_out(%s_buf_xbar_noc3_valid),       // Val signal
+      .yummy_out(xbar_buf_%s_noc3_yummy)    // Yummy signal
+);''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+        devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    credit_valrdy_template = r'''
+credit_to_valrdy noc3_xbar_to_%s(
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n),
+
+      .data_in(xbar_buf_%s_noc3_data),
+      .valid_in(xbar_buf_%s_noc3_valid),
+      .yummy_in(%s_buf_xbar_noc3_yummy),
+
+      .data_out(buf_%s_noc3_data),           // Data
+      .valid_out(buf_%s_noc3_valid),       // Val signal from dynamic network to processor
+      .ready_out(%s_buf_noc3_ready)    // Rdy signal from processor to dynamic network
+);''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+         devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    print valrdy_credit_template
+    print credit_valrdy_template
+%>
+
+`ifndef PITONSYS_NO_MC
+// Memory controller.  Either uses "fake" simulated
+// memory controller or FPGA memory controllers
+`ifdef PITON_FPGA_MC_DDR3
+mc_top mc_top(
+    .mc_ui_clk_sync_rst(mc_ui_clk_sync_rst),
+
+    .core_ref_clk(chipset_clk),
+
+    .sys_clk(mc_clk),
+
+    .sys_rst_n(chipset_rst_n),
+
+    .mc_flit_in_val(buf_mem_noc2_valid),
+    .mc_flit_in_data(buf_mem_noc2_data),
+    .mc_flit_in_rdy(mem_buf_noc2_ready),
+
+    .mc_flit_out_val(mem_buf_noc3_valid),
+    .mc_flit_out_data(mem_buf_noc3_data),
+    .mc_flit_out_rdy(buf_mem_noc3_ready),
+
+    .uart_boot_en(uart_boot_en),
+
+    .ddr_addr(ddr_addr),
+    .ddr_ba(ddr_ba),
+    .ddr_cas_n(ddr_cas_n),
+    .ddr_ck_n(ddr_ck_n),
+    .ddr_ck_p(ddr_ck_p),
+    .ddr_cke(ddr_cke),
+    .ddr_ras_n(ddr_ras_n),
+    .ddr_reset_n(ddr_reset_n),
+    .ddr_we_n(ddr_we_n),
+    .ddr_dq(ddr_dq),
+    .ddr_dqs_n(ddr_dqs_n),
+    .ddr_dqs_p(ddr_dqs_p),
+`ifndef NEXYSVIDEO_BOARD
+    .ddr_cs_n(ddr_cs_n),
+`endif // endif NEXYSVIDEO_BOARD
+    .ddr_dm(ddr_dm),
+    .ddr_odt(ddr_odt),
+
+    .init_calib_complete_out(init_calib_complete)
+);
+`endif // endif PITON_FPGA_MC_DDR3
+`else
+
+`ifdef PITON_FPGA_BRAM_TEST
+
+    fake_boot_ctrl  fake_boot_ctrl(
+        .clk                    (chipset_clk            ),
+        .rst_n                  (chipset_rst_n          ),
+
+        .noc_valid_in           (buf_mem_noc2_valid     ),
+        .noc_data_in            (buf_mem_noc2_data      ),
+        .noc_ready_in           (mem_buf_noc2_ready     ),
+
+        .noc_valid_out          (mem_buf_noc3_valid     ),
+        .noc_data_out           (mem_buf_noc3_data      ),
+        .noc_ready_out          (buf_mem_noc3_ready     )
+    );
+
+`elsif PITON_FPGA_BRAM_BOOT
+
+    fake_boot_ctrl  fake_boot_ctrl(
+        .clk                    (chipset_clk            ),
+        .rst_n                  (chipset_rst_n          ),
+
+        .noc_valid_in           (buf_mem_noc2_valid     ),
+        .noc_data_in            (buf_mem_noc2_data      ),
+        .noc_ready_in           (mem_buf_noc2_ready     ),
+                                                   
+        .noc_valid_out          (mem_buf_noc3_valid     ),
+        .noc_data_out           (mem_buf_noc3_data      ),
+        .noc_ready_out          (buf_mem_noc3_ready     )
+    );
+
+`endif
+
+`endif // endif PITONSYS_NO_MC
+
+`ifdef PITONSYS_IOCTRL
+
+assign chipset_intf_val_noc2 = buf_chip_noc2_valid;
+assign chipset_intf_data_noc2 = buf_chip_noc2_data;
+assign chip_buf_noc2_ready = chipset_intf_rdy_noc2;
+
+io_ctrl_top io_ctrl_top(
+    .clk                    (chipset_clk    ),
+    .rst_n                  (io_ctrl_rst_n  ),
+    .piton_ready_n          (piton_ready_n  ),
+
+    // NoC1 into IOB 
+    .iob_noc1_valid_in(intf_chipset_val_noc1),
+    .iob_noc1_data_in(intf_chipset_data_noc1),
+    .iob_noc1_ready_in(intf_chipset_rdy_noc1),
+    
+    // NoC3 in not used by IOB
+    
+    // NoC1 out not used by IOB
+
+    // NoC2 out of IOB
+
+<%
+for i in range(1, len(devices)):
+    if (devices[i]["name"] == "mem"):
+        continue
+    print """
+    .buf_%s_noc2_data(buf_%s_noc2_data),
+    .buf_%s_noc2_valid(buf_%s_noc2_valid),
+    .%s_buf_noc2_ready(%s_buf_noc2_ready),
+                 
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    print """
+    .%s_buf_noc3_data(%s_buf_noc3_data),
+    .%s_buf_noc3_valid(%s_buf_noc3_valid),
+    .buf_%s_noc3_ready(buf_%s_noc3_ready),
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+
+    if (devices[i]["noc2_in"]):
+        print """
+    .%s_filter_noc2_data(%s_filter_noc2_data),
+    .%s_filter_noc2_valid(%s_filter_noc2_valid),
+    .filter_%s_noc2_ready(filter_%s_noc2_ready),
+""" %  (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+    
+        print """
+    .filter_%s_noc3_data(filter_%s_noc3_data),
+    .filter_%s_noc3_valid(filter_%s_noc3_valid),
+    .%s_filter_noc3_ready(%s_filter_noc3_ready),          
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"], 
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+%>
+`ifdef PITONSYS_UART
+    // UART interface
+`ifdef PITONSYS_UART_LOOBACK
+    // Can be used to loobpack UART for testing
+    .uart_lb_sw(1'b1),
+`else // ifndef PITONSYS_UART_LOOBACK
+    .uart_lb_sw(1'b0),
+`endif // endif PITONSYS_UART_LOOBACK
+    .uart_rx(uart_rx),
+    .uart_tx(uart_tx),
+`endif // endif PITONSYS_UART
+
+    // SPI interface
+`ifdef PITONSYS_SPI
+    .sd_clk     (sd_clk),
+    .sd_cd      (sd_cd),
+    .sd_reset   (sd_reset),
+    .sd_clk_out (sd_clk_out),
+    .sd_cmd     (sd_cmd),
+    .sd_dat     (sd_dat),
+`endif // PITONSYS_SPI
+
+    .net_axi_clk            (net_axi_clk        ),
+    .net_phy_rst_n          (net_phy_rst_n      ),  
+    
+    .net_phy_tx_clk         (net_phy_tx_clk     ), 
+    .net_phy_tx_en          (net_phy_tx_en      ),  
+    .net_phy_tx_data        (net_phy_tx_data    ),
+    
+    .net_phy_rx_clk         (net_phy_rx_clk     ), 
+    .net_phy_dv             (net_phy_dv         ),     
+    .net_phy_rx_data        (net_phy_rx_data    ),
+    .net_phy_rx_er          (net_phy_rx_er      ),
+
+    .net_phy_mdio_io        (net_phy_mdio_io    ), 
+    .net_phy_mdc            (net_phy_mdc        ),
+
+    .uart_boot_en(uart_boot_en),
+    // Uncomment to connect to the switch
+    // .uart_timeout_en(uart_timeout_en),
+    .uart_timeout_en        (1'b1),
+    
+    .test_start             (test_start         ),
+    .test_good_end          (test_good_end      ),
+    .test_bad_end           (test_bad_end       )
+);
+`endif // endif PITONSYS_IOCTRL
+
+endmodule

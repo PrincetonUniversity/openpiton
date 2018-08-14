@@ -43,7 +43,7 @@ main:
     jmp     %l0
     nop
 
-
+#include "parallel-hist-def.h"
 #include "parallel-hist-data.s"
 
 SECTION .ACTIVE_THREAD_SEC TEXT_VA=0x0000000040008000

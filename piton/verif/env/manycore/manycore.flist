@@ -88,3 +88,4 @@ manycore_network_mon.v
 -v iob_mon.v
 fake_pll.v
 manycore_top.v
+fake_uart.v

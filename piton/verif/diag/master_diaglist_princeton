@@ -1764,3 +1764,104 @@ alu_tsub_rand                           arch_alu.pal  -midas_args=-pal_diag_args
 </runargs>
 </ed_directed_default>
 </ed_directed>
+
+<dmbr_nightly_asm sys=manycore -x_tiles=1 -y_tiles=1>
+<dmbr_nightly_asm_default name=dmbr_nightly_asm>
+<runargs -dmbr>
+
+<dmbr_config_regs>
+    dmbr_config_regs_test dmbr_config_regs_test.s
+</dmbr_config_regs>
+
+<dmbr_one_bin>
+//    dmbr_assembly_0_one_bin dmbr_assembly_0_one_bin.s 
+//    dmbr_assembly_1_one_bin dmbr_assembly_1_one_bin.s 
+    dmbr_assembly_2_one_bin dmbr_assembly_2_one_bin.s 
+    dmbr_assembly_3_one_bin dmbr_assembly_3_one_bin.s 
+    dmbr_assembly_4_one_bin dmbr_assembly_4_one_bin.s 
+    dmbr_assembly_5_one_bin dmbr_assembly_5_one_bin.s 
+    dmbr_assembly_6_one_bin dmbr_assembly_6_one_bin.s 
+    dmbr_assembly_7_one_bin dmbr_assembly_7_one_bin.s 
+    dmbr_assembly_8_one_bin dmbr_assembly_8_one_bin.s 
+    dmbr_assembly_9_one_bin dmbr_assembly_9_one_bin.s 
+</dmbr_one_bin>
+
+<dmbr_assembly>
+    dmbr_assembly_0_random dmbr_assembly_0_random.s 
+    dmbr_assembly_1_random dmbr_assembly_1_random.s 
+    dmbr_assembly_2_random dmbr_assembly_2_random.s 
+    dmbr_assembly_3_random dmbr_assembly_3_random.s 
+    dmbr_assembly_4_random dmbr_assembly_4_random.s 
+    dmbr_assembly_5_random dmbr_assembly_5_random.s 
+    dmbr_assembly_6_random dmbr_assembly_6_random.s 
+    dmbr_assembly_7_random dmbr_assembly_7_random.s 
+    dmbr_assembly_8_random dmbr_assembly_8_random.s 
+    dmbr_assembly_9_random dmbr_assembly_9_random.s 
+    dmbr_assembly_10_random dmbr_assembly_10_random.s 
+    dmbr_assembly_11_random dmbr_assembly_11_random.s 
+    dmbr_assembly_12_random dmbr_assembly_12_random.s 
+    dmbr_assembly_13_random dmbr_assembly_13_random.s 
+    dmbr_assembly_14_random dmbr_assembly_14_random.s 
+    dmbr_assembly_15_random dmbr_assembly_15_random.s 
+    dmbr_assembly_16_random dmbr_assembly_16_random.s 
+    dmbr_assembly_17_random dmbr_assembly_17_random.s 
+    dmbr_assembly_18_random dmbr_assembly_18_random.s 
+    dmbr_assembly_19_random dmbr_assembly_19_random.s 
+</dmbr_assembly>
+
+//<dmbr_assembly_gen>
+//    dmbr_assembly_gen_1 dmbr_assembly.s 
+//    dmbr_assembly_gen_2 dmbr_assembly.s 
+//    dmbr_assembly_gen_3 dmbr_assembly.s 
+//    dmbr_assembly_gen_4 dmbr_assembly.s 
+//    dmbr_assembly_gen_5 dmbr_assembly.s 
+//    dmbr_assembly_gen_6 dmbr_assembly.s 
+//    dmbr_assembly_gen_7 dmbr_assembly.s 
+//    dmbr_assembly_gen_8 dmbr_assembly.s 
+//    dmbr_assembly_gen_9 dmbr_assembly.s 
+//    dmbr_assembly_gen_10 dmbr_assembly.s 
+//    dmbr_assembly_gen_11 dmbr_assembly.s 
+//    dmbr_assembly_gen_12 dmbr_assembly.s 
+//    dmbr_assembly_gen_13 dmbr_assembly.s 
+//    dmbr_assembly_gen_14 dmbr_assembly.s 
+//    dmbr_assembly_gen_15 dmbr_assembly.s 
+//    dmbr_assembly_gen_16 dmbr_assembly.s 
+//    dmbr_assembly_gen_17 dmbr_assembly.s 
+//    dmbr_assembly_gen_18 dmbr_assembly.s 
+//    dmbr_assembly_gen_19 dmbr_assembly.s 
+//    dmbr_assembly_gen_20 dmbr_assembly.s 
+//</dmbr_assembly_gen>
+
+</runargs>
+</dmbr_nightly_asm_default>
+</dmbr_nightly_asm>
+
+<dmbr_nightly_source_sink sys=dmbr_source_sink -x_tiles=1 -y_tiles=1>
+<dmbr_nightly_source_sink_default name=dmbr_nightly_source_sink>
+<runargs -dmbr -nouse_oolm>
+<dmbr_source_sink>
+    dmbr_source_sink_1 
+    dmbr_source_sink_2 
+    dmbr_source_sink_3 
+    dmbr_source_sink_4 
+    dmbr_source_sink_5 
+    dmbr_source_sink_6 
+    dmbr_source_sink_7 
+    dmbr_source_sink_8 
+    dmbr_source_sink_9 
+    dmbr_source_sink_10 
+    dmbr_source_sink_11 
+    dmbr_source_sink_12 
+    dmbr_source_sink_13 
+    dmbr_source_sink_14 
+    dmbr_source_sink_15 
+    dmbr_source_sink_16 
+    dmbr_source_sink_17 
+    dmbr_source_sink_18 
+    dmbr_source_sink_19 
+    dmbr_source_sink_20 
+</dmbr_source_sink>
+
+</runargs>
+</dmbr_nightly_source_sink_default>
+</dmbr_nightly_source_sink>

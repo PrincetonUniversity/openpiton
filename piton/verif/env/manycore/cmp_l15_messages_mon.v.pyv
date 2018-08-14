@@ -320,8 +320,8 @@ begin
         if ( ^`L15_TOP0.noc1encoder.flit === 1'bx)
         begin
             $display("%d : Simulation -> FAIL(TILE0 noc1 sends X data 0x%x)", $time, `L15_TOP0.noc1encoder.flit);
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("l15_mon: TILE0 noc1 sends X data");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("l15_mon: TILE0 noc1 sends X data");
         end
         
     end
@@ -410,8 +410,8 @@ begin
         begin
             noc2 = "MSG_TYPE_UNKNOWN_ERROR";
             $display("%d : Simulation -> FAIL(%0s)", $time, "L15 mon: error message type from L2");
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("L15 mon: error message type from L2");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("L15 mon: error message type from L2");
         end
         endcase
 
@@ -535,8 +535,8 @@ begin
         begin
             $display("L1.5 MON: sending back invalid ack with data");
             $display("%d : Simulation -> FAIL(%0s)", $time, "L1.5 MON: sending back invalid ack with data");
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("L1.5 MON: sending back invalid ack with data");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("L1.5 MON: sending back invalid ack with data");
         end
 
 
@@ -713,6 +713,13 @@ begin
                 $display("   DTAG way3 state: 0x%x", `L15_PIPE0.mesi_state_way3_s2);
                 $display("   DTAG way3 data: 0x%x", dtag_tag_way3_s2_TILE0);
             end
+
+            if (`L15_PIPE0.l15_mesi_write_val_s2)
+            begin
+                $display("   MESI write way: 0x%x", `L15_PIPE0.mesi_write_way_s2);
+                $display("   MESI write data: 0x%x", `L15_PIPE0.mesi_write_state_s2);
+            end
+
             // if (`L15_PIPE0.lruarray_write_op_s2 == `L15_LRU_EVICTION)
             // begin
             //     $display("   LRU EVICTION INDEX: %d, WAY: %d", `L15_PIPE0.cache_index_s2,
@@ -890,8 +897,8 @@ begin
     begin
         $display("L1.5 MON: HMC refills invalid data");
         $display("%d : Simulation -> FAIL(%0s)", $time, "L1.5 MON: HMC refills invalid data");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("L1.5 MON: HMC refills invalid data");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("L1.5 MON: HMC refills invalid data");
     end
 
 // valid mshrid monitor
@@ -908,8 +915,8 @@ begin
             begin
                 $display("L1.5 MON: Received NoC2 message with MSHRID greater than 9 (%d)", `L15_PIPE0.noc2decoder_l15_mshrid);
                 $display("%d : Simulation -> FAIL(%0s)", $time, "L1.5 MON: Received NoC2 message with MSHRID greater than 9");
-                repeat(5)@(posedge clk);
-                `MONITOR_PATH.fail("L1.5 MON: Received NoC2 message with MSHRID greater than 9");
+                repeat(5)@(posedge clk)
+                    `MONITOR_PATH.fail("L1.5 MON: Received NoC2 message with MSHRID greater than 9");
             end
 
             // now check if it's valid
@@ -918,8 +925,8 @@ begin
             // begin
             //     $display("L1.5 MON: Received NoC2 message with invalid MSHRID (%d)", `L15_PIPE0.noc2decoder_l15_mshrid);
             //     $display("%d : Simulation -> FAIL(%0s)", $time, "L1.5 MON: Received NoC2 message with invalid MSHRID");
-            //     repeat(5)@(posedge clk);
-            //     `MONITOR_PATH.fail("L1.5 MON: Received NoC2 message with invalid MSHRID");
+            //     repeat(5)@(posedge clk)
+                //     `MONITOR_PATH.fail("L1.5 MON: Received NoC2 message with invalid MSHRID");
             // end
         end
     end
@@ -933,8 +940,8 @@ begin
     //         begin
     //             $display("L1.5 MON: Sending NoC1 message with invalid MSHRID (%d)", `L15_PIPE0.l15_noc1buffer_req_mshrid);
     //             $display("%d : Simulation -> FAIL(%0s)", $time, "L1.5 MON: Sending NoC1 message with invalid MSHRID");
-    //             repeat(5)@(posedge clk);
-    //             `MONITOR_PATH.fail("L1.5 MON: Sending NoC1 message with invalid MSHRID");
+    //             repeat(5)@(posedge clk)
+        //             `MONITOR_PATH.fail("L1.5 MON: Sending NoC1 message with invalid MSHRID");
     //         end
     //     end
     // end
@@ -947,8 +954,8 @@ begin
 `endif        
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was valid but squashed in L1.5");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("PCXTILE0 req was valid but squashed in L1.5");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("PCXTILE0 req was valid but squashed in L1.5");
     end
 `ifndef RTL_SPU
     if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b1))
@@ -957,16 +964,16 @@ begin
 `endif        
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was squashed but valid at L1.5");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("PCXTILE0 req was squashed but valid at L1.5");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("PCXTILE0 req was squashed but valid at L1.5");
     end
 
     // check for squashed atomic
     if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b1) && (`L15_TOP0.pcx_buffer.spc_uncore_atomic_req == 1'b1))
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 atomic req squashed");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("PCXTILE0 atomic req squashed");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("PCXTILE0 atomic req squashed");
     end
 
 // monitor FP transactions because it is not supported yet
@@ -975,8 +982,8 @@ begin
 //         if (`L15_PIPE0.pcxdecoder_l15_rqtype == `PCX_REQTYPE_FP1)
 //         begin
 //             $display("%d : Simulation -> FAIL(%0s)", $time, "FP requests received but not implemented");
-//             repeat(5)@(posedge clk);
-//             `MONITOR_PATH.fail("FP requests received but not implemented");
+//             repeat(5)@(posedge clk)
+    //             `MONITOR_PATH.fail("FP requests received but not implemented");
 //         end
 //     end
 
@@ -988,8 +995,8 @@ begin
         begin
             $display("%d : PCX write to INT_VEC_DIS", $time);
             // $display("%d : Simulation -> FAIL(%0s)", $time, "Write to INT_VEC_DIS");
-            // repeat(5)@(posedge clk);
-            // `MONITOR_PATH.fail("Write to INT_VEC_DIS");
+            // repeat(5)@(posedge clk)
+                // `MONITOR_PATH.fail("Write to INT_VEC_DIS");
         end
     end
 
@@ -997,47 +1004,47 @@ begin
     if (`L15_PIPE0.creditman_noc1_avail == 4'd15)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 credit underflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 credit underflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 credit underflow");
     end
     if (`L15_PIPE0.creditman_noc1_avail > `NOC1_BUFFER_NUM_SLOTS)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 credit overflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 credit overflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 credit overflow");
     end
     if (`L15_PIPE0.creditman_noc1_data_avail == 4'd15)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 data credit underflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 data credit underflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 data credit underflow");
     end
     if (`L15_PIPE0.creditman_noc1_data_avail > `NOC1_BUFFER_NUM_DATA_SLOTS)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 data credit overflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 data credit overflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 data credit overflow");
     end
 
     // check noc1 reserve credit
     if (`L15_PIPE0.creditman_noc1_reserve == 4'd15)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 reserve credit underflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 reserve credit underflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 reserve credit underflow");
     end
     if (`L15_PIPE0.creditman_noc1_reserve > `NOC1_BUFFER_NUM_SLOTS)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 reserve credit overflow");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("TILE0 NOC1 reserve credit overflow");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("TILE0 NOC1 reserve credit overflow");
     end
     // check reserve logics
     // if (`L15_PIPE0.creditman_noc1_reserve_s3)
     // begin
     //     $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 NOC1 reserve credit underflow");
-    //     repeat(5)@(posedge clk);
-    //     `MONITOR_PATH.fail("TILE0 NOC1 reserve credit underflow");
+    //     repeat(5)@(posedge clk)
+        //     `MONITOR_PATH.fail("TILE0 NOC1 reserve credit underflow");
     // end
 
 // Monitor for "RESERVED" messages
@@ -1046,8 +1053,8 @@ begin
         if (`L15_PIPE0.noc2decoder_l15_reqtype == `MSG_TYPE_RESERVED)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 L15 received MSG_TYPE_RESERVED");
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("TILE0 L15 received MSG_TYPE_RESERVED");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("TILE0 L15 received MSG_TYPE_RESERVED");
         end
     end
 
@@ -1062,8 +1069,8 @@ begin
                 if ((wmt_read_data_TILE0[i_TILE0][`L15_WMT_VALID_MASK] && wmt_read_data_TILE0[j_TILE0][`L15_WMT_VALID_MASK]) && (wmt_read_data_TILE0[i_TILE0] == wmt_read_data_TILE0[j_TILE0]))
                 begin
                     $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 L15 has error with WMT");
-                    repeat(5)@(posedge clk);
-                    `MONITOR_PATH.fail("TILE0 L15 has error with WMT");
+                    repeat(5)@(posedge clk)
+                        `MONITOR_PATH.fail("TILE0 L15 has error with WMT");
                 end
             end
         end
@@ -1087,8 +1094,8 @@ begin
                 if ((tag_val_TILE0[i_TILE0] && tag_val_TILE0[j_TILE0]) && (tag_data_TILE0[i_TILE0] == tag_data_TILE0[j_TILE0]))
                 begin
                     $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 L15 has duplicated tag entry");
-                    repeat(5)@(posedge clk);
-                    `MONITOR_PATH.fail("TILE0 L15 has duplicated tag entry");
+                    repeat(5)@(posedge clk)
+                        `MONITOR_PATH.fail("TILE0 L15 has duplicated tag entry");
                 end
             end
         end
@@ -1102,8 +1109,8 @@ begin
 //     if (`L15_PIPE0.pcxdecoder_l15_val && !`L15_PIPE0.pcx_message_staled_s1 && `L15_PIPE0.val_s1 && !`L15_PIPE0.stall_s1 && !`L15_PIPE0.noc2decoder_l15_val)
 //     begin
 //         $display("%d : Simulation -> FAIL(%0s)", $time, "FP requests received but not implemented");
-//         repeat(5)@(posedge clk);
-//         `MONITOR_PATH.fail("FP requests received but not implemented");
+//         repeat(5)@(posedge clk)
+    //         `MONITOR_PATH.fail("FP requests received but not implemented");
 //     end
 
 
@@ -1131,8 +1138,8 @@ begin
             begin
                 // and an another entry is 0, then is an error
                 $display("%d : Simulation -> FAIL(%0s)", $time, "TILE0 L15 picked the wrong LRU entry");
-                repeat(5)@(posedge clk);
-                `MONITOR_PATH.fail("TILE0 L15 picked the wrong LRU entry");
+                repeat(5)@(posedge clk)
+                    `MONITOR_PATH.fail("TILE0 L15 picked the wrong LRU entry");
             end
         end
     end
@@ -1143,8 +1150,8 @@ begin
         `L15_PIPE0.val_s3 && (`L15_PIPE0.stall_s3 === 1'bx))
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "L15 has X's in the stall_s1 signal");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("L15 has X's in the stall_s1 signal");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("L15 has X's in the stall_s1 signal");
     end
 
 // some checks for l15cpxencoder
@@ -1153,15 +1160,15 @@ begin
         if (`L15_TOP0.l15_cpxencoder.l15_cpxencoder_inval_icache_inval)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l15 icache inval is not used");
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("l15 icache inval is not used");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("l15 icache inval is not used");
         end
         if (`L15_TOP0.l15_cpxencoder.l15_cpxencoder_returntype == `CPX_RESTYPE_ATOMIC_RES 
             && `L15_TOP0.l15_cpxencoder.l15_cpxencoder_inval_dcache_inval)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l15 CAS inval is not used");
-            repeat(5)@(posedge clk);
-            `MONITOR_PATH.fail("l15 CAS inval is not used");
+            repeat(5)@(posedge clk)
+                `MONITOR_PATH.fail("l15 CAS inval is not used");
         end
     end
 
@@ -1169,8 +1176,8 @@ begin
     if (`L15_TOP0.noc1encoder.sending && `L15_TOP0.noc1encoder.req_type == 0)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "l15 noc1 message is null");
-        repeat(5)@(posedge clk);
-        `MONITOR_PATH.fail("l15 noc1 message is null");
+        repeat(5)@(posedge clk)
+            `MONITOR_PATH.fail("l15 noc1 message is null");
     end
 
     end // disable_l15_mon

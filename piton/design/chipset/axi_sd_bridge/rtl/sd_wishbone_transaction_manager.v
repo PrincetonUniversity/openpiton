@@ -35,6 +35,7 @@
 //  Email         : mmatl@princeton.edu
 //
 //  Description   : Handles transaction logic with to an SD Wishbone interface.
+//  Patches by    : John Li
 //==================================================================================================
 
 `include "define.vh"

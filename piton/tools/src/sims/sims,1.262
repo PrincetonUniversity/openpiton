@@ -5357,6 +5357,9 @@ sub parse_args
     }
   }
 
+  $ENV{PROTOSYN_RUNTIME_DESIGN_PATH} = $ENV{DV_ROOT} . "/verif/env/manycore";
+  $ENV{PROTOSYN_RUNTIME_BOARD} = "";
+
   # these arguments may not have any options associated with them
 
   foreach my $x (@ARGV)

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15_ctl.v
 //  Created On    : 2014-01-31 18:24:47
-//  Last Modified : 2015-01-30 17:17:26
+//  Last Modified : 2018-01-17 14:00:15
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -382,7 +382,7 @@ reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] mshr_st_state_array [`L15_THREAD_ARRAY_MAS
 `endif
 reg [`L15_PADDR_MASK] mshr_st_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_PADDR_MASK] mshr_ld_address_array [`L15_THREAD_ARRAY_MASK];
-reg [`L15_THREADID_MASK] mshr_st_way_array [`L15_THREAD_ARRAY_MASK];
+reg [`L15_WAY_MASK] mshr_st_way_array [`L15_THREAD_ARRAY_MASK];
 always @ *
 begin
     pipe_mshr_readreq_mshrid_s1 = noc2decoder_l15_mshrid;
@@ -3840,7 +3840,7 @@ begin
         `L15_NOC1_GEN_DATA_ST_UPGRADE_IF_TAGCHECK_S_ELSE_ST_FILL_IF_TAGCHECK_I:
         begin
             noc1_req_val_s3 = val_s3 && ((tagcheck_state_s3 == `L15_MESI_STATE_S) || (tagcheck_state_s3 == `L15_MESI_STATE_I));
-            noc1_type_s3 = (tagcheck_state_s_s3 == `L15_MESI_STATE_S) ? `L15_NOC1_REQTYPE_ST_UPGRADE_REQUEST :
+            noc1_type_s3 = (tagcheck_state_s3 == `L15_MESI_STATE_S) ? `L15_NOC1_REQTYPE_ST_UPGRADE_REQUEST :
                                                                         `L15_NOC1_REQTYPE_ST_FILL_REQUEST;
             noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
             l15_noc1buffer_req_address = address_s3;

@@ -1,0 +1,7 @@
+io_xbar_input_control.v
+io_xbar_input_route_request_calc.v
+io_xbar_input_top_16.v
+io_xbar_input_top_4.v
+io_xbar_output_control.v
+io_xbar_output_datapath.v
+io_xbar_output_top.v

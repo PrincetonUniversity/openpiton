@@ -1459,7 +1459,7 @@ HT0_Fast_Data_Access_Protection_0x6c:
 HT0_Reserved_0x70:		
 #ifdef H_HT0_Reserved_0x70
 #ifdef SUN_H_HT0_Reserved_0x70
-	 SUN_H_HT0_Reserved_0x70 
+	 SUN_H_HT0_Reserved_0x70
 #else
         CUSTOM_TRAP(H_HT0_Reserved_0x70)
 #endif

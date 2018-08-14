@@ -200,7 +200,8 @@
 #define ENABLE_HT0_Corrected_ECC_error_0x63		
 #define ENABLE_HT0_fast_instr_access_MMU_miss_0x64
 #define ENABLE_HT0_fast_data_access_MMU_miss_0x68
-#define ENABLE_HT0_data_access_protection_0x6c		
+#define ENABLE_HT0_data_access_protection_0x6c
+#define ENABLE_HT0_putchar_0x70	
 #define ENABLE_HT0_Window_Spill_0_Normal_0x80		
 #define ENABLE_HT0_Window_Spill_1_Normal_0x84		
 #define ENABLE_HT0_Window_Spill_2_Normal_0x88		

@@ -74,9 +74,9 @@ begin
     begin
         $display("TILE0-------------------------------------");
         $display($time);
-        $write("P1S1 msg type: ");
+        $write($time, " P1S1 msg type: ");
         print_msg_type(`L2_TOP0.pipe1.ctrl.msg_type_trans_S1);
-        $display("Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.ctrl.data_size_S1, `L2_TOP0.pipe1.ctrl.cache_type_S1);
+        $display("addr: 0x%h, Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.dpath.addr_S1, `L2_TOP0.pipe1.ctrl.data_size_S1, `L2_TOP0.pipe1.ctrl.cache_type_S1);
         $display("P1S1 valid: stall: %b, stall_pre: %b, stall_hazard: %b, stall_mshr: %b, stall_msg: %b, stall_global: %b",
                   `L2_TOP0.pipe1.ctrl.stall_S1, `L2_TOP0.pipe1.ctrl.stall_pre_S1,
                   `L2_TOP0.pipe1.ctrl.stall_hazard_S1, `L2_TOP0.pipe1.ctrl.stall_mshr_S1,
@@ -103,9 +103,9 @@ begin
     begin
         $display("TILE0-------------------------------------");
         $display($time);
-        $write("P1S2 msg type: ");
+        $write($time, " P1S2 msg type: ");
         print_msg_type(`L2_TOP0.pipe1.ctrl.msg_type_S2_f);
-        $display("Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.ctrl.data_size_S2_f, `L2_TOP0.pipe1.ctrl.cache_type_S2_f);
+        $display("addr: 0x%h, Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.dpath.addr_S2, `L2_TOP0.pipe1.ctrl.data_size_S2_f, `L2_TOP0.pipe1.ctrl.cache_type_S2_f);
         $display("P1S2 valid: recycle: %b, stall: %b, stall_pre: %b, stall_real: %b, stall_load: %b, stall_msg: %b, stall_global: %b",
                   `L2_TOP0.pipe1.ctrl.req_recycle_S2, `L2_TOP0.pipe1.ctrl.stall_S2, `L2_TOP0.pipe1.ctrl.stall_pre_S2,
                   `L2_TOP0.pipe1.ctrl.stall_real_S2, `L2_TOP0.pipe1.ctrl.stall_load_S2, 
@@ -152,9 +152,9 @@ begin
     begin
         $display("TILE0-------------------------------------");
         $display($time);
-        $write("P1S3 msg type: ");
+        $write($time, " P1S3 msg type: ");
         print_msg_type(`L2_TOP0.pipe1.ctrl.msg_type_S3_f);
-        $display("Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.ctrl.data_size_S3_f, `L2_TOP0.pipe1.ctrl.cache_type_S3_f);
+        $display("addr: 0x%h, Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.dpath.addr_S3_f, `L2_TOP0.pipe1.ctrl.data_size_S3_f, `L2_TOP0.pipe1.ctrl.cache_type_S3_f);
         $display("P1S3 valid: recycle: %b, stall: %b", `L2_TOP0.pipe1.ctrl.req_recycle_S3, `L2_TOP0.pipe1.ctrl.stall_S3);
         $display("State wr en: %b", `L2_TOP0.pipe1.ctrl.state_wr_en_S3_f);
         $display("Dir data: 0x%h", `L2_TOP0.pipe1.ctrl.dir_data_S3);
@@ -177,9 +177,9 @@ begin
     begin
         $display("TILE0-------------------------------------");
         $display($time);
-        $write("P1S4 msg type: ");
+        $write($time, " P1S4 msg type: ");
         print_msg_type(`L2_TOP0.pipe1.ctrl.msg_type_S4_f);
-        $display("Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.ctrl.data_size_S4_f, `L2_TOP0.pipe1.ctrl.cache_type_S4_f);
+        $display("addr: 0x%h, Data_size: %b, cache_type: %b", `L2_TOP0.pipe1.dpath.addr_S4, `L2_TOP0.pipe1.ctrl.data_size_S4_f, `L2_TOP0.pipe1.ctrl.cache_type_S4_f);
         `ifndef NO_RTL_CSM
         $display("P1S4 valid: recycle: %b, stall: %b, msg_stall: %b, dir_data_stall: %b, stall_inv_counter: %b, stall_smc_buf: %b, smc_stall: %b, global_stall: %b, broadcast_stall: %b",
                   `L2_TOP0.pipe1.ctrl.req_recycle_S4, `L2_TOP0.pipe1.ctrl.stall_S4, 

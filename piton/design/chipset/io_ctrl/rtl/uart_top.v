@@ -45,27 +45,26 @@ module uart_top (
     input                                   test_good_end,
     input                                   test_bad_end,
 
-    input     [12:0]                        core_axi_awaddr,
-    input                                   core_axi_awvalid,
-    output                                  core_axi_awready,
-    input     [31:0]                        core_axi_wdata,
-    input     [3:0]                         core_axi_wstrb,
-    input                                   core_axi_wvalid,
-    output                                  core_axi_wready,
-    output    [1:0]                         core_axi_bresp,
-    output                                  core_axi_bvalid,
-    input                                   core_axi_bready,
-    input     [12:0]                        core_axi_araddr,
-    input                                   core_axi_arvalid,
-    output                                  core_axi_arready,
-    output    [31:0]                        core_axi_rdata,
-    output    [1:0]                         core_axi_rresp,
-    output                                  core_axi_rvalid,
-    input                                   core_axi_rready,
+    input [`NOC_CHIPID_WIDTH-1:0]          chip_id,
+    input [`NOC_X_WIDTH-1:0]                x_id,
+    input [`NOC_Y_WIDTH-1:0]                y_id,
+    // receive request/send response
+    input                                   xbar_uart_noc2_valid,
+    input [`NOC_DATA_WIDTH-1:0]             xbar_uart_noc2_data,     
+    output                                  uart_xbar_noc2_ready,
+
+    output                                  uart_xbar_noc3_valid,
+    output [`NOC_DATA_WIDTH-1:0]            uart_xbar_noc3_data,  
+    input                                   xbar_uart_noc3_ready,
     
-    output                                  uart_noc_valid,
-    output  [`NOC_DATA_WIDTH-1:0]           uart_noc_data,
-    input                                   uart_noc_ready
+    // send request/receive response
+    output                                  uart_xbar_noc2_valid,
+    output [`NOC_DATA_WIDTH-1:0]            uart_xbar_noc2_data,  
+    input                                   xbar_uart_noc2_ready,
+
+    input                                   xbar_uart_noc3_valid,
+    input [`NOC_DATA_WIDTH-1:0]             xbar_uart_noc3_data,     
+    output                                  uart_xbar_noc3_ready
 );
 
 wire  uart16550_tx;
@@ -138,6 +137,77 @@ wire  [2:0]       writer_str_sel;
 wire              reader_start;
 wire              reader_stop;
 
+
+wire [12:0]                        core_axi_awaddr;
+wire                               core_axi_awvalid;
+wire                               core_axi_awready;
+wire [31:0]                        core_axi_wdata;
+wire [3:0]                         core_axi_wstrb;
+wire                               core_axi_wvalid;
+wire                               core_axi_wready;
+wire [1:0]                         core_axi_bresp;
+wire                               core_axi_bvalid;
+wire                               core_axi_bready;
+wire [12:0]                        core_axi_araddr;
+wire                               core_axi_arvalid;
+wire                               core_axi_arready;
+wire [31:0]                        core_axi_rdata;
+wire [1:0]                         core_axi_rresp;
+wire                               core_axi_rvalid;
+wire                               core_axi_rready;
+
+// put don't touch back on these
+(* DONT_TOUCH = "yes" *)wire    [`NOC_DATA_WIDTH-1:0]  core_axi_awaddr_unmasked;
+(* DONT_TOUCH = "yes" *)wire    [`NOC_DATA_WIDTH-1:0]  core_axi_araddr_unmasked;
+
+assign core_axi_awaddr = (core_axi_awaddr_unmasked[12:0] << 2)  | 13'h1000;
+assign core_axi_araddr = (core_axi_araddr_unmasked[12:0] << 2)  | 13'h1000;
+
+assign uart_xbar_noc3_ready = 1'b1;
+
+noc_axilite_bridge #(
+    .SLAVE_RESP_BYTEWIDTH   (1)
+) noc_axilite_bridge (
+    .clk                    (axi_clk                ),
+    .rst                    (~rst_n             ),  // TODO: rewrite to positive ?
+           
+    .splitter_bridge_val    (xbar_uart_noc2_valid   ),
+    .splitter_bridge_data   (xbar_uart_noc2_data  ),
+    .bridge_splitter_rdy    (uart_xbar_noc2_ready   ),
+
+    .bridge_splitter_val    (uart_xbar_noc3_valid   ),
+    .bridge_splitter_data   (uart_xbar_noc3_data  ),
+    .splitter_bridge_rdy    (xbar_uart_noc3_ready   ),
+       
+    //axi lite signals             
+    //write address channel
+    .m_axi_awaddr        (core_axi_awaddr_unmasked),
+    .m_axi_awvalid       (core_axi_awvalid),
+    .m_axi_awready       (core_axi_awready),
+
+    //write data channel
+    .m_axi_wdata         (core_axi_wdata),
+    .m_axi_wstrb         (core_axi_wstrb),
+    .m_axi_wvalid        (core_axi_wvalid),
+    .m_axi_wready        (core_axi_wready),
+
+    //read address channel
+    .m_axi_araddr        (core_axi_araddr_unmasked),
+    .m_axi_arvalid       (core_axi_arvalid),
+    .m_axi_arready       (core_axi_arready),
+
+    //read data channel
+    .m_axi_rdata         (core_axi_rdata),
+    .m_axi_rresp         (core_axi_rresp),
+    .m_axi_rvalid        (core_axi_rvalid),
+    .m_axi_rready        (core_axi_rready),
+
+    //write response channel
+    .m_axi_bresp         (core_axi_bresp),
+    .m_axi_bvalid        (core_axi_bvalid),
+    .m_axi_bready        (core_axi_bready)
+    
+);
 // control of loopback
 assign uart_tx        = uart_lb_sw ? uart_rx  : uart16550_tx;
 assign uart16550_rx   = uart_rx; 
@@ -223,9 +293,13 @@ assign uart16550_rx   = uart_rx;
     .m_axi_rvalid         (reader_axi_rvalid    ),
     .m_axi_rready         (reader_axi_rready    ),
 
-    .noc_valid            (uart_noc_valid       ),
-    .noc_data             (uart_noc_data        ),
-    .noc_ready            (uart_noc_ready       )
+    .chip_id              (chip_id),
+    .x_id                 (x_id),
+    .y_id                 (y_id),
+
+    .noc_valid            (uart_xbar_noc2_valid ),
+    .noc_data             (uart_xbar_noc2_data  ),
+    .noc_ready            (xbar_uart_noc2_ready )
   );
 `else   // PITONSYS_UART_BOOT
   assign reader_stop = 1'b1;

@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys
+import sys, inspect
 
 DEBUG = True
 
@@ -34,21 +34,30 @@ class clr:
     CYAN    = '\033[36m'
     RST_CLR = '\033[0m'
 
+def getFuncLine():
+    # stack: [0] - current, [1] - print_* function, [2] - program
+    frame_record = inspect.stack()[2]
+    frame = frame_record[0]
+    info = inspect.getframeinfo(frame)
+    fname_short = info.filename.split('/')[-1]
+    retval = "%s:%3d" % (fname_short, info.lineno)
+    return retval
+
 def print_debug(msg, fstream=sys.stderr):
     if DEBUG:
-        msg_print = clr.CYAN + "DEBUG" + clr.RST_CLR + ": " + msg
+        msg_print = clr.CYAN + "[DEBUG] " + getFuncLine() + clr.RST_CLR + ": " + msg
         print >> fstream, msg_print
     else:
         pass
 
 def print_info(msg, fstream=sys.stderr):
-    msg_print = clr.BLUE + "INFO" + clr.RST_CLR + ": " + msg
+    msg_print = clr.BLUE + "[INFO]  " + getFuncLine() + clr.RST_CLR + ": " + msg
     print >> fstream, msg_print
 
 def print_warning(msg, fstream=sys.stderr):
-    msg_print = clr.YELLOW + "WARNING" + clr.RST_CLR + ": " + msg
+    msg_print = clr.YELLOW + "[WARN]  " + getFuncLine() + clr.RST_CLR + ": " + msg
     print >> fstream, msg_print
 
 def print_error(msg, fstream=sys.stderr):
-    msg_print = clr.RED + "ERROR" + clr.RST_CLR + ": " + msg
+    msg_print = clr.RED + "[ERROR] " + getFuncLine() + clr.RST_CLR + ": " + msg
     print >> fstream, msg_print

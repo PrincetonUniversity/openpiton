@@ -40,6 +40,11 @@
 `ifndef DEFINE_VH
 `define DEFINE_VH
 
+// Uncomment to define USE_GENERIC_SRAM_IMPLEMENTATION to use the old unsynthesizable BRAM
+// `define USE_GENERIC_SRAM_IMPLEMENTATION
+`ifndef USE_GENERIC_SRAM_IMPLEMENTATION
+`define SYNTHESIZABLE_BRAM
+`endif
 
 `include "network_define.v"
 
@@ -137,6 +142,10 @@
 `define MSG_DST_FBITS_WIDTH     `NOC_FBITS_WIDTH
 `define MSG_DST_NODEID_WIDTH    `NOC_NODEID_WIDTH
 `define MSG_LENGTH_WIDTH        8
+`define MSG_OPTIONS_1_WIDTH     6
+
+// Width of MSG_ADDR field - you're probably looking for PHY_ADDR_WIDTH
+`define MSG_ADDR_WIDTH          48
 
 //Coherence information
 

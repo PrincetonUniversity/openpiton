@@ -26,7 +26,7 @@
 #endif
 
 #include "libc.h"
-
+#include "put.h"
 
 
 int 
@@ -55,13 +55,19 @@ int main(void) {
   int recursive_result, loop_result;
 
   recursive_result = factorial_recursive(ARG);
-  printf("%d! = %d (recursive)\n", ARG, recursive_result);
+  // printf("%d! = %d (recursive)\n", ARG, recursive_result);
   loop_result      = factorial_loop(ARG);
-  printf("%d! = %d (loop)\n", ARG, loop_result);
+  // printf("%d! = %d (loop)\n", ARG, loop_result);
 
+  printf("Hello\n\n");
+  printf("This\n\n");
+  printf("is\n");
+  printf("test\n");
   if(recursive_result == loop_result) {
+    printf("Test passed :)\n");
     pass();
   } else {
+    printf("Test failed :(\n");
     fail();
   }
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 ! Copyright (c) 2017 Princeton University
 ! All rights reserved.
 ! 
@@ -27,11 +27,14 @@
 
 import random
 
-DATA_SIZE = 7200
+# 2**18 + 2**17
+# number of double words
+DATA_SIZE = 2**18 + 2**17
 BIN_NUMBER = 5
 
 data_array = []
-f = open("../../../include/parallel-hist-data.s", 'w')
+fdef = open("../../../include/parallel-hist-def.h", 'w')
+fdat = open("../../../include/parallel-hist-data.s", 'w')
 
 
 
@@ -54,29 +57,39 @@ for i in range(DATA_SIZE):
     else:
         bin4 = bin4 + 1
 
-print >> f, "#define    DATA_SIZE       %d" % DATA_SIZE
-print >> f, "#define    BIN_NUMBER      %d" % BIN_NUMBER
-print >> f, "#define    BIN0_EXPECTED   %d" % bin0
-print >> f, "#define    BIN1_EXPECTED   %d" % bin1
-print >> f, "#define    BIN2_EXPECTED   %d" % bin2
-print >> f, "#define    BIN3_EXPECTED   %d" % bin3
-print >> f, "#define    BIN4_EXPECTED   %d" % bin4
-print >> f
-print >> f, "SECTION .HIST_DATA DATA_VA=0x10a8200000"
-print >> f, "attr_data {"
-print >> f, "    Name = .HIST_DATA,"
-print >> f, "    hypervisor"
-print >> f, "}"
-print >> f
-print >> f, ".data"
-print >> f
-print >> f, ".global data_array"
-print >> f, "data_array:"
+# Put defines to a separate files
+print >> fdef, "#define    DATA_SIZE       %d" % DATA_SIZE
+print >> fdef, "#define    BIN_NUMBER      %d" % BIN_NUMBER
+print >> fdef, "#define    BIN0_EXPECTED   %d" % bin0
+print >> fdef, "#define    BIN1_EXPECTED   %d" % bin1
+print >> fdef, "#define    BIN2_EXPECTED   %d" % bin2
+print >> fdef, "#define    BIN3_EXPECTED   %d" % bin3
+print >> fdef, "#define    BIN4_EXPECTED   %d" % bin4
+
+# Put data to another file
+addr_start = "0xa8100000"
+print >> fdat, "SECTION .HIST_DATA DATA_VA=%s" % addr_start
+print >> fdat, "attr_data {"
+print >> fdat, "    Name = .HIST_DATA,"
+print >> fdat, "    VA = %s," % addr_start
+print >> fdat, "    PA = ra2pa(%s,0)," % addr_start
+print >> fdat, "    RA = %s," % addr_start
+print >> fdat, "    part_0_d_ctx_nonzero_ps0_tsb,"
+print >> fdat, "    TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,"
+print >> fdat, "    TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,"
+print >> fdat, "    TTE_L=0, TTE_CP=1, TTE_CV=1, TTE_E=0, TTE_P=0, TTE_W=1"
+print >> fdat, "}"
+print >> fdat
+print >> fdat, ".data"
+print >> fdat
+print >> fdat, ".global data_array"
+print >> fdat, "data_array:"
     
 for d in data_array:
-    print >> f, '    .word 0x00000000, %s' % hex(d)
+    print >> fdat, "    .word 0x00000000, %s" % hex(d)
 
-print >> f
-print >> f, "    .align 64"
+print >> fdat
+print >> fdat, "    .align 64"
 
-f.close()
+fdef.close()
+fdat.close()

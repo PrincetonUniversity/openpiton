@@ -50,6 +50,10 @@ module ciop_iob (
     output reg [`NOC_DATA_WIDTH-1:0]        noc2_out_data,
     input                               noc2_out_rdy,
 
+    input                               noc3_in_val,
+    input [`NOC_DATA_WIDTH-1:0]         noc3_in_data,
+    output wire                         noc3_in_rdy,
+
     input                               noc2_in_val,
     input [`NOC_DATA_WIDTH-1:0]         noc2_in_data,
     output reg                          noc2_in_rdy,
@@ -63,13 +67,18 @@ module ciop_iob (
 
 );
 
-   parameter OK_IOB_CNT = 10000;   // ? Alexey: taken from simulation
+// trin: wait time for SRAMs to initialize
+// 64KB L2 is the bottleneck, requiring 4096 cycles to clear
+// 128KB..8K cycles
+// 256KB..16K cycles
+// ...
+   parameter OK_IOB_CNT = 40000; // trin: should be long enough for 512KB L2 (per-tile)
 
 
 wire                    ok_iob;
 reg     [31:0]          ok_iob_cnt;
 
-
+assign noc3_in_rdy = 1'b1;
 assign  ok_iob = ok_iob_cnt == OK_IOB_CNT;
 
 always @(posedge chip_clk) begin
@@ -171,17 +180,16 @@ always @(posedge fpga_clk) begin
        buf_prev_net_int <= 1'b0;
        prev_uart_interrupt <= 1'b0;
        buf_prev_uart_int <= 1'b0;
+       iob_buffer_val = 1'b0;
     end
     else begin
        prev_net_interrupt <= net_interrupt;
        buf_prev_net_int <= prev_net_interrupt;
        prev_uart_interrupt <= uart_interrupt;
        buf_prev_uart_int <= prev_uart_interrupt;
+       iob_buffer_val <= ok_iob;
     end
 end
-
-always @(posedge fpga_clk)
-    iob_buffer_val <= ok_iob;
 
 assign noc2_out_val = iob_buffer_val & (((flit_cnt < FLIT_TO_SEND) && !ok_iob_sent)
 `ifdef PITON_FPGA_ETHERNETLITE

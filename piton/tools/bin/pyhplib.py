@@ -25,6 +25,7 @@
 
 import os
 import math
+import xml.etree.ElementTree as ET
 
 #MAX_THREAD = 128;
 MAX_TILE = 64;
@@ -67,7 +68,15 @@ CONFIG_L1D_ASSOCIATIVITY = int(os.environ.get('CONFIG_L1D_ASSOCIATIVITY', '4'))
 CONFIG_L1I_SIZE = int(os.environ.get('CONFIG_L1I_SIZE', '16384'))
 CONFIG_L1I_ASSOCIATIVITY = int(os.environ.get('CONFIG_L1I_ASSOCIATIVITY', '4'))
 CONFIG_L2_SIZE = int(os.environ.get('CONFIG_L2_SIZE', '65536'))
+# CONFIG_L2_SIZE = 65536*2 # test, make L2 128KB
+# CONFIG_L2_SIZE = 65536*4 # test, make L2 512KB
+# CONFIG_L2_SIZE = 65536*8 # test, make L2 512KB
+# CONFIG_L2_SIZE = 65536*16 # test, make L2 1MB
 CONFIG_L2_ASSOCIATIVITY = int(os.environ.get('CONFIG_L2_ASSOCIATIVITY', '4'))
+# CONFIG_L2_ASSOCIATIVITY = 8
+# constants, not configurable
+L15_LINE_SIZE = 16
+L2_LINE_SIZE = 64
 
 #########################################################
 # BRAM configurations
@@ -78,22 +87,26 @@ class BramCfg:
         self.width = w
 
 BRAM_CONFIG = dict()
-linesize = 16   # TODO: magic number from lsu.h.pyv?
-bram_l1d_tag_entries = CONFIG_L1D_SIZE / linesize
-bram_l1d_depth = bram_l1d_tag_entries /  CONFIG_L1D_ASSOCIATIVITY
+# linesize = 16   # TODO: magic number from lsu.h.pyv?
+# bram_l1d_tag_entries = CONFIG_L1D_SIZE / linesize
+# bram_l1d_depth = bram_l1d_tag_entries /  CONFIG_L1D_ASSOCIATIVITY
+bram_l15_entries = CONFIG_L15_SIZE / L15_LINE_SIZE
+bram_l15_depth = bram_l15_entries / CONFIG_L15_ASSOCIATIVITY
+bram_l2_entries = CONFIG_L2_SIZE / L2_LINE_SIZE
+bram_l2_depth = bram_l2_entries / CONFIG_L2_ASSOCIATIVITY
 
-# TODO: change magic numbers to defines/parameters
+# # TODO: change magic numbers to defines/parameters
 BRAM_CONFIG["fp_regfile"] = BramCfg(128, 78)
 BRAM_CONFIG["l1d_data"]   = BramCfg(128, 576)
 BRAM_CONFIG["l1i_data"]   = BramCfg(256, 272)
 BRAM_CONFIG["l1d_tag"]    = BramCfg(128, 132)
 BRAM_CONFIG["l1i_tag"]    = BramCfg(128, 132)
-BRAM_CONFIG["l15_data"]   = BramCfg(512, 128)
-BRAM_CONFIG["l15_tag"]    = BramCfg(128, 132)
-BRAM_CONFIG["l15_hmt"]    = BramCfg(512, 32)
-BRAM_CONFIG["l2_data"]    = BramCfg(4096, 144)
-BRAM_CONFIG["l2_tag"]     = BramCfg(256, 104)
-BRAM_CONFIG["l2_dir"]     = BramCfg(1024, 64)
+BRAM_CONFIG["l15_data"]   = BramCfg(bram_l15_entries, 128)
+BRAM_CONFIG["l15_tag"]    = BramCfg(bram_l15_depth, 132)
+BRAM_CONFIG["l15_hmt"]    = BramCfg(bram_l15_entries, 32)
+BRAM_CONFIG["l2_data"]    = BramCfg(bram_l2_entries*4, 144) # *4 because entries are 16B instead of 64B
+BRAM_CONFIG["l2_tag"]     = BramCfg(bram_l2_depth, 104)
+BRAM_CONFIG["l2_dir"]     = BramCfg(bram_l2_entries, 64)
 BRAM_CONFIG["bram_boot"]  = BramCfg(256, 512)
 
 # CONFIG_SRAM_L2_TAG_HEIGHT = int(os.environ.get('CONFIG_SRAM_L2_TAG_HEIGHT', '256'))
@@ -104,6 +117,11 @@ BRAM_CONFIG["bram_boot"]  = BramCfg(256, 512)
 # CONFIG_SRAM_L2_STATE_WIDTH = int(os.environ.get('CONFIG_SRAM_L2_STATE_WIDTH', '66'))
 # CONFIG_SRAM_L2_DIR_HEIGHT = int(os.environ.get('CONFIG_SRAM_L2_DIR_HEIGHT', '1024'))
 # CONFIG_SRAM_L2_DIR_WIDTH = int(os.environ.get('CONFIG_SRAM_L2_DIR_WIDTH', '64'))
+
+from pyhplib_sram import *
+
+# devices file
+DEVICE_DIRPATH = os.path.join(os.getenv("PROTOSYN_RUNTIME_DESIGN_PATH", ""), os.getenv("PROTOSYN_RUNTIME_BOARD", ""))
 
 def Replicate(text):
     newtext = ''
@@ -122,192 +140,28 @@ def Replicate(text):
 #    return newtext;
 
 def ReplicatePattern(text, patterns):
-	regex = " ([^\.:]+)0"
-	newtext = ''
-	for i in range(NUM_TILES):
-		t = text
-		for p in patterns:
-			replacement = p[:-1] + `i`;
-			t = t.replace(p, replacement);
-		newtext += t + '\n';
-	return newtext;
+  regex = " ([^\.:]+)0"
+  newtext = ''
+  for i in range(NUM_TILES):
+    t = text
+    for p in patterns:
+      replacement = p[:-1] + `i`;
+      t = t.replace(p, replacement);
+    newtext += t + '\n';
+  return newtext;
 
 # only difference is that this looks for patterns start with 1 not 0
 def ReplicatePattern1(text, patterns):
-	regex = " ([^\.:]+)1"
-	newtext = ''
-	for i in range(NUM_TILES):
-		t = text
-		for p in patterns:
-			replacement = p[:-1] + `i`;
-			t = t.replace(p, replacement);
-		newtext += t + '\n';
-	return newtext;
+  regex = " ([^\.:]+)1"
+  newtext = ''
+  for i in range(NUM_TILES):
+    t = text
+    for p in patterns:
+      replacement = p[:-1] + `i`;
+      t = t.replace(p, replacement);
+    newtext += t + '\n';
+  return newtext;
 
-def MakeGenericCache(modulename, type, height, width):
-   if type == "1rw":
-      t = Get1RWTemplate()
-   elif type == "1r1w":
-      # t = Get1R1WTemplate()
-      assert(0)
-   elif type == "2rw":
-      t = Get2RWTemplate()
-   else:
-      assert(0)
-
-   height_log = int(math.log(height) / math.log(2))
-   t = t.replace("_PARAMS_HEIGHT_LOG", str(height_log))
-   t = t.replace("_PARAMS_HEIGHT", str(height))
-   t = t.replace("_PARAMS_WIDTH", str(width))
-   t = t.replace("_PARAMS_NAME", str(modulename))
-   print(t)
-
-def MakeGenericCacheDefine(modulename, type, height_define, heightlog2_define, width_define):
-   if type == "1rw":
-      t = Get1RWTemplate()
-   elif type == "1r1w":
-      # t = Get1R1WTemplate()
-      assert(0)
-   elif type == "2rw":
-      t = Get2RWTemplate()
-   else:
-      assert(0)
-
-   t = t.replace("_PARAMS_HEIGHT_LOG", heightlog2_define)
-   t = t.replace("_PARAMS_HEIGHT", height_define)
-   t = t.replace("_PARAMS_WIDTH", width_define)
-   t = t.replace("_PARAMS_NAME", str(modulename))
-   print(t)
-
-def Get1RWTemplate():
-  return '''
-`include "define.vh"
-`ifdef DEFAULT_NETTYPE_NONE
-`default_nettype none
-`endif
-module _PARAMS_NAME
-(
-input wire MEMCLK,
-input wire RESET_N,
-input wire CE,
-input wire [_PARAMS_HEIGHT_LOG-1:0] A,
-input wire RDWEN,
-input wire [_PARAMS_WIDTH-1:0] BW,
-input wire [_PARAMS_WIDTH-1:0] DIN,
-output wire [_PARAMS_WIDTH-1:0] DOUT,
-input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
-input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
-output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
-input wire [`BIST_ID_WIDTH-1:0] SRAMID
-);
-reg [_PARAMS_WIDTH-1:0] cache [_PARAMS_HEIGHT-1:0];
-
-integer i;
-initial
-begin
-   for (i = 0; i < _PARAMS_HEIGHT; i = i + 1)
-   begin
-      cache[i] = 0;
-   end
-end
-
-
-
-   reg [_PARAMS_WIDTH-1:0] dout_f;
-
-   assign DOUT = dout_f;
-
-   always @ (posedge MEMCLK)
-   begin
-      if (CE)
-      begin
-         if (RDWEN == 1'b0)
-            cache[A] <= (DIN & BW) | (cache[A] & ~BW);
-         else
-            dout_f <= cache[A];
-      end
-   end
-   
-endmodule
-'''
-
-
-
-def Get2RWTemplate():
-  return '''
-`include "define.vh"
-`ifdef DEFAULT_NETTYPE_NONE
-`default_nettype none
-`endif
-module _PARAMS_NAME
-(
-input wire MEMCLK,
-input wire RESET_N,
-input wire CEA,
-input wire [_PARAMS_HEIGHT_LOG-1:0] AA,
-input wire RDWENA,
-input wire CEB,
-input wire [_PARAMS_HEIGHT_LOG-1:0] AB,
-input wire RDWENB,
-input wire [_PARAMS_WIDTH-1:0] BWA,
-input wire [_PARAMS_WIDTH-1:0] DINA,
-output wire [_PARAMS_WIDTH-1:0] DOUTA,
-input wire [_PARAMS_WIDTH-1:0] BWB,
-input wire [_PARAMS_WIDTH-1:0] DINB,
-output wire [_PARAMS_WIDTH-1:0] DOUTB,
-input wire [`BIST_OP_WIDTH-1:0] BIST_COMMAND,
-input wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DIN,
-output reg [`SRAM_WRAPPER_BUS_WIDTH-1:0] BIST_DOUT,
-input wire [`BIST_ID_WIDTH-1:0] SRAMID
-);
-reg [_PARAMS_WIDTH-1:0] cache [_PARAMS_HEIGHT-1:0];
-
-integer i;
-initial
-begin
-   for (i = 0; i < _PARAMS_HEIGHT; i = i + 1)
-   begin
-      cache[i] = 0;
-   end
-end
-
-
-
-   reg [_PARAMS_WIDTH-1:0] dout_f0;
-
-   assign DOUTA = dout_f0;
-
-   always @ (posedge MEMCLK)
-   begin
-      if (CEA)
-      begin
-         if (RDWENA == 1'b0)
-            cache[AA] <= (DINA & BWA) | (cache[AA] & ~BWA);
-         else
-            dout_f0 <= cache[AA];
-      end
-   end
-
-   
-
-   reg [_PARAMS_WIDTH-1:0] dout_f1;
-
-   assign DOUTB = dout_f1;
-
-   always @ (posedge MEMCLK)
-   begin
-      if (CEB)
-      begin
-         if (RDWENB == 1'b0)
-            cache[AB] <= (DINB & BWB) | (cache[AB] & ~BWB);
-         else
-            dout_f1 <= cache[AB];
-      end
-   end
-
-   
-endmodule
-  '''
 
 def GenMux(inputs, sels, output, num):
   print "always @ *"
@@ -383,3 +237,63 @@ def GenPriorityDecoder(inputs, out, num):
     print "   %s[%d] = 1'b1;" % (out, i)
   print "end"
 
+def ReadDevicesXMLFile():
+  devicesInfo = []
+  if DEVICE_DIRPATH == "":
+    return devicesInfo
+
+  tree = ET.parse(os.path.join(DEVICE_DIRPATH, "devices.xml")) 
+  devices = tree.getroot()
+
+  for i in range(0, len(devices)):
+    # go through each field of device
+    base = 0
+    length = 0
+    name = ""
+    noc2_in = False
+    for j in range(0, len(devices[i])):
+      tag = devices[i][j].tag
+      text = devices[i][j].text
+      if tag == "base":
+        base = int(text, 0)
+      elif tag == "length":
+        length = int(text, 0)
+      elif tag == "name":
+        name = text
+      elif tag == "noc2in":
+        noc2_in = True
+
+    if name == "chip":
+        devicesInfo.insert(0, {"name": name, "base": base, "length": length, "noc2_in": noc2_in})
+    else:
+        devicesInfo.append({"name": name, "base": base, "length": length, "noc2_in": noc2_in})
+
+  return devicesInfo
+
+def GenBramFPGA(depth, width):
+    depth_log2 = math.log(depth,2);
+    print """
+      module inferred_bram_%dx%d (clk, ena, wea, addra, dina, enb, addrb, doutb);
+        input clk;
+        input ena;
+        input wea;
+        input [%d-1:0] addra;
+        input [%d-1:0] dina;
+        input enb;
+        input [%d-1:0] addrb;
+        output [%d-1:0] doutb;
+
+        reg [%d-1:0] ram [%d-1:0];
+        reg [%d-1:0] doutb;
+        always @(posedge clk) begin
+          if (ena) begin
+            if (wea) begin
+              ram[addra] <= dina;
+            end
+          end
+          if (enb) begin
+            doutb <= ram[addrb];
+          end
+        end
+      endmodule
+    """ % (depth, width, depth_log2, width, depth_log2, width, width, depth, width)

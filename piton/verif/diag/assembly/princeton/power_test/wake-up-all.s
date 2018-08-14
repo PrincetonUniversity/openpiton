@@ -128,7 +128,7 @@ next_th_dim:
     bne     next_th_dim_end
     nop
 send_rst_int:
-    PITON_SEND_INT_MSG(PITON_INT_RST_MSG, %g1, %g2, %g3)
+    PITON_SEND_INT_MSG(PITON_INT_RST_MSG, %g1, %g2, %g3, %l6)
     ba      next_th_dim
     add     %g3, 1, %g3
 next_th_dim_end:
@@ -156,13 +156,13 @@ lock_loop:
     bne     lock_loop
     nop
     ! start of critical section
-    ! PITON_PUTS(core_string)
+    ! PITON_PUTS(core_string, %l6)
     ! PITON_PUTHEXDIG(%g1)
-    ! PITON_PUTS(y_string)
+    ! PITON_PUTS(y_string, %l6)
     ! PITON_PUTHEXDIG(%g2)
-    ! PITON_PUTS(th_string)
+    ! PITON_PUTS(th_string, %l6)
     ! PITON_PUTHEXDIG(%g3)
-    ! PITON_PUTS(nl_string)
+    ! PITON_PUTS(nl_string, %l6)
     setx 	shared_cnt, %l1, %l0
     ldub 	[%l0], %l1
     add 	%l1, 1, %l1
@@ -201,12 +201,12 @@ wait_all_threads:
     bne 	wait_all_threads
     ldub 	[%l0], %l1
     PITON_PRINT_REG(%l1)
-    PITON_PUTS(nl_string)
+    PITON_PUTS(nl_string, %l6)
     rd 		%asr16, %l0
     wr 		%l0, 0x6, %asr16
     rd 		%asr17, %l0
     PITON_PRINT_REG(%l0)
-    PITON_PUTS(nl_string)
+    PITON_PUTS(nl_string, %l6)
     ta 		T_CHANGE_NONHPRIV
 inst_loop:
     setx    test_data, %l1, %l0
@@ -223,7 +223,7 @@ loop_end:
     ta 		T_CHANGE_HPRIV
     rd 		%asr17, %l0
     PITON_PRINT_REG(%l0)
-    PITON_PUTS(nl_string)
+    PITON_PUTS(nl_string, %l6)
     ba 		test_good_end
     nop
 
@@ -232,7 +232,7 @@ all_threads_waken_up:
 	! test portion after all threds
 	! are waken up must be here
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    PITON_SEND_INT_MSG(PITON_INT_IDLE_MSG, %g1, %g2, %g3)
+    PITON_SEND_INT_MSG(PITON_INT_IDLE_MSG, %g1, %g2, %g3, %l6)
 inf_loop:
     ba inf_loop
     nop
@@ -293,17 +293,8 @@ shared_cnt:
     .word 0
 
 
-SECTION .DATA_AREA_2  DATA_VA=0x0000000060000000
-attr_data {
-        Name = .DATA_AREA_2,
-        VA= 0x0000000060000000
-        RA= 0x0000000060000000
-        PA= 0x0000000060000000,
-        part_0_d_ctx_nonzero_ps0_tsb,
-        TTE_G=1, TTE_Context=0x44, TTE_V=1, TTE_Size=0, TTE_NFO=0,
-        TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
-        TTE_L=0, TTE_CP=1, TTE_CV=0, TTE_E=0, TTE_P=0, TTE_W=1
-        }
+#include "piton_common.s"
+#include "piton_multithread_init.s"
 
 .global test_data
     .align 32

@@ -2790,44 +2790,6 @@ sparc_ifu_sscan sscan(
    // sink #(`IC_TAG_UNUSED_SZ) s3(.in (ict_itlb_tag3_f[`IC_PHYS_TAG_SZ-1:(`IC_TAG_SZ+1)]));
    // sink #(2) s4(.in (fuse_icd_rid[5:4]));
 
-`ifdef PITON_PROTO
-   `ifndef PITON_PROTO_NO_MON
-      reg   [47:0]   ifu_exu_pc_d_prev;
-
-      always @(posedge rclk)
-         ifu_exu_pc_d_prev <= ifu_exu_pc_d;
-
-      always @(posedge rclk) begin
-         if (ifu_exu_pc_d_prev != ifu_exu_pc_d) begin
-            $display("IFU_EXU_PC_D: changed from 0x%x at", ifu_exu_pc_d_prev, $time);
-         end
-      end
-
-   `endif   // PITON_PROTO_NO_MON
-   
-    //--------------------------------------------------------------------
-    // Implementation of Deadlock FPGA flag
-    (* DONT_TOUCH="true" *) reg  [47:0]     ifu_exu_pc_d_prev;
-    (* DONT_TOUCH="true" *) reg  [31:0]     same_pc_cnt;
-   
-    (* DONT_TOUCH="true" *) wire            same_pc_flag;
-   
-    always @(posedge rclk)
-        ifu_exu_pc_d_prev <= ifu_exu_pc_d;
-   
-    always @(posedge rclk) begin
-        if(~grst_l)
-            same_pc_cnt <= 32'b0;
-        else
-            same_pc_cnt <= ~same_pc_flag ? 32'b0 : same_pc_cnt + 1;
-    end
-    
-    assign same_pc_flag = ifu_exu_pc_d == ifu_exu_pc_d_prev;
-    // End of: implementation of Deadlock FPGA flag
-    //--------------------------------------------------------------------
-    
-`endif      // PITON_PROTO
-
 endmodule
 // Local Variables:
 // verilog-library-directories:("." "../../../srams/rtl" "../../../common/rtl")

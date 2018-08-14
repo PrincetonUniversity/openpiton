@@ -213,6 +213,7 @@ module chip(
    wire [1:0]                                   clk_mux_sel_inter;
    wire                                         jtag_clk_inter;
    wire                                         jtag_rst_l_inter;
+   wire                                         jtag_rst_l_inter_sync;
    wire                                         jtag_modesel_inter;
    wire                                         jtag_datain_inter;
    wire                                         jtag_dataout_inter;

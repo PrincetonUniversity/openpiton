@@ -456,7 +456,9 @@ mem_test_par_driver mem_test_par_driver (
 );
 
 // Bridge between NoCs and SD card AXI interface
-noc_axilite_bridge_boot noc_sd_bridge (
+noc_axilite_bridge #(
+    .SLAVE_RESP_BYTEWIDTH (8)
+) noc_sd_bridge (
     .clk                  (test_sys_clk),
     .rst                  (~test_sys_rst_n),
 

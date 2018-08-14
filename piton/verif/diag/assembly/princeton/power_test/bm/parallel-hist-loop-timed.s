@@ -36,46 +36,16 @@
 #include "boot.s"
 #include "piton_def.h"
 
+#include "parallel-hist-def.h"
+
+#define ITER_NUM 20000
+
 .text
 .global main
 main:
     setx    hp_start, %l1, %l0
     jmp     %l0
     nop
-
-
-#include "parallel-hist-data.s"
-
-SECTION .ACTIVE_THREAD_SEC TEXT_VA=0x0000000040008000
-   attr_text {
-        Name = .ACTIVE_THREAD_SEC,
-        VA= 0x0000000040008000,
-        PA= ra2pa(0x0000000040008000,0),
-        RA= 0x0000000040008000,
-        part_0_i_ctx_nonzero_ps0_tsb,
-        part_0_d_ctx_nonzero_ps0_tsb,
-        TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
-        TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
-        TTE_L=0, TTE_CP=1, TTE_CV=1, TTE_E=0, TTE_P=0, TTE_W=1
-        }
-   attr_text {
-        Name = .ACTIVE_THREAD_SEC,
-        hypervisor
-        }
-
-.text
-
-    .global hp_start
-hp_start:
-    ta      T_CHANGE_HPRIV
-    call    piton_multithread_init
-    nop
-    call    get_core_thread
-    nop
-
-    mov      %o0, %g1
-    mov      %o1, %g2
-    mov      %o2, %g3
 
     !********************************
     ! Histogram App
@@ -86,7 +56,8 @@ hp_start:
     !   %l 1-5 contain local copies of bins.
     !   Is used on signed numbers
     !   Tallies for an object in range [min, max)
-
+    .global histogram_app
+histogram_app:
     setx    data_array, %g5, %g6
     setx    buckets_addr, %g5, %g7
     ! calculate offset
@@ -95,9 +66,11 @@ hp_start:
     ! are either not used or not changed
     ! loop variables
     setx    0, %g5, %l7
-    setx    20000, %l1, %g5
+    setx    ITER_NUM, %l1, %g5
+    ! Save event counter
+    mov     SPARC_PIC, %l5
 inf_loop:
-    mov     %o0, %l0
+    mov     %g1, %l0
     call    calc_num_waken_threads
     nop
     setx    DATA_SIZE, %l2, %l1
@@ -118,7 +91,7 @@ inf_loop:
 hist_loop:
     mov     0, %l6          ! Set current item_idx to 0
 item_loop:
-bucket_one:    
+bucket_one:
     add     %l0, %g6, %l1   ! Add global offset to array base pointer
     add     %l1, %l6, %l1   ! Add local offset
     ldx     [%l1], %l2      ! Load value from memory
@@ -201,49 +174,48 @@ next_item:
 
     !All items have been sorted. Update global counts accordingly.
 
-
     setx    bin0_data, %l0, %l1
-    PITON_GET_LOCK(bucket0_lock, %l3)
+    PITON_UGET_LOCK(bucket0_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, %o1, %l2 
     stx     %l2, [%l1]
-    PITON_REL_LOCK(bucket0_lock, %l3)
+    PITON_UREL_LOCK(bucket0_lock, %l3)
 
     setx    bin1_data, %l0, %l1
-    PITON_GET_LOCK(bucket1_lock, %l3)
+    PITON_UGET_LOCK(bucket1_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, %o2, %l2 
     stx     %l2, [%l1]
-    PITON_REL_LOCK(bucket1_lock, %l3)
+    PITON_UREL_LOCK(bucket1_lock, %l3)
 
 
     setx    bin2_data, %l0, %l1
-    PITON_GET_LOCK(bucket2_lock, %l3)
+    PITON_UGET_LOCK(bucket2_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, %o3, %l2 
     stx     %l2, [%l1]
-    PITON_REL_LOCK(bucket2_lock, %l3)
+    PITON_UREL_LOCK(bucket2_lock, %l3)
 
     setx    bin3_data, %l0, %l1
-    PITON_GET_LOCK(bucket3_lock, %l3)
+    PITON_UGET_LOCK(bucket3_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, %o4, %l2
     stx     %l2, [%l1]
-    PITON_REL_LOCK(bucket3_lock, %l3)
+    PITON_UREL_LOCK(bucket3_lock, %l3)
 
     setx    bin4_data, %l0, %l1
-    PITON_GET_LOCK(bucket4_lock, %l3)
+    PITON_UGET_LOCK(bucket4_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, %o5, %l2 
     stx     %l2, [%l1]
-    PITON_REL_LOCK(bucket4_lock, %l3)
+    PITON_UREL_LOCK(bucket4_lock, %l3)
 
     setx    done_ctr, %l0, %l1
-    PITON_GET_LOCK(cntr_lock, %l3)
+    PITON_UGET_LOCK(cntr_lock, %l3)
     ldx     [%l1], %l2
     add     %l2, 1, %l2     ! Increment Done Counter
     stx     %l2, [%l1]
-    PITON_REL_LOCK(cntr_lock, %l3)
+    PITON_UREL_LOCK(cntr_lock, %l3)
 
     ! Loop termination condition
     add     %l7, 1, %l7
@@ -251,13 +223,20 @@ next_item:
     blt     inf_loop
     nop
 
+    ! Print Performance Counter Stats
+    ! mov     SPARC_PIC, %l2
+    ! PITON_UGET_LOCK(lock_addr, %l3)
+    ! PITON_UPRINT_EVENT_NUM(%l5, %l2)
+    ! PITON_UREL_LOCK(lock_addr, %l3)
+
     ! update shared count when threads complete
-    PITON_GET_LOCK(lock_addr, %l0)
+    PITON_UGET_LOCK(lock_addr, %l0)
     setx    test_end_shared_cnt, %l2, %l1
     ldub    [%l1], %l2
     add     %l2, 1, %l2
     stb     %l2, [%l1]
-    PITON_REL_LOCK(lock_addr, %l0)
+    PITON_UREL_LOCK(lock_addr, %l0)
+
     ! Wait for all threads to complete
     call    calc_num_waken_threads
     nop
@@ -278,6 +257,111 @@ test_bad_end:
     nop
 test_end:
     nop
+    nop
+    ba test_end
+    nop
+
+!==========================
+.data
+.align 0x1fff+1
+    
+    .align 8
+    .global test_end_shared_cnt
+test_end_shared_cnt:
+    .word 0
+
+    .align 8
+    .global buckets_addr
+buckets_addr:
+    ! Increasing order from max neg to max pos
+    .word 0, 0x80000000
+    .word 0, 0xc0000000
+    .word 0, 0xc0000000
+    .word 0, 0x00000000
+    .word 0, 0x00000000
+    .word 0, 0x20000000
+    .word 0, 0x20000000
+    .word 0, 0x40000000
+    .word 0, 0x40000000
+    .word 0, 0x7fffffff
+
+    .align 8
+    .global done_ctr
+done_ctr:
+    .word 0,0
+
+    .align 8
+    .global bin0_data
+bin0_data:
+    .word 0, 0
+    .global bin1_data
+bin1_data:
+    .word 0, 0
+    .global bin2_data
+bin2_data:
+    .word 0,0
+    .global bin3_data
+bin3_data:
+    .word 0,0
+    .global bin4_data
+bin4_data:
+    .word 0,0
+
+! With bin boundaries set as below: 
+! 0x80000000
+! 0xc0000000
+
+! 0xc0000000
+! 0x00000000
+
+! 0x00000000
+! 0x20000000
+
+! 0x20000000
+! 0x40000000
+
+! 0x40000000
+! 0x7fffffff
+
+
+
+#include "parallel-hist-data.s"
+
+
+SECTION .ACTIVE_THREAD_SEC TEXT_VA=0x0000000040008000
+   attr_text {
+        Name = .ACTIVE_THREAD_SEC,
+        VA= 0x0000000040008000,
+        PA= ra2pa(0x0000000040008000,0),
+        RA= 0x0000000040008000,
+        part_0_i_ctx_nonzero_ps0_tsb,
+        part_0_d_ctx_nonzero_ps0_tsb,
+        TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+        TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+        TTE_L=0, TTE_CP=1, TTE_CV=1, TTE_E=0, TTE_P=0, TTE_W=1
+        }
+   attr_text {
+        Name = .ACTIVE_THREAD_SEC,
+        hypervisor
+        }
+
+.text
+
+    .global hp_start
+hp_start:
+    ta      T_CHANGE_HPRIV
+    call    piton_multithread_init
+    nop
+    call    get_core_thread
+    nop
+
+    mov      %o0, %g1
+    mov      %o1, %g2
+    mov      %o2, %g3
+
+    ta      T_CHANGE_NONHPRIV
+    setx    histogram_app, %l0, %l1
+    jmp     %l1
     nop
     
 #include "piton_common.s"
@@ -318,60 +402,3 @@ bucket4_lock:
 cntr_lock:
     .xword 0
     .align 64
-
-.global buckets_addr
-buckets_addr:
-    ! Increasing order from max neg to max pos
-    .word 0, 0x80000000
-    .word 0, 0xc0000000
-    .word 0, 0xc0000000
-    .word 0, 0x00000000
-    .word 0, 0x00000000
-    .word 0, 0x20000000
-    .word 0, 0x20000000
-    .word 0, 0x40000000
-    .word 0, 0x40000000
-    .word 0, 0x7fffffff
-
-.global done_ctr
-done_ctr:
-    .word 0,0
-
-.global bin0_data
-bin0_data:
-    .word 0, 0
-.global bin1_data
-bin1_data:
-    .word 0, 0
-.global bin2_data
-bin2_data:
-    .word 0,0
-.global bin3_data
-bin3_data:
-    .word 0,0
-.global bin4_data
-bin4_data:
-    .word 0,0
-
-! With bin boundaries set as below: 
-! 0x80000000
-! 0xc0000000
-
-! 0xc0000000
-! 0x00000000
-
-! 0x00000000
-! 0x20000000
-
-! 0x20000000
-! 0x40000000
-
-! 0x40000000
-! 0x7fffffff
-
-.global test_end_shared_cnt
-test_end_shared_cnt:
-    .word 0
-    
-
-.end

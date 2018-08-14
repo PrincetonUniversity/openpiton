@@ -26,5 +26,5 @@
 // ========== Copyright Header End ============================================
 
 mc_top.v
-pkt_trans_dp_wide.v
-mig_mux.v
+noc_mig_bridge.v
+memory_zeroer.v

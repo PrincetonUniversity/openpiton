@@ -1293,13 +1293,15 @@ mpeval((0x000907f001000000 | (CREGS_JBI_CONFIG1_ARB << 27)), 16))dnl
 
 #define T_GOOD_TRAP			        0x00
 #define T_BAD_TRAP			        0x01
-#define T_CHANGE_PRIV    		        0x02
-#define T_CHANGE_NONPRIV    		        0x03
-#define T_CHANGE_TO_TL1 		        0x04
-#define T_CHANGE_TO_TL0 		        0x05
-#define T_TRAP_EN                               0x08
-#define T_TRAP_DIS                              0x0a
-#define T_TRAP_EN_N_TIMES                       0x0c
+#define T_CHANGE_PRIV    		 	0x02
+#define T_CHANGE_NONPRIV    		0x03
+#define T_CHANGE_TO_TL1 		    0x04
+#define T_CHANGE_TO_TL0 		    0x05
+#define T_TRAP_EN                   0x08
+#define T_TRAP_DIS                  0x0a
+#define T_TRAP_EN_N_TIMES           0x0c
+#define T_HV_PUTCHAR 				0x70
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Service trap fron different trap-level and priv

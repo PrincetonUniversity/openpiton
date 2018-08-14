@@ -66,6 +66,8 @@ set SYSTEM_PRJ_IP_FILES [list \
 
 set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/common/rtl/bram_sdp_wrapper.v" \
+    "${DV_ROOT}/design/common/rtl/bram_1rw_wrapper.v" \
+    "${DV_ROOT}/design/common/rtl/bram_1r1w_wrapper.v" \
     "${DV_ROOT}/design/chip/rtl/synchronizer.v" \
     "${DV_ROOT}/design/chip/rtl/OCI.v" \
     "${DV_ROOT}/design/chip/rtl/chip.v" \
@@ -118,10 +120,10 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_state.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_dir.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_data.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_tag.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_state.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_dir.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_data.v.xlx.v" \
+    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_tag.v" \
+    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_state.v" \
+    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_dir.v" \
+    "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_data.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_wrap.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_wmt.v" \
@@ -142,9 +144,9 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_priority_encoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_home_encoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_hmc.v" \
-    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_tag.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_hmt.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_data.v.xlx.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_tag.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_hmt.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/sram_wrappers/sram_l15_data.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top_wrap.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_output_datapath.v" \
@@ -368,11 +370,11 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/bw_r_rf32x152b.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_l1d_val.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_l1i_val.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_1rw_128x78.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_data.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_tag.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_data.v.xlx.v" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_tag.v.xlx.v" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_1rw_128x78.v" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_data.v" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_tag.v" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_data.v" \
+    "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_tag.v" \
 ]
 
 set CHIP_INCLUDE_FILES [list \
@@ -384,18 +386,6 @@ set CHIP_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/afifo_w3_d16/afifo_w3_d16" \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/fifo_w64_d16/fifo_w64_d16" \
     "${DV_ROOT}/design/chip/chip_bridge/xilinx/${BOARD}/ip_cores/fifo_w3_d16/fifo_w3_d16" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2p_128x176/bram_2p_128x176" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2p_256x176/bram_2p_256x176" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_256x104/bram_256x104" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_1024x64/bram_1024x64" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_2048x144/bram_2048x144" \
-    "${DV_ROOT}/design/chip/tile/l2/xilinx/${BOARD}/ip_cores/bram_4096x144/bram_4096x144" \
-    "${DV_ROOT}/design/chip/tile/l15/xilinx/${BOARD}/ip_cores/bram_512x32/bram_512x32" \
-    "${DV_ROOT}/design/chip/tile/l15/xilinx/${BOARD}/ip_cores/bram_512x128/bram_512x128" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x78/bram_128x78" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x576/bram_128x576" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_256x272/bram_256x272" \
-    "${DV_ROOT}/design/chip/tile/sparc/srams/xilinx/${BOARD}/ip_cores/bram_128x132/bram_128x132" \
 ]
 
 set CHIP_COE_IP_FILES [list \
@@ -460,8 +450,10 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/rtl/chipset_impl.v" \
     "${DV_ROOT}/design/chipset/rtl/chipset_impl_noc_power_test.v" \
     "${DV_ROOT}/design/chipset/rtl/blinker.v" \
+    "${DV_ROOT}/design/chipset/rtl/packet_filter.v" \
     "${DV_ROOT}/design/chipset/rtl/storage_addr_trans.v" \
     "${DV_ROOT}/design/chipset/rtl/storage_addr_trans_unified.v" \
+    "${DV_ROOT}/design/chipset/rtl/test_end_checker.v" \
     "${DV_ROOT}/design/chipset/common/rtl/noc_bidir_afifo.v" \
     "${DV_ROOT}/design/common/fpga_bridge/rtl/fpga_bridge.v" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_send/rtl/fpga_net_chooser_32.v" \
@@ -471,6 +463,21 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/iob_splitter.v" \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/uart_boot_splitter.v" \
     "${DV_ROOT}/design/chipset/mem_io_splitter/rtl/net_uart_splitter.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/rtl/io_xbar_top.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/rtl/io_xbar_top_wrap.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_input_control.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_input_route_request_calc.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_input_top_16.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_input_top_4.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_output_control.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_output_datapath.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_output_top.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/common/rtl/io_xbar_space_avail_top.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_one_of_n.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_one_of_n_plus_3.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_net_dff.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_bus_compare_equal.v" \
+    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_flip_bus.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/io_ctrl_top.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/ciop_iob.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/net_int_sync.v" \
@@ -481,13 +488,9 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/fake_boot_ctrl.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/eth_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mc_top.v" \
-    "${DV_ROOT}/design/chipset/mc/rtl/mig_mux.v" \
-    "${DV_ROOT}/design/chipset/mc/rtl/pkt_trans_dp_wide.v" \
-    "${DV_ROOT}/design/chipset/iosplitter_axi_lite/rtl/iosplitter_axi_lite.v" \
-    "${DV_ROOT}/design/chipset/iosplitter_axi_lite/rtl/iosplitter_axi_lite_updated.v" \
+    "${DV_ROOT}/design/chipset/mc/rtl/noc_mig_bridge.v" \
+    "${DV_ROOT}/design/chipset/mc/rtl/memory_zeroer.v" \
     "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge.v" \
-    "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge_boot.v" \
-    "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge_emaclite.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/axi_sd_bridge.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_master.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/init_sd.v" \

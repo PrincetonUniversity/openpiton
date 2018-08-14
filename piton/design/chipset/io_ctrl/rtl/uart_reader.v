@@ -45,6 +45,10 @@ module uart_reader (
     input                                 m_axi_rvalid,
     output                                m_axi_rready,
 
+    input   [`NOC_CHIPID_WIDTH-1:0]       chip_id,
+    input   [`NOC_X_WIDTH-1:0]            x_id,
+    input   [`NOC_Y_WIDTH-1:0]            y_id,
+
     output                                noc_valid,
     output  [`NOC_DATA_WIDTH-1:0]         noc_data,
     input                                 noc_ready
@@ -121,9 +125,19 @@ wire    [`NOC_DATA_WIDTH-1:0]       noc_hdr3_data;
 wire    [`STRG_BLK_WIDTH-1:0]       data_to_storage;
 wire    [`NOC_DATA_WIDTH-1:0]       noc_data_to_send [`PAYLOAD_LEN-1:0];
 
+wire [`NOC_CHIPID_WIDTH-1:0]       source_chip_id;
+wire [`NOC_CHIPID_WIDTH-1:0]       dest_chip_id;
+wire [`NOC_X_WIDTH-1:0]            dest_x_id;
+wire [`NOC_Y_WIDTH-1:0]            dest_y_id;
+
 genvar i;
 
 //---------------------------------
+assign source_chip_id = chip_id;
+assign dest_chip_id = chip_id;
+assign dest_x_id = x_id;
+assign dest_y_id = y_id;
+
 assign m_axi_rready = 1'b1;
 
 assign launch = start & ~start_r;
@@ -404,11 +418,11 @@ end
 assign noc_valid = noc_intf_state != NOC_INTF_IDLE;
 
 // CHIPID, XPOS, YPOS, FBITS, PAYLOAD LEN, TYPE, MSHR/TAG, RESERVED
-assign noc_hdr1_data      = {14'h0, 8'h0, 8'h0, 4'h0, 8'ha, 8'h14, 8'h0, 6'h0};
+assign noc_hdr1_data      = {chip_id, 8'h0, 8'h0, 4'h0, 8'ha, 8'h14, 8'h0, 6'h0};
 // 8'b0, ADDR, OPTIONS
 assign noc_hdr2_data      = {8'h0, blk_addr, 16'h0};
 // SRC CHIPID, SRC X, SRC y, SRC FBITS, RESERVED
-assign noc_hdr3_data      = {14'h0, 8'h0, 8'h0, 4'b0, 30'h0};
+assign noc_hdr3_data      = {chip_id, x_id, y_id, 4'b0, 30'h0};
 
 
 generate

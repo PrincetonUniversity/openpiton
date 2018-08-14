@@ -184,7 +184,7 @@ changequote(`,')dnl'
 
 #include "c/stackinit_mt.s"
 #include "c/libc.s"
-
+#include "c/put.s"
 !------------------------------------------------------------------------------
 
 

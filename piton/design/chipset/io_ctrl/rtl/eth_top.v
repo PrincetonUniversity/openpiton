@@ -133,7 +133,9 @@ noc_bidir_afifo  net_afifo  (
     .flit_out_rdy_1  (noc_out_rdy      )
 );
 
-noc_axilite_bridge_emaclite     noc_ethernet_bridge   (
+noc_axilite_bridge #(
+    .SLAVE_RESP_BYTEWIDTH   (4)
+) noc_ethernet_bridge (
     .clk                    (net_axi_clk        ),
     .rst                    (~rst_n             ),      // TODO: rewrite to positive ?
            

@@ -44,6 +44,8 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 //
+//  Patches by    : John Li
+//
 `include "spi_master_defines.v"
 
 module spi_master(

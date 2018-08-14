@@ -275,6 +275,19 @@
     <!-- <include>tile2_dmbr</include>-->
 
     <include>tile4_dmbr</include>
+
+    <asm_regress name="dmbr_nightly_asm">
+        <group>dmbr_nightly_asm</group>
+        <vcs_use_cm/>
+    </asm_regress>
+
+    <!---
+    <asm_regress name="dmbr_nightly_source_sink">
+        <group>dmbr_nightly_source_sink</group>
+        <vcs_use_cm/>
+    </asm_regress>
+    -->
+
     <!--
     <asm_test name="dmbr_assembly_0_one_bin">
         <sys>manycore</sys>
@@ -295,6 +308,8 @@
         <vcs_use_cm/>
     </asm_test>
     -->
+
+    <!---
     <asm_test name="dmbr_assembly_2_one_bin">
         <sys>manycore</sys>
         <x_tiles>1</x_tiles>
@@ -520,6 +535,7 @@
         <dmbr/>
         <vcs_use_cm/>
     </asm_test>
+    -->
     
     <asm_test name="dmbr_assembly_gen_1">
         <sys>manycore</sys>

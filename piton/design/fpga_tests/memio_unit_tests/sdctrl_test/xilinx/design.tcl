@@ -42,7 +42,7 @@ set DESIGN_RTL_IMPL_FILES [concat \
     ${DV_ROOT}/design/fpga_tests/memio_unit_tests/common/rtl/address_own_addrdata.v \
     ${DV_ROOT}/design/fpga_tests/memio_unit_tests/common/rtl/random_addrdata.v \
     ${DV_ROOT}/design/fpga_tests/memio_unit_tests/common/rtl/random_data_addrdata.v \
-    ${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge_boot.v \
+    ${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge.v \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/axi_sd_bridge.v \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/sd_block_cache.v \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/sd_wishbone_transaction_manager.v \

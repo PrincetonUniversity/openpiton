@@ -103,6 +103,28 @@ print_event_num:
     ret
     restore
 
+    .global     print_event_num_hp
+print_event_num_hp:
+    save    %sp, -96, %sp
+    mov     1, %l0
+    sllx    %l0, 32, %l0
+    sub     %l0, 1, %l0
+    and     %i0, %l0, %l1
+    and     %i1, %l0, %l2
+    sub     %l2, %l1, %l2
+    PITON_PUTS(event_str, %l3)
+    PITON_PRINT_REG_NL(%l2, %l3)
+    srlx    %i0, 32, %i0
+    srlx    %i1, 32, %i1
+    and     %i0, %l0, %l1
+    and     %i1, %l0, %l2
+    sub     %l2, %l1, %l2
+    sub     %l2, 1, %l2         ! since there is 1 even when no instr inbetween
+    PITON_PUTS(instr_str, %l3)
+    PITON_PRINT_REG_NL(%l2, %l3)
+    ret
+    restore
+
     .global     calc_num_waken_threads
 calc_num_waken_threads:
     save    %sp, -96, %sp

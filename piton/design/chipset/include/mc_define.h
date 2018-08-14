@@ -29,10 +29,11 @@
 `define MIG_RD_CMD  3'b001
 
 `ifdef VC707_BOARD
+    `define BOARD_MEM_SIZE_BYTES    1073741824
+    `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512
-    `define MIG_APP_BURST_OFFSET    6   // in bits: logb2(MIG_APP_DATA_WIDTH / 8)
     `define MIG_APP_MASK_WIDTH      64
 
     `define DDR3_DQ_WIDTH           64
@@ -44,10 +45,11 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `elsif NEXYS4DDR_BOARD
+    `define BOARD_MEM_SIZE_BYTES    268435456
+    `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      27
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      128
-    `define MIG_APP_BURST_OFFSET    4   // in bits: logb2(MIG_APP_DATA_WIDTH / 8) 
     `define MIG_APP_MASK_WIDTH      16
 
     `define DDR3_DQ_WIDTH           16
@@ -59,10 +61,11 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `elsif GENESYS2_BOARD
+    `define BOARD_MEM_SIZE_BYTES    1073741824
+    `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      256
-    `define MIG_APP_BURST_OFFSET    5      // in bits: logb2(MIG_APP_DATA_WIDTH / 8)
     `define MIG_APP_MASK_WIDTH      32
 
     `define DDR3_DQ_WIDTH           32
@@ -74,10 +77,11 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `elsif NEXYSVIDEO_BOARD
+    `define BOARD_MEM_SIZE_BYTES    536870912
+    `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      128
-    `define MIG_APP_BURST_OFFSET    4   // in bits: logb2(MIG_APP_DATA_WIDTH / 8) 
     `define MIG_APP_MASK_WIDTH      16
 
     `define DDR3_DQ_WIDTH           16
@@ -89,10 +93,11 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `else
+    `define BOARD_MEM_SIZE_BYTES    1073741824
     `define MIG_APP_ADDR_WIDTH      29
+    `define WORDS_PER_BURST         8
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512
-    `define MIG_APP_BURST_OFFSET    6   // in bits: logb2(MIG_APP_DATA_WIDTH / 8)
     `define MIG_APP_MASK_WIDTH      64
 
     `define DDR3_DQ_WIDTH           64

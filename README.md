@@ -32,6 +32,9 @@ There are several detailed documentations about OpenPiton in the docs folder lis
 
 - Run ```source $PITON_ROOT/piton/piton_settings.bash``` to setup the environment
     - A CShell version of this script is provided, but OpenPiton has not been tested for and currently does not support CShell
+
+- Note: On many systems, you must run the ```mktools``` command once to rebuild a number of the tools before continuing. If you see issues later with building or running simulations, try running ```mktools``` if you have not already.
+
 - Top level directory structure:
     - piton/
         - All OpenPiton design and verification files

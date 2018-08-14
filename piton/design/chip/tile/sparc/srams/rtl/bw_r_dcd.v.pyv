@@ -226,9 +226,8 @@ wire [`L1D_DATA_ENTRY_WIDTH-1:0] way_mask_e =
 %>
 
 
-
-`ifndef SPLIT_L1_DCACHE
-// !SPLIT_L1_DCACHE && SRAM_LSU_DCACHE
+`ifndef MERGE_L1_DCACHE
+// !MERGE_L1_DCACHE && SRAM_LSU_DCACHE
 
 
 sram_l1d_data_piton dcache_way_01
@@ -265,7 +264,7 @@ sram_l1d_data_piton dcache_way_23
   .SRAMID(`BIST_ID_L1_DCACHE_W23)
 );
 
-`else // SPLIT_L1_DCACHE == 1, use the parameterised implementation
+`else // MERGE_L1_DCACHE == 1, use the parameterised implementation
 
 wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0]   temp_a_reg;
 wire [`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT-1:0]   temp_in_reg;
@@ -303,7 +302,7 @@ sram_l1d_data dcache
   GenFor(template, CONFIG_L1D_ASSOCIATIVITY);
 %>
 
-`endif // SPLIT_L1_DCACHE
+`endif // MERGE_L1_DCACHE
 
 
 `else // !SRAM_LSU_DCACHE

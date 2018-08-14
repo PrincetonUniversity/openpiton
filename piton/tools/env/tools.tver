@@ -23,6 +23,8 @@ showargv	/	1.01
 sims		/	1.262
 contint     /   1.0
 protosyn    /   2.5
+protocheck  /   1.0
+protocontint    / 1.0
 pitonstream	/ 1.0
 pitonunimap     / 1.0
 image2stream    / 1.0

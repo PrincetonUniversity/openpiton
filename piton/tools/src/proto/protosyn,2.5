@@ -46,6 +46,8 @@ DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
 DESIGN_BLOCK_LIST = os.path.join(DV_ROOT, "tools/src/proto/block.list")
 BOARD_TOOL_LIST = os.path.join(DV_ROOT, "tools/src/proto/board.list")
+PROJECT_BUILD_LOG = "make_project.log"
+PROJECT_IMPL_LOG = "implementation.log"
 
 FLOW_STEP_OPTIONS = ["project", "impl"]
 
@@ -101,6 +103,8 @@ def usage():
     print >> sys.stderr, "\n            (Genesys2 and nexysVideo boards only"
     print >> sys.stderr, "\n       --slurm"
     print >> sys.stderr, "              Run steps of flow using SLURM job scheduler"
+    print >> sys.stderr, "\n       --swait"
+    print >> sys.stderr, "\n            Wait for slurm jobs to finish"
     print >> sys.stderr, "\n       -h, --help"
     print >> sys.stderr, "              Display this help message and exit"
     print >> sys.stderr, "\n"
@@ -129,19 +133,19 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
     proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     while proc.returncode != 0:
-        print "Submit failed, retrying in 30 seconds..."
+        print_warning("Submit failed, retrying in 30 seconds...")
         time.sleep(30)
-        print "Retrying..."
+        print_warning("Retrying...")
         proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
 
     # Get job ID and return for dependencies
     match = re.match("Submitted batch job (\d+)\n", out)
     if match:
-        print "Submitted batch job %s" % match.group(1)
+        print_info("Submitted batch job %s" % match.group(1))
         return match.group(1)
     else:
-        print "Error submitting batch job."
+        print_error("Error submitting batch job")
         return None
 
 def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
@@ -181,9 +185,9 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
 
     #os.system('cp -r $DV_ROOT/tools/src/proto/%s/* .' % board)
     #os.system('cp -r -n $DV_ROOT/tools/src/proto/common/* .')
-    print_info("Creating project for design '%s' on board '%s'" % (design_data["ID"],board))
+    print_info("Building a project for design '%s' on board '%s'" % (design_data["ID"],board))
     proj_script = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/gen_project.tcl")
-    proj_log = os.path.join(log_dir, "make_project.log")
+    proj_log = os.path.join(log_dir, PROJECT_BUILD_LOG)
     jname = "protosyn_mkproj_%s_%s" % (board, design_data["ID"])
     jid = None
     if (tool == "vivado"):
@@ -196,6 +200,7 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     os.chdir(prev_dir)
 
     return jid
+
 
 def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
     prev_dir = os.getcwd()
@@ -227,7 +232,7 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
     #os.chdir(dname)
     print_info("Running FPGA implementation down to bitstream generation")
     design_board_dir = os.path.join(design_data["PATH"], board)
-    impl_log = os.path.join(log_dir, "implementation.log")
+    impl_log = os.path.join(log_dir, PROJECT_IMPL_LOG)
     impl_flow = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/impl_flow.tcl")
     jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
     jid = None
@@ -241,38 +246,6 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
     os.chdir(prev_dir)
 
     return jid
-
-def check_timing(board, design):
-    board_design = board + "_" + design
-    rpt_name = design + "_timing_summary_routed.rpt"
-    fname = os.path.join(MODEL_DIR, board, design, board_design, board_design + ".runs",
-                         "impl_1", rpt_name)
-    try:
-        fin = open(fname, 'r')
-    except:
-        print_warning("Can't open timing report: %s" % fname)
-        return
-
-    found_status = False
-    for l in fin:
-        # Search for failed timing
-        m = re.search("Timing constraints are not met", l)
-        if m != None:
-            print_warning("Implemented design has timing violations!")
-            print_warning("Check %s to see failing paths" % fname)
-            found_status = True
-            break
-        # Search for met timing
-        m = re.search("timing constraints are met", l)
-        if m != None:
-            print_info("All timing constraints are met!")
-            found_status = True
-            break
-
-    fin.close()
-
-    if not found_status:
-        print_warning("Have not found timing status in %s" % fname)
 
 
 def find_board_tool(board):
@@ -292,77 +265,77 @@ def find_board_tool(board):
 def checkCmdOptions(options):
     if (options.help):
         usage()
-        exit(0)
+        sys.exit(0)
 
     # Check if design is specified 
     # (It has a default value so always should be)
     if (options.design == None):
         print_error("Invalid parameters")
         usage()
-        exit(2)
+        sys.exit(2)
 
     # Check if design module is found
     design_data = find_design_block(options.design)
     if (design_data == None):
         print_error("Could not find design module '" + options.design + "'")
         usage()
-        exit(2)
+        sys.exit(2)
 
     # Check if board name is provided
     if (options.board == None):
         print_error("Invalid parameters")
         usage()
-        exit(2)
+        sys.exit(2)
 
     # Check if board is supported
     if (options.board not in design_data["BOARDS"]):
         print_error("Unsupported board")
         usage()
-        exit(2) 
+        sys.exit(2) 
 
     # Check board exists in board list
     if (find_board_tool(options.board) == None):
         print_error("Board not specified in board.list")
         usage()
-        exit(2)
+        sys.exit(2)
 
     # Check if FPGA steps are valid (if provided)
     if (options.from_step != None):
         if (options.from_step not in FLOW_STEP_OPTIONS):
             print_error("%s is not a valid FPGA flow step" % options.from_step)
             usage()
-            exit(2)
+            sys.exit(2)
 
     if (options.to_step != None):
         if (options.to_step not in FLOW_STEP_OPTIONS):
             print_error("%s is not a valid FPGA flow step" % options.to_step);
             usage()
-            exit(2)
+            sys.exit(2)
 
     if (options.inc_passthru and (not options.chip_bridge)):
         print_error("Conflicting options")
         usage()
-        exit(2)
+        sys.exit(2)
 
     if (options.passthru_dec and ((not options.inc_passthru) and options.design != "passthru" and options.design != "passthru_loopback")):
         print_error("Conflicting options")
         usage()
-        exit(2)
+        sys.exit(2)
 
     if (options.passthru_dec_uart_pkttrace and not options.passthru_dec):
         print_error("Conflicting options")
         usage()
-        exit(2)
+        sys.exit(2)
 
     if (options.make_mem_map and (options.test_name == None)):
         print_error("Test name is required to make a mapping to a BRAM")
         usage()
-        exit(2)
+        sys.exit(2)
 
     if options.uart_dmw not in ["bram", "ddr", None]:
         print_error("Unexpected storage type")
         usage()
-        exit(2)
+        sys.exit(2)
 
     return design_data
 
@@ -386,6 +359,7 @@ def setParserOptions(parser):
     parser.add_option("--gen-test-bram", dest="gen_test_bram", action="store_true", default=False)  # depricated ?
     parser.add_option("--make-mem-map", dest="make_mem_map", action="store_true", default=False)
     parser.add_option("--slurm", dest="slurm", action="store_true", default=False)
+    parser.add_option("--swait", dest="swait", action="store_true", default=False)
 
     return parser
 
@@ -470,7 +444,7 @@ def makeDefList(options):
         if options.board == "genesys2" or options.board == "nexysVideo":
             defines.append("PITON_FPGA_ETHERNETLITE")
         else:
-            print_warning("--eth option is ignored for %s" % options.board)
+            print_info("--eth option is ignored for %s" % options.board)
 
     # --oled option for String on a display
     if options.oled != None:
@@ -531,15 +505,14 @@ def main():
     parser = setParserOptions(parser)
     (options, args) = parser.parse_args()
 
+    exit_code = 0
     design_data = checkCmdOptions(options)
 
     ###################################################
     # All options are considered valid from this point
     ###################################################
 
-    board_dir = os.path.join(MODEL_DIR, options.board)
-    work_dir = os.path.join(board_dir, design_data["ID"])
-    log_dir = os.path.join(work_dir, 'protosyn_logs/')
+    rc_dir = ProtoDir(options.board, options.design, design_data)
 
     # Make a list of configuration specific defines
     defines = makeDefList(options)
@@ -575,7 +548,7 @@ def main():
     ##################################
     prev_dir = os.getcwd()
     os.chdir(MODEL_DIR)
-    os.system('mkdir -p %s' % log_dir)
+    os.system('mkdir -p %s' % rc_dir.log)
 
     ##################################
     # Get a trace
@@ -583,23 +556,23 @@ def main():
     if run_sim:
         print_info("Synthesizing a test: %s" % options.test_name)
         print_info("Compilation started")
-        ret_val = os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % log_dir)
+        ret_val = os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % rc_dir.log)
         if ret_val != 0:
             print_error("Compilation didn't finish successfully!")
-            print_info("See for Errors in %scompilation.log" % log_dir)
-            exit(1)
+            print_info("See for Errors in %scompilation.log" % rc_dir.log)
+            sys.exit(1)
         print_info("Simulation started")
         print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][options.board]["FREQ"])
         div = calcUARTLatch(design_data, options.board)
-        os.system('sims -sys=manycore -vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, log_dir))
+        os.system('sims -sys=manycore -vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, rc_dir.log))
 
-        f = open('%s/simulation.log' % log_dir, 'r')
+        f = open('%s/simulation.log' % rc_dir.log, 'r')
         cont = f.read()
         f.close()
         match = re.search(r'(HIT GOOD TRAP)', cont)
         if match == None:
             print_error("Test failed!")
-            exit(1)
+            sys.exit(1)
         else:
             print_info("Test Passed!")
 
@@ -613,7 +586,7 @@ def main():
         else:
             strg_type = options.uart_dmw
         st_brd = StorageBoard(strg_type, options.board)
-        makeMemMapping(st_brd, work_dir, log_dir)
+        makeMemMapping(st_brd, rc_dir.work, rc_dir.log)
 
     ################################################
     # Generate UART init sequence for ASM tests 
@@ -626,30 +599,57 @@ def main():
     ##################################
     # Run FPGA flow
     ##################################
-    jid = None
-    if run_make_project:
-        jid = makeProject(options.board, design_data, work_dir, log_dir, options.slurm, None)
-
     dep_list = []
-    if jid != None:
-        dep_list.append(jid)
+
+    if run_make_project:
+        jid = makeProject(options.board, design_data, rc_dir.work, rc_dir.log, options.slurm, None)
+        if jid != None:
+            dep_list.append(jid)
+
 
     ## TODO: update this options for simulations from VCS
     if run_gen_test_bram:
         print_info("Regenerating a bram with a test")
-        os.chdir(work_dir)
+        os.chdir(rc_dir.work)
         gen_test_bram_script = os.path.join(DV_ROOT, "tools/src/proto/gen_test_bram.tcl")
         os.system('vivado -mode batch -source %s' % gen_test_bram_script)
 
+    # FPGA implementation
     if run_fpga_impl:
-        runImplFlow(options.board, design_data, work_dir, log_dir, defines, options.slurm, dep_list)
-        print_info("Implementation finished!")
-        check_timing(options.board, options.design)
+        jid = runImplFlow(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
+        if jid != None:
+            dep_list.append(jid)
+    
 
+    ####################################################################################
+    # Waiting for all previous jobs to finish before checking results
+    # dep_list has jobids only for slurm jobs, otherwise all steps
+    # are run sequentially
+    
+    if options.slurm:
+        if options.swait:
+            print_info("Waiting for jobs to finish...")
+            waitSlurmJobs(dep_list)
+        else:
+            print_info("Run 'protocheck -b %s -d %s' after jobs are finished to check results" % (options.board, options.design))
+    
+    # Check  implementation results
+    if (options.slurm and options.swait) or (not options.slurm):
+        if run_make_project:
+            print_info("Checking Project Build results")
+            if not buildProjectSuccess(rc_dir.log):
+                exit_code = 1
+
+        if run_fpga_impl:
+            # check implementation only if project build was successfull
+            if exit_code == 0:
+                print_info("Checking Project Implementation results")
+                if not implFlowSuccess(rc_dir.log, rc_dir.run):
+                    exit_code = 1
 
     os.chdir(prev_dir)
 
-    print_info("Protosyn finished!")
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

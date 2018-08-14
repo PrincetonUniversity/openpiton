@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+# Copyright (c) 2018 Princeton University
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+from optparse import OptionParser
+import fpga_lib as flib
+import dbg
+import sys
+
+def checkCmdOptions(options):
+
+    if options.design == None:
+        dbg.print_error("Design is not specified!")
+        return False
+
+    if options.board == None:
+        dbg.print_error("Board is not specified!")
+        return False
+
+    design_data = flib.find_design_block(options.design)
+    if design_data == None:
+        dbg.print_error("Can't find design module %s" % options.design)
+        return False
+
+    if options.board not in design_data["BOARDS"]:
+        dbg.print_error("Design '%s' for board '%s' is unsupported!" % (options.design, options.board))
+        return False
+
+    return True
+
+# Assumes both Project Build and Project Implementation were run
+def checkResult(rc_dir):
+    rv = 0;
+    
+    dbg.print_info("Checking Project Build results")
+    if not flib.buildProjectSuccess(rc_dir.log):
+        rv = 1
+
+    # check implementation only if project build was successfull
+    if rv == 0:
+        dbg.print_info("Checking Project Implementation results")
+        if not flib.implFlowSuccess(rc_dir.log, rc_dir.run):
+            rv = 1
+
+    return rv
+
+def main():
+    parser = OptionParser()
+    parser.add_option("-b", "--board", dest="board", action="store")
+    parser.add_option("-d", "--design", dest="design", action="store")
+    (options, args) = parser.parse_args()
+
+    if not checkCmdOptions(options):
+        parser.print_help()
+        return 1
+
+    design_data = flib.find_design_block(options.design)
+
+    rc_dir = flib.ProtoDir(options.board, options.design, design_data)
+
+    # Checking Results
+    rv = checkResult(rc_dir)
+    sys.exit(rv)
+
+if __name__ == "__main__":
+    main()

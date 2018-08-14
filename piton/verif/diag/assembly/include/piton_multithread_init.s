@@ -217,6 +217,46 @@ hp_rel_lock:
     ret
     restore
 
+    .global hp_execd_enable
+hp_execd_enable:
+    save    %sp, -96, %sp
+    ta      T_CHANGE_HPRIV
+
+    ! Load current value of ed0 config register
+    ldxa    [%g0] 0x1a, %l0
+
+    ! Clear current timeout value
+    setx    0xfffff, %l2, %l1
+    and     %l0, %l1, %l0
+    ! Set new timeout value
+    sllx    %i0, 20, %l1
+    or      %l0, %l1, %l0
+
+    ! Or with 1 to enable execd
+    or      %l0, 1, %l0
+
+    ! Store pc diff threshold to ed1 config register
+    mov     0x8, %l1
+    stxa    %i1, [%l1] 0x1a
+
+    ! Store new value of config register
+    stxa    %l0, [%g0] 0x1a
+    ta      T_CHANGE_NONHPRIV
+    ret
+    restore
+
+    .global hp_execd_disable
+hp_execd_disable:
+    save    %sp, -96, %sp
+    ta      T_CHANGE_HPRIV
+    ldxa    [%g0] 0x1a, %l0
+    setx    0xfffffffffffffffe, %l2, %l1
+    and     %l0, %l1, %l0
+    stxa    %l0, [%g0] 0x1a
+    ta      T_CHANGE_NONHPRIV
+    ret
+    restore
+
     .global     config_perf_cnt
 config_perf_cnt:
     save    %sp, -96, %sp

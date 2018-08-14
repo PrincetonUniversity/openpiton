@@ -26,5 +26,3 @@
 // ========== Copyright Header End ============================================
 
 noc_axilite_bridge.v
-noc_axilite_bridge_boot.v
-noc_axilite_bridge_emaclite.v

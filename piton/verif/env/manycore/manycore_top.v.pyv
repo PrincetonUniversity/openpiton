@@ -232,8 +232,10 @@ begin
     sys_rst_n = 1'b1;
     jtag_rst_l = 1'b1;
 
-    // Wait for SRAM init, trin: 5000 cycles is about the lowest
-    repeat(5000)@(posedge `CHIP_INT_CLK);
+    // Wait for SRAM init
+    // trin: 5000 cycles is about the lowest for 64KB L2
+    // 128KB L2 requires at least 10000
+    repeat(40000)@(posedge `CHIP_INT_CLK); // trin: supports at least 512KB L2 per-tile
 
     diag_done = 1'b1;
 `ifndef PITONSYS_IOCTRL
@@ -475,45 +477,17 @@ ciop_fake_iob ciop_fake_iob(
 // I/O AXI splitter, needed for uart-hello-world.s
 ////////////////////////////////////////////////////////
 
-iosplitter_axi_lite_updated iosplitter_axi_lite(
+fake_uart fake_uart (
     .clk(chipset_clk),
-    .rst(~sys_rst_n),
+    .rst_n(sys_rst_n),
 
-    .splitter_io_val(chipset_io_val),
-    .splitter_io_data(chipset_io_data),
-    .io_splitter_rdy(chipset_io_rdy),
+    .src_uart_noc2_val(chipset_io_val),
+    .src_uart_noc2_data(chipset_io_data),
+    .src_uart_noc2_rdy(chipset_io_rdy),
 
-    .io_splitter_val(io_chipset_val),
-    .io_splitter_data(io_chipset_data),
-    .splitter_io_rdy(io_chipset_rdy),
-
-    //axi lite signals             
-    //write address channel
-    .m_axi_awaddr(),
-    .m_axi_awvalid(),
-    .m_axi_awready(1'b1),
-
-    //write data channel
-    .m_axi_wdata(),
-    .m_axi_wstrb(),
-    .m_axi_wvalid(),
-    .m_axi_wready(1'b1),
-
-    //read address channel
-    .m_axi_araddr(),
-    .m_axi_arvalid(),
-    .m_axi_arready(1'b1),
-
-    //read data channel
-    .m_axi_rdata(`NOC_DATA_WIDTH'hef),
-    .m_axi_rresp(2'b0),
-    .m_axi_rvalid(1'b1),
-    .m_axi_rready(),
-
-    //write response channel
-    .m_axi_bresp(2'b0),
-    .m_axi_bvalid(1'b1),
-    .m_axi_bready()
+    .uart_dst_noc3_val(io_chipset_val),
+    .uart_dst_noc3_data(io_chipset_data),
+    .uart_dst_noc3_rdy(io_chipset_rdy)
 );
 
 ////////////////////////////////////////////////////////

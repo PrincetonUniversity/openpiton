@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
   pyhplib.MakeGenericCacheDefine(
     modulename="sram_l2_state", 
-    type="2rw", 
+    type="1r1w", 
     #height=CONFIG_SRAM_L2_STATE_HEIGHT, 
     #width=CONFIG_SRAM_L2_STATE_WIDTH
     height_define="`L2_STATE_ARRAY_HEIGHT",

@@ -42,6 +42,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `include "l2.tmp.h"
 `include "define.vh"
 
+
+<%
+import pyhplib
+from pyhplib import *
+
+L2_SIZE = CONFIG_L2_SIZE
+L2_WAYS = CONFIG_L2_ASSOCIATIVITY
+L2_NUM_SETS = int(L2_SIZE / (L2_LINE_SIZE * L2_WAYS))
+L2_WAYS_WIDTH = (math.log(L2_WAYS,2))
+%>
+
 module l2_pipe1_dpath(
 
     input wire clk,
@@ -261,14 +272,6 @@ module l2_pipe1_dpath(
 
 );
 
-
-<%
-L2_WAYS_WIDTH = 2
-L2_WAYS = 4
-POS_WIDTH = 6
-L2_DATA_OFFSET_WIDTH = 4
-MSG_DATA_SIZE_WIDTH = 3
-%>
 
 localparam y = 1'b1;
 localparam n = 1'b0;
@@ -845,12 +848,15 @@ begin
         end
         else if (addr_S2[`L2_ADDR_TYPE] == `L2_ADDR_TYPE_STATE_ACCESS)
         begin
-            if (addr_S2[`L2_ADDR_OP] == {`L2_ADDR_OP_WIDTH{1'b0}})
+        // State access is only available when L2_WAYS is less than 8
+            <%
+if (L2_WAYS < 8):
+    print """if (addr_S2[`L2_ADDR_OP] == {`L2_ADDR_OP_WIDTH{1'b0}})
             begin
                 return_data_S2 = {{(`L2_P1_DATA_BUF_IN_WIDTH - `L2_STATE_DATA_WIDTH){1'b0}}, state_data_trans_S2[`L2_STATE_DATA]};
             end
-            else
-            begin
+            else"""
+%>            begin
                 return_data_S2 = {{(`L2_P1_DATA_BUF_IN_WIDTH - `L2_RB_BITS - `L2_LRU_BITS){1'b0}}, l2_rb_bits_S2, l2_lru_bits_S2};
             end
         end

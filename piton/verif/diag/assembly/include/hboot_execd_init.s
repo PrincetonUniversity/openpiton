@@ -43,6 +43,8 @@ hboot_execd_init:
 #define ED1_CFG_OFFSET              0x8
 #define ED_SEED_VALUE_ENABLE_MASK   0xaaaa8
 #define ED_SEED_DISABLE_MASK        0xfffffffffff7ffff
+#define ED_COUNTER_TIMEOUT_LOW_BIT  20
+#define ED_COUNTER_TIMEOUT_CLEAR_MASK 0xfffff
 
 ! Enable mask based on sync method
 #ifdef ED_SYNC_METHOD_STSM 
@@ -53,8 +55,9 @@ hboot_execd_init:
 #define ED_ENABLE_MASK              0x5
 #endif
 
-    ! Set the offset for the ED0 config reg
+    ! Set the offset for the ED0 and ED1 config reg
     mov ED0_CFG_OFFSET, %l1
+    mov ED1_CFG_OFFSET, %l2
 
     ! Load ED0 configuration register default value
     ldxa [%l1] CFG_REG_ASI, %g1
@@ -67,6 +70,19 @@ hboot_execd_init:
     setx ED_SEED_DISABLE_MASK, %g3, %g2
     and %g1, %g2, %g1
     stxa %g1, [%l1] CFG_REG_ASI
+#endif
+
+#ifdef ED_COUNTER_TIMEOUT
+    setx ED_COUNTER_TIMEOUT, %g3, %g2
+    sllx %g2, ED_COUNTER_TIMEOUT_LOW_BIT, %g2
+    setx ED_COUNTER_TIMEOUT_CLEAR_MASK, %g4, %g3
+    and %g1, %g3, %g1
+    or %g1, %g2, %g1 
+#endif
+
+#ifdef ED_PC_DIFF_THRESH
+    setx ED_PC_DIFF_THRESH, %g3, %g2
+    stxa %g2, [%l2] CFG_REG_ASI
 #endif
 
     ! Enable ExecD with mask set by sync method

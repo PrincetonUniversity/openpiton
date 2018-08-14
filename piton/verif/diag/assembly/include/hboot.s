@@ -1195,6 +1195,19 @@ attr_data {
 #endif
 
 
+SECTION .UART_MAPPING 	DATA_VA=0xfff0c2c000
+attr_data {
+	NAME = .UART_MAPPING,
+	PA = 0xfff0c2c000,
+	VA = 0xfff0c2c000,
+	RA = 0xfff0c2c000,
+	part_0_d_ctx_zero_ps0_tsb,
+	TTE_G=1,       TTE_Context=PCONTEXT, TTE_V=1,    TTE_Size=0, TTE_NFO=0, TTE_IE=0, 
+	TTE_Soft2=0,   TTE_Diag=0,    TTE_Soft=0, TTE_L=0,    TTE_CP=0,  TTE_CV=0, 
+	TTE_E=1,       TTE_P=1,        TTE_W=1
+}
+.data
+.word 0
 
 /*
 ////////////////////////////////////////////////////////////////////

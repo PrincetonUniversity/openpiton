@@ -65,53 +65,73 @@ module mc_top (
     output                          init_calib_complete_out,
     input                           sys_rst_n
 );
-reg     [31:0]          delay_cnt;
-reg                     ui_clk_syn_rst_delayed;
-wire                    init_calib_complete;
-wire                    afifo_rst_1;
-wire                    afifo_rst_2;
+reg     [31:0]                      delay_cnt;
+reg                                 ui_clk_syn_rst_delayed;
+wire                                init_calib_complete;
+wire                                afifo_rst_1;
+wire                                afifo_rst_2;
 
- wire                                      app_en;
- wire    [`MIG_APP_CMD_WIDTH-1 :0]         app_cmd;
- wire    [`MIG_APP_ADDR_WIDTH-1:0]         app_addr;
- wire                                      app_rdy;
- wire                                      app_wdf_wren;
- wire    [`MIG_APP_DATA_WIDTH-1:0]         app_wdf_data;
- wire    [`MIG_APP_MASK_WIDTH-1:0]         app_wdf_mask;
- wire                                      app_wdf_rdy;
- wire                                      app_wdf_end;
- wire    [`MIG_APP_DATA_WIDTH-1:0]         app_rd_data;
- wire                                      app_rd_data_end;
- wire                                      app_rd_data_valid;
+ wire                               app_en;
+ wire    [`MIG_APP_CMD_WIDTH-1 :0]  app_cmd;
+ wire    [`MIG_APP_ADDR_WIDTH-1:0]  app_addr;
+ wire                               app_rdy;
+ wire                               app_wdf_wren;
+ wire    [`MIG_APP_DATA_WIDTH-1:0]  app_wdf_data;
+ wire    [`MIG_APP_MASK_WIDTH-1:0]  app_wdf_mask;
+ wire                               app_wdf_rdy;
+ wire                               app_wdf_end;
+ wire    [`MIG_APP_DATA_WIDTH-1:0]  app_rd_data;
+ wire                               app_rd_data_end;
+ wire                               app_rd_data_valid;
 
- wire                                      core_app_en;
- wire    [`MIG_APP_CMD_WIDTH-1 :0]         core_app_cmd;
- wire    [`MIG_APP_ADDR_WIDTH-1:0]         core_app_addr;
- wire                                      core_app_rdy;
- wire                                      core_app_wdf_wren;
- wire    [`MIG_APP_DATA_WIDTH-1:0]         core_app_wdf_data;
- wire    [`MIG_APP_MASK_WIDTH-1:0]         core_app_wdf_mask;
- wire                                      core_app_wdf_rdy;
- wire                                      core_app_wdf_end;
- wire    [`MIG_APP_DATA_WIDTH-1:0]         core_app_rd_data;
- wire                                      core_app_rd_data_end;
- wire                                      core_app_rd_data_valid;
+ wire                               core_app_en;
+ wire    [`MIG_APP_CMD_WIDTH-1 :0]  core_app_cmd;
+ wire    [`MIG_APP_ADDR_WIDTH-1:0]  core_app_addr;
+ wire                               core_app_rdy;
+ wire                               core_app_wdf_wren;
+ wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_wdf_data;
+ wire    [`MIG_APP_MASK_WIDTH-1:0]  core_app_wdf_mask;
+ wire                               core_app_wdf_rdy;
+ wire                               core_app_wdf_end;
+ wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_rd_data;
+ wire                               core_app_rd_data_end;
+ wire                               core_app_rd_data_valid;
 
+`ifdef PITONSYS_MEM_ZEROER
+wire                                zero_app_en;
+wire    [`MIG_APP_CMD_WIDTH-1 :0]   zero_app_cmd;
+wire    [`MIG_APP_ADDR_WIDTH-1:0]   zero_app_addr;
+wire                                zero_app_wdf_wren;
+wire    [`MIG_APP_DATA_WIDTH-1:0]   zero_app_wdf_data;
+wire    [`MIG_APP_MASK_WIDTH-1:0]   zero_app_wdf_mask;
+wire                                zero_app_wdf_end;
+wire                                init_calib_complete_zero;
+`endif
 
-wire                                      app_sr_req;
-wire                                      app_ref_req;
-wire                                      app_zq_req;
-wire                                      app_sr_active;
-wire                                      app_ref_ack;
-wire                                      app_zq_ack;
-wire                                      ui_clk;
-wire                                      ui_clk_sync_rst;
+wire                                app_sr_req;
+wire                                app_ref_req;
+wire                                app_zq_req;
+wire                                app_sr_active;
+wire                                app_ref_ack;
+wire                                app_zq_ack;
+wire                                ui_clk;
+wire                                ui_clk_sync_rst;
+wire                                noc_mig_bridge_rst;
+wire                                noc_mig_bridge_init_done;
 
-reg afifo_ui_rst_r;
-reg afifo_ui_rst_r_r;
+wire                                trans_fifo_val;
+wire    [`NOC_DATA_WIDTH-1:0]       trans_fifo_data;
+wire                                trans_fifo_rdy;
 
-reg ui_clk_sync_rst_r;
-reg ui_clk_sync_rst_r_r;
+wire                                fifo_trans_val;
+wire    [`NOC_DATA_WIDTH-1:0]       fifo_trans_data;
+wire                                fifo_trans_rdy;
+
+reg                                 afifo_ui_rst_r;
+reg                                 afifo_ui_rst_r_r;
+
+reg                                 ui_clk_sync_rst_r;
+reg                                 ui_clk_sync_rst_r_r;
 
 // needed for correct rst of async fifo
 always @(posedge core_ref_clk) begin
@@ -132,7 +152,6 @@ end
 
 assign mc_ui_clk_sync_rst   = ui_clk_syn_rst_delayed;
 
-assign init_calib_complete_out = init_calib_complete & ~ui_clk_syn_rst_delayed;
 assign afifo_rst_1 = ui_clk_syn_rst_delayed;
 
 
@@ -154,13 +173,34 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
- wire                              trans_fifo_val;
- wire    [`NOC_DATA_WIDTH-1:0]     trans_fifo_data;
- wire                              trans_fifo_rdy;
-
- wire                              fifo_trans_val;
- wire    [`NOC_DATA_WIDTH-1:0]     fifo_trans_data;
- wire                              fifo_trans_rdy;
+`ifdef PITONSYS_MEM_ZEROER
+assign app_en                   = zero_app_en;
+assign app_cmd                  = zero_app_cmd;
+assign app_addr                 = zero_app_addr;
+assign app_wdf_wren             = zero_app_wdf_wren;
+assign app_wdf_data             = zero_app_wdf_data;
+assign app_wdf_mask             = zero_app_wdf_mask;
+assign app_wdf_end              = zero_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
+assign noc_mig_bridge_init_done = init_calib_complete_zero;
+assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+`else
+assign app_en                   = core_app_en;
+assign app_cmd                  = core_app_cmd;
+assign app_addr                 = core_app_addr;
+assign app_wdf_wren             = core_app_wdf_wren;
+assign app_wdf_data             = core_app_wdf_data;
+assign app_wdf_mask             = core_app_wdf_mask;
+assign app_wdf_end              = core_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst;
+assign noc_mig_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
+assign core_app_rdy             = app_rdy;
+assign core_app_wdf_rdy         = app_wdf_rdy;
+assign core_app_rd_data_valid   = app_rd_data_valid;
+assign core_app_rd_data_end     = app_rd_data_end;
+assign core_app_rd_data         = app_rd_data;
 
 noc_bidir_afifo  mig_afifo  (
     .clk_1           (core_ref_clk      ),
@@ -188,12 +228,12 @@ noc_bidir_afifo  mig_afifo  (
     .flit_out_rdy_1  (mc_flit_out_rdy   )
 );
 
-pkt_trans_dp_wide    #  (
+noc_mig_bridge    #  (
     .MIG_APP_ADDR_WIDTH (`MIG_APP_ADDR_WIDTH        ),
     .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
-)   pkt_trans_dp_wide   (
+)   noc_mig_bridge   (
     .clk                (ui_clk                     ),  // from MC
-    .rst                (ui_clk_sync_rst            ),  // from MC
+    .rst                (noc_mig_bridge_rst         ),  // from MC
 
     .uart_boot_en       (uart_boot_en               ),
 
@@ -209,7 +249,7 @@ pkt_trans_dp_wide    #  (
     .app_rd_data        (core_app_rd_data           ),
     .app_rd_data_end    (core_app_rd_data_end       ),
     .app_rd_data_valid  (core_app_rd_data_valid     ),
-    .phy_init_done      (init_calib_complete        ),
+    .phy_init_done      (noc_mig_bridge_init_done   ),
 
     .app_wdf_wren_reg   (core_app_wdf_wren          ),
     .app_wdf_data_out   (core_app_wdf_data          ),
@@ -220,19 +260,37 @@ pkt_trans_dp_wide    #  (
     .app_cmd_reg        (core_app_cmd               )
 );
 
-assign app_en                   = core_app_en;
-assign app_cmd                  = core_app_cmd;
-assign app_addr                 = core_app_addr;
-assign app_wdf_wren             = core_app_wdf_wren;
-assign app_wdf_data             = core_app_wdf_data;
-assign app_wdf_mask             = core_app_wdf_mask;
-assign app_wdf_end              = core_app_wdf_end;
-assign core_app_rdy             = app_rdy;
-assign core_app_wdf_rdy         = app_wdf_rdy;
-assign core_app_rd_data_valid   = app_rd_data_valid;
-assign core_app_rd_data_end     = app_rd_data_end;
-assign core_app_rd_data         = app_rd_data;
+`ifdef PITONSYS_MEM_ZEROER
+memory_zeroer #(
+    .MIG_APP_ADDR_WIDTH (`MIG_APP_ADDR_WIDTH        ),
+    .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
+)    memory_zeroer (
+    .clk                        (ui_clk                     ),
+    .rst_n                      (~ui_clk_sync_rst           ),
 
+    .init_calib_complete_in     (init_calib_complete        ),
+    .init_calib_complete_out    (init_calib_complete_zero   ),
+
+    .app_rdy_in                 (core_app_rdy               ),
+    .app_wdf_rdy_in             (core_app_wdf_rdy           ),
+    
+    .app_wdf_wren_in            (core_app_wdf_wren          ),
+    .app_wdf_data_in            (core_app_wdf_data          ),
+    .app_wdf_mask_in            (core_app_wdf_mask          ),
+    .app_wdf_end_in             (core_app_wdf_end           ),
+    .app_addr_in                (core_app_addr              ),
+    .app_en_in                  (core_app_en                ),
+    .app_cmd_in                 (core_app_cmd               ),
+
+    .app_wdf_wren_out           (zero_app_wdf_wren          ),
+    .app_wdf_data_out           (zero_app_wdf_data          ),
+    .app_wdf_mask_out           (zero_app_wdf_mask          ),
+    .app_wdf_end_out            (zero_app_wdf_end           ),
+    .app_addr_out               (zero_app_addr              ),
+    .app_en_out                 (zero_app_en                ),
+    .app_cmd_out                (zero_app_cmd               )
+);
+`endif
 
 mig_7series_0   mig_7series_0 (
     // Memory interface ports

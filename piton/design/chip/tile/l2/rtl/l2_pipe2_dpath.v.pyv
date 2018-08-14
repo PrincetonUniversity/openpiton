@@ -42,6 +42,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `include "l2.tmp.h"
 `include "define.vh"
 
+<%
+import pyhplib
+from pyhplib import *
+
+L2_SIZE = CONFIG_L2_SIZE
+L2_WAYS = CONFIG_L2_ASSOCIATIVITY
+L2_NUM_SETS = int(L2_SIZE / (L2_LINE_SIZE * L2_WAYS))
+L2_WAYS_WIDTH = (math.log(L2_WAYS,2))
+%>
+
 module l2_pipe2_dpath(
 
     input wire clk,
@@ -164,14 +174,6 @@ module l2_pipe2_dpath(
 
 );
 
-
-<%
-L2_WAYS_WIDTH = 2
-L2_WAYS = 4
-POS_WIDTH = 6
-L2_DATA_OFFSET_WIDTH = 4
-MSG_DATA_SIZE_WIDTH = 3
-%>
 
 //============================
 // Stage 1

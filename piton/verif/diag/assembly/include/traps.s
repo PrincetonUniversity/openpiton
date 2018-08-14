@@ -3608,19 +3608,7 @@ T0_Trap_Instruction_0x16f:
 #endif
 
 T0_Trap_Instruction_0x170:
-#ifdef H_T0_Trap_Instruction_0x170
-#ifdef SUN_H_T0_Trap_Instruction_0x170
-                SUN_H_T0_Trap_Instruction_0x170
-#else
-#               ifdef My_T0_Trap_Instruction_0x170
-                        My_T0_Trap_Instruction_0x170
-#               else
-                        CUSTOM_TRAP(H_T0_Trap_Instruction_0x170)
-#                       endif
-#               endif
-#else
-        NORMAL_TRAP(0x170);
-#endif
+    CUSTOM_TRAP(hv_putchar)
 
 T0_Trap_Instruction_0x171:
 #ifdef H_T0_Trap_Instruction_0x171
@@ -8495,6 +8483,8 @@ state_checkpoint_skip:
 #include "good_bad_trap_handler.s"
 #endif
 #endif
+
+#include "io_handler.s"
 
 .data
 

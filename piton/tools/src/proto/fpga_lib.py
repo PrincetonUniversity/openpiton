@@ -36,8 +36,11 @@
 #
 #####################################################################
 
-import os, sys, re, subprocess, shlex
+import os, sys, re, subprocess, shlex, time
+import dbg
 
+PROJECT_BUILD_LOG = "make_project.log"
+PROJECT_IMPL_LOG = "implementation.log"
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
 DESIGN_BLOCK_LIST = os.path.join(DV_ROOT, "tools/src/proto/block.list")
@@ -112,6 +115,14 @@ class StorageBoard:
         self.storage = storage
         self.board = board
 
+class ProtoDir:
+    def __init__(self, board, design, design_data):
+        self.board = os.path.join(MODEL_DIR, board)
+        self.work = os.path.join(self.board, design_data["ID"])
+        self.log = os.path.join(self.work, "protosyn_logs")
+        proj_name = board + "_" + design
+        self.run = os.path.join(self.work, proj_name, proj_name + ".runs")
+
 def find_design_block(design_block):
     fp = open(DESIGN_BLOCK_LIST, 'r')
     for line in fp:
@@ -172,7 +183,11 @@ def isTranslatorOK(addr_data_map, flog):
 
     f.close()
 
+    uart_base = 0xfff0c2c000
     for addr in addr_data_map.keys():
+        # Skip UART address mapped in hboot.s
+        if uart_base <= addr < (uart_base + 2**12):
+            continue
         addr_mapped = False
         for sec in trans_sections:
             if (addr >= sec[0]) and (addr < sec[1]):
@@ -237,3 +252,85 @@ def runGenmemimage(tname, flog):
     rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
 
     return rv
+
+# Blocks execution until all jobs in job_ids are finished
+def waitSlurmJobs(job_ids) :
+    user = os.environ.get("USER")
+    while (len(job_ids) > 0) :
+        # Find finished jobs
+        remove_jobs = []
+        for job in job_ids :
+            squeue_proc = subprocess.Popen(["squeue", "-u", user, "-j", job], \
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            wc_proc = subprocess.Popen(["wc", "-l"], stdin=squeue_proc.stdout, \
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = wc_proc.communicate()
+            if out == "1\n" or out == "0\n":
+                remove_jobs.append(job)
+
+        # Remove finished jobs from list we are waiting on
+        for job in remove_jobs :
+            job_ids.remove(job)
+
+        # Sleep for a bit
+        time.sleep(10)
+
+
+def strInFile(fpath, str_l):
+    f = open(fpath, 'r')
+    fdata = f.read()
+    f.close()
+
+    for s in str_l:
+        m = re.search(s, fdata)
+        if m == None:
+            return False
+
+    return True
+
+def buildProjectSuccess(log_dir):
+    fpath = os.path.join(log_dir, PROJECT_BUILD_LOG)
+    if not strInFile(fpath, ["Project created"]):
+        dbg.print_error("Vivado Project was not created properly!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    dbg.print_info("Project was build successfully!")
+    return True
+
+
+def implFlowSuccess(log_dir, run_dir):    
+    syn_dir = os.path.join(run_dir, "synth_1")
+    impl_dir = os.path.join(run_dir, "impl_1")
+
+    # check that implementation was started
+    fpath = os.path.join(log_dir, PROJECT_IMPL_LOG)
+    if not strInFile(fpath, ["Implementation launched for project"]):
+        dbg.print_error("Implementation wasn't launched properly!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check synthesis results
+    fpath = os.path.join(syn_dir, "runme.log")
+    if not strInFile(fpath, ["synth_design completed successfully"]):
+        dbg.print_error("FPGA synthesis failed!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check implementation results
+    fpath = os.path.join(impl_dir, "runme.log")
+    if not strInFile(fpath, ["Bitgen Completed Successfully"]):
+        dbg.print_error("FPGA implementation failed!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check timing
+    fname = [f for f in os.listdir(impl_dir) if f.endswith("timing_summary_routed.rpt")][0]
+    fpath = os.path.join(impl_dir, fname)
+    if not strInFile(fpath, ["timing constraints are met"]):
+        dbg.print_error("Implemented design has timing violations!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    dbg.print_info("Design was implemented successfully!")
+    return True

@@ -120,13 +120,13 @@ module axi_lite_slave_rf(
 
     assign regs_read_index = araddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0];
     assign regs_write_index[0] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0];
-    assign regs_write_index[1] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 1;
-    assign regs_write_index[2] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 2;
-    assign regs_write_index[3] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 3;
-    assign regs_write_index[4] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 4;
-    assign regs_write_index[5] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 5;
-    assign regs_write_index[6] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 6;
-    assign regs_write_index[7] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + 7;
+    assign regs_write_index[1] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd1;
+    assign regs_write_index[2] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd2;
+    assign regs_write_index[3] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd3;
+    assign regs_write_index[4] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd4;
+    assign regs_write_index[5] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd5;
+    assign regs_write_index[6] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd6;
+    assign regs_write_index[7] = awaddr_buffer[`AXI_LITE_SLAVE_RF_INDEX_WIDTH-1:0] + `AXI_LITE_SLAVE_RF_INDEX_WIDTH'd7;
 
     assign araddr_input_go = s_axi_arready && s_axi_arvalid;
     assign awaddr_input_go = s_axi_awready && s_axi_awvalid;

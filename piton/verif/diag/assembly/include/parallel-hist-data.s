@@ -23,18 +23,16 @@
 ! (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ! SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#define    DATA_SIZE       7200
-#define    BIN_NUMBER      5
-#define    BIN0_EXPECTED   1810
-#define    BIN1_EXPECTED   1859
-#define    BIN2_EXPECTED   883
-#define    BIN3_EXPECTED   917
-#define    BIN4_EXPECTED   1731
-
-SECTION .HIST_DATA DATA_VA=0x10a8200000
+SECTION .HIST_DATA DATA_VA=0xa8200000
 attr_data {
     Name = .HIST_DATA,
-    hypervisor
+    VA = 0xa8200000,
+    PA = ra2pa(0xa8200000,0),
+    RA = 0xa8200000,
+    part_0_d_ctx_nonzero_ps0_tsb,
+    TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
+    TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
+    TTE_L=0, TTE_CP=1, TTE_CV=1, TTE_E=0, TTE_P=0, TTE_W=1
 }
 
 .data

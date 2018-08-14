@@ -43,6 +43,13 @@
             call    uart16550_printreg; \
             mov     reg, %o0
 
+#define     PITON_PRINT_REG_NL(reg, tmp)   \
+            call    uart16550_printreg;    \
+            mov     reg, %o0;              \
+            setx    nl_string, tmp, %o0;   \
+            call    uart16550_puts;        \
+            nop
+
 #define     PITON_GET_LOCK(lock_addr, tmp)  \
             setx    lock_addr, tmp, %o0;    \
             call    lock_acquire;           \
@@ -52,6 +59,11 @@
             setx    lock_addr, tmp, %o0;    \
             call    lock_release;           \
             nop
+
+#define     PITON_PRINT_EVENT_NUM(reg_before, reg_after)   \
+            mov     reg_before, %o0;                       \
+            call    print_event_num_hp;                    \
+            mov     reg_after, %o1
 
 ! User Level defines
 #define     PITON_UPUTS(label, tmp)     \
@@ -115,8 +127,8 @@
 #define     PITON_Y_DIM             5
 #define     PITON_TH_NUM            2
 
-#define     PITON_CORE_MASK             0x1ffffff
-#define     PITON_THREAD_MASK           0x1ffffff
+#define     PITON_CORE_MASK             0x0000001
+#define     PITON_THREAD_MASK           0x0000001
 
 #define     PITON_L1D_CL_SIZE           0x10
 #define     PITON_L2_CL_SIZE            0x40
@@ -157,4 +169,5 @@
 #define     PERF_ITLB_MISS          4
 #define     PERF_DTLB_MISS          5
 
+#define     SPARC_PCR               %asr16
 #define     SPARC_PIC               %asr17
