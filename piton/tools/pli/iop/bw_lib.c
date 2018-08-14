@@ -22,7 +22,6 @@
 * ========== Copyright Header End ============================================
 */
 
-#include <malloc.h>
 #include <stdio.h>
 #include <string.h>
 #include "bw_lib.h"
@@ -124,8 +123,7 @@ KeyType mask_addr (KeyType addr){
  initiliaze jbus handle.
 -------------------------------------------*/
 void read_mem(char*              str, 
-                b_tree_node_ptr*   root,
-                List<addr_record>* addr_list)
+                b_tree_node_ptr*   root)
 {
     FILE *fp;
     char  buf [BUFFER];
@@ -133,7 +131,6 @@ void read_mem(char*              str,
     int   idx, cidx;
     KeyType  addr, t_addr;
     b_tree_atom_ptr atom;//node for b-tree.
-    addr_record_ptr addr_ptr;
     int dev, zero;
 
     if((fp = fopen(str, "r")) == 0){
@@ -169,15 +166,6 @@ void read_mem(char*              str,
                 b_insert(root, &atom);
                 dev  = (int)(t_addr >> 28);
                 dev &= 0xfff;
-                //if next data is zero byte, don't store address into list.
-                if(dev < 0x200){
-                //save address for l2warm
-                    if(zero == 0){
-                        addr_ptr       = (addr_record_ptr)malloc(sizeof(struct addr_record));
-                        addr_ptr->addr = t_addr;
-                        addr_list->append(addr_ptr);
-                    }
-                }
                 zero = 0;
             }
             cidx = addr & 0x3f;
@@ -195,14 +183,6 @@ void read_mem(char*              str,
             b_insert(root, &atom);
             dev  = (int)(addr >> 28);
             dev &= 0xfff;
-            if(dev < 0x200){
-                if(zero == 0){
-                    //save address
-                    addr_ptr       = (addr_record_ptr)malloc(sizeof(struct addr_record));
-                    addr_ptr->addr = addr;
-                    addr_list->append(addr_ptr);
-                }
-            }
             //generate the next address
             cidx -= align_buf(cbuf, cidx);      
             addr += 64;
@@ -210,114 +190,6 @@ void read_mem(char*              str,
     }
     fclose(fp);
 }
-/*------------------------------------------
-read address bus(J_AD).
-J_AD[127:64] byte enable
-J_AD[47:43]  transaction type
-J_AD[42:0]   address
-
-layout of J_AD:index<0-3>
-J_AD[127:96], J_AD[95:64], J_AD[63:32], J_AD[31:0]
--------------------------------------------*/
-void get_j_ad(int* trans, 
-                KeyType* addr,
-                unsigned int* j_ad)
-{
-    int idx, groups;
-    s_tfnodeinfo node_info;    
-    tf_nodeinfo(J_AD, &node_info);
-
-    idx = 0;
-    for(groups = (node_info.node_ngroups - 1); groups >= 0; groups--)
-        j_ad[idx++]  = node_info.node_value.vecval_p[groups].avalbits;
-    //get transaction type
-    *trans = (j_ad[2] >> 11) & 0x1f;
-    //get address
-    *addr   = j_ad[2] & 0x7ff;
-    *addr <<= 32;
-    *addr  |= (KeyType)j_ad[3];
-}
-/*------------------------------------------
-address cycle
--------------------------------------------*/
-void addr_cycle(){
-    int trans;  
-    unsigned int j_ad[4];
-    KeyType      addr;
-    get_j_ad(&trans, &addr, j_ad);
-
-    switch(trans){
-    case IDLE:
-        io_printf("REQUEST is idle\n");
-        break;
-    case RDS:
-        break;
-    case RDSA:
-        break;
-    case WRI:
-        break;
-    case WRIS:
-        break;
-    case NCRD:
-        break; 
-    case NCBRD:
-        break; 
-    case NCWR:
-        io_printf("REQUEST is NCWR\n");
-        break;
-    case NCBWR:
-        break;
-    case INT:
-        break; 
-    }
-}
-/*------------------------------------------
-address cycle
--------------------------------------------*/
-void data_cycle(){
-
-}
-/*------------------------------------------
-use acc_routine to deposit value.
--------------------------------------------*/
-void jbus_slam(int arg, char* val){ 
-    handle jbus_handle;
-    s_setval_value valuePtr;
-    s_setval_delay delayPtr;
-
-    delayPtr.model     = accNoDelay;
-    valuePtr.format    = accHexStrVal;
-    valuePtr.value.str = val;
-    jbus_handle        = acc_handle_tfarg(arg);
-    acc_set_value(jbus_handle, &valuePtr, &delayPtr);
-}
-/*------------------------------------------
-address cycle
-deposit-delay:0
-delay mode:0 for inertial
--------------------------------------------*/
-void jbus_putp(int arg, int size, char* buf){
-    tf_strdelputp(arg, size, 'H', buf, 0, 0);
-}
-/*------------------------------------------
-monitor L2 cache.
--------------------------------------------*/
-void jbus_output(int j_id, jbus_node_ptr jbus_root ){ 
-    
-    if(j_id == 4){
-        if(jbus_root->active_4)jbus_slam(J_AD_R, jbus_root->j4_ad_val);
-        else                   jbus_slam(J_AD_R, jbus_root->ad_idle);
-        jbus_putp(J_ADTYPE_R, J_ADTYPE_WIDTH, jbus_root->j4_adtype);
-        jbus_putp(J_PACK4_R,  J_PACK_WIDTH,   jbus_root->j_pack4);
-    }
-    else if(j_id == 5){
-        if(jbus_root->active_5)jbus_slam(J_AD_R, jbus_root->j5_ad_val);
-        else                   jbus_slam(J_AD_R, jbus_root->ad_idle);
-        jbus_putp(J_ADTYPE_R, J_ADTYPE_WIDTH, jbus_root->j5_adtype);
-        jbus_putp(J_PACK5_R,  J_PACK_WIDTH,   jbus_root->j_pack5);
-    }
-}
-
 /*------------------------------------------
 set random seed
 -------------------------------------------*/

@@ -1,0 +1,22 @@
+# Linux / i686 specific Makefile
+
+CCC = g++
+CXX = g++
+CC = gcc
+LD = g++
+
+LEX = /usr/bin/flex
+YACC = /usr/bin/bison
+
+OPT = -DLITTLE_ENDIAN
+CFLAGS = -DLINUX -DMACOS
+INCLUDES = -I/usr/local/include/libelf
+ADDITIONAL_ARGS = -undefined dynamic_lookup
+
+NC_MAKEFILE = Makefile.nc.lnx86
+
+NCV_CC_OPTS= -g -DLINUX -DLITTLE_ENDIAN
+NCV_LD_OPTS= -shared
+NCV_LD_LIBS= -DLINUX -L${NCV_HOME}/tools/lib/64bit -lsimvis_ext 
+
+ICARUS_CC_OPTS= -D__ICARUS__ -DUSE_VPI -DLINUX -DUSE_ACC -I$(ICARUS_HOME)/include/iverilog

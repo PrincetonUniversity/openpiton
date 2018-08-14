@@ -1,4 +1,0 @@
-//simpledram.tab
-
-// fake memory model
-$simpledram_test			call=simpledram_test_call

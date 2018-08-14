@@ -45,16 +45,10 @@ FIRST_TARGET=    $(PLILIB) clean_local
 _VERIUSER_O=
 PLI_OBJECTS=     b_ary.$(OBJ_POSTFIX) \
                  bw_lib.$(OBJ_POSTFIX) \
-                 bw_sys.$(OBJ_POSTFIX) \
                  cpx.$(OBJ_POSTFIX) \
-                 device.$(OBJ_POSTFIX) \
-                 event.$(OBJ_POSTFIX) \
                  iob.$(OBJ_POSTFIX) \
                  iob_main.$(OBJ_POSTFIX) \
-                 l1warm.$(OBJ_POSTFIX) \
-                 l2warm.$(OBJ_POSTFIX) \
-                 pcx.$(OBJ_POSTFIX) \
-                 slam.$(OBJ_POSTFIX)
+                 pcx.$(OBJ_POSTFIX)
 
 ARCH_DYNAMIC_LD= -G -Bdynamic 
 TEMPLATE_O=	./Templates.DB/*.o 

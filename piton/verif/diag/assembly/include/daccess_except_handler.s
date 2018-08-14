@@ -32,7 +32,7 @@ daccess_except_handler:
 dacc_ex_ps0:
 	ldxa	[%g0] 0x59, %g1		! dmmu ps0 ptr
 	ldda	[%g1] 0x24, %g4		! load tte from ps0 tsb
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, dacc_ex_ptr_chase
 	mov	0, %g7			! remember ptr chase from ps0
 	srlx	%g5, 63, %g3		! if not valid, check ps1
@@ -64,7 +64,7 @@ dacc_ex_ps0:
 dacc_ex_ps1:
 	ldxa	[%g0] 0x5a, %g1		! dmmu ps1 ptr
 	ldda	[%g1] 0x24, %g4		! load tte from ps1 tsb
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, dacc_ex_ptr_chase
 	mov	1, %g7			! remember ptr chase from ps1
 	srlx	%g5, 63, %g3		! if not valid, bad_trap

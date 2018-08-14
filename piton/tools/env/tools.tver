@@ -20,7 +20,8 @@ perf		/	1.13
 procvlog	/	1.99
 regreport	/	1.73
 showargv	/	1.01
-sims		/	1.262
+sims		/	2.0
+simspy		/	0.1
 contint     /   1.0
 protosyn    /   2.5
 protocheck  /   1.0

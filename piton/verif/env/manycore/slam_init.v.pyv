@@ -552,8 +552,7 @@ end
 // BIST will be used to reset icache/dcache in real chip
 
 always @(posedge `SPARC_CORE0.cmp_grst_l) begin
-    if (!$test$plusargs("no_bisi_init") &&
-            !$test$plusargs("l1warm")) begin
+    if (!$test$plusargs("no_bisi_init")) begin
 
 <%
     t = r'''
@@ -679,8 +678,6 @@ end // always @ (posedge cmp_top.iop.J_RST_L)
 
 `ifdef GATE_SIM
 `else
-//l2warm l2warm();
-//l1warm l1warm();
 reg [`MAX_TILE:0]   status;
 reg [7:0]   cmd, thrid, idx;
 reg [63:0]  tlb_tag, tlb_data;
@@ -716,383 +713,375 @@ initial begin
         repeat(800) @(posedge `TOP_MOD.clk);//waiting for tlb reset operation
 `ifdef FPGA_SYN_TLB
 //asdf; // tri: can't extend to 64 cores
-        $slam_cache(3,
-                    tlb_slam,
-                    status,
-		     `ifdef RTL_SPARC0 //10
-`ifndef RTL_SPU
-                    `PCXPATH0.ifu.ifu.itlb.bw_r_tlb_tag_ram.tte_tag_ram,
-                    `PCXPATH0.ifu.ifu.itlb.bw_r_tlb_data_ram.tte_data_ram,
-                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_vld,  
-`else
-                    `PCXPATH0.ifu.itlb.bw_r_tlb_tag_ram.tte_tag_ram,
-                    `PCXPATH0.ifu.itlb.bw_r_tlb_data_ram.tte_data_ram,
-                    `PCXPATH0.ifu.itlb.tlb_entry_used,
-                    `PCXPATH0.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH0.ifu.itlb.tlb_entry_vld,
-`endif                    
-
-                    `PCXPATH0.lsu.dtlb.bw_r_tlb_tag_ram.tte_tag_ram,
-                    `PCXPATH0.lsu.dtlb.bw_r_tlb_data_ram.tte_data_ram,
-                    `PCXPATH0.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH0.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH0.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC1
-`ifndef RTL_SPU
-                    `PCXPATH1.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH1.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH1.ifu.itlb.tte_tag_ram,
-                    `PCXPATH1.ifu.itlb.tte_data_ram,
-                    `PCXPATH1.ifu.itlb.tlb_entry_used,
-                    `PCXPATH1.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH1.ifu.itlb.tlb_entry_vld,
-`endif                    
-
-                    `PCXPATH1.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH1.lsu.dtlb.tte_data_ram,
-                    `PCXPATH1.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH1.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH1.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC2
-`ifndef RTL_SPU
-                    `PCXPATH2.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH2.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH2.ifu.itlb.tte_tag_ram,
-                    `PCXPATH2.ifu.itlb.tte_data_ram,
-                    `PCXPATH2.ifu.itlb.tlb_entry_used,
-                    `PCXPATH2.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH2.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH2.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH2.lsu.dtlb.tte_data_ram,
-                    `PCXPATH2.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH2.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH2.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC3
-`ifndef RTL_SPU
-                    `PCXPATH3.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH3.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH3.ifu.itlb.tte_tag_ram,
-                    `PCXPATH3.ifu.itlb.tte_data_ram,
-                    `PCXPATH3.ifu.itlb.tlb_entry_used,
-                    `PCXPATH3.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH3.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH3.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH3.lsu.dtlb.tte_data_ram,
-                    `PCXPATH3.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH3.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH3.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC4
-`ifndef RTL_SPU
-                    `PCXPATH4.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH4.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH4.ifu.itlb.tte_tag_ram,
-                    `PCXPATH4.ifu.itlb.tte_data_ram,
-                    `PCXPATH4.ifu.itlb.tlb_entry_used,
-                    `PCXPATH4.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH4.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH4.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH4.lsu.dtlb.tte_data_ram,
-                    `PCXPATH4.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH4.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH4.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC5
-`ifndef RTL_SPU
-                    `PCXPATH5.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH5.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH5.ifu.itlb.tte_tag_ram,
-                    `PCXPATH5.ifu.itlb.tte_data_ram,
-                    `PCXPATH5.ifu.itlb.tlb_entry_used,
-                    `PCXPATH5.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH5.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH5.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH5.lsu.dtlb.tte_data_ram,
-                    `PCXPATH5.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH5.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH5.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC6
-`ifndef RTL_SPU
-                    `PCXPATH6.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH6.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH6.ifu.itlb.tte_tag_ram,
-                    `PCXPATH6.ifu.itlb.tte_data_ram,
-                    `PCXPATH6.ifu.itlb.tlb_entry_used,
-                    `PCXPATH6.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH6.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH6.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH6.lsu.dtlb.tte_data_ram,
-                    `PCXPATH6.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH6.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH6.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC7
-`ifndef RTL_SPU
-                    `PCXPATH7.ifu.ifu.itlb.tte_tag_ram,
-                    `PCXPATH7.ifu.ifu.itlb.tte_data_ram,
-                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_used,
-                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_vld,
-`else
-                    `PCXPATH7.ifu.itlb.tte_tag_ram,
-                    `PCXPATH7.ifu.itlb.tte_data_ram,
-                    `PCXPATH7.ifu.itlb.tlb_entry_used,
-                    `PCXPATH7.ifu.itlb.tlb_entry_locked,
-                    `PCXPATH7.ifu.itlb.tlb_entry_vld,
-`endif
-
-                    `PCXPATH7.lsu.dtlb.tte_tag_ram,
-                    `PCXPATH7.lsu.dtlb.tte_data_ram,
-                    `PCXPATH7.lsu.dtlb.tlb_entry_used,
-                    `PCXPATH7.lsu.dtlb.tlb_entry_locked,
-                    `PCXPATH7.lsu.dtlb.tlb_entry_vld,
-		     `endif
-                   );
+// jbalkind: These slam_cache calls weren't doing anything.
+// jbalkind: slam_cache only accepted 1 or 2 as the first argument.
+//        $slam_cache(3,
+//                    tlb_slam,
+//                    status,
+//		     `ifdef RTL_SPARC0 //10
+//`ifndef RTL_SPU
+//                    `PCXPATH0.ifu.ifu.itlb.bw_r_tlb_tag_ram.tte_tag_ram,
+//                    `PCXPATH0.ifu.ifu.itlb.bw_r_tlb_data_ram.tte_data_ram,
+//                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH0.ifu.ifu.itlb.tlb_entry_vld,  
+//`else
+//                    `PCXPATH0.ifu.itlb.bw_r_tlb_tag_ram.tte_tag_ram,
+//                    `PCXPATH0.ifu.itlb.bw_r_tlb_data_ram.tte_data_ram,
+//                    `PCXPATH0.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH0.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH0.ifu.itlb.tlb_entry_vld,
+//`endif                    
+//
+//                    `PCXPATH0.lsu.dtlb.bw_r_tlb_tag_ram.tte_tag_ram,
+//                    `PCXPATH0.lsu.dtlb.bw_r_tlb_data_ram.tte_data_ram,
+//                    `PCXPATH0.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH0.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH0.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC1
+//`ifndef RTL_SPU
+//                    `PCXPATH1.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH1.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH1.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH1.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH1.ifu.itlb.tte_data_ram,
+//                    `PCXPATH1.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH1.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH1.ifu.itlb.tlb_entry_vld,
+//`endif                    
+//
+//                    `PCXPATH1.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH1.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH1.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH1.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH1.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC2
+//`ifndef RTL_SPU
+//                    `PCXPATH2.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH2.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH2.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH2.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH2.ifu.itlb.tte_data_ram,
+//                    `PCXPATH2.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH2.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH2.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH2.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH2.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH2.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH2.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH2.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC3
+//`ifndef RTL_SPU
+//                    `PCXPATH3.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH3.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH3.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH3.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH3.ifu.itlb.tte_data_ram,
+//                    `PCXPATH3.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH3.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH3.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH3.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH3.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH3.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH3.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH3.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC4
+//`ifndef RTL_SPU
+//                    `PCXPATH4.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH4.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH4.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH4.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH4.ifu.itlb.tte_data_ram,
+//                    `PCXPATH4.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH4.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH4.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH4.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH4.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH4.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH4.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH4.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC5
+//`ifndef RTL_SPU
+//                    `PCXPATH5.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH5.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH5.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH5.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH5.ifu.itlb.tte_data_ram,
+//                    `PCXPATH5.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH5.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH5.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH5.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH5.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH5.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH5.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH5.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC6
+//`ifndef RTL_SPU
+//                    `PCXPATH6.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH6.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH6.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH6.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH6.ifu.itlb.tte_data_ram,
+//                    `PCXPATH6.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH6.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH6.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH6.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH6.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH6.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH6.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH6.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC7
+//`ifndef RTL_SPU
+//                    `PCXPATH7.ifu.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH7.ifu.ifu.itlb.tte_data_ram,
+//                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH7.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//                    `PCXPATH7.ifu.itlb.tte_tag_ram,
+//                    `PCXPATH7.ifu.itlb.tte_data_ram,
+//                    `PCXPATH7.ifu.itlb.tlb_entry_used,
+//                    `PCXPATH7.ifu.itlb.tlb_entry_locked,
+//                    `PCXPATH7.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//                    `PCXPATH7.lsu.dtlb.tte_tag_ram,
+//                    `PCXPATH7.lsu.dtlb.tte_data_ram,
+//                    `PCXPATH7.lsu.dtlb.tlb_entry_used,
+//                    `PCXPATH7.lsu.dtlb.tlb_entry_locked,
+//                    `PCXPATH7.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//                   );
 
 `else
 `ifdef NOT_USED // tri: can't extend to 64 cores
-$slam_cache(3,
-            tlb_slam,
-            status,
-		     `ifdef RTL_SPARC0 //10
-`ifndef RTL_SPU
-            `PCXPATH0.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH0.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH0.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH0.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH0.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH0.ifu.itlb.tte_tag_ram,
-            `PCXPATH0.ifu.itlb.tte_data_ram,
-            `PCXPATH0.ifu.itlb.tlb_entry_used,
-            `PCXPATH0.ifu.itlb.tlb_entry_locked,
-            `PCXPATH0.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH0.lsu.dtlb.tte_tag_ram,
-            `PCXPATH0.lsu.dtlb.tte_data_ram,
-            `PCXPATH0.lsu.dtlb.tlb_entry_used,
-            `PCXPATH0.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH0.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC1
-`ifndef RTL_SPU
-            `PCXPATH1.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH1.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH1.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH1.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH1.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH1.ifu.itlb.tte_tag_ram,
-            `PCXPATH1.ifu.itlb.tte_data_ram,
-            `PCXPATH1.ifu.itlb.tlb_entry_used,
-            `PCXPATH1.ifu.itlb.tlb_entry_locked,
-            `PCXPATH1.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH1.lsu.dtlb.tte_tag_ram,
-            `PCXPATH1.lsu.dtlb.tte_data_ram,
-            `PCXPATH1.lsu.dtlb.tlb_entry_used,
-            `PCXPATH1.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH1.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC2
-`ifndef RTL_SPU
-            `PCXPATH2.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH2.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH2.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH2.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH2.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH2.ifu.itlb.tte_tag_ram,
-            `PCXPATH2.ifu.itlb.tte_data_ram,
-            `PCXPATH2.ifu.itlb.tlb_entry_used,
-            `PCXPATH2.ifu.itlb.tlb_entry_locked,
-            `PCXPATH2.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH2.lsu.dtlb.tte_tag_ram,
-            `PCXPATH2.lsu.dtlb.tte_data_ram,
-            `PCXPATH2.lsu.dtlb.tlb_entry_used,
-            `PCXPATH2.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH2.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC3
-`ifndef RTL_SPU
-            `PCXPATH3.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH3.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH3.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH3.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH3.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH3.ifu.itlb.tte_tag_ram,
-            `PCXPATH3.ifu.itlb.tte_data_ram,
-            `PCXPATH3.ifu.itlb.tlb_entry_used,
-            `PCXPATH3.ifu.itlb.tlb_entry_locked,
-            `PCXPATH3.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH3.lsu.dtlb.tte_tag_ram,
-            `PCXPATH3.lsu.dtlb.tte_data_ram,
-            `PCXPATH3.lsu.dtlb.tlb_entry_used,
-            `PCXPATH3.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH3.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC4
-`ifndef RTL_SPU
-            `PCXPATH4.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH4.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH4.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH4.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH4.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH4.ifu.itlb.tte_tag_ram,
-            `PCXPATH4.ifu.itlb.tte_data_ram,
-            `PCXPATH4.ifu.itlb.tlb_entry_used,
-            `PCXPATH4.ifu.itlb.tlb_entry_locked,
-            `PCXPATH4.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH4.lsu.dtlb.tte_tag_ram,
-            `PCXPATH4.lsu.dtlb.tte_data_ram,
-            `PCXPATH4.lsu.dtlb.tlb_entry_used,
-            `PCXPATH4.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH4.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC5
-`ifndef RTL_SPU
-            `PCXPATH5.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH5.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH5.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH5.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH5.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH5.ifu.itlb.tte_tag_ram,
-            `PCXPATH5.ifu.itlb.tte_data_ram,
-            `PCXPATH5.ifu.itlb.tlb_entry_used,
-            `PCXPATH5.ifu.itlb.tlb_entry_locked,
-            `PCXPATH5.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH5.lsu.dtlb.tte_tag_ram,
-            `PCXPATH5.lsu.dtlb.tte_data_ram,
-            `PCXPATH5.lsu.dtlb.tlb_entry_used,
-            `PCXPATH5.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH5.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC6
-`ifndef RTL_SPU
-            `PCXPATH6.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH6.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH6.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH6.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH6.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH6.ifu.itlb.tte_tag_ram,
-            `PCXPATH6.ifu.itlb.tte_data_ram,
-            `PCXPATH6.ifu.itlb.tlb_entry_used,
-            `PCXPATH6.ifu.itlb.tlb_entry_locked,
-            `PCXPATH6.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH6.lsu.dtlb.tte_tag_ram,
-            `PCXPATH6.lsu.dtlb.tte_data_ram,
-            `PCXPATH6.lsu.dtlb.tlb_entry_used,
-            `PCXPATH6.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH6.lsu.dtlb.tlb_entry_vld,
-		     `endif
-
-		     `ifdef RTL_SPARC7
-`ifndef RTL_SPU
-            `PCXPATH7.ifu.ifu.itlb.tte_tag_ram,
-            `PCXPATH7.ifu.ifu.itlb.tte_data_ram,
-            `PCXPATH7.ifu.ifu.itlb.tlb_entry_used,
-            `PCXPATH7.ifu.ifu.itlb.tlb_entry_locked,
-            `PCXPATH7.ifu.ifu.itlb.tlb_entry_vld,
-`else
-            `PCXPATH7.ifu.itlb.tte_tag_ram,
-            `PCXPATH7.ifu.itlb.tte_data_ram,
-            `PCXPATH7.ifu.itlb.tlb_entry_used,
-            `PCXPATH7.ifu.itlb.tlb_entry_locked,
-            `PCXPATH7.ifu.itlb.tlb_entry_vld,
-`endif
-
-            `PCXPATH7.lsu.dtlb.tte_tag_ram,
-            `PCXPATH7.lsu.dtlb.tte_data_ram,
-            `PCXPATH7.lsu.dtlb.tlb_entry_used,
-            `PCXPATH7.lsu.dtlb.tlb_entry_locked,
-            `PCXPATH7.lsu.dtlb.tlb_entry_vld,
-		     `endif
-           );
+// jbalkind: These slam_cache calls weren't doing anything.
+// jbalkind: slam_cache only accepted 1 or 2 as the first argument.
+//$slam_cache(3,
+//            tlb_slam,
+//            status,
+//		     `ifdef RTL_SPARC0 //10
+//`ifndef RTL_SPU
+//            `PCXPATH0.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH0.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH0.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH0.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH0.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH0.ifu.itlb.tte_tag_ram,
+//            `PCXPATH0.ifu.itlb.tte_data_ram,
+//            `PCXPATH0.ifu.itlb.tlb_entry_used,
+//            `PCXPATH0.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH0.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH0.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH0.lsu.dtlb.tte_data_ram,
+//            `PCXPATH0.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH0.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH0.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC1
+//`ifndef RTL_SPU
+//            `PCXPATH1.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH1.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH1.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH1.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH1.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH1.ifu.itlb.tte_tag_ram,
+//            `PCXPATH1.ifu.itlb.tte_data_ram,
+//            `PCXPATH1.ifu.itlb.tlb_entry_used,
+//            `PCXPATH1.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH1.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH1.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH1.lsu.dtlb.tte_data_ram,
+//            `PCXPATH1.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH1.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH1.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC2
+//`ifndef RTL_SPU
+//            `PCXPATH2.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH2.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH2.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH2.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH2.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH2.ifu.itlb.tte_tag_ram,
+//            `PCXPATH2.ifu.itlb.tte_data_ram,
+//            `PCXPATH2.ifu.itlb.tlb_entry_used,
+//            `PCXPATH2.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH2.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH2.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH2.lsu.dtlb.tte_data_ram,
+//            `PCXPATH2.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH2.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH2.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC3
+//`ifndef RTL_SPU
+//            `PCXPATH3.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH3.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH3.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH3.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH3.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH3.ifu.itlb.tte_tag_ram,
+//            `PCXPATH3.ifu.itlb.tte_data_ram,
+//            `PCXPATH3.ifu.itlb.tlb_entry_used,
+//            `PCXPATH3.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH3.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH3.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH3.lsu.dtlb.tte_data_ram,
+//            `PCXPATH3.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH3.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH3.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC4
+//`ifndef RTL_SPU
+//            `PCXPATH4.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH4.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH4.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH4.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH4.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH4.ifu.itlb.tte_tag_ram,
+//            `PCXPATH4.ifu.itlb.tte_data_ram,
+//            `PCXPATH4.ifu.itlb.tlb_entry_used,
+//            `PCXPATH4.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH4.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH4.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH4.lsu.dtlb.tte_data_ram,
+//            `PCXPATH4.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH4.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH4.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC5
+//`ifndef RTL_SPU
+//            `PCXPATH5.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH5.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH5.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH5.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH5.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH5.ifu.itlb.tte_tag_ram,
+//            `PCXPATH5.ifu.itlb.tte_data_ram,
+//            `PCXPATH5.ifu.itlb.tlb_entry_used,
+//            `PCXPATH5.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH5.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH5.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH5.lsu.dtlb.tte_data_ram,
+//            `PCXPATH5.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH5.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH5.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC6
+//`ifndef RTL_SPU
+//            `PCXPATH6.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH6.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH6.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH6.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH6.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH6.ifu.itlb.tte_tag_ram,
+//            `PCXPATH6.ifu.itlb.tte_data_ram,
+//            `PCXPATH6.ifu.itlb.tlb_entry_used,
+//            `PCXPATH6.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH6.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH6.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH6.lsu.dtlb.tte_data_ram,
+//            `PCXPATH6.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH6.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH6.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//
+//		     `ifdef RTL_SPARC7
+//`ifndef RTL_SPU
+//            `PCXPATH7.ifu.ifu.itlb.tte_tag_ram,
+//            `PCXPATH7.ifu.ifu.itlb.tte_data_ram,
+//            `PCXPATH7.ifu.ifu.itlb.tlb_entry_used,
+//            `PCXPATH7.ifu.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH7.ifu.ifu.itlb.tlb_entry_vld,
+//`else
+//            `PCXPATH7.ifu.itlb.tte_tag_ram,
+//            `PCXPATH7.ifu.itlb.tte_data_ram,
+//            `PCXPATH7.ifu.itlb.tlb_entry_used,
+//            `PCXPATH7.ifu.itlb.tlb_entry_locked,
+//            `PCXPATH7.ifu.itlb.tlb_entry_vld,
+//`endif
+//
+//            `PCXPATH7.lsu.dtlb.tte_tag_ram,
+//            `PCXPATH7.lsu.dtlb.tte_data_ram,
+//            `PCXPATH7.lsu.dtlb.tlb_entry_used,
+//            `PCXPATH7.lsu.dtlb.tlb_entry_locked,
+//            `PCXPATH7.lsu.dtlb.tlb_entry_vld,
+//		     `endif
+//           );
 `endif // NOT_USED
 `endif
         cmd = 1;
         //slam sas site
-        if($test$plusargs("use_sas_tasks"))begin
-            while(cmd)begin
-                $slam_cache(4, cmd, thrid, idx, tlb_tag, tlb_data);
-                if(cmd)begin
-                    dummy = $bw_sas_send(cmd, thrid, idx,
-                                         tlb_tag[63:56], tlb_tag[55:48], tlb_tag[47:40], tlb_tag[39:32],
-                                         tlb_tag[31:24], tlb_tag[23:16], tlb_tag[15:8],  tlb_tag[7:0],
-                                         tlb_data[63:56], tlb_data[55:48], tlb_data[47:40], tlb_data[39:32],
-                                         tlb_data[31:24], tlb_data[23:16], tlb_data[15:8], tlb_data[7:0]);
-                end
-            end
-        end // if ($test$plusargs("use_sas_tasks"))
         /* for(ind = 0; ind < 64;ind = ind + 1)begin
         $display("TAG = %x DATA = %x used = %x valid = %x",
 `ifndef RTL_SPU
@@ -1110,91 +1099,6 @@ $slam_cache(3,
 end // initial begin
 `endif
 `endif
-
-// BISI will be used to reset l2 cache in real chip
-
-always @(posedge `SPARC_CORE0.cmp_grst_l) begin
-    if (!$test$plusargs("no_bisi_init") &&
-            !$test$plusargs("l2warm")) begin
-        for(j=0; j < 32; j=j+1) begin
-        `ifdef RTL_SCTAG0
-            `SCPATH0.subarray_0.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_1.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_2.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_3.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_4.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_5.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_6.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_7.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_8.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_9.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_10.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_11.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_12.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_13.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_14.inq_ary[j] = 108'b0 ;
-            `SCPATH0.subarray_15.inq_ary[j] = 108'b0 ;
-        `endif
-
-        `ifdef RTL_SCTAG1
-            `SCPATH1.subarray_0.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_1.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_2.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_3.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_4.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_5.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_6.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_7.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_8.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_9.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_10.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_11.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_12.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_13.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_14.inq_ary[j] = 108'b0 ;
-            `SCPATH1.subarray_15.inq_ary[j] = 108'b0 ;
-        `endif
-
-        `ifdef RTL_SCTAG2
-            `SCPATH2.subarray_0.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_1.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_2.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_3.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_4.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_5.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_6.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_7.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_8.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_9.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_10.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_11.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_12.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_13.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_14.inq_ary[j] = 108'b0 ;
-            `SCPATH2.subarray_15.inq_ary[j] = 108'b0 ;
-        `endif
-
-        `ifdef RTL_SCTAG3
-            `SCPATH3.subarray_0.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_1.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_2.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_3.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_4.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_5.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_6.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_7.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_8.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_9.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_10.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_11.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_12.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_13.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_14.inq_ary[j] = 108'b0 ;
-            `SCPATH3.subarray_15.inq_ary[j] = 108'b0 ;
-        `endif
-        end
-    end
-end
 
 // integer ind;
 

@@ -19,16 +19,4 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 // 
 // ========== Copyright Header End ============================================
-$config_mem  call=config_mem_call size=32
-$read_mem    call=read_mem_call
-$write_mem   call=write_mem_call
-$in_order call=in_order_call
-$init_dram call=init_dram_call
-$v_dump call=v_dump_call
-$v_force call=v_force_call
-$v_delay call=v_set_delay_call
-$slam_mem call=slam_mem_call
 $slam_random call=slam_random_call
-$create_event_handle call=create_event_handle_call size=32
-$mon_event call=mon_event_call
-$read_dram call=read_dram_call size=64

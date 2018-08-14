@@ -167,8 +167,9 @@ module sparc_ifu_wseldp (/*AUTOARG*/
               (waysel_buf_s1 == 4'b0000)))
           begin
              // 0in <fire -message "FATAL ERROR: icache waysel not mutex"
-             //$error("IC_WAYSEL", "FATAL ERROR: icache waysel not mutex %b",
+             //$display("IC_WAYSEL", "FATAL ERROR: icache waysel not mutex %b",
              //       waysel_buf_s1);
+             //$finish();
           end
      end // always @ (negedge clk)
 `endif

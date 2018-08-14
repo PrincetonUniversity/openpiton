@@ -92,15 +92,15 @@ asi_0x40_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="a
 asi_0x41_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x41_dataacc_hyper"
 asi_0x42_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x42_dataacc_hyper"
 asi_0x43_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x43_dataacc_hyper"
-asi_0x44_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x44_dataacc_hyper" -nosas
+asi_0x44_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x44_dataacc_hyper"
 asi_0x45_seltrap_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x45_seltrap_hyper"
-asi_0x46_dataacc_hyper 	ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x46_dataacc_hyper" -midas_args=-DCREGS_LSU_CTL_REG_DC=0 -nosas
-asi_0x47_dataacc_hyper 	ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x47_dataacc_hyper" -midas_args=-DCREGS_LSU_CTL_REG_DC=0 -nosas -sim_run_args=+l1_chkoff
+asi_0x46_dataacc_hyper 	ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x46_dataacc_hyper" -midas_args=-DCREGS_LSU_CTL_REG_DC=0
+asi_0x47_dataacc_hyper 	ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x47_dataacc_hyper" -midas_args=-DCREGS_LSU_CTL_REG_DC=0 -sim_run_args=+l1_chkoff
 asi_0x48_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x48_dataacc_hyper"
 asi_0x49_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x49_dataacc_hyper"
 asi_0x4a_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4a_dataacc_hyper"
-asi_0x4c_seltrap_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4c_seltrap_hyper" -nosas
-asi_0x4d_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4d_dataacc_hyper" -nosas
+asi_0x4c_seltrap_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4c_seltrap_hyper"
+asi_0x4d_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4d_dataacc_hyper"
 asi_0x4e_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4e_dataacc_hyper"
 asi_0x4f_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4f_dataacc_hyper"
 asi_0x50_dataacc_hyper 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x50_dataacc_hyper"
@@ -599,13 +599,13 @@ asi_0x3e_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-
 asi_0x41_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x41_enboff_dataacc_super"
 asi_0x42_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x42_enboff_dataacc_super"
 asi_0x43_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x43_enboff_dataacc_super"
-asi_0x44_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x44_enboff_dataacc_super" -nosas
+asi_0x44_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x44_enboff_dataacc_super"
 asi_0x45_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x45_enboff_dataacc_super"
 asi_0x48_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x48_enboff_dataacc_super"
 asi_0x49_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x49_enboff_dataacc_super"
 asi_0x4a_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4a_enboff_dataacc_super"
-asi_0x4c_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4c_enboff_dataacc_super" -nosas
-asi_0x4d_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4d_enboff_dataacc_super" -nosas
+asi_0x4c_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4c_enboff_dataacc_super"
+asi_0x4d_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4d_enboff_dataacc_super"
 asi_0x4e_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4e_enboff_dataacc_super"
 asi_0x4f_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x4f_enboff_dataacc_super"
 asi_0x50_enboff_dataacc_super 					ldf_alldest.pal  -midas_args=-pal_diag_args=-name="asi_0x50_enboff_dataacc_super"

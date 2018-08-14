@@ -68,7 +68,7 @@ def runTest(log_file, conf, test_num):
 	os.chdir('vcs_assembly_work')
 	# comp_cmd = "sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -vcs_cm_name=test_%d -build_id=lavrov_test"
 	gui = ' -gui ' if GUI else ''
-	run_cmd = "sims -sys=manycore -vcs_run -rtl_timeout=50000 -nouse_oolm -dmbr -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -sim_run_args=+vcs+lic+wait -vcs_cm_name=test_%d -build_id=lavrov_test dmbr_stream_hyper_gen.s%s> test_%d.log" % (test_num, gui, test_num)
+	run_cmd = "sims -sys=manycore -vcs_run -rtl_timeout=50000 -dmbr -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -sim_run_args=+vcs+lic+wait -vcs_cm_name=test_%d -build_id=lavrov_test dmbr_stream_hyper_gen.s%s> test_%d.log" % (test_num, gui, test_num)
 	# os.system(comp_cmd)
 	os.system(run_cmd)
 	sim_log_file = open("sims.log", "r")

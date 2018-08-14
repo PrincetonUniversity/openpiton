@@ -2457,7 +2457,7 @@ T0_PThreadMutexUnLock_0x114:
 .align 64
 T0_Trap_Sync_0x116:
         setx    pthread_counter_data, %g1, %g4
-!!      we will change the GL not other's
+!!      we will change the GL not others
         wrpr    1, %gl
         rdpr    %tstate, %g3    ! get TSTATE
         mov     1,%g1
@@ -2477,7 +2477,7 @@ T0_Trap_SysCall_0x118:
 	rdth_id_p		! get thread ID
 	sllx	%o1, 6, %o1
 	setx	pthread_syscall_data, %g2, %g4
-	add	%g4, %o1, %g4	! %g4 = ptr to thread's data
+	add	%g4, %o1, %g4	! %g4 = ptr to threads data
 	ba	syscall_handler
 	mov	%g1, %o1	! restore %o1
 	
@@ -2488,7 +2488,7 @@ T0_Trap_SysRet_0x11a:
 	rdth_id_p		! get thread ID
 	sllx	%o1, 6, %o1
 	setx	pthread_syscall_data, %g2, %g4
-	add	%g4, %o1, %g4	! %g4 = ptr to thread's data
+	add	%g4, %o1, %g4	! %g4 = ptr to threads data
 	ba	sysret_handler
 	mov	%g1, %o1	! restore %o1
 

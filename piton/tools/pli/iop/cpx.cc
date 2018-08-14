@@ -122,8 +122,7 @@ void cpx::xlation(pcx* pkt, char* data)
     break;
   case LOAD_RQ  :
     rqtype =  LOAD_RET; 
-    if((*pkt).aval)core_avail((*pkt).available);
-    else  get_data(data);
+    get_data(data);
     way    = 0;
     bf_id  = 0;
     atom   = 0;
@@ -193,44 +192,6 @@ void cpx::xlation(pcx* pkt)
   //interrupt vector.
   rqtype      = INT_RET;
   cpx_pkt[4]  = (*pkt).pkt[3];
-  //delay
-  req_wait = random() & 3;
-  cpx_wait = req_wait + 1;
-}
-/*------------------------------------------
-  translate pcx to cpx packet.
---------------------------------------------*/
-void cpx::jxlation(pcx* pkt, int* data)
-{    
-  clean();//clean cpx packet
-  req      = 1 << (*pkt).cpu_id;
-  req_sent = 1;
-  atom     = 0;
-  thrid   = (*pkt).thrid;
-  nc      = (*pkt).nc;
-  way     = (*pkt).way;
-  cpu_id  = (*pkt).cpu_id;
-  true_id = (*pkt).true_id;
-  way_vld = (*pkt).way_vld;
-  bf_id   = (*pkt).bf_id;
-  pa_10_6 = (*pkt).pa_10_6;
-  size    = (*pkt).size;
-  addr    = (*pkt).addr;
-
-  //put data on cpx data field.
-  rqtype =  LOAD_RET; 
-  way    = 0;
-  bf_id  = 0;
-  atom   = 0;
-  idx    = 1;
-  for(int i = 7; i > 4; i -= 2){
-    pdata   = data[i-1];
-    pdata <<= 16;
-    pdata  |= data[i];
-    cpx_pkt[idx+1] = pdata;
-    cpx_pkt[idx+3] = pdata;
-    idx--;
-  }
   //delay
   req_wait = random() & 3;
   cpx_wait = req_wait + 1;

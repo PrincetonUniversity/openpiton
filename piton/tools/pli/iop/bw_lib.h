@@ -74,23 +74,6 @@
 
 //general
 #define BUFFER 1024
-//define jbus data structure
-typedef struct jbus_node{
-  //This memory is common for all devices.
-  b_tree_node_ptr mem;//b_try for memory
-  //J_AD for 4-5 128bit
-  char j4_ad_val[33],    
-       j5_ad_val[33];
-  //J_ADTYPE 4-5
-  char j4_adtype[3],  
-       j5_adtype[3];
-  //j_pack
-  char j_pack4[2],  
-       j_pack5[2];
-  char  ad_idle[33];
-  int   active_4, active_5;
-  
-} *jbus_node_ptr;
 
 #ifdef  __cplusplus
 extern "C" {
@@ -101,12 +84,7 @@ extern "C" {
   void    a2h(char* buf,int idx,  char* cbuf, int* cidx);
   int     align_buf(char* cbuf, int cidx);
   KeyType mask_addr (KeyType addr);
-  void    read_mem(char* str, b_tree_node_ptr* root, List<addr_record>* addr_list);
-  void    get_j_ad(int* trans, KeyType* addr, unsigned int* j_ad);
-  void    addr_cycle();
-  void    data_cycle();
-  void    jbus_slam(int arg, char* val);
-  void    jbus_output(int j_id, jbus_node_ptr jbus_root );
+  void    read_mem(char* str, b_tree_node_ptr* root);
   void    set_random();
 #ifdef  __cplusplus
 }

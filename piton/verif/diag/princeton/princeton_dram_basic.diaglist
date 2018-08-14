@@ -20,7 +20,7 @@
 // 
 // ========== Copyright Header End ============================================
 <princeton_dram_basic>
-<runargs -nosas -max_cycle=92000000 -vera_cov_obj=dram_coverage  -rtl_timeout=44850000>
+<runargs -max_cycle=92000000 -rtl_timeout=44850000>
 
 //FAIL(HIT BAD TRAP)
 //dram_reg_ack_nack              dram_reg_ack_nack.s 

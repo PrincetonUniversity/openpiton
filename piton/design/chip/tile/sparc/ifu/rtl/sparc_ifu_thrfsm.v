@@ -187,15 +187,8 @@ module sparc_ifu_thrfsm(/*AUTOARG*/
 		     // 0in <fire -message "thrfsm.v: Error! Invalid State"
 `ifdef DEFINE_0IN
 `else           
-		`ifdef MODELSIM
 	             $display("ILLEGAL_THR_STATE", "thrfsm.v: Error! Invalid State %b\n", thr_state);
-		`else
-        `ifdef __ICARUS__
-	             $display("ILLEGAL_THR_STATE", "thrfsm.v: Error! Invalid State %b\n", thr_state);
-        `else
-	             $error("ILLEGAL_THR_STATE", "thrfsm.v: Error! Invalid State %b\n", thr_state);
-		`endif		 
-        `endif
+                 $finish();
 `endif		     
                // synopsys translate_on
 	             if (rst_thread)

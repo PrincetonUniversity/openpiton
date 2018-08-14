@@ -66,7 +66,6 @@ module monitor(/*AUTOARG*/
    reg [1023:0] err;
    reg 		err_f;
    reg 		bad;
-   reg 		sas_def;
    reg          dum;
 
    initial
@@ -77,8 +76,6 @@ module monitor(/*AUTOARG*/
 	bad    = 0;
 	max_cycle = 30000;
 	cycle  = 0;
-	if($test$plusargs("use_sas_tasks"))sas_def = 1;
-      	else sas_def = 0;
 	if($value$plusargs("wait_cycle_to_kill=%d", number))$display("wait cycles = %d", number);
 	if($value$plusargs("max_cycle=%d", max_cycle))$display("max cycles = %d", max_cycle);
      end // initial begin
@@ -86,8 +83,6 @@ module monitor(/*AUTOARG*/
      if(`TOP_MOD.diag_done == 0)cycle = cycle + 1;
       if(cycle == max_cycle)begin
 	 $display("%0d : Simulation -> (terminated by reaching max cycles = %0d)", $time, max_cycle);
-	 //$sas_client("quit");
-	 // if(sas_def)dum = $bw_sas_send(`PLI_QUIT);
 	 $finish;
       end
    end
@@ -98,8 +93,6 @@ module monitor(/*AUTOARG*/
       begin
 	 if(bad)begin
 	    $display("%0d : Simulation -> FAIL(%0s)", $time, comment);
-	    // if(sas_def)dum = $bw_sas_send(`PLI_QUIT);
-	    //$sas_client("quit");
 	    $finish;
 	 end
 	 if(err_f)begin
@@ -115,8 +108,6 @@ module monitor(/*AUTOARG*/
 	 num = num+1;
 	 if(num == number)begin
 	    $display("%0d : Simulation -> FAIL(%0s)", f_time, err);
-	    // if(sas_def)dum = $bw_sas_send(`PLI_QUIT);
-	    //$sas_client("quit");
 	    $finish;
 	 end
       end // if (`TOP_MOD.fail_flag)
@@ -1307,9 +1298,6 @@ module monitor(/*AUTOARG*/
 
 
 	// dump_cache dump_cache();
-	// trig_event    trig_event(/* AUTOINST*/
-	// 		// Inputs
-	// 		.clk	(clk));
 
 	// Don't include this section if compiling for DRAM SAT Environment
 	`ifdef DRAM_SAT

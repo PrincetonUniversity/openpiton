@@ -21,7 +21,7 @@
 * 
 * ========== Copyright Header End ============================================
 */
-	! caches are enable, mmu's on.
+	! caches are enable, mmus on.
 	wrpr  1, %tl
 	
 	! create trap stack and go to user code by done

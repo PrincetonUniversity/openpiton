@@ -20,11 +20,5 @@
 // 
 // ========== Copyright Header End ============================================
 $monInit	    check=monInit_check call=monInit_call
-$infow		    check=info_check  call=infow_call
-$info		    check=info_check  call=info_call
-$error		    check=error_check call=error_call
-$warn		    check=warn_check  call=warn_call
 $parse              check=parse_check  call=parse_call size=32 acc=rw:%TASK
-$monErrorDisable    call=monErrorDisable_call
-$monErrorEnable     call=monErrorEnable_call
 

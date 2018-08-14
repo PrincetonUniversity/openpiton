@@ -7,7 +7,7 @@ CFLAGS += -I../ -fpermissive -fpic $(ICARUS_CC_OPTS)
 
 LIB = libsocket_pli_icarus.a
 CSRCS = 
-CSRCC = bw_socket.c decoder.c list.c socket_pli.c
+CSRCC = decoder.c
 LIB_OBJS = ${CSRCS:%.cc=%.o}
 LIB_OBJC = ${CSRCC:%.c=%.o}
 

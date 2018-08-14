@@ -389,7 +389,7 @@ def main():
         # vcs_word_dir = os.environ["MODEL_DIR"]
         # os.chdir(vcs_word_dir)
         # comp_cmd = "sims -sys=dmbr_test -vcs_build -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -vcs_cm_name=test_%d -build_id=dmbr_test -vcs_build_args=-debug_all" % test_cnt
-        # run_cmd = "sims -sys=dmbr_test -vcs_run -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -vcs_cm_name=test_%d -build_id=dmbr_test -nouse_oolm" % test_cnt
+        # run_cmd = "sims -sys=dmbr_test -vcs_run -vcs_use_cm -vcs_cm_args=line+tgl+cond+branch -vcs_cm_name=test_%d -build_id=dmbr_test" % test_cnt
         # os.system(comp_cmd)
         # os.system(run_cmd)
         # sim_log_file = open("sims.log", "r")

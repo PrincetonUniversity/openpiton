@@ -864,7 +864,8 @@ sub vcsgrep{
                 '|tick_reg-MISM' .	
 		'|error from sem_wait \d+, retried OK'.
 		'|multi line buserror command specified'.
-		'|DEBUG: incoming command \"BUSERROR\"';
+		'|DEBUG: incoming command \"BUSERROR\"' .
+        '|Errors: 0';
 
    while(<FUT>){
      if   (/$non_vcs_error/){

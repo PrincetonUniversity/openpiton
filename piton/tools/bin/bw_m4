@@ -99,10 +99,11 @@ die () {
     	    echo "ERROR:             $message" >> $TRE_LOG
 	    loginfo >> $TRE_LOG
 	elif /usr/lib/sendmail -bv $TRE_LOG 1>&- 2>&- ; then
-	    mailerr $TRE_LOG "$message" | /usr/lib/sendmail $TRE_LOG
+            echo "$message"
+	    #mailerr $TRE_LOG "$message" | /usr/lib/sendmail $TRE_LOG
 	else
     	    echo  "Can not log to TRE_LOG=${TRE_LOG}. Logging to '$user.'"
-	    mailerr $user "$message" | /usr/lib/sendmail $user
+	    #mailerr $user "$message" | /usr/lib/sendmail $user
 	fi
     fi
     # TRE_ULOG is optional user log.  EMAIL address is recommended.
@@ -112,10 +113,11 @@ die () {
     	    echo "ERROR:             $message" >> $TRE_ULOG
 	    loginfo >> $TRE_ULOG
 	elif /usr/lib/sendmail -bv $TRE_ULOG 1>&- 2>&- ; then
-	    mailerr $TRE_ULOG "$message" | /usr/lib/sendmail $TRE_ULOG
+            echo "$message"
+	    #mailerr $TRE_ULOG "$message" | /usr/lib/sendmail $TRE_ULOG
 	else
     	    echo  "Can not log to TRE_ULOG=${TRE_ULOG}. Logging to '$user.'"
-	    mailerr $user "$message" | /usr/lib/sendmail $user
+	    #mailerr $user "$message" | /usr/lib/sendmail $user
 	fi
     fi
     exit 1 
@@ -130,6 +132,10 @@ if [ $OS = "SunOS" ] ; then
     CPU=`uname -p`
 fi
 if [ $OS = "Linux" ] ; then
+    user=`/usr/bin/whoami`
+    CPU=`uname -m`
+fi
+if [ $OS = "Darwin" ]; then
     user=`/usr/bin/whoami`
     CPU=`uname -m`
 fi

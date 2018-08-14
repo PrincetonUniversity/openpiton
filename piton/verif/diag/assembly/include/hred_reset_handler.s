@@ -336,7 +336,7 @@
 	wrhpr %l7, %g0, %htba
 
 	! load tsb config/base from memory
-	! and write to corresponding ASI's
+	! and write to corresponding ASIs
 	! set tsb-reg (4 at present) for one partition
 	! 2 i-config, 2-dconfig
 	setx	tsb_config_base_list, %l0, %g1

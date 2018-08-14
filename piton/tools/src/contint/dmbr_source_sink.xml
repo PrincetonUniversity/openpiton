@@ -33,63 +33,54 @@
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_2">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_3">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_4">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_5">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_6">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_7">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_8">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
     <other name="dmbr_source_sink_9">
         <sys>dmbr_source_sink</sys>
         <x_tiles>1</x_tiles>
         <y_tiles>1</y_tiles>
         <dmbr/>
-        <nouse_oolm/>
     </other>
 </dmbr_source_sink>
 

@@ -100,7 +100,7 @@ inline void fatal(const char *s)
 //---------------------------------------------------------------------------
 // Main()
 //---------------------------------------------------------------------------
-main (int argc, char* argv[]) {
+int main (int argc, char* argv[]) {
    char* tmpPtr;
    char* envp;
    char* tverName;

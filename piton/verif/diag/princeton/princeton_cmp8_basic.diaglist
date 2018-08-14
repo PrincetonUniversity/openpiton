@@ -77,7 +77,7 @@ fp_walking_ones         -max_cycle=3333333 fp_walking_ones.s
 paul_bug4135            -max_cycle=1200000 paul_bug4135.s
 paul_bug4135_1          -max_cycle=1200000 paul_bug4135_1.s
 
-bug6662                 bug6662.s -sas -fast_boot //-rtl_timeout=10000
+bug6662                 bug6662.s -fast_boot //-rtl_timeout=10000
 
 </runargs>
 </princeton_cmp8_basic>

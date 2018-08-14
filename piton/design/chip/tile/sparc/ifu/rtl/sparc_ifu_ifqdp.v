@@ -786,8 +786,9 @@ dff_s #(`TLB_CSM_WIDTH) pcxreq_csm2_reg (.din  (mil_csm_pcxreq_d),
 //     if (((^ifq_fdp_fill_inst[32:0]) == 1'bx) && (ifd_ifc_cpxreq_i2 == `CPX_IFILLPKT))
 //       begin
 //          $display("ifqdp.v: Imiss Return val = %h\n", ifqop_i2);
-//          $error("IFQCPX", "Error: X's detected in Imiss Return Inst %h",
+//          $display("IFQCPX", "Error: X's detected in Imiss Return Inst %h",
 //                 ifq_fdp_fill_inst[31:0]);
+//          $finish();
 //       end
 //`endif
    // synopsys translate_on

@@ -28,8 +28,8 @@
 </princeton_rst_por_failing>
 
 <princeton_rst_red_passing>
-    red_wr_regs1		red_wr_regs1.s 	  -nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
-    red_wr_regs2		red_wr_regs2.s 	  -nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    red_wr_regs1		red_wr_regs1.s 	  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    red_wr_regs2		red_wr_regs2.s 	  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     red_ic_tag		red_ic_tag.s      -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
     red_ic_instr		red_ic_instr.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     red_dc_data		red_dc_data.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
@@ -43,8 +43,8 @@
 </princeton_rst_red_failing>
 
 <princeton_rst_sir_passing>
-    sir_wr_regs1 	sir_wr_regs1.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
-    sir_wr_regs2 	sir_wr_regs2.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    sir_wr_regs1 	sir_wr_regs1.s 	-sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    sir_wr_regs2 	sir_wr_regs2.s 	-sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     sir_ic_tag 	sir_ic_tag.s     -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
     sir_ic_instr 	sir_ic_instr.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     sir_dc_data 	sir_dc_data.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
@@ -58,8 +58,8 @@
 </princeton_rst_sir_failing>
 
 <princeton_rst_wdr_passing>
-    wdr_wr_regs1 	wdr_wr_regs1.s	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
-    wdr_wr_regs2 	wdr_wr_regs2.s 	-nosas -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    wdr_wr_regs1 	wdr_wr_regs1.s	-sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
+    wdr_wr_regs2 	wdr_wr_regs2.s 	-sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     wdr_ic_tag 	wdr_ic_tag.s    -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff
     wdr_ic_instr 	wdr_ic_instr.s  -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000
     wdr_dc_data 	wdr_dc_data.s   -sim_run_args=+no_slam_init=1 -sim_run_args=+turn_off_exu_monitor -max_cycle=100000 -sim_run_args=+l1_chkoff

@@ -226,7 +226,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/common/rtl/test_stub_bist.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/ucb_flow_jbi.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/ucb_noflow.v" \
-    "${DV_ROOT}/design/chip/tile/common/rtl/cmp_sram_redhdr.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header_ctu.v" \
     "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc.v" \

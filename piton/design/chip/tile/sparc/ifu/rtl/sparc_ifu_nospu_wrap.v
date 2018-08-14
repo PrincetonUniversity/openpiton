@@ -342,12 +342,6 @@ module sparc_ifu_nospu_wrap
 // wire mem_write_disable = ~grst_l;
 wire mux_drive_disable = 1'b0;
 wire mem_write_disable = 1'b0;
-// wire efc_spc_fuse_clk1 = 1'b0;
-// wire efc_spc_fuse_clk2 = 1'b0;
-// wire efc_spc_ifuse_ashift = 1'b0;
-// wire efc_spc_ifuse_data = 1'b0;
-// wire efc_spc_ifuse_dshift = 1'b0;
-// wire spc_efc_ifuse_data;
 wire [3:0]  const_cpuid = 4'b0;
 wire [7:0]  const_maskid = 8'b0;           // To ifu of sparc_ifu.v
 
@@ -537,8 +531,6 @@ wire [7:0]  const_maskid = 8'b0;           // To ifu of sparc_ifu.v
                  .ifu_tlu_thrid_e       (ifu_tlu_thrid_e),
                  .ifu_tlu_trap_m        (ifu_tlu_trap_m),
                  .ifu_tlu_ttype_m       (ifu_tlu_ttype_m),
-                 .spc_efc_ifuse_data    (),
-                 // .spc_efc_ifuse_data    (spc_efc_ifuse_data),
                  // Inputs
 
                  `ifndef NO_RTL_CSM
@@ -674,11 +666,6 @@ wire [7:0]  const_maskid = 8'b0;           // To ifu of sparc_ifu.v
                  .tlu_lsu_pstate_priv   (tlu_lsu_pstate_priv),
                  .tlu_lsu_redmode       (tlu_lsu_redmode),
 
-                 // .efc_spc_ifuse_dshift       (efc_spc_ifuse_dshift),
-                 // .efc_spc_ifuse_data       (efc_spc_ifuse_data),
-                 // .efc_spc_ifuse_ashift       (efc_spc_ifuse_ashift),
-                 // .efc_spc_fuse_clk2       (efc_spc_fuse_clk2),
-                 // .efc_spc_fuse_clk1       (efc_spc_fuse_clk1),
                  .mem_write_disable       (mem_write_disable),
                  .mux_drive_disable       (mux_drive_disable),
 

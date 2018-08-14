@@ -25,94 +25,94 @@
 
 // Following diags can be run on "ciop" with -midas_args=-DTHREAD_COUNT=4
 
-tlu_multi_mix_2_hwint_s0_1      -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_1.s
-tlu_multi_mix_2_hwint_s0_12     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_12.s
-tlu_multi_mix_2_hwint_s0_14     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_14.s
-tlu_multi_mix_2_hwint_s0_18     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_18.s
-tlu_multi_mix_2_hwint_s0_20     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_20.s
-tlu_multi_mix_2_hwint_s0_27     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_27.s
-tlu_multi_mix_2_hwint_s0_3.     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_3.s
-tlu_multi_mix_2_hwint_s0_33     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_33.s
-tlu_multi_mix_2_hwint_s0_39     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_39.s
-tlu_multi_mix_2_hwint_s0_40     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_40.s
-tlu_multi_mix_2_hwint_s0_41     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_41.s
-tlu_multi_mix_2_hwint_s0_53     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_53.s
-tlu_multi_mix_2_hwint_s0_6      -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_6.s
-tlu_multi_mix_2_hwint_s0_65     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_65.s
-tlu_multi_mix_2_hwint_s0_66     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_66.s
-tlu_multi_mix_2_hwint_s0_69     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_69.s
-tlu_multi_mix_2_hwint_s0_72     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_72.s
-tlu_multi_mix_2_hwint_s0_73     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_73.s
-tlu_multi_mix_2_hwint_s0_74     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_74.s
-tlu_multi_mix_2_hwint_s0_77     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_77.s
-tlu_multi_mix_2_hwint_s0_88     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	tlu_multi_mix_2_hwint_s0_88.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
-tlu_multi_mix_2_hwint_s0_89     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_89.s
-tlu_multi_mix_2_hwint_s0_9      -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_9.s
-tlu_multi_mix_2_hwint_s0_92     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	tlu_multi_mix_2_hwint_s0_92.s -sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP
-tlu_multi_mix_2_hwint_s0_93     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_93.s
-tlu_multi_mix_2_thint_s0_1      -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_1.s
-tlu_multi_mix_2_thint_s0_14     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_14.s
-tlu_multi_mix_2_thint_s0_16     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_16.s
-tlu_multi_mix_2_thint_s0_28     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_28.s
-tlu_multi_mix_2_thint_s0_29     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_29.s
-tlu_multi_mix_2_thint_s0_33     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_33.s
-tlu_multi_mix_2_thint_s0_37     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_37.s
-tlu_multi_mix_2_thint_s0_40     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_40.s
-tlu_multi_mix_2_thint_s0_42     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_42.s
-tlu_multi_mix_2_thint_s0_5      -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_5.s
-tlu_multi_mix_2_thint_s0_50     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_50.s
-tlu_multi_mix_2_thint_s0_52     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_52.s
-tlu_multi_mix_2_thint_s0_61     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_61.s
-tlu_multi_mix_2_thint_s0_70     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_70.s
-tlu_multi_mix_2_thint_s0_72     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_72.s
-tlu_multi_mix_2_thint_s0_82     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_82.s
-tlu_multi_mix_2_thint_s0_83     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_83.s
-tlu_multi_mix_2_thint_s0_85     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_85.s
-tlu_multi_mix_2_thint_s0_87     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_87.s
-tlu_multi_mix_2_thint_s0_95     -midas_args=-DTHREAD_COUNT=4	-nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_95.s
+tlu_multi_mix_2_hwint_s0_1      -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_1.s
+tlu_multi_mix_2_hwint_s0_12     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_12.s
+tlu_multi_mix_2_hwint_s0_14     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_14.s
+tlu_multi_mix_2_hwint_s0_18     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_18.s
+tlu_multi_mix_2_hwint_s0_20     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_20.s
+tlu_multi_mix_2_hwint_s0_27     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_27.s
+tlu_multi_mix_2_hwint_s0_3.     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_3.s
+tlu_multi_mix_2_hwint_s0_33     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_33.s
+tlu_multi_mix_2_hwint_s0_39     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_39.s
+tlu_multi_mix_2_hwint_s0_40     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_40.s
+tlu_multi_mix_2_hwint_s0_41     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_41.s
+tlu_multi_mix_2_hwint_s0_53     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_53.s
+tlu_multi_mix_2_hwint_s0_6      -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_6.s
+tlu_multi_mix_2_hwint_s0_65     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_65.s
+tlu_multi_mix_2_hwint_s0_66     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_66.s
+tlu_multi_mix_2_hwint_s0_69     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_69.s
+tlu_multi_mix_2_hwint_s0_72     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_72.s
+tlu_multi_mix_2_hwint_s0_73     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_73.s
+tlu_multi_mix_2_hwint_s0_74     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_74.s
+tlu_multi_mix_2_hwint_s0_77     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_77.s
+tlu_multi_mix_2_hwint_s0_88     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	tlu_multi_mix_2_hwint_s0_88.s -sim_run_args=+no_mmu_reg_cmp=1
+tlu_multi_mix_2_hwint_s0_89     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_89.s
+tlu_multi_mix_2_hwint_s0_9      -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_9.s
+tlu_multi_mix_2_hwint_s0_92     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	tlu_multi_mix_2_hwint_s0_92.s -sim_run_args=+no_mmu_reg_cmp=1
+tlu_multi_mix_2_hwint_s0_93     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_93.s
+tlu_multi_mix_2_thint_s0_1      -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_1.s
+tlu_multi_mix_2_thint_s0_14     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_14.s
+tlu_multi_mix_2_thint_s0_16     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_16.s
+tlu_multi_mix_2_thint_s0_28     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_28.s
+tlu_multi_mix_2_thint_s0_29     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_29.s
+tlu_multi_mix_2_thint_s0_33     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_33.s
+tlu_multi_mix_2_thint_s0_37     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_37.s
+tlu_multi_mix_2_thint_s0_40     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_40.s
+tlu_multi_mix_2_thint_s0_42     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_42.s
+tlu_multi_mix_2_thint_s0_5      -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_5.s
+tlu_multi_mix_2_thint_s0_50     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_50.s
+tlu_multi_mix_2_thint_s0_52     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_52.s
+tlu_multi_mix_2_thint_s0_61     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_61.s
+tlu_multi_mix_2_thint_s0_70     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_70.s
+tlu_multi_mix_2_thint_s0_72     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_72.s
+tlu_multi_mix_2_thint_s0_82     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_82.s
+tlu_multi_mix_2_thint_s0_83     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_83.s
+tlu_multi_mix_2_thint_s0_85     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_85.s
+tlu_multi_mix_2_thint_s0_87     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_87.s
+tlu_multi_mix_2_thint_s0_95     -midas_args=-DTHREAD_COUNT=4	-finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_95.s
 // Following diags can BOT be run on "ciop"
 
-tlu_multi_mix_2_hwint_s0_1      -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_1.s
-tlu_multi_mix_2_hwint_s0_12     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_12.s
-tlu_multi_mix_2_hwint_s0_14     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_14.s
-tlu_multi_mix_2_hwint_s0_18     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_18.s
-tlu_multi_mix_2_hwint_s0_20     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_20.s
-tlu_multi_mix_2_hwint_s0_27     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_27.s
-tlu_multi_mix_2_hwint_s0_3.     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_3.s
-tlu_multi_mix_2_hwint_s0_33     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_33.s
-tlu_multi_mix_2_hwint_s0_39     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_39.s
-tlu_multi_mix_2_hwint_s0_41     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_41.s
-tlu_multi_mix_2_hwint_s0_53     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_53.s
-tlu_multi_mix_2_hwint_s0_6      -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_6.s
-tlu_multi_mix_2_hwint_s0_65     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_65.s
-tlu_multi_mix_2_hwint_s0_66     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_66.s
-tlu_multi_mix_2_hwint_s0_69     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_69.s
-tlu_multi_mix_2_hwint_s0_72     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_72.s
-tlu_multi_mix_2_hwint_s0_73     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_73.s
-tlu_multi_mix_2_hwint_s0_74     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_74.s
-tlu_multi_mix_2_hwint_s0_77     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_77.s
-tlu_multi_mix_2_hwint_s0_88     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_88.s
-tlu_multi_mix_2_hwint_s0_89     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_89.s
-tlu_multi_mix_2_hwint_s0_9      -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_9.s
-tlu_multi_mix_2_hwint_s0_92     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_92.s
-tlu_multi_mix_2_hwint_s0_93     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_hwint_s0_93.s
-tlu_multi_mix_2_thint_s0_1      -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_1.s
-tlu_multi_mix_2_thint_s0_14     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_14.s
-tlu_multi_mix_2_thint_s0_16     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_16.s
-tlu_multi_mix_2_thint_s0_29     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_29.s
-tlu_multi_mix_2_thint_s0_33     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_33.s
-tlu_multi_mix_2_thint_s0_37     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_37.s
-tlu_multi_mix_2_thint_s0_40     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_40.s
-tlu_multi_mix_2_thint_s0_42     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_42.s
-tlu_multi_mix_2_thint_s0_5      -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_5.s
-tlu_multi_mix_2_thint_s0_50     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_50.s
-tlu_multi_mix_2_thint_s0_52     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_52.s
-tlu_multi_mix_2_thint_s0_61     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_61.s
-tlu_multi_mix_2_thint_s0_70     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_70.s
-tlu_multi_mix_2_thint_s0_72     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_72.s
-tlu_multi_mix_2_thint_s0_82     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_82.s
-tlu_multi_mix_2_thint_s0_83     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_83.s
-tlu_multi_mix_2_thint_s0_85     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_85.s
-tlu_multi_mix_2_thint_s0_95     -nosas -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 -sas_run_args=-DNO_MMU_REG_CMP	tlu_multi_mix_2_thint_s0_95.s
+tlu_multi_mix_2_hwint_s0_1      -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_1.s
+tlu_multi_mix_2_hwint_s0_12     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_12.s
+tlu_multi_mix_2_hwint_s0_14     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_14.s
+tlu_multi_mix_2_hwint_s0_18     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_18.s
+tlu_multi_mix_2_hwint_s0_20     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_20.s
+tlu_multi_mix_2_hwint_s0_27     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_27.s
+tlu_multi_mix_2_hwint_s0_3.     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_3.s
+tlu_multi_mix_2_hwint_s0_33     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_33.s
+tlu_multi_mix_2_hwint_s0_39     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_39.s
+tlu_multi_mix_2_hwint_s0_41     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_41.s
+tlu_multi_mix_2_hwint_s0_53     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_53.s
+tlu_multi_mix_2_hwint_s0_6      -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_6.s
+tlu_multi_mix_2_hwint_s0_65     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_65.s
+tlu_multi_mix_2_hwint_s0_66     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_66.s
+tlu_multi_mix_2_hwint_s0_69     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_69.s
+tlu_multi_mix_2_hwint_s0_72     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_72.s
+tlu_multi_mix_2_hwint_s0_73     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_73.s
+tlu_multi_mix_2_hwint_s0_74     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_74.s
+tlu_multi_mix_2_hwint_s0_77     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_77.s
+tlu_multi_mix_2_hwint_s0_88     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_88.s
+tlu_multi_mix_2_hwint_s0_89     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_89.s
+tlu_multi_mix_2_hwint_s0_9      -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_9.s
+tlu_multi_mix_2_hwint_s0_92     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_92.s
+tlu_multi_mix_2_hwint_s0_93     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_hwint_s0_93.s
+tlu_multi_mix_2_thint_s0_1      -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_1.s
+tlu_multi_mix_2_thint_s0_14     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_14.s
+tlu_multi_mix_2_thint_s0_16     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_16.s
+tlu_multi_mix_2_thint_s0_29     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_29.s
+tlu_multi_mix_2_thint_s0_33     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_33.s
+tlu_multi_mix_2_thint_s0_37     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_37.s
+tlu_multi_mix_2_thint_s0_40     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_40.s
+tlu_multi_mix_2_thint_s0_42     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_42.s
+tlu_multi_mix_2_thint_s0_5      -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_5.s
+tlu_multi_mix_2_thint_s0_50     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_50.s
+tlu_multi_mix_2_thint_s0_52     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_52.s
+tlu_multi_mix_2_thint_s0_61     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_61.s
+tlu_multi_mix_2_thint_s0_70     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_70.s
+tlu_multi_mix_2_thint_s0_72     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_72.s
+tlu_multi_mix_2_thint_s0_82     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_82.s
+tlu_multi_mix_2_thint_s0_83     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_83.s
+tlu_multi_mix_2_thint_s0_85     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_85.s
+tlu_multi_mix_2_thint_s0_95     -finish_mask=33	-sim_run_args=+no_mmu_reg_cmp=1 tlu_multi_mix_2_thint_s0_95.s
 </runargs>
 </princeton_tlu_extended>

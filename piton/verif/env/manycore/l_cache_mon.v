@@ -76,7 +76,6 @@ module l_cache_mon(/*AUTOARG*/
    reg [3:0] 	 i_ptr, l_ptr, ia_ptr, la_ptr;
    reg [127:0] 	 wait_fill[3:0];
    reg [127:0] 	 one_way;
-   reg 		 l1warm;
    reg           ictag_check_off;
 
    initial begin
@@ -84,10 +83,6 @@ module l_cache_mon(/*AUTOARG*/
       l_ptr   = 0;
       ia_ptr  = 0;
       la_ptr  = 0;
-      l1warm  = 1;
-      if($value$plusargs("l1warm=%h", l1warm))begin
-	 l1warm = 0;
-      end
 
       ictag_check_off = 0;
       if($value$plusargs("ictag_check_off=%d", ictag_check_off))begin
@@ -337,7 +332,7 @@ module l_cache_mon(/*AUTOARG*/
 	      d_index      = {addr_index[5:0], ib};
 	      one_way      = (1 << d_index);
 	      i_cache[way] = i_cache[way] | one_way;
-	      if(vld[{d_index, way}] == 1'b0 && l1warm)begin
+	      if(vld[{d_index, way}] == 1'b0)begin
 		 if(wait_ifill(d_index, way))begin
 		    $display("%0d:Error->way(%x) index(%x) Icache received the store invalid befor imiss return",
 			     $time, way, d_index);

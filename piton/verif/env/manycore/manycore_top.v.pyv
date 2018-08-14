@@ -503,7 +503,7 @@ fake_uart fake_uart (
     //  and it is randomized. For some reason if we left it as X's some tests will fail
     <%
         t = '''
-        `ifndef __ICARUS__
+        `ifndef NO_SLAM_RANDOM
         initial begin
             $slam_random(`SPARC_REG0.bw_r_irf_core.register01.bw_r_irf_register.window, 8, 0);
             $slam_random(`SPARC_REG0.bw_r_irf_core.register02.bw_r_irf_register.window, 8, 0);
@@ -611,18 +611,6 @@ fake_uart fake_uart (
     sparc_pipe_flow sparc_pipe_flow(/*AUTOINST*/
         // Inputs
         .clk  (`CHIP_INT_CLK));         // Templated
-
-
-    // initialize client to communicate with ref model through socket
-    integer   vsocket, i, list_handle;
-    initial begin
-        //list_handle = $bw_list(list_handle, 0);chin's change
-         //if not use sas, list should not be called
-        if($test$plusargs("use_sas_tasks"))begin
-            list_handle = $bw_list(list_handle, 0);
-                $bw_socket_init();
-        end
-    end
 
     manycore_network_mon network_mon (`CHIP_INT_CLK);
 

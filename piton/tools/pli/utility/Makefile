@@ -24,7 +24,7 @@ include ${DV_ROOT}/tools/env/Makefile.system
 
 CFLAGS +=  -I${VCS_HOME}/include
 
-OBJS=	gen_dump_mod.o mon_pli.o parse.o value.o
+OBJS=	mon_pli.o parse.o
 
 all:	libutility_pli.a
 

@@ -44,10 +44,8 @@ O_TARGETS=
 FIRST_TARGET=    $(PLILIB) clean_local
 
 _VERIUSER_O=
-PLI_OBJECTS=     gen_dump_mod.$(OBJ_POSTFIX) \
-                 mon_pli.$(OBJ_POSTFIX) \
-                 parse.$(OBJ_POSTFIX) \
-                 value.$(OBJ_POSTFIX)
+PLI_OBJECTS=     mon_pli.$(OBJ_POSTFIX) \
+                 parse.$(OBJ_POSTFIX) 
 
 #                user_pli.$(OBJ_POSTFIX)
 

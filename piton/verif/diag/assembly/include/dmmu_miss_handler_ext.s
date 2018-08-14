@@ -23,7 +23,7 @@
 */
 dmmu_miss_handler_ext:
 dmmu_ps0:
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, dmmu_ptr_chase
 
 #ifdef CSM_ENABLE
@@ -61,7 +61,7 @@ dmmu_ps0:
 dmmu_ps1:
 	ldxa	[%g0] 0x5a, %g1		! dmmu ps1 ptr
 	ldda	[%g1] 0x24, %g4		! load tte from ps1 tsb
-	cmp	%g4, -1			! if all 1's, follow link
+	cmp	%g4, -1			! if all 1s, follow link
 	be,a	%xcc, dmmu_ptr_chase
 
 #ifdef CSM_ENABLE

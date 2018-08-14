@@ -36,22 +36,6 @@ int iob::manual_init(char* ev)
   pkt_vld = 0;
   next_cpx= 0;//reset flag for cpx packet
   next_req= 0;//reset flag for request.
-  for(idx = 0; idx < 5;idx++)content[idx] = 0;
-  //dram ucb counter
-  dcnt0 = 3;dnible0 = 0;n_num0 = 0;
-  dcnt1 = 3;dnible1 = 0;n_num1 = 0;
-  for(idx = 0; idx < 4;idx++){
-    dram_pkt0.itype[idx] = 0;
-    dram_pkt1.itype[idx] = 0;
-
-  }
-  wake_status = 0;
-  pio_idx     = PIO_SIZE-1;
-  //repeat on, keep sending.
-
-  repeat = 0;
-  pargs = mc_scan_plusargs ("event_loop_on=");
-  if(pargs != (char *) 0)repeat = atoi(pargs);
   pargs = mc_scan_plusargs ("zero_delay_int=");
   if(pargs != (char *) 0)zero_delay = atoi(pargs);
   else zero_delay = 0;
@@ -97,14 +81,6 @@ void iob::read_core()
 /*-----------------------------------------------------------------------------
   deceide the bbot thread to start cmp.
 -----------------------------------------------------------------------------*/
-void iob::sys_mem(b_tree_node_ptr* mem, event* eiob)
-{
-  sysMem    = mem;
-  //iob_event = eiob;
-}
-/*-----------------------------------------------------------------------------
-  deceide the bbot thread to start cmp.
------------------------------------------------------------------------------*/
 void iob::boot()
 {
   char  *pargs;
@@ -136,7 +112,6 @@ void iob::boot()
   (*p_pkt).pkt[3] |= ((i & 0x3) << 10);
   (*p_pkt).pkt[3] |= 1;
   pcx_list.append(p_pkt);
-  wake_status = 1 << (*p_pkt).thrid; 
 }
 /*-----------------------------------------------------------------------------
   This routine only extract the pc event from diag.ev.
@@ -217,7 +192,29 @@ void iob::gen_event()
   while(one_event){//get  events
     if(one_event->wait > 0){
       p_pkt = pcx_heap.empty() ? new pcx : pcx_heap.shift();//allocate memory
-      pc_event.xlation(one_event, p_pkt);
+      // This switch was previous a xlation() function in event.cc
+      switch(one_event->event_type){
+      case INT_TYPE:
+        p_pkt->clean();
+        p_pkt->rqtype  = INT_RQ;
+        p_pkt->nc      = 0;
+        p_pkt->cpu_id  = one_event->cpu_id;
+        p_pkt->thrid   = one_event->thrid;
+        p_pkt->way     = 0;
+        p_pkt->pkt[3]  = one_event->type  << 16;
+        p_pkt->pkt[2] |= 1 << 31;
+        p_pkt->pkt[3] |= (one_event->true_id & 0x3fff) << 18;
+        p_pkt->pkt[2] |= (one_event->true_id >> 16) & 0xffff;
+        p_pkt->pkt[3] |= (one_event->cpu_id & 7) << 10;
+        p_pkt->pkt[3] |= (one_event->thrid & 3) << 8;
+        p_pkt->pkt[3] |= one_event->vec;
+        p_pkt->bf_id   = 0;
+        p_pkt->pa_10_6 = 0;
+        p_pkt->addr    = 0;
+        p_pkt->size    = 0;
+        p_pkt->wait   = 3;
+        break;
+      }
       if(zero_delay)p_pkt->wait = 1;
       pcx_list.append(p_pkt);
       io_printf("(%0d)Info:generating interrupt pcx packet thread(%d) many(%d)\n",
@@ -268,24 +265,6 @@ void iob::grant_check()
   }
 }
 /*-----------------------------------------------------------------------------
-  get pcx packet.
------------------------------------------------------------------------------*/
-void iob::read_pcx()
-{
-  idx = 0;
-  tf_nodeinfo(PCX_LOC, &node_info);//bind arg
-  for(groups = (node_info.node_ngroups - 1); groups >= 0; groups--)
-    pcx_pkt[idx++]  = node_info.node_value.vecval_p[groups].avalbits;
-
-  if(pcx_pkt[0] & 0x8000000){//valid pcx packet
-    p_pkt = pcx_heap.empty() ? new pcx : pcx_heap.shift();//allocate memory
-    (*p_pkt).chop_pkt(pcx_pkt, available);
-    //ignore forward packet.
-    if((*p_pkt).rqtype == 0xa || (*p_pkt).rqtype == 0xb)pcx_heap.append(p_pkt);//keep it on heap.
-    else pcx_list.append(p_pkt);
-  }
-}
-/*-----------------------------------------------------------------------------
   process pcx packet.
   -----------------------------------------------------------------------------*/
 void iob::handle_pcx()
@@ -294,45 +273,12 @@ void iob::handle_pcx()
   // io_printf("HERE I am %d\n", (*p_pkt).thrid);
   if((*p_pkt).get_delay() == 0){
     p_pkt  = pcx_list.shift();//remove a packet from the top of stack
-    //which device accessed
-    switch((*p_pkt).dev){
-    case 0 : //boot rom
-      mask_addr = (*p_pkt).mask_addr;
-      data = b_Find(sysMem, &mask_addr);
-      break;
-    case 1 ://dram control
-      d_pkt = dev_heap.empty() ? new device : dev_heap.shift();
-      (*d_pkt).xlation(p_pkt);
-      (*p_pkt).dram_channel ? dram1_list.append(d_pkt) :dram0_list.append(d_pkt);
-      break;
-    case 2 : //jbi pio drive
-      d_pkt = dev_heap.empty() ? new device : dev_heap.shift();
-      (*d_pkt).xlation(p_pkt);
-      dev_list.append(d_pkt);//push cpx on list
-      break;
-    case 3 ://need many operation
-      break;
-    }
 
-    //it is not an io read.
-    if(!(*p_pkt).io_wait){
-      c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();;
-      if(data)(*c_pkt).xlation(p_pkt, data->data);
-      else (*c_pkt).xlation(p_pkt, (char*)0);
-      cpx_list.append(c_pkt);//push cpx on list
-      //send interrupt.
-      if((*p_pkt).dev == 4){//make interrupt
-	c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();;
-	(*c_pkt).xlation(p_pkt);
-	cpx_list.append(c_pkt);//push cpx on list
-  io_printf("(%0d)TRIN: handle_pcx made cpx\n", tf_gettime());
-      }    
-      pcx_heap.append(p_pkt);//keep it on heap.
-    }
-    else{//wait data from iob device.
-      if((*p_pkt).dev == 1)pcx_load[(*p_pkt).thrid].append(p_pkt);//dram
-      if((*p_pkt).dev == 2)jpcx_load[(*p_pkt).thrid].append(p_pkt);//jbi
-    }
+    c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();;
+    if(data)(*c_pkt).xlation(p_pkt, data->data);
+    else (*c_pkt).xlation(p_pkt, (char*)0);
+    cpx_list.append(c_pkt);//push cpx on list
+    pcx_heap.append(p_pkt);//keep it on heap.
   }
 }
 /*-----------------------------------------------------------------------------
@@ -420,142 +366,74 @@ void iob::handle_cpx()
 void iob::do_iob()
 {
   //drive signals.
-  read_pcx();
   grant_check();  //cpx grant
   trig_pc_event();//check pc event
   if(pcx_list.empty() == 0)handle_pcx();
   if(cpx_list.empty() == 0)handle_cpx();
 }
-/*-----------------------------------------------------------------------------
- drive jbi pio bus.
------------------------------------------------------------------------------*/
-void iob::drive_jbi(int loc)
-{
-  if(dev_list.empty() == 0){
-    d_pkt = dev_list.front();
-    if(d_pkt->ready){
-      if(d_pkt->jbi_driver(loc)){
-	d_pkt  = dev_list.shift();
-	dev_heap.append(d_pkt);//free memory
-      }
-    }
-  }
-}
-/*-----------------------------------------------------------------------------
- drive ucb data on the dram.
 
------------------------------------------------------------------------------*/
-void iob::drive_dram(int loc, int bank)
+// Below is from strclass.cc / strclass.h which became unnecessary
+/*---------------------------------------
+  replace char with space.
+  ----------------------------------------*/
+void iob::replace(char* str)
 {
-  if((dram0_list.empty() == 0) && !bank ||
-     (dram1_list.empty() == 0) && bank){
-    d_pkt = bank ? dram1_list.front() : dram0_list.front();
-    if(d_pkt->ready){
-      if(d_pkt->dram_driver(loc)){
-	d_pkt  =  bank ? dram1_list.shift() : dram0_list.shift();
-	dev_heap.append(d_pkt);//free memory
-      }
-    }
+  int i;
+  for(i = 0; i < strlen(str);i++){
+    if(
+       str[i] == '(' ||
+       str[i] == ')' ||
+       str[i] == '-' ||
+       str[i] == '>' ||
+       str[i] == '"' ||
+       str[i] == ',')str[i] = ' ';
   }
 }
-/*-----------------------------------------------------------------------------
- common receiver for 4 bit.
------------------------------------------------------------------------------*/
-bool iob::read_ucb(int loc, int *dram_pkt, int *dcnt, 
-		   int *dnible, int *num)
-{
-  if(tf_getp(loc)){//valid bit
-    int val           = tf_getp(loc+1) & 0xf;
-    val             <<= (*num);
-    dram_pkt[*dcnt]  |= val;
-    (*dnible)++;
-    *num += 4;
-    if(*dnible == 8){//received 32 bits
-      *dnible = 0;
-      *num    = 0;
-      (*dcnt)--;
-    }
-    return 1;
-  }
-  return 0;
-}
-/*-----------------------------------------------------------------------------
- drive ucb data on the dram.
-layout:
-127-96        95-64            63-32        31-0 bit
-dram_pkt[0], dram_pkt[1], dram_pkt[2],  dram_pkt[3]
------------------------------------------------------------------------------*/
-void iob::read_dram(int loc, int bank)
-{
 
-  if(bank){//bank one      
-    if(read_ucb(loc, dram_pkt1.itype, &dcnt1, &dnible1, &n_num1) &&
-       dcnt1 < 0){//received 128 bits ucb data.
-      thrid = (dram_pkt1.itype[3] >> 5) & 0x1f;
-      p_pkt = pcx_load[thrid].front();
-      c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();
-      (*c_pkt).xlation(p_pkt, dram_pkt1.itype);
-      cpx_list.append(c_pkt);//push cpx on list
-      pcx_heap.append(p_pkt);//keep it on heap.
-      dcnt1  = 3;
-      n_num1 = 0;
-      for(idx = 0; idx < 4;idx++)dram_pkt1.itype[idx] = 0;
-    }
-  }
-  else{
-    if(read_ucb(loc, dram_pkt0.itype, &dcnt0, &dnible0, &n_num0) &&
-       dcnt0 < 0){//received 128 bits ucb data.
-      thrid = (dram_pkt0.itype[3] >> 5) & 0x1f;
-      p_pkt = pcx_load[thrid].front();
-      c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();
-      (*c_pkt).xlation(p_pkt, dram_pkt0.itype);
-      
-      cpx_list.append(c_pkt);//push cpx on list
-      pcx_heap.append(p_pkt);//keep it on heap.
-
-      for(idx = 0; idx < 4;idx++)dram_pkt0.itype[idx] = 0;
-      dcnt0  = 3;
-      n_num0 = 0;
-    }
-  }
-}
-/*-----------------------------------------------------------------------------
- jbus clok domain.
- read jbi_iob
-`define UCB_THR_HI             9        // (6) cpu/thread ID
-`define UCB_THR_LO             4
-
------------------------------------------------------------------------------*/
-void iob::read_pio()
+/*--------------------------------------
+  convert ascii to hex array.
+  ---------------------------------------*/
+void iob::copy(char* buf, int* idx,  char* cbuf)
 {
-  if(tf_getp(JBI_PIO_VLD)){
-    jbi_pio_data[pio_idx--] = tf_getp(JBI_PIO_VLD+1);
-    if(pio_idx < 0){
-      thrid = (jbi_pio_data[11] >> 4) & 0x1f;
-      p_pkt = jpcx_load[thrid].front();
-      c_pkt = cpx_heap.empty() ? new cpx : cpx_heap.shift();
-      (*c_pkt).jxlation(p_pkt,jbi_pio_data );
-      cpx_list.append(c_pkt);//push cpx on list
-      pcx_heap.append(p_pkt);//keep it on heap.
-      pio_idx = PIO_SIZE - 1;
-    }
+  int ind;
+  ind = 0;
+  while((buf[*idx] != '\0') && 
+	(buf[*idx] != '\n') &&
+	(buf[*idx] != ' ')){
+    cbuf[ind++] = buf[*idx];
+    (*idx)++;
   }
+  cbuf[ind] = '\0';
 }
-/*-----------------------------------------------------------------------------
- jbus clok domain.
------------------------------------------------------------------------------*/
-void iob::do_jiob()
+
+/*--------------------------------------
+   check the address symbol that is "@".
+   if symbol there, return address.
+   ---------------------------------------*/
+KeyType iob::getEight(char *buf)
 {
-  if(dev_list.empty() == 0){//wait for delay cycle.
-    d_pkt = dev_list.front();
-    d_pkt->dec_wait();
+  int  i;
+  KeyType key = 0;
+
+  for(i = 0;  buf[i] != '\0';i++){
+    key <<= 4;
+    key  |= buf[i] > '9' ? ((buf[i] & 0xf) + 9) : buf[i] & 0xf;
   }
-  if(dram0_list.empty() == 0){
-    d_pkt = dram0_list.front();
-    d_pkt->dec_wait();
+  return key;
+}
+
+/*--------------------------------------
+  remove hexa indicator
+  ----------------------------------------*/
+void iob::rmhexa(char* buf){
+  int i, j;
+  
+  for(i = 0;i < strlen(buf);i++){
+    if(buf[i] == 'h' || buf[i] == 'x')break;
   }
-  if(dram1_list.empty() == 0){
-    d_pkt = dram1_list.front();
-    d_pkt->dec_wait();
+  j  = 0;
+  for(i = i+1;i < strlen(buf);i++){
+    buf[j++] = buf[i];
   }
+  buf[j] = '\0'; 
 }

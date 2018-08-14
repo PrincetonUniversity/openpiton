@@ -186,6 +186,7 @@ module l2_pipe1_ctrl(
     output reg valid_S2,    
     output reg stall_S2, 
     output reg stall_before_S2, 
+    output reg stall_real_S2,
     output reg [`MSG_TYPE_WIDTH-1:0] msg_type_S2,
 
     output reg msg_from_mshr_S2,
@@ -847,7 +848,7 @@ end
 //============================
 
 reg stall_pre_S2;
-reg stall_real_S2;
+// reg stall_real_S2;
 reg stall_before_S2_f;
 reg stall_before_S2_next;
 reg state_wr_en_S2;

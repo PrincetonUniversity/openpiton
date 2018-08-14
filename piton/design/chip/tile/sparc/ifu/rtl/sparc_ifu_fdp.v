@@ -38,11 +38,6 @@
 
 `define NOP            32'h01000000
 `define PO_RESET_PC    48'hfffff0000020
-`define VER_MANUF      16'h003e
-`define VER_IMPL       16'h0023
-`define VER_MAXGL      8'h03
-`define VER_MAXWIN     8'h07
-`define VER_MAXTL      8'h06
 
 //`define VER_MAXTL      {5'b0, fcl_fdp_hprivmode_e, 2'b10}
 //`define VER_IMPL_MASK  24'h002301

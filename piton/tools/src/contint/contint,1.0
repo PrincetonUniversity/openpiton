@@ -135,12 +135,13 @@ def usage (prog) :
     print prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory"
     print prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass"
     print prog + ":      --inverse               Inverts the exit code to return 0 if all tests failed and 1 otherwise, whereas the default is to return 0 if all tests pass and 1 otherwise."
+    print prog + ":      --sim_type=<sim>        Specify the simulator to invoke (vcs, ncv, icv, msm)"
 
 def parse_cmd_args (prog) :
     try :
         opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "bundle=", "dryrun", \
                                                        "check_results", "contint_dir=", \
-                                                       "cleanup", "inverse"])
+                                                       "cleanup", "inverse", "sim_type="])
     except getopt.GetoptError :
         usage (prog)
         sys.exit(1)
@@ -151,6 +152,7 @@ def parse_cmd_args (prog) :
     contint_dir = None
     cleanup = False
     inverse = False
+    sim_type = "vcs"
 
     for opt, arg in opts :
         if opt in ("-h", "--help") :
@@ -168,6 +170,8 @@ def parse_cmd_args (prog) :
             cleanup = True
         elif opt == "--inverse" :
             inverse = True
+        elif opt == "--sim_type" :
+            sim_type = arg
         else :
             print prog + ": Unprocessed argument '" + opt + "'."
             usage (prog)
@@ -185,7 +189,11 @@ def parse_cmd_args (prog) :
         print prog + ": Cannot specify both check_results and dryrun"
         sys.exit(1)
 
-    return bundle, dryrun, check_results, contint_dir, cleanup, inverse
+    if sim_type not in ["vcs", "ncv", "icv", "msm"]:
+        print prog + ": sim_type must be one of vcs, ncv, icv, or msm"
+        sys.exit(1)
+
+    return bundle, dryrun, check_results, contint_dir, cleanup, inverse, sim_type
 
 def parse_config (prog, config) :
     try :
@@ -203,7 +211,7 @@ def parse_config (prog, config) :
 
     return xml_files
 
-def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bundle) :
+def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bundle, sim_type) :
     # List of bundle items and global arguments
     bundle_items = []
     sims_build_args = []
@@ -228,18 +236,18 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                     name = bundle + "_" + bundle_root.tag
 
             # Construct build command
-            build_command = "sims -vcs_build"
+            build_command = "sims -" + sim_type + "_build"
             found_sys = False
             sys_val = ""
             for args in child :
                 # if args.tag == "sys" or args.tag == "vcs_build_args" or args.tag == "num_tile" or args.tag == "x_tiles" or args.tag == "y_tiles":
-                if args.tag in ["network_config", "sys", "vcs_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
+                if args.tag in ["network_config", "sys", "vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "sim_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
                     build_command += " -" + args.tag + "=" + args.text
                     if args.tag == "sys" :
                         sys_val = args.text
                         found_sys = True
                 elif args.tag in ["vcs_use_cm", "sim_pll"]:
-                    build_command += " -" + `args.tag`
+                    build_command += " -" + args.tag
                 elif args.tag == "largest_regress":
                     is_largest = True
             if not found_sys :
@@ -249,9 +257,9 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             # Construct run command
             run_command = ""
             if child.tag == "asm_regress" :
-                run_command = "sims -sim_type=vcs -nobuild"
+                run_command = "sims -sim_type=" + sim_type + " -nobuild"
             else :
-                run_command = "sims -vcs_run"
+                run_command = "sims -" + sim_type + "_run"
             sim_q_command = "sbatch"
             for args in child :
                 if args.tag == "slurm" :
@@ -260,12 +268,13 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                     print "This is the largest regression, not adding this tag to run_command"
                 elif args.text == None :
                     run_command += " -" + args.tag
-                elif args.tag != "vcs_build_args" :
+                elif args.tag not in ["vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "sim_build_args"] :
                     run_command += " -" + args.tag + "=" + args.text
 
             # Add flags to commands to wait for license
-            build_command += " -vcs_build_args=+vcs+lic+wait"
-            run_command += " -sim_run_args=+vcs+lic+wait"
+            if sim_type == "vcs":
+                build_command += " -vcs_build_args=+vcs+lic+wait"
+                run_command += " -sim_run_args=+vcs+lic+wait"
 
             # Create new bundle item
             bundle_item = BundleItem()
@@ -286,9 +295,9 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             print prog + ": Parsing included bundle '" + child.text + "'..."
             # Find and parse the included bundle
             if parent_bundle != "" :
-                include_bundle_items = find_bundle (prog, xml_files, child.text, parent_bundle + "_" + bundle)
+                include_bundle_items = find_bundle (prog, xml_files, child.text, parent_bundle + "_" + bundle, sim_type)
             else :
-                include_bundle_items = find_bundle (prog, xml_files, child.text, bundle)
+                include_bundle_items = find_bundle (prog, xml_files, child.text, bundle, sim_type)
             
             # Check that we found the bundle
             if include_bundle_items == None :
@@ -320,7 +329,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
 
     return bundle_items
 
-def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle) :
+def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle, sim_type) :
     # Parse the XML tree
     try :
         tree = ET.parse(xml_file)
@@ -338,17 +347,17 @@ def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle) :
         for child in root :
             if child.tag == bundle :
                 # Parse this bundle tree to get commands
-                bundle_items = parse_bundle_tree (prog, xml_file, child, bundle, xml_files, parent_bundle)
+                bundle_items = parse_bundle_tree (prog, xml_file, child, bundle, xml_files, parent_bundle, sim_type)
                 return bundle_items
     else :
         print prog + ": Error: Could not find bundles tag in " + xml_file
         return None
 
-def find_bundle (prog, xml_files, bundle, parent_bundle) :
+def find_bundle (prog, xml_files, bundle, parent_bundle, sim_type) :
     # Search for bundle in XML files 
     bundle_items = None
     for xml_file in xml_files :
-        bundle_items_tmp = parse_bundle(prog, xml_file, bundle, xml_files, parent_bundle)
+        bundle_items_tmp = parse_bundle(prog, xml_file, bundle, xml_files, parent_bundle, sim_type)
         if bundle_items_tmp != None :
             bundle_items = bundle_items_tmp
             break
@@ -515,11 +524,11 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
 
         # If item is other, put highest verbosity
         if item.type == BundleItemType.Other :
-            item.build_command += " -vcs_build_args=+define+VERBOSITY=1"
+            item.build_command += " -sim_build_args=+define+VERBOSITY=1"
 
 
         is_dmbr_source_sink = re.search(r'dmbr_source_sink', item.name)
-        if is_dmbr_source_sink != None:
+        if is_dmbr_source_sink != None and not dryrun:
             print 'Generating source and sink for DMBR unit testing...'
             prev_dir = os.getcwd()
             os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
@@ -536,7 +545,7 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
 
         # Generate an assembly test before running a test
         is_dmbr_assembly_gen = re.search(r'dmbr_assembly_gen', item.name)
-        if is_dmbr_assembly_gen != None:
+        if is_dmbr_assembly_gen != None and not dryrun:
             print 'Running an assembly test generator for DMBR...'
             prev_dir = os.getcwd()
             os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
@@ -585,7 +594,7 @@ def get_status (line) :
             break
     return status
         
-def check_status_log (prog, diag) :
+def check_status_log (prog, diag, sim_type) :
     templist = []
     found_wall_sec = False
     found_sim_cyc = False
@@ -668,7 +677,7 @@ def check_status_log (prog, diag) :
                     if len(templist) > 0 :
                         templist[0] = tmp
                     templist.append(line)
-                elif re.search("Will build in directory|midas: mkdir|Found diag under|redefines previous macro|-max_error|exit_on_error|stop_on_error|-no-warn-mismatch|vcs_run|ERROR_EN_REG", line) :
+                elif re.search("Will build in directory|midas: mkdir|Found diag under|redefines previous macro|-max_error|exit_on_error|stop_on_error|-no-warn-mismatch|vcs_run|ncv_run|icv_run|msm_run|ERROR_EN_REG", line) :
                     continue
                 elif re.search("mismatch|error|fail|wrong_trigger|undefined reference to", line, re.IGNORECASE) :
                     templist.append(line)
@@ -689,7 +698,7 @@ def check_status_log (prog, diag) :
     os.chdir(curr_dir)
     return status, templist, sim_cyc, wall_sec, exec_cyc, num_tiles
 
-def check_asmregress_results (prog, contint_dir, item) :
+def check_asmregress_results (prog, contint_dir, item, sim_type) :
     # Check results for each test in regression
     # Mimic what regreport does
     
@@ -770,7 +779,7 @@ def check_asmregress_results (prog, contint_dir, item) :
             #    os.system("regreport -1 > status.log") 
             #    os.chdir(curr_dir)
 
-            status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, diag)
+            status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, diag, sim_type)
             stats[diag] = status
             stat_details[diag] = status_details
         
@@ -819,7 +828,7 @@ def check_asmregress_results (prog, contint_dir, item) :
 
     os.chdir(curr_dir)
 
-def check_asmtest_results (prog, item) :
+def check_asmtest_results (prog, item, sim_type) :
     # Check results for the assembly test
     # Mimic what regreport does
 
@@ -835,7 +844,7 @@ def check_asmtest_results (prog, item) :
     #    os.chdir(curr_dir)
 
     # Check status of status and log file
-    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name)
+    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name, sim_type)
 
     # Clear diag name
     sys.stdout.write("\b" * len(diag_name))
@@ -1066,7 +1075,7 @@ def generate_status_log (sim_start, item, diag_dir) :
 
     fp.close()
 
-def check_other_results (prog, sim_start, contint_dir, item) :
+def check_other_results (prog, sim_start, contint_dir, item, sim_type) :
     # Check results for non-assembly tests
 
     # Figure out diag directory
@@ -1091,7 +1100,7 @@ def check_other_results (prog, sim_start, contint_dir, item) :
     sys.stdout.flush()
 
     # Check status of status and log file
-    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name) 
+    status, status_details, cyc, sec, exec_cyc, num_tiles = check_status_log(prog, item.model_name, sim_type) 
 
     # Clear diag name
     sys.stdout.write("\b" * len(diag_name))
@@ -1108,18 +1117,18 @@ def check_other_results (prog, sim_start, contint_dir, item) :
     item.stats["exec_cyc"] = exec_cyc
     item.stats["num_tiles"] = num_tiles
 
-def check_bundle_results (prog, sim_start, contint_dir, bundle_items) :
+def check_bundle_results (prog, sim_start, contint_dir, bundle_items, sim_type) :
     # Loop over items and check results based on
     # type of bundle item if the build passed (i.e. we ran the run)
     for item in bundle_items :
         if item.build_passed :
             print prog + ":     Checking results for bundle item '" + item.name + "'"
             if item.type == BundleItemType.AssemblyRegression :
-                check_asmregress_results (prog, contint_dir, item)     
+                check_asmregress_results (prog, contint_dir, item, sim_type)     
             elif item.type == BundleItemType.AssemblyTest :
-                check_asmtest_results (prog, item) 
+                check_asmtest_results (prog, item, sim_type) 
             else :
-                check_other_results (prog, sim_start, contint_dir, item)
+                check_other_results (prog, sim_start, contint_dir, item, sim_type)
 
 def create_aggregate_bundle_item (name, build_passed, run_passed, stats) :
     # Create a bundle item with passed in parameters
@@ -1663,7 +1672,7 @@ def contint_main () :
     prog, sim_start, version, dv_root, model_dir = init_header()
     
     # Parse the command line arguments
-    bundle, dryrun, check_results, spec_contint_dir, cleanup, inverse = parse_cmd_args (prog)
+    bundle, dryrun, check_results, spec_contint_dir, cleanup, inverse, sim_type = parse_cmd_args (prog)
 
     print prog + ": processing bundle " + bundle
 
@@ -1675,7 +1684,7 @@ def contint_main () :
     xml_files = parse_config(prog, contint_config)
 
     # Search for bundle in XML files and parse bundle items
-    bundle_items = find_bundle (prog, xml_files, bundle, "")
+    bundle_items = find_bundle (prog, xml_files, bundle, "", sim_type)
 
     # Check that we found the bundle
     if bundle_items == None :
@@ -1734,7 +1743,7 @@ def contint_main () :
     # Check results for each bundle item
     print prog + ": Checking simulation results..."
     if not dryrun :
-        check_bundle_results (prog, sim_start, contint_dir, bundle_items)
+        check_bundle_results (prog, sim_start, contint_dir, bundle_items, sim_type)
 
     # Aggregate all results
     if not dryrun :

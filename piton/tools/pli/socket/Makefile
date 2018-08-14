@@ -24,7 +24,7 @@ include ${DV_ROOT}/tools/env/Makefile.system
 
 CFLAGS += -I${VCS_HOME}/include
 
-OBJS= list.o decoder.o bw_socket.o
+OBJS= decoder.o
 
 all:	libsocket_pli.a
 

@@ -125,7 +125,6 @@
 #ifndef __ICARUS__
 extern "C" void io_printf(char*, ...);
 #endif
-extern "C" void write_dram_call(long long* addr, ...);
 #define KeyType unsigned long long
 //define event record.
 typedef struct event_record{
@@ -146,13 +145,4 @@ typedef struct event_record{
   int event_type;
 } *event_record_ptr;
 
-//define SSO record
-typedef struct sso_record{
-  char serial[SSO_NUM];
-  int  num, idx;
-  int wait;
-} *sso_record_ptr;
-typedef struct addr_record{
-  KeyType addr;
-}  *addr_record_ptr;
 #endif

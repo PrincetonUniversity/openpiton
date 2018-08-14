@@ -22,7 +22,7 @@
 * ========== Copyright Header End ============================================
 */
 ! This file contains init that is required to
-! clear out x's and valid bits in various structures
+! clear out xs and valid bits in various structures
 ! to make silicon work.
 
 .global dramctl_init

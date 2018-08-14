@@ -29,7 +29,7 @@
 
 <nightly_no_use_ibm_srams>
     <sims_build_args>
-        <vcs_build_args>+define+NO_USE_IBM_SRAMS</vcs_build_args>
+        <sim_build_args>+define+NO_USE_IBM_SRAMS</sim_build_args>
     </sims_build_args>
     <include>nightly</include>
 </nightly_no_use_ibm_srams>

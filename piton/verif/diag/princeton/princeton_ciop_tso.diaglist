@@ -22,24 +22,24 @@
 // tso_ciop_basic.diaglist
 
 <princeton_ciop_tso>
-<runargs -nosjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS -nosas>
+<runargs -nosjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS>
 
     // SAS does not support CAS, SWAP, LDSTUb to IO space.
     // ncrdwr5 and 5a tests this. That's why - no sas.
-    tso_ncrdwr1 tso_ncrdwr1.s -sjm_diag_name=tso_ncrdwr1 -nosas
-    tso_ncrdwr2 tso_ncrdwr2.s -sjm_diag_name=tso_ncrdwr2 -nosas
-    tso_ncrdwr3 tso_ncrdwr3.s -sjm_diag_name=tso_ncrdwr3 -nosas
-    tso_ncrdwr4 tso_ncrdwr4.s -sjm_diag_name=tso_ncrdwr4 -nosas
+    tso_ncrdwr1 tso_ncrdwr1.s -sjm_diag_name=tso_ncrdwr1
+    tso_ncrdwr2 tso_ncrdwr2.s -sjm_diag_name=tso_ncrdwr2
+    tso_ncrdwr3 tso_ncrdwr3.s -sjm_diag_name=tso_ncrdwr3
+    tso_ncrdwr4 tso_ncrdwr4.s -sjm_diag_name=tso_ncrdwr4
     tso_ncrdwr5 tso_ncrdwr5.s -sjm_diag_name=tso_ncrdwr5 
     
-    tso_ncrdwr1a tso_ncrdwr1a.s -sjm_diag_name=tso_ncrdwr1a -nosas
-    tso_ncrdwr2a tso_ncrdwr2a.s -sjm_diag_name=tso_ncrdwr2a -nosas
-    tso_ncrdwr3a tso_ncrdwr3a.s -sjm_diag_name=tso_ncrdwr3a -nosas
-    tso_ncrdwr4a tso_ncrdwr4a.s -sjm_diag_name=tso_ncrdwr4a -nosas
+    tso_ncrdwr1a tso_ncrdwr1a.s -sjm_diag_name=tso_ncrdwr1a
+    tso_ncrdwr2a tso_ncrdwr2a.s -sjm_diag_name=tso_ncrdwr2a
+    tso_ncrdwr3a tso_ncrdwr3a.s -sjm_diag_name=tso_ncrdwr3a
+    tso_ncrdwr4a tso_ncrdwr4a.s -sjm_diag_name=tso_ncrdwr4a
     tso_ncrdwr5a tso_ncrdwr5a.s -sjm_diag_name=tso_ncrdwr5a 
     
-    tso_ncrdwr6 tso_ncrdwr6.s -sjm_diag_name=tso_ncrdwr5 -nosas
-    tso_ncrdwr7 tso_ncrdwr7.s -sjm_diag_name=tso_ncrdwr7 -nosas
+    tso_ncrdwr6 tso_ncrdwr6.s -sjm_diag_name=tso_ncrdwr5
+    tso_ncrdwr7 tso_ncrdwr7.s -sjm_diag_name=tso_ncrdwr7
 
 
     //
@@ -74,7 +74,7 @@
 </runargs>
 </princeton_ciop_tso>
 <princeton_ciop_tso_dma>
-<runargs -nosjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS -nosas>
+<runargs -nosjm -sjm_diag_root=$DV_ROOT/verif/diag/assembly/ -midas_args=-DSYNC_THREADS>
     //tso_dma1 	tso_dma1.s 	-sjm_diag_name=tso_dma1 -stub_mask=6
     //tso_dma2 	tso_dma2.pal 	-sjm_diag_name=tso_dma2     -finish_mask=33  -midas_args=-DTHREAD_COUNT=4 -stub_mask=6
     //tso_dma5 	tso_dma5_int.s 	-sjm_diag_name=tso_dma5_int -finish_mask=3 -midas_args=-DTHREAD_COUNT=2  -stub_mask=6
