@@ -27,7 +27,7 @@
 `include "define.vh"
 
 `ifdef PITON_PROTO
-`ifdef NEXYS4DDR_BOARD
+`ifdef FPGA_SYN_1THREAD
 `define ED_ENABLE_BIT 0
 `else
 `define ED_ENABLE_BIT 1

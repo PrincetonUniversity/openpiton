@@ -171,6 +171,8 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'overwrite' => 0,
         'pal_use_tgseed' => 0,
         'parallel' => 0,
+        'pico' => 0,
+        'pico_het' => 0,
         'post_process_cmd' => [],
         'pre_process_cmd' => [],
         'reg_count' => 0,
@@ -341,6 +343,8 @@ GetOptions (\%opt,
             'group=s@',
             'model_dir=s',
             'parallel!',
+            'pico!',
+            'pico_het!',
             'regress!',
             'regress_id=s',
             'report!',
@@ -1851,7 +1855,7 @@ sub post_process
         print ("$prg: warning could not copy vcs coverage data back to ${model_path}/coverage/verilog\n") if ($?) ;
 
         if ($opt{asm_diag_name} ne "") {
-          `cp *.s *.tbl *.ev *.exe.gz $launch_dir` ;
+          `cp *.s *.S *.tbl *.ev *.exe.gz $launch_dir` ;
           print ("$prg: warning could not copy assembly files back to $launch_dir\n") if ($?) ;
         }
       }
@@ -2044,7 +2048,7 @@ sub get_tvers_from_iver {
 sub assemble_diag
 {
     # first clean up the diag area
-    `rm -rf diag.pal diag.s diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
+    `rm -rf diag.pal diag.s diag.S diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
     die "DIE. could not clean up assembly diag run area"  if ($?) ;
 
     # find diagnostic
@@ -2053,6 +2057,7 @@ sub assemble_diag
     my $diag_name ;
     if ($opt{asm_diag_name} =~ /\.pal/) { $diag_name = "diag.pal" ; }
     elsif ($opt{asm_diag_name} =~ /\.s\.gz/) { $diag_name = "diag.s.gz" ; }
+    elsif ($opt{pico} and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
     else { $diag_name = "diag.s" ; }
 
     # copy diagnostic to run area
@@ -2069,13 +2074,14 @@ sub assemble_diag
     }
 
     $ENV{ASM_DIAG_NAME} = $opt{asm_diag_name};
+    $ENV{ASM_DIAG_NAME_NO_EXT} = substr $opt{asm_diag_name}, 0, -2;
 
     # pre process if needed
     &pre_process ;
 
     # extract sims options from diag.s
-    if ($diag_name =~ /\.s/) {
-      open (DIAGIN, "< diag.s") or die "DIE. Could not open diag.s" ;
+    if (($diag_name =~ /\.s/) or ($diag_name =~ /\.S/)) {
+      open (DIAGIN, "< $diag_name") or die "DIE. Could not open $diag_name" ;
 
       while (<DIAGIN>) {
         my $line = $_ ;
@@ -2084,7 +2090,7 @@ sub assemble_diag
           my (@plusargs) = split (/\s+/, $line) ;
           shift (@plusargs) ;
           push (@ARGV, @plusargs) ;
-          print "$prg: Found sims arguments in diag.s: @plusargs\n" ;
+          print "$prg: Found sims arguments in $diag_name: @plusargs\n" ;
           parse_args ("dummy", 0) ;
         }
       }
@@ -2092,6 +2098,7 @@ sub assemble_diag
       close (DIAGIN) ;
     }
 
+    if (!$opt{pico}) {
     # assemble
     push (@{$opt{midas_args}}, "-DFAST_BOOT") if ($opt{fast_boot}) ;
     push (@{$opt{midas_args}}, "-diag_root=$dv_root") ;
@@ -2116,6 +2123,15 @@ sub assemble_diag
         `cp -r * $launch_dir` ;
       }
       print ("$prg: warning could not copy files back to $launch_dir\n") if ($?) ;
+    }
+    } else {
+      "$prg: assembling riscv diag\n" ;
+      my $cmd = "rv_as " ;
+      #$cmd .= join (" ", @{$opt{midas_args}}) ;
+      print "$prg: $cmd\n";
+
+      my $waitstatus = call_program($cmd, "rv_as.log");
+      die ("DIE. rv_as compilation error") if ($waitstatus) ;
     }
 
     exit (0) if ($opt{midas_only}) ;
@@ -2157,7 +2173,7 @@ sub call_program {
 sub copy_image
 {
     # first clean up the diag area
-    `rm -rf diag.pal diag.s diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
+    `rm -rf diag.pal diag.s diag.S diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
     die ("DIE. could not clean up image run area")  if ($?) ;
 
     my $image_full_path = &find_diag_path ($opt{image_diag_name}, $opt{image_diag_path}, $opt{image_diag_root}) ;
@@ -2427,6 +2443,7 @@ sub parse_args
 
   foreach my $x (@ARGV) {
     if ($x =~ /\.s/) { $opt{asm_diag_name} = $x  ; }
+    elsif ($x =~ /\.S/) { $opt{asm_diag_name} = $x  ; }
     elsif ($x =~ /\.pal/) { $opt{asm_diag_name} = $x ; }
     elsif ($x =~ /\.s\.gz/) { $opt{asm_diag_name} = $x ; }
     elsif ($x =~ /\.image/) { $opt{image_diag_name} = $x ; }
@@ -2480,6 +2497,17 @@ sub parse_args
     print "network_config not specified, assuming 2dmesh configuration";
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
   }
+  
+  die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+  $ENV{PITON_PICO}=$opt{pico};
+  $ENV{PITON_PICO_HET}=$opt{pico_het};
+  push (@{$opt{config_rtl}}, "PITON_PICO") if ($opt{pico});
+  push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
+
+  if ($opt{pico} or $opt{pico_het}) {
+    push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
+    push (@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
+  }
 
   my $pton_x_tiles="";
   my $pton_y_tiles="";
@@ -2506,7 +2534,12 @@ sub parse_args
   }
 
   for (my $i=0; $i < $pton_num_tiles; $i++) {
-    push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
+            push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
+        }   
+        else {
+            push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        }
   }
 
   $ENV{PTON_X_TILES}=$pton_x_tiles;

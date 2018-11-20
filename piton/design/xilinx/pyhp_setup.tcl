@@ -30,6 +30,10 @@ set ::env(PTON_X_TILES) 1
 set ::env(PTON_Y_TILES) 1
 set ::env(PTON_NUM_TILES) 1
 
+# Pico tiles
+#set ::env(PITON_PICO_HET) 1
+#set ::env(RTL_PICO1) 1
+
 # NoC configuration
 set ::env(PTON_NETWORK_CONFIG) "2dmesh_config"
 

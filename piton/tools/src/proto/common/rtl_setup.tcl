@@ -89,6 +89,8 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/rtl/tile.v" \
     "${DV_ROOT}/design/chip/tile/rtl/config_regs.v" \
     "${DV_ROOT}/design/chip/tile/rtl/cpx_arbitrator.v" \
+    "${DV_ROOT}/design/chip/tile/rtl/ccx_l15_transducer.v" \
+    "${DV_ROOT}/design/chip/tile/rtl/pico_l15_transducer.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_priority_encoder.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_data_pgen.v" \
@@ -120,6 +122,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_state.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_dir.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/l2_data.v" \
+    "${DV_ROOT}/design/chip/tile/l2/rtl/l2_amo_alu.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_tag.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_state.v" \
     "${DV_ROOT}/design/chip/tile/l2/rtl/sram_wrappers/sram_l2_dir.v" \
@@ -132,6 +135,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_pipeline.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_mshr.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_csm.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/l15_picoencoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_cpxencoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/noc3encoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/noc3buffer.v" \
@@ -139,6 +143,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l15/rtl/noc1encoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/noc1buffer.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/simplenocbuffer.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/pico_decoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/pcx_decoder.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/pcx_buffer.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_priority_encoder.v" \
@@ -228,6 +233,8 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/common/rtl/ucb_noflow.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/cluster_header_ctu.v" \
+    "${DV_ROOT}/design/chip/tile/pico/rtl/picorv32.v" \
+    "${DV_ROOT}/design/chip/tile/pico/rtl/pico_reset.v" \
     "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc.v" \
     "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc_core.v" \
     "${DV_ROOT}/design/chip/tile/sparc/rtl/cpx_spc_rpt.v" \

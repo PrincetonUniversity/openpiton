@@ -2423,8 +2423,10 @@ wire [`NUM_TILES-1:0] cpx_spc_data_cx2_Iinv;
 ack_evict_decode cpx_spc_data_cx2_decode(
 <%
 text = '''
-        .in0   (`SPARC_CORE0.cpx_spc0_data_cx2[127:0]),'''
-pattern = ["CORE0", "in0"]
+        `ifdef RTL_SPARC0
+        .in0   (`SPARC_CORE0.cpx_spc0_data_cx2[127:0]),
+        `endif'''
+pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2442,12 +2444,14 @@ wire [`NUM_TILES-1:0] dfq_byp_mx_data_Iinv;
 ack_evict_decode dfq_byp_mx_data_decode(
 <%
 text = '''
+    `ifdef RTL_SPARC0
     `ifndef RTL_SPU
     .in0   (`SPARC_CORE0.sparc0.lsu.lsu.qdp2.dfq_byp_mx_data[127:0]),
     `else
     .in0   (`SPARC_CORE0.sparc0.lsu.qdp2.dfq_byp_mx_data[127:0]),
+    `endif
     `endif'''
-pattern = ["CORE0", "in0"]
+pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2465,12 +2469,14 @@ wire [`NUM_TILES-1:0] dfq_cpx_raw_wdata_Iinv;
 ack_evict_decode dfq_cpx_raw_wdata_decode(
 <%
 text = '''
+    `ifdef RTL_SPARC0
     `ifndef RTL_SPU
     .in0   (`SPARC_CORE0.sparc0.lsu.lsu.qdp2.dfq_cpx_raw_wdata[127:0]),
     `else
     .in0   (`SPARC_CORE0.sparc0.lsu.qdp2.dfq_cpx_raw_wdata[127:0]),
+    `endif
     `endif'''
-pattern = ["CORE0", "in0"]
+pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2500,12 +2506,14 @@ end
 ack_evict_decode dfq_byp_ff_data_decode(
 <%
 text = '''
+    `ifdef RTL_SPARC0
     `ifndef RTL_SPU
     .in0   (`SPARC_CORE0.sparc0.lsu.lsu.qdp2.dfq_byp_ff_data[127:0]),
     `else
     .in0   (`SPARC_CORE0.sparc0.lsu.qdp2.dfq_byp_ff_data[127:0]),
+    `endif
     `endif'''
-pattern = ["CORE0", "in0"]
+pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2525,8 +2533,11 @@ endmodule
 
 module ack_evict_decode(<%
 
-text = '''in0, '''
-pattern = ["in0"]
+text = '''
+        `ifdef RTL_SPARC0
+        in0, 
+        `endif'''
+pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 
@@ -2534,8 +2545,10 @@ print tt
 
 <%
 text = '''
-input [127:0] in0;'''
-pattern = ["in0"]
+        `ifdef RTL_SPARC0
+        input [127:0] in0;
+        `endif'''
+pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2545,10 +2558,12 @@ output [`NUM_TILES-1:0]  Iinv;
 
 <%
 text = '''
+    `ifdef RTL_SPARC0
     assign local[0] = (in0[`CPX_CPUID_HI:`CPX_CPUID_LO] == 3'h0);
     assign Dinv[0]  = in0[0]  | in0[32] | in0[56] | in0[88] ;
-    assign Iinv[0]  = in0[1]  | in0[57] ;'''
-pattern = ["local[0", "Dinv[0", "Iinv[0", "in0"]
+    assign Iinv[0]  = in0[1]  | in0[57] ;
+    `endif'''
+pattern = ["RTL_SPARC0", "local[0", "Dinv[0", "Iinv[0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>

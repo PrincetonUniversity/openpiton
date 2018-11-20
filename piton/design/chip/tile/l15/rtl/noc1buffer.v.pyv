@@ -210,6 +210,14 @@ begin
          data_wrindex_next = data_wrindex_plus_2;
       end
       else if (l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_SWAP_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_ADD_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_AND_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_OR_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_XOR_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_MAX_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_MAXU_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_MIN_REQUEST ||
+               l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_AMO_MINU_REQUEST ||
                l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_INTERRUPT_FWD ||
                l15_noc1buffer_req_type == `L15_NOC1_REQTYPE_WRITETHROUGH_REQUEST)
       begin
@@ -313,6 +321,14 @@ begin
       case (noc1buffer_noc1encoder_req_type)
          `L15_NOC1_REQTYPE_WRITETHROUGH_REQUEST,
          `L15_NOC1_REQTYPE_SWAP_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_ADD_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_AND_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_OR_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_XOR_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_MAX_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_MAXU_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_MIN_REQUEST,
+         `L15_NOC1_REQTYPE_AMO_MINU_REQUEST,
          `L15_NOC1_REQTYPE_INTERRUPT_FWD:
          begin
             noc1buffer_l15_req_data_sent = `NOC1_BUFFER_ACK_DATA_8B;

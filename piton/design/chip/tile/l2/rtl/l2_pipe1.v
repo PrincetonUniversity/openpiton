@@ -230,6 +230,7 @@ wire [`PHY_ADDR_WIDTH-1:0] addr_S1;
 wire dis_flush_S1;
 
 
+wire [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op_S2;
 
 wire valid_S2; 
 wire stall_S2;  
@@ -507,6 +508,7 @@ l2_pipe1_ctrl ctrl(
     .dir_op_S2                  (dir_op_S2),
     .data_clk_en_S2             (data_clk_en),
     .data_rdw_en_S2             (data_rdw_en),
+    .amo_alu_op_S2              (amo_alu_op_S2),
     .data_size_S2               (data_size_S2),
     .cache_type_S2              (cache_type_S2),
     .state_owner_en_S2          (state_owner_en_S2),
@@ -660,6 +662,7 @@ l2_pipe1_dpath dpath(
     .stall_before_S2            (stall_before_S2), 
     .data_clk_en_S2             (data_clk_en),
     .stall_real_S2              (stall_real_S2),
+    .amo_alu_op_S2              (amo_alu_op_S2),
 
     .valid_S3                   (valid_S3),
     .stall_S3                   (stall_S3),

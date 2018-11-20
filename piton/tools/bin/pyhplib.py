@@ -58,6 +58,9 @@ if NUM_TILES == -1:
     else:
         NUM_TILES = MAX_TILE
 
+PITON_PICO = int(os.environ.get('PITON_PICO', '0'))
+PITON_PICO_HET = int(os.environ.get('PITON_PICO_HET', '0'))
+
 NUM_THREADS = 2 * NUM_TILES
 
 # cache configurations

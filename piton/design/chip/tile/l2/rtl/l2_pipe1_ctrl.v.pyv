@@ -200,6 +200,7 @@ module l2_pipe1_ctrl(
 
     output reg data_clk_en_S2,
     output reg data_rdw_en_S2,
+    output reg [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op_S2,
 
     output reg [`MSG_DATA_SIZE_WIDTH-1:0] data_size_S2,
     output reg [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_S2,
@@ -397,13 +398,31 @@ begin
         atomic_state_S1_next = atomic_state0;
     end
     else if (valid_S1 && !stall_S1 && (!msg_from_mshr_S1) && 
-       (msg_type_trans_S1 == `MSG_TYPE_CAS_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ))
+       (msg_type_trans_S1 == `MSG_TYPE_CAS_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P1_REQ))
     begin
         atomic_state_S1_next = atomic_state1;
     end
     else if (valid_S1 && !stall_S1 && (!msg_from_mshr_S1) && 
-            (msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ || msg_type_trans_S1 == `MSG_TYPE_CAS_P2N_REQ
-            || msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ))
+            (msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_CAS_P2N_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P2_REQ))
     begin
         atomic_state_S1_next = atomic_state0;
     end
@@ -467,6 +486,94 @@ begin
         else    
         begin
             msg_type_trans_S1 = `MSG_TYPE_SWAP_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_ADD_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_ADD_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_ADD_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_AND_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_AND_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_AND_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_OR_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_OR_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_OR_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_XOR_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_XOR_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_XOR_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_MAX_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MAX_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MAX_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_MAXU_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MAXU_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MAXU_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_MIN_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MIN_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MIN_P2_REQ;
+        end
+    end
+    `MSG_TYPE_AMO_MINU_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MINU_P1_REQ;
+        end
+        else    
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_AMO_MINU_P2_REQ;
         end
     end
     default:
@@ -583,7 +690,15 @@ begin
                 `MSG_TYPE_LOAD_REQ, `MSG_TYPE_NC_LOAD_REQ, `MSG_TYPE_NC_STORE_REQ, `MSG_TYPE_PREFETCH_REQ,
                 `MSG_TYPE_STORE_REQ, 
                 `MSG_TYPE_WBGUARD_REQ, `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
-                `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ, `MSG_TYPE_L2_DIS_FLUSH_REQ,`MSG_TYPE_L2_LINE_FLUSH_REQ:
+                `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ, `MSG_TYPE_L2_DIS_FLUSH_REQ,`MSG_TYPE_L2_LINE_FLUSH_REQ,
+                `MSG_TYPE_AMO_ADD_P1_REQ, `MSG_TYPE_AMO_ADD_P2_REQ,
+                `MSG_TYPE_AMO_AND_P1_REQ, `MSG_TYPE_AMO_AND_P2_REQ,
+                `MSG_TYPE_AMO_OR_P1_REQ, `MSG_TYPE_AMO_OR_P2_REQ,
+                `MSG_TYPE_AMO_XOR_P1_REQ, `MSG_TYPE_AMO_XOR_P2_REQ,
+                `MSG_TYPE_AMO_MAX_P1_REQ, `MSG_TYPE_AMO_MAX_P2_REQ,
+                `MSG_TYPE_AMO_MAXU_P1_REQ, `MSG_TYPE_AMO_MAXU_P2_REQ,
+                `MSG_TYPE_AMO_MIN_P1_REQ, `MSG_TYPE_AMO_MIN_P2_REQ,
+                `MSG_TYPE_AMO_MINU_P1_REQ, `MSG_TYPE_AMO_MINU_P2_REQ:
                 begin
                 //  tag_clk_en      tag_rdw_en      state_rd_en
                     cs_S1 = {y,             rd,     y};
@@ -615,13 +730,32 @@ begin
         msg_input_en_S1_next = y;
     end
     else if ((valid_S1 && !stall_S1) 
-           &&((msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ) || (msg_type_trans_S1 == `MSG_TYPE_NC_STORE_REQ))
+           &&((msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_NC_STORE_REQ))
            && !msg_from_mshr_S1)
     begin
         msg_input_en_S1_next = n;
     end
     else if ((valid_S2 && !stall_S2)
-           &&((((msg_type_S2_f == `MSG_TYPE_CAS_P2Y_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAP_P2_REQ)) 
+           &&((((msg_type_S2_f == `MSG_TYPE_CAS_P2Y_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_SWAP_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_ADD_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_AND_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_OR_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_XOR_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_MAX_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_MAXU_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_MIN_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_AMO_MINU_P2_REQ)) 
                 && l2_tag_hit_S2 && (l2_way_state_mesi_S2 == `L2_MESI_I))
             ||((msg_type_S2_f == `MSG_TYPE_NC_STORE_REQ) 
                 && ((!l2_tag_hit_S2 && !msg_from_mshr_S2_f) || (l2_tag_hit_S2 && (l2_way_state_mesi_S2 == `L2_MESI_I) && (l2_way_state_vd_S2 == `L2_VD_CLEAN))))))
@@ -743,7 +877,17 @@ end
 always @ *
 begin
     msg_header_ready_S1 = msg_header_ready_real_S1
-                       && ((msg_type_trans_S1 != `MSG_TYPE_CAS_P1_REQ) && (msg_type_trans_S1 != `MSG_TYPE_SWAP_P1_REQ)); 
+        && ((msg_type_trans_S1 != `MSG_TYPE_CAS_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_SWAP_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_ADD_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_AND_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_OR_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_XOR_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_MAX_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_MAXU_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_MIN_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_AMO_MINU_P1_REQ)
+         ); 
 end
 
 
@@ -925,16 +1069,16 @@ begin
                 begin
                     if (msg_type_S2_f == `MSG_TYPE_NC_LOAD_REQ)
                     begin
-                        //       dir        dir      dir     data    data           mshr     state      state       state       msg 
-                        //       clk_en     rdw_en   op      clk_en  rdw_en         wr_en    owner_en   owner_op    subline_en  data_ready
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                        //       amo_alu    dir        dir      dir     data    data           mshr     state      state       state       msg 
+                        //       op         clk_en     rdw_en   op      clk_en  rdw_en         wr_en    owner_en   owner_op    subline_en  data_ready
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,          n, 
                         //       state       state   state   state          state    state           state   state
                         //       subline_op  di_en   vd_en   vd             mesi_en  mesi            lru_en  lru
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                     else
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,     n,          y, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,     n,          y, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                 end
@@ -942,12 +1086,12 @@ begin
                 begin
                     if (msg_type_S2_f == `MSG_TYPE_NC_LOAD_REQ)
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                     else
                     begin
-                        cs_S2 = {y,         wr,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                 end
@@ -955,12 +1099,12 @@ begin
                 begin
                     if (msg_type_S2_f == `MSG_TYPE_NC_STORE_REQ)
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       y,         `OP_CLR,     y,          y, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       y,         `OP_CLR,     y,          y, 
                                  `OP_CLR,    y,      y,      `L2_VD_INVAL,  y,       `L2_MESI_I, y,      `L2_LRU_CLR}; 
                     end
                     else
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                 end
@@ -968,18 +1112,18 @@ begin
                 begin
                     if (msg_type_S2_f == `MSG_TYPE_NC_STORE_REQ)
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                     else
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                 end
                 default:
                 begin
-                    cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                    cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
                              `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                 end
             endcase
@@ -992,7 +1136,7 @@ begin
         begin
             if ((msg_type_S2_f == `MSG_TYPE_CAS_P2N_REQ) || (msg_type_S2_f == `MSG_TYPE_INTERRUPT_FWD))
             begin
-                cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
+                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          y, 
                          `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR};    
             end
 
@@ -1001,13 +1145,13 @@ begin
                 case (l2_way_state_mesi_S2)
                 `L2_MESI_S:
                 begin
-                    cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                    cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                              `OP_CLR,   n,       n,      `L2_VD_ERROR,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                 end
                 `ifndef NO_RTL_CSM
                 `L2_MESI_B:
                 begin
-                    cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                    cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                              `OP_CLR,   n,       n,      `L2_VD_ERROR,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                 end
                 `endif
@@ -1016,13 +1160,13 @@ begin
                     `ifndef NO_RTL_CSM
                     if (csm_en)
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                                  `OP_CLR,   n,       n,      `L2_VD_ERROR,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                     end
                     else
                     `endif
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                                  `OP_CLR,   n,       n,      `L2_VD_ERROR,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                     end 
                 end
@@ -1033,12 +1177,12 @@ begin
                     begin
                         if (msg_type_S2_f == `MSG_TYPE_L2_LINE_FLUSH_REQ)
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         else
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                     end
@@ -1046,12 +1190,12 @@ begin
                     begin
                         if (msg_type_S2_f == `MSG_TYPE_L2_LINE_FLUSH_REQ)
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         else
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n, 
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n, 
                                      `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR}; 
                         end   
                     end
@@ -1076,14 +1220,14 @@ begin
                     begin
                         //       dir        dir      dir     data    data           mshr     state      state       state       msg 
                         //       clk_en     rdw_en   op      clk_en  rdw_en         wr_en    owner_en   owner_op    subline_en  data_ready
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,     n,          n, 
                         //       state       state   state   state          state    state           state   state
                         //       subline_op  di_en   vd_en   vd             mesi_en  mesi            lru_en  lru
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end
                     else
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,     n,          y, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,     n,          y, 
                                  `OP_CLR,    n,      n,      `L2_VD_ERROR,  n,       `L2_MESI_I, n,      `L2_LRU_CLR}; 
                     end   
                 end
@@ -1091,12 +1235,12 @@ begin
                  || msg_type_S2_f == `MSG_TYPE_L2_LINE_FLUSH_REQ
                  || msg_type_S2_f == `MSG_TYPE_L2_DIS_FLUSH_REQ)
                 begin
-                    cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
+                    cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
                              `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                 end
                 else
                 begin
-                    cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                    cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
                              `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                 end
             end 
@@ -1109,13 +1253,13 @@ begin
                     `ifndef NO_RTL_CSM
                     if (csm_en && (l2_way_state_mesi_S2 == `L2_MESI_E) && l2_way_state_subline_S2[addr_S2[`L2_DATA_SUBLINE]])
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
                                 `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     else
                     `endif
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,          n,
                                 `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                 end 
@@ -1124,18 +1268,18 @@ begin
                     case (l2_way_state_mesi_S2)
                     `L2_MESI_I:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
                                 `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1144,13 +1288,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                     end
@@ -1169,12 +1313,12 @@ begin
                         case (l2_way_state_vd_S2)
                         `L2_VD_CLEAN:
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         `L2_VD_DIRTY:
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_CLEAN,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         default:
@@ -1185,13 +1329,13 @@ begin
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1200,13 +1344,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                     end
@@ -1225,12 +1369,12 @@ begin
                         case (l2_way_state_vd_S2)
                         `L2_VD_CLEAN:
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          y,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          y,
                                     `OP_CLR,   n,       y,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         `L2_VD_DIRTY:
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            y,       n,         `OP_CLR,    n,          n,
                                     `OP_CLR,   n,       y,      `L2_VD_CLEAN,  n,      `L2_MESI_I, y,      `L2_LRU_CLR};    
                         end
                         default:
@@ -1241,13 +1385,13 @@ begin
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1256,13 +1400,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                         else    
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                     end
@@ -1283,13 +1427,13 @@ begin
                             `ifndef NO_RTL_CSM
                             if (csm_en)
                             begin
-                                cs_S2 = {y,         wr,      `OP_LD, y,      rd,            n,       y,         `OP_LD,     y,      n,           
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_LD, y,      rd,            n,       y,         `OP_LD,     y,      n,           
                                          `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_E,   y,     `L2_LRU_SET};
                             end
                             else
                             `endif
                             begin
-                                cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,           
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,           
                                          `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_E,   y,     `L2_LRU_SET};
                             end    
                         end
@@ -1300,12 +1444,12 @@ begin
                             begin
                                 if (lsid_S2 == `L2_PUBLIC_SHARER)
                                 begin
-                                    cs_S2 = {y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_CLR,     y,      n,           
+                                    cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_CLR,     y,      n,           
                                             `OP_LD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_B,   y,     `L2_LRU_SET};    
                                 end
                                 else
                                 begin
-                                    cs_S2 = {y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,           
+                                    cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,           
                                             `OP_LD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_S,   y,     `L2_LRU_SET};   
 
                                 end
@@ -1313,7 +1457,7 @@ begin
                             else
                             `endif
                             begin
-                                cs_S2 = {y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_CLR,     y,      n,           
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, y,      rd,            n,       y,         `OP_CLR,     y,      n,           
                                          `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_S,   y,     `L2_LRU_SET};   
                             end 
                         end
@@ -1325,19 +1469,19 @@ begin
                             `ifndef NO_RTL_CSM
                             if (csm_en)
                             begin
-                                cs_S2 = {y,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
                                         `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};                         
                             end
                             else
                             `endif
                             begin
-                                cs_S2 = {y,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
                                         `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};                         
                             end
                         end
                         else
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                     end
@@ -1349,19 +1493,19 @@ begin
                             `ifndef NO_RTL_CSM
                             if (csm_en)
                             begin
-                                cs_S2 = {n,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};
                             end
                             else
                             `endif
                             begin
-                                cs_S2 = {n,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
                                          `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};
                             end  
                         end
                         else
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,     
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                         end
                     end
@@ -1370,7 +1514,7 @@ begin
                     begin
                         if (req_from_owner_S2 && (cache_type_S2_f == l2_way_state_cache_type_S2))
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
                                      `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
                         end
                         else
@@ -1378,13 +1522,13 @@ begin
                             `ifndef NO_RTL_CSM
                             if (csm_en)
                             begin
-                                cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                             end 
                             else
                             `endif
                             begin
-                                cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                             end 
                         end
@@ -1397,7 +1541,7 @@ begin
                 end
                 `MSG_TYPE_PREFETCH_REQ:
                 begin
-                    cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,      n,
+                    cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            n,       n,         `OP_CLR,    n,      n,
                              `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
                 end
 
@@ -1409,25 +1553,25 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         wr,      `OP_LD, y,      rd,            n,       y,         `OP_LD,     y,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         wr,      `OP_LD, y,      rd,            n,       y,         `OP_LD,     y,      n,   
                                      `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_E, y,     `L2_LRU_SET};    
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,   
                                      `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_E, y,     `L2_LRU_SET};  
                         end  
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1435,7 +1579,7 @@ begin
                     begin
                         if (req_from_owner_S2 && (cache_type_S2_f == l2_way_state_cache_type_S2))
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
                                      `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
                         end
                         else
@@ -1443,13 +1587,13 @@ begin
                             `ifndef NO_RTL_CSM
                             if (csm_en)
                             begin
-                                cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                             end
                             else
                             `endif
                             begin
-                                cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                             end
                         end
@@ -1465,18 +1609,18 @@ begin
                     case (l2_way_state_mesi_S2)
                     `L2_MESI_I:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,      y,           
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,      y,           
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I,   y,     `L2_LRU_SET};    
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1485,13 +1629,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end 
                     end
@@ -1501,23 +1645,31 @@ begin
                     end
                     endcase
                 end
-                `MSG_TYPE_SWAP_P1_REQ:
+                `MSG_TYPE_SWAP_P1_REQ,
+                `MSG_TYPE_AMO_ADD_P1_REQ,
+                `MSG_TYPE_AMO_AND_P1_REQ,
+                `MSG_TYPE_AMO_OR_P1_REQ,
+                `MSG_TYPE_AMO_XOR_P1_REQ,
+                `MSG_TYPE_AMO_MAX_P1_REQ,
+                `MSG_TYPE_AMO_MAXU_P1_REQ,
+                `MSG_TYPE_AMO_MIN_P1_REQ,
+                `MSG_TYPE_AMO_MINU_P1_REQ:
                 begin
                     case (l2_way_state_mesi_S2)
                     `L2_MESI_I:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,      n,           
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,      n,           
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I,   y,     `L2_LRU_SET};    
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1526,13 +1678,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end 
                     end
@@ -1545,23 +1697,77 @@ begin
 
                 //TODO
                 `MSG_TYPE_CAS_P2Y_REQ,
-                `MSG_TYPE_SWAP_P2_REQ:
+                `MSG_TYPE_SWAP_P2_REQ,
+                `MSG_TYPE_AMO_ADD_P2_REQ,
+                `MSG_TYPE_AMO_AND_P2_REQ,
+                `MSG_TYPE_AMO_OR_P2_REQ,
+                `MSG_TYPE_AMO_XOR_P2_REQ,
+                `MSG_TYPE_AMO_MAX_P2_REQ,
+                `MSG_TYPE_AMO_MAXU_P2_REQ,
+                `MSG_TYPE_AMO_MIN_P2_REQ,
+                `MSG_TYPE_AMO_MINU_P2_REQ:
                 begin
                     case (l2_way_state_mesi_S2)
                     `L2_MESI_I:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                        case (msg_type_S2_f)
+                        `MSG_TYPE_CAS_P2Y_REQ,
+                        `MSG_TYPE_SWAP_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
                                  `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_ADD_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_ADD, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_AND_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_AND, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_OR_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_OR, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_XOR_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_XOR, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_MAX_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_MAX, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_MAXU_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_MAXU, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_MIN_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_MIN, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        `MSG_TYPE_AMO_MINU_P2_REQ:
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_MINU, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
+                                 `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};    
+                        end
+                        endcase
                     end
                     `L2_MESI_S:
                     begin
-                        cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `ifndef NO_RTL_CSM
                     `L2_MESI_B:
                     begin
-                        cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
+                        cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n, 
                                  `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};    
                     end
                     `endif
@@ -1570,13 +1776,13 @@ begin
                         `ifndef NO_RTL_CSM
                         if (csm_en)
                         begin
-                            cs_S2 = {y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end
                         else
                         `endif
                         begin
-                            cs_S2 = {n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,   
                                      `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};   
                         end 
                     end
@@ -1637,6 +1843,11 @@ always @ *
 begin
     mshr_wr_data_en_S2 = !stall_S2 && cs_S2[`CS_MSHR_WR_EN_P1S2];
     mshr_wr_state_en_S2 = !stall_S2 && cs_S2[`CS_MSHR_WR_EN_P1S2];
+end
+
+always @ *
+begin
+    amo_alu_op_S2 = !stall_real_S2 && cs_S2[`CS_AMO_ALU_OP_P1S2];
 end
 
 
@@ -2792,7 +3003,15 @@ begin
                     end
                     endcase
                 end
-                `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ:
+                `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ,
+                `MSG_TYPE_AMO_ADD_P1_REQ,
+                `MSG_TYPE_AMO_AND_P1_REQ,
+                `MSG_TYPE_AMO_OR_P1_REQ,
+                `MSG_TYPE_AMO_XOR_P1_REQ,
+                `MSG_TYPE_AMO_MAX_P1_REQ,
+                `MSG_TYPE_AMO_MAXU_P1_REQ,
+                `MSG_TYPE_AMO_MIN_P1_REQ,
+                `MSG_TYPE_AMO_MINU_P1_REQ:
                 begin
                     case (l2_way_state_mesi_S4)
                     `L2_MESI_I:
@@ -2814,7 +3033,15 @@ begin
                     endcase
                 end
 
-                `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ:
+                `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
+                `MSG_TYPE_AMO_ADD_P2_REQ,
+                `MSG_TYPE_AMO_AND_P2_REQ,
+                `MSG_TYPE_AMO_OR_P2_REQ,
+                `MSG_TYPE_AMO_XOR_P2_REQ,
+                `MSG_TYPE_AMO_MAX_P2_REQ,
+                `MSG_TYPE_AMO_MAXU_P2_REQ,
+                `MSG_TYPE_AMO_MIN_P2_REQ,
+                `MSG_TYPE_AMO_MINU_P2_REQ:
                 begin
                     case (l2_way_state_mesi_S4)
                     `L2_MESI_I:
@@ -3655,7 +3882,16 @@ end
 
 always @ *
 begin
-    if ((msg_type_S4_f == `MSG_TYPE_CAS_P1_REQ || msg_type_S4_f == `MSG_TYPE_SWAP_P1_REQ)
+    if ((msg_type_S4_f == `MSG_TYPE_CAS_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_SWAP_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_ADD_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_AND_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_OR_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_XOR_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_MAX_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_MAXU_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_MIN_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_AMO_MINU_P1_REQ)
     && (msg_send_valid_S4 && msg_send_type_S4 == `MSG_TYPE_DATA_ACK)
     && valid_S4 && !stall_S4)
     begin

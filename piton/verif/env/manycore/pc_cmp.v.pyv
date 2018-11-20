@@ -41,7 +41,8 @@ input rst_l;
 <%
     tt1 = r'''
     reg [31:0]   finish_mask, diag_mask;
-    reg [31:0]    active_thread, back_thread, good_delay;
+    reg [31:0]    active_thread;
+    reg [31:0]    back_thread, good_delay;
     reg [31:0]    good, good_for;
     reg [4:0]    thread_status[31:0];
     '''
@@ -137,6 +138,7 @@ endtask // get_thread_status
 
 <%
     t = r'''
+        `ifdef RTL_SPARC0
         `ifdef GATE_SIM_SPARC
         assign sas_m0                = `INSTPATH0.runw_ff_u_dff_0_.d &
                (~`INSTPATH0.exu_ifu_ecc_ce_m | `INSTPATH0.trapm_ff_u_dff_0_.q);
@@ -217,20 +219,31 @@ endtask // get_thread_status
             spc0_phy_pc_e   <= spc0_phy_pc_d;
             spc0_phy_pc_m   <= spc0_phy_pc_e;
             spc0_phy_pc_w   <= {{8{spc0_phy_pc_m[39]}}, spc0_phy_pc_m[39:0]};
-
-            if(spc0_inst_done &&
-                    active_thread[{3'b000,spc0_thread_id[1:0]}])begin
-                /*
-                     if(0 & $x_checker(`DTUPATH0.pc_w))begin
-                        $display("%0d: Detected unkown pc value spc(%d) thread(%x) value(%x)",
-                             $time, 3'b000, spc0_thread_id[1:0], `DTUPATH0.pc_w);
-                        `MONITOR_PATH.fail("Detected unkown pc");
-                     end
-                */
+        end
+        `else
+        `ifdef RTL_PICO0
+        assign spc0_thread_id = 2'b00;
+        assign spc0_rtl_pc = spc0_phy_pc_w;
+        
+        always @*
+        begin
+            if (`PICO_CORE0.pico_int == 1'b1)
+            begin
+                active_thread[(0*4)] = 1'b1;
+                active_thread[(0*4)+1] = 1'b1;
+                active_thread[(0*4)+2] = 1'b1;
+                active_thread[(0*4)+3] = 1'b1;
             end
-        end'''
+        end
+
+        always @(posedge clk) begin
+            spc0_inst_done <= `PICO_CORE0.launch_next_insn;
+            spc0_phy_pc_w <= {{16{`PICO_CORE0.reg_pc[31]}}, `PICO_CORE0.reg_pc[31:0]};
+        end
+        `endif
+        `endif'''
     pattern = ["SPARC0", "PATH0", "spc0", "sas_m0", "pcs0", "pcf0", "pcd0", "pce0", \
-                "IFQDP0", "DTUPATH0"];
+                "IFQDP0", "DTUPATH0", "PICO_CORE0", "active_thread[(0"];
     tt = ReplicatePattern(t, pattern);
     print tt;
 %>

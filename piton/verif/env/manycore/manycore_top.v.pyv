@@ -173,7 +173,7 @@ begin
     sys_rst_n = 1'b0;
     jtag_rst_l = 1'b0;
     pll_rst_n = 1'b0;
-
+   
     // Mostly DC signals set at start of boot
     clk_en = 1'b0;
     if ($test$plusargs("pll_en"))
@@ -454,16 +454,25 @@ ciop_fake_iob ciop_fake_iob(
 
     <%
         text = r'''
+        `ifdef RTL_SPARC0
         .spc0_inst_done    (`TOP_MOD.monitor.pc_cmp.spc0_inst_done),
         .pc_w0             (`PCPATH0.fdp.pc_w),
+        `endif
+        `ifdef RTL_PICO0
+        .spc0_inst_done    (1'b1),
+        .pc_w0             ({17'b0, system.chip.tile0.core.reg_pc}),
+        `endif
         '''
 
         for i in range (NUM_TILES): # extend this later
         #for i in range (8):
             text2 = text;
+            text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + `i`);
+            text2 = text2.replace("RTL_PICO0", "RTL_PICO" + `i`);
             text2 = text2.replace("spc0_inst_done", "spc" + `i` + "_inst_done");
             text2 = text2.replace("pc_w0", "pc_w" + `i`);
             text2 = text2.replace("PCPATH0", "PCPATH" + `i`);
+            text2 = text2.replace("tile0", "tile" + `i`);
             print text2;
     %>
     .clk               (chipset_clk),
@@ -545,10 +554,9 @@ fake_uart fake_uart (
             print tt
     %>
 
-
     // T1's TSO monitor, stripped of all L2 references
     tso_mon tso_mon(`CHIP_INT_CLK, `SPARC_CORE0.reset_l);
-
+   
     // this is the T1 sparc core monitor
     monitor   monitor(
         .clk    (`CHIP_INT_CLK),
@@ -596,23 +604,29 @@ fake_uart fake_uart (
 //        need_sas_sparc_intf_update  = 1;
 //    end // initial begin
 
+`ifndef PITON_PICO   
     sas_intf  sas_intf(/*AUTOINST*/
         // Inputs
         .clk       (`CHIP_INT_CLK),      // Templated
         .rst_l     (`SPARC_CORE0.reset_l));       // Templated
+`endif
 
+`ifndef PITON_PICO   
     // create sas tasks
     sas_tasks sas_tasks(/*AUTOINST*/
         // Inputs
         .clk      (`CHIP_INT_CLK),      // Templated
         .rst_l        (`SPARC_CORE0.reset_l));       // Templated
-
+`endif
+   
     // sparc pipe flow monitor
     sparc_pipe_flow sparc_pipe_flow(/*AUTOINST*/
         // Inputs
         .clk  (`CHIP_INT_CLK));         // Templated
 
+`ifndef PITON_PICO_HET
     manycore_network_mon network_mon (`CHIP_INT_CLK);
+`endif
 
 `endif // DISABLE_ALL_MONITORS
     // Alexey

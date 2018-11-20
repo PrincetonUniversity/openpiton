@@ -41,7 +41,8 @@ module ciop_fake_iob(
 
     output reg noc_out_val,
     input noc_out_rdy,
-    output reg [`NOC_DATA_WIDTH-1:0] noc_out_data<%
+    output reg [`NOC_DATA_WIDTH-1:0] noc_out_data
+<%                     
 text = ''',
    input                spc0_inst_done,
    input [48:0]         pc_w0

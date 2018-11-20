@@ -206,6 +206,20 @@
 `define FWD_RPY_RET     4'b1011
 `define RSVD_RET        4'b1111
 
+//Pico defines
+`define PICO_MEM_DATA_LO 0
+`define PICO_MEM_DATA_HI 31
+`define PICO_MEM_ADDR_LO 32
+`define PICO_MEM_ADDR_HI 63
+`define PICO_MEM_WSTRB_LO 64
+`define PICO_MEM_WSTRB_HI 67
+`define PICO_MEM_VALID    68
+
+`define PICO_CPX_INT      32
+`define PICO_INT_TYPE     17:16
+
+`define PICO_PCX_UNUSED   123:69
+`define PICO_CPX_UNUSED   144:33
 //End cache crossbar defines
 
 

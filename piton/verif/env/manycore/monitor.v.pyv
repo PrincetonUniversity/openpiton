@@ -673,6 +673,7 @@ module monitor(/*AUTOARG*/
 
 <%
     t = r'''
+       `ifdef RTL_SPARC0
        l_cache_mon l_cache_mon0(/*AUTOINST*/
     			    // Inputs
     			    .clk	(clk),
@@ -1221,6 +1222,7 @@ module monitor(/*AUTOARG*/
         //				.spc_pcx_data_pa(`PCXPATH0.spc_pcx_data_pa[`PCX_WIDTH-1:0]),
         //				.cpx_spc_data_cx(`PCXPATH0.cpx_spc_data_cx2[`CPX_WIDTH-1:0]),
         //				.cpu	(0));
+       `endif
     '''
     patterns = ["RTL_SPARC0", "mon0", "PATH0", "SPARC_CORE0", "chk0", "10'd0"];
     tt = ReplicatePattern(t, patterns);
@@ -1296,6 +1298,10 @@ module monitor(/*AUTOARG*/
 //dump cache
 `endif // ifdef RTL_SPARC0
 
+`ifdef RTL_PICO0
+   //monitor good trap and bad trap.
+   pc_cmp              pc_cmp(clk, rst_l); // Sumti - Shifting it back to clk, sas race with +fast_boot.
+`endif // ifdef RTL_PICO0
 
 	// dump_cache dump_cache();
 
@@ -1324,7 +1330,7 @@ module monitor(/*AUTOARG*/
 	`endif  // ifdef DRAM_SAT
 
 `endif // ifdef MSS_SAT
-
+              
 endmodule
 // Local Variables:
 // verilog-library-directories:("." "../../../design/sparc/rtl")

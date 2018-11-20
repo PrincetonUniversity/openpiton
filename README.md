@@ -1,25 +1,33 @@
 ![OpenPiton Logo](/docs/openpiton_logo_black.png?raw=true)
 
-# OpenPiton Research Processor   [![Build Status](https://jenkins.princeton.edu/buildStatus/icon?job=cloud/piton_git_push_master)](https://jenkins.princeton.edu/job/cloud/job/piton_git_push_master/)
+# OpenPiton Research Platform   [![Build Status](https://jenkins.princeton.edu/buildStatus/icon?job=cloud/piton_git_push_master)](https://jenkins.princeton.edu/job/cloud/job/piton_git_push_master/)
 
-OpenPiton is the world’s first open source, general purpose, multithreaded manycore processor. It is a tiled manycore framework scalable from one to 1/2 billion cores. It is a 64-bit architecture using SPARC v9 ISA with a distributed directory-based cache coherence protocol across on-chip networks. It is highly configurable in both core and uncore components. OpenPiton has been verified in both ASIC and multiple Xilinx FPGA prototypes running full-stack Debian linux. We have released both the Verilog RTL code as well as synthesis and back-end flow. We believe OpenPiton is a great framework for researchers in computer architecture, OS, compilers, EDA, security and more.
+OpenPiton is the world's first open source, general purpose, multithreaded manycore processor. It is a tiled manycore framework scalable from one to 1/2 billion cores. It is a 64-bit architecture using SPARC v9 ISA with a distributed directory-based cache coherence protocol across on-chip networks. It is highly configurable in both core and uncore components. OpenPiton has been verified in both ASIC and multiple Xilinx FPGA prototypes running full-stack Debian linux. We have released both the Verilog RTL code as well as synthesis and back-end flow. We believe OpenPiton is a great framework for researchers in computer architecture, OS, compilers, EDA, security and more.
 
 OpenPiton has been published in ASPLOS 2016: Jonathan Balkind, Michael McKeown, Yaosheng Fu, Tri Nguyen, Yanqi Zhou, Alexey Lavrov, Mohammad Shahrad, Adi Fuchs, Samuel Payne, Xiaohua Liang, Matthew Matl, and David Wentzlaff. "OpenPiton: An Open Source Manycore Research Framework." In Proceedings of the 21st International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS '16), April 2016.
 
-More information about OpenPiton is available in www.openpiton.org 
+#### Find out more
+
+- More information about OpenPiton is available at www.openpiton.org 
+- [Follow us on Twitter!](https://www.twitter.com/openpiton)
+- Get help from others by joining our [Google Group](https://groups.google.com/group/openpiton)
+- Keep up-to-date with the latest releases at the [OpenPiton Blog](https://openpiton-blog.princeton.edu)
 
 If you use OpenPiton in your research please reference our ASPLOS 2016 paper mentioned above and send us a citation of your work.
 
-#### Documentations
+#### Documentation
 
-There are several detailed documentations about OpenPiton in the docs folder listed below:
+There are several detailed pieces of documentation about OpenPiton in the docs folder listed below:
 
-- OpenPiton Simulation Manual
-- OpenPiton Microarchitecture Specification
-- OpenPiton FPGA Prototype Manual
-- OpenPiton Synthesis and Back-end Manual
+- [OpenPiton Simulation Manual](http://parallel.princeton.edu/openpiton/docs/sim_man.pdf)
+- [OpenPiton Microarchitecture Specification](http://parallel.princeton.edu/openpiton/docs/micro_arch.pdf)
+- [OpenPiton FPGA Prototype Manual](http://parallel.princeton.edu/openpiton/docs/fpga_man.pdf)
+- [OpenPiton Synthesis and Back-end Manual](http://parallel.princeton.edu/openpiton/docs/synbck_man.pdf)
 
+We also host GitHub repositories for other parts of the project, including:
 
+- [Piton Linux Kernel](https://github.com/PrincetonUniversity/piton-linux)
+- [Piton Hypervisor](https://github.com/PrincetonUniversity/piton-sw)
 
 #### Environment Setup
 - The ```PITON_ROOT``` environment variable should point to the root of the OpenPiton repository

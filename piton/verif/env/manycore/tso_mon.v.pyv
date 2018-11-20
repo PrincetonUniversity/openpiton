@@ -109,6 +109,7 @@ wire tso_mon_vcc = 1'b1;
 //--------------------------------------------------------------------------------------
 <%
 text ='''
+`ifdef RTL_SPARC1
 `ifndef RTL_SPU
 wire       spc1_dfq_byp_ff_en      = `SPARC_CORE1.sparc0.lsu.lsu.qctl2.dfq_byp_ff_en;
 wire       spc1_dfq_wr_en          = `SPARC_CORE1.sparc0.lsu.lsu.qctl2.dfq_wr_en;
@@ -118,8 +119,9 @@ wire       spc1_dfq_wr_en          = `SPARC_CORE1.sparc0.lsu.qctl2.dfq_wr_en;
 `endif
 reg        spc1_dfq_byp_ff_en_d1;
 reg        spc1_dfq_wr_en_d1;
+`endif
 '''
-pattern = ["CORE1", "spc1"]
+pattern = ["RTL_SPARC1", "CORE1", "spc1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -130,6 +132,7 @@ print tt
 
 <%
 text ='''
+`ifdef RTL_SPARC1
    wire  [4:0] 		  spc1_pcx_req_pq 	= `SPARC_CORE1.spc0_pcx_req_pq[4:0];
    wire        		  spc1_pcx_atom_pq	= `SPARC_CORE1.spc0_pcx_atom_pq;
    wire  [`PCX_WIDTH-1:0] spc1_pcx_data_pa 	= `SPARC_CORE1.spc0_pcx_data_pa[`PCX_WIDTH-1:0];
@@ -139,8 +142,9 @@ text ='''
    reg 			  pcx1_atom_pq_d2;	// delayed by 2
    reg 			  pcx1_req_pq_d1;	// OR of request bits delayed by 1
    reg [5:0]		  pcx1_type_d1;	// packet type delayed by 1
+`endif
 '''
-pattern = ["CORE1", "spc1", "pcx1"]
+pattern = ["RTL_SPARC1", "CORE1", "spc1", "pcx1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -151,6 +155,7 @@ print tt
 
 <%
 text ='''
+`ifdef RTL_SPARC1
    wire                  cpx_spc1_data_vld 	= `SPARC_CORE1.cpx_spc0_data_cx2[`CPX_WIDTH-1];
    wire [`CPX_WIDTH-1:0] cpx_spc1_data_cx2	= `SPARC_CORE1.cpx_spc0_data_cx2[`CPX_WIDTH-1:0];
 
@@ -276,8 +281,9 @@ text ='''
   reg  		st_inist_mixture1;		// a flag set upon detection of init  store and normal store mixture.
   reg 		atomic_ret1;			// atomic  cpx to spc package
   reg 		non_b2b_atomic_ret1;		// atomic  cpx to spc package did not return in back to back cycles
+`endif
 '''
-pattern = ["CORE1", "spc1", "cnt1", "mixture1", "ret1"]
+pattern = ["RTL_SPARC1", "CORE1", "spc1", "cnt1", "mixture1", "ret1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -296,6 +302,7 @@ begin
 
 <%
 text = '''
+`ifdef RTL_SPARC1
   pcx1_vld_d1 	<= spc1_pcx_data_pa[123];
   pcx1_type_d1 	<= spc1_pcx_data_pa[122:118];
   pcx1_req_pq_d1 	<= |spc1_pcx_req_pq;
@@ -340,8 +347,9 @@ text = '''
     cpx_spc1_dfill_wyvld <= 1'b0;
   else
     cpx_spc1_dfill_wyvld <= ((cpx_spc1_type == `LOAD_RET) & cpx_spc1_wyvld);
+`endif
 '''
-pattern = ["spc1", "pcx1", "cnt1", "mixture1"]
+pattern = ["RTL_SPARC1", "spc1", "pcx1", "cnt1", "mixture1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -352,13 +360,15 @@ always @(negedge clk)
 begin
 <%
 text = '''
+`ifdef RTL_SPARC1
   if (rst_l & (^spc1_pcx_req_pq === 1'bx))
      finish_test("spc", "pcx_req_pq has X-s", 1);
   else if(rst_l & pcx1_req_pq_d1)
      get_pcx(	spc1_pcx_type_str, spc1_pcx_data_pa, pcx1_type_d1,
 		pcx1_atom_pq_d1, pcx1_atom_pq_d2, 3'd0, pcx1_req_pq_d1);
+`endif
 '''
-pattern = ["spc1", "pcx1", ", 1"]
+pattern = ["RTL_SPARC1", "spc1", "pcx1", ", 1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -372,6 +382,7 @@ begin
 
 <%
 text = '''
+`ifdef RTL_SPARC1
        if(cpx_spc1_data_vld & (cpx_spc1_type == `LOAD_RET) & cpx_spc1_data_cx2[129])
        begin
            atomic_ret1 <= 1'b1;
@@ -390,8 +401,9 @@ text = '''
        end
        else
           non_b2b_atomic_ret1 <= 1'b0;
+`endif
 '''
-pattern = ["spc1", "pcx1", "ret1"]
+pattern = ["RTL_SPARC1", "spc1", "pcx1", "ret1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -403,12 +415,14 @@ begin
   begin
 <%
 text = '''
+`ifdef RTL_SPARC1
   if(cpx_spc1_data_vld)
     get_cpx_spc(cpx_spc1_type_str, cpx_spc1_type);
   if(tso_mon_msg)
     $display("%0d:Info cpx-to-spc%d packet TYPE= %s data= %x", $time, 1, cpx_spc1_type_str, cpx_spc1_data_cx2[127:0]);
+`endif
 '''
-pattern = ["spc1", " 1"]
+pattern = ["RTL_SPARC1", "spc1", " 1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -424,6 +438,7 @@ end
 //============================================================================================
 <%
 text = '''
+`ifdef RTL_SPARC1
 `ifndef RTL_SPU
 wire   C1T0_stb_ne    = |`SPARC_CORE1.sparc0.lsu.lsu.stb_ctl0.stb_state_vld[7:0];
 wire   C1T1_stb_ne    = |`SPARC_CORE1.sparc0.lsu.lsu.stb_ctl1.stb_state_vld[7:0];
@@ -948,9 +963,10 @@ begin
      finish_test("spc", "tso_mon: deferred trap problems for store T3", 1);
 
 end
+`endif
 
 '''
-pattern = ["SPARC1", "CORE1", "spc1", ", 1", "C1"]
+pattern = ["CORE1", "spc1", ", 1", "C1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -965,6 +981,7 @@ print tt
 //----------------------------------------------------------------------------
 <%
 text = '''
+`ifdef RTL_SPARC1
 reg [1:0] spc1_dfq_fsm1;
 integer  spc1_dfq_forced;
 
@@ -1055,8 +1072,9 @@ begin
   end // of else reset
 
 end
+`endif
 '''
-pattern = ["CORE1", "spc1", ", 1"]
+pattern = ["RTL_SPARC1", "CORE1", "spc1", ", 1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>
@@ -1171,10 +1189,12 @@ begin
     $display("%0d INFO: spc %d speculative request backoff", $time, spc_id);
 
   case({`TSO_MON_PCX_CPU_ID, `TSO_MON_PCX_THR_ID})
+`ifdef RTL_SPARC0
     5'h00:	current_stb_nced = C0T0_stb_nced;
     5'h01:	current_stb_nced = C0T1_stb_nced;
     5'h02:	current_stb_nced = C0T2_stb_nced;
     5'h03:	current_stb_nced = C0T3_stb_nced;
+`endif
 //    5'h04:	current_stb_nced = C1T0_stb_nced;
 //    5'h05:	current_stb_nced = C1T1_stb_nced;
 //    5'h06:	current_stb_nced = C1T2_stb_nced;

@@ -50,3 +50,6 @@ l15_priority_encoder.v
 sram_wrappers/sram_l15_tag.v
 sram_wrappers/sram_l15_data.v
 sram_wrappers/sram_l15_hmt.v
+
+pico_decoder.v
+l15_picoencoder.v

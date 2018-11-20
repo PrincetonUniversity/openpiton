@@ -100,6 +100,9 @@ for i in range(NUM_TILES):
     printstring = """
     `define TILE%d           `CHIP.tile%d
     `define SPARC_CORE%d     `TILE%d.core
+    `define PICO_CORE%d      `TILE%d.core
+    `define CCX_TRANSDUCER%d  `TILE%d.ccx_l15_transducer
+    `define PICO_TRANSDUCER%d `TILE%d.pico_l15_transducer
     `define L15_TOP%d        `TILE%d.l15.l15
     `define L15_PIPE%d       `TILE%d.l15.l15.pipeline
     `define DMBR%d           `TILE%d.dmbr_ins

@@ -52,6 +52,7 @@ module pcx_decoder(
 
    output reg        pcxdecoder_pcxbuf_ack,
    output reg [4:0]  pcxdecoder_l15_rqtype,
+   output reg [`L15_AMO_OP_WIDTH-1:0]  pcxdecoder_l15_amo_op,
    output reg        pcxdecoder_l15_nc,
    output reg [2:0]  pcxdecoder_l15_size,
    output reg [`L15_THREADID_MASK]  pcxdecoder_l15_threadid,
@@ -88,6 +89,7 @@ begin
    pcxdecoder_l15_csm_data = pcxbuf_pcxdecoder_csm_data;
 
    pcxdecoder_l15_rqtype = message[`PCX_RQ_HI:`PCX_RQ_LO];
+   pcxdecoder_l15_amo_op = `L15_AMO_OP_NONE;
    pcxdecoder_l15_nc = message[`PCX_NC];
    pcxdecoder_l15_threadid = message[`PCX_TH_HI:`PCX_TH_LO];
    pcxdecoder_l15_prefetch = message[110];
@@ -105,5 +107,21 @@ begin
    // otherwise retain the newness value
    is_message_new_next = l15_pcxdecoder_ack ? 1'b1 :
                          l15_pcxdecoder_header_ack ? 1'b0 : is_message_new;
+
+   if (message[`PCX_RQ_HI:`PCX_RQ_LO] == `PCX_REQTYPE_CAS1)
+   begin
+      pcxdecoder_l15_rqtype = `PCX_REQTYPE_AMO;
+      pcxdecoder_l15_amo_op = `L15_AMO_OP_CAS1;
+   end
+   else if (message[`PCX_RQ_HI:`PCX_RQ_LO] == `PCX_REQTYPE_CAS2)
+   begin
+      pcxdecoder_l15_rqtype = `PCX_REQTYPE_AMO;
+      pcxdecoder_l15_amo_op = `L15_AMO_OP_CAS2;
+   end
+   else if (message[`PCX_RQ_HI:`PCX_RQ_LO] == `PCX_REQTYPE_SWP_LOADSTUB)
+   begin
+      pcxdecoder_l15_rqtype = `PCX_REQTYPE_AMO;
+      pcxdecoder_l15_amo_op = `L15_AMO_OP_SWAP;
+   end
 end
 endmodule

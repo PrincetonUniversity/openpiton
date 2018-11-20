@@ -121,6 +121,26 @@ begin
             $display("L15_REQTYPE_ICACHE_SELF_INVALIDATION");
         `L15_REQTYPE_DCACHE_SELF_INVALIDATION:
             $display("L15_REQTYPE_DCACHE_SELF_INVALIDATION");
+        `L15_REQTYPE_AMO_LR:
+            $display("L15_REQTYPE_AMO_LR");
+        `L15_REQTYPE_AMO_SC:
+            $display("L15_REQTYPE_AMO_SC");
+        `L15_REQTYPE_AMO_ADD:
+            $display("L15_REQTYPE_AMO_ADD");
+        `L15_REQTYPE_AMO_AND:
+            $display("L15_REQTYPE_AMO_AND");
+        `L15_REQTYPE_AMO_OR:
+            $display("L15_REQTYPE_AMO_OR");
+        `L15_REQTYPE_AMO_XOR:
+            $display("L15_REQTYPE_AMO_XOR");
+        `L15_REQTYPE_AMO_MAX:
+            $display("L15_REQTYPE_AMO_MAX");
+        `L15_REQTYPE_AMO_MAXU:
+            $display("L15_REQTYPE_AMO_MAXU");
+        `L15_REQTYPE_AMO_MIN:
+            $display("L15_REQTYPE_AMO_MIN");
+        `L15_REQTYPE_AMO_MINU:
+            $display("L15_REQTYPE_AMO_MINU");
         default:
             $display("UNKNOWN_ERROR_OPERATION");
     endcase
@@ -235,6 +255,7 @@ endtask
 
 task decode_pcx_op;
 input [`PCX_REQTYPE_WIDTH-1:0] op;
+input [`L15_AMO_OP_WIDTH-1:0] amo_op;
 begin
     case (op)
         `PCX_REQTYPE_LOAD:
@@ -243,12 +264,41 @@ begin
             $write("PCX_REQTYPE_IFILL");
         `PCX_REQTYPE_STORE:
             $write("PCX_REQTYPE_STORE");
-        `PCX_REQTYPE_CAS1:
-            $write("PCX_REQTYPE_CAS1");
-        `PCX_REQTYPE_CAS2:
-            $write("PCX_REQTYPE_CAS2");
-        `PCX_REQTYPE_SWP_LOADSTUB:
-            $write("PCX_REQTYPE_SWP_LOADSTUB");
+        `PCX_REQTYPE_AMO:
+            case (amo_op)
+                `L15_AMO_OP_LR:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_LR");
+                `L15_AMO_OP_SC:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_SC");
+                `L15_AMO_OP_SWAP:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_SWAP");
+                `L15_AMO_OP_ADD:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_ADD");
+                `L15_AMO_OP_AND:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_AND");
+                `L15_AMO_OP_OR:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_OR");
+                `L15_AMO_OP_XOR:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_XOR");
+                `L15_AMO_OP_MAX:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_MAX");
+                `L15_AMO_OP_MAXU:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_MAXU");
+                `L15_AMO_OP_MIN:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_MIN");
+                `L15_AMO_OP_MINU:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_MINU");
+                `L15_AMO_OP_CAS1:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_CAS1");
+                `L15_AMO_OP_CAS2:
+                    $write("PCX_REQTYPE_AMO - L15_AMO_OP_CAS2");
+            endcase
+        //`PCX_REQTYPE_CAS1:
+        //    $write("PCX_REQTYPE_CAS1");
+        //`PCX_REQTYPE_CAS2:
+        //    $write("PCX_REQTYPE_CAS2");
+        //`PCX_REQTYPE_SWP_LOADSTUB:
+        //    $write("PCX_REQTYPE_SWP_LOADSTUB");
         `PCX_REQTYPE_INTERRUPT:
             $write("PCX_REQTYPE_INTERRUPT");
         `PCX_REQTYPE_FP1:
@@ -282,7 +332,7 @@ integer i;
 
 
 text = r'''
-`ifdef RTL_SPARC0
+// CORE0
 
 reg do_print_stage_TILE0;
 integer i_TILE0;
@@ -332,7 +382,7 @@ begin
     if (`L15_PIPE0.pcxdecoder_l15_val && `L15_PIPE0.val_s1 && !`L15_PIPE0.stall_s1 && !`L15_PIPE0.noc2decoder_l15_val
         && `L15_PIPE0.fetch_state_s1 == `L15_FETCH_STATE_NORMAL)
     begin
-        $write("%0d TILE0 L1.5 th%d: Received PCX ", $time, `L15_PIPE0.pcxdecoder_l15_threadid); decode_pcx_op(`L15_PIPE0.pcxdecoder_l15_rqtype);
+        $write("%0d TILE0 L1.5 th%d: Received PCX ", $time, `L15_PIPE0.pcxdecoder_l15_threadid); decode_pcx_op(`L15_PIPE0.pcxdecoder_l15_rqtype, `L15_PIPE0.pcxdecoder_l15_amo_op);
         $display("   Addr 0x%x, nc %d, size %d, invalall %d, pf %d, bs %d, bsi %d, l1way %d",
                                 `L15_PIPE0.pcxdecoder_l15_address, `L15_PIPE0.pcxdecoder_l15_nc, `L15_PIPE0.pcxdecoder_l15_size, `L15_PIPE0.pcxdecoder_l15_invalidate_cacheline,
                                 `L15_PIPE0.pcxdecoder_l15_prefetch, `L15_PIPE0.pcxdecoder_l15_blockstore, `L15_PIPE0.pcxdecoder_l15_blockinitstore, `L15_PIPE0.pcxdecoder_l15_l1rplway);
@@ -566,10 +616,13 @@ begin
         //     $write("%d:%d", i_TILE0, `L15_PIPE0.mshr_val_array[i_TILE0]);
             // $write("%d %d", i_TILE0, i_TILE0);
         // $display("");
+        
+`ifdef RTL_SPARC0
         $display("Core STB info:");
         $display("  STB0: %d", `SPARC_CORE0.sparc0.ifu.lsu_ifu_stbcnt0);
         $display("  STB1: %d", `SPARC_CORE0.sparc0.ifu.lsu_ifu_stbcnt1);
             // $write("%d %d", i_TILE0, i_TILE0);
+`endif
 
         $write("TILE0 Pipeline:");
         if (`L15_PIPE0.val_s1 && !`L15_PIPE0.stall_s1)
@@ -594,7 +647,7 @@ begin
             $write(" X ");
         $display("");
 
-        // $write("PCX pipe info: "); decode_pcx_op(`L15_PIPE0.pcxdecoder_l15_rqtype);
+        // $write("PCX pipe info: "); decode_pcx_op(`L15_PIPE0.pcxdecoder_l15_rqtype, L15_PIPE0.pcxdecoder_l15_amo_op);
         // if (`L15_PIPE0.noc1_req_val_s3 && `L15_PIPE0.noc1encoder_req_staled_s3)
         //     $display(" (staled)");
         // else if (!`L15_PIPE0.noc1_req_val_s3)
@@ -947,10 +1000,11 @@ begin
     // end
 
 // monitor PCX buffer full compare to t1 internal buffer mon
+`ifdef RTL_SPARC0
 `ifndef RTL_SPU
-    if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b0))
+    if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b0))
 `else
-    if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b0))
+    if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b0))
 `endif        
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was valid but squashed in L1.5");
@@ -958,9 +1012,9 @@ begin
             `MONITOR_PATH.fail("PCXTILE0 req was valid but squashed in L1.5");
     end
 `ifndef RTL_SPU
-    if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b1))
+    if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b1))
 `else
-    if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b1))
+    if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b1))
 `endif        
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was squashed but valid at L1.5");
@@ -969,12 +1023,13 @@ begin
     end
 
     // check for squashed atomic
-    if ((`L15_TOP0.pcx_buffer.is_req_squashed == 1'b1) && (`L15_TOP0.pcx_buffer.spc_uncore_atomic_req == 1'b1))
+    if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b1) && (`CCX_TRANSDUCER0.pcx_buffer.spc_uncore_atomic_req == 1'b1))
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 atomic req squashed");
         repeat(5)@(posedge clk)
             `MONITOR_PATH.fail("PCXTILE0 atomic req squashed");
     end
+`endif       
 
 // monitor FP transactions because it is not supported yet
 //     if (`L15_PIPE0.pcxdecoder_l15_val && !`L15_PIPE0.pcx_message_staled_s1 && `L15_PIPE0.val_s1 && !`L15_PIPE0.stall_s1 && !`L15_PIPE0.noc2decoder_l15_val)
@@ -1154,24 +1209,26 @@ begin
             `MONITOR_PATH.fail("L15 has X's in the stall_s1 signal");
     end
 
+`ifdef RTL_SPARC0
 // some checks for l15cpxencoder
-    if (`L15_TOP0.l15_cpxencoder.l15_cpxencoder_val)
+    if (`L15_TOP0.l15_transducer_val)
     begin
-        if (`L15_TOP0.l15_cpxencoder.l15_cpxencoder_inval_icache_inval)
+        if (`L15_TOP0.l15_transducer_inval_icache_inval)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l15 icache inval is not used");
             repeat(5)@(posedge clk)
                 `MONITOR_PATH.fail("l15 icache inval is not used");
         end
-        if (`L15_TOP0.l15_cpxencoder.l15_cpxencoder_returntype == `CPX_RESTYPE_ATOMIC_RES 
-            && `L15_TOP0.l15_cpxencoder.l15_cpxencoder_inval_dcache_inval)
+        if (`L15_TOP0.l15_transducer_returntype == `CPX_RESTYPE_ATOMIC_RES 
+            && `L15_TOP0.l15_transducer_inval_dcache_inval)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l15 CAS inval is not used");
             repeat(5)@(posedge clk)
                 `MONITOR_PATH.fail("l15 CAS inval is not used");
         end
     end
-
+`endif
+       
 // some checks for l15 noc1 encoder
     if (`L15_TOP0.noc1encoder.sending && `L15_TOP0.noc1encoder.req_type == 0)
     begin
@@ -1182,7 +1239,8 @@ begin
 
     end // disable_l15_mon
 end
-`endif
+
+//CORE0 END
 '''
 
 for i in range (NUM_TILES):
@@ -1192,6 +1250,7 @@ for i in range (NUM_TILES):
     text2 = text2.replace("TILE0", "TILE" + `i`);
     text2 = text2.replace("TOP0", "TOP" + `i`);
     text2 = text2.replace("CORE0", "CORE" + `i`);
+    text2 = text2.replace("TRANSDUCER0", "TRANSDUCER" + `i`);
     print text2;
 %>
 

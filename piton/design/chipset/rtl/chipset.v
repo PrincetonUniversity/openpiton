@@ -547,6 +547,7 @@ wire    [3:0]   net_phy_rxd_inter;
 
 wire            sd_clk_out_internal;
 
+
 //////////////////////
 // Sequential Logic //
 //////////////////////

@@ -559,7 +559,7 @@ def diff_openpiton(prog, dv_root, dc, pt, icc):
                                 openpiton_flow_rel = os.path.relpath(openpiton_flow)
 
                                 # Run diff to generate patch
-                                diff_cmd = ['diff', '-er', diff_dir_rel, openpiton_flow_rel]
+                                diff_cmd = ['diff', '-erw', diff_dir_rel, openpiton_flow_rel]
                                 fp = open(patch_file, 'w')
                                 p = subprocess.Popen(diff_cmd, stdout=fp, stderr=subprocess.PIPE)
                                 (out, err) = p.communicate()

@@ -1017,7 +1017,8 @@ module chip(
     // Generate tile instances
 <%
     template = r'''
-    tile tile0(
+    tile #(.TILE_TYPE(TYPE_OF_TILE))
+    tile0 (
         .clk                (clk_muxed),
         .rst_n              (rst_n_inter_sync),
         .clk_en             (ctap_clk_en_inter[_FLAT_ID_] && clk_en_inter),
@@ -1090,6 +1091,16 @@ module chip(
             currenttile = currenttile.replace("COREIDY", "8'd" + `j`);
             currenttile = currenttile.replace("out_", "tile_%d_%d_out_" % (j,i));
             currenttile = currenttile.replace("_FLAT_ID_", `flatid`);
+
+            if (PITON_PICO_HET):
+                if (flatid % 2) == 0:
+                    currenttile = currenttile.replace("TYPE_OF_TILE", "`SPARC_TILE")
+                else:
+                    currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
+            elif (PITON_PICO):
+                currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
+            else:
+                currenttile = currenttile.replace("TYPE_OF_TILE", "`SPARC_TILE")
 
             if (NETWORK_CONFIG == "xbar_config"):
                 currenttile = currenttile.replace("in_", "xbar_%d_out_" % i);

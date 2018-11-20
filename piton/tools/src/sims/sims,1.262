@@ -197,6 +197,8 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'pci_diag_name' => "",
         'pci_diag_path' => "",
         'pci_diag_root' => [],
+        'pico' => 0,
+        'pico_het' => 0,
         'post_process_cmd' => [],
         'pre_process_cmd' => [],
         'reg_count' => 0,
@@ -5173,6 +5175,8 @@ sub parse_args
             'pci_diag_name=s',
             'pci_diag_path=s',
             'pci_diag_root=s@',
+            'pico!',
+            'pico_het!',
             'post_process_cmd=s@',
             'pre_process_cmd=s@',
             'reg_count=i',
@@ -5443,6 +5447,12 @@ sub parse_args
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
   }
 
+  die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+  $ENV{PITON_PICO}=$opt{pico};
+  $ENV{PITON_PICO_HET}=$opt{pico_het};
+  push (@{$opt{config_rtl}}, "PITON_PICO") if ($opt{pico});
+  push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
+
   # conveniently sets up the tile RTL defines for manycore model
   if ($opt{x_tiles} && $opt{y_tiles}) {
 
@@ -5450,7 +5460,12 @@ sub parse_args
     die ("DIE. y_tiles can be at most 256") if ($opt{y_tiles} > 256) ;
 
     for (my $i = 0; $i < ($opt{x_tiles} * $opt{y_tiles}); $i++) {
-        push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
+            push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
+	}
+        else {
+            push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        }
     }
     my $pton_num_tiles=($opt{x_tiles} * $opt{y_tiles});
 
@@ -5477,7 +5492,12 @@ sub parse_args
     
     for (my $i=0; $i < $opt{num_tile}; $i++) {
         # print "$i\n";
-        push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
+            push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
+	}
+        else {
+            push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+        }
     }
     my $pton_x_tiles=(($opt{num_tile}-1)%8)+1;
     my $pton_y_tiles=(($opt{num_tile}-1)/8)+1;

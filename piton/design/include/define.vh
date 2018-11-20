@@ -177,9 +177,35 @@
 `define MSG_TYPE_NC_STORE_REQ       8'd15
 `define MSG_TYPE_INTERRUPT_FWD       8'd32
 
+//RISC-V AMO requests
+`define MSG_TYPE_AMO_ADD_REQ         8'd36
+`define MSG_TYPE_AMO_AND_REQ         8'd37
+`define MSG_TYPE_AMO_OR_REQ          8'd38
+`define MSG_TYPE_AMO_XOR_REQ         8'd39
+`define MSG_TYPE_AMO_MAX_REQ         8'd40
+`define MSG_TYPE_AMO_MAXU_REQ        8'd41
+`define MSG_TYPE_AMO_MIN_REQ         8'd42
+`define MSG_TYPE_AMO_MINU_REQ        8'd43
 
+//RISC-V AMO L2-internal phase 1
+`define MSG_TYPE_AMO_ADD_P1_REQ      8'd44
+`define MSG_TYPE_AMO_AND_P1_REQ      8'd45
+`define MSG_TYPE_AMO_OR_P1_REQ       8'd46
+`define MSG_TYPE_AMO_XOR_P1_REQ      8'd47
+`define MSG_TYPE_AMO_MAX_P1_REQ      8'd48
+`define MSG_TYPE_AMO_MAXU_P1_REQ     8'd49
+`define MSG_TYPE_AMO_MIN_P1_REQ      8'd50
+`define MSG_TYPE_AMO_MINU_P1_REQ     8'd51
 
-
+//RISC-V AMO L2-internal phase 2
+`define MSG_TYPE_AMO_ADD_P2_REQ      8'd52
+`define MSG_TYPE_AMO_AND_P2_REQ      8'd53
+`define MSG_TYPE_AMO_OR_P2_REQ       8'd54
+`define MSG_TYPE_AMO_XOR_P2_REQ      8'd55
+`define MSG_TYPE_AMO_MAX_P2_REQ      8'd56
+`define MSG_TYPE_AMO_MAXU_P2_REQ     8'd57
+`define MSG_TYPE_AMO_MIN_P2_REQ      8'd58
+`define MSG_TYPE_AMO_MINU_P2_REQ     8'd59
 
 
 //Forward requests from L2 to L15
@@ -573,6 +599,8 @@
 `define CFG_CSM_ITLB_DEFAULT     64'b0
 `define CFG_CSM_DTLB_DEFAULT     64'b0
 
+`define SPARC_TILE 0
+`define PICORV32_TILE 1
 
 `endif
 

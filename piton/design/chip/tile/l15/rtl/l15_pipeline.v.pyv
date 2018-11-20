@@ -58,6 +58,7 @@ module l15_pipeline(
 
     // pcx
     input wire [`PCX_REQTYPE_WIDTH-1:0] pcxdecoder_l15_rqtype,
+    input wire [`L15_AMO_OP_WIDTH-1:0] pcxdecoder_l15_amo_op,
     input wire pcxdecoder_l15_nc,
     input wire [`PCX_SIZE_FIELD_WIDTH-1:0] pcxdecoder_l15_size,
     // input wire pcxdecoder_l15_invalall,         // unused input from core
@@ -693,17 +694,93 @@ begin
                     end
                     else
                         predecode_reqtype_s1 = `L15_REQTYPE_STORE;
-                `PCX_REQTYPE_CAS1:
+                //`PCX_REQTYPE_CAS1:
+                //begin
+                //    predecode_reqtype_s1 = `L15_REQTYPE_CAS;
+                //    predecode_atomic_s1 = 1;
+                //end
+                //`PCX_REQTYPE_CAS2:
+                //    predecode_reqtype_s1 = `L15_REQTYPE_IGNORE;
+                //`PCX_REQTYPE_SWP_LOADSTUB:
+                //begin
+                //    predecode_reqtype_s1 = `L15_REQTYPE_SWP_LOADSTUB;
+                //    predecode_atomic_s1 = 1;
+                //end
+                `PCX_REQTYPE_AMO:
                 begin
-                    predecode_reqtype_s1 = `L15_REQTYPE_CAS;
-                    predecode_atomic_s1 = 1;
-                end
-                `PCX_REQTYPE_CAS2:
-                    predecode_reqtype_s1 = `L15_REQTYPE_IGNORE;
-                `PCX_REQTYPE_SWP_LOADSTUB:
-                begin
-                    predecode_reqtype_s1 = `L15_REQTYPE_SWP_LOADSTUB;
-                    predecode_atomic_s1 = 1;
+                    case (pcxdecoder_l15_amo_op)
+                    `L15_AMO_OP_NONE:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_IGNORE;
+                    end
+                    `L15_AMO_OP_LR:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_LR;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_SC:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_SC;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_SWAP:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_SWP_LOADSTUB;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_ADD:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_ADD;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_AND:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_AND;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_OR:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_OR;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_XOR:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_XOR;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_MAX:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_MAX;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_MAXU:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_MAXU;
+                        predecode_atomic_s1 = 1;
+
+                    end
+                    `L15_AMO_OP_MIN:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_MIN;
+                        predecode_atomic_s1 = 1;
+
+                    end
+                    `L15_AMO_OP_MINU:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_AMO_MINU;
+                        predecode_atomic_s1 = 1;
+
+                    end
+                    `L15_AMO_OP_CAS1:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_CAS;
+                        predecode_atomic_s1 = 1;
+                    end
+                    `L15_AMO_OP_CAS2:
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_IGNORE;
+                    end
+                    endcase
                 end
                 `PCX_REQTYPE_INTERRUPT:
                 begin
@@ -910,7 +987,19 @@ end
 
 always @ *
 begin
-    fetch_is_pcx_atomic_instruction_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_CAS || predecode_reqtype_s1 == `L15_REQTYPE_SWP_LOADSTUB);
+    fetch_is_pcx_atomic_instruction_s1 =
+        (predecode_reqtype_s1 == `L15_REQTYPE_CAS ||
+         predecode_reqtype_s1 == `L15_REQTYPE_SWP_LOADSTUB ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_LR ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_SC ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_ADD ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_AND ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_OR ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_XOR ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_MAX ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_MAXU ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_MIN ||
+         predecode_reqtype_s1 == `L15_REQTYPE_AMO_MINU);
     // fetch_is_pcx_blockstore_instruction_s1 = 0;
     fetch_is_pcx_storenc_instruction_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_WRITETHROUGH) && !predecode_int_vec_dis_s1;
     fetch_is_pcx_loadnc_instruction_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_LOAD_NC);
@@ -1294,7 +1383,17 @@ begin
         end
 
         `L15_REQTYPE_CAS,
-        `L15_REQTYPE_SWP_LOADSTUB:
+        `L15_REQTYPE_SWP_LOADSTUB,
+        `L15_REQTYPE_AMO_LR,
+        `L15_REQTYPE_AMO_SC,
+        `L15_REQTYPE_AMO_ADD,
+        `L15_REQTYPE_AMO_AND,
+        `L15_REQTYPE_AMO_OR,
+        `L15_REQTYPE_AMO_XOR,
+        `L15_REQTYPE_AMO_MAX,
+        `L15_REQTYPE_AMO_MAXU,
+        `L15_REQTYPE_AMO_MIN,
+        `L15_REQTYPE_AMO_MINU:
         begin
             if (fetch_state_s1 == `L15_FETCH_STATE_NORMAL)
             begin // writeback for CAS/Atomic
@@ -1341,16 +1440,38 @@ begin
                 decoder_mshr_allocation_type_s1 = `L15_MSHR_ID_LD;
 
                 decoder_csm_op_s1 = `L15_CSM_OP_READ_GHID;
-                if (predecode_reqtype_s1 == `L15_REQTYPE_CAS)
-                begin
-                    decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
-                    // decoder_creditman_req_16B_s1 = 1'b1;
-                end
-                else
-                begin
-                    decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_SWAP_REQUEST_FROM_PCX;
-                    // decoder_creditman_req_8B_s1 = 1'b1;
-                end
+                //if (predecode_reqtype_s1 == `L15_REQTYPE_CAS)
+                //begin
+                //    decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
+                //    // decoder_creditman_req_16B_s1 = 1'b1;
+                //end
+                //else
+                //begin
+                //    decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_SWAP_REQUEST_FROM_PCX;
+                //    // decoder_creditman_req_8B_s1 = 1'b1;
+                //end
+                case (predecode_reqtype_s1)
+                    `L15_REQTYPE_CAS:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_SWP_LOADSTUB:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_SWAP_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_ADD:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_ADD_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_AND:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_AND_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_OR:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_OR_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_XOR:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_XOR_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_MAX:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_MAX_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_MAXU:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_MAXU_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_MIN:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_MIN_REQUEST_FROM_PCX;
+                    `L15_REQTYPE_AMO_MINU:
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_MINU_REQUEST_FROM_PCX;
+                endcase
                 // decoder_creditman_noc1_needed = 2'd1;
             end
         end
@@ -3860,6 +3981,70 @@ begin
         begin
             noc1_req_val_s3 = val_s3;
             noc1_type_s3 = `L15_NOC1_REQTYPE_SWAP_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_ADD_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_ADD_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_AND_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_AND_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_OR_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_OR_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_XOR_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_XOR_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_MAX_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_MAX_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_MAXU_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_MAXU_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_MIN_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_MIN_REQUEST;
+            noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+        end
+        `L15_NOC1_GEN_DATA_MINU_REQUEST_FROM_PCX:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_AMO_MINU_REQUEST;
             noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_64B;
             l15_noc1buffer_req_address = address_s3;
             noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;

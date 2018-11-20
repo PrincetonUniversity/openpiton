@@ -26,6 +26,7 @@
 // ========== Copyright Header End ============================================
 
 l2.v
+l2_amo_alu.v
 l2_data.v
 l2_data_wrap.v
 l2_data_pgen.v

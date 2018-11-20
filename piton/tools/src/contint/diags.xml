@@ -474,4 +474,14 @@
     </asm_regress>
 </jtag>
 
+<pico_tile1>
+    <asm_regress name="pico_tile1">
+        <sys>manycore</sys>
+        <x_tiles>1</x_tiles>
+		<y_tiles>1</y_tiles>
+        <pico/>
+        <group>pico_tile1</group>
+    </asm_regress>
+</pico_tile1>
+
 </bundles>

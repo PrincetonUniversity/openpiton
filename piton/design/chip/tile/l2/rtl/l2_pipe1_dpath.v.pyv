@@ -133,6 +133,7 @@ module l2_pipe1_dpath(
     input wire state_load_sdid_S2, 
     input wire data_clk_en_S2,
     input wire stall_real_S2,
+    input wire [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op_S2,
 
     //Inputs to Stage 3
 
@@ -930,6 +931,7 @@ reg [`L2_DATA_DATA_WIDTH-1:0] msg_data_mask_in_S2;
 reg [`L2_DATA_DATA_WIDTH-1:0] data_data_merge_S2;
 wire [`L2_DATA_ECC_PARITY_WIDTH-1:0] data_data_parity1_S2;
 wire [`L2_DATA_ECC_PARITY_WIDTH-1:0] data_data_parity2_S2;
+wire [`L2_DATA_DATA_WIDTH-1:0] amo_result_S2;
 
 always @ *
 begin
@@ -955,11 +957,24 @@ begin
     msg_data_mask_in_S2 = {msg_data_mask_in_S2[63:0], msg_data_mask_in_S2[127:64]};
 end
 
+l2_amo_alu l2_amo_alu (
+    .amo_alu_op     (amo_alu_op_S2),
+    .address        (addr_S2_f),
+    .data_size      (data_size_S2),
+    .memory_operand (atomic_read_data_S2_f),
+    .cpu_operand    ({msg_data_S2, msg_data_S2}),
+    .amo_result     (amo_result_S2)
+);
 
 always @ *
 begin
     data_data_merge_S2 = ({msg_data_S2, msg_data_S2} & msg_data_mask_in_S2)
                        | (atomic_read_data_S2_f & ~msg_data_mask_in_S2); 
+
+    if (amo_alu_op_S2 != `L2_AMO_ALU_NOP)
+    begin
+        data_data_merge_S2 = amo_result_S2;
+    end
 end
 
 l2_data_pgen data_pgen1( 

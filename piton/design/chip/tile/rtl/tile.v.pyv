@@ -28,7 +28,9 @@ DMBR_BIN_NUM = 10
 from pyhplib import *
 %>
 
-module tile(
+module tile #(
+     parameter TILE_TYPE = `SPARC_TILE
+    )(
     input                               clk,
     input                               rst_n,    // trin: assumed to be synchronous
     input                               clk_en,   // trin: assumed to be asynchronous
@@ -236,22 +238,67 @@ print s
     wire                                router_buffer_consumed_noc3;
     wire                                thanksIn_CGNO2;
 
-
-    wire   [4:0]                        pcx_req;
-    wire                                pcx_atomic_req;
-    wire   [123:0]                      pcx_data;
+    wire   [4:0]                        pcx_transducer_req;
+    wire                                pcx_transducer_atomic_req;
+    wire   [123:0]                      pcx_transducer_data;
+   
     `ifndef NO_RTL_CSM
-    wire   [`TLB_CSM]                   pcx_csm;
+    wire   [`TLB_CSM]                   pcx_transducer_csm;
     `endif
-    wire [4:0]                          pcx_grant;
+
+    wire [4:0]                          transducer_pcx_grant;
     // is actually cpx_data_valid
-    wire                                cpx_data_ready;
-    wire [144:0]                        cpx_data;
-    
+    wire                                transducer_cpx_data_ready;
+    wire [144:0]                        transducer_cpx_data;
+   
     wire                                spc_grst_l;
     wire                                cpx_arb_spc_data_rdy;
     wire [144:0]                        cpx_arb_spc_data;
     wire [4:0]                          cpx_arb_spc_grant;
+
+    wire [`PCX_REQTYPE_WIDTH-1:0]       transducer_l15_rqtype;
+    wire [`L15_AMO_OP_WIDTH-1:0]        transducer_l15_amo_op;
+    wire                                transducer_l15_nc;
+    wire [`PCX_SIZE_FIELD_WIDTH-1:0]    transducer_l15_size;
+    wire [`L15_THREADID_MASK]           transducer_l15_threadid;
+    wire                                transducer_l15_prefetch;
+    wire                                transducer_l15_invalidate_cacheline;
+    wire                                transducer_l15_blockstore;
+    wire                                transducer_l15_blockinitstore;
+    wire [1:0]                          transducer_l15_l1rplway;
+    wire                                transducer_l15_val;
+    wire [`L15_PADDR_HI:0]              transducer_l15_address;
+    wire [63:0]                         transducer_l15_data;
+    wire [63:0]                         transducer_l15_data_next_entry;
+    wire [`TLB_CSM_WIDTH-1:0]           transducer_l15_csm_data;
+
+    wire                                l15_transducer_ack;
+    wire                                l15_transducer_header_ack;
+
+    wire                                l15_transducer_val;
+    wire [3:0]                          l15_transducer_returntype;
+    wire                                l15_transducer_l2miss;
+    wire [1:0]                          l15_transducer_error;
+    wire                                l15_transducer_noncacheable;
+    wire                                l15_transducer_atomic;
+    wire [`L15_THREADID_MASK]           l15_transducer_threadid;
+    wire                                l15_transducer_prefetch;
+    wire                                l15_transducer_f4b;
+    wire [63:0]                         l15_transducer_data_0;
+    wire [63:0]                         l15_transducer_data_1;
+    wire [63:0]                         l15_transducer_data_2;
+    wire [63:0]                         l15_transducer_data_3;
+    wire                                l15_transducer_inval_icache_all_way;
+    wire                                l15_transducer_inval_dcache_all_way;
+    wire [15:4]                         l15_transducer_inval_address_15_4;
+    wire                                l15_transducer_cross_invalidate;
+    wire [1:0]                          l15_transducer_cross_invalidate_way;
+    wire                                l15_transducer_inval_dcache_inval;
+    wire                                l15_transducer_inval_icache_inval;
+    wire [1:0]                          l15_transducer_inval_way;
+    wire                                l15_transducer_blockinitstore;
+
+    wire                                transducer_l15_req_ack;
 
 
     wire [`CORE_JTAG_BUS_WIDTH-1:0] core_rtap_data;
@@ -598,19 +645,23 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .ready_out(processor_router_ready_noc3)    // Rdy signal from processor to dynamic network
     );
 
+///////////////////////
+// Instantiate Cores //
+///////////////////////
+generate
+if (TILE_TYPE == `SPARC_TILE) begin
     ////////////////
     // SPARC Core //
     ////////////////
-
     sparc_core core(
        .gclk(clk_gated),
        .reset_l(rst_n_f),
        .spc_grst_l(spc_grst_l),
-       .spc0_pcx_req_pq(pcx_req),
-       .spc0_pcx_atom_pq(pcx_atomic_req),
-       .spc0_pcx_data_pa(pcx_data),
+       .spc0_pcx_req_pq(pcx_transducer_req),
+       .spc0_pcx_atom_pq(pcx_transducer_atomic_req),
+       .spc0_pcx_data_pa(pcx_transducer_data),
        `ifndef NO_RTL_CSM
-       .spc0_pcx_csm_pa(pcx_csm),
+       .spc0_pcx_csm_pa(pcx_transducer_csm),
        `endif
        .pcx_spc0_grant_px(cpx_arb_spc_grant[0]),
        .cpx_spc0_data_cx2(cpx_arb_spc_data),
@@ -636,18 +687,183 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .clk (clk_gated),
         .rst_n (rst_n_f),
 
-        .pcx_fpio_data_px2_67_0 (pcx_data[67:0]),
-        .pcx_fpio_data_px2_79_72 (pcx_data[79:72]),
-        .pcx_fpio_data_px2_116_112 (pcx_data[116:112]),
-        .pcx_fpio_data_px2_123_118 (pcx_data[123:118]),
+        .pcx_fpio_data_px2_67_0     (pcx_transducer_data[67:0]),
+        .pcx_fpio_data_px2_79_72    (pcx_transducer_data[79:72]),
+        .pcx_fpio_data_px2_116_112  (pcx_transducer_data[116:112]),
+        .pcx_fpio_data_px2_123_118  (pcx_transducer_data[123:118]),
 
-        .l15_fp_rdy(cpx_data_ready),
+        .l15_fp_rdy(transducer_cpx_data_ready),
 
         .fpu_arb_data_rdy(fpu_arb_data_rdy),
         .fpu_arb_data(fpu_arb_data),
         .fpu_arb_grant(fpu_arb_grant)
     );
 
+    ////////////////////
+    // CPX Arbitrator //
+    //////////////////// 
+
+    cpx_arbitrator cpx_arbitrator(
+        .clk(clk_gated),
+        .rst_n(rst_n_f),
+
+        .rtap_arb_req_val(rtap_arb_req_val),
+        .rtap_arb_req_data(rtap_arb_req_data),
+        .rtap_arb_req_threadid(rtap_arb_req_threadid),
+        
+        .uncore_spc_data_ready(transducer_cpx_data_ready),
+        .uncore_spc_data(transducer_cpx_data),
+        .uncore_spc_grant(transducer_pcx_grant),
+        
+        .fpu_arb_data_rdy(fpu_arb_data_rdy),
+        .fpu_arb_data(fpu_arb_data),
+        .fpu_arb_grant(fpu_arb_grant),
+        
+        .cpx_arb_spc_data_rdy(cpx_arb_spc_data_rdy),
+        .cpx_arb_spc_data(cpx_arb_spc_data),
+        .cpx_arb_spc_grant(cpx_arb_spc_grant)
+    );
+
+    ccx_l15_transducer ccx_l15_transducer(
+        .clk                                (clk),
+        .rst_n                              (rst_n),
+
+        .pcx_transducer_req_0               (pcx_transducer_req[0]),
+        .pcx_transducer_atomic_req          (pcx_transducer_atomic_req),
+        .pcx_transducer_data_123_117        (pcx_transducer_data[123:117]),
+        .pcx_transducer_data_112_0          (pcx_transducer_data[112:0]),
+
+        `ifndef NO_RTL_CSM
+        .pcx_transducer_csm                 (pcx_transducer_csm),
+        `endif
+        
+        .transducer_pcx_grant               (transducer_pcx_grant),
+        .transducer_cpx_data_ready          (transducer_cpx_data_ready),
+        .transducer_cpx_data                (transducer_cpx_data),
+
+        .l15_transducer_ack                 (l15_transducer_ack),
+        .l15_transducer_header_ack          (l15_transducer_header_ack),
+                               
+        .transducer_l15_rqtype              (transducer_l15_rqtype),
+        .transducer_l15_amo_op              (transducer_l15_amo_op),
+        .transducer_l15_size                (transducer_l15_size),
+        .transducer_l15_val                 (transducer_l15_val),
+        .transducer_l15_address             (transducer_l15_address),
+        .transducer_l15_data                (transducer_l15_data),
+
+        .transducer_l15_nc                  (transducer_l15_nc),
+        .transducer_l15_threadid            (transducer_l15_threadid),
+        .transducer_l15_prefetch            (transducer_l15_prefetch),
+        .transducer_l15_blockstore          (transducer_l15_blockstore),
+        .transducer_l15_blockinitstore      (transducer_l15_blockinitstore),
+        .transducer_l15_l1rplway            (transducer_l15_l1rplway),
+        .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
+        .transducer_l15_csm_data            (transducer_l15_csm_data),
+        .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
+        
+        .l15_transducer_val                 (l15_transducer_val),
+        .l15_transducer_returntype          (l15_transducer_returntype),
+        .l15_transducer_l2miss              (l15_transducer_l2miss),
+        .l15_transducer_error               (l15_transducer_error),
+        .l15_transducer_noncacheable        (l15_transducer_noncacheable),
+        .l15_transducer_atomic              (l15_transducer_atomic),
+        .l15_transducer_threadid            (l15_transducer_threadid),
+        .l15_transducer_prefetch            (l15_transducer_prefetch),
+        .l15_transducer_f4b                 (l15_transducer_f4b),
+        .l15_transducer_data_0              (l15_transducer_data_0),
+        .l15_transducer_data_1              (l15_transducer_data_1),
+        .l15_transducer_data_2              (l15_transducer_data_2),
+        .l15_transducer_data_3              (l15_transducer_data_3),
+        .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
+        .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
+        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
+        .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
+        .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
+        .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),
+        .l15_transducer_inval_icache_inval  (l15_transducer_inval_icache_inval),
+        .l15_transducer_inval_way           (l15_transducer_inval_way),
+        .l15_transducer_blockinitstore      (l15_transducer_blockinitstore),
+        
+        .transducer_l15_req_ack             (transducer_l15_req_ack)
+    );
+                 
+
+end
+else if (TILE_TYPE == `PICORV32_TILE) begin
+    ///////////////////
+    // PicoRV32 Core //
+    ///////////////////
+    wire         pico_transducer_mem_valid;
+    wire         transducer_pico_mem_ready;
+    wire [31:0]  pico_transducer_mem_addr;
+    wire [31:0]  pico_transducer_mem_wdata;
+    wire [ 3:0]  pico_transducer_mem_wstrb;
+    wire [31:0]  transducer_pico_mem_rdata;
+    wire         pico_int;
+
+    picorv32 core(
+        .clk        (clk_gated),
+        .reset_l    (rst_n_f),
+        .trap       (),
+        .mem_valid  (pico_transducer_mem_valid),
+        .mem_instr  (),
+        .mem_ready  (transducer_pico_mem_ready),
+        .mem_addr   (pico_transducer_mem_addr),
+        .mem_wdata  (pico_transducer_mem_wdata),
+        .mem_wstrb  (pico_transducer_mem_wstrb),
+        .mem_rdata  (transducer_pico_mem_rdata),
+
+        .pico_int   (pico_int)
+    );
+ 
+    pico_reset pico_reset(
+        .gclk(clk_gated),
+        .rst_n(rst_n_f),
+        .spc_grst_l(spc_grst_l)                         
+    );
+
+    pico_l15_transducer pico_l15_transducer(
+        .clk                                (clk),
+        .rst_n                              (rst_n),
+
+        .pico_transducer_mem_valid          (pico_transducer_mem_valid),
+        .pico_transducer_mem_addr           (pico_transducer_mem_addr),
+        .pico_transducer_mem_wstrb          (pico_transducer_mem_wstrb),
+        .pico_transducer_mem_wdata          (pico_transducer_mem_wdata),
+        .l15_transducer_ack                 (l15_transducer_ack),
+        .l15_transducer_header_ack          (l15_transducer_header_ack),
+                               
+        .transducer_l15_rqtype              (transducer_l15_rqtype),
+        .transducer_l15_amo_op              (transducer_l15_amo_op),
+        .transducer_l15_size                (transducer_l15_size),
+        .transducer_l15_val                 (transducer_l15_val),
+        .transducer_l15_address             (transducer_l15_address),
+        .transducer_l15_data                (transducer_l15_data),
+
+        .transducer_l15_nc                  (transducer_l15_nc),
+        .transducer_l15_threadid            (transducer_l15_threadid),
+        .transducer_l15_prefetch            (transducer_l15_prefetch),
+        .transducer_l15_blockstore          (transducer_l15_blockstore),
+        .transducer_l15_blockinitstore      (transducer_l15_blockinitstore),
+        .transducer_l15_l1rplway            (transducer_l15_l1rplway),
+        .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
+        .transducer_l15_csm_data            (transducer_l15_csm_data),
+        .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
+        
+        .l15_transducer_val                 (l15_transducer_val),
+        .l15_transducer_returntype          (l15_transducer_returntype),
+        
+        .l15_transducer_data_0              (l15_transducer_data_0),
+        .l15_transducer_data_1              (l15_transducer_data_1),
+        
+        .transducer_pico_mem_ready          (transducer_pico_mem_ready),
+        .transducer_pico_mem_rdata          (transducer_pico_mem_rdata),
+        
+        .transducer_l15_req_ack             (transducer_l15_req_ack),
+        .pico_int                           (pico_int)
+    );
+end
+endgenerate      
     //////////
     // L1.5 //
     //////////
@@ -656,13 +872,51 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .clk(clk_gated),
         .rst_n(spc_grst_l),
 
-        .pcx_req_0(pcx_req[0]),
-        .pcx_atomic_req(pcx_atomic_req),
-        .pcx_data_123_117(pcx_data[123:117]),
-        .pcx_data_112_0(pcx_data[112:0]),
-        `ifndef NO_RTL_CSM
-        .pcx_csm(pcx_csm),
-        `endif
+        .transducer_l15_rqtype              (transducer_l15_rqtype),
+        .transducer_l15_amo_op              (transducer_l15_amo_op),
+        .transducer_l15_nc                  (transducer_l15_nc),
+        .transducer_l15_size                (transducer_l15_size),
+        // .pcxdecoder_l15_invalall         (transducer_l15_invalall),
+        .transducer_l15_threadid            (transducer_l15_threadid),
+        .transducer_l15_prefetch            (transducer_l15_prefetch),
+        .transducer_l15_blockstore          (transducer_l15_blockstore),
+        .transducer_l15_blockinitstore      (transducer_l15_blockinitstore),
+        .transducer_l15_l1rplway            (transducer_l15_l1rplway),
+        .transducer_l15_val                 (transducer_l15_val),
+        .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
+        .transducer_l15_address             (transducer_l15_address),
+        .transducer_l15_csm_data            (transducer_l15_csm_data),
+        .transducer_l15_data                (transducer_l15_data),
+        .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
+
+        .l15_transducer_ack                 (l15_transducer_ack),
+        .l15_transducer_header_ack          (l15_transducer_header_ack),
+                               
+        .l15_transducer_val                 (l15_transducer_val),
+        .l15_transducer_returntype          (l15_transducer_returntype),
+        .l15_transducer_l2miss              (l15_transducer_l2miss),
+        .l15_transducer_error               (l15_transducer_error),
+        .l15_transducer_noncacheable        (l15_transducer_noncacheable),
+        .l15_transducer_atomic              (l15_transducer_atomic),
+        .l15_transducer_threadid            (l15_transducer_threadid),
+        .l15_transducer_prefetch            (l15_transducer_prefetch),
+        .l15_transducer_f4b                 (l15_transducer_f4b),
+        .l15_transducer_data_0              (l15_transducer_data_0),
+        .l15_transducer_data_1              (l15_transducer_data_1),
+        .l15_transducer_data_2              (l15_transducer_data_2),
+        .l15_transducer_data_3              (l15_transducer_data_3),
+        .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
+        .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
+        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
+        .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
+        .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
+        .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),
+        .l15_transducer_inval_icache_inval  (l15_transducer_inval_icache_inval),
+        .l15_transducer_inval_way           (l15_transducer_inval_way),
+        .l15_transducer_blockinitstore      (l15_transducer_blockinitstore),
+
+        .transducer_l15_req_ack             (transducer_l15_req_ack),
+
         .noc1_out_rdy(router_processor_ready_noc1),
         .noc2_in_val(buffer_processor_valid_noc2),
         .noc2_in_data(buffer_processor_data_noc2),
@@ -672,9 +926,6 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .coreid_x(config_coreid_x),
         .coreid_y(config_coreid_y),
 
-        .pcx_grant(pcx_grant),
-        .cpx_data_ready(cpx_data_ready),
-        .cpx_data(cpx_data),
         .noc1_out_val(processor_router_valid_noc1),
         .noc1_out_data(processor_router_data_noc1),
         .noc2_in_rdy(processor_router_ready_noc2),
@@ -747,31 +998,6 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         %>
 
         .stallOut             (dmbr_l15_stall           )
-    );
-
-    ////////////////////
-    // CPX Arbitrator //
-    //////////////////// 
-
-    cpx_arbitrator cpx_arbitrator(
-        .clk(clk_gated),
-        .rst_n(rst_n_f),
-
-        .rtap_arb_req_val(rtap_arb_req_val),
-        .rtap_arb_req_data(rtap_arb_req_data),
-        .rtap_arb_req_threadid(rtap_arb_req_threadid),
-        
-        .uncore_spc_data_ready(cpx_data_ready),
-        .uncore_spc_data(cpx_data),
-        .uncore_spc_grant(pcx_grant),
-        
-        .fpu_arb_data_rdy(fpu_arb_data_rdy),
-        .fpu_arb_data(fpu_arb_data),
-        .fpu_arb_grant(fpu_arb_grant),
-        
-        .cpx_arb_spc_data_rdy(cpx_arb_spc_data_rdy),
-        .cpx_arb_spc_data(cpx_arb_spc_data),
-        .cpx_arb_spc_grant(cpx_arb_spc_grant)
     );
 
     ////////

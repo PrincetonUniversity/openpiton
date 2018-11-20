@@ -51,6 +51,7 @@ module lsu_mon ( clk, rst_l);
 
 <%
 text = '''
+`ifdef RTL_SPARC1
 //============================================================================================
 `ifndef RTL_SPU
 wire       spc1_dva_ren             = `SPARC_CORE1.sparc0.lsu.lsu.ifu_lsu_ld_inst_e;
@@ -3101,8 +3102,9 @@ begin
       spc1_dva_raddr_d <= spc1_dva_raddr_d;
     end
 end // always @ (posedge clk)
+`endif
 '''
-pattern = ["CORE1", "spc1"]
+pattern = ["RTL_SPARC1", "CORE1", "spc1"]
 tt = ReplicatePattern1(text, pattern)
 print tt
 %>

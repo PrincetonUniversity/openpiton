@@ -42,6 +42,10 @@ module ciop_iob (
     input                               fpga_clk,
     input                               rst_n,
 
+    `ifdef PITON_PICO_HET
+    input                               core_select,
+    `endif                 
+
     input                               noc1_in_val,
     input [`NOC_DATA_WIDTH-1:0]         noc1_in_data,
     output reg                          noc1_in_rdy,
@@ -64,7 +68,6 @@ module ciop_iob (
 
     input                               uart_interrupt,
     input                               net_interrupt
-
 );
 
 // trin: wait time for SRAMs to initialize
@@ -99,7 +102,12 @@ reg  [1:0]          flit_cnt;
 reg  [1:0]          net_flit_cnt;
 reg  [1:0]          uart_flit_cnt;
 
+`ifdef PITON_PICO_HET
+assign iob_buffer_flit1     = core_select ? 64'h0000_0400_0048_4000 : 64'h0000_0000_0048_4000;
+`else
 assign iob_buffer_flit1     = 64'h0000_0000_0048_4000;
+`endif
+
 assign iob_buffer_flit2     = 64'h0000_0000_0001_0001;
 
 reg                 ok_iob_sent;
