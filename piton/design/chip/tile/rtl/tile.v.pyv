@@ -990,9 +990,10 @@ print("        .CachedAddrEnd ( 64'h%s         )" % cacheStop)
     reset_synchronizer #(
         .NUM_REGS(4)
     ) i_rst_sync (
-        .clk_i  ( clk_gated  ),
-        .rst_ni ( rst_n_f    ),
-        .rst_no ( spc_grst_l )
+        .clk_i   ( clk_gated  ),
+        .rst_ni  ( rst_n_f    ),
+        .tmode_i ( 1'b0       ),
+        .rst_no  ( spc_grst_l )
     );
 `endif
   end

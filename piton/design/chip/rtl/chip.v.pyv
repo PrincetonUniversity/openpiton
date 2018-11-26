@@ -814,25 +814,28 @@ module chip(
    reset_synchronizer #(
       .NUM_REGS(2)
    ) i_rst_sync (
-      .clk_i  ( clk_muxed        ),
-      .rst_ni ( rst_n_inter      ),
-      .rst_no ( rst_n_inter_sync )
+      .clk_i   ( clk_muxed        ),
+      .rst_ni  ( rst_n_inter      ),
+      .tmode_i ( 1'b0             ),
+      .rst_no  ( rst_n_inter_sync )
    );
 
    reset_synchronizer #(
       .NUM_REGS(2)
    ) i_io_clk_rst_sync (
-      .clk_i  ( io_clk_inter            ),
-      .rst_ni ( rst_n_inter             ),
-      .rst_no ( io_clk_rst_n_inter_sync )
+      .clk_i   ( io_clk_inter            ),
+      .rst_ni  ( rst_n_inter             ),
+      .tmode_i ( 1'b0                    ),
+      .rst_no  ( io_clk_rst_n_inter_sync )
    );
 
    reset_synchronizer #(
       .NUM_REGS(2)
    ) i_jtag_rst_sync (
-      .clk_i  ( clk_muxed             ),
-      .rst_ni ( jtag_rst_l_inter      ),
-      .rst_no ( jtag_rst_l_inter_sync )
+      .clk_i   ( clk_muxed             ),
+      .rst_ni  ( jtag_rst_l_inter      ),
+      .tmode_i ( 1'b0                  ),
+      .rst_no  ( jtag_rst_l_inter_sync )
    );
 `endif // PITON_ARIANE
 

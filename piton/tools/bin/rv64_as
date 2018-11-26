@@ -1,13 +1,24 @@
 #!/bin/bash
+# Copyright 2018 ETH Zurich and University of Bologna.
+# Copyright and related rights are licensed under the Solderpad Hardware
+# License, Version 0.51 (the "License"); you may not use this file except in
+# compliance with the License.  You may obtain a copy of the License at
+# http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+# or agreed to in writing, software, hardware and materials distributed under
+# this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+# Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
+# Date: 15.08.2018
+# Description: mem image assembly script for rv64 targets
 
 # create mem.image
-#riscv64-unknown-elf-objcopy --reverse-bytes 4 -I elf32-littleriscv -O binary diag.exe diag.o
 riscv64-unknown-elf-objcopy -I elf64-littleriscv -O binary diag.exe diag.o
 # pad with zero to 128byte boundary
 du diag.o -b | awk '{print(128 - ($1 % 128));}' | xargs -t -ISIZE truncate diag.o -s +SIZE
-printf "\n@0000000080000000\t// Section '.RED_SEC', segment 'text'\n" >mem.image
-#od -tx -v -An -w32 diag.o >>mem.image
-xxd -g 16 -c 32 diag.o | awk '{printf("%s %s\n", $2, $3);}' >>mem.image
+printf "\n@0000000080000000\t// Section '.RED_SEC', segment 'text'\n" > mem.image
+xxd -g 16 -c 32 diag.o | awk '{printf("%s %s\n", $2, $3);}' >> mem.image
 
 #create symbol.tbl
 riscv64-unknown-elf-objdump -d diag.exe | grep "<pass>:" | awk '{printf("good_trap %s X %s\n", $1, $1);}' >symbol.tbl
