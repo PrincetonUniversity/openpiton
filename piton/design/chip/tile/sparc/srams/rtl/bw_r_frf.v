@@ -32,7 +32,7 @@
 
 
 `ifdef SRAM_FRF
-`include "define.vh"
+`include "define.tmp.h"
 
 module bw_r_frf (/*AUTOARG*/
    // Outputs

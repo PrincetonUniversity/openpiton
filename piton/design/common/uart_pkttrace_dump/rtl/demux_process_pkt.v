@@ -1,6 +1,6 @@
-// Copyright (c) 2015 Princeton University                                                                       
+// Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-`include "define.vh"
+`include "define.tmp.h"
 
 // Filename: demux_process_pkt.v
 // Author: mmckeown
@@ -89,7 +89,7 @@ begin
     pkttrace_side1_noc3_val = 1'b0;
     pkttrace_side2_noc1_val = 1'b0;
     pkttrace_side2_noc2_val = 1'b0;
-    pkttrace_side2_noc3_val = 1'b0; 
+    pkttrace_side2_noc3_val = 1'b0;
 
     pkttrace_side1_noc1_data = {`NOC_DATA_WIDTH{1'b0}};
     pkttrace_side1_noc2_data = {`NOC_DATA_WIDTH{1'b0}};

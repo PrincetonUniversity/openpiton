@@ -28,7 +28,6 @@
 //==================================================================================================
 //  Filename      : sd_wishbone_transaction_manager.v
 //  Created On    : 2015-04-20
-//  Last Modified : 2016-01-26 16:45:54
 //  Revision      :
 //  Author        : Matthew Matl
 //  Company       : Princeton University
@@ -38,7 +37,7 @@
 //  Patches by    : John Li
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "spi_master_defines.v"
 `include "sd_cache_defines.v"
 

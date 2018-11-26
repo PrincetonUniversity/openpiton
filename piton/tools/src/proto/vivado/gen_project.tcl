@@ -1,6 +1,6 @@
 # Copyright (c) 2016 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -94,7 +94,11 @@ foreach inc_file $ALL_INCLUDE_FILES {
 foreach impl_file $ALL_RTL_IMPL_FILES {
     if {[file exists $impl_file]} {
         set file_obj [get_files -of_objects $fileset_obj [list "$impl_file"]]
-        set_property "file_type" "Verilog" $file_obj
+        if {[file extension $impl_file] == ".sv"} {
+          set_property "file_type" "SystemVerilog" $file_obj
+        } else {
+          set_property "file_type" "Verilog" $file_obj
+        }
         set_property "is_enabled" "1" $file_obj
         set_property "is_global_include" "0" $file_obj
         set_property "library" "xil_defaultlib" $file_obj
@@ -235,7 +239,7 @@ if {[string equal [get_runs -quiet synth_1] ""]} {
   }
 } else {
   if {$VIVADO_FLOW_PERF_OPT} {
-    set_property strategy "Flow_PerfOptimized_high" [get_runs synth_1]  
+    set_property strategy "Flow_PerfOptimized_high" [get_runs synth_1]
   } else {
     set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
   }

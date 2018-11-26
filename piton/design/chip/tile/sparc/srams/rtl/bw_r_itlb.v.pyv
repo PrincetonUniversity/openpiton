@@ -42,7 +42,7 @@
 `include	"lsu.tmp.h"
 
 `ifndef NO_RTL_CSM
-`include "define.vh"
+`include "define.tmp.h"
 `endif
 
 

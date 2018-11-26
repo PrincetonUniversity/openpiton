@@ -26,7 +26,7 @@
 // ========== Copyright Header End ============================================
 
 `include "mc_define.h"
-`include "define.vh"
+`include "define.tmp.h"
 `include "uart16550_define.vh"
 `include "chipset_define.vh"
 

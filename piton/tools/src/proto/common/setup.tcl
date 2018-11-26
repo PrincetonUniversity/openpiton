@@ -1,6 +1,6 @@
 # Copyright (c) 2016 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43,13 +43,6 @@ set ISE_PROJECT_FILE "${PROJECT_DIR}/${PROJECT_NAME}.xise"
 
 # Combined variables from global, design, and board
 set ALL_INCLUDE_DIRS [concat ${GLOBAL_INCLUDE_DIRS} ${DESIGN_INCLUDE_DIRS}]
-set ALL_DEFAULT_VERILOG_MACROS [concat \
-    ${GLOBAL_DEFAULT_VERILOG_MACROS} \
-    ${DESIGN_DEFAULT_VERILOG_MACROS} \
-    ${BOARD_DEFAULT_VERILOG_MACROS} \
-]
-
-puts "INFO: Using Defines: ${ALL_DEFAULT_VERILOG_MACROS}"
 
 set ALL_RTL_IMPL_FILES [concat ${DESIGN_RTL_IMPL_FILES}]
 
@@ -71,11 +64,49 @@ set ALL_COE_FILES [concat ${DESIGN_COE_IP_FILES}]
 
 set ALL_PRJ_IP_FILES [concat ${DESIGN_PRJ_IP_FILES}]
 
-# Pre-process PyHP files
+# get pyhp globals
+# note that this may override some evironment vars!
 global ::env
 if {[file exists $DESIGN_DIR/pyhp_setup.tcl]} {
     source $DESIGN_DIR/pyhp_setup.tcl
 }
+
+# Set the verilog macros
+# note: we need to add the adjustable RTL params here
+set ALL_DEFAULT_VERILOG_MACROS [concat \
+    ${GLOBAL_DEFAULT_VERILOG_MACROS}   \
+    ${DESIGN_DEFAULT_VERILOG_MACROS}   \
+    ${BOARD_DEFAULT_VERILOG_MACROS}    \
+]
+
+if {[info exists ::env(PITON_PICO)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO"
+}
+
+if {[info exists ::env(PITON_PICO_HET)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO_HET"
+}
+
+if {[info exists ::env(PITON_ARIANE)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE"
+}
+
+for {set k 0} {$k < $::env(PTON_NUM_TILES)} {incr k} {
+  if {[info exists "::env(RTL_ARIANE$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_ARIANE$k"
+  }
+  if {[info exists "::env(RTL_PICO$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_PICO$k"
+  }
+  if {[info exists "::env(RTL_SPARC$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_SPARC$k"
+  }
+}
+
+puts "INFO: Using Defines: ${ALL_DEFAULT_VERILOG_MACROS}"
+
+# Pre-process PyHP files
 source $DV_ROOT/tools/src/proto/common/pyhp_preprocess.tcl
 set ALL_RTL_IMPL_FILES [pyhp_preprocess ${ALL_RTL_IMPL_FILES}]
 set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
+

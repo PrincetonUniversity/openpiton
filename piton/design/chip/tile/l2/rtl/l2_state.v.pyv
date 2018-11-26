@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_state(
 
@@ -81,7 +81,7 @@ wire [`L2_STATE_ARRAY_WIDTH-1:0] data_out_real;
 always @ (posedge clk)
 begin
     data_in_buf <= data_in;
-    data_mask_in_buf <= data_mask_in; 
+    data_mask_in_buf <= data_mask_in;
 end
 
 reg bypass_f;
@@ -107,7 +107,7 @@ end
 
 always @ *
 begin
-    if (bypass_f)   
+    if (bypass_f)
     begin
 <%
 for i in range(L2_STATE_ARRAY_WIDTH):
@@ -127,14 +127,14 @@ end
  sram_l2_state l2_state_array (
      .RESET_N(rst_n),
      .MEMCLK         (clk),
- 
+
      .CEA            (rd_en),
      .RDWENA          (1'b1),
      .AA             (rd_addr),
      .BWA             (),
      .DINA            (),
      .DOUTA           (data_out_real),
- 
+
      .CEB            (wr_en),
      .RDWENB            (1'b0),
      .AB             (wr_addr),

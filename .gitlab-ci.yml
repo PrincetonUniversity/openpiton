@@ -1,0 +1,184 @@
+before_script:
+  - git submodule update --init --recursive
+  - export PITON_ROOT=`pwd`
+  # paths to local or network installations (the riscv toolchain is not built in the ci job as in travis)
+  # (license setup is then done by the SEPP startup script)
+  - eval "function vcs() { command vcs-2017.03-kgf vcs -full64 \"\$@\"; };"
+  - export -f vcs
+  - export VCS_HOME="/usr/pack/vcs-2017.03-kgf/"
+  - export MODELSIM_VERSION="-10.6b -64"
+  - export MODELSIM_HOME="/usr/pack/modelsim-10.6b-kgf/"
+  - export VIVADO_BIN="vivado-2018.1 vivado"
+  - export CXX=g++-7.2.0 CC=gcc-7.2.0
+  - export RISCV=/scratch2/gitlabci/riscv_install
+  # setup dependent paths
+  - export PATH=$PATH:${RISCV}/bin
+  - export LIBRARY_PATH=$RISCV/lib
+  - export LD_LIBRARY_PATH=$RISCV/lib:/usr/pack/gcc-7.2.0-af/linux-x64/lib64/
+  - export C_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
+  - export CPLUS_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
+  - export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
+  # piton setup
+  - "source piton/piton_settings.bash"
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - vcs_build
+  - msm_build
+  - msm_sparc
+  - msm_ariane
+
+###################################
+# try to build different configs with VCS
+
+vcs-pico-build:
+  stage: vcs_build
+  script:
+    - cd build
+    - sims -sys=manycore -vcs_build -x_tiles=1 -y_tiles=1 -pico
+
+vcs-sparc-build:
+  stage: vcs_build
+  script:
+    - cd build
+    - sims -sys=manycore -vcs_build -x_tiles=1 -y_tiles=1
+
+# not supported yet
+# ariane-build:
+#   stage: vcs_build
+#   script:
+#     - cd build
+#     - sims -sys=manycore -vcs_build -x_tiles=1 -y_tiles=1 -ariane
+
+###################################
+# try to build different configs with MSM
+
+pico-build:
+  stage: msm_build
+  script:
+    - cd build
+    - sims -sys=manycore -msm_build -x_tiles=1 -y_tiles=1 -pico
+    - "grep 'Errors: 0' sims.log"
+ariane-build:
+  stage: msm_build
+  script:
+    - source piton/ariane_build_tools.sh
+    - cd build
+    - sims -sys=manycore -msm_build -x_tiles=1 -y_tiles=1 -ariane
+    - "grep 'Errors: 0' sims.log"
+  artifacts:
+    paths:
+      - ./piton/design/chip/tile/ariane/tmp/
+# this config is used for simulation in the test stage
+sparc-build:
+  stage: msm_build
+  script:
+    - cd build
+    - sims -sys=manycore -msm_build -x_tiles=1 -y_tiles=1
+    - "grep 'Errors: 0' sims.log"
+  artifacts:
+      paths:
+        - build
+
+###################################
+# run simple pico tests, needs 32bit RISCV compiler
+
+#princeton:
+#  stage: pico
+#  script:
+#    - cd build
+#    - sims -group=pico_tile1 -sim_type=msm
+#  dependencies:
+#    - pico-build
+
+###################################
+# run simple sparc tests
+
+princeton:
+  stage: msm_sparc
+  script:
+    - cd build
+    - sims -sys=manycore -msm_build -x_tiles=1 -y_tiles=1
+    - sims -sys=manycore -msm_run -x_tiles=1 -y_tiles=1  princeton-test-test.s
+    - "grep 'Simulation -> PASS (HIT GOOD TRAP)' status.log"
+  dependencies:
+    - sparc-build
+
+tile1_mini:
+  stage: msm_sparc
+  script:
+    - cd build
+    - sims -group=tile1_mini -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - sparc-build
+
+tile2_mini:
+  stage: msm_sparc
+  script:
+    - cd build
+    - sims -group=tile2_mini -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - sparc-build
+
+###################################
+# run simple ariane tests, needs 64bit RISCV compiler
+
+tile1_asm_tests_p:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile1_asm_tests_p -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - ariane-build
+
+tile1_asm_tests_v:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile1_asm_tests_v -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - ariane-build
+
+tile1_amo_tests_p:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile1_amo_tests_p -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - ariane-build
+
+tile1_amo_tests_v:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile1_amo_tests_v -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - ariane-build
+
+ariane_manycore_simple:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile16 -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+    - "cd ariane*"
+    - "cat fake_uart.log"
+  dependencies:
+    - ariane-build

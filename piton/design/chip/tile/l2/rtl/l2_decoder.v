@@ -39,12 +39,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //====================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_decoder(
-    
+
     input wire [`MSG_HEADER_WIDTH-1:0] msg_header,
-    
+
     output reg [`MSG_TYPE_WIDTH-1:0] msg_type,
     output reg [`MSG_LENGTH_WIDTH-1:0] msg_length,
     output reg [`MSG_MSHRID_WIDTH-1:0] msg_mshrid,

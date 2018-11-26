@@ -1,3 +1,4 @@
 chip.v
 synchronizer.v
+reset_synchronizer.v
 OCI.v

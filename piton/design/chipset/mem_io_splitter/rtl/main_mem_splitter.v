@@ -29,7 +29,6 @@
 //==================================================================================================
 //  Filename      : mem_io_splitter.v
 //  Created On    : 2015-03-31
-//  Last Modified : 2015-03-31
 //  Revision      :
 //  Author        : Xiaohua Liang
 //  Company       : Princeton University
@@ -41,7 +40,7 @@
 //
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 
 module mem_io_splitter(
     input wire clk,

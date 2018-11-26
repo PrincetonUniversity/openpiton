@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "piton_system.vh"
 
 // Filename: chipset_impl_noc_power_test.v

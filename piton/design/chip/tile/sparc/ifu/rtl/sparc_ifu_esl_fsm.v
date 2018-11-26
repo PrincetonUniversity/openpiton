@@ -33,7 +33,7 @@
  *  only supports 2
  */
 
-`include "define.vh"
+`include "define.tmp.h"
 
 module sparc_ifu_esl_fsm
 (

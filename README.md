@@ -89,3 +89,39 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 6. For more details on running continuous integration bundles, the available bundles, understanding the output, reprocessing completed bundles, and creating new bundles, please refer to the OpenPiton documentation. 
 
 ==========================
+
+
+#### Preliminary Support for Ariane RV64IMAC Core
+
+This version of OpenPiton has preliminary support for the [Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich. 
+
+Currently tested is the single-tile configuration which runs all RISC-V regression tests, benchmarks and torture tests.
+
+##### Environment Setup
+
+In addition to the OpenPiton setup described above, you have to adapt the paths in the `ariane_setup.sh` script to match with your installation. Source this script from the OpenPiton rootfolder and build the RISC-V tools with `ariane_build_tools.sh` if you are running this for the first time:
+1. ```cd $PITON_ROOT/```
+2. ```source piton/ariane_setup.sh```
+3. ```piton/ariane_build_tools.sh```
+Step 3. will then download and compile the RISC-V toolchain and assembly tests for you.
+
+##### Running RISCV Tests and Benchmarks
+
+TODO
+
+##### Running RISCV Regressions
+
+TODO
+
+##### Running Custom Programs
+
+TODO
+
+##### FPGA Mapping on Genesys2 Board
+
+TODO
+
+##### Planned Improvements
+
+> This version has only been verified with bare-metal RISC-V tests in a single-tile configuration. Multi-core and Linux support will soon follow.
+> This version has only been tested with Modelsim and VCS. More tool support will be added later.

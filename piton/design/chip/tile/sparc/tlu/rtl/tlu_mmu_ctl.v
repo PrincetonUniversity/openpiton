@@ -29,7 +29,7 @@
 `include	"sys.h" // system level definition file which contains the 
 					// time scale definition
 `ifndef NO_RTL_CSM
-`include "define.vh"
+`include "define.tmp.h"
 `endif
 
 ////////////////////////////////////////////////////////////////////////

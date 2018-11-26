@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 <%
 L2_DATA_ECC_TOTAL_WIDTH = 72

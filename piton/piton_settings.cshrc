@@ -58,6 +58,15 @@ endif
 
 #setenv LM_LICENSE_FILE ""
 
+
+# define vivado version if it deviates from the default
+#setenv VIVADO_BIN "vivado"
+
+# Please define MODELSIM_HOME only if you have MODELSIM, otherwise comment it out.
+
+#setenv MODELSIM_VERSION "-10.6b -64"
+#setenv MODELSIM_HOME ""
+
 # New variables (fixed or based on $DV_ROOT)
 
 setenv TRE_ENTRY /

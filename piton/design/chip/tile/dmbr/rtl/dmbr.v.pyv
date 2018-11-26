@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 `include "dmbr_define.v"
-`include "define.vh"
+`include "define.tmp.h"
 `include "l15.tmp.h"
 <%
 DMBR_BIN_NUM = 10

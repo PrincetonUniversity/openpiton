@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_config_regs(
 
@@ -119,6 +119,7 @@ begin
     end
 end
 
+reg l2_access_counter_inc_en_f;
 always @ (posedge clk)
 begin
     if (!rst_n)
@@ -129,13 +130,19 @@ begin
     begin
         l2_access_counter_reg_f <= reg_data_in; 
     end
-    else if (l2_access_counter_inc_en && l2_access_valid)
-    begin
+    // else if (l2_access_counter_inc_en && l2_access_valid)
+    // begin
+    //     l2_access_counter_reg_f <= l2_access_counter_reg_f + 1;
+    // end 
+    // trin: pipeline addition for timing
+    l2_access_counter_inc_en_f <= l2_access_counter_inc_en && l2_access_valid;
+    if (l2_access_counter_inc_en_f) begin
         l2_access_counter_reg_f <= l2_access_counter_reg_f + 1;
-    end 
+    end
 end
 
 
+reg l2_miss_counter_inc_en_f;
 always @ (posedge clk)
 begin
     if (!rst_n)
@@ -146,10 +153,15 @@ begin
     begin
         l2_miss_counter_reg_f <= reg_data_in; 
     end
-    else if (l2_miss_counter_inc_en && l2_miss_valid)
-    begin
+    // else if (l2_miss_counter_inc_en && l2_miss_valid)
+    // begin
+    //     l2_miss_counter_reg_f <= l2_miss_counter_reg_f + 1;
+    // end 
+    // trin: pipeline addition for timing
+    l2_miss_counter_inc_en_f <= l2_miss_counter_inc_en && l2_miss_valid;
+    if (l2_miss_counter_inc_en_f) begin
         l2_miss_counter_reg_f <= l2_miss_counter_reg_f + 1;
-    end 
+    end
 end
 
 always @ (posedge clk)

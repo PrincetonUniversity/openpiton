@@ -1,6 +1,6 @@
 # Copyright (c) 2016 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32,7 +32,7 @@ set GLOBAL_INCLUDE_DIRS "${DV_ROOT}/design/include ${DV_ROOT}/design/chipset/inc
 
 # RTL include files
 set GLOBAL_INCLUDE_FILES [list \
-    "${DV_ROOT}/design/include/define.vh" \
+    "${DV_ROOT}/design/include/define.h" \
     "${DV_ROOT}/design/include/piton_system.vh" \
     "${DV_ROOT}/design/include/dmbr_define.v" \
     "${DV_ROOT}/design/include/l15.h" \
@@ -69,6 +69,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/common/rtl/bram_1rw_wrapper.v" \
     "${DV_ROOT}/design/common/rtl/bram_1r1w_wrapper.v" \
     "${DV_ROOT}/design/chip/rtl/synchronizer.v" \
+    "${DV_ROOT}/design/chip/rtl/reset_synchronizer.v" \
     "${DV_ROOT}/design/chip/rtl/OCI.v" \
     "${DV_ROOT}/design/chip/rtl/chip.v" \
     "${DV_ROOT}/design/chip/pll/rtl/pll_top.v" \
@@ -381,6 +382,111 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_tag.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_data.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_tag.v" \
+    "${DV_ROOT}/design/chip/tile/ariane/src/axi/src/axi_pkg.sv"                               \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dm_pkg.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/include/riscv_pkg.sv"                                 \
+    "${DV_ROOT}/design/chip/tile/ariane/include/ariane_pkg.sv"                                \
+    "${DV_ROOT}/design/chip/tile/ariane/include/ariane_axi_pkg.sv"                            \
+    "${DV_ROOT}/design/chip/tile/ariane/include/serpent_cache_pkg.sv"                         \
+    "${DV_ROOT}/design/chip/tile/ariane/include/axi_intf.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_pkg.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_if.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/sram.sv"                                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_master_connect.sv"                       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_master_connect_rev.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_slave_connect.sv"                        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_slave_connect_rev.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v1.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v2.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v3.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lfsr_8bit.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lzc.sv"                          \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rrarbiter.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rstgen_bypass.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/sync_wedge.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/cdc_2phase.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/pipe_reg_simple.sv"              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/fpga-support/rtl/SyncSpRamBeNx64.sv"              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/axi_mem_if/src/axi2mem.sv"                        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/tech_cells_generic/src/cluster_clock_inverter.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/src/tech_cells_generic/src/pulp_clock_mux2.sv"        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/axi_adapter.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/alu.sv"                                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/fpu_wrap.sv"                                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/ariane.sv"                                        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/branch_unit.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/compressed_decoder.sv"                            \
+    "${DV_ROOT}/design/chip/tile/ariane/src/controller.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/csr_buffer.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/csr_regfile.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/decoder.sv"                                       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/ex_stage.sv"                                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/btb.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/bht.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/ras.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/instr_scan.sv"                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/frontend.sv"                             \
+    "${DV_ROOT}/design/chip/tile/ariane/src/id_stage.sv"                                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/instr_realigner.sv"                               \
+    "${DV_ROOT}/design/chip/tile/ariane/src/issue_read_operands.sv"                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/issue_stage.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/load_unit.sv"                                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/load_store_unit.sv"                               \
+    "${DV_ROOT}/design/chip/tile/ariane/src/mmu.sv"                                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/mult.sv"                                          \
+    "${DV_ROOT}/design/chip/tile/ariane/src/multiplier.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/serdiv.sv"                                        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/perf_counters.sv"                                 \
+    "${DV_ROOT}/design/chip/tile/ariane/src/ptw.sv"                                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/ariane_regfile_ff.sv"                             \
+    "${DV_ROOT}/design/chip/tile/ariane/src/re_name.sv"                                       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/scoreboard.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/store_buffer.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/amo_buffer.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/store_unit.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/tlb.sv"                                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/commit_stage.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_ctrl.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_mem.sv"            \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_missunit.sv"       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_wbuffer.sv"        \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_icache.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_l15_adapter.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_cache_subsystem.sv"       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/debug_rom/debug_rom.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dm_csrs.sv"                                 \
+    "${DV_ROOT}/design/chip/tile/ariane/src/clint/clint.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/clint/axi_lite_interface.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dm_mem.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dm_top.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dmi_cdc.sv"                                 \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dmi_jtag.sv"                                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dm_sba.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/debug/dmi_jtag_tap.sv"                            \
+    "${DV_ROOT}/design/chip/tile/ariane/openpiton/serpent_peripherals.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/openpiton/ariane_verilog_wrap.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/bootrom/bootrom.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic.sv"                                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_claim_complete_tracker.sv"              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_comparator.sv"                          \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_find_max.sv"                            \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_gateway.sv"                             \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_interface.sv"                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_target_slice.sv"                        \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi2apb/src/axi2apb_wrap.sv"                 \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi2apb/src/axi2apb.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi2apb/src/axi2apb_64_32.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_w_buffer.sv"               \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_b_buffer.sv"               \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_slice_wrap.sv"             \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_slice.sv"                  \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_single_slice.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_ar_buffer.sv"              \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_r_buffer.sv"               \
+    "${DV_ROOT}/design/chip/tile/ariane/fpga/src/axi_slice/src/axi_aw_buffer.sv"              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/register_interface/src/apb_to_reg.sv"             \
+    "${DV_ROOT}/design/chip/tile/ariane/src/register_interface/src/reg_intf.sv"               \
 ]
 
 set CHIP_INCLUDE_FILES [list \
@@ -484,7 +590,6 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_net_dff.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_bus_compare_equal.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_flip_bus.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/io_ctrl_top.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/ciop_iob.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/net_int_sync.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_top.v" \

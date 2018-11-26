@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -65,6 +65,32 @@ def usage():
     print >> sys.stderr, "              Name of design module to synthesize.  The default is 'system', which"
     print >> sys.stderr, "              synthesizes a full system with chip and chipset. See"
     print >> sys.stderr, "              $DV_ROOT/tools/src/proto/block.list for supported design modules"
+    print >> sys.stderr, "\n       -c, --core <core_config>"
+    print >> sys.stderr, "              Name of a supported core configuration:"
+    print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
+    print >> sys.stderr, "                  pico      (32bit RISCV core)"
+    print >> sys.stderr, "                  pico_het  (heterogeneous pico+sparc arrangement)"
+    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
+    print >> sys.stderr, "\n       --network_config <network_config>"
+    print >> sys.stderr, "              Name of the network type to be used:"
+    print >> sys.stderr, "                  2dmesh_config (default)"
+    print >> sys.stderr, "                  xbar_config"
+    print >> sys.stderr, "\n       --x_tiles <number>"
+    print >> sys.stderr, "       --y_tiles <number>"
+    print >> sys.stderr, "              Number of tiles to instantiate in each direction. Default: 1."
+    print >> sys.stderr, "       --num_tiles <number>"
+    print >> sys.stderr, "              Total number of tiles. Default: 1."
+    print >> sys.stderr, "              In case the x/y tile defaults are not overridden, this creates an arrangement assuming x_tiles<=8."
+    print >> sys.stderr, "\n       --config_l1i_size <number>"
+    print >> sys.stderr, "       --config_l1d_size <number>"
+    print >> sys.stderr, "       --config_l15_size <number>"
+    print >> sys.stderr, "       --config_l2_size <number>"
+    print >> sys.stderr, "              Cache sizes in bytes, defaults: 8192 (L1D/L1.5), 16384 (L1I), 65536 (L2)"
+    print >> sys.stderr, "\n       --config_l1i_associativity <number>"
+    print >> sys.stderr, "       --config_l1d_associativity <number>"
+    print >> sys.stderr, "       --config_l15_associativity <number>"
+    print >> sys.stderr, "       --config_l2_associativity  <number>"
+    print >> sys.stderr, "              Cache associativities, default: 4"
     print >> sys.stderr, "\n       --bram-test <test_name>"
     print >> sys.stderr, "              Name of the test to be mapped into BRAM"
     print >> sys.stderr, "\n       --no-ddr"
@@ -119,12 +145,12 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
     fp.write("#SBATCH --mem=%d                      # mem=%dMB\n" % (mem_mb, mem_mb))
     fp.write("#SBATCH -t %s                         # walltime=%s\n" % (time_str, time_str))
     fp.write("#SBATCH -J %s                         # jobname=%s\n\n" % (jname, jname))
-    
+
     fp.write(' '.join(cmd) + " > " + log)
 
     fp.close()
     os.chmod(slurm_file, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-    
+
     # Submit job, retrying on fails
     slurm_cmd = ["sbatch"]
     if dep_list != None and len(dep_list) > 0:
@@ -153,7 +179,13 @@ def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jna
     os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
     os.environ['PROTOSYN_RUNTIME_BOARD'] = board
 
-    cmd = ["vivado", "-mode", "batch", "-source", script]
+
+    # use custom vivado version if provided
+    if(os.environ.get('VIVADO_BIN')) is not None:
+        cmd = os.environ['VIVADO_BIN'].split(" ") + ["-mode", "batch", "-source", script]
+    else:
+        cmd = ["vivado", "-mode", "batch", "-source", script]
+
     if slurm:
         return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
     else:
@@ -174,7 +206,7 @@ def run_ise(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname,
         flog = open(log, "w")
         subprocess.call(cmd, stdout=flog, stderr=flog)
         flog.close()
-        return None 
+        return None
 
 def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     prev_dir = os.getcwd()
@@ -267,7 +299,7 @@ def checkCmdOptions(options):
         usage()
         sys.exit(0)
 
-    # Check if design is specified 
+    # Check if design is specified
     # (It has a default value so always should be)
     if (options.design == None):
         print_error("Invalid parameters")
@@ -291,7 +323,7 @@ def checkCmdOptions(options):
     if (options.board not in design_data["BOARDS"]):
         print_error("Unsupported board")
         usage()
-        sys.exit(2) 
+        sys.exit(2)
 
     # Check board exists in board list
     if (find_board_tool(options.board) == None):
@@ -342,6 +374,19 @@ def checkCmdOptions(options):
 def setParserOptions(parser):
     parser.add_option("-b", "--board", dest="board", action="store")
     parser.add_option("-d", "--design", dest="design", action="store", default="system")
+    parser.add_option("-c", "--core", dest="core", action="store", default="sparc")
+    parser.add_option("--network_config", dest="network_config", action="store", default="2dmesh_config")
+    parser.add_option("--x_tiles", dest="x_tiles", action="store", default=1)
+    parser.add_option("--y_tiles", dest="y_tiles", action="store", default=1)
+    parser.add_option("--num_tiles", dest="num_tiles", action="store", default=1)
+    parser.add_option("--config_l1i_size", dest="config_l1i_size", action="store", default=16384)
+    parser.add_option("--config_l1d_size", dest="config_l1d_size", action="store", default=8192)
+    parser.add_option("--config_l15_size", dest="config_l15_size", action="store", default=8192)
+    parser.add_option("--config_l2_size", dest="config_l2_size",   action="store", default=65536)
+    parser.add_option("--config_l1i_associativity", dest="config_l1i_associativity",   action="store", default=4)
+    parser.add_option("--config_l1d_associativity", dest="config_l1d_associativity",   action="store", default=4)
+    parser.add_option("--config_l15_associativity", dest="config_l15_associativity",   action="store", default=4)
+    parser.add_option("--config_l2_associativity", dest="config_l2_associativity",   action="store", default=4)
     parser.add_option("--bram-test", dest="test_name", action="store")
     parser.add_option("--from", dest="from_step", action="store", default=None)
     parser.add_option("--to", dest="to_step", action="store", default=None)
@@ -551,12 +596,136 @@ def main():
     os.system('mkdir -p %s' % rc_dir.log)
 
     ##################################
+    # Set environment vars for pyhp
+    ##################################
+
+    print_info("---- RTL configuration ----")
+
+    # tile config
+    if options.x_tiles*options.y_tiles > 1:
+        options.num_tiles = options.x_tiles*options.y_tiles;
+    elif options.num_tiles > 1:
+        print_info("overriding x_tiles and y_tiles, assuming x dimension is <= 8")
+        # this is aligned with the sims behavior
+        options.x_tiles = ((options.num_tiles-1) % 8) + 1;
+        options.y_tiles = int((options.num_tiles-1) / 8 + 1);
+
+    if options.x_tiles>256:
+        print_error("x_tiles can be at most 256")
+        sys.exit(1)
+    if options.y_tiles>256:
+        print_error("y_tiles can be at most 256")
+        sys.exit(1)
+
+    print_info("x_tiles   = " + str(options.x_tiles))
+    print_info("y_tiles   = " + str(options.y_tiles))
+    print_info("num_tiles = " + str(options.num_tiles))
+
+    os.environ['PTON_X_TILES']   = str(options.x_tiles)
+    os.environ['PTON_Y_TILES']   = str(options.y_tiles)
+    os.environ['PTON_NUM_TILES'] = str(options.num_tiles)
+
+    # core variant
+    print_info("core      = " + str(options.core))
+    if options.core == 'pico':
+
+        os.environ['PITON_PICO']     = "1"
+
+        for i in range(options.num_tiles):
+            os.environ['RTL_PICO' + str(i)] = "1"
+            print_info('defining RTL_PICO' + str(i))
+
+    elif options.core == 'pico_het':
+
+        os.environ['PITON_PICO']     = "1"
+        os.environ['PITON_PICO_HET'] = "1"
+
+        for i in range(options.num_tiles):
+            if i %2:
+                os.environ['RTL_PICO' + str(i)] = "1"
+                print_info('defining RTL_PICO' + str(i))
+
+            else:
+                os.environ['RTL_SPARC' + str(i)] = "1"
+                print_info('defining RTL_SPARC' + str(i))
+
+    elif options.core == 'ariane':
+        os.environ['PITON_ARIANE'] = "1"
+
+        for i in range(options.num_tiles):
+            os.environ['RTL_ARIANE' + str(i)] = "1"
+            print_info('defining RTL_ARIANE' + str(i))
+
+    elif options.core == 'sparc':
+        # this is the default
+        for i in range(options.num_tiles):
+            os.environ['RTL_SPARC' + str(i)] = "1"
+            print_info('defining RTL_SPARC' + str(i))
+
+    else:
+        print_error("invalid core configuration " + str(options.core))
+        sys.exit(1)
+
+    # network config
+    if options.network_config not in ['2dmesh_config', 'xbar_config']:
+        print_error('invalid network config ' + str(options.network_config))
+        sys.exit(1)
+
+    print_info("network   = " + str(options.network_config))
+    os.environ['PTON_NETWORK_CONFIG'] = options.network_config
+
+    # cache config
+    print_info("l15 size  = " + str(options.config_l15_size))
+    print_info("l15 assoc = " + str(options.config_l15_associativity))
+    print_info("l1d size  = " + str(options.config_l1d_size))
+    print_info("l1d assoc = " + str(options.config_l1d_associativity))
+    print_info("l1i size  = " + str(options.config_l1i_size))
+    print_info("l1i assoc = " + str(options.config_l1i_associativity))
+    print_info("l2  size  = " + str(options.config_l2_size))
+    print_info("l2  assoc = " + str(options.config_l2_associativity))
+
+    os.environ['CONFIG_L15_SIZE']          = str(options.config_l15_size)
+    os.environ['CONFIG_L15_ASSOCIATIVITY'] = str(options.config_l15_associativity)
+    os.environ['CONFIG_L1D_SIZE']          = str(options.config_l1d_size)
+    os.environ['CONFIG_L1D_ASSOCIATIVITY'] = str(options.config_l1d_associativity)
+    os.environ['CONFIG_L1I_SIZE']          = str(options.config_l1i_size)
+    os.environ['CONFIG_L1I_ASSOCIATIVITY'] = str(options.config_l1i_associativity)
+    os.environ['CONFIG_L2_SIZE']           = str(options.config_l2_size)
+    os.environ['CONFIG_L2_ASSOCIATIVITY']  = str(options.config_l2_associativity)
+
+    print_info("---------------------------")
+
+    ##################################
     # Get a trace
     ##################################
     if run_sim:
+
+        print_info('Support for passing config arguments to sims is preliminary and not properly tested')
+
+        config = ' -x_tiles=' + str(options.x_tiles)                         + \
+                 ' -y_tiles=' + str(options.y_tiles)                         + \
+                 ' -network_config=' + str(options.network_config)           + \
+                 ' -config_l1i_size=' + str(options.network_config)          + \
+                 ' -config_l1d_size=' + str(options.network_config)          + \
+                 ' -config_l15_size=' + str(options.network_config)          + \
+                 ' -config_l2_size='  + str(options.network_config)          + \
+                 ' -config_l1i_associativity=' + str(options.network_config) + \
+                 ' -config_l1d_associativity=' + str(options.network_config) + \
+                 ' -config_l15_associativity=' + str(options.network_config) + \
+                 ' -config_l2_associativity='  + str(options.network_config)
+
+        if options.core == 'pico':
+            config + ' -pico'
+
+        if options.core == 'pico_het':
+            config + ' -pico -pico_het'
+
+        if options.core == 'ariane':
+            config + ' -ariane'
+
         print_info("Synthesizing a test: %s" % options.test_name)
         print_info("Compilation started")
-        ret_val = os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % rc_dir.log)
+        ret_val = os.system('sims -sys=manycore' + config + ' -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % rc_dir.log)
         if ret_val != 0:
             print_error("Compilation didn't finish successfully!")
             print_info("See for Errors in %scompilation.log" % rc_dir.log)
@@ -564,7 +733,7 @@ def main():
         print_info("Simulation started")
         print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][options.board]["FREQ"])
         div = calcUARTLatch(design_data, options.board)
-        os.system('sims -sys=manycore -vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, rc_dir.log))
+        os.system('sims -sys=manycore ' + config + '-vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, rc_dir.log))
 
         f = open('%s/simulation.log' % rc_dir.log, 'r')
         cont = f.read()
@@ -589,7 +758,7 @@ def main():
         makeMemMapping(st_brd, rc_dir.work, rc_dir.log)
 
     ################################################
-    # Generate UART init sequence for ASM tests 
+    # Generate UART init sequence for ASM tests
     # based on system frequency
     ################################################
     if options.uart_dmw != None:
@@ -619,20 +788,20 @@ def main():
         jid = runImplFlow(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
         if jid != None:
             dep_list.append(jid)
-    
+
 
     ####################################################################################
     # Waiting for all previous jobs to finish before checking results
     # dep_list has jobids only for slurm jobs, otherwise all steps
     # are run sequentially
-    
+
     if options.slurm:
         if options.swait:
             print_info("Waiting for jobs to finish...")
             waitSlurmJobs(dep_list)
         else:
             print_info("Run 'protocheck -b %s -d %s' after jobs are finished to check results" % (options.board, options.design))
-    
+
     # Check  implementation results
     if (options.slurm and options.swait) or (not options.slurm):
         if run_make_project:

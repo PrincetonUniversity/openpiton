@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : rtap_ucb_transmitter.v
 //  Created On    : 2014- 12:52:57
-//  Last Modified : 2014-10-08 14:46:22
+//  Last Modified : 2018-11-16 17:23:15
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //  Description   :
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "jtag.vh"
 
 `ifdef L15_EXTRA_DEBUG

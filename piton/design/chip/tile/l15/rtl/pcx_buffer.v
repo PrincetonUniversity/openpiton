@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : pcx_buffer.v
 //  Created On    : 2014-03-03 20:20:43
-//  Last Modified : 2015-01-19 15:30:56
+//  Last Modified : 2018-11-14 19:18:52
 //  Revision      :
 //
 //  Description   :
@@ -155,17 +155,6 @@ end
 
 always @ *
 begin
-   is_buffer_full = (write_pos_next == read_pos) && (buffer_val[read_pos] == 1'b1) && (uncore_spc_grant[0] != 1'b1);
-   // is_buffer_full = (write_pos_next == read_pos) && (buffer_val[read_pos] == 1'b1);
-   is_req_squashed = is_buffer_full && spc_uncore_req[0];
-   // pcx_req_squashed = is_req_squashed;
-
-   atomic_req_second_packet_coming_next = spc_uncore_atomic_req && !is_req_squashed;
-   pcxbuf_pcxdecoder_data = buffer[read_pos];
-   pcxbuf_pcxdecoder_data_buf1 = buffer[read_pos^1'b1];
-   pcxbuf_pcxdecoder_valid = buffer_val[read_pos];
-   pcxbuf_pcxdecoder_csm_data = buffer_csm_data[read_pos];
-   write_req_next = (spc_uncore_req[0] && !is_req_squashed) || atomic_req_second_packet_coming;
    // write_req_next = spc_uncore_req[0] || atomic_req_second_packet_coming;
    // note: the core puts data one cycle after the request
    //       also, only one request for atomic request, but two cycles of data
@@ -178,6 +167,7 @@ begin
    buffer_atomic_next[1] = buffer_atomic[1];
    buffer_csm_data_next[0] = buffer_csm_data[0];
    buffer_csm_data_next[1] = buffer_csm_data[1];
+
    read_pos_next = read_pos;
    write_pos_next = write_pos;
    atomic_ack_second_next = 0;
@@ -207,6 +197,19 @@ begin
          buffer_val_next[read_pos] = 1'b0;
       end
    end
+
+   // move this to the end of the process
+   // otherwise msim complains about potentially uninitialized "write_pos_next"
+   is_buffer_full = (write_pos_next == read_pos) && (buffer_val[read_pos] == 1'b1) && (uncore_spc_grant[0] != 1'b1);
+   // is_buffer_full = (write_pos_next == read_pos) && (buffer_val[read_pos] == 1'b1);
+   is_req_squashed = is_buffer_full && spc_uncore_req[0];
+   // pcx_req_squashed = is_req_squashed;
+   atomic_req_second_packet_coming_next = spc_uncore_atomic_req && !is_req_squashed;
+   pcxbuf_pcxdecoder_data = buffer[read_pos];
+   pcxbuf_pcxdecoder_data_buf1 = buffer[read_pos^1'b1];
+   pcxbuf_pcxdecoder_valid = buffer_val[read_pos];
+   pcxbuf_pcxdecoder_csm_data = buffer_csm_data[read_pos];
+   write_req_next = (spc_uncore_req[0] && !is_req_squashed) || atomic_req_second_packet_coming;
 
 end
 

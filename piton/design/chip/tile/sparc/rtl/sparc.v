@@ -24,7 +24,7 @@
 `include "ifu.tmp.h"
 `include "tlu.h"
 `include "lsu.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef PITON_PROTO
 `ifdef PITONSYS_UART_BOOT
    `include "uart16550_define.vh"

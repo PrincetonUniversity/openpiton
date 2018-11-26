@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15_csm.v
 //  Created On    : 2014-01-31 18:24:47
-//  Last Modified : 2014-06-26 15:54:15
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -41,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //`timescale 1 ns / 10 ps
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 <%
    L15_CSM_NUM_TICKETS = 8

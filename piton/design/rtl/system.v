@@ -1,6 +1,6 @@
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,10 +27,10 @@
 // Author: mmckeown
 // Description: Top-level system module for a Piton chip and chipset.
 //              This code is synthesizeable, and is used for both simulation
-//              with different chipsets and for FPGA synthesis for 
+//              with different chipsets and for FPGA synthesis for
 //              OpenPiton.
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "piton_system.vh"
 
 // Macros used in this file:
@@ -133,12 +133,12 @@ module system(
 `ifndef PITON_FPGA_SYNTH
     input                                       pll_rst_n,
 `endif // endif PITON_FPGA_SYNTH
-    
+
     // Chip-level clock enable
 `ifndef PITON_FPGA_SYNTH
     input                                       clk_en,
 `endif // endif PITON_FPGA_SYNTH
-    
+
     // Chip PLL settings
 `ifndef PITON_FPGA_SYNTH
     input                                       pll_bypass,
@@ -190,13 +190,6 @@ module system(
     `endif // endif NEXYSVIDEO_BOARD
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     output                                      ddr_odt,
-`else // ifndef PITON_FPGA_MC_DDR3
-    output                                      chipset_mem_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_mem_data,
-    input                                       chipset_mem_rdy,
-    input                                       mem_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                mem_chipset_data,
-    output                                      mem_chipset_rdy,
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -237,22 +230,7 @@ module system(
     output                                          net_phy_rst_n,
     inout                                           net_phy_mdio_io,
     output                                          net_phy_mdc,
-`endif 
-
-`else // ifndef PITONSYS_IOCTRL
-    output                                      chipset_fake_iob_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_fake_iob_data,
-    input                                       chipset_fake_iob_rdy,
-    input                                       fake_iob_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                fake_iob_chipset_data,
-    output                                      fake_iob_chipset_rdy,
-
-    output                                      chipset_io_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_io_data,
-    input                                       chipset_io_rdy,
-    input                                       io_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                io_chipset_data,
-    output                                      io_chipset_rdy,
+`endif
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -353,7 +331,7 @@ wire                         processor_offchip_noc3_valid;
 wire [`NOC_DATA_WIDTH-1:0]   processor_offchip_noc3_data;
 wire                         processor_offchip_noc3_yummy;
 
-wire                         offchip_processor_noc1_valid; 
+wire                         offchip_processor_noc1_valid;
 wire [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc1_data;
 wire                         offchip_processor_noc1_yummy;
 wire                         offchip_processor_noc2_valid;
@@ -380,7 +358,7 @@ wire [1:0]          chipset_passthru_channel_p;
 wire [1:0]          chipset_passthru_channel_n;
 wire [2:0]          chipset_passthru_credit_back_p;
 wire [2:0]          chipset_passthru_credit_back_n;
-                
+
 wire [31:0]         passthru_chipset_data_p;
 wire [31:0]         passthru_chipset_data_n;
 wire [1:0]          passthru_chipset_channel_p;
@@ -389,12 +367,45 @@ wire [2:0]          passthru_chipset_credit_back_p;
 wire [2:0]          passthru_chipset_credit_back_n;
 
 `ifdef PITONSYS_UART_BOOT
-    wire                                    test_start;
+wire                test_start;
+`endif
+
+`ifdef PITON_ARIANE
+// Debug
+wire                     ndmreset;    // non-debug module reset
+wire                     dmactive;    // debug module is active
+wire  [`NUM_TILES-1:0]   debug_req;   // async debug request
+wire  [`NUM_TILES-1:0]   unavailable; // communicate whether the hart is unavailable (e.g.: power down)
+// CLINT
+wire                     rtc;         // Real-time clock in (usually 32.768 kHz)
+wire  [`NUM_TILES-1:0]   timer_irq;   // Timer interrupts
+wire  [`NUM_TILES-1:0]   ipi;         // software interrupt (a.k.a inter-process-interrupt)
+// PLIC
+wire  [`NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (async)
+
 `endif
 
 //////////////////////
 // Sequential Logic //
 //////////////////////
+
+`ifdef PITON_ARIANE
+
+ // no RTC at the moment, have to derive it from the system clock
+reg rtc_div;
+
+always @(posedge core_ref_clk or negedge chip_rst_n) begin : p_rtc_div
+  if(~chip_rst_n) begin
+    rtc_div <= 1'b0;
+  end else begin
+    rtc_div <= ~rtc_div;
+  end
+end
+
+assign rtc = rtc_div;
+
+`endif
+
 
 /////////////////////////
 // Combinational Logic //
@@ -501,7 +512,7 @@ chip chip(
 `else // ifndef PITON_FPGA_SYNTH
     .clk_mux_sel (clk_mux_sel),
 `endif // endif PITON_FPGA_SYNTH
-        
+
     // JTAG
 `ifdef PITON_NO_JTAG
     // Tie off when not used
@@ -511,11 +522,20 @@ chip chip(
     .jtag_datain(1'b0),
     .jtag_dataout(),
 `else // ifndef PITON_NO_JTAG
+`ifdef PITON_ARIANE
+    // Tie off, since Ariane has its own JTAG
+    .jtag_clk(1'b0),
+    .jtag_rst_l(1'b1),
+    .jtag_modesel(1'b1),
+    .jtag_datain(1'b0),
+    .jtag_dataout(),
+`else  //  PITON_ARIANE
     .jtag_clk(jtag_clk),
     .jtag_rst_l(jtag_rst_n_full),
     .jtag_modesel(jtag_modesel),
     .jtag_datain(jtag_datain),
     .jtag_dataout(jtag_dataout),
+`endif // endif PITON_ARIANE
 `endif // endif PITON_NO_JTAG
 
     // Asynchronous FIFOs enable
@@ -532,7 +552,7 @@ chip chip(
 `endif // endif PITON_FPGA_SYNTH
 `endif // endif PITON_NO_CHIP_BRIDGE
 
-`ifndef PITON_NO_CHIP_BRIDGE 
+`ifndef PITON_NO_CHIP_BRIDGE
     // Chipset (intf) to chip channel
     .intf_chip_data(intf_chip_data),
     .intf_chip_channel(intf_chip_channel),
@@ -545,7 +565,7 @@ chip chip(
 `else // ifdef PITON_NO_CHIP_BRIDGE
     // NoCs are not decoded if there is no chip bridge.
     // This is mainly used for FPGA implementations
-    // where the chip and memory controller, i/o, etc. 
+    // where the chip and memory controller, i/o, etc.
     // are both in the FPGA and are thus not pin limitted
 
     // Chip to offchip (chipset) channels
@@ -570,7 +590,20 @@ chip chip(
     .offchip_processor_noc3_data    (offchip_processor_noc3_data),
     .offchip_processor_noc3_yummy   (offchip_processor_noc3_yummy)
 `endif // endif PITON_NO_CHIP_BRIDGE
+`ifdef PITON_ARIANE
+    ,
+    // Debug
+    .ndmreset_i                     ( ndmreset                   ), // non-debug module reset
+    .debug_req_i                    ( debug_req                  ), // async debug request
+    .unavailable_o                  ( unavailable                ), // communicate whether the hart is unavailable (e.g.: power down)
+    //CLINT
+    .timer_irq_i                    ( timer_irq                  ), // Timer interrupts
+    .ipi_i                          ( ipi                        ), // software interrupt (a.k.a inter-process-interrupt)
+    // PLIC
+    .irq_i                          ( irq                        )  // level sensitive IR lines, mip & sip (async)
+`endif
 );
+
 
 `ifdef PITONSYS_INC_PASSTHRU
 // Pasthru FPGA, generally used in Piton ASIC test system
@@ -586,7 +619,7 @@ passthru passthru(
     .clk_osc_p(passthru_clk_osc_p),
     .clk_osc_n(passthru_clk_osc_n),
 `endif // endif PITON_PASSTHRU_CLKS_GEN
-    
+
     // Need to generate these if specified.  Note
     // these may be inputs or outputs.  Outputs if
     // passthru is generating the piton clocks, inputs
@@ -595,7 +628,7 @@ passthru passthru(
 `ifdef PITON_CLKS_PASSTHRU
     .io_clk(io_clk),
 `endif // endif PITON_CLKS_PASSTHRU
-    
+
 `ifdef PITON_PASSTHRU_CLKS_GEN
     .io_clk_loobpack_out(io_clk_loopback),
     .io_clk_loopback_in(io_clk_loopback),
@@ -620,7 +653,7 @@ passthru passthru(
     .piton_prsnt_n(piton_prsnt_n),
     .piton_ready_n(piton_ready_n),
 
-    // Chip<->passthru interface.  Synchronous to io_clk. 
+    // Chip<->passthru interface.  Synchronous to io_clk.
     // Note this is not compatible with PITON_NO_CHIP_BRIDGE
     // as having a passthru without a chip bridge does
     // not make much sense.
@@ -665,7 +698,7 @@ passthru passthru(
 
 // Piton chipset
 chipset chipset(
-    // Only need oscillator clock if 
+    // Only need oscillator clock if
     // chipset is generating its own clocks
 `ifdef PITON_CHIPSET_CLKS_GEN
 `ifdef PITON_CHIPSET_DIFF_CLK
@@ -790,13 +823,6 @@ chipset chipset(
 `endif // endif NEXYSVIDEO_BOARD
     .ddr_dm(ddr_dm),
     .ddr_odt(ddr_odt),
-`else // ifndef PITON_FPGA_MC_DDR3
-    .chipset_mem_val(chipset_mem_val),
-    .chipset_mem_data(chipset_mem_data),
-    .chipset_mem_rdy(chipset_mem_rdy),
-    .mem_chipset_val(mem_chipset_val),
-    .mem_chipset_data(mem_chipset_data),
-    .mem_chipset_rdy(mem_chipset_rdy),
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -830,21 +856,6 @@ chipset chipset(
     .net_phy_rst_n      (net_phy_rst_n),
     .net_phy_mdio_io    (net_phy_mdio_io),
     .net_phy_mdc        (net_phy_mdc),
-
-`else // ifndef PITONSYS_IOCTRL
-    .chipset_fake_iob_val(chipset_fake_iob_val),
-    .chipset_fake_iob_data(chipset_fake_iob_data),
-    .chipset_fake_iob_rdy(chipset_fake_iob_rdy),
-    .fake_iob_chipset_val(fake_iob_chipset_val),
-    .fake_iob_chipset_data(fake_iob_chipset_data),
-    .fake_iob_chipset_rdy(fake_iob_chipset_rdy),
-
-    .chipset_io_val(chipset_io_val),
-    .chipset_io_data(chipset_io_data),
-    .chipset_io_rdy(chipset_io_rdy),
-    .io_chipset_val(io_chipset_val),
-    .io_chipset_data(io_chipset_data),
-    .io_chipset_rdy(io_chipset_rdy),
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -876,6 +887,27 @@ chipset chipset(
     .sw(sw),
     .leds(leds)
 
+`ifdef PITON_ARIANE
+    ,
+    // Debug
+    .ndmreset_o                     ( ndmreset                   ), // non-debug module reset
+    .dmactive_o                     ( dmactive                   ), // debug module is active
+    .debug_req_o                    ( debug_req                  ), // async debug request
+    .unavailable_i                  ( unavailable                ), // communicate whether the hart is unavailable (e.g.: power down)
+    // JTAG
+    .tck_i                          ( jtag_clk                   ),
+    .tms_i                          ( jtag_modesel               ),
+    .trst_ni                        ( jtag_rst_n_full            ),
+    .td_i                           ( jtag_datain                ),
+    .td_o                           ( jtag_dataout               ),
+    .tdo_oe_o                       (                            ),
+    //CLINT
+    .rtc_i                          ( rtc                        ), // Real-time clock in (usually 32.768 kHz)
+    .timer_irq_o                    ( timer_irq                  ), // Timer interrupts
+    .ipi_o                          ( ipi                        ), // software interrupt (a.k.a inter-process-interrupt)
+    // PLIC
+    .irq_o                          ( irq                        )  // level sensitive IR lines, mip & sip (async)
+`endif
 
 );
 

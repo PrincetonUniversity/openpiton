@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15_hmc.v
 //  Created On    : 2014-06-07
-//  Last Modified : 2014-06-07
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -40,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l15_hmc(
 

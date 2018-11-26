@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 //l15.h
-`include "define.vh"
+`include "define.tmp.h"
 `include "iop.h"
 
 `ifndef L15_H
@@ -54,6 +54,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    import math
    import pyhplib
    from pyhplib import *
+
+   if 'PITON_ARIANE' in globals():
+       print("// this is used in the ariane SV packages to derive the parameterization")
+       print("`define CONFIG_L1D_CACHELINE_WIDTH %d"  % 128) # constant at the moment
+       print("`define CONFIG_L1I_CACHELINE_WIDTH %d"  % 256) # constant at the moment
+       print("`define CONFIG_L15_SIZE %d"             % CONFIG_L15_SIZE)
+       print("`define CONFIG_L1D_SIZE %d"             % CONFIG_L1D_SIZE)
+       print("`define CONFIG_L1I_SIZE %d"             % CONFIG_L1I_SIZE)
+       print("`define CONFIG_L15_ASSOCIATIVITY %d"    % CONFIG_L15_ASSOCIATIVITY)
+       print("`define CONFIG_L1D_ASSOCIATIVITY %d"    % CONFIG_L1D_ASSOCIATIVITY)
+       print("`define CONFIG_L1I_ASSOCIATIVITY %d"    % CONFIG_L1I_ASSOCIATIVITY)
+       print("\n\n")
 
    # 512
    numentries = CONFIG_L15_SIZE / L15_LINE_SIZE
@@ -297,15 +309,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define L15_AMO_OP_WIDTH 4
 `define L15_AMO_OP_NONE  4'b0000
 `define L15_AMO_OP_LR    4'b0001
-`define L15_AMO_OP_SC    4'b0010 
-`define L15_AMO_OP_SWAP  4'b0011 
-`define L15_AMO_OP_ADD   4'b0100 
-`define L15_AMO_OP_AND   4'b0101 
-`define L15_AMO_OP_OR    4'b0110 
-`define L15_AMO_OP_XOR   4'b0111 
-`define L15_AMO_OP_MAX   4'b1000 
-`define L15_AMO_OP_MAXU  4'b1001 
-`define L15_AMO_OP_MIN   4'b1010 
+`define L15_AMO_OP_SC    4'b0010
+`define L15_AMO_OP_SWAP  4'b0011
+`define L15_AMO_OP_ADD   4'b0100
+`define L15_AMO_OP_AND   4'b0101
+`define L15_AMO_OP_OR    4'b0110
+`define L15_AMO_OP_XOR   4'b0111
+`define L15_AMO_OP_MAX   4'b1000
+`define L15_AMO_OP_MAXU  4'b1001
+`define L15_AMO_OP_MIN   4'b1010
 `define L15_AMO_OP_MINU  4'b1011
 `define L15_AMO_OP_CAS1  4'b1100
 `define L15_AMO_OP_CAS2  4'b1101
@@ -337,6 +349,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define L15_CONTROL_BLOCKSTORE_1B (`L15_CONTROL_NC_1B + 1)
 `define L15_CONTROL_WIDTH (`L15_CONTROL_BLOCKSTORE_1B + 1)
 
+// define the width of the flattened, native L15 interface, used for ARIANE_RV64 option
+`define L15_REQ_WIDTH  (14 + 40 + 2*64 +      \
+                        `PCX_REQTYPE_WIDTH  + \
+                        `L15_THREADID_WIDTH + \
+                        `L15_WAY_WIDTH      + \
+                        `TLB_CSM_WIDTH )
+
+`define L15_RTRN_WIDTH (16 + 4*64 + (15 - 4 + 1) + \
+                        `CPX_RESTYPE_WIDTH  +      \
+                        `L15_THREADID_WIDTH +      \
+                        2 * `L15_WAY_WIDTH)
 
 `define L15_FETCH_STATE_WIDTH 3
 `define L15_FETCH_STATE_NORMAL 3'd0

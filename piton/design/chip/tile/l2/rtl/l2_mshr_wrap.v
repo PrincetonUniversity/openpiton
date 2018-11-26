@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_mshr_wrap(
 
@@ -162,7 +162,7 @@ l2_mshr l2_mshr(
     .hit_index                  (hit_index),
     .state_out                  (state_out),
     .data_out                   (data_out),
-    .inv_counter_out            (inv_counter_out), 
+    .inv_counter_out            (inv_counter_out),
     .empty_slots                (empty_slots),
     .pending                    (pending),
     .pending_index              (pending_index),

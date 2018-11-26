@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : rtap.v
 //  Created On    : 2014-01-31 12:52:57
-//  Last Modified : 2015-01-26 21:02:09
+//  Last Modified : 2018-11-16 17:23:14
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //  Description   :
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "jtag.vh"
 
 `ifdef L15_EXTRA_DEBUG

@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15_home_encoder.v
 //  Created On    : 2014-06-23
-//  Last Modified : 2014-06-23
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -41,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 <%
 HOME_ID_WIDTH = 6

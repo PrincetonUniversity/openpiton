@@ -103,7 +103,7 @@ print "// Author: Tri Nguyen"
 # trin: disable this so timescales are consistent across different modules, especially for IBM clocks
 # print "`timescale 1ns/100ps"
 
-print "`include \"define.vh\""
+print "`include \"define.tmp.h\""
 
 print "`ifdef DEFAULT_NETTYPE_NONE"
 print "`default_nettype none"

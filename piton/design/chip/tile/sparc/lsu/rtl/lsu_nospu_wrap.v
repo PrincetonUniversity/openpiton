@@ -29,7 +29,7 @@
 `include "iop.h"
 `include "ifu.tmp.h"
 `include "lsu.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module lsu_nospu_wrap
 (

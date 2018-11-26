@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15_priority_encoder.v
 //  Created On    : 2014-07-09
-//  Last Modified : 2014-07-09
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -41,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 <% 
 L15_HMC_INDEX_WIDTH = 4

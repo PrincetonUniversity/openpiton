@@ -31,12 +31,12 @@ dramctl_init:
 #define DISABLE_SELF_REFRESH 0
 #endif
 
-#ifndef VARY_CAS_LATENCY
-#define CAS_LATENCY 3
-#define RCD_REG     3 
-#define RP_REG      3 
-#define RC_REG      12
-#endif
+//#ifndef VARY_CAS_LATENCY
+//#define CAS_LATENCY 3
+//#define RCD_REG     3 
+//#define RP_REG      3 
+//#define RC_REG      12
+//#endif
 
 #if (VARY_CAS_LATENCY == 2)
 #define CAS_LATENCY VARY_CAS_LATENCY
@@ -54,7 +54,7 @@ dramctl_init:
 #define RP_REG      4 
 #define RC_REG      13
 #else
-#define CAS_LATENCY  0x3
+#define CAS_LATENCY 3
 #define RCD_REG     3 
 #define RP_REG      3 
 #define RC_REG      12

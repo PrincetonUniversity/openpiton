@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# create mem.image
+#riscv64-unknown-elf-objcopy --reverse-bytes 4 -I elf32-littleriscv -O binary diag.exe diag.o
+riscv64-unknown-elf-objcopy -I elf64-littleriscv -O binary diag.exe diag.o
+# pad with zero to 128byte boundary
+du diag.o -b | awk '{print(128 - ($1 % 128));}' | xargs -t -ISIZE truncate diag.o -s +SIZE
+printf "\n@0000000080000000\t// Section '.RED_SEC', segment 'text'\n" >mem.image
+#od -tx -v -An -w32 diag.o >>mem.image
+xxd -g 16 -c 32 diag.o | awk '{printf("%s %s\n", $2, $3);}' >>mem.image
+
+#create symbol.tbl
+riscv64-unknown-elf-objdump -d diag.exe | grep "<pass>:" | awk '{printf("good_trap %s X %s\n", $1, $1);}' >symbol.tbl
+riscv64-unknown-elf-objdump -d diag.exe | grep "<fail>:" | awk '{printf("bad_trap %s X %s\n", $1, $1);}' >>symbol.tbl
+riscv64-unknown-elf-objdump -d diag.exe --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data  > diag.dump
+
+#create empty diag.ev
+touch diag.ev
+
+

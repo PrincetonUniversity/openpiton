@@ -26,221 +26,155 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 `include "l2.tmp.h"
 
-module l2_amo_alu (
-input      [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op,
-input      [`PHY_ADDR_WIDTH-1:0]      address,
-input      [`MSG_DATA_SIZE_WIDTH-1:0] data_size,
-input      [`L2_DATA_DATA_WIDTH-1:0]  memory_operand,
-input      [`L2_DATA_DATA_WIDTH-1:0]  cpu_operand,
-output reg [`L2_DATA_DATA_WIDTH-1:0]  amo_result
+module l2_amo_alu #(
+  parameter SWAP_ENDIANESS = 1
+) (
+  input      [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op,
+  input      [`PHY_ADDR_WIDTH-1:0]      address,
+  input      [`MSG_DATA_SIZE_WIDTH-1:0] data_size,
+  input      [`L2_DATA_DATA_WIDTH-1:0]  memory_operand,
+  input      [`L2_DATA_DATA_WIDTH-1:0]  cpu_operand,
+  output reg [`L2_DATA_DATA_WIDTH-1:0]  amo_result
 );
 
-reg [63:0] operand_a_64b;
-reg [31:0] operand_a_32b;
-reg [15:0] operand_a_16b;
-reg  [7:0] operand_a_8b;
+wire [63:0] amo_operand_a_mux, amo_operand_b_mux;
+wire [63:0] amo_operand_a_swp, amo_operand_b_swp;
+reg  [63:0] amo_operand_a, amo_operand_b;
+reg  [63:0] amo_64b_tmp, amo_64b_result;
+reg  [64:0] adder_operand_a, adder_operand_b;
+wire [64:0] adder_sum;
 
-reg [63:0] operand_b_64b;
-reg [31:0] operand_b_32b;
-reg [15:0] operand_b_16b;
-reg  [7:0] operand_b_8b;
+// select dword to operate on
+assign amo_operand_a_mux = memory_operand[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64];
+assign amo_operand_b_mux = cpu_operand[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64];
 
-reg [63:0] result_64b;
-reg [31:0] result_32b;
-reg [15:0] result_16b;
-reg  [7:0] result_8b;
+// endianess swap (if needed)
+generate
+  if (SWAP_ENDIANESS) begin : g_swap_in
+    assign amo_operand_a_swp = {amo_operand_a_mux[ 0 +:8],
+                                amo_operand_a_mux[ 8 +:8],
+                                amo_operand_a_mux[16 +:8],
+                                amo_operand_a_mux[24 +:8],
+                                amo_operand_a_mux[32 +:8],
+                                amo_operand_a_mux[40 +:8],
+                                amo_operand_a_mux[48 +:8],
+                                amo_operand_a_mux[56 +:8]};
 
-reg [63:0] adder_operand_a_64b;
-reg [31:0] adder_operand_a_32b;
-reg [15:0] adder_operand_a_16b;
-reg  [7:0] adder_operand_a_8b;
+    assign amo_operand_b_swp = {amo_operand_b_mux[ 0 +:8],
+                                amo_operand_b_mux[ 8 +:8],
+                                amo_operand_b_mux[16 +:8],
+                                amo_operand_b_mux[24 +:8],
+                                amo_operand_b_mux[32 +:8],
+                                amo_operand_b_mux[40 +:8],
+                                amo_operand_b_mux[48 +:8],
+                                amo_operand_b_mux[56 +:8]};
+  end else begin : g_swap_in
+    assign amo_operand_a_swp = amo_operand_a_mux;
+    assign amo_operand_b_swp = amo_operand_b_mux;
+  end
+endgenerate
 
-reg [63:0] adder_operand_b_64b;
-reg [31:0] adder_operand_b_32b;
-reg [15:0] adder_operand_b_16b;
-reg  [7:0] adder_operand_b_8b;
+// operand word/byte select
+always @* begin
+  amo_operand_a = 64'h0;
+  amo_operand_b = 64'h0;
 
-wire [64:0] adder_sum_65b; // Note 1b bigger
-wire [32:0] adder_sum_33b; // Note 1b bigger
-wire [16:0] adder_sum_17b; // Note 1b bigger
-wire  [8:0] adder_sum_9b;  // Note 1b bigger
-
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_upper_64b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_lower_64b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_upper_32b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_lower_32b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_upper_16b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_lower_16b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_upper_8b;
-wire [`L2_DATA_DATA_WIDTH_LOG2-1:0] address_index_lower_8b;
-
-assign adder_sum_65b = adder_operand_a_64b + adder_operand_b_64b;
-assign adder_sum_33b = adder_operand_a_32b + adder_operand_b_32b;
-assign adder_sum_17b = adder_operand_a_16b + adder_operand_b_16b;
-assign adder_sum_9b  = adder_operand_a_8b  + adder_operand_b_8b;
-
-assign address_index_upper_64b = {~address[`L2_DATA_DATA_WIDTH_LOG2-1], {6{1'b1}}};
-assign address_index_upper_32b = {~address[`L2_DATA_DATA_WIDTH_LOG2-1], address[`L2_DATA_DATA_WIDTH_LOG2-2:5], {5{1'b1}}};
-assign address_index_upper_16b = {~address[`L2_DATA_DATA_WIDTH_LOG2-1], address[`L2_DATA_DATA_WIDTH_LOG2-2:4], {4{1'b1}}};
-assign address_index_upper_8b = {~address[`L2_DATA_DATA_WIDTH_LOG2-1], address[`L2_DATA_DATA_WIDTH_LOG2-2:3], {3{1'b1}}};
-
-always @*
-begin
-    operand_a_64b = memory_operand[address_index_upper_64b-:64];
-    operand_b_64b = cpu_operand[address_index_upper_64b-:64];
-    
-    operand_a_32b = memory_operand[address_index_upper_32b-:32];
-    operand_b_32b = cpu_operand[address_index_upper_32b-:32];
-    
-    operand_a_16b = memory_operand[address_index_upper_16b-:16];
-    operand_b_16b = cpu_operand[address_index_upper_16b-:16];
-    
-    operand_a_8b = memory_operand[address_index_upper_8b-:8];
-    operand_b_8b = cpu_operand[address_index_upper_8b-:8];
+  case (data_size)
+    `MSG_DATA_SIZE_1B: begin
+      amo_operand_a[56 +: 8]     = amo_operand_a_swp[address[2:0]<<3 +: 8];
+      amo_operand_b[56 +: 8]     = amo_operand_b_swp[address[2:0]<<3 +: 8];
+    end
+    `MSG_DATA_SIZE_2B: begin
+        amo_operand_a[48 +: 16]  = amo_operand_a_swp[address[2:1]<<4 +: 16];
+        amo_operand_b[48 +: 16]  = amo_operand_b_swp[address[2:1]<<4 +: 16];
+     end
+    `MSG_DATA_SIZE_4B: begin
+        amo_operand_a[32 +: 32]  = amo_operand_a_swp[address[2:2]<<5 +: 32];
+        amo_operand_b[32 +: 32]  = amo_operand_b_swp[address[2:2]<<5 +: 32];
+    end
+    `MSG_DATA_SIZE_8B: begin
+        amo_operand_a  = amo_operand_a_swp;
+        amo_operand_b  = amo_operand_b_swp;
+    end
+    default: ;
+  endcase // data_size
 end
 
+
+// main ALU
+assign adder_sum     = adder_operand_a + adder_operand_b;
+
 always @*
 begin
-    adder_operand_a_64b = $signed(operand_a_64b);
-    adder_operand_a_32b = $signed(operand_a_32b);
-    adder_operand_a_16b = $signed(operand_a_16b);
-    adder_operand_a_8b  = $signed(operand_a_8b);
+    adder_operand_a = $signed(amo_operand_a);
+    adder_operand_b = $signed(amo_operand_b);
 
-    adder_operand_b_64b = $signed(operand_b_64b);
-    adder_operand_b_32b = $signed(operand_b_32b);
-    adder_operand_b_16b = $signed(operand_b_16b);
-    adder_operand_b_8b  = $signed(operand_b_8b);
+    amo_64b_tmp     = amo_operand_a;
 
     case (amo_alu_op)
-        `L2_AMO_ALU_NOP:
-        begin
-            result_64b = {64{1'b0}};
-            result_32b = {32{1'b0}};
-            result_16b = {16{1'b0}};
-            result_8b  = {8{1'b0}};
+        `L2_AMO_ALU_NOP: ;
+        `L2_AMO_ALU_ADD: amo_64b_tmp = adder_sum[63:0];
+        `L2_AMO_ALU_AND: amo_64b_tmp = amo_operand_a & amo_operand_b;
+        `L2_AMO_ALU_OR:  amo_64b_tmp = amo_operand_a | amo_operand_b;
+        `L2_AMO_ALU_XOR: amo_64b_tmp = amo_operand_a ^ amo_operand_b;
+        `L2_AMO_ALU_MAX: begin
+            adder_operand_b = -$signed(amo_operand_b);
+            amo_64b_tmp = adder_sum[64] ? amo_operand_b : amo_operand_a;
         end
-        `L2_AMO_ALU_ADD:
-        begin
-            result_64b = adder_sum_65b[63:0];   
-            result_32b = adder_sum_33b[31:0];   
-            result_16b = adder_sum_17b[15:0];   
-            result_8b  = adder_sum_9b[7:0];   
+        `L2_AMO_ALU_MAXU: begin
+            adder_operand_a = $unsigned(amo_operand_a);
+            adder_operand_b = -$unsigned(amo_operand_b);
+            amo_64b_tmp = adder_sum[64] ? amo_operand_b : amo_operand_a;
         end
-        `L2_AMO_ALU_AND:
-        begin
-            result_64b = operand_a_64b & operand_b_64b;
-            result_32b = operand_a_32b & operand_b_32b;
-            result_16b = operand_a_16b & operand_b_16b;
-            result_8b  = operand_a_8b  & operand_b_8b;
+        `L2_AMO_ALU_MIN: begin
+            adder_operand_b = -$signed(amo_operand_b);
+            amo_64b_tmp = adder_sum[64] ? amo_operand_a : amo_operand_b;
         end
-        `L2_AMO_ALU_OR:
-        begin
-            result_64b = operand_a_64b | operand_b_64b;
-            result_32b = operand_a_32b | operand_b_32b;
-            result_16b = operand_a_16b | operand_b_16b;
-            result_8b  = operand_a_8b  | operand_b_8b;
+        `L2_AMO_ALU_MINU: begin
+            adder_operand_a = $unsigned(amo_operand_a);
+            adder_operand_b = -$unsigned(amo_operand_b);
+            amo_64b_tmp = adder_sum[64] ? amo_operand_a : amo_operand_b;
         end
-        `L2_AMO_ALU_XOR:
-        begin
-            result_64b = operand_a_64b ^ operand_b_64b;
-            result_32b = operand_a_32b ^ operand_b_32b;
-            result_16b = operand_a_16b ^ operand_b_16b;
-            result_8b  = operand_a_8b  ^ operand_b_8b;
-        end
-        `L2_AMO_ALU_MAX:
-        begin
-            adder_operand_b_64b = -$signed(operand_b_64b);
-            adder_operand_b_32b = -$signed(operand_b_32b);
-            adder_operand_b_16b = -$signed(operand_b_16b);
-            adder_operand_b_8b  = -$signed(operand_b_8b);
-
-            result_64b = adder_sum_65b[64] ? operand_b_64b : operand_a_64b;
-            result_32b = adder_sum_33b[32] ? operand_b_32b : operand_a_32b;
-            result_16b = adder_sum_17b[16] ? operand_b_16b : operand_a_16b;
-            result_8b  = adder_sum_9b[8]  ? operand_b_8b  : operand_a_8b;
-        end
-        `L2_AMO_ALU_MAXU:
-        begin
-            adder_operand_a_64b = $unsigned(operand_a_64b);
-            adder_operand_a_32b = $unsigned(operand_a_32b);
-            adder_operand_a_16b = $unsigned(operand_a_16b);
-            adder_operand_a_8b  = $unsigned(operand_a_8b);
-
-            adder_operand_b_64b = -$unsigned(operand_b_64b);
-            adder_operand_b_32b = -$unsigned(operand_b_32b);
-            adder_operand_b_16b = -$unsigned(operand_b_16b);
-            adder_operand_b_8b  = -$unsigned(operand_b_8b);
-
-            result_64b = adder_sum_65b[64] ? operand_b_64b : operand_a_64b;
-            result_32b = adder_sum_33b[32] ? operand_b_32b : operand_a_32b;
-            result_16b = adder_sum_17b[16] ? operand_b_16b : operand_a_16b;
-            result_8b  = adder_sum_9b[8]  ? operand_b_8b  : operand_a_8b;
-        end
-        `L2_AMO_ALU_MIN:
-        begin
-            adder_operand_b_64b = -$signed(operand_b_64b);
-            adder_operand_b_32b = -$signed(operand_b_32b);
-            adder_operand_b_16b = -$signed(operand_b_16b);
-            adder_operand_b_8b  = -$signed(operand_b_8b);
-
-            result_64b = adder_sum_65b[64] ? operand_a_64b : operand_b_64b;
-            result_32b = adder_sum_33b[32] ? operand_a_32b : operand_b_32b;
-            result_16b = adder_sum_17b[16] ? operand_a_16b : operand_b_16b;
-            result_8b  = adder_sum_9b[8]  ? operand_a_8b  : operand_b_8b;
-        end
-        `L2_AMO_ALU_MINU:
-        begin
-            adder_operand_a_64b = $unsigned(operand_a_64b);
-            adder_operand_a_32b = $unsigned(operand_a_32b);
-            adder_operand_a_16b = $unsigned(operand_a_16b);
-            adder_operand_a_8b  = $unsigned(operand_a_8b);
-
-            adder_operand_b_64b = -$unsigned(operand_b_64b);
-            adder_operand_b_32b = -$unsigned(operand_b_32b);
-            adder_operand_b_16b = -$unsigned(operand_b_16b);
-            adder_operand_b_8b  = -$unsigned(operand_b_8b);
-
-            result_64b = adder_sum_65b[64] ? operand_a_64b : operand_b_64b;
-            result_32b = adder_sum_33b[32] ? operand_a_32b : operand_b_32b;
-            result_16b = adder_sum_17b[16] ? operand_a_16b : operand_b_16b;
-            result_8b  = adder_sum_9b[8]  ? operand_a_8b  : operand_b_8b;
-        end
-        default:
-        begin
-            result_64b = {64{1'bX}};
-            result_32b = {32{1'bX}};
-            result_16b = {16{1'bX}};
-            result_8b  = {8{1'bX}};
-        end
+        default: ;
     endcase
 end
 
-always @*
-begin
-    amo_result = memory_operand;
 
-    case (data_size)
-        `MSG_DATA_SIZE_1B:
-        begin
-            amo_result[address_index_upper_8b-:8] = result_8b;
-        end
-        `MSG_DATA_SIZE_2B:
-        begin
-            amo_result[address_index_upper_16b-:16] = result_16b;
-        end
-        `MSG_DATA_SIZE_4B:
-        begin
-            amo_result[address_index_upper_32b-:32] = result_32b;
-        end
-        `MSG_DATA_SIZE_8B:
-        begin
-            amo_result[address_index_upper_64b-:64] = result_64b;
-        end
-        default:
-        begin
-            amo_result = {`L2_DATA_DATA_WIDTH{1'bX}};
-        end
-    endcase
+// operand select and endianess swap
+integer j;
+always @* begin
+  // first read-modify-write 64bit word
+  amo_64b_result = amo_operand_a;
+  case (data_size)
+    `MSG_DATA_SIZE_1B: begin
+      amo_64b_result[address[2:0]<<3 +: 8]     = amo_64b_tmp[56 +: 8];
+    end
+    `MSG_DATA_SIZE_2B: begin
+        amo_64b_result[address[2:1]<<4 +: 16]  = amo_64b_tmp[48 +: 16];
+     end
+    `MSG_DATA_SIZE_4B: begin
+        amo_64b_result[address[2:2]<<5 +: 32]  = amo_64b_tmp[32 +: 32];
+    end
+    `MSG_DATA_SIZE_8B: begin
+        amo_64b_result  = amo_64b_tmp;
+    end
+    default: ;
+  endcase // data_size
+
+  // merge back into memory line
+  amo_result     = memory_operand;
+  if (SWAP_ENDIANESS) begin
+    amo_result[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64] = {amo_64b_result[ 0 +:8],
+                                                                  amo_64b_result[ 8 +:8],
+                                                                  amo_64b_result[16 +:8],
+                                                                  amo_64b_result[24 +:8],
+                                                                  amo_64b_result[32 +:8],
+                                                                  amo_64b_result[40 +:8],
+                                                                  amo_64b_result[48 +:8],
+                                                                  amo_64b_result[56 +:8]};
+  end else begin
+    amo_result[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64] = amo_64b_result;
+  end
 end
 
 endmodule

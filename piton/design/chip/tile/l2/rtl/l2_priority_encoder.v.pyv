@@ -40,9 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
-<% 
+<%
 L2_OWNER_BITS  = 6
 L2_DIR_ARRAY_WIDTH = 64
 %>

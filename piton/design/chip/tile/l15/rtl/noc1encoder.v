@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : noc1encoder.v
 //  Created On    : 2014-02-05 20:06:27
-//  Last Modified : 2015-01-22 17:28:23
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -39,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //==================================================================================================
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none

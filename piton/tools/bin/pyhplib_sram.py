@@ -1,6 +1,6 @@
 # Copyright (c) 2018 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -195,7 +195,7 @@ def MakeGenericCacheDefine(modulename, type, height_define, heightlog2_define, w
 
 def Get1RWTemplate():
   return '''
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif
@@ -241,13 +241,13 @@ end
             dout_f <= cache[A];
       end
    end
-   
+
 endmodule
 '''
 
 def Get1RWHeader():
   return '''
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif
@@ -303,7 +303,7 @@ end
 
 def Get2RWTemplate():
   return '''
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif
@@ -356,7 +356,7 @@ end
       end
    end
 
-   
+
 
    reg [_PARAMS_WIDTH-1:0] dout_f1;
 
@@ -373,13 +373,13 @@ end
       end
    end
 
-   
+
 endmodule
   '''
 
 def Get2RWHeader():
   return '''
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif
@@ -449,7 +449,7 @@ end
 
 def Get1R1WHeader():
   return '''
-`include "define.vh"
+`include "define.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
 `endif

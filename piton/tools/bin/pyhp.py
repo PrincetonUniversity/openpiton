@@ -3,7 +3,7 @@
 # Copyright (C) 2000 Christopher Craig
 #
 # This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License 
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 #
@@ -45,7 +45,7 @@ class PageData:
         self._body = fbuffer()
         self._headers = {}
         self.staticvars = {} # for compatibility
-        
+
     def addheader(self, invar):
         """
         takes a HTTP header string (of the form 'Key: value') and adds it
@@ -54,7 +54,7 @@ class PageData:
         s = str(invar)
         t = s.split(':', 1)
         self._headers[t[0]] = t[1]
-        
+
     def clearall(self):
         """
         clears all data output either to the stdout or to the headers up
@@ -77,7 +77,7 @@ class PageData:
         # send body to port
         sys.stdout.write(str(self._body))
 
-    def include(self, file):
+    def include(self, filename):
         """
         includes file (a file object) as a PyHP file.
         This takes place in a fresh namespace and does not inherit variables
@@ -87,6 +87,7 @@ class PageData:
         magnitude slower than a python 'import' statement, so should be used
         sparingly
         """
+        file = open(filename)
 
         cgienv = {'pyhp': self,
                   'sys':  sys}
@@ -106,6 +107,7 @@ class PageData:
         fields = filter(lambda x: len(x)!=0, fields)
 
         # setup data and parse code
+        lineCnt = 1
         for f in fields:
             # strip out right white space to have indented %> possible
             forig = f
@@ -115,16 +117,19 @@ class PageData:
             # if f[:3] == '<%=': interp.pushvar(f[4:-2])
             elif f[:3] == '<%-': pass
             # elif f[:2] == '<%': interp.pushcode(f[3:-2])
-            elif f[:2] == '<%': interp.pushcode(f[3:])
+            elif f[:2] == '<%': interp.pushcode(f[3:], filename, lineCnt)
             else: interp.pushtext(forig)
+            # count lines for accurate error reporting in pushcode() below
+            tmp = forig.split('\n')
+            lineCnt += len(tmp)-1
 
 
 class PyHPInterp(code.InteractiveInterpreter):
     """Interpreter for PyHP.  Allows mod_python to spawn a seperate
     pseudo interpreter for each script run with its own namespace, but still
     cache module loads"""
-    
-    def pushcode(self, codeobj):
+
+    def pushcode(self, codeobj, filename, lineCnt):
         # so.write("PYTHON CODE\n")
         lines = codeobj.split("\n")
         # for line in lines:
@@ -149,16 +154,17 @@ class PyHPInterp(code.InteractiveInterpreter):
             line = line[wslen:]
             codeobj += line + "\n"
         # codeobj = "".join(lines)
-        c = code.compile_command(codeobj, '<string>', 'exec')
-        if c:
+        try:
+            c = code.compile_command(codeobj, '<string>', 'exec')
             self.runcode(c)
-        else:
-            raise SyntaxError, 'Code segment does not compile'
-                    
+
+        except Exception, err:
+            raise type(err), str(err) + " in code segment starting on line " + str(lineCnt) + ' in pyv file ' + filename
+
     def pushvar(self, var):
         cmd = 'sys.stdout.write(str(%s))' % var
         self.runsource(cmd)
-        
+
     def pushtext(self, text):
         self.locals['sys'].stdout.write(text)
 
@@ -171,7 +177,7 @@ so = sys.__stdout__
 sys.stdout = sys.__stdout__ = pyhp._body
 
 # parse code
-pyhp.include(open(sys.argv[1]))
+pyhp.include(sys.argv[1])
 
 # write out data
 sys.stdout = sys.__stdout__ = so

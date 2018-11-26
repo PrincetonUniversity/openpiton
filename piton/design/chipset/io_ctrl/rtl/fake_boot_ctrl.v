@@ -26,7 +26,6 @@
 //==================================================================================================
 //  Filename      : fake_boot_ctrl.v
 //  Created On    : 2014-04-15
-//  Last Modified : 2017-02-21 22:56:43
 //  Revision      :
 //  Author        : Yaosheng Fu
 //  Company       : Princeton University
@@ -38,7 +37,7 @@
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 `include "iop.h"
 `include "chipset_define.vh"
 

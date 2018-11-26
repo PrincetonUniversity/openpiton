@@ -29,7 +29,6 @@
 //==================================================================================================
 //  Filename      : mem_io_splitter.v
 //  Created On    : 2015-03-31
-//  Last Modified : 2016-09-07 20:59:56
 //  Revision      :
 //  Author        : Xiaohua Liang
 //  Company       : Princeton University
@@ -41,7 +40,7 @@
 //
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "chipset_define.vh"
 
 module mem_io_splitter(

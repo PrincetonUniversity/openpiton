@@ -171,6 +171,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'overwrite' => 0,
         'pal_use_tgseed' => 0,
         'parallel' => 0,
+        'ariane' => 0,
         'pico' => 0,
         'pico_het' => 0,
         'post_process_cmd' => [],
@@ -184,15 +185,15 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'rerun' => 0,
         'result_dir' => "",
         'rtl_timeout' => 5000,
-	'run_diag_pl' => 1,
+        'run_diag_pl' => 1,
         'other_sim_build' => 0,
         'sim_build_args' => [],
         'other_sim_build_cmd' => "",
         'other_sim_run' => 0,
         'sim_run_args' => [],
         'other_sim_run_cmd' => "",
-	'sim_type' => "vcs",
-	'sim_q_command' => "/bin/sh",
+        'sim_type' => "vcs",
+        'sim_q_command' => "/bin/sh",
         'sims_config' => "",
         'simslog' => 1,
         'simslog_name' => "sims.log",
@@ -343,6 +344,7 @@ GetOptions (\%opt,
             'group=s@',
             'model_dir=s',
             'parallel!',
+            'ariane!',
             'pico!',
             'pico_het!',
             'regress!',
@@ -504,7 +506,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 # build the simulation model
 ################################################################################
 
-&generic_sim_build () if ($opt{vcs_build} or $opt{ncv_build} or 
+&generic_sim_build () if ($opt{vcs_build} or $opt{ncv_build} or
                           $opt{icv_build} or $opt{other_sim_build} or
                           $opt{msm_build}) ;
 
@@ -520,7 +522,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &copy_image () if ($opt{image_diag_name} ne "") ;
 
-&oram_image () if (($opt{vcs_run} or $opt{ncv_run} or 
+&oram_image () if (($opt{vcs_run} or $opt{ncv_run} or
                     $opt{icv_run} or $opt{other_sim_run} or
                     $opt{msm_run}) and $opt{oram}); #if ($opt{image_diag_name}
 
@@ -545,10 +547,10 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 ################################################################################
 
 if (    -e "diag.pl" and
-	( $opt{vcs_run} or $opt{ncv_run} or 
+  ( $opt{vcs_run} or $opt{ncv_run} or
       $opt{icv_run} or $opt{other_sim_run} or
       $opt{msm_run}) and
-	$opt{run_diag_pl} )
+       $opt{run_diag_pl} )
 {
   print "$prg: executing diag.pl\n";
 
@@ -633,7 +635,7 @@ sub run_injobq
 
   #system ($cmd) if (!($opt{dryrun})) ;
   #($output = `until $cmd; do echo "Submit failed"; sleep 30; done`) if (!($opt{dryrun})) ;
-  
+
   if (!($opt{dryrun})) {
     my $returncode = system ($cmd) ;
     while ($returncode) {
@@ -963,17 +965,17 @@ sub regress
 
           my @cmd ;
           # push (@cmd, "$prg") ;
-      	  if (($opt{sim_type}) eq "vcs") {
+          if (($opt{sim_type}) eq "vcs") {
             push (@cmd, "-vcs_run") ;
-      	  } elsif (($opt{sim_type}) eq "ncv") {
+          } elsif (($opt{sim_type}) eq "ncv") {
             push (@cmd, "-ncv_run") ;
-      	  } elsif (($opt{sim_type}) eq "icv") {
+          } elsif (($opt{sim_type}) eq "icv") {
             push (@cmd, "-icv_run") ;
-      	  } elsif (($opt{sim_type}) eq "msm") {
+          } elsif (($opt{sim_type}) eq "msm") {
             push (@cmd, "-msm_run") ;
-	      } else {
+          } else {
             push (@cmd, "-other_sim_run") ;
-	      }
+          }
           push (@cmd, "-sys=${sys}") ;
           push (@cmd, "-build_id=${build_id}") ;
           push (@cmd, "-regress_id=${regress_id}") ;
@@ -1114,6 +1116,8 @@ sub gen_flist
 
   # Add ORAM flist if ORAM is specified
   push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tinyoram/rtl/Flist.oram") if ($opt{oram}) ;
+  # Add Ariane flist if -ariane is specified
+  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tile/ariane/Flist.ariane") if ($opt{ariane}) ;
 
 
   foreach my $flist (@{$opt{flist}}) {
@@ -1319,10 +1323,14 @@ sub generic_sim_build
       }
     }
 
-    print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+    if ($ENV{LM_LICENSE_FILE}) {
+      print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+    } else {
+      print "$prg: LM_LICENSE_FILE : none\n";
+    }
 
     push (@{$opt{sim_build_args}}, "-f flist") ;
-    
+
     if ($opt{vcs_build}) {
       $lib_path = "-L$ENV{DV_ROOT}/tools/";
       $lib_path .= $os_cpu_slash;
@@ -1349,6 +1357,12 @@ sub generic_sim_build
       push (@{$opt{vcs_build_args}}, "+warn=all");
       push (@{$opt{vcs_build_args}}, "-l compile.log") ;
 
+      # some SystemVerilog-specific options
+      if ($opt{ariane}) {
+          push (@{$opt{vcs_build_args}}, "-sverilog +systemverilogext+.sv") ;
+          push (@{$opt{vcs_build_args}}, "-ntb_opts uvm-1.1 +vpi ") ;
+      }
+
       if ($opt{ibm}) {
           push (@{$opt{config_rtl}}, "IBM_SRAM_RF16X160_MODEL_CHECKER") ;
           push (@{$opt{config_rtl}}, "IBM_SRAM_RF32X80_MODEL_CHECKER") ;
@@ -1374,13 +1388,13 @@ sub generic_sim_build
       if ( -f $ncelab) { print "$prg: file $ncelab found\n"; }
 
       if ((! -f $ncsim ) or (! -f $ncelab )) {
-	    my $cur_dir = $ENV{PWD};
-	    chdir $ENV{DV_ROOT} or die ("DIE can't change directory to $ENV{DV_ROOT}");
-	    chdir "tools/pli" or die ("DIE can't change directory to tools/pli");
-	    print "$prg: Calling make ncvexe\n";
-	    system("make ncvexe");
+        my $cur_dir = $ENV{PWD};
+        chdir $ENV{DV_ROOT} or die ("DIE can't change directory to $ENV{DV_ROOT}");
+        chdir "tools/pli" or die ("DIE can't change directory to tools/pli");
+        print "$prg: Calling make ncvexe\n";
+        system("make ncvexe");
         die ("DIE. failed building ncsim or ncelab executable") if ($?) ;
-	    chdir $cur_dir ;
+        chdir $cur_dir ;
       }
 
       my $cmd = "+ncsimexe+";
@@ -1454,7 +1468,7 @@ sub generic_sim_build
       # lib_path needs to be before vcs_build_args
       $build_cmd .= $lib_path;
     }
-    if ($opt{ncv_build}){
+    if ($opt{ncv_build}) {
       $build_cmd = "LD_LIBRARY_PATH=";
       $build_cmd .= $ld_lib_path;
       $build_cmd  .= " ; export LD_LIBRARY_PATH;  ncverilog -C " ;
@@ -1464,12 +1478,16 @@ sub generic_sim_build
       $build_cmd .= " ";
     }
     if ($opt{msm_build}) {
-      $build_cmd = "vlog " ;
-      $build_cmd .= " ";
+      $build_cmd = "vlog" ;
+      if ($ENV{MODELSIM_VERSION}) {
+        $build_cmd .= "$ENV{MODELSIM_VERSION}" ;
+      }
+      # compile everything as one compile unit (in order to keep the global defines in config.v)
+      $build_cmd .= " -mfcu ";
     }
     if ($opt{other_sim_build}) {
       if (($opt{other_sim_build_cmd}) eq "") {
-	    die ("DIE. other_sim_build_cmd not defined");
+        die ("DIE. other_sim_build_cmd not defined");
       }
 
       $build_cmd = $opt{other_sim_build_cmd};
@@ -1551,10 +1569,10 @@ sub generic_sim_run
       my @bad_trap ;
 
       if ($#good_trap_list >= 0) {
-	    foreach my $trap (@good_trap_list) {
+        foreach my $trap (@good_trap_list) {
           my ($tmp1, $va, $ra, $pa) = ($trap =~ /([\w_\.]+)\s+(\w+)\s+(\w+)\s+(\w+)/) ;
           $good_trap_list{$pa} = 1 ;
-  	    }
+        }
 
         foreach my $x (sort (keys (%good_trap_list))) {
           push (@good_trap, $x) ;
@@ -1571,8 +1589,8 @@ sub generic_sim_run
       {
         foreach my $trap (@bad_trap_list) {
           my ($tmp1, $va, $ra, $pa) = ($trap =~ /([\w_\.]+)\s+(\w+)\s+(\w+)\s+(\w+)/) ;
-	      $bad_trap_list{$pa} = $pa;
-	    }
+          $bad_trap_list{$pa} = $pa;
+        }
 
         foreach my $x (sort (keys (%bad_trap_list))) {
           push (@bad_trap, $x) ;
@@ -1580,14 +1598,14 @@ sub generic_sim_run
 
         if ($#bad_trap == 0) {
           $bad_trap = "+bad_trap=" . $bad_trap[0] ;
-        } else { 
+        } else {
           $bad_trap = "+bad_trap=" . join (':', @bad_trap) ;
         }
       }
     }
 
     # add in switches for signal dumping
-    
+
     if ($opt{ncv_run}) {
       $ncvcommand = "\"run\"";
     }
@@ -1596,7 +1614,7 @@ sub generic_sim_run
       my $vcdfile = "";
       if ($opt{vcdfile} eq "") {
         $vcdfile = "$opt{tmp_dir}/sim.vcd.$$" ;
-      } elsif ( $opt{vcdfile} =~ /^\// ) {	## full path name specified -- use file name as is
+      } elsif ( $opt{vcdfile} =~ /^\// ) {  ## full path name specified -- use file name as is
         $vcdfile = $opt{vcdfile} ;
       } else { ## relative path specified -- use name under tmp dir
         $vcdfile = "$opt{tmp_dir}/$opt{vcdfile}.$$" ;
@@ -1668,7 +1686,7 @@ sub generic_sim_run
       $cmd .= "/ncelab -s " ;
       $cmd .= join (" ", @{$opt{sim_run_args}}) ;
     }
- 
+
     if ($opt{icv_run}) {
       $cmd .= "vvp " ;
       $cmd .= "-M$ENV{DV_ROOT}/tools/";
@@ -1680,7 +1698,15 @@ sub generic_sim_run
     }
 
     if ($opt{msm_run}) {
-      $cmd .= "vsim -c " ;
+      $cmd .= "vsim" ;
+      if ($ENV{MODELSIM_VERSION}) {
+        $cmd .= "$ENV{MODELSIM_VERSION}" ;
+      }
+      $cmd .= " ";
+      #modelsim cannot be called with -c and -gui at the same time
+      if (!$opt{gui}) {
+        $cmd .= " -c " ;
+      }
       $cmd .= "-lib ";
       $cmd .= "$model_path/work ";
       $cmd .= "-do \"run -all\" ";
@@ -1691,12 +1717,13 @@ sub generic_sim_run
       $cmd .= "/lib/libmodelsimpli.so\"";
       $cmd .= " " ;
       $cmd .= join (" ", @{$opt{sim_run_args}}) ;
+      print("====================================\n$cmd\n====================================");
     }
 
 
     if ($opt{other_sim_run}) {
       if (($opt{other_sim_run_cmd}) eq "") {
-	  die ("DIE. other_sim_run_cmd not defined");
+        die ("DIE. other_sim_run_cmd not defined");
       }
       $cmd = $opt{other_sim_run_cmd};
       $cmd .= " " ;
@@ -1739,7 +1766,11 @@ sub generic_sim_run
       print "$prg: MODELSIM_HOME is $ENV{MODELSIM_HOME}\n";
     }
 
-    print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+    if ($ENV{LM_LICENSE_FILE}) {
+      print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
+    } else {
+      print "$prg: LM_LICENSE_FILE : none\n";
+    }
 
     if (!$opt{dryrun}) {
       $main::sim_start  = `date` ;
@@ -1817,10 +1848,10 @@ sub post_process
     # determine pass fail status from sim.log
 
     if (-f  "sim.log") {
-	  my $cmd = "grep -c PASS sim.log";	## count lines with PASS
-	  my $count = `$cmd`;
-	  chomp $count;				## get rid of newline at end
-	  $pass = 1 if ($count > 0);
+      my $cmd = "grep -c PASS sim.log"; ## count lines with PASS
+      my $count = `$cmd`;
+      chomp $count;       ## get rid of newline at end
+      $pass = 1 if ($count > 0);
     }
 
     if (-f "diag_pl.log") {
@@ -1859,7 +1890,7 @@ sub post_process
           print ("$prg: warning could not copy assembly files back to $launch_dir\n") if ($?) ;
         }
       }
-      else	# diag failed or $opt{copyall} is set
+      else  # diag failed or $opt{copyall} is set
       {
         if ($opt{tarcopy}) {
             `tar cfE - . | ( cd $launch_dir; tar vxfEBp - )`;
@@ -2051,13 +2082,21 @@ sub assemble_diag
     `rm -rf diag.pal diag.s diag.S diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
     die "DIE. could not clean up assembly diag run area"  if ($?) ;
 
+    # add default path to look for precompiled RISCV 64bit assembly tests diags in case of ariane
+    if ($opt{ariane} and $opt{precompiled}) {
+      push @opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
+      push @opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
+    }
+
     # find diagnostic
     my $diag_full_path = &find_diag_path ($opt{asm_diag_name}, $opt{asm_diag_path}, $opt{asm_diag_root}) ;
 
     my $diag_name ;
-    if ($opt{asm_diag_name} =~ /\.pal/) { $diag_name = "diag.pal" ; }
-    elsif ($opt{asm_diag_name} =~ /\.s\.gz/) { $diag_name = "diag.s.gz" ; }
-    elsif ($opt{pico} and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
+    if ($opt{asm_diag_name} =~ /\.pal/)        { $diag_name = "diag.pal"  ; }
+    elsif ($opt{asm_diag_name} =~ /\.s\.gz/)   { $diag_name = "diag.s.gz" ; }
+    elsif ($opt{precompiled} and $opt{ariane}) { $diag_name = "diag.exe"  ; }
+    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
+    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.c/)) { $diag_name = "diag.c" ; }
     else { $diag_name = "diag.s" ; }
 
     # copy diagnostic to run area
@@ -2098,40 +2137,87 @@ sub assemble_diag
       close (DIAGIN) ;
     }
 
-    if (!$opt{pico}) {
-    # assemble
-    push (@{$opt{midas_args}}, "-DFAST_BOOT") if ($opt{fast_boot}) ;
-    push (@{$opt{midas_args}}, "-diag_root=$dv_root") ;
-    push (@{$opt{midas_args}}, "-DTG_SEED=$opt{tg_seed}") if ($opt{midas_use_tgseed}) ;
-    push (@{$opt{midas_args}}, "-pal_diag_args=-seed=$opt{tg_seed}") if ($opt{pal_use_tgseed}) ;
-    push (@{$opt{midas_args}}, "$diag_name") ;
-
-    #push (@{$opt{midas_args}}, "-DCIOP") if ($opt{icv_run} or ($opt{sim_type} eq "icv")) ;
-
-    print "$prg: assembling diag\n" ;
-    my $cmd = "midas " ;
-    $cmd .= join (" ", @{$opt{midas_args}}) ;
-    print "$prg: $cmd\n";
-
-    my $waitstatus = call_program($cmd, "midas.log");
-    die ("DIE. midas compilation error") if ($waitstatus) ;
-
-    if ($opt{midas_only} and $opt{regress}) {
-      if ($opt{tarcopy}) {
-        `tar cfE - . | ( cd $launch_dir; tar vxfEBp - )`;
-      } else {
-        `cp -r * $launch_dir` ;
-      }
-      print ("$prg: warning could not copy files back to $launch_dir\n") if ($?) ;
-    }
-    } else {
-      "$prg: assembling riscv diag\n" ;
-      my $cmd = "rv_as " ;
+    if ($opt{pico}) {
+      # RISCV flow for RV32IM (PICORV32)
+      print "$prg: assembling 32bit riscv diag (RV32IM)\n" ;
+      my $cmd = "rv32_as " ;
       #$cmd .= join (" ", @{$opt{midas_args}}) ;
       print "$prg: $cmd\n";
 
-      my $waitstatus = call_program($cmd, "rv_as.log");
-      die ("DIE. rv_as compilation error") if ($waitstatus) ;
+      my $waitstatus = call_program($cmd, "rv32_as.log");
+      die ("DIE. rv32_as compilation error") if ($waitstatus) ;
+
+    } elsif ($opt{ariane}) {
+      # RISCV flow for RV64IMAC (ARIANE from PULP)
+      # only recompile if necessary
+      if (!$opt{precompiled}) {
+        print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
+        my $cmd = "rv64_cc ${diag_name}" ;
+        print "$prg: $cmd\n";
+        my $waitstatus = call_program($cmd, "rv64_cc.log");
+        die ("DIE. rv64_cc compilation error") if ($waitstatus) ;
+      }
+
+      my $cmd = "rv64_img" ;
+
+      print "$prg: $cmd\n";
+      my $waitstatus = call_program($cmd, "rv64_img.log");
+      die ("DIE. rv64_img error creating mem image") if ($waitstatus) ;
+
+      if($opt{trap_offset}) {
+        print "$prg: good/bad trap offset $opt{trap_offset} specified, patching traps...\n";
+
+        my $filename = 'symbol.tbl';
+        my @new_traps;
+        my $fh;
+        my $str;
+        open($fh, '<:encoding(UTF-8)', $filename)
+          or die "Could not open file '$filename' $!";
+        while (my $row = <$fh>) {
+          chomp $row;
+          my @tmp     = split / /, $row;
+          my @tmp_adj = @tmp;
+          $tmp_adj[1] = hex($tmp[1]) - hex($opt{trap_offset});
+          $tmp_adj[3] = hex($tmp[3]) - hex($opt{trap_offset});
+          $str = sprintf("$tmp_adj[0] %016x $tmp_adj[2] %016x", $tmp_adj[1], $tmp_adj[3]);
+          print "$prg: Adjusting trap $tmp[0] $tmp[1] $tmp[2] $tmp[3] -> $str\n";
+          push(@new_traps, $str);
+        }
+        close($fh);
+        open($fh, '>', $filename)
+          or die "Could not open file '$filename' $!";
+        foreach $str (@new_traps) {
+          print $fh "$str\n";
+        }
+        close($fh);
+      }
+    } else {
+      # standard flow for SAPRC
+      # assemble
+      push (@{$opt{midas_args}}, "-DFAST_BOOT") if ($opt{fast_boot}) ;
+      push (@{$opt{midas_args}}, "-diag_root=$dv_root") ;
+      push (@{$opt{midas_args}}, "-DTG_SEED=$opt{tg_seed}") if ($opt{midas_use_tgseed}) ;
+      push (@{$opt{midas_args}}, "-pal_diag_args=-seed=$opt{tg_seed}") if ($opt{pal_use_tgseed}) ;
+      push (@{$opt{midas_args}}, "$diag_name") ;
+
+      #push (@{$opt{midas_args}}, "-DCIOP") if ($opt{icv_run} or ($opt{sim_type} eq "icv")) ;
+
+      print "$prg: assembling diag\n" ;
+      my $cmd = "midas " ;
+      $cmd .= join (" ", @{$opt{midas_args}}) ;
+      print "$prg: $cmd\n";
+
+      my $waitstatus = call_program($cmd, "midas.log");
+      die ("DIE. midas compilation error") if ($waitstatus) ;
+
+      if ($opt{midas_only} and $opt{regress}) {
+        if ($opt{tarcopy}) {
+          `tar cfE - . | ( cd $launch_dir; tar vxfEBp - )`;
+        } else {
+          `cp -r * $launch_dir` ;
+        }
+        print ("$prg: warning could not copy files back to $launch_dir\n") if ($?) ;
+      }
     }
 
     exit (0) if ($opt{midas_only}) ;
@@ -2282,6 +2368,8 @@ sub parse_args
             'asm_diag_path=s',
             'asm_diag_root=s@',
             'build!',
+            'precompiled!',
+            'trap_offset=s',
             'config_cpp_args=s@',
             'config_rtl=s@',
             'copyall!',
@@ -2333,11 +2421,11 @@ sub parse_args
             'rerun!',
             'result_dir=s',
             'rtl_timeout=i',
-	    'run_diag_pl!',
-	    'other_sim_build!',
+            'run_diag_pl!',
+            'other_sim_build!',
             'sim_build_args=s@',
             'other_sim_build_cmd=s',
-	    'other_sim_run!',
+            'other_sim_run!',
             'sim_run_args=s@',
             'other_sim_run_cmd=s',
             'sim_type=s',
@@ -2439,16 +2527,27 @@ sub parse_args
   $ENV{PROTOSYN_RUNTIME_DESIGN_PATH} = $ENV{DV_ROOT} . "/verif/env/manycore";
   $ENV{PROTOSYN_RUNTIME_BOARD} = "";
 
-  # these arguments may not have any options associated with them
 
+  # these arguments may not have any options associated with them
   foreach my $x (@ARGV) {
-    if ($x =~ /\.s/) { $opt{asm_diag_name} = $x  ; }
-    elsif ($x =~ /\.S/) { $opt{asm_diag_name} = $x  ; }
-    elsif ($x =~ /\.pal/) { $opt{asm_diag_name} = $x ; }
-    elsif ($x =~ /\.s\.gz/) { $opt{asm_diag_name} = $x ; }
+    if ($x =~ /\.s/)        { $opt{asm_diag_name}   = $x ; }
+    elsif ($x =~ /\.S/)     { $opt{asm_diag_name}   = $x ; }
+    elsif ($x =~ /\.riscv/) { $opt{asm_diag_name}   = $x ; }
+    elsif ($x =~ /\.pal/)   { $opt{asm_diag_name}   = $x ; }
+    elsif ($x =~ /\.s\.gz/) { $opt{asm_diag_name}   = $x ; }
     elsif ($x =~ /\.image/) { $opt{image_diag_name} = $x ; }
+    elsif ($x =~ /\.c/)     { $opt{asm_diag_name}   = $x ; }
     else { die ("DIE. Unprocessed argument: $x") ; }
   }
+
+  # in case a precompiled riscv binary for ariane is directly specified
+  if ($opt{precompiled} and $opt{ariane}) {
+    if (!($opt{asm_diag_name} =~ /\.riscv/)) {
+        $opt{asm_diag_name} = fileparse($opt{asm_diag_name}, qr/\.[^.]*/);
+    }
+    print "$prg: looking for precompiled RISCV binary $opt{asm_diag_name}\n";
+  }
+
 
   # expand environment variables
   $opt{env_base} =~ s/\$(\w+)/$ENV{$1}/g ;
@@ -2494,15 +2593,20 @@ sub parse_args
       die ("DIE. network_config can only be xbar_config or 2dmesh_config");
     }
   } else {
-    print "network_config not specified, assuming 2dmesh configuration";
+    print "network_config not specified, assuming 2dmesh configuration\n";
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
   }
-  
+
+  die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
   die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
-  $ENV{PITON_PICO}=$opt{pico};
-  $ENV{PITON_PICO_HET}=$opt{pico_het};
-  push (@{$opt{config_rtl}}, "PITON_PICO") if ($opt{pico});
+  $ENV{PITON_PICO}     = $opt{pico};
+  $ENV{PITON_PICO_HET} = $opt{pico_het};
+  $ENV{PITON_ARIANE}   = $opt{ariane};
+  push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
+  push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "SERPENT_PULP")   if ($opt{ariane});
+
 
   if ($opt{pico} or $opt{pico_het}) {
     push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
@@ -2522,24 +2626,25 @@ sub parse_args
     $pton_y_tiles=$opt{y_tiles};
     $pton_num_tiles=($opt{x_tiles} * $opt{y_tiles});
   } else {
-    print "x_tiles and y_tiles not defined, assuming x dimension is 8 wide\n" ;
+    print "x_tiles and y_tiles not defined, assuming x dimension is <= 8\n" ;
     if (! $opt{num_tile}) {
-        print "num_tile not defined, assuming just one tile\n" ;   
+        print "num_tile not defined, assuming just one tile\n" ;
         $opt{num_tile} = 1;
     }
-    
+
     $pton_x_tiles=(($opt{num_tile}-1)%8)+1;
     $pton_y_tiles=(($opt{num_tile}-1)/8)+1;
     $pton_num_tiles=$opt{num_tile};
   }
 
   for (my $i=0; $i < $pton_num_tiles; $i++) {
-        if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
-            push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
-        }   
-        else {
-            push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
-        }
+    if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
+        push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
+    } elsif ($opt{ariane}) {
+        push (@{$opt{config_rtl}}, "RTL_ARIANE" . $i);
+    } else {
+        push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
+    }
   }
 
   $ENV{PTON_X_TILES}=$pton_x_tiles;
@@ -2677,14 +2782,14 @@ SIMULATION ENV
             specified when using this command format.
 
 OPENPITON ARGUMENTS
-    
+
     -sys=manycore -x_tiles=X -y_tiles=Y
             this combination of options for the "manycore" simulation
             model specifies a 2D mesh topology of tiles, with X tiles
-            in the x dimension and Y tiles in the y dimension. If 
+            in the x dimension and Y tiles in the y dimension. If
             -x_tiles and -y_tiles is not specified, the default is
             X=1 and Y=1. The maximum value for both X and Y is 1024.
-    
+
     -ed_enable
             enable Execution Drafting in each core.
 
@@ -2724,10 +2829,10 @@ OPENPITON ARGUMENTS
 VERILOG COMPILATION RELATED
 
     -sim_type=vcs/ncv/icv/msm
-	  defines which simulator to use vcs, ncverilog, icarus, or modelsim, defaults to vcs.
+         defines which simulator to use vcs, ncverilog, icarus, or modelsim, defaults to vcs.
 
     -sim_q_command="command"
-	  defines which job queue manager command to use to launch jobs.
+         defines which job queue manager command to use to launch jobs.
           Defaults to /bin/sh and runs simulation jobs on the local machine.
 
     -ncv_build/-noncv_build
@@ -2825,8 +2930,8 @@ VERILOG RUNTIME RELATED
 
     -fast_boot/-nofast_boot
            speeds up booting when using the ciop model. this passes the
-           +fast_boot switch to the simv run and the -midas_args=-DFAST_BOOT 
-           to midas. Also sends -DFAST_BOOT to the diaglist and config 
+           +fast_boot switch to the simv run and the -midas_args=-DFAST_BOOT
+           to midas. Also sends -DFAST_BOOT to the diaglist and config
            file preprocessors.
 
     -rerun
@@ -2870,7 +2975,7 @@ VCS COVERMETER
 
     -vcs_cm_fsmcfg=ARGS
            argument to be given to the -cm_fsmcfg switch
-	   specifies an FSM coverage configuration file
+          specifies an FSM coverage configuration file
 
     -vcs_cm_name=ARGS
            argument to be given to the -cm_name switch. defaults to cm_data.
@@ -2883,9 +2988,9 @@ MISC
 
     -copyall/-nocopyall
           copy back all files to launch directory after passing
-	  regression run.  Normally, only failing runs cause a
-	  copy back of files.
-	  Default is off.
+         regression run.  Normally, only failing runs cause a
+         copy back of files.
+         Default is off.
 
     -tarcopy/-notarcopy
           copy back files using 'tar'. This only works in copyall or
@@ -2954,8 +3059,8 @@ MISC
     -norun_diag_pl
            Does not run diag.pl (if it exists) after simv (vcs) run.
            Use this option if, for some reason, you want to run an
-	   existing assembly diag without the Perl part that is in
-	   the original diag.
+          existing assembly diag without the Perl part that is in
+          the original diag.
 
     -nosimslog
            turns off redirection of stdout and stderr to the sims.log file.
@@ -3086,7 +3191,7 @@ Build a modelsim model using DV_ROOT as design root
 
 Build a model from any design root
 
-  sims -sys=manycore -x_tiles=1 -y_tiles=1 
+  sims -sys=manycore -x_tiles=1 -y_tiles=1
        -vcs_build -dv_root=/home/regress/2002_06_03
 
 Build a model and turn off incremental compile
@@ -3105,7 +3210,7 @@ Run a diag with default model
 
 Run a diag with a specified model
 
-  sims -sys=manycore -x_tiles=1 -y_tiles=1 
+  sims -sys=manycore -x_tiles=1 -y_tiles=1
        -build_id=mymodel -vcs_run diag.s
 
 Run regressions

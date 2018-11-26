@@ -1,6 +1,6 @@
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -24,31 +24,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Set environment variables for PyHP
+# Be careful, since these override environment variables set in protosyn!
 
-# Number of tiles
-set ::env(PTON_X_TILES) 1
-set ::env(PTON_Y_TILES) 1
-set ::env(PTON_NUM_TILES) 1
-
-# Pico tiles
-#set ::env(PITON_PICO_HET) 1
-#set ::env(RTL_PICO1) 1
-
-# NoC configuration
-set ::env(PTON_NETWORK_CONFIG) "2dmesh_config"
-
-# L1.5 cache size
-set ::env(CONFIG_L15_SIZE) 8192
-set ::env(CONFIG_L15_ASSOCIATIVITY) 4
-
-# L1D cache size
-set ::env(CONFIG_L1D_SIZE) 8192
-set ::env(CONFIG_L1D_ASSOCIATIVITY) 4
-
-# L1I cache size
-set ::env(CONFIG_L1I_SIZE) 16384
-set ::env(CONFIG_L1I_ASSOCIATIVITY) 4
-
-# L2 cache size
-set ::env(CONFIG_L2_SIZE) 65536
-set ::env(CONFIG_L2_ASSOCIATIVITY) 4
+# set ::env(SOME_ENV_VARIABLE) some_value

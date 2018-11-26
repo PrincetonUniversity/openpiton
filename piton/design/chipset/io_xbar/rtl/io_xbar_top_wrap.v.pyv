@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////
 ////
 
-`include "define.vh"
+`include "define.tmp.h"
 <%
 import os
 import sys

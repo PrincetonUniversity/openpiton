@@ -19,6 +19,8 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 //
 // ========== Copyright Header End ============================================
+`include "define.tmp.h"
+`include "cross_module.tmp.h"
 `ifdef PITON_PROTO
     //`define FPGA_SYN_16x160
 `endif
@@ -29,7 +31,6 @@
 
 <%
     from pyhplib import *
-    print "`define NUM_TILES " + `NUM_TILES`
 %>
 
 <%
@@ -46,12 +47,6 @@
             newtext += t + '\n';
         return newtext;
 %>
-
-`ifndef RTL_SPU
-`define LSU_PATH lsu.lsu
-`else
-`define LSU_PATH lsu
-`endif
 
 //
 //define special register
@@ -262,17 +257,17 @@ end
                  .new_fprs    (`PCXPATH0.ifu.swl.new_fprs), // Templated
                  .ifu_lsu_pref_inst_e (`PCXPATH0.ifu_lsu_pref_inst_e), // Templated
                  .formatted_tte_data  (`PCXPATH0.ifu.errdp.formatted_tte_data), // Templated
-    `endif                 
-                 .dformatted_tte_data (`PCXPATH0.`LSU_PATH.tlbdp.formatted_tte_data), // Templated
-                 .dtlb_cam_vld  (`PCXPATH0.`LSU_PATH.dtlb.tlb_cam_vld), // Templated
-                 .dtlb_tte_vld_g  (`PCXPATH0.`LSU_PATH.excpctl.tlb_tte_vld_g), // Templated
+    `endif
+                 .dformatted_tte_data (`SPARC_CORE0.`LSU_PATH.tlbdp.formatted_tte_data), // Templated
+                 .dtlb_cam_vld  (`SPARC_CORE0.`LSU_PATH.dtlb.tlb_cam_vld), // Templated
+                 .dtlb_tte_vld_g  (`SPARC_CORE0.`LSU_PATH.excpctl.tlb_tte_vld_g), // Templated
                  .tlu_hpstate_priv  (`PCXPATH0.tlu_hpstate_priv), // Templated
                  .tlu_hpstate_enb (`PCXPATH0.tlu_hpstate_enb), // Templated
     `ifndef RTL_SPU
                  .fcl_dtu_inst_vld_d  (`PCXPATH0.ifu.ifu.fcl_dtu_inst_vld_d), // Templated
                  .icache_hit    (`PCXPATH0.ifu.ifu.itlb.cache_hit), // Templated
                  .xlate_en    (`PCXPATH0.ifu.ifu.fcl.xlate_en), // Templated
-    `else                 
+    `else
                  .fcl_dtu_inst_vld_d  (`PCXPATH0.ifu.fcl_dtu_inst_vld_d), // Templated
                  .icache_hit    (`PCXPATH0.ifu.itlb.cache_hit), // Templated
                  .xlate_en    (`PCXPATH0.ifu.fcl.xlate_en), // Templated
@@ -285,7 +280,7 @@ end
     `ifndef RTL_SPU
                  .spu_lsu_ldxa_illgl_va_w2(1'b0), // Templated
                  .spu_lsu_ldxa_data_vld_w2(1'b0), // Templated
-                 .spu_lsu_ldxa_tid_w2 (2'b0), // Templated 
+                 .spu_lsu_ldxa_tid_w2 (2'b0), // Templated
     `else
                  .spu_lsu_ldxa_illgl_va_w2(`PCXPATH0.spu.spu_ctl.spu_lsu_ldxa_illgl_va_w2), // Templated
                  .spu_lsu_ldxa_data_vld_w2(`PCXPATH0.spu.spu_ctl.spu_lsu_ldxa_data_vld_w2), // Templated
@@ -295,7 +290,7 @@ end
                  .mra_field2_en (`TLUPATH0.mmu_ctl.mra_field2_en), // Templated
                  .mra_field3_en (`TLUPATH0.mmu_ctl.mra_field3_en), // Templated
                  .mra_field4_en (`TLUPATH0.mmu_ctl.mra_field4_en), // Templated
-                 .pmem_unc_error_g  (`PCXPATH0.`LSU_PATH.dctl.pmem_unc_error_g), // Templated
+                 .pmem_unc_error_g  (`SPARC_CORE0.`LSU_PATH.dctl.pmem_unc_error_g), // Templated
     `ifndef RTL_SPU
                  .pc_f    (`PCXPATH0.ifu.ifu.fdp.pc_f), // Templated
                  .cam_vld_f   (`PCXPATH0.ifu.ifu.fcl.cam_vld_f), // Templated
@@ -303,14 +298,14 @@ end
                  .pc_f    (`PCXPATH0.ifu.fdp.pc_f), // Templated
                  .cam_vld_f   (`PCXPATH0.ifu.fcl.cam_vld_f), // Templated
     `endif
-                 .cam_vld   (`PCXPATH0.`LSU_PATH.dtlb.cam_vld), // Templated
-                 .defr_trp_taken_m_din(`PCXPATH0.`LSU_PATH.excpctl.defr_trp_taken_m_din), // Templated
+                 .cam_vld   (`SPARC_CORE0.`LSU_PATH.dtlb.cam_vld), // Templated
+                 .defr_trp_taken_m_din(`SPARC_CORE0.`LSU_PATH.excpctl.defr_trp_taken_m_din), // Templated
                  .illgl_va_vld_or_drop_ldxa2masync(1'b0), // Templated
     `ifndef RTL_SPU
                  .ecc_wen   (`PCXPATH0.ffu.ffu.ctl.ecc_wen), // Templated
     `else
                  .ecc_wen   (`PCXPATH0.ffu.ctl.ecc_wen), // Templated
-    `endif                 
+    `endif
                  .fpdis_trap_e  (`IFUPATH0.dec.fpdis_trap_e), // Templated
                  .ceen    (`IFUPATH0.errctl.ceen), // Templated
                  .nceen   (`IFUPATH0.errctl.nceen), // Templated
@@ -321,35 +316,35 @@ end
                  .tlu_ifu_trappc_vld_w1(`TLUPATH0.tlu_ifu_trappc_vld_w1), // Templated
                  .mra_wr_ptr    (`TLUPATH0.mra_wr_ptr),  // Templated
                  .mra_wr_vld    (`TLUPATH0.mra_wr_vld),  // Templated
-                 .lsu_pid_state0  (`PCXPATH0.`LSU_PATH.lsu_pid_state0), // Templated
-                 .lsu_pid_state1  (`PCXPATH0.`LSU_PATH.lsu_pid_state1), // Templated
-                 .lsu_pid_state2  (`PCXPATH0.`LSU_PATH.lsu_pid_state2), // Templated
-                 .lsu_pid_state3  (`PCXPATH0.`LSU_PATH.lsu_pid_state3), // Templated
-                 .pid_state_wr_en (`PCXPATH0.`LSU_PATH.pid_state_wr_en), // Templated
-                 .lsu_t0_pctxt_state  (`PCXPATH0.`LSU_PATH.lsu_t0_pctxt_state), // Templated
-                 .lsu_t1_pctxt_state  (`PCXPATH0.`LSU_PATH.lsu_t1_pctxt_state), // Templated
-                 .lsu_t2_pctxt_state  (`PCXPATH0.`LSU_PATH.lsu_t2_pctxt_state), // Templated
-                 .lsu_t3_pctxt_state  (`PCXPATH0.`LSU_PATH.lsu_t3_pctxt_state), // Templated
-                 .pctxt_state_wr_thrd (`PCXPATH0.`LSU_PATH.pctxt_state_wr_thrd), // Templated
-                 .sctxt_state0  (`PCXPATH0.`LSU_PATH.dctldp.sctxt_state0), // Templated
-                 .sctxt_state1  (`PCXPATH0.`LSU_PATH.dctldp.sctxt_state1), // Templated
-                 .sctxt_state2  (`PCXPATH0.`LSU_PATH.dctldp.sctxt_state2), // Templated
-                 .sctxt_state3  (`PCXPATH0.`LSU_PATH.dctldp.sctxt_state3), // Templated
-                 .sctxt_state_wr_thrd (`PCXPATH0.`LSU_PATH.dctldp.sctxt_state_wr_thrd), // Templated
-                 .va_wtchpt0_addr (`PCXPATH0.`LSU_PATH.qdp1.va_wtchpt0_addr), // Templated
-                 .va_wtchpt1_addr (`PCXPATH0.`LSU_PATH.qdp1.va_wtchpt1_addr), // Templated
-                 .va_wtchpt2_addr (`PCXPATH0.`LSU_PATH.qdp1.va_wtchpt2_addr), // Templated
-                 .va_wtchpt3_addr (`PCXPATH0.`LSU_PATH.qdp1.va_wtchpt3_addr), // Templated
-                 .lsu_va_wtchpt0_wr_en_l(`PCXPATH0.`LSU_PATH.lsu_va_wtchpt0_wr_en_l), // Templated
-                 .lsu_va_wtchpt1_wr_en_l(`PCXPATH0.`LSU_PATH.lsu_va_wtchpt1_wr_en_l), // Templated
-                 .lsu_va_wtchpt2_wr_en_l(`PCXPATH0.`LSU_PATH.lsu_va_wtchpt2_wr_en_l), // Templated
-                 .lsu_va_wtchpt3_wr_en_l(`PCXPATH0.`LSU_PATH.lsu_va_wtchpt3_wr_en_l), // Templated
+                 .lsu_pid_state0  (`SPARC_CORE0.`LSU_PATH.lsu_pid_state0), // Templated
+                 .lsu_pid_state1  (`SPARC_CORE0.`LSU_PATH.lsu_pid_state1), // Templated
+                 .lsu_pid_state2  (`SPARC_CORE0.`LSU_PATH.lsu_pid_state2), // Templated
+                 .lsu_pid_state3  (`SPARC_CORE0.`LSU_PATH.lsu_pid_state3), // Templated
+                 .pid_state_wr_en (`SPARC_CORE0.`LSU_PATH.pid_state_wr_en), // Templated
+                 .lsu_t0_pctxt_state  (`SPARC_CORE0.`LSU_PATH.lsu_t0_pctxt_state), // Templated
+                 .lsu_t1_pctxt_state  (`SPARC_CORE0.`LSU_PATH.lsu_t1_pctxt_state), // Templated
+                 .lsu_t2_pctxt_state  (`SPARC_CORE0.`LSU_PATH.lsu_t2_pctxt_state), // Templated
+                 .lsu_t3_pctxt_state  (`SPARC_CORE0.`LSU_PATH.lsu_t3_pctxt_state), // Templated
+                 .pctxt_state_wr_thrd (`SPARC_CORE0.`LSU_PATH.pctxt_state_wr_thrd), // Templated
+                 .sctxt_state0  (`SPARC_CORE0.`LSU_PATH.dctldp.sctxt_state0), // Templated
+                 .sctxt_state1  (`SPARC_CORE0.`LSU_PATH.dctldp.sctxt_state1), // Templated
+                 .sctxt_state2  (`SPARC_CORE0.`LSU_PATH.dctldp.sctxt_state2), // Templated
+                 .sctxt_state3  (`SPARC_CORE0.`LSU_PATH.dctldp.sctxt_state3), // Templated
+                 .sctxt_state_wr_thrd (`SPARC_CORE0.`LSU_PATH.dctldp.sctxt_state_wr_thrd), // Templated
+                 .va_wtchpt0_addr (`SPARC_CORE0.`LSU_PATH.qdp1.va_wtchpt0_addr), // Templated
+                 .va_wtchpt1_addr (`SPARC_CORE0.`LSU_PATH.qdp1.va_wtchpt1_addr), // Templated
+                 .va_wtchpt2_addr (`SPARC_CORE0.`LSU_PATH.qdp1.va_wtchpt2_addr), // Templated
+                 .va_wtchpt3_addr (`SPARC_CORE0.`LSU_PATH.qdp1.va_wtchpt3_addr), // Templated
+                 .lsu_va_wtchpt0_wr_en_l(`SPARC_CORE0.`LSU_PATH.lsu_va_wtchpt0_wr_en_l), // Templated
+                 .lsu_va_wtchpt1_wr_en_l(`SPARC_CORE0.`LSU_PATH.lsu_va_wtchpt1_wr_en_l), // Templated
+                 .lsu_va_wtchpt2_wr_en_l(`SPARC_CORE0.`LSU_PATH.lsu_va_wtchpt2_wr_en_l), // Templated
+                 .lsu_va_wtchpt3_wr_en_l(`SPARC_CORE0.`LSU_PATH.lsu_va_wtchpt3_wr_en_l), // Templated
                  .ifu_rstint_m  (`TLPATH0.ifu_rstint_m), // Templated
-    `ifndef RTL_SPU                 
+    `ifndef RTL_SPU
                  .spu_tlu_rsrv_illgl_m(`PCXPATH0.tlu.tlu.spu_tlu_rsrv_illgl_m), // Templated
     `else
                  .spu_tlu_rsrv_illgl_m(`PCXPATH0.tlu.spu_tlu_rsrv_illgl_m), // Templated
-    `endif                 
+    `endif
                  .cam_vld_s1    (`IFUPATH0.fcl.cam_vld_s1), // Templated
                  .val_thr_s1    (`IFUPATH0.fcl.val_thr_s1), // Templated
                  .pc_s    (`IFUPATH0.fdp.pc_s),  // Templated
@@ -377,11 +372,11 @@ end
                  .itlb_rd_tte_data  (`PCXPATH0.ifu.itlb.rd_tte_data), // Templated
                  .icam_hit    ({48'b0,`PCXPATH0.ifu.itlb.cam_hit}), // Templated
     `endif
-                 .dtlb_rw_index (`PCXPATH0.`LSU_PATH.dtlb.tlb_rw_index), // Templated
-                 .dtlb_rw_index_vld (`PCXPATH0.`LSU_PATH.dtlb.tlb_rw_index_vld), // Templated
-                 .dtlb_rd_tte_tag (`PCXPATH0.`LSU_PATH.dtlb.tlb_rd_tte_tag), // Templated
-                 .dtlb_rd_tte_data  (`PCXPATH0.`LSU_PATH.dtlb.rd_tte_data), // Templated
-                 .dcam_hit    ({48'b0,`PCXPATH0.`LSU_PATH.dtlb.cam_hit}), // Templated
+                 .dtlb_rw_index (`SPARC_CORE0.`LSU_PATH.dtlb.tlb_rw_index), // Templated
+                 .dtlb_rw_index_vld (`SPARC_CORE0.`LSU_PATH.dtlb.tlb_rw_index_vld), // Templated
+                 .dtlb_rd_tte_tag (`SPARC_CORE0.`LSU_PATH.dtlb.tlb_rd_tte_tag), // Templated
+                 .dtlb_rd_tte_data  (`SPARC_CORE0.`LSU_PATH.dtlb.rd_tte_data), // Templated
+                 .dcam_hit    ({48'b0,`SPARC_CORE0.`LSU_PATH.dtlb.cam_hit}), // Templated
                  .wrt_spec_w    (`IFUPATH0.swl.wrt_spec_w), // Templated
                  .spc_pcx_data_pa (124'b0), // Templated //tttttttttttttt
                  .fcl_fdp_inst_sel_nop_s_l(`IFUPATH0.fdp.fcl_fdp_inst_sel_nop_s_l), // Templated
@@ -394,7 +389,7 @@ end
                  .immu_sfsr_wr_en_l (`TLUPATH0.immu_sfsr_wr_en_l), // Templated
                  .dmmu_sfsr_wr_en_l (`TLUPATH0.dmmu_sfsr_wr_en_l), // Templated
                  .dmmu_sfar_wr_en_l (`TLUPATH0.dmmu_sfar_wr_en_l), // Templated
-                 .lsu_quad_asi_e  (`SPCPATH0.`LSU_PATH.lsu_quad_asi_e), // Templated
+                 .lsu_quad_asi_e  (`SPARC_CORE0.`LSU_PATH.lsu_quad_asi_e), // Templated
                  .clk     (clk),       // Templated
                  .rst_l   (rst_l),     // Templated
                  .back    (`PC_CMP.back_thread[PYHP_NEXT_ID*4-1:PYHP_CURRENT_ID*4]), // Templated

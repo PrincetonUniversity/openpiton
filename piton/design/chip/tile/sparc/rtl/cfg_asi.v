@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-`include "define.vh"
+`include "define.tmp.h"
 
 `ifdef PITON_PROTO
 `ifdef FPGA_SYN_1THREAD

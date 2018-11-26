@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //top level module for fpga->chip communication tests
 
-`include "define.vh"
+`include "define.tmp.h"
 
 module fpga_bridge(
     // Clocks and resets
@@ -63,7 +63,7 @@ module fpga_bridge(
     input                               intf_fpga_rdy_noc1,
     input                               intf_fpga_rdy_noc2,
     input                               intf_fpga_rdy_noc3,
-   
+
     // Interface to FPGA credit based virtual channel interface
     input  [31:0]                       intf_fpga_data,
     input  [1:0]                        intf_fpga_channel,
@@ -91,7 +91,7 @@ fpga_bridge_send_32 #(
     .data_to_chip(fpga_intf_data),
     .data_channel(fpga_intf_channel),
     .credit_from_chip(fpga_intf_credit_back)
-    );  
+    );
 
 fpga_bridge_rcv_32 fpga_chip_in (
     .rst(~rst_n),

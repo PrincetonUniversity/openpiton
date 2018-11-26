@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 `include "chipset_define.vh"
-`include "define.vh"
+`include "define.tmp.h"
 
 module test_end_checker(
     input clk,
@@ -45,7 +45,7 @@ module test_end_checker(
     localparam IDLE = 2'b00;
     localparam TWOFLITS = 2'b01;
     localparam COUNTDOWN = 2'b10;
-    
+
     reg [1:0] state_reg;
     reg [1:0] state_next;
 
@@ -99,7 +99,7 @@ module test_end_checker(
             // check the test end possibilities
             if (src_checker_noc2_val & src_checker_noc2_rdy) begin
                 num_flits_next = num_flits_reg - `MSG_LENGTH_WIDTH'b1;
-                
+
                 // deal with two flit packets
                 if (num_flits_reg == `MSG_LENGTH_WIDTH'b1) begin
                     // check test good/bad

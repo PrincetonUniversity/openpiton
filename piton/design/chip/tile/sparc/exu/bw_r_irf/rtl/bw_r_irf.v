@@ -34,7 +34,7 @@
 
 `ifndef CONFIG_NUM_THREADS
 
-`include "define.vh"
+`include "define.tmp.h"
 
 module bw_r_irf(so, irf_byp_rs1_data_d_l, irf_byp_rs2_data_d_l,
 	irf_byp_rs3_data_d_l, irf_byp_rs3h_data_d_l, rclk, reset_l, si, se,

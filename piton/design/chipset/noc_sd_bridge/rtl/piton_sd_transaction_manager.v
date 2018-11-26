@@ -28,7 +28,6 @@
 //==================================================================================================
 //  Filename      : piton_sd_transaction_manager.v
 //  Created On    : 2017-03-14
-//  Last Modified : 2017-06-17 18:23:51
 //  Revision      :
 //  Author        : Ang Li
 //  Company       : Princeton University
@@ -38,7 +37,7 @@
 //                  SD controller IP core with a simple val/rdy interface.
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "sd_defines.h"
 `include "piton_sd_define.vh"
 

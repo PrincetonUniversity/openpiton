@@ -42,7 +42,8 @@
 module manycore_network_mon (
     input wire clk
     );
-`ifndef DISABLE_ALL_MONITORS
+`ifndef DISABLE_NETWORK_MONITOR
+`ifndef MINIMAL_MONITORING
 `ifndef XBAR_CONFIG
 // check boundary communication
 // There are two parts to the check
@@ -215,7 +216,7 @@ begin
                 check_up = False;
                 check_down = False;
                 # Check for valid signal from non-existent tiles to any other tiles.
-                # For example, if there is only tile 0_0 and 0_1, then 
+                # For example, if there is only tile 0_0 and 0_1, then
                 print 'boundary_err = 0;'
                 print "`ifndef RTL_SPARC%d" % flatid
                 for nocid in [1,2,3]:
@@ -294,6 +295,7 @@ begin
     //     `MONITOR_PATH.fail("network_mon: network_mon: packet going out of bound");
     // end
 end
+`endif
 `endif
 `endif // DISABLE_ALL_MONITORS
 endmodule

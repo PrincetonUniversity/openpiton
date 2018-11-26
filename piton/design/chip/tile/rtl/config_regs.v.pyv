@@ -1,6 +1,6 @@
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -26,7 +26,7 @@
 //==================================================================================================
 //  Filename      : config_regs.v
 //  Created On    : 2014-01-31 18:24:47
-//  Last Modified : 2015-12-09 14:11:44
+//  Last Modified : 2018-11-16 17:23:15
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -39,7 +39,8 @@
 
 //`timescale 1 ns / 10 ps
 `include "l15.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
+`include "dmbr_define.v"
 <%
 DMBR_BIN_NUM = 10
 %>
@@ -82,7 +83,7 @@ for i in range(DMBR_BIN_NUM):
 
    output wire config_csm_en,
    output wire [31:0] config_system_tile_count,
-   output wire [`HOME_ALLOC_METHOD_WIDTH-1:0] config_home_alloc_method, 
+   output wire [`HOME_ALLOC_METHOD_WIDTH-1:0] config_home_alloc_method,
 
    output wire [`NOC_CHIPID_WIDTH-1:0] config_chipid,
    output wire [`NOC_X_WIDTH-1:0] config_coreid_x,
@@ -288,7 +289,7 @@ begin
          end
          `CONFIG_REG_HOME_ALLOC_METHOD:
          begin
-            home_alloc_method_next = req_data[`HOME_ALLOC_METHOD_WIDTH-1:0]; 
+            home_alloc_method_next = req_data[`HOME_ALLOC_METHOD_WIDTH-1:0];
          end
       endcase
    end

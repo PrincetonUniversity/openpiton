@@ -24,7 +24,6 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-
 <devices>
     <!--The first entry should always be the filter/chip to xbar connection-->
     <port>
@@ -47,7 +46,7 @@
         <name>sd</name>
         <base>0xf000000000</base>
         <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0100000</length>
+        <length>0xff0300000</length>
     </port>
     <port>
         <name>uart</name>
@@ -61,11 +60,4 @@
         <base>0xfff0d00000</base>
         <length>0x100000</length>
     </port>
-<!--
-    <port>
-        <name>neko</name>
-        <base>0xfff0e00000</base>
-        <length>0x100000</length>
-    </port>
-    -->
 </devices>

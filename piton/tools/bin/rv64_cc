@@ -1,0 +1,9 @@
+#!/bin/bash
+#echo $ASM_DIAG_NAME_NO_EXT
+# todo: upgrade from IMC -> IMAC -> IMACFD
+
+riscv64-unknown-elf-gcc -march=rv64imac -mabi=lp64 -static -mcmodel=medany                               \
+                        -fvisibility=hidden -nostartfiles                                                \
+                        -I${DV_ROOT}/verif/diag/assembly/include/riscv/ariane                            \
+                        -T${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/link.ld                    \
+                        $1 ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/text_init.S -o diag.exe

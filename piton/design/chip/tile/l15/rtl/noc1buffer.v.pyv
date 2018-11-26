@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : noc1buffer.v
 //  Created On    : 2014-02-05 20:06:27
-//  Last Modified : 2015-01-22 17:30:55
+//  Last Modified : 2018-11-14 19:21:02
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -234,7 +234,6 @@ always @ *
 begin
    // noc1buffer_l15_req_ack = noc1encoder_noc1buffer_req_ack;    // deprecated as noc1 is non-blocking
                                                 // from pipeline's perspective
-   data_rdindex_plus1 = data_rdindex + 1;
 
    noc1buffer_noc1encoder_req_type = command_buffer[command_rdindex][`L15_NOC1BUFFER_REQTYPE];
    noc1buffer_noc1encoder_req_mshrid = command_buffer[command_rdindex][`L15_NOC1BUFFER_MSHRID];
@@ -249,6 +248,7 @@ begin
    noc1buffer_noc1encoder_req_csm_lsid = command_buffer[command_rdindex][`L15_NOC1BUFFER_CSM_LSID];
 
    data_rdindex = command_buffer[command_rdindex][`L15_NOC1BUFFER_DATA_INDEX];
+   data_rdindex_plus1 = data_rdindex + 1;
    noc1buffer_noc1encoder_req_data_0 = data_buffer[data_rdindex];
    noc1buffer_noc1encoder_req_data_1 = data_buffer[data_rdindex_plus1];
 

@@ -23,7 +23,6 @@
 //==================================================================================================
 //  Filename      : l15.v
 //  Created On    : 2014-01-31 12:52:57
-//  Last Modified : 2014-11-07 15:03:37
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -38,7 +37,7 @@
 //                  The JTAG interface operates at test clock speed
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "jtag.vh"
 
 `ifdef L15_EXTRA_DEBUG

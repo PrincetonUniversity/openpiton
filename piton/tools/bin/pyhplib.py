@@ -1,6 +1,6 @@
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -58,10 +58,14 @@ if NUM_TILES == -1:
     else:
         NUM_TILES = MAX_TILE
 
-PITON_PICO = int(os.environ.get('PITON_PICO', '0'))
+PITON_ARIANE   = int(os.environ.get('PITON_ARIANE', '0'))
+PITON_PICO     = int(os.environ.get('PITON_PICO', '0'))
 PITON_PICO_HET = int(os.environ.get('PITON_PICO_HET', '0'))
 
-NUM_THREADS = 2 * NUM_TILES
+if PITON_ARIANE or PITON_PICO:
+    NUM_THREADS = NUM_TILES
+else:
+    NUM_THREADS = 2 * NUM_TILES
 
 # cache configurations
 CONFIG_L15_SIZE = int(os.environ.get('CONFIG_L15_SIZE', '8192'))
@@ -124,7 +128,17 @@ BRAM_CONFIG["bram_boot"]  = BramCfg(256, 512)
 from pyhplib_sram import *
 
 # devices file
-DEVICE_DIRPATH = os.path.join(os.getenv("PROTOSYN_RUNTIME_DESIGN_PATH", ""), os.getenv("PROTOSYN_RUNTIME_BOARD", ""))
+fileName = "devices.xml"
+# check if we have to use an alternative configuration
+if os.getenv("PITON_ARIANE") is not None:
+    if int(os.getenv("PITON_ARIANE")):
+        fileName = "devices_ariane.xml"
+
+DEVICES_XML_FILENAME = os.path.join(os.getenv("PROTOSYN_RUNTIME_DESIGN_PATH", ""),
+                                    os.getenv("PROTOSYN_RUNTIME_BOARD", ""),
+                                    fileName)
+
+print "// " + DEVICES_XML_FILENAME
 
 def Replicate(text):
     newtext = ''
@@ -242,11 +256,12 @@ def GenPriorityDecoder(inputs, out, num):
 
 def ReadDevicesXMLFile():
   devicesInfo = []
-  if DEVICE_DIRPATH == "":
+  if DEVICES_XML_FILENAME == "":
     return devicesInfo
 
-  tree = ET.parse(os.path.join(DEVICE_DIRPATH, "devices.xml")) 
+  tree = ET.parse(DEVICES_XML_FILENAME)
   devices = tree.getroot()
+
 
   for i in range(0, len(devices)):
     # go through each field of device

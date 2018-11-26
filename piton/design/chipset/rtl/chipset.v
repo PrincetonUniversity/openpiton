@@ -1,6 +1,6 @@
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "piton_system.vh"
 `include "mc_define.h"
 `include "chipset_define.vh"
@@ -64,13 +64,13 @@
 //                              use a DDR2/3 memory controller.  If
 //                              this is not set, a default "fake"
 //                              simulated DRAM is used.
-//  PITONSYS_IOCTRL             Set to use real I/O controller, otherwise a fake I/O bridge 
+//  PITONSYS_IOCTRL             Set to use real I/O controller, otherwise a fake I/O bridge
 //                              is used and emulates I/O in PLI C calls.  This may not be compatible
 //                              with the "fake" memory controller or no memory controller at all
 //  PITONSYS_UART               Set to include a UART in the Piton system chipset.  The UART
 //                              can be used as an I/O device and/or a device for bootloading
 //                              test programs (see PITONSYS_UART_BOOT)
-//  PITONSYS_UART_BOOT          Set for UART boot hardware to be included.  If this is the 
+//  PITONSYS_UART_BOOT          Set for UART boot hardware to be included.  If this is the
 //                              only boot option set, it is always used.  If there is another
 //                              boot option, a switch can be used to enable UART boot
 //  PITONSYS_NON_UART_BOOT      This is set whenever another boot method is specified besides UART.
@@ -106,7 +106,7 @@ module chipset(
         input                                       sd_sys_clk,
     `endif // endif PITONSYS_SPI
 `endif // endif PITON_CHIPSET_CLKS_GEN
-    
+
 
 `ifdef PITON_BOARD
     input                                       pll_lock,
@@ -114,7 +114,7 @@ module chipset(
     output                                      io_clk_loopback_out,
     input                                       io_clk_loopback_in,
 `endif  // PITON_BOARD
-    
+
 `ifdef PITON_CLKS_CHIPSET
     // Need to generate these clocks to piton
     output                                      core_ref_clk,
@@ -227,13 +227,6 @@ module chipset(
 `endif // endif NEXYSVIDEO_BOARD
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     output                                      ddr_odt,
-`else // ifndef PITON_FPGA_MC_DDR3
-    output                                      chipset_mem_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_mem_data,
-    input                                       chipset_mem_rdy,
-    input                                       mem_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                mem_chipset_data,
-    output                                      mem_chipset_rdy,
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -270,26 +263,14 @@ module chipset(
     input                                           net_phy_rxc,
     input                                           net_phy_rxctl,
     input       [3:0]                               net_phy_rxd,
-    
+
     output                                          net_phy_rst_n,
-    
+
     inout                                           net_phy_mdio_io,
     output                                          net_phy_mdc,
 
 `else // ifndef PITONSYS_IOCTRL
-    output                                      chipset_fake_iob_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_fake_iob_data,
-    input                                       chipset_fake_iob_rdy,
-    input                                       fake_iob_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                fake_iob_chipset_data,
-    output                                      fake_iob_chipset_rdy,
 
-    output                                      chipset_io_val,
-    output [`NOC_DATA_WIDTH-1:0]                chipset_io_data,
-    input                                       chipset_io_rdy,
-    input                                       io_chipset_val,
-    input  [`NOC_DATA_WIDTH-1:0]                io_chipset_data,
-    output                                      io_chipset_rdy,
 `endif // endif PITONSYS_IOCTRL
 
 // Piton Board specific I/Os
@@ -314,7 +295,7 @@ module chipset(
     output                                              dig_pot_nrst,
     output                                              dig_pot_indep,
     output                                              dig_pot2_nrst,
-    output                                              dig_pot2_indep, 
+    output                                              dig_pot2_indep,
 
     // Uart to I2C chip control signals
     output                                              uart_i2c_rst_n,
@@ -388,6 +369,29 @@ module chipset(
     output [7:0]                                        leds
 
 `endif  // PITON_BOARD
+
+`ifdef PITON_ARIANE
+    ,
+    // Debug
+    output                                      ndmreset_o,    // non-debug module reset
+    output                                      dmactive_o,    // debug module is active
+    output  [`NUM_TILES-1:0]                    debug_req_o,   // async debug request
+    input   [`NUM_TILES-1:0]                    unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
+    // JTAG
+    input                                       tck_i,
+    input                                       tms_i,
+    input                                       trst_ni,
+    input                                       td_i,
+    output                                      td_o,
+    output                                      tdo_oe_o,
+    // CLINT
+    input                                       rtc_i,         // Real-time clock in (usually 32.768 kHz)
+    output  [`NUM_TILES-1:0]                    timer_irq_o,   // Timer interrupts
+    output  [`NUM_TILES-1:0]                    ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
+    // PLIC
+    output  [`NUM_TILES*2-1:0]                  irq_o          // level sensitive IR lines, mip & sip (async)
+`endif
+
 );
 
 ///////////////////////
@@ -413,7 +417,7 @@ module chipset(
     wire                                        passthru_chipset_clk;
     wire                                        passthru_chipset_clk_inter_n;
     wire                                        chip_rst_seq_complete_n;
-    
+
     reg                                         passthru_fifo_init_complete;
     reg                                         rst_n_combined;
     reg                                         core_ref_clk_sync_rst_n;
@@ -714,10 +718,10 @@ end
 
         .core_ref_clk           (core_ref_clk_inter             ),
         .core_ref_clk_n         (core_ref_clk_inter_n           ),
-        
+
         .io_clk                 (io_clk_inter                   ),
         .io_clk_n               (io_clk_inter_n                 ),
-        
+
         .passthru_chipset_clk   (passthru_chipset_clk           ),
         .passthru_chipset_clk_n (passthru_chipset_clk_inter_n   ),
 
@@ -729,7 +733,7 @@ end
 `else
     `ifdef PITON_CHIPSET_CLKS_GEN
         clk_mmcm    clk_mmcm    (
-        
+
         `ifdef PITON_CHIPSET_DIFF_CLK
             .clk_in1_p(clk_osc_p),
             .clk_in1_n(clk_osc_n),
@@ -754,7 +758,7 @@ end
             // SPI system clock
             , .sd_sys_clk(sd_sys_clk)
         `endif // endif PITONSYS_SPI
-        
+
         // Chipset<->passthru clocks
         `ifdef PITONSYS_INC_PASSTHRU
             // Chipset to passthru source synchronous clock
@@ -873,7 +877,7 @@ end
 // Convert any potential communication with chip
 // to non-virtual channels credit based interface
 `ifndef PITON_NO_CHIP_BRIDGE
-fpga_bridge 
+fpga_bridge
 `ifndef PITONSYS_INC_PASSTHRU
 #(.SEND_CREDIT_THRESHOLD(9'd7))
 `endif // endif PITONSYS_INC_PASSTHRU
@@ -924,7 +928,7 @@ fpga_bridge(
 credit_to_valrdy offchip_processor_noc1_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(offchip_processor_noc1_data),
     .valid_in(offchip_processor_noc1_valid),
     .yummy_in(offchip_processor_noc1_yummy),
@@ -936,7 +940,7 @@ credit_to_valrdy offchip_processor_noc1_c2v(
 credit_to_valrdy offchip_processor_noc2_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(offchip_processor_noc2_data),
     .valid_in(offchip_processor_noc2_valid),
     .yummy_in(offchip_processor_noc2_yummy),
@@ -948,7 +952,7 @@ credit_to_valrdy offchip_processor_noc2_c2v(
 credit_to_valrdy offchip_processor_noc3_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(offchip_processor_noc3_data),
     .valid_in(offchip_processor_noc3_valid),
     .yummy_in(offchip_processor_noc3_yummy),
@@ -960,7 +964,7 @@ credit_to_valrdy offchip_processor_noc3_c2v(
 valrdy_to_credit #(4, 3) processor_offchip_noc1_v2c(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(intf_fpga_data_noc1),
     .valid_in(intf_fpga_val_noc1),
     .ready_in(intf_fpga_rdy_noc1),
@@ -972,7 +976,7 @@ valrdy_to_credit #(4, 3) processor_offchip_noc1_v2c(
 valrdy_to_credit #(4, 3) processor_offchip_noc2_v2c(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(intf_fpga_data_noc2),
     .valid_in(intf_fpga_val_noc2),
     .ready_in(intf_fpga_rdy_noc2),
@@ -984,7 +988,7 @@ valrdy_to_credit #(4, 3) processor_offchip_noc2_v2c(
 valrdy_to_credit #(4, 3) processor_offchip_noc3_v2c(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(intf_fpga_data_noc3),
     .valid_in(intf_fpga_val_noc3),
     .ready_in(intf_fpga_rdy_noc3),
@@ -1035,7 +1039,7 @@ valrdy_to_credit #(4, 3) offchip_processor_noc3_v2c(
 credit_to_valrdy processor_offchip_noc1_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(processor_offchip_noc1_data),
     .valid_in(processor_offchip_noc1_valid),
     .yummy_in(processor_offchip_noc1_yummy),
@@ -1047,7 +1051,7 @@ credit_to_valrdy processor_offchip_noc1_c2v(
 credit_to_valrdy processor_offchip_noc2_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(processor_offchip_noc2_data),
     .valid_in(processor_offchip_noc2_valid),
     .yummy_in(processor_offchip_noc2_yummy),
@@ -1059,7 +1063,7 @@ credit_to_valrdy processor_offchip_noc2_c2v(
 credit_to_valrdy processor_offchip_noc3_c2v(
     .clk(chipset_clk),
     .reset(~chipset_rst_n_ff),
-    
+
     .data_in(processor_offchip_noc3_data),
     .valid_in(processor_offchip_noc3_valid),
     .yummy_in(processor_offchip_noc3_yummy),
@@ -1077,11 +1081,11 @@ credit_to_valrdy processor_offchip_noc3_c2v(
 
         .ref_clk_locked     (clk_locked                 ),
         .chip_clk_locked    (pll_lock                   ),
-        
+
         .pll_rst_n          (pll_rst_n                  ),
         .chip_rst_n         (chip_rst_n                 ),
         .jtag_rst_n         (jtag_rst_n                 ),
-       
+
         .piton_ready_n      (chip_rst_seq_complete_n    )
     );
 `endif  // PITON_BOARD
@@ -1130,8 +1134,8 @@ chipset_impl_noc_power_test  chipset_impl (
 
     // DRAM and I/O interfaces
     `ifndef PITONSYS_NO_MC
-        ,
         `ifdef PITON_FPGA_MC_DDR3
+            ,
             .init_calib_complete(init_calib_complete),
             .ddr_addr(ddr_addr),
             .ddr_ba(ddr_ba),
@@ -1152,13 +1156,6 @@ chipset_impl_noc_power_test  chipset_impl (
 
             .ddr_dm(ddr_dm),
             .ddr_odt(ddr_odt)
-        `else // ifndef PITON_FPGA_MC_DDR3
-            .chipset_mem_val(chipset_mem_val),
-            .chipset_mem_data(chipset_mem_data),
-            .chipset_mem_rdy(chipset_mem_rdy),
-            .mem_chipset_val(mem_chipset_val),
-            .mem_chipset_data(mem_chipset_data),
-            .mem_chipset_rdy(mem_chipset_rdy)
         `endif // endif PITON_FPGA_MC_DDR3
     `endif // endif PITONSYS_NO_MC
 
@@ -1190,40 +1187,40 @@ chipset_impl_noc_power_test  chipset_impl (
             .sd_cmd(sd_cmd),
             .sd_dat(sd_dat)
         `endif // endif PITONSYS_SPI
-
             ,
             .net_axi_clk        (net_axi_clk            ),
             .net_phy_rst_n      (net_phy_rst_n          ),
-            
-            .net_phy_tx_clk     (net_phy_clk_inter      ), 
-            .net_phy_tx_en      (net_phy_txctl_inter    ),  
+
+            .net_phy_tx_clk     (net_phy_clk_inter      ),
+            .net_phy_tx_en      (net_phy_txctl_inter    ),
             .net_phy_tx_data    (net_phy_txd_inter      ),
-            
+
             .net_phy_rx_clk     (net_phy_rxc_inter      ),
-            .net_phy_dv         (net_phy_rx_dv_inter    ),     
+            .net_phy_dv         (net_phy_rx_dv_inter    ),
             .net_phy_rx_data    (net_phy_rxd_inter      ),
             .net_phy_rx_er      (net_phy_rx_err_inter   ),
 
-            .net_phy_mdio_io    (net_phy_mdio_io        ), 
-            .net_phy_mdc        (net_phy_mdc            )     
-
-    `else // ifndef PITONSYS_IOCTRL
-        ,
-        .chipset_fake_iob_val(chipset_fake_iob_val),
-        .chipset_fake_iob_data(chipset_fake_iob_data),
-        .chipset_fake_iob_rdy(chipset_fake_iob_rdy),
-        .fake_iob_chipset_val(fake_iob_chipset_val),
-        .fake_iob_chipset_data(fake_iob_chipset_data),
-        .fake_iob_chipset_rdy(fake_iob_chipset_rdy),
-
-        .chipset_io_val(chipset_io_val),
-        .chipset_io_data(chipset_io_data),
-        .chipset_io_rdy(chipset_io_rdy),
-        .io_chipset_val(io_chipset_val),
-        .io_chipset_data(io_chipset_data),
-        .io_chipset_rdy(io_chipset_rdy)
+            .net_phy_mdio_io    (net_phy_mdio_io        ),
+            .net_phy_mdc        (net_phy_mdc            )
     `endif // endif PITONSYS_IOCTRL
 
+    `ifdef PITON_ARIANE
+        ,
+        .ndmreset_o             ( ndmreset_o    ),
+        .dmactive_o             ( dmactive_o    ),
+        .debug_req_o            ( debug_req_o   ),
+        .unavailable_i          ( unavailable_i ),
+        .tck_i                  ( tck_i         ),
+        .tms_i                  ( tms_i         ),
+        .trst_ni                ( trst_ni       ),
+        .td_i                   ( td_i          ),
+        .td_o                   ( td_o          ),
+        .tdo_oe_o               ( tdo_oe_o      ),
+        .rtc_i                  ( rtc_i         ),
+        .timer_irq_o            ( timer_irq_o   ),
+        .ipi_o                  ( ipi_o         ),
+        .irq_o                  ( irq_o         )
+    `endif
 );
 
 
@@ -1357,7 +1354,7 @@ chipset_impl_noc_power_test  chipset_impl (
     assign net_phy_rxd_inter = net_phy_rxd_ff;
 
     //-------------------------------------------------------
-    
+
     `ifdef PITONSYS_SPI
         ODDR sd_clk_oddr (
             .Q(sd_clk_out),
@@ -1389,7 +1386,7 @@ chipset_impl_noc_power_test  chipset_impl (
         .spi_sclk       (oled_sclk      ),
         .spi_dc         (oled_dc        ),
         .spi_data       (oled_data      ),
-        
+
         .vdd_n          (oled_vdd_n     ),
         .vbat_n         (oled_vbat_n    ),
         .rst_n          (oled_rst_n     )
@@ -1410,7 +1407,7 @@ chipset_impl_noc_power_test  chipset_impl (
         .spi_sclk       (oled_sclk      ),
         .spi_dc         (oled_dc        ),
         .spi_data       (oled_data      ),
-        
+
         .vdd_n          (oled_vdd_n     ),
         .vbat_n         (oled_vbat_n    ),
         .rst_n          (oled_rst_n     )

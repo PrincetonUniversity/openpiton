@@ -25,7 +25,7 @@
 
 // Wraps the SPU and ties unused signals 
 
-`include "define.vh"
+`include "define.tmp.h"
 
 module sparc_ffu_nospu_wrap
 (

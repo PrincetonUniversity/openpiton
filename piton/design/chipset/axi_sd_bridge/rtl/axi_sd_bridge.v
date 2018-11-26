@@ -26,7 +26,6 @@
 //==================================================================================================
 //  Filename      : axi_sd_bridge.v
 //  Created On    : 2015-04-20
-//  Last Modified : 2016-01-26 16:45:42
 //  Revision      :
 //  Author        : Matthew Matl
 //  Company       : Princeton University
@@ -39,7 +38,7 @@
 //                  TODO: parameterize the entry selection logic.
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "spi_master_defines.v"
 `include "sd_cache_defines.v"
 

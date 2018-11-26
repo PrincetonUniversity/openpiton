@@ -26,7 +26,7 @@
 // ========== Copyright Header End ============================================
 
 `include "mc_define.h"
-`include "define.vh"
+`include "define.tmp.h"
 `timescale 1ps/100fs
 
 //packet parser states

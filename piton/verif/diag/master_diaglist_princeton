@@ -1,23 +1,23 @@
 // Modified by Princeton University on June 9th, 2015
 // ========== Copyright Header Begin ==========================================
-// 
+//
 // OpenSPARC T1 Processor File: master_diaglist
 // Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
 // DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
-// 
+//
 // The above named program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public
 // License version 2 as published by the Free Software Foundation.
-// 
-// The above named program is distributed in the hope that it will be 
+//
+// The above named program is distributed in the hope that it will be
 // useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public
 // License along with this work; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-// 
+//
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////////////////////////////
 // master diag list for princeton
@@ -73,6 +73,235 @@ pico-xori   xori.S
 </cmp_default>
 </pico_tile1>
 
+
+<ariane_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -ariane>
+<cmp_default name=default>
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_asm_tests_p>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled>
+        ariane-rv64ui-p-add       rv64ui-p-add.S
+        ariane-rv64ui-p-addi      rv64ui-p-addi.S
+        ariane-rv64ui-p-slli      rv64ui-p-slli.S
+        ariane-rv64ui-p-addiw     rv64ui-p-addiw.S
+        ariane-rv64ui-p-addw      rv64ui-p-addw.S
+        ariane-rv64ui-p-and       rv64ui-p-and.S
+        ariane-rv64ui-p-auipc     rv64ui-p-auipc.S
+        ariane-rv64ui-p-beq       rv64ui-p-beq.S
+        ariane-rv64ui-p-bge       rv64ui-p-bge.S
+        ariane-rv64ui-p-bgeu      rv64ui-p-bgeu.S
+        ariane-rv64ui-p-andi      rv64ui-p-andi.S
+        ariane-rv64ui-p-blt       rv64ui-p-blt.S
+        ariane-rv64ui-p-bltu      rv64ui-p-bltu.S
+        ariane-rv64ui-p-bne       rv64ui-p-bne.S
+        // ariane-rv64ui-p-simple    rv64ui-p-simple.S
+        ariane-rv64ui-p-jal       rv64ui-p-jal.S
+        ariane-rv64ui-p-jalr      rv64ui-p-jalr.S
+        ariane-rv64ui-p-or        rv64ui-p-or.S
+        ariane-rv64ui-p-ori       rv64ui-p-ori.S
+        ariane-rv64ui-p-sub       rv64ui-p-sub.S
+        ariane-rv64ui-p-subw      rv64ui-p-subw.S
+        ariane-rv64ui-p-xor       rv64ui-p-xor.S
+        ariane-rv64ui-p-xori      rv64ui-p-xori.S
+        ariane-rv64ui-p-slliw     rv64ui-p-slliw.S
+        ariane-rv64ui-p-sll       rv64ui-p-sll.S
+        ariane-rv64ui-p-sllw      rv64ui-p-sllw.S
+        ariane-rv64ui-p-slt       rv64ui-p-slt.S
+        ariane-rv64ui-p-slti      rv64ui-p-slti.S
+        ariane-rv64ui-p-sltiu     rv64ui-p-sltiu.S
+        ariane-rv64ui-p-sltu      rv64ui-p-sltu.S
+        ariane-rv64ui-p-sra       rv64ui-p-sra.S
+        ariane-rv64ui-p-srai      rv64ui-p-srai.S
+        ariane-rv64ui-p-sraiw     rv64ui-p-sraiw.S
+        ariane-rv64ui-p-sraw      rv64ui-p-sraw.S
+        ariane-rv64ui-p-srl       rv64ui-p-srl.S
+        ariane-rv64ui-p-srli      rv64ui-p-srli.S
+        ariane-rv64ui-p-srliw     rv64ui-p-srliw.S
+        ariane-rv64ui-p-srlw      rv64ui-p-srlw.S
+        ariane-rv64ui-p-lb        rv64ui-p-lb.S
+        ariane-rv64ui-p-lbu       rv64ui-p-lbu.S
+        ariane-rv64ui-p-ld        rv64ui-p-ld.S
+        ariane-rv64ui-p-lh        rv64ui-p-lh.S
+        ariane-rv64ui-p-lhu       rv64ui-p-lhu.S
+        ariane-rv64ui-p-lui       rv64ui-p-lui.S
+        ariane-rv64ui-p-lw        rv64ui-p-lw.S
+        ariane-rv64ui-p-lwu       rv64ui-p-lwu.S
+        // ariane-rv64mi-p-csr       rv64mi-p-csr.S
+        ariane-rv64mi-p-mcsr      rv64mi-p-mcsr.S
+        ariane-rv64mi-p-illegal   rv64mi-p-illegal.S
+        ariane-rv64mi-p-ma_addr   rv64mi-p-ma_addr.S
+        ariane-rv64mi-p-ma_fetch  rv64mi-p-ma_fetch.S
+        ariane-rv64mi-p-sbreak    rv64mi-p-sbreak.S
+        // ariane-rv64mi-p-scall     rv64mi-p-scall.S
+        // ariane-rv64si-p-csr       rv64si-p-csr.S
+        ariane-rv64si-p-ma_fetch  rv64si-p-ma_fetch.S
+        ariane-rv64si-p-scall     rv64si-p-scall.S
+        // ariane-rv64si-p-wfi       rv64si-p-wfi.S
+        ariane-rv64si-p-sbreak    rv64si-p-sbreak.S
+        ariane-rv64si-p-dirty     rv64si-p-dirty.S
+        ariane-rv64uc-p-rvc       rv64uc-p-rvc.S
+        ariane-rv64um-p-mul       rv64um-p-mul.S
+        ariane-rv64um-p-mulh      rv64um-p-mulh.S
+        ariane-rv64um-p-mulhsu    rv64um-p-mulhsu.S
+        ariane-rv64um-p-mulhu     rv64um-p-mulhu.S
+        ariane-rv64um-p-div       rv64um-p-div.S
+        ariane-rv64um-p-divu      rv64um-p-divu.S
+        ariane-rv64um-p-rem       rv64um-p-rem.S
+        ariane-rv64um-p-remu      rv64um-p-remu.S
+        ariane-rv64um-p-mulw      rv64um-p-mulw.S
+        ariane-rv64um-p-divw      rv64um-p-divw.S
+        ariane-rv64um-p-divuw     rv64um-p-divuw.S
+        ariane-rv64um-p-remw      rv64um-p-remw.S
+        ariane-rv64um-p-remuw     rv64um-p-remuw.S
+        </runargs>
+    </ariane_tile1_asm_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_asm_tests_v>
+        // note: we have to offset the trap here since the core operates in VM
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled -trap_offset=0x80000000>
+        ariane-rv64ui-v-add       rv64ui-v-add.S
+        ariane-rv64ui-v-addi      rv64ui-v-addi.S
+        ariane-rv64ui-v-addiw     rv64ui-v-addiw.S
+        ariane-rv64ui-v-addw      rv64ui-v-addw.S
+        ariane-rv64ui-v-and       rv64ui-v-and.S
+        ariane-rv64ui-v-auipc     rv64ui-v-auipc.S
+        ariane-rv64ui-v-beq       rv64ui-v-beq.S
+        ariane-rv64ui-v-bge       rv64ui-v-bge.S
+        ariane-rv64ui-v-bgeu      rv64ui-v-bgeu.S
+        ariane-rv64ui-v-andi      rv64ui-v-andi.S
+        ariane-rv64ui-v-blt       rv64ui-v-blt.S
+        ariane-rv64ui-v-bltu      rv64ui-v-bltu.S
+        ariane-rv64ui-v-bne       rv64ui-v-bne.S
+        // ariane-rv64ui-v-simple    rv64ui-v-simple.S
+        ariane-rv64ui-v-jal       rv64ui-v-jal.S
+        ariane-rv64ui-v-jalr      rv64ui-v-jalr.S
+        ariane-rv64ui-v-or        rv64ui-v-or.S
+        ariane-rv64ui-v-ori       rv64ui-v-ori.S
+        ariane-rv64ui-v-sub       rv64ui-v-sub.S
+        ariane-rv64ui-v-subw      rv64ui-v-subw.S
+        ariane-rv64ui-v-xor       rv64ui-v-xor.S
+        ariane-rv64ui-v-xori      rv64ui-v-xori.S
+        ariane-rv64ui-v-sll       rv64ui-v-sll.S
+        ariane-rv64ui-v-slli      rv64ui-v-slli.S
+        ariane-rv64ui-v-slliw     rv64ui-v-slliw.S
+        ariane-rv64ui-v-slt       rv64ui-v-slt.S
+        ariane-rv64ui-v-slti      rv64ui-v-slti.S
+        ariane-rv64ui-v-sltiu     rv64ui-v-sltiu.S
+        ariane-rv64ui-v-sltu      rv64ui-v-sltu.S
+        ariane-rv64ui-v-sra       rv64ui-v-sra.S
+        ariane-rv64ui-v-srai      rv64ui-v-srai.S
+        ariane-rv64ui-v-sraiw     rv64ui-v-sraiw.S
+        ariane-rv64ui-v-sraw      rv64ui-v-sraw.S
+        ariane-rv64ui-v-srl       rv64ui-v-srl.S
+        ariane-rv64ui-v-srli      rv64ui-v-srli.S
+        ariane-rv64ui-v-srliw     rv64ui-v-srliw.S
+        ariane-rv64ui-v-srlw      rv64ui-v-srlw.S
+        ariane-rv64ui-v-lb        rv64ui-v-lb.S
+        ariane-rv64ui-v-lbu       rv64ui-v-lbu.S
+        ariane-rv64ui-v-ld        rv64ui-v-ld.S
+        ariane-rv64ui-v-lh        rv64ui-v-lh.S
+        ariane-rv64ui-v-lhu       rv64ui-v-lhu.S
+        ariane-rv64ui-v-lui       rv64ui-v-lui.S
+        ariane-rv64um-v-mul       rv64um-v-mul.S
+        ariane-rv64um-v-mulh      rv64um-v-mulh.S
+        ariane-rv64um-v-mulhsu    rv64um-v-mulhsu.S
+        ariane-rv64um-v-mulhu     rv64um-v-mulhu.S
+        ariane-rv64um-v-div       rv64um-v-div.S
+        ariane-rv64um-v-divu      rv64um-v-divu.S
+        ariane-rv64um-v-rem       rv64um-v-rem.S
+        ariane-rv64um-v-remu      rv64um-v-remu.S
+        ariane-rv64um-v-mulw      rv64um-v-mulw.S
+        ariane-rv64um-v-divw      rv64um-v-divw.S
+        ariane-rv64um-v-divuw     rv64um-v-divuw.S
+        ariane-rv64um-v-remw      rv64um-v-remw.S
+        ariane-rv64um-v-remuw     rv64um-v-remuw.S
+        </runargs>
+    </ariane_tile1_asm_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_amo_tests_p>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled>
+        ariane-rv64ua-p-amoadd_d  rv64ua-p-amoadd_d.S
+        ariane-rv64ua-p-amoadd_w  rv64ua-p-amoadd_w.S
+        ariane-rv64ua-p-amoor_d   rv64ua-p-amoor_d.S
+        ariane-rv64ua-p-amoor_w   rv64ua-p-amoor_w.S
+        ariane-rv64ua-p-amoand_d  rv64ua-p-amoand_d.S
+        ariane-rv64ua-p-amoand_w  rv64ua-p-amoand_w.S
+        ariane-rv64ua-p-amoswap_d rv64ua-p-amoswap_d.S
+        ariane-rv64ua-p-amoswap_w rv64ua-p-amoswap_w.S
+        ariane-rv64ua-p-amoxor_d  rv64ua-p-amoxor_d.S
+        ariane-rv64ua-p-amoxor_w  rv64ua-p-amoxor_w.S
+        ariane-rv64ua-p-amomax_d  rv64ua-p-amomax_d.S
+        ariane-rv64ua-p-amomaxu_d rv64ua-p-amomaxu_d.S
+        ariane-rv64ua-p-amomaxu_w rv64ua-p-amomaxu_w.S
+        ariane-rv64ua-p-amomax_w  rv64ua-p-amomax_w.S
+        ariane-rv64ua-p-amomin_d  rv64ua-p-amomin_d.S
+        ariane-rv64ua-p-amomin_w  rv64ua-p-amomin_w.S
+        ariane-rv64ua-p-amominu_d rv64ua-p-amominu_d.S
+        ariane-rv64ua-p-amominu_w rv64ua-p-amominu_w.S
+        // ariane-rv64ua-p-lrsc      rv64ua-p-lrsc.S
+        </runargs>
+    </ariane_tile1_amo_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_amo_tests_v>
+        // note: we have to offset the trap here since the core operates in VM
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled -trap_offset=0x80000000>
+        ariane-rv64ua-v-amoadd_d  rv64ua-v-amoadd_d.S
+        ariane-rv64ua-v-amoadd_w  rv64ua-v-amoadd_w.S
+        ariane-rv64ua-v-amoor_d   rv64ua-v-amoor_d.S
+        ariane-rv64ua-v-amoor_w   rv64ua-v-amoor_w.S
+        ariane-rv64ua-v-amoand_d  rv64ua-v-amoand_d.S
+        ariane-rv64ua-v-amoand_w  rv64ua-v-amoand_w.S
+        ariane-rv64ua-v-amoswap_d rv64ua-v-amoswap_d.S
+        ariane-rv64ua-v-amoswap_w rv64ua-v-amoswap_w.S
+        ariane-rv64ua-v-amoxor_d  rv64ua-v-amoxor_d.S
+        ariane-rv64ua-v-amoxor_w  rv64ua-v-amoxor_w.S
+        ariane-rv64ua-v-amomax_d  rv64ua-v-amomax_d.S
+        ariane-rv64ua-v-amomaxu_d rv64ua-v-amomaxu_d.S
+        ariane-rv64ua-v-amomaxu_w rv64ua-v-amomaxu_w.S
+        ariane-rv64ua-v-amomax_w  rv64ua-v-amomax_w.S
+        ariane-rv64ua-v-amomin_d  rv64ua-v-amomin_d.S
+        ariane-rv64ua-v-amomin_w  rv64ua-v-amomin_w.S
+        ariane-rv64ua-v-amominu_d rv64ua-v-amominu_d.S
+        ariane-rv64ua-v-amominu_w rv64ua-v-amominu_w.S
+        // ariane-rv64ua-v-lrsc      rv64ua-v-lrsc.S
+        </runargs>
+    </ariane_tile1_amo_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_benchmarks>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled>
+            ariane-dhrystone dhrystone.riscv
+            ariane-median    median.riscv
+            ariane-multiply  multiply.riscv
+            ariane-pmp       pmp.riscv
+            ariane-qsort     qsort.riscv
+            ariane-rsort     rsort.riscv
+            ariane-towers    towers.riscv
+            ariane-vvadd     vvadd.riscv
+        </runargs>
+    </ariane_tile1_benchmarks>
+</cmp_default>
+</ariane_tile1>
+
+<ariane_tile16 sys=manycore -x_tiles=4 -y_tiles=4 -ariane>
+    <cmp_default name=default>
+    <ariane_tile16_simple>
+        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask 0x1111111111111111 -rtl_timeout 1000000>
+            ariane-hello-world hello_world.c
+        </runargs>
+    </ariane_tile16_simple>
+    </cmp_default>
+</ariane_tile16>
+
+
+
 <tile1 sys=manycore -x_tiles=1 -y_tiles=1>
 <cmp_default name=default>
 
@@ -117,16 +346,16 @@ pico-xori   xori.S
     ldst_raw        ldst_raw.s
     tr_sir0             tr_sir0.s
     flush_pipe      flush_pipe.pal
-    lsu_stbar               lsu_stbar.s -midas_args=-allow_tsb_conflicts //-max_cycle=1200000 
-    l2_buf          l2_buf.s 
+    lsu_stbar               lsu_stbar.s -midas_args=-allow_tsb_conflicts //-max_cycle=1200000
+    l2_buf          l2_buf.s
     dexec_nf        dexec_nf.s -midas_args=-allow_tsb_conflicts
     tr_intexc1      tr_intexc1.s -sim_run_args=+inst_check_off=1
     ifetch_traps        ifetch_traps.s  -sim_run_args=+inst_check_off=1
     lsu_ldx         lsu_ldx.s
     lsu_mbar                -max_cycle=1500000 lsu_mbar.s -midas_args=-allow_tsb_conflicts
     tr_asiintr0         tr_asiintr0.s
-    v9_allinst      v9_allinst.s    //-max_cycle=150000 
-    faddd_diff_sm_pinf  faddd_diff_sm_pinf.s //-max_cycle=100000    
+    v9_allinst      v9_allinst.s    //-max_cycle=150000
+    faddd_diff_sm_pinf  faddd_diff_sm_pinf.s //-max_cycle=100000
     fp_simple_all0      fp_simple_all0.s
     v9_alu_mov       v9_alu_mov.s //  -rtl_timeout=50000 -max_cycle=500000
     ssi_ldst    ssi_ldst.s -max_cycle=3000000 -rtl_timeout=50000 -nofast_boot // From ciop_basic
@@ -138,21 +367,21 @@ pico-xori   xori.S
 
 //move to princeton_new_diag.diaglist
 //<tile1_l2_special_access>
-//    L2_new_CTRL_REG_test    L2_new_CTRL_REG_test.s                
-//    L2_new_SMC_flush_domain_test    L2_new_SMC_flush_domain_test.s         
+//    L2_new_CTRL_REG_test    L2_new_CTRL_REG_test.s
+//    L2_new_SMC_flush_domain_test    L2_new_SMC_flush_domain_test.s
 //    L2_new_State_Array_diag_lru_access_test      L2_new_State_Array_diag_lru_access_test.s
-//    L2_new_Data_Array_diag_access_test    L2_new_Data_Array_diag_access_test.s  
-//    L2_new_SMC_flush_one_test   L2_new_SMC_flush_one_test.s            
+//    L2_new_Data_Array_diag_access_test    L2_new_Data_Array_diag_access_test.s
+//    L2_new_SMC_flush_one_test   L2_new_SMC_flush_one_test.s
 //    L2_new_Tag_Array_diag_access_test   L2_new_Tag_Array_diag_access_test.s
-//    L2_new_Data_Array_diag_ecc_test     L2_new_Data_Array_diag_ecc_test.s     
-//    L2_new_SMC_tag_diag_access_test     L2_new_SMC_tag_diag_access_test.s      
+//    L2_new_Data_Array_diag_ecc_test     L2_new_Data_Array_diag_ecc_test.s
+//    L2_new_SMC_tag_diag_access_test     L2_new_SMC_tag_diag_access_test.s
 //    L2_new_dis_flush_test   L2_new_dis_flush_test.s
-//    L2_new_Dir_Array_diag_access_test   L2_new_Dir_Array_diag_access_test.s   
-//    L2_new_SMC_valid_diag_access_test   L2_new_SMC_valid_diag_access_test.s    
+//    L2_new_Dir_Array_diag_access_test   L2_new_Dir_Array_diag_access_test.s
+//    L2_new_SMC_valid_diag_access_test   L2_new_SMC_valid_diag_access_test.s
 //    L2_new_line_flush_test  L2_new_line_flush_test.s
-//    L2_new_SMC_data_diag_access_test    L2_new_SMC_data_diag_access_test.s    
+//    L2_new_SMC_data_diag_access_test    L2_new_SMC_data_diag_access_test.s
 //    L2_new_SMT_BASE_REG_test     L2_new_SMT_BASE_REG_test.s
-//    L2_new_SMC_flush_all_test   L2_new_SMC_flush_all_test.s           
+//    L2_new_SMC_flush_all_test   L2_new_SMC_flush_all_test.s
 //    L2_new_State_Array_diag_access_test     L2_new_State_Array_diag_access_test.s
 //</tile1_l2_special_access>
 
@@ -273,7 +502,7 @@ pico-xori   xori.S
     err_dcache_data_atom_cecc     err_dcache_data_atom_cecc.s -sim_run_args=+l1_chkoff
     err_dtlb_data_atom_dacc       err_dtlb_data_atom_dacc.s
     err_dtlb_data_dacc            err_dtlb_data_dacc.s
-    err_dtlb_data_dacc_lock       err_dtlb_data_dacc_lock.s    
+    err_dtlb_data_dacc_lock       err_dtlb_data_dacc_lock.s
     err_dtlb_data_st_dacc         err_dtlb_data_st_dacc.s
     err_dtlb_data_lda_dacc        err_dtlb_data_lda_dacc.s
     err_dtlb_tag_lda_dacc         err_dtlb_tag_lda_dacc.s
@@ -333,11 +562,11 @@ pico-xori   xori.S
     bug3620_0  -sim_run_args=+asm_err_en -finish_mask=3 bug3620_0.s
     bug3628    -sim_run_args=+asm_err_en -finish_mask=3 bug3628.s
     bug3631    -sim_run_args=+asm_err_en -finish_mask=3 bug3631.s
-    bug3671    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3671.s  
+    bug3671    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3671.s
     bug3685    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3685.s  -sim_run_args=+l1_chkoff
-    bug3725    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3725.s  
-    bug3775    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3775.s  
-    bug3788    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3788.s   
+    bug3725    -max_cycle=300000  -sim_run_args=+asm_err_en  -finish_mask=1  bug3725.s
+    bug3775    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3775.s
+    bug3788    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3788.s
     thrfsm_cov2         -finish_mask=3 -fast_boot thrfsm_cov2.pal
     thrfsm_cov      -finish_mask=3 -fast_boot thrfsm_cov.pal
 
@@ -399,7 +628,7 @@ pico-xori   xori.S
     tr_privact0         tr_privact0.s
     tr_iaccexc0         tr_iaccexc0.s
     tr_illegal0         tr_illegal0.s
-    mmu_trap        mmu_trap.s -max_cycle=500000    
+    mmu_trap        mmu_trap.s -max_cycle=500000
     lsu_align_dcacheoff -max_cycle=500000 lsu_align_dcacheoff.s -midas_args=-allow_tsb_conflicts -midas_args=-ttefmt=sun4u
     tr_wpt          tr_wpt.s -max_cycle=300000
     tr_tixcc1       -max_cycle=500000 tr_tixcc1.pal
@@ -485,7 +714,7 @@ pico-xori   xori.S
     blkldst_loop        -sim_run_args=+spc_pipe=0 blkldst_loop.s
     v9_wmg              -max_cycle=1000000 v9_wmg.s
     nop     nop.s
-    chase_dtlb      chase.pal -midas_args=-pal_diag_args=-lenbytes=32k -midas_args=-pal_diag_args=-stride=8192 -midas_args=-pal_diag_args=-offset=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-flush_dtlb 
+    chase_dtlb      chase.pal -midas_args=-pal_diag_args=-lenbytes=32k -midas_args=-pal_diag_args=-stride=8192 -midas_args=-pal_diag_args=-offset=16 -midas_args=-pal_diag_args=-nodisablel1_warmup -midas_args=-pal_diag_args=-flush_dtlb
     itlb_repl_mix       itlb_repl_mix.s -max_cycle=800000
     tlb_repl_exception      tlb_repl_exception.s
     mmu_invldAll            mmu_invld.s -max_cycle=1000000
@@ -537,229 +766,229 @@ pico-xori   xori.S
     fp_bug1624          fp_bug1624.s
     ffu_fpaddsub        ffu_fpaddsub.s
     ffu_fplogic         ffu_fplogic.s
-    faddd_diff_sm_near  faddd_diff_sm_near.s    
-    faddd_diff_sm_ninf  faddd_diff_sm_ninf.s    
-    faddd_ieee_ninf2    faddd_ieee_ninf2.s  
-    faddd_diff_sm_zero  faddd_diff_sm_zero.s    
-    faddd_ieee_near1    faddd_ieee_near1.s  
-    faddd_ieee_near2    faddd_ieee_near2.s  
-    faddd_ieee_ninf1    faddd_ieee_ninf1.s  
-    faddd_ieee_pinf1    faddd_ieee_pinf1.s  
-    faddd_ieee_pinf2    faddd_ieee_pinf2.s  
-    faddd_ieee_zero1    faddd_ieee_zero1.s  
-    faddd_ieee_zero2    faddd_ieee_zero2.s  
-    faddd_rnd_near      faddd_rnd_near.s        
-    faddd_rnd_ninf      faddd_rnd_ninf.s        
-    faddd_rnd_pinf      faddd_rnd_pinf.s        
-    faddd_rnd_zero      faddd_rnd_zero.s        
-    fadds_diff_sm_near  fadds_diff_sm_near.s    
-    fadds_diff_sm_ninf  fadds_diff_sm_ninf.s    
-    fadds_diff_sm_pinf  fadds_diff_sm_pinf.s    
-    fadds_diff_sm_zero  fadds_diff_sm_zero.s    
-    fadds_ieee_near1    fadds_ieee_near1.s  
-    fadds_ieee_near2    fadds_ieee_near2.s  
-    fadds_ieee_ninf1    fadds_ieee_ninf1.s  
-    fadds_ieee_ninf2    fadds_ieee_ninf2.s  
-    fadds_ieee_pinf1    fadds_ieee_pinf1.s  
-    fadds_ieee_pinf2    fadds_ieee_pinf2.s  
-    fadds_ieee_zero1    fadds_ieee_zero1.s  
-    fadds_ieee_zero2    fadds_ieee_zero2.s  
-    fadds_rnd_near      fadds_rnd_near.s        
-    fadds_rnd_ninf      fadds_rnd_ninf.s        
-    fadds_rnd_pinf      fadds_rnd_pinf.s        
-    fadds_rnd_zero      fadds_rnd_zero.s        
-    fcmpd_rnd_near      fcmpd_rnd_near.s        
-    fcmpd_rnd_ninf      fcmpd_rnd_ninf.s        
-    fcmpd_rnd_pinf      fcmpd_rnd_pinf.s        
-    fcmpd_rnd_zero      fcmpd_rnd_zero.s        
-    fcmped_rnd_near     fcmped_rnd_near.s       
-    fcmped_rnd_ninf     fcmped_rnd_ninf.s       
-    fcmped_rnd_pinf     fcmped_rnd_pinf.s       
-    fcmped_rnd_zero     fcmped_rnd_zero.s       
-    fcmpes_rnd_near     fcmpes_rnd_near.s       
-    fcmpes_rnd_ninf     fcmpes_rnd_ninf.s       
-    fcmpes_rnd_pinf     fcmpes_rnd_pinf.s       
-    fcmpes_rnd_zero     fcmpes_rnd_zero.s       
-    fcmps_rnd_near      fcmps_rnd_near.s        
-    fcmps_rnd_ninf      fcmps_rnd_ninf.s        
-    fcmps_rnd_pinf      fcmps_rnd_pinf.s        
-    fcmps_rnd_zero      fcmps_rnd_zero.s        
-    fdivd_ieee_near1    fdivd_ieee_near1.s  
-    fdivd_ieee_near2    fdivd_ieee_near2.s  
-    fdivd_ieee_ninf1    fdivd_ieee_ninf1.s  
-    fdivd_ieee_ninf2    fdivd_ieee_ninf2.s  
-    fdivd_ieee_pinf1    fdivd_ieee_pinf1.s  
-    fdivd_ieee_pinf2    fdivd_ieee_pinf2.s  
-    fdivd_ieee_zero1    fdivd_ieee_zero1.s  
-    fdivd_ieee_zero2    fdivd_ieee_zero2.s  
-    fdivd_rnd_near      fdivd_rnd_near.s    
-    fdivd_rnd_ninf      fdivd_rnd_ninf.s        
-    fdivd_rnd_pinf      fdivd_rnd_pinf.s        
-    fdivd_rnd_zero      fdivd_rnd_zero.s        
-    fdivs_ieee_near1    fdivs_ieee_near1.s  
-    fdivs_ieee_near2    fdivs_ieee_near2.s  
-    fdivs_ieee_ninf1    fdivs_ieee_ninf1.s  
-    fdivs_ieee_ninf2    fdivs_ieee_ninf2.s  
-    fdivs_ieee_pinf1    fdivs_ieee_pinf1.s  
-    fdivs_ieee_pinf2    fdivs_ieee_pinf2.s  
-    fdivs_ieee_zero1    fdivs_ieee_zero1.s  
-    fdivs_ieee_zero2    fdivs_ieee_zero2.s  
-    fdivs_rnd_near      fdivs_rnd_near.s        
-    fdivs_rnd_ninf      fdivs_rnd_ninf.s        
-    fdivs_rnd_pinf      fdivs_rnd_pinf.s        
-    fdivs_rnd_zero      fdivs_rnd_zero.s        
-    fdtoi_ld0_near      fdtoi_ld0_near.s        
-    fdtoi_ld0_ninf      fdtoi_ld0_ninf.s        
-    fdtoi_ld0_pinf      fdtoi_ld0_pinf.s        
-    fdtoi_ld0_zero      fdtoi_ld0_zero.s        
-    fdtoi_rnd_near      fdtoi_rnd_near.s        
-    fdtoi_rnd_ninf      fdtoi_rnd_ninf.s        
-    fdtoi_rnd_pinf      fdtoi_rnd_pinf.s        
-    fdtoi_rnd_zero      fdtoi_rnd_zero.s        
-    fdtos_rnd_near      fdtos_rnd_near.s        
-    fdtos_rnd_ninf      fdtos_rnd_ninf.s        
-    fdtos_rnd_pinf      fdtos_rnd_pinf.s        
-    fdtos_rnd_zero      fdtos_rnd_zero.s        
-    fdtox_ld0_near      fdtox_ld0_near.s        
-    fdtox_ld0_ninf      fdtox_ld0_ninf.s        
-    fdtox_ld0_pinf      fdtox_ld0_pinf.s        
-    fdtox_ld0_zero      fdtox_ld0_zero.s        
-    fdtox_rnd_near      fdtox_rnd_near.s        
-    fdtox_rnd_ninf      fdtox_rnd_ninf.s        
-    fdtox_rnd_pinf      fdtox_rnd_pinf.s        
-    fdtox_rnd_zero      fdtox_rnd_zero.s        
-    fitod_ld0_near      fitod_ld0_near.s        
-    fitod_ld0_ninf      fitod_ld0_ninf.s        
-    fitod_ld0_pinf      fitod_ld0_pinf.s        
-    fitod_ld0_zero      fitod_ld0_zero.s        
-    fitod_rnd_near      fitod_rnd_near.s        
-    fitod_rnd_ninf      fitod_rnd_ninf.s        
-    fitod_rnd_pinf      fitod_rnd_pinf.s        
-    fitod_rnd_zero      fitod_rnd_zero.s        
-    fitos_ld0_near      fitos_ld0_near.s        
-    fitos_ld0_ninf      fitos_ld0_ninf.s        
-    fitos_ld0_pinf      fitos_ld0_pinf.s        
-    fitos_ld0_zero      fitos_ld0_zero.s        
-    fitos_rnd_near      fitos_rnd_near.s        
-    fitos_rnd_ninf      fitos_rnd_ninf.s        
-    fitos_rnd_pinf      fitos_rnd_pinf.s        
-    fitos_rnd_zero      fitos_rnd_zero.s        
-    fmuld_ieee_near1    fmuld_ieee_near1.s  
-    fmuld_ieee_near2    fmuld_ieee_near2.s  
-    fmuld_ieee_near3    fmuld_ieee_near3.s  
-    fmuld_ieee_ninf1    fmuld_ieee_ninf1.s  
-    fmuld_ieee_ninf2    fmuld_ieee_ninf2.s  
-    fmuld_ieee_ninf3    fmuld_ieee_ninf3.s  
-    fmuld_ieee_pinf1    fmuld_ieee_pinf1.s  
-    fmuld_ieee_pinf2    fmuld_ieee_pinf2.s  
-    fmuld_ieee_pinf3    fmuld_ieee_pinf3.s  
-    fmuld_ieee_zero1    fmuld_ieee_zero1.s  
-    fmuld_ieee_zero2    fmuld_ieee_zero2.s  
-    fmuld_ieee_zero3    fmuld_ieee_zero3.s  
-    fmuld_msb_near      fmuld_msb_near.s        
-    fmuld_msb_ninf      fmuld_msb_ninf.s        
-    fmuld_msb_pinf      fmuld_msb_pinf.s        
-    fmuld_msb_zero      fmuld_msb_zero.s        
-    fmuld_rnd_near      fmuld_rnd_near.s        
-    fmuld_rnd_ninf      fmuld_rnd_ninf.s        
-    fmuld_rnd_pinf      fmuld_rnd_pinf.s        
-    fmuld_rnd_zero      fmuld_rnd_zero.s        
-    fmuls_ieee_near1    fmuls_ieee_near1.s  
-    fmuls_ieee_near2    fmuls_ieee_near2.s  
-    fmuls_ieee_near3    fmuls_ieee_near3.s  
-    fmuls_ieee_ninf1    fmuls_ieee_ninf1.s  
-    fmuls_ieee_ninf2    fmuls_ieee_ninf2.s  
-    fmuls_ieee_ninf3    fmuls_ieee_ninf3.s  
-    fmuls_ieee_pinf1    fmuls_ieee_pinf1.s  
-    fmuls_ieee_pinf2    fmuls_ieee_pinf2.s  
-    fmuls_ieee_pinf3    fmuls_ieee_pinf3.s  
-    fmuls_ieee_zero1    fmuls_ieee_zero1.s  
-    fmuls_ieee_zero2    fmuls_ieee_zero2.s  
-    fmuls_ieee_zero3    fmuls_ieee_zero3.s  
-    fmuls_msb_near      fmuls_msb_near.s        
-    fmuls_msb_ninf      fmuls_msb_ninf.s        
-    fmuls_msb_pinf      fmuls_msb_pinf.s        
-    fmuls_msb_zero      fmuls_msb_zero.s        
-    fmuls_rnd_near      fmuls_rnd_near.s        
-    fmuls_rnd_ninf      fmuls_rnd_ninf.s        
-    fmuls_rnd_pinf      fmuls_rnd_pinf.s        
-    fmuls_rnd_zero      fmuls_rnd_zero.s        
-    fsmuld_msb_near     fsmuld_msb_near.s       
-    fsmuld_msb_ninf     fsmuld_msb_ninf.s       
-    fsmuld_msb_pinf     fsmuld_msb_pinf.s       
-    fsmuld_msb_zero     fsmuld_msb_zero.s       
-    fsmuld_rnd_near     fsmuld_rnd_near.s       
-    fsmuld_rnd_ninf     fsmuld_rnd_ninf.s       
-    fsmuld_rnd_pinf     fsmuld_rnd_pinf.s       
-    fsmuld_rnd_zero     fsmuld_rnd_zero.s       
-    fstod_rnd_near      fstod_rnd_near.s        
-    fstod_rnd_ninf      fstod_rnd_ninf.s        
-    fstod_rnd_pinf      fstod_rnd_pinf.s        
-    fstod_rnd_zero      fstod_rnd_zero.s        
-    fstoi_ld0_near      fstoi_ld0_near.s        
-    fstoi_ld0_ninf      fstoi_ld0_ninf.s        
-    fstoi_ld0_pinf      fstoi_ld0_pinf.s        
-    fstoi_ld0_zero      fstoi_ld0_zero.s        
-    fstoi_rnd_near      fstoi_rnd_near.s        
-    fstoi_rnd_ninf      fstoi_rnd_ninf.s        
-    fstoi_rnd_pinf      fstoi_rnd_pinf.s        
-    fstoi_rnd_zero      fstoi_rnd_zero.s        
-    fstox_ld0_near      fstox_ld0_near.s        
-    fstox_ld0_ninf      fstox_ld0_ninf.s        
-    fstox_ld0_pinf      fstox_ld0_pinf.s        
-    fstox_ld0_zero      fstox_ld0_zero.s        
-    fstox_rnd_near      fstox_rnd_near.s        
-    fstox_rnd_ninf      fstox_rnd_ninf.s        
-    fstox_rnd_pinf      fstox_rnd_pinf.s        
-    fstox_rnd_zero      fstox_rnd_zero.s        
-    fsubd_diff_sm_near  fsubd_diff_sm_near.s    
-    fsubd_diff_sm_ninf  fsubd_diff_sm_ninf.s    
-    fsubd_diff_sm_pinf  fsubd_diff_sm_pinf.s    
-    fsubd_diff_sm_zero  fsubd_diff_sm_zero.s    
-    fsubd_ieee_near1    fsubd_ieee_near1.s  
-    fsubd_ieee_near2    fsubd_ieee_near2.s  
-    fsubd_ieee_ninf1    fsubd_ieee_ninf1.s  
-    fsubd_ieee_ninf2    fsubd_ieee_ninf2.s  
-    fsubd_ieee_pinf1    fsubd_ieee_pinf1.s  
-    fsubd_ieee_pinf2    fsubd_ieee_pinf2.s  
-    fsubd_ieee_zero1    fsubd_ieee_zero1.s  
-    fsubd_ieee_zero2    fsubd_ieee_zero2.s  
-    fsubd_rnd_near      fsubd_rnd_near.s        
-    fsubd_rnd_ninf      fsubd_rnd_ninf.s        
-    fsubd_rnd_pinf      fsubd_rnd_pinf.s        
-    fsubd_rnd_zero      fsubd_rnd_zero.s        
-    fsubs_diff_sm_near  fsubs_diff_sm_near.s    
-    fsubs_diff_sm_ninf  fsubs_diff_sm_ninf.s    
-    fsubs_diff_sm_pinf  fsubs_diff_sm_pinf.s    
-    fsubs_diff_sm_zero  fsubs_diff_sm_zero.s    
-    fsubs_ieee_near1    fsubs_ieee_near1.s  
-    fsubs_ieee_near2    fsubs_ieee_near2.s  
-    fsubs_ieee_ninf1    fsubs_ieee_ninf1.s  
-    fsubs_ieee_ninf2    fsubs_ieee_ninf2.s  
-    fsubs_ieee_pinf1    fsubs_ieee_pinf1.s  
-    fsubs_ieee_pinf2    fsubs_ieee_pinf2.s  
-    fsubs_ieee_zero1    fsubs_ieee_zero1.s  
-    fsubs_ieee_zero2    fsubs_ieee_zero2.s  
-    fsubs_rnd_near      fsubs_rnd_near.s        
-    fsubs_rnd_ninf      fsubs_rnd_ninf.s        
-    fsubs_rnd_pinf      fsubs_rnd_pinf.s        
-    fsubs_rnd_zero      fsubs_rnd_zero.s        
-    fxtod_ld0_near      fxtod_ld0_near.s        
-    fxtod_ld0_ninf      fxtod_ld0_ninf.s        
-    fxtod_ld0_pinf      fxtod_ld0_pinf.s        
-    fxtod_ld0_zero      fxtod_ld0_zero.s        
-    fxtod_rnd_near      fxtod_rnd_near.s        
-    fxtod_rnd_ninf      fxtod_rnd_ninf.s        
-    fxtod_rnd_pinf      fxtod_rnd_pinf.s        
-    fxtod_rnd_zero      fxtod_rnd_zero.s        
-    fxtos_ld0_near      fxtos_ld0_near.s        
-    fxtos_ld0_ninf      fxtos_ld0_ninf.s        
-    fxtos_ld0_pinf      fxtos_ld0_pinf.s        
-    fxtos_ld0_zero      fxtos_ld0_zero.s        
-    fxtos_rnd_near      fxtos_rnd_near.s        
-    fxtos_rnd_ninf      fxtos_rnd_ninf.s        
-    fxtos_rnd_pinf      fxtos_rnd_pinf.s        
-    fxtos_rnd_zero      fxtos_rnd_zero.s        
+    faddd_diff_sm_near  faddd_diff_sm_near.s
+    faddd_diff_sm_ninf  faddd_diff_sm_ninf.s
+    faddd_ieee_ninf2    faddd_ieee_ninf2.s
+    faddd_diff_sm_zero  faddd_diff_sm_zero.s
+    faddd_ieee_near1    faddd_ieee_near1.s
+    faddd_ieee_near2    faddd_ieee_near2.s
+    faddd_ieee_ninf1    faddd_ieee_ninf1.s
+    faddd_ieee_pinf1    faddd_ieee_pinf1.s
+    faddd_ieee_pinf2    faddd_ieee_pinf2.s
+    faddd_ieee_zero1    faddd_ieee_zero1.s
+    faddd_ieee_zero2    faddd_ieee_zero2.s
+    faddd_rnd_near      faddd_rnd_near.s
+    faddd_rnd_ninf      faddd_rnd_ninf.s
+    faddd_rnd_pinf      faddd_rnd_pinf.s
+    faddd_rnd_zero      faddd_rnd_zero.s
+    fadds_diff_sm_near  fadds_diff_sm_near.s
+    fadds_diff_sm_ninf  fadds_diff_sm_ninf.s
+    fadds_diff_sm_pinf  fadds_diff_sm_pinf.s
+    fadds_diff_sm_zero  fadds_diff_sm_zero.s
+    fadds_ieee_near1    fadds_ieee_near1.s
+    fadds_ieee_near2    fadds_ieee_near2.s
+    fadds_ieee_ninf1    fadds_ieee_ninf1.s
+    fadds_ieee_ninf2    fadds_ieee_ninf2.s
+    fadds_ieee_pinf1    fadds_ieee_pinf1.s
+    fadds_ieee_pinf2    fadds_ieee_pinf2.s
+    fadds_ieee_zero1    fadds_ieee_zero1.s
+    fadds_ieee_zero2    fadds_ieee_zero2.s
+    fadds_rnd_near      fadds_rnd_near.s
+    fadds_rnd_ninf      fadds_rnd_ninf.s
+    fadds_rnd_pinf      fadds_rnd_pinf.s
+    fadds_rnd_zero      fadds_rnd_zero.s
+    fcmpd_rnd_near      fcmpd_rnd_near.s
+    fcmpd_rnd_ninf      fcmpd_rnd_ninf.s
+    fcmpd_rnd_pinf      fcmpd_rnd_pinf.s
+    fcmpd_rnd_zero      fcmpd_rnd_zero.s
+    fcmped_rnd_near     fcmped_rnd_near.s
+    fcmped_rnd_ninf     fcmped_rnd_ninf.s
+    fcmped_rnd_pinf     fcmped_rnd_pinf.s
+    fcmped_rnd_zero     fcmped_rnd_zero.s
+    fcmpes_rnd_near     fcmpes_rnd_near.s
+    fcmpes_rnd_ninf     fcmpes_rnd_ninf.s
+    fcmpes_rnd_pinf     fcmpes_rnd_pinf.s
+    fcmpes_rnd_zero     fcmpes_rnd_zero.s
+    fcmps_rnd_near      fcmps_rnd_near.s
+    fcmps_rnd_ninf      fcmps_rnd_ninf.s
+    fcmps_rnd_pinf      fcmps_rnd_pinf.s
+    fcmps_rnd_zero      fcmps_rnd_zero.s
+    fdivd_ieee_near1    fdivd_ieee_near1.s
+    fdivd_ieee_near2    fdivd_ieee_near2.s
+    fdivd_ieee_ninf1    fdivd_ieee_ninf1.s
+    fdivd_ieee_ninf2    fdivd_ieee_ninf2.s
+    fdivd_ieee_pinf1    fdivd_ieee_pinf1.s
+    fdivd_ieee_pinf2    fdivd_ieee_pinf2.s
+    fdivd_ieee_zero1    fdivd_ieee_zero1.s
+    fdivd_ieee_zero2    fdivd_ieee_zero2.s
+    fdivd_rnd_near      fdivd_rnd_near.s
+    fdivd_rnd_ninf      fdivd_rnd_ninf.s
+    fdivd_rnd_pinf      fdivd_rnd_pinf.s
+    fdivd_rnd_zero      fdivd_rnd_zero.s
+    fdivs_ieee_near1    fdivs_ieee_near1.s
+    fdivs_ieee_near2    fdivs_ieee_near2.s
+    fdivs_ieee_ninf1    fdivs_ieee_ninf1.s
+    fdivs_ieee_ninf2    fdivs_ieee_ninf2.s
+    fdivs_ieee_pinf1    fdivs_ieee_pinf1.s
+    fdivs_ieee_pinf2    fdivs_ieee_pinf2.s
+    fdivs_ieee_zero1    fdivs_ieee_zero1.s
+    fdivs_ieee_zero2    fdivs_ieee_zero2.s
+    fdivs_rnd_near      fdivs_rnd_near.s
+    fdivs_rnd_ninf      fdivs_rnd_ninf.s
+    fdivs_rnd_pinf      fdivs_rnd_pinf.s
+    fdivs_rnd_zero      fdivs_rnd_zero.s
+    fdtoi_ld0_near      fdtoi_ld0_near.s
+    fdtoi_ld0_ninf      fdtoi_ld0_ninf.s
+    fdtoi_ld0_pinf      fdtoi_ld0_pinf.s
+    fdtoi_ld0_zero      fdtoi_ld0_zero.s
+    fdtoi_rnd_near      fdtoi_rnd_near.s
+    fdtoi_rnd_ninf      fdtoi_rnd_ninf.s
+    fdtoi_rnd_pinf      fdtoi_rnd_pinf.s
+    fdtoi_rnd_zero      fdtoi_rnd_zero.s
+    fdtos_rnd_near      fdtos_rnd_near.s
+    fdtos_rnd_ninf      fdtos_rnd_ninf.s
+    fdtos_rnd_pinf      fdtos_rnd_pinf.s
+    fdtos_rnd_zero      fdtos_rnd_zero.s
+    fdtox_ld0_near      fdtox_ld0_near.s
+    fdtox_ld0_ninf      fdtox_ld0_ninf.s
+    fdtox_ld0_pinf      fdtox_ld0_pinf.s
+    fdtox_ld0_zero      fdtox_ld0_zero.s
+    fdtox_rnd_near      fdtox_rnd_near.s
+    fdtox_rnd_ninf      fdtox_rnd_ninf.s
+    fdtox_rnd_pinf      fdtox_rnd_pinf.s
+    fdtox_rnd_zero      fdtox_rnd_zero.s
+    fitod_ld0_near      fitod_ld0_near.s
+    fitod_ld0_ninf      fitod_ld0_ninf.s
+    fitod_ld0_pinf      fitod_ld0_pinf.s
+    fitod_ld0_zero      fitod_ld0_zero.s
+    fitod_rnd_near      fitod_rnd_near.s
+    fitod_rnd_ninf      fitod_rnd_ninf.s
+    fitod_rnd_pinf      fitod_rnd_pinf.s
+    fitod_rnd_zero      fitod_rnd_zero.s
+    fitos_ld0_near      fitos_ld0_near.s
+    fitos_ld0_ninf      fitos_ld0_ninf.s
+    fitos_ld0_pinf      fitos_ld0_pinf.s
+    fitos_ld0_zero      fitos_ld0_zero.s
+    fitos_rnd_near      fitos_rnd_near.s
+    fitos_rnd_ninf      fitos_rnd_ninf.s
+    fitos_rnd_pinf      fitos_rnd_pinf.s
+    fitos_rnd_zero      fitos_rnd_zero.s
+    fmuld_ieee_near1    fmuld_ieee_near1.s
+    fmuld_ieee_near2    fmuld_ieee_near2.s
+    fmuld_ieee_near3    fmuld_ieee_near3.s
+    fmuld_ieee_ninf1    fmuld_ieee_ninf1.s
+    fmuld_ieee_ninf2    fmuld_ieee_ninf2.s
+    fmuld_ieee_ninf3    fmuld_ieee_ninf3.s
+    fmuld_ieee_pinf1    fmuld_ieee_pinf1.s
+    fmuld_ieee_pinf2    fmuld_ieee_pinf2.s
+    fmuld_ieee_pinf3    fmuld_ieee_pinf3.s
+    fmuld_ieee_zero1    fmuld_ieee_zero1.s
+    fmuld_ieee_zero2    fmuld_ieee_zero2.s
+    fmuld_ieee_zero3    fmuld_ieee_zero3.s
+    fmuld_msb_near      fmuld_msb_near.s
+    fmuld_msb_ninf      fmuld_msb_ninf.s
+    fmuld_msb_pinf      fmuld_msb_pinf.s
+    fmuld_msb_zero      fmuld_msb_zero.s
+    fmuld_rnd_near      fmuld_rnd_near.s
+    fmuld_rnd_ninf      fmuld_rnd_ninf.s
+    fmuld_rnd_pinf      fmuld_rnd_pinf.s
+    fmuld_rnd_zero      fmuld_rnd_zero.s
+    fmuls_ieee_near1    fmuls_ieee_near1.s
+    fmuls_ieee_near2    fmuls_ieee_near2.s
+    fmuls_ieee_near3    fmuls_ieee_near3.s
+    fmuls_ieee_ninf1    fmuls_ieee_ninf1.s
+    fmuls_ieee_ninf2    fmuls_ieee_ninf2.s
+    fmuls_ieee_ninf3    fmuls_ieee_ninf3.s
+    fmuls_ieee_pinf1    fmuls_ieee_pinf1.s
+    fmuls_ieee_pinf2    fmuls_ieee_pinf2.s
+    fmuls_ieee_pinf3    fmuls_ieee_pinf3.s
+    fmuls_ieee_zero1    fmuls_ieee_zero1.s
+    fmuls_ieee_zero2    fmuls_ieee_zero2.s
+    fmuls_ieee_zero3    fmuls_ieee_zero3.s
+    fmuls_msb_near      fmuls_msb_near.s
+    fmuls_msb_ninf      fmuls_msb_ninf.s
+    fmuls_msb_pinf      fmuls_msb_pinf.s
+    fmuls_msb_zero      fmuls_msb_zero.s
+    fmuls_rnd_near      fmuls_rnd_near.s
+    fmuls_rnd_ninf      fmuls_rnd_ninf.s
+    fmuls_rnd_pinf      fmuls_rnd_pinf.s
+    fmuls_rnd_zero      fmuls_rnd_zero.s
+    fsmuld_msb_near     fsmuld_msb_near.s
+    fsmuld_msb_ninf     fsmuld_msb_ninf.s
+    fsmuld_msb_pinf     fsmuld_msb_pinf.s
+    fsmuld_msb_zero     fsmuld_msb_zero.s
+    fsmuld_rnd_near     fsmuld_rnd_near.s
+    fsmuld_rnd_ninf     fsmuld_rnd_ninf.s
+    fsmuld_rnd_pinf     fsmuld_rnd_pinf.s
+    fsmuld_rnd_zero     fsmuld_rnd_zero.s
+    fstod_rnd_near      fstod_rnd_near.s
+    fstod_rnd_ninf      fstod_rnd_ninf.s
+    fstod_rnd_pinf      fstod_rnd_pinf.s
+    fstod_rnd_zero      fstod_rnd_zero.s
+    fstoi_ld0_near      fstoi_ld0_near.s
+    fstoi_ld0_ninf      fstoi_ld0_ninf.s
+    fstoi_ld0_pinf      fstoi_ld0_pinf.s
+    fstoi_ld0_zero      fstoi_ld0_zero.s
+    fstoi_rnd_near      fstoi_rnd_near.s
+    fstoi_rnd_ninf      fstoi_rnd_ninf.s
+    fstoi_rnd_pinf      fstoi_rnd_pinf.s
+    fstoi_rnd_zero      fstoi_rnd_zero.s
+    fstox_ld0_near      fstox_ld0_near.s
+    fstox_ld0_ninf      fstox_ld0_ninf.s
+    fstox_ld0_pinf      fstox_ld0_pinf.s
+    fstox_ld0_zero      fstox_ld0_zero.s
+    fstox_rnd_near      fstox_rnd_near.s
+    fstox_rnd_ninf      fstox_rnd_ninf.s
+    fstox_rnd_pinf      fstox_rnd_pinf.s
+    fstox_rnd_zero      fstox_rnd_zero.s
+    fsubd_diff_sm_near  fsubd_diff_sm_near.s
+    fsubd_diff_sm_ninf  fsubd_diff_sm_ninf.s
+    fsubd_diff_sm_pinf  fsubd_diff_sm_pinf.s
+    fsubd_diff_sm_zero  fsubd_diff_sm_zero.s
+    fsubd_ieee_near1    fsubd_ieee_near1.s
+    fsubd_ieee_near2    fsubd_ieee_near2.s
+    fsubd_ieee_ninf1    fsubd_ieee_ninf1.s
+    fsubd_ieee_ninf2    fsubd_ieee_ninf2.s
+    fsubd_ieee_pinf1    fsubd_ieee_pinf1.s
+    fsubd_ieee_pinf2    fsubd_ieee_pinf2.s
+    fsubd_ieee_zero1    fsubd_ieee_zero1.s
+    fsubd_ieee_zero2    fsubd_ieee_zero2.s
+    fsubd_rnd_near      fsubd_rnd_near.s
+    fsubd_rnd_ninf      fsubd_rnd_ninf.s
+    fsubd_rnd_pinf      fsubd_rnd_pinf.s
+    fsubd_rnd_zero      fsubd_rnd_zero.s
+    fsubs_diff_sm_near  fsubs_diff_sm_near.s
+    fsubs_diff_sm_ninf  fsubs_diff_sm_ninf.s
+    fsubs_diff_sm_pinf  fsubs_diff_sm_pinf.s
+    fsubs_diff_sm_zero  fsubs_diff_sm_zero.s
+    fsubs_ieee_near1    fsubs_ieee_near1.s
+    fsubs_ieee_near2    fsubs_ieee_near2.s
+    fsubs_ieee_ninf1    fsubs_ieee_ninf1.s
+    fsubs_ieee_ninf2    fsubs_ieee_ninf2.s
+    fsubs_ieee_pinf1    fsubs_ieee_pinf1.s
+    fsubs_ieee_pinf2    fsubs_ieee_pinf2.s
+    fsubs_ieee_zero1    fsubs_ieee_zero1.s
+    fsubs_ieee_zero2    fsubs_ieee_zero2.s
+    fsubs_rnd_near      fsubs_rnd_near.s
+    fsubs_rnd_ninf      fsubs_rnd_ninf.s
+    fsubs_rnd_pinf      fsubs_rnd_pinf.s
+    fsubs_rnd_zero      fsubs_rnd_zero.s
+    fxtod_ld0_near      fxtod_ld0_near.s
+    fxtod_ld0_ninf      fxtod_ld0_ninf.s
+    fxtod_ld0_pinf      fxtod_ld0_pinf.s
+    fxtod_ld0_zero      fxtod_ld0_zero.s
+    fxtod_rnd_near      fxtod_rnd_near.s
+    fxtod_rnd_ninf      fxtod_rnd_ninf.s
+    fxtod_rnd_pinf      fxtod_rnd_pinf.s
+    fxtod_rnd_zero      fxtod_rnd_zero.s
+    fxtos_ld0_near      fxtos_ld0_near.s
+    fxtos_ld0_ninf      fxtos_ld0_ninf.s
+    fxtos_ld0_pinf      fxtos_ld0_pinf.s
+    fxtos_ld0_zero      fxtos_ld0_zero.s
+    fxtos_rnd_near      fxtos_rnd_near.s
+    fxtos_rnd_ninf      fxtos_rnd_ninf.s
+    fxtos_rnd_pinf      fxtos_rnd_pinf.s
+    fxtos_rnd_zero      fxtos_rnd_zero.s
 
     fpop1_reserved          fpop1_reserved.pal
     fpop2_reserved          fpop2_reserved.pal
@@ -792,7 +1021,7 @@ pico-xori   xori.S
 
 <tile1_cmp2>
     braindead   braindead.s             -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
-    
+
     <runargs -sim_run_args=+inst_check_off=1>
     tso_self_mod1   tso_self_mod1.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_self_mod2   tso_self_mod2.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
@@ -809,10 +1038,10 @@ pico-xori   xori.S
     tso_cross_mod1b tso_cross_mod1.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
     tso_cross_mod2  tso_cross_mod2.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
     tso_cross_mod3  tso_cross_mod3.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
-    
-    
+
+
     tso_cross_mod5  tso_cross_mod5.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
-    
+
     tso_self_mod101   tso_self_mod101.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_self_mod102   tso_self_mod102.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_self_mod103a  tso_self_mod103.s  -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
@@ -828,37 +1057,37 @@ pico-xori   xori.S
     tso_cross_mod101b tso_cross_mod101.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
     tso_cross_mod102  tso_cross_mod102.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
     tso_cross_mod103  tso_cross_mod103.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
-    
+
     tso_self_mod201   tso_self_mod201.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_self_mod202   tso_self_mod202.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
 
     tso_self_mod203a  tso_self_mod203.s  -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
-    
+
     tso_self_mod206   tso_self_mod206.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_self_mod207   tso_self_mod207.s  -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
-    
+
     tso_cross_mod201  tso_cross_mod201.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
     tso_cross_mod201b tso_cross_mod201.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DFLUSH
     tso_cross_mod203  tso_cross_mod203.s -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
-    
+
     </runargs>
-    
+
     tso_dekker1 tso_dekker1.s       -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
     tso_dekker2 tso_dekker2.s       -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
     tso_dekker10    tso_dekker10.s      -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
     tso_dekker11    tso_dekker11.s      -finish_mask=3   -midas_args=-DTHREAD_COUNT=2                               -sim_run_args=+FORCE_SNIPER_OFF
 
     tso_bstc_illegal tso_bstcommit_illegal.s -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
-    
+
     tso_membar0  tso_membar0.s       -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_membar1  tso_membar1.s       -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
-    
+
     tso_binit1   tso_binit1.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
     tso_binit2   tso_binit2.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
 
     tso_bcopy1   tso_bcopy1.s        -finish_mask=1  -midas_args=-DTHREAD_COUNT=1
 
-    
+
     tso_ldd_quad1   tso_ldd_quad1.s     -finish_mask=1   -midas_args=-DTHREAD_COUNT=1
 
     tso_prod_cons_intr1 tso_prod_cons_intr1.s   -finish_mask=3  -midas_args=-DTHREAD_COUNT=2
@@ -868,7 +1097,7 @@ pico-xori   xori.S
 
 <tile1_ciop_pio_cov>
 <runargs -max_cycle=24000000 -rtl_timeout=500000 -sim_run_args=+sjm_timeout_scale10 -sim_run_args=+turn_off_exu_monitor -sim_run_args=+turn_off_thread_monitor -sim_run_args=+turn_off_nukeint_mon  -midas_args=-allow_tsb_conflicts  -fast_boot -sim_run_args=+stb_drain_to_max=30000>
-    
+
     pio_rnd_basic1                 pio_rnd_basic1_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic1_rand_0_sjm
     pio_rnd_basic2                 pio_rnd_basic2_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic2_rand_0_sjm
     pio_rnd_basic3                 pio_rnd_basic3_rand_0.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic3_rand_0_sjm
@@ -909,7 +1138,7 @@ pico-xori   xori.S
     pio_rand_1_basic4_usr_mode_sas                        pio_rnd_basic4_usr_mode_sas_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas_rand_1_sjm
     pio_rand_1_blk_stld1                        pio_rnd_blk_stld1_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_blk_stld1_rand_1_sjm
     pio_rand_1_blk_stld2                        pio_rnd_blk_stld2_rand_1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_blk_stld2_rand_1_sjm
-    
+
     pio_dma_basic                        pio_dma_basic.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic
     pio_dma_basic1                        pio_dma_basic1.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic1
     pio_dma_basic2                        pio_dma_basic2.s -midas_args=-DTHREAD_COUNT=1 -midas_args=-DTHREAD_STRIDE=1 -finish_mask=1   -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_dma_basic2
@@ -935,7 +1164,7 @@ pico-xori   xori.S
 <tile1_unused>
 
     // not tested, adapted from cmp_basic.diaglist just for completeness
-    
+
     // from tile1_passing, fix when possible because of performance
     fail_perf_chase_l2hit      chase.pal -midas_args=-pal_diag_args=-lenbytes=2k -midas_args=-pal_diag_args=-stride=16 -midas_args=-pal_diag_args=-expect_time=22 -midas_args=-pal_diag_args=-expect_string=L2_ld_hit
     fail_performance_chase_dram      chase.pal -midas_args=-pal_diag_args=-lenbytes=1k -midas_args=-pal_diag_args=-stride=64 -midas_args=-pal_diag_args=-warmup_loopback -midas_args=-pal_diag_args=-expect_time=133 -midas_args=-pal_diag_args=-expect_string=DRAM_ld -midas_args=-pal_diag_args=-tolerance=3
@@ -947,10 +1176,10 @@ pico-xori   xori.S
     //err_multierr_diag9            err_multierr_diag9.s -sim_run_args=+block_load_kill_off=1
     //err_multierr_diag10           err_multierr_diag10.s
     //err_multierr_diag11           err_multierr_diag11.s
-    
+
     // l2 ecc
-    // fail_wontfix_err_l2cache_data_atom_cecc    err_l2cache_data_atom_cecc.s 
-    // fail_wontfix_err_l2cache_data_atom_dacc    err_l2cache_data_atom_dacc.s 
+    // fail_wontfix_err_l2cache_data_atom_cecc    err_l2cache_data_atom_cecc.s
+    // fail_wontfix_err_l2cache_data_atom_dacc    err_l2cache_data_atom_dacc.s
     // fail_wontfix_err_l2cache_data_inst_cecc    err_l2cache_data_inst_cecc.s
     // fail_wontfix_err_l2cache_data_inst_iacc    err_l2cache_data_inst_iacc.s
     // fail_wontfix_err_l2cache_data_ld_cecc      err_l2cache_data_ld_cecc.s
@@ -966,7 +1195,7 @@ pico-xori   xori.S
     // fail_wontfix_err_l2cache_data_asld_dacc01  err_l2cache_data_asld_dacc01.s
     // fail_wontfix_err_l2cache_data_asld_dacc10  err_l2cache_data_asld_dacc10.s
     // fail_wontfix_err_l2cache_data_asld_dacc11  err_l2cache_data_asld_dacc11.s
-    
+
     // these tests don't (and won't) pass because of dcache user event injection. See issue #57
     //tlu_stb2b_trap_100  -sim_run_args=+asm_err_en   tlu_stb2b_trap_100.s
     //tlu_stb2b_trap_101  -sim_run_args=+asm_err_en   tlu_stb2b_trap_101.s
@@ -987,36 +1216,36 @@ pico-xori   xori.S
 <all_tile2_passing>
 <all_tile2_passing_no_enboff>
     <tile2_mini>
-        exu_add                 exu_add.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000 
-        exu_sub                 exu_sub.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000 
+        exu_add                 exu_add.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000
+        exu_sub                 exu_sub.s -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=500000
 
         ffu_faligndata      ffu_faligndata.s
 
         lsu_atomic              lsu_atomic.s -midas_args=-allow_tsb_conflicts
 
-        v9_immudmp      v9_immudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000 
-        v9_dmmudmp      v9_dmmudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000 
+        v9_immudmp      v9_immudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000
+        v9_dmmudmp      v9_dmmudmp.s -sim_run_args=+turn_mmu_checks_off -max_cycle=800000
 
         fp_simple_all1      fp_simple_all1.s
 
 
-        mt_wrrdcwp      -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp.s -max_cycle=200000 
-        mt_wrrdcwp_loop     -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp_loop.s -max_cycle=200000 
-        mt_muldivldx        -rtl_timeout=50000 -finish_mask=3 mt_muldivldx.s -max_cycle=500000 
+        mt_wrrdcwp      -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp.s -max_cycle=200000
+        mt_wrrdcwp_loop     -rtl_timeout=50000 -finish_mask=3 mt_wrrdcwp_loop.s -max_cycle=200000
+        mt_muldivldx        -rtl_timeout=50000 -finish_mask=3 mt_muldivldx.s -max_cycle=500000
         mt_isameline        -finish_mask=33 mt_Isameline.s
         mt_dsameline        -finish_mask=33 mt_Dsameline.s
         mt_dhit_sameset     -finish_mask=33 mt_Dhit_sameset.s
-        mt_dmiss_specload   -finish_mask=3 mt_Dmiss_specload.s  
-        mt_dhit_specload    -finish_mask=3 mt_Dhit_specload.s  -max_cycle=200000 
+        mt_dmiss_specload   -finish_mask=3 mt_Dmiss_specload.s
+        mt_dhit_specload    -finish_mask=3 mt_Dhit_specload.s  -max_cycle=200000
         mt_dcache_falseraw  -finish_mask=33 mt_Dcache_falseraw.s
-        mt_alu_ldx      -rtl_timeout=50000 -finish_mask=13 mt_alu_ldx.s  -max_cycle=300000 
+        mt_alu_ldx      -rtl_timeout=50000 -finish_mask=13 mt_alu_ldx.s  -max_cycle=300000
         mtblkldst_loop      -sim_run_args=+spc_pipe=0 -finish_mask=33 mtblkldst_loop.s
 
         fp_mt_combo0        fp_mt_combo0.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=33
         fp_mt_combo1        fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=3
         fp_mt_combo1        fp_mt_combo1.s        -rtl_timeout=50000 -max_cycle=5000000 -finish_mask=11 -midas_args=-DTHREAD_STRIDE=2
-        mt_raw          -rtl_timeout=50000 -finish_mask=33 -sim_run_args="+coverage_on" mt_raw.s -max_cycle=200000 
-        bug3273         bug3273.s -finish_mask=33 -max_cycle=600000 
+        mt_raw          -rtl_timeout=50000 -finish_mask=33 -sim_run_args="+coverage_on" mt_raw.s -max_cycle=200000
+        bug3273         bug3273.s -finish_mask=33 -max_cycle=600000
     </tile2_mini>
 
     <tile2_tlu>
@@ -1025,7 +1254,7 @@ pico-xori   xori.S
         sus_res_11        -finish_mask=33  sus_res_11.s  -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
         sus_res_20        -finish_mask=33  sus_res_20.s -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
         sus_res_23        -finish_mask=33  sus_res_23.s -midas_args=-DSYNC_THREADS -midas_args=-DTHREAD_COUNT=4
-        tlu_cmpr_intdis_1     -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  -sim_run_args=+softint_off=1  tlu_cmpr_intdis_1.s 
+        tlu_cmpr_intdis_1     -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  -sim_run_args=+softint_off=1  tlu_cmpr_intdis_1.s
         tlu_multi_tsasr_1     -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_multi_tsasr_1.s
         tlu_pib_bug2820     -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_bug2820.s
         tlu_pib_picl_fp_1   -midas_args=-DTHREAD_COUNT=4    -finish_mask=33  tlu_pib_picl_fp_1.s
@@ -1058,13 +1287,13 @@ pico-xori   xori.S
         thread_bug2445_1  bug2445.s
         thread_bug2568_1  bug2568.s
         thread_bug2868    bug2868.s
-        
+
         //These tests were in tile1_ifu_failing, now need two tiles (02/10/14)
         fpu_bug2416_2  -midas_args=-DSPEC_LD_OFF bug2416_1.s
         fpu_bug2416_3  bug2416_1.s
-        
+
         fpu_bug2416_4  -midas_args=-DSPEC_LD_OFF bug2416_2.s
-        
+
         thread_bug2434_0  -midas_args=-DSPEC_LD_OFF bug2434.s
         thread_bug2434_1  bug2434.s
         thread_bug2880    bug2880.s
@@ -1072,7 +1301,7 @@ pico-xori   xori.S
         thread_bug2943    bug2943.s
         thread_bug3144    bug3144.s
         thread_bug3155    bug3155.s
-        thread_bug3766    -max_cycle=200000  -midas_args=-DSPEC_LD_OFF  bug3766.s  
+        thread_bug3766    -max_cycle=200000  -midas_args=-DSPEC_LD_OFF  bug3766.s
         thread_bug2416_5  bug2416_2.s
         thread_bug2426_1  bug2426.s
         thread_bug2415_0  -midas_args=-DSPEC_LD_OFF bug2415.s
@@ -1083,15 +1312,15 @@ pico-xori   xori.S
         thread_bug3070    bug3070.s
         thread_bug3071    bug3071.s
         thread_bug3144_0  bug3144_0.s
-    
+
         //These tests were in tile1_ifu_passing, now need two tiles (03/10/14)
         thread_priv_dlyslt     -midas_args=-allow_tsb_conflicts -finish_mask=1 -fast_boot -sim_run_args=+inst_check_off=1 priv_dlyslt.s
-        thread_bug3701    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3701.s  
-        thread_bug4091    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4091.s  
-        thread_bug4411    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4411.s  
+        thread_bug3701    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3701.s
+        thread_bug4091    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4091.s
+        thread_bug4411    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4411.s
         thread_bug3738    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=3  bug3738.s
-        thread_bug3752    -max_cycle=200000   -sim_run_args=+rand_err_en  -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334594 bug3752.s 
-        thread_bug3773    -max_cycle=400000  -sim_run_args=+asm_err_en  -sim_run_args=+L1_INTQ_END_CHECK_OFF bug3773.s  
+        thread_bug3752    -max_cycle=200000   -sim_run_args=+rand_err_en  -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334594 bug3752.s
+        thread_bug3773    -max_cycle=400000  -sim_run_args=+asm_err_en  -sim_run_args=+L1_INTQ_END_CHECK_OFF bug3773.s
         thread_bug2356_0  -midas_args=-DSPEC_LD_OFF bug2356.s
         thread_bug2356_1  bug2356.s
         thread_bug3289    bug3289.s -sim_run_args=+l1_chkoff
@@ -1102,11 +1331,11 @@ pico-xori   xori.S
         thread_bug3584    -sim_run_args=+asm_err_en bug3584.s -sim_run_args=+l1_chkoff
         thread_bug3572    bug3572.s
         thread_bug3576    bug3576.s
-        thread_bug3551    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806301 bug3551.s 
+        thread_bug3551    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806301 bug3551.s
         thread_bug3552    -midas_args=-DSPEC_LD_OFF -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055801447 bug3552.s
         thread_bug3556    -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1055806355 bug3556.s
-        thread_bug3928    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3928.s  
-        thread_bug4459    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err  -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=20031003  bug4459.s  
+        thread_bug3928    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3928.s
+        thread_bug4459    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err  -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=20031003  bug4459.s
         thread_bug3596    bug3596.s -sim_run_args=+l1_chkoff
 
         fpu_bug2433_0  -midas_args=-DSPEC_LD_OFF bug2433.s
@@ -1119,23 +1348,23 @@ pico-xori   xori.S
         thread_bug2568_0  -midas_args=-DSPEC_LD_OFF bug2568.s
         thread_bug3273    bug3273.s
         thread_bug3753    -max_cycle=200000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+rand_err_seed=1058334745 bug3753.s
-        thread_bug4017    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4017.s 
+        thread_bug4017    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4017.s
 
         // Tri: the following test simulates icache error, of which I'm not exactly sure if the cross-module references work. The main problem is that it runs 4 threads.
-        io_icerr         -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -sim_run_args=+asm_err_en -sim_run_args=+fast_boot -vcs_run -midas_args=-allow_tsb_conflicts -sim_run_args=+inst_check_off=1 io_icerr.s 
+        io_icerr         -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -sim_run_args=+asm_err_en -sim_run_args=+fast_boot -vcs_run -midas_args=-allow_tsb_conflicts -sim_run_args=+inst_check_off=1 io_icerr.s
 
         bug3846    -max_cycle=400000  -sim_run_args=+asm_err_en  -finish_mask=13  -midas_args=-allow_tsb_conflicts  bug3846.s  // Jon: Was finish_mask=7
 
         //Below were failing due to STB. Fixed as of 15/10/14 (Thanks Tri!)
         thread_bug3688    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3688.s
-        thread_bug3761    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3761.s 
+        thread_bug3761    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3761.s
         thread_bug3898    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3898.s
-        thread_bug3900    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3900.s 
+        thread_bug3900    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3900.s
         thread_bug3901    -max_cycle=400000  -sim_run_args=+asm_err_en  bug3901.s
-        thread_bug3932    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3932.s  
-        thread_bug4267    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4267.s 
-        thread_bug4330    -max_cycle=400000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+err_inj_dbg -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=92003826 bug4330.s 
-        thread_bug3138    -max_cycle=400000 bug3138.s 
+        thread_bug3932    -max_cycle=300000  -sim_run_args=+asm_err_en  bug3932.s
+        thread_bug4267    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4267.s
+        thread_bug4330    -max_cycle=400000  -sim_run_args=+rand_err_en -sim_run_args=+ic_err -sim_run_args=+dc_err -sim_run_args=+frf_err -sim_run_args=+irf_err -sim_run_args=+err_inj_dbg -sim_run_args=+err_inj_dbg -sim_run_args=+rand_err_seed=92003826 bug4330.s
+        thread_bug3138    -max_cycle=400000 bug3138.s
         thread_bug3212    -max_cycle=400000 bug3212.s
         flush_order     -sim_run_args=+inst_check_off=1 -midas_args=-allow_tsb_conflicts -finish_mask=33 flush_order.s -fast_boot
 
@@ -1144,7 +1373,7 @@ pico-xori   xori.S
         thread_bug2543_1  bug2543.s -sim_run_args=+l1_chkoff
 
         //Passing thanks to issue #136 fix
-        thread_bug4012    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4012.s 
+        thread_bug4012    -max_cycle=400000  -sim_run_args=+asm_err_en  bug4012.s
         bug4534    -max_cycle=400000 -finish_mask=33 -sim_run_args=+asm_err_en bug4534.s
     </runargs>
     </tile2_ifu>
@@ -1212,7 +1441,7 @@ pico-xori   xori.S
         self_mod1       self_mod1.s -finish_mask=33 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+inst_check_off=1
 
         iointr_rdg11_18_00_10   iointr_rdg11_18_00_10.s -finish_mask=33 -max_cycle=1000000 -midas_args=-allow_empty_sections -midas_args=-allow_tsb_conflicts -midas_args=-default_radix=hex -midas_args=-DTHREAD_COUNT=4 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -midas_args=-DSYNC_THREADS
-    
+
         //Passing as of fix in issue #136
         interthread_intr        interthread_intr.s -max_cycle=2100000 -finish_mask=20
         //Unfinished
@@ -1276,7 +1505,7 @@ pico-xori   xori.S
 
 
     tsotool_mustpass5_050903 tsotool_diag5_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
-    tsotool_mustpass7_060903 tsotool_diag7_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts 
+    tsotool_mustpass7_060903 tsotool_diag7_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
     tsotool_mustpass9_061003  tsotool_diag9_061003.s  -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
     tsotool_mustpass10_061003 tsotool_diag10_061003.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
     tsotool_mustpass11_071503 tsotool_diag11_071503.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
@@ -1287,7 +1516,7 @@ pico-xori   xori.S
     sus_res_12        -finish_mask=33  sus_res_12.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
     sus_res_21        -finish_mask=33  sus_res_21.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
     sus_res_22        -finish_mask=33  sus_res_22.s -midas_args=-DTHREAD_COUNT=4 -midas_args=-DSYNC_THREADS
-    
+
     //br_stress       -finish_mask=33 -fast_boot -max_cycle=5000000  -midas_args=-DCREGS_SPARC_ERROR_EN_REG_CEEN=0 -midas_args=-DCREGS_SPARC_ERROR_EN_REG_NCEEN=0 -sim_run_args=+asm_err_en -midas_args=-allow_tsb_conflicts -sim_run_args=+softint_off=1 -sim_run_args=+inst_check_off=1 br_stress.s
 
     tso_prod_cons1       tso_prod_cons1.s       -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
@@ -1304,7 +1533,7 @@ pico-xori   xori.S
     tsotool_mustpass3_042103 tsotool_diag3_042103.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
     tsotool_mustpass4_050903 tsotool_diag4_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
     tsotool_mustpass6_050903 tsotool_diag6_050903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
-    tsotool_mustpass8_060903 tsotool_diag8_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts 
+    tsotool_mustpass8_060903 tsotool_diag8_060903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8 -midas_args=-allow_tsb_conflicts
 
     tsotool_diag13 tsotool_diag13_071903.s -finish_mask=3333 -midas_args=-DTHREAD_COUNT=8
 </runargs>
@@ -1323,18 +1552,18 @@ pico-xori   xori.S
     //These were in tile2_cmp2, but require 8 tiles to pass as they sends dummy interrupts to the 6th tile (see issue #78)
     tso_prod_cons_intr3 tso_prod_cons_intr3.s   -finish_mask=3  -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=1 -sim_run_args=+inst_check_off=1
     tso_prod_cons_intr3a    tso_prod_cons_intr3.s   -finish_mask=11 -midas_args=-DTHREAD_COUNT=2 -midas_args=-DTHREAD_STRIDE=2 -sim_run_args=+inst_check_off=1
-    
+
     tso_indirection1 tso_indirection1.s     -finish_mask=13  -midas_args=-DTHREAD_COUNT=3 -midas_args=-DPREFETCH // was finish_mask=7
     tso_indirection2 tso_indirection2.s     -finish_mask=13  -midas_args=-DTHREAD_COUNT=3 -midas_args=-DPREFETCH // was finish_mask=7
-    
+
     tso_indirection1a tso_indirection1.s    -finish_mask=1021  -midas_args=-DTHREAD_COUNT=3  -midas_args=-DZERO_THREE_SIX -midas_args=-DTHREAD_STRIDE=3 -midas_args=-DPREFETCH // was finish_mask=49
     tso_indirection2a tso_indirection2.s    -finish_mask=1021  -midas_args=-DTHREAD_COUNT=3  -midas_args=-DZERO_THREE_SIX -midas_args=-DTHREAD_STRIDE=3 -midas_args=-DPREFETCH // was finish_mask=49
-      
+
     tso_prod_cons_intr2 tso_prod_cons_intr2.s   -finish_mask=333  -midas_args=-DTHREAD_COUNT=6 // was finish_mask=3f
-      
+
     // tried to generate a similar condition as the one in 6322. Got pretty close
     // but does not fail.
-    
+
     //tso_prod_cons_intr3b    tso_prod_cons_intr3b.s  -finish_mask=0101 -midas_args=-DTHREAD_COUNT=5 -sim_run_args=+inst_check_off=1 -sim_run_args=+L1_DIFFLIMIT=512
 
     mpgen_mustpass1_041403 mpgen_diag1_041403.s -finish_mask=1111 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=2 // was finish_mask=55
@@ -1372,7 +1601,7 @@ pico-xori   xori.S
     pio_rand_1_basic4_usr_mode_sas2_mul_core                        pio_rnd_basic4_usr_mode_sas2_mul_core_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_rand_1_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DSYNC_THREADS
 //    pio_rand_1_basic4_usr_mode_sas2_mul_core_int                        pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_1.s -midas_args=-DTHREAD_STRIDE=1 -sjm_diag_root=$DV_ROOT/verif/diag/assembly  -sjm_diag_name=pio_rnd_basic4_usr_mode_sas2_mul_core_int_rand_1_sjm  -finish_mask=3333333333333333  -midas_args=-DTHREAD_COUNT=32     -midas_args=-DPART_0_BASE=0x0   -midas_args=-DSYNC_THREADS
 </sjm_sas_tile16>
-    
+
 </runargs>
 </tile16>
 
@@ -1382,41 +1611,41 @@ pico-xori   xori.S
 
     tso_false_sharing1 tso_false_sharing1.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_mutex1       tso_mutex1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_mutex1       tso_mutex1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    tso_binit2_all   tso_binit2.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-
-
-    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    tso_binit3   tso_binit3.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_binit2_all   tso_binit2.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
 
-    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
+    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    tso_binit3   tso_binit3.s        -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
-    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001 
-    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
-    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001  
+
+    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+
+    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
+    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=101010010000001000000100000010000001 -midas_args=-DTHREAD_MASK=0x444100040010004001
 
 </runargs>
 </tile36>
@@ -1424,44 +1653,44 @@ pico-xori   xori.S
 <tile64 name=default sys=manycore -x_tiles=8 -y_tiles=8 >
 <runargs -midas_args=-allow_tsb_conflicts -midas_args=-DSYNC_THREADS -midas_args=-DSEQ_THREADS -rtl_timeout=5000000>
 
-    tso_false_sharing1 tso_false_sharing1.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_false_sharing1 tso_false_sharing1.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
 
-    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_prod_cons2       tso_prod_cons2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
-    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_mutex1       tso_mutex1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_fsvs tso_false_sharing_veryshort.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_mutex1       tso_mutex1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_mutex2_ldstub    tso_mutex2_ldstub.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_mutex3_cas       tso_mutex3_cas.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_mutex4_casx      tso_mutex4_casx.s      -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
-    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_mutex5_swap_casx tso_mutex5_swap_casx.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
-    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+    tso_pr_cons_var1_1 tso_prod_cons_variation1_1.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_pr_cons_var2_1 tso_prod_cons_variation2_1.s   -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
-    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    tso_binit2_all   tso_binit2.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-
-
-    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    tso_binit3   tso_binit3.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_false_sharing2 tso_false_sharing2.s    -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_binit2_all   tso_binit2.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_ldd_quad2   tso_ldd_quad2.s     -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
 
-    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
+    tso_cross_mod4  tso_cross_mod4.s -finish_mask=1 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_dekker7 tso_dekker7.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_dekker8 tso_dekker8.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_dekker9 tso_dekker9.pal      -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_peterson1   tso_peterson1.pal  -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_peterson3   tso_peterson3.pal   -sim_run_args=+FORCE_SNIPER_OFF  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_bcopy1_all   tso_bcopy1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    tso_binit3   tso_binit3.s        -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
-    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555 
-    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
-    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555  
+
+    tso_prod_cons1       tso_prod_cons1.s       -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+
+    tso_peterson2   tso_peterson2.pal   -sim_run_args=+FORCE_SNIPER_OFF -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    mpgen_mustpass7_060503 mpgen_diag7_060503.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    mpgen_mustpass8_071503 mpgen_diag8_071503.s  -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    mpgen_mustpass9_080403 mpgen_diag9_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
+    mpgen_mustpass10_080403 mpgen_diag10_080403.s -finish_mask=1000000000000000000000000000000000000000000000000000000001111111 -midas_args=-DTHREAD_MASK=0x40000000000000000000000000001555
 
 </runargs>
 </tile64>
@@ -1519,12 +1748,12 @@ fp_muldiv_rd0           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv
 fp_muldiv_rd1           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=1
 fp_muldiv_rd2           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=2
 fp_muldiv_rd3           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv"  -midas_args=-pal_diag_args=-rd=3
-fp_mov              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov"  
-fp_neg              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg"  
-fp_abs              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs"  
-fp_fp2int               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int"  
-fp_fp2fp            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp"  
-fp_int2fp               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp"  
+fp_mov              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov"
+fp_neg              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg"
+fp_abs              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs"
+fp_fp2int               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int"
+fp_fp2fp            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp"
+fp_int2fp               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp"
 
 fp_paddsub              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_paddsub"
 fp_align                arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_align"
@@ -1562,10 +1791,10 @@ fp_muldiv_rd0_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="f
 fp_muldiv_rd1_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=1
 fp_muldiv_rd2_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=2
 fp_muldiv_rd3_rand              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_rand" -midas_args=-pal_diag_args=-rd=3
-fp_mov_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_rand"  
-fp_neg_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_rand"  
-fp_abs_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_rand"  
-fp_fp2int_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rand"  
+fp_mov_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_rand"
+fp_neg_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_rand"
+fp_abs_rand             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_rand"
+fp_fp2int_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rand"
 fp_fp2fp_rand                   arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rand"
 fp_int2fp_rand                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rand"
 
@@ -1605,10 +1834,10 @@ fp_muldiv_rd0_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mu
 fp_muldiv_rd1_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=1
 fp_muldiv_rd2_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=2
 fp_muldiv_rd3_fpdis         arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_fpdis"  -midas_args=-pal_diag_args=-rd=3
-fp_mov_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_fpdis"  
-fp_neg_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_fpdis"  
-fp_abs_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_fpdis"  
-fp_fp2int_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_fpdis"  
+fp_mov_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_mov_fpdis"
+fp_neg_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_neg_fpdis"
+fp_abs_fpdis            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_abs_fpdis"
+fp_fp2int_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_fpdis"
 fp_fp2fp_fpdis                  arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_fpdis"
 fp_int2fp_fpdis                 arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_fpdis"
 
@@ -1641,15 +1870,15 @@ fp_cmp_fcc3_rd1_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="f
 fp_cmp_fcc3_rd2_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
 fp_cmp_fcc3_rd3_fpdis           arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_fpdis" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=3
 
-fp_fp2int_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rsvd"  
+fp_fp2int_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_rsvd"
 fp_fp2fp_rsvd             arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_rsvd"
 fp_int2fp_rsvd            arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_rsvd"
 
-fp_addsub_rd0_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd0_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=0
 fp_addsub_rd1_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=1
 fp_addsub_rd2_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=2
 fp_addsub_rd3_of          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_of"  -midas_args=-pal_diag_args=-rd=3
-fp_addsub_rd0_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd0_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=0
 fp_addsub_rd1_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=1
 fp_addsub_rd2_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=2
 fp_addsub_rd3_uf          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_uf"  -midas_args=-pal_diag_args=-rd=3
@@ -1657,7 +1886,7 @@ fp_addsub_rd0_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_adds
 fp_addsub_rd1_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=1 -midas_args=-pal_diag_args=-tem=19
 fp_addsub_rd2_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=2 -midas_args=-pal_diag_args=-tem=19
 fp_addsub_rd3_nx          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nx"  -midas_args=-pal_diag_args=-rd=3 -midas_args=-pal_diag_args=-tem=19
-fp_addsub_rd0_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=0 
+fp_addsub_rd0_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=0
 fp_addsub_rd1_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=1
 fp_addsub_rd2_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=2
 fp_addsub_rd3_nv          arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_addsub_nv"  -midas_args=-pal_diag_args=-rd=3
@@ -1679,14 +1908,14 @@ fp_cmp_fcc3_rd1_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" 
 fp_cmp_fcc3_rd2_nv    arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_cmp_nv" -midas_args=-pal_diag_args=-fccn=3  -midas_args=-pal_diag_args=-rd=2
 
 fp_fp2int_nv              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nv"
-fp_fp2int_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nx" 
+fp_fp2int_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2int_nx"
 
 fp_fp2fp_of               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_of"
 fp_fp2fp_uf               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_uf"
 fp_fp2fp_nv               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nv"
 fp_fp2fp_nx               arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_fp2fp_nx"  -midas_args=-pal_diag_args=-tem=19
 
-fp_int2fp_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_nx" 
+fp_int2fp_nx              arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_int2fp_nx"
 
 fp_muldiv_rd0_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=0
 fp_muldiv_rd1_of      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_of"  -midas_args=-pal_diag_args=-rd=1
@@ -1716,7 +1945,7 @@ fp_muldiv_rd3_nx      arch_fp.pal  -midas_args=-pal_diag_args=-name="fp_muldiv_n
 
 <more_alu sys=manycore -x_tiles=2 -y_tiles=1>
 <cmp_default name=default>
-<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=33> 
+<runargs -midas_args=-allow_tsb_conflicts -max_cycle=3000000 -midas_args=-pal_diag_args=-thrd_count=4 -finish_mask=33>
 <runargs -sim_run_args=+l2warm=1>
 alu_add                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_add"
 alu_sub                 arch_alu.pal  -midas_args=-pal_diag_args=-name="alu_sub"
@@ -1824,62 +2053,62 @@ alu_tsub_rand                           arch_alu.pal  -midas_args=-pal_diag_args
 </dmbr_config_regs>
 
 <dmbr_one_bin>
-//    dmbr_assembly_0_one_bin dmbr_assembly_0_one_bin.s 
-//    dmbr_assembly_1_one_bin dmbr_assembly_1_one_bin.s 
-    dmbr_assembly_2_one_bin dmbr_assembly_2_one_bin.s 
-    dmbr_assembly_3_one_bin dmbr_assembly_3_one_bin.s 
-    dmbr_assembly_4_one_bin dmbr_assembly_4_one_bin.s 
-    dmbr_assembly_5_one_bin dmbr_assembly_5_one_bin.s 
-//    dmbr_assembly_6_one_bin dmbr_assembly_6_one_bin.s 
-    dmbr_assembly_7_one_bin dmbr_assembly_7_one_bin.s 
-    dmbr_assembly_8_one_bin dmbr_assembly_8_one_bin.s 
-    dmbr_assembly_9_one_bin dmbr_assembly_9_one_bin.s 
+//    dmbr_assembly_0_one_bin dmbr_assembly_0_one_bin.s
+//    dmbr_assembly_1_one_bin dmbr_assembly_1_one_bin.s
+    dmbr_assembly_2_one_bin dmbr_assembly_2_one_bin.s
+    dmbr_assembly_3_one_bin dmbr_assembly_3_one_bin.s
+    dmbr_assembly_4_one_bin dmbr_assembly_4_one_bin.s
+    dmbr_assembly_5_one_bin dmbr_assembly_5_one_bin.s
+//    dmbr_assembly_6_one_bin dmbr_assembly_6_one_bin.s
+    dmbr_assembly_7_one_bin dmbr_assembly_7_one_bin.s
+    dmbr_assembly_8_one_bin dmbr_assembly_8_one_bin.s
+    dmbr_assembly_9_one_bin dmbr_assembly_9_one_bin.s
 </dmbr_one_bin>
 
 <dmbr_assembly>
-    dmbr_assembly_0_random dmbr_assembly_0_random.s 
-    dmbr_assembly_1_random dmbr_assembly_1_random.s 
-    dmbr_assembly_2_random dmbr_assembly_2_random.s 
-    dmbr_assembly_3_random dmbr_assembly_3_random.s 
-    dmbr_assembly_4_random dmbr_assembly_4_random.s 
-    dmbr_assembly_5_random dmbr_assembly_5_random.s 
-    dmbr_assembly_6_random dmbr_assembly_6_random.s 
-    dmbr_assembly_7_random dmbr_assembly_7_random.s 
-    dmbr_assembly_8_random dmbr_assembly_8_random.s 
-    dmbr_assembly_9_random dmbr_assembly_9_random.s 
-    dmbr_assembly_10_random dmbr_assembly_10_random.s 
-    dmbr_assembly_11_random dmbr_assembly_11_random.s 
-    dmbr_assembly_12_random dmbr_assembly_12_random.s 
-    dmbr_assembly_13_random dmbr_assembly_13_random.s 
-    dmbr_assembly_14_random dmbr_assembly_14_random.s 
-    dmbr_assembly_15_random dmbr_assembly_15_random.s 
-    dmbr_assembly_16_random dmbr_assembly_16_random.s 
-    dmbr_assembly_17_random dmbr_assembly_17_random.s 
-    dmbr_assembly_18_random dmbr_assembly_18_random.s 
-    dmbr_assembly_19_random dmbr_assembly_19_random.s 
+    dmbr_assembly_0_random dmbr_assembly_0_random.s
+    dmbr_assembly_1_random dmbr_assembly_1_random.s
+    dmbr_assembly_2_random dmbr_assembly_2_random.s
+    dmbr_assembly_3_random dmbr_assembly_3_random.s
+    dmbr_assembly_4_random dmbr_assembly_4_random.s
+    dmbr_assembly_5_random dmbr_assembly_5_random.s
+    dmbr_assembly_6_random dmbr_assembly_6_random.s
+    dmbr_assembly_7_random dmbr_assembly_7_random.s
+    dmbr_assembly_8_random dmbr_assembly_8_random.s
+    dmbr_assembly_9_random dmbr_assembly_9_random.s
+    dmbr_assembly_10_random dmbr_assembly_10_random.s
+    dmbr_assembly_11_random dmbr_assembly_11_random.s
+    dmbr_assembly_12_random dmbr_assembly_12_random.s
+    dmbr_assembly_13_random dmbr_assembly_13_random.s
+    dmbr_assembly_14_random dmbr_assembly_14_random.s
+    dmbr_assembly_15_random dmbr_assembly_15_random.s
+    dmbr_assembly_16_random dmbr_assembly_16_random.s
+    dmbr_assembly_17_random dmbr_assembly_17_random.s
+    dmbr_assembly_18_random dmbr_assembly_18_random.s
+    dmbr_assembly_19_random dmbr_assembly_19_random.s
 </dmbr_assembly>
 
 //<dmbr_assembly_gen>
-//    dmbr_assembly_gen_1 dmbr_assembly.s 
-//    dmbr_assembly_gen_2 dmbr_assembly.s 
-//    dmbr_assembly_gen_3 dmbr_assembly.s 
-//    dmbr_assembly_gen_4 dmbr_assembly.s 
-//    dmbr_assembly_gen_5 dmbr_assembly.s 
-//    dmbr_assembly_gen_6 dmbr_assembly.s 
-//    dmbr_assembly_gen_7 dmbr_assembly.s 
-//    dmbr_assembly_gen_8 dmbr_assembly.s 
-//    dmbr_assembly_gen_9 dmbr_assembly.s 
-//    dmbr_assembly_gen_10 dmbr_assembly.s 
-//    dmbr_assembly_gen_11 dmbr_assembly.s 
-//    dmbr_assembly_gen_12 dmbr_assembly.s 
-//    dmbr_assembly_gen_13 dmbr_assembly.s 
-//    dmbr_assembly_gen_14 dmbr_assembly.s 
-//    dmbr_assembly_gen_15 dmbr_assembly.s 
-//    dmbr_assembly_gen_16 dmbr_assembly.s 
-//    dmbr_assembly_gen_17 dmbr_assembly.s 
-//    dmbr_assembly_gen_18 dmbr_assembly.s 
-//    dmbr_assembly_gen_19 dmbr_assembly.s 
-//    dmbr_assembly_gen_20 dmbr_assembly.s 
+//    dmbr_assembly_gen_1 dmbr_assembly.s
+//    dmbr_assembly_gen_2 dmbr_assembly.s
+//    dmbr_assembly_gen_3 dmbr_assembly.s
+//    dmbr_assembly_gen_4 dmbr_assembly.s
+//    dmbr_assembly_gen_5 dmbr_assembly.s
+//    dmbr_assembly_gen_6 dmbr_assembly.s
+//    dmbr_assembly_gen_7 dmbr_assembly.s
+//    dmbr_assembly_gen_8 dmbr_assembly.s
+//    dmbr_assembly_gen_9 dmbr_assembly.s
+//    dmbr_assembly_gen_10 dmbr_assembly.s
+//    dmbr_assembly_gen_11 dmbr_assembly.s
+//    dmbr_assembly_gen_12 dmbr_assembly.s
+//    dmbr_assembly_gen_13 dmbr_assembly.s
+//    dmbr_assembly_gen_14 dmbr_assembly.s
+//    dmbr_assembly_gen_15 dmbr_assembly.s
+//    dmbr_assembly_gen_16 dmbr_assembly.s
+//    dmbr_assembly_gen_17 dmbr_assembly.s
+//    dmbr_assembly_gen_18 dmbr_assembly.s
+//    dmbr_assembly_gen_19 dmbr_assembly.s
+//    dmbr_assembly_gen_20 dmbr_assembly.s
 //</dmbr_assembly_gen>
 
 </runargs>
@@ -1890,26 +2119,26 @@ alu_tsub_rand                           arch_alu.pal  -midas_args=-pal_diag_args
 <dmbr_nightly_source_sink_default name=dmbr_nightly_source_sink>
 <runargs -dmbr>
 <dmbr_source_sink>
-    dmbr_source_sink_1 
-    dmbr_source_sink_2 
-    dmbr_source_sink_3 
-    dmbr_source_sink_4 
-    dmbr_source_sink_5 
-    dmbr_source_sink_6 
-    dmbr_source_sink_7 
-    dmbr_source_sink_8 
-    dmbr_source_sink_9 
-    dmbr_source_sink_10 
-    dmbr_source_sink_11 
-    dmbr_source_sink_12 
-    dmbr_source_sink_13 
-    dmbr_source_sink_14 
-    dmbr_source_sink_15 
-    dmbr_source_sink_16 
-    dmbr_source_sink_17 
-    dmbr_source_sink_18 
-    dmbr_source_sink_19 
-    dmbr_source_sink_20 
+    dmbr_source_sink_1
+    dmbr_source_sink_2
+    dmbr_source_sink_3
+    dmbr_source_sink_4
+    dmbr_source_sink_5
+    dmbr_source_sink_6
+    dmbr_source_sink_7
+    dmbr_source_sink_8
+    dmbr_source_sink_9
+    dmbr_source_sink_10
+    dmbr_source_sink_11
+    dmbr_source_sink_12
+    dmbr_source_sink_13
+    dmbr_source_sink_14
+    dmbr_source_sink_15
+    dmbr_source_sink_16
+    dmbr_source_sink_17
+    dmbr_source_sink_18
+    dmbr_source_sink_19
+    dmbr_source_sink_20
 </dmbr_source_sink>
 
 </runargs>

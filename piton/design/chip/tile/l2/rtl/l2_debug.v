@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //====================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 `ifndef SYNTHESIS
 
@@ -49,7 +49,7 @@ module l2_msg_type_parse(
 );
 
 
-always @ * 
+always @ *
 begin
       case (msg_type)
         `MSG_TYPE_LOAD_REQ              : $sformat( msg_type_string, "    ld_req       ");

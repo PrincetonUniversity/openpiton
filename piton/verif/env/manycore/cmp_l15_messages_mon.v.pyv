@@ -23,7 +23,7 @@
 
 `include "sys.h"
 `include "iop.h"
-`include "define.vh"
+`include "define.tmp.h"
 `include "cross_module.tmp.h"
 `include "l15.tmp.h"
 
@@ -373,7 +373,7 @@ begin
             repeat(5)@(posedge clk)
                 `MONITOR_PATH.fail("l15_mon: TILE0 noc1 sends X data");
         end
-        
+
     end
 
 
@@ -550,6 +550,22 @@ begin
             noc1 = "L15_NOC1_REQTYPE_SWAP_REQUEST";
         `L15_NOC1_REQTYPE_INTERRUPT_FWD:
             noc1 = "L15_NOC1_REQTYPE_INTERRUPT_FWD";
+        `L15_NOC1_REQTYPE_AMO_ADD_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_ADD_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_AND_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_AND_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_OR_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_OR_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_XOR_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_XOR_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_MAX_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_MAX_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_MAXU_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_MAXU_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_MIN_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_MIN_REQUEST";
+        `L15_NOC1_REQTYPE_AMO_MINU_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_AMO_MINU_REQUEST";
         default:
             noc1 = "ERROR noc1";
         endcase
@@ -616,7 +632,7 @@ begin
         //     $write("%d:%d", i_TILE0, `L15_PIPE0.mshr_val_array[i_TILE0]);
             // $write("%d %d", i_TILE0, i_TILE0);
         // $display("");
-        
+
 `ifdef RTL_SPARC0
         $display("Core STB info:");
         $display("  STB0: %d", `SPARC_CORE0.sparc0.ifu.lsu_ifu_stbcnt0);
@@ -1005,7 +1021,7 @@ begin
     if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b0))
 `else
     if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b1) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b0))
-`endif        
+`endif
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was valid but squashed in L1.5");
         repeat(5)@(posedge clk)
@@ -1015,7 +1031,7 @@ begin
     if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.pcx_req_squash == 1'b1))
 `else
     if ((`CCX_TRANSDUCER0.pcx_buffer.is_req_squashed == 1'b0) && (`SPARC_CORE0.sparc0.lsu.qctl1.pcx_req_squash == 1'b1))
-`endif        
+`endif
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "PCXTILE0 req was squashed but valid at L1.5");
         repeat(5)@(posedge clk)
@@ -1029,7 +1045,7 @@ begin
         repeat(5)@(posedge clk)
             `MONITOR_PATH.fail("PCXTILE0 atomic req squashed");
     end
-`endif       
+`endif
 
 // monitor FP transactions because it is not supported yet
 //     if (`L15_PIPE0.pcxdecoder_l15_val && !`L15_PIPE0.pcx_message_staled_s1 && `L15_PIPE0.val_s1 && !`L15_PIPE0.stall_s1 && !`L15_PIPE0.noc2decoder_l15_val)
@@ -1173,13 +1189,13 @@ begin
 //    if (`TILE0.fpu_arb_wrap.pcx_fpio_data_px2[123]
 //            && `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[122:119] == 4'b0101)
 //    begin
-//        $display("TILE0 FPU th%d: Received FP%d", 
+//        $display("TILE0 FPU th%d: Received FP%d",
 //                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[113:112],
 //                    `TILE0.fpu_arb_wrap.pcx_fpio_data_px2[118]);
 //    end
 //    if (`TILE0.fpu_arb_wrap.fpu_arb_data_rdy
 //            && !`TILE0.fpu_arb_wrap.l15_fp_rdy)
-//        $display("TILE0 FPU th%d: Sent FP data", 
+//        $display("TILE0 FPU th%d: Sent FP data",
 //                    `TILE0.fpu_arb_wrap.fpu_arb_data[135:134]);
 
 // monitor L1.5 way replacement error
@@ -1219,7 +1235,7 @@ begin
             repeat(5)@(posedge clk)
                 `MONITOR_PATH.fail("l15 icache inval is not used");
         end
-        if (`L15_TOP0.l15_transducer_returntype == `CPX_RESTYPE_ATOMIC_RES 
+        if (`L15_TOP0.l15_transducer_returntype == `CPX_RESTYPE_ATOMIC_RES
             && `L15_TOP0.l15_transducer_inval_dcache_inval)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l15 CAS inval is not used");
@@ -1228,7 +1244,7 @@ begin
         end
     end
 `endif
-       
+
 // some checks for l15 noc1 encoder
     if (`L15_TOP0.noc1encoder.sending && `L15_TOP0.noc1encoder.req_type == 0)
     begin
@@ -1259,6 +1275,6 @@ for i in range (NUM_TILES):
 // begin
 //     // write out the states of the JTAG state machine
 
-//     // 
+//     //
 
 endmodule

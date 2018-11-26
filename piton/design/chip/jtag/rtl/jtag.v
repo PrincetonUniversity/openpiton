@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : l15.v
 //  Created On    : 2014-01-31 12:52:57
-//  Last Modified : 2015-02-19 20:46:38
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -42,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                  Ring #1 is the
 //==================================================================================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "jtag.vh"
 
 `ifdef L15_EXTRA_DEBUG

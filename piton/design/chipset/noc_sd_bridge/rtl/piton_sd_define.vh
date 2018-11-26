@@ -1,7 +1,7 @@
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,16 +28,16 @@
 //==================================================================================================
 //  Filename      : piton_sd_define.vh
 //  Created On    : 2017-03-15
-//  Last Modified : 2017-07-18 15:02:27
+//  Last Modified : 2018-11-21 22:12:24
 //  Revision      :
 //  Author        : Ang Li
 //  Company       : Princeton University
 //  Email         : angl@princeton.edu
 //
-//  Description   : 
+//  Description   :
 //==================================================================================================
 
-`include    "define.vh"
+`include    "define.tmp.h"
 
 // ------ Configurable Parameters ------ //
 `define CACHE_ENTRY_WIDTH       3   // Need to re-configure BRAM in the SD cache if set larger than 3

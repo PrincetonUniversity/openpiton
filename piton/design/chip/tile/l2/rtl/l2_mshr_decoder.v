@@ -40,16 +40,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_mshr_decoder(
 
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_in,
-    
+
     output reg [`L2_MSHR_ADDR_OUT_WIDTH-1:0] addr_out,
     output reg [`L2_WAYS_WIDTH-1:0] way_out,
     output reg [`MSG_MSHRID_WIDTH-1:0] mshrid_out,
-    output reg [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_out, 
+    output reg [`MSG_CACHE_TYPE_WIDTH-1:0] cache_type_out,
     output reg [`MSG_DATA_SIZE_WIDTH-1:0] data_size_out,
     output reg [`MSG_TYPE_WIDTH-1:0] msg_type_out,
     output reg [`MSG_L2_MISS_BITS-1:0] msg_l2_miss_out,

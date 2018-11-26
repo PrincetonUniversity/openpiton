@@ -19,18 +19,22 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 //
 // ========== Copyright Header End ============================================
-`include "define.vh"
+`include "define.tmp.h"
 `include "dmbr_define.v"
 `include "l15.tmp.h"
 `include "jtag.vh"
 <%
 DMBR_BIN_NUM = 10
+import pyhplib
 from pyhplib import *
+
+devices = pyhplib.ReadDevicesXMLFile()
+
 %>
 
 module tile #(
      parameter TILE_TYPE = `SPARC_TILE
-    )(
+) (
     input                               clk,
     input                               rst_n,    // trin: assumed to be synchronous
     input                               clk_en,   // trin: assumed to be asynchronous
@@ -117,7 +121,7 @@ s = '''
     output                              dyn1_yummyOut_W,
     output                              dyn1_yummyOut_S,
     //output [4:0]                        ec_dyn1,
-    
+
     // Dynamic network Outputs 2
     output [`NOC_DATA_WIDTH-1:0]        dyn2_dNo,
     output [`NOC_DATA_WIDTH-1:0]        dyn2_dEo,
@@ -162,6 +166,18 @@ if (NETWORK_CONFIG == "xbar_config"):
 '''
 print s
 %>
+
+`ifdef PITON_ARIANE
+    ,
+    // Debug
+    input                               debug_req_i,   // async debug request
+    output                              unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
+    // CLINT
+    input                               timer_irq_i,   // Timer interrupts
+    input                               ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
+    // PLIC
+    input   [1:0]                       irq_i          // level sensitive IR lines, mip & sip (async)
+`endif
 );
     // clock gating
     wire clk_gated;
@@ -241,7 +257,7 @@ print s
     wire   [4:0]                        pcx_transducer_req;
     wire                                pcx_transducer_atomic_req;
     wire   [123:0]                      pcx_transducer_data;
-   
+
     `ifndef NO_RTL_CSM
     wire   [`TLB_CSM]                   pcx_transducer_csm;
     `endif
@@ -250,7 +266,7 @@ print s
     // is actually cpx_data_valid
     wire                                transducer_cpx_data_ready;
     wire [144:0]                        transducer_cpx_data;
-   
+
     wire                                spc_grst_l;
     wire                                cpx_arb_spc_data_rdy;
     wire [144:0]                        cpx_arb_spc_data;
@@ -258,6 +274,7 @@ print s
 
     wire [`PCX_REQTYPE_WIDTH-1:0]       transducer_l15_rqtype;
     wire [`L15_AMO_OP_WIDTH-1:0]        transducer_l15_amo_op;
+
     wire                                transducer_l15_nc;
     wire [`PCX_SIZE_FIELD_WIDTH-1:0]    transducer_l15_size;
     wire [`L15_THREADID_MASK]           transducer_l15_threadid;
@@ -331,7 +348,7 @@ print s
     wire                                config_dmbr_stall_en;
     wire                                config_dmbr_proc_ld;
     wire [`REPLENISH_WIDTH-1:0]         config_dmbr_replenish_cycles;
-    wire [`SCALE_WIDTH-1:0]             config_dmbr_bin_scale; 
+    wire [`SCALE_WIDTH-1:0]             config_dmbr_bin_scale;
     <%
       for i in range(DMBR_BIN_NUM):
         print "wire [`CREDIT_WIDTH-1:0] config_dmbr_cred_bin_%d;" % i
@@ -343,7 +360,7 @@ print s
     %>
     wire                                config_csm_en;
     wire [31:0]                         config_system_tile_count;
-    wire [`HOME_ALLOC_METHOD_WIDTH-1:0] config_home_alloc_method; 
+    wire [`HOME_ALLOC_METHOD_WIDTH-1:0] config_home_alloc_method;
     wire [`L15_HMT_BASE_ADDR_WIDTH-1:0] config_hmt_base;
 
 
@@ -578,31 +595,31 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .data_in(processor_router_data_noc1),
         .valid_in(processor_router_valid_noc1),
         .ready_in(router_processor_ready_noc1),
-    
+
         .data_out(buffer_router_data_noc1),           // Data
         .valid_out(buffer_router_valid_noc1),       // Val signal
         .yummy_out(router_buffer_consumed_noc1)    // Yummy signal
     );
-    
+
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk2(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(processor_router_data_noc2),
         .valid_in(processor_router_valid_noc2),
         .ready_in(router_processor_ready_noc2),
-    
+
         .data_out(buffer_router_data_noc2),           // Data
         .valid_out(buffer_router_valid_noc2),       // Val signal
         .yummy_out(router_buffer_consumed_noc2)    // Yummy signal
     );
-    
+
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk3(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(processor_router_data_noc3),
         .valid_in(processor_router_valid_noc3),
         .ready_in(router_processor_ready_noc3),
-    
+
         .data_out(buffer_router_data_noc3),           // Data
         .valid_out(buffer_router_valid_noc3),       // Val signal
         .yummy_out(router_buffer_consumed_noc3)    // Yummy signal
@@ -615,31 +632,31 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .data_in(router_buffer_data_noc1),
         .valid_in(router_buffer_data_val_noc1),
         .yummy_in(buffer_router_yummy_noc1),
-    
+
         .data_out(buffer_processor_data_noc1),           // Data
         .valid_out(buffer_processor_valid_noc1),       // Val signal from dynamic network to processor
         .ready_out(processor_router_ready_noc1)    // Rdy signal from processor to dynamic network
     );
-    
+
     credit_to_valrdy cgni_blk2(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(router_buffer_data_noc2),
         .valid_in(router_buffer_data_val_noc2),
         .yummy_in(buffer_router_yummy_noc2),
-    
+
         .data_out(buffer_processor_data_noc2),           // Data
         .valid_out(buffer_processor_valid_noc2),       // Val signal from dynamic network to processor
         .ready_out(processor_router_ready_noc2)    // Rdy signal from processor to dynamic network
     );
-    
+
     credit_to_valrdy cgni_blk3(
         .clk(clk_gated),
         .reset(~rst_n_f),
         .data_in(router_buffer_data_noc3),
         .valid_in(router_buffer_data_val_noc3),
         .yummy_in(buffer_router_yummy_noc3),
-    
+
         .data_out(buffer_processor_data_noc3),           // Data
         .valid_out(buffer_processor_valid_noc3),       // Val signal from dynamic network to processor
         .ready_out(processor_router_ready_noc3)    // Rdy signal from processor to dynamic network
@@ -649,10 +666,11 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
 // Instantiate Cores //
 ///////////////////////
 generate
-if (TILE_TYPE == `SPARC_TILE) begin
+if (TILE_TYPE == `SPARC_TILE) begin : g_core
     ////////////////
     // SPARC Core //
     ////////////////
+
     sparc_core core(
        .gclk(clk_gated),
        .reset_l(rst_n_f),
@@ -682,7 +700,7 @@ if (TILE_TYPE == `SPARC_TILE) begin
     /////////
     // FPU //
     /////////
-    
+
     fpu_arb_wrap fpu_arb_wrap(
         .clk (clk_gated),
         .rst_n (rst_n_f),
@@ -701,7 +719,7 @@ if (TILE_TYPE == `SPARC_TILE) begin
 
     ////////////////////
     // CPX Arbitrator //
-    //////////////////// 
+    ////////////////////
 
     cpx_arbitrator cpx_arbitrator(
         .clk(clk_gated),
@@ -710,15 +728,15 @@ if (TILE_TYPE == `SPARC_TILE) begin
         .rtap_arb_req_val(rtap_arb_req_val),
         .rtap_arb_req_data(rtap_arb_req_data),
         .rtap_arb_req_threadid(rtap_arb_req_threadid),
-        
+
         .uncore_spc_data_ready(transducer_cpx_data_ready),
         .uncore_spc_data(transducer_cpx_data),
         .uncore_spc_grant(transducer_pcx_grant),
-        
+
         .fpu_arb_data_rdy(fpu_arb_data_rdy),
         .fpu_arb_data(fpu_arb_data),
         .fpu_arb_grant(fpu_arb_grant),
-        
+
         .cpx_arb_spc_data_rdy(cpx_arb_spc_data_rdy),
         .cpx_arb_spc_data(cpx_arb_spc_data),
         .cpx_arb_spc_grant(cpx_arb_spc_grant)
@@ -736,14 +754,14 @@ if (TILE_TYPE == `SPARC_TILE) begin
         `ifndef NO_RTL_CSM
         .pcx_transducer_csm                 (pcx_transducer_csm),
         `endif
-        
+
         .transducer_pcx_grant               (transducer_pcx_grant),
         .transducer_cpx_data_ready          (transducer_cpx_data_ready),
         .transducer_cpx_data                (transducer_cpx_data),
 
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
-                               
+
         .transducer_l15_rqtype              (transducer_l15_rqtype),
         .transducer_l15_amo_op              (transducer_l15_amo_op),
         .transducer_l15_size                (transducer_l15_size),
@@ -760,7 +778,7 @@ if (TILE_TYPE == `SPARC_TILE) begin
         .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
         .transducer_l15_csm_data            (transducer_l15_csm_data),
         .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
-        
+
         .l15_transducer_val                 (l15_transducer_val),
         .l15_transducer_returntype          (l15_transducer_returntype),
         .l15_transducer_l2miss              (l15_transducer_l2miss),
@@ -783,13 +801,12 @@ if (TILE_TYPE == `SPARC_TILE) begin
         .l15_transducer_inval_icache_inval  (l15_transducer_inval_icache_inval),
         .l15_transducer_inval_way           (l15_transducer_inval_way),
         .l15_transducer_blockinitstore      (l15_transducer_blockinitstore),
-        
+
         .transducer_l15_req_ack             (transducer_l15_req_ack)
     );
-                 
 
-end
-else if (TILE_TYPE == `PICORV32_TILE) begin
+
+end else if (TILE_TYPE == `PICORV32_TILE) begin : g_core
     ///////////////////
     // PicoRV32 Core //
     ///////////////////
@@ -815,11 +832,11 @@ else if (TILE_TYPE == `PICORV32_TILE) begin
 
         .pico_int   (pico_int)
     );
- 
+
     pico_reset pico_reset(
         .gclk(clk_gated),
         .rst_n(rst_n_f),
-        .spc_grst_l(spc_grst_l)                         
+        .spc_grst_l(spc_grst_l)
     );
 
     pico_l15_transducer pico_l15_transducer(
@@ -832,7 +849,7 @@ else if (TILE_TYPE == `PICORV32_TILE) begin
         .pico_transducer_mem_wdata          (pico_transducer_mem_wdata),
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
-                               
+
         .transducer_l15_rqtype              (transducer_l15_rqtype),
         .transducer_l15_amo_op              (transducer_l15_amo_op),
         .transducer_l15_size                (transducer_l15_size),
@@ -849,21 +866,139 @@ else if (TILE_TYPE == `PICORV32_TILE) begin
         .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
         .transducer_l15_csm_data            (transducer_l15_csm_data),
         .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
-        
+
         .l15_transducer_val                 (l15_transducer_val),
         .l15_transducer_returntype          (l15_transducer_returntype),
-        
+
         .l15_transducer_data_0              (l15_transducer_data_0),
         .l15_transducer_data_1              (l15_transducer_data_1),
-        
+
         .transducer_pico_mem_ready          (transducer_pico_mem_ready),
         .transducer_pico_mem_rdata          (transducer_pico_mem_rdata),
-        
+
         .transducer_l15_req_ack             (transducer_l15_req_ack),
         .pico_int                           (pico_int)
     );
-end
-endgenerate      
+
+end else if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_core
+    //////////////////////
+    // Ariane RV64 Core //
+    //////////////////////
+
+`ifdef PITON_ARIANE
+
+    // TODO: add debug module and CLINT
+
+    // native L15 interface, used in case of ARIANE_RV64, otherwise tied to zero
+    wire [`L15_REQ_WIDTH-1:0]  l15_req;
+    wire [`L15_RTRN_WIDTH-1:0] l15_rtrn;
+
+    // see serpent_cache_pkg.sv for definition of the packed struct type "l15_rtrn_t",
+    // note that the constants defined in l15.tmp.h and serpent_cache_pkg.sv need to coincide!
+    assign l15_rtrn = { l15_transducer_ack,
+                        l15_transducer_header_ack,
+                        l15_transducer_val,
+                        l15_transducer_returntype,
+                        l15_transducer_l2miss,
+                        l15_transducer_error,
+                        l15_transducer_noncacheable,
+                        l15_transducer_atomic,
+                        l15_transducer_threadid,
+                        l15_transducer_prefetch,
+                        l15_transducer_f4b,
+                        l15_transducer_data_0,
+                        l15_transducer_data_1,
+                        l15_transducer_data_2,
+                        l15_transducer_data_3,
+                        l15_transducer_inval_icache_all_way,
+                        l15_transducer_inval_dcache_all_way,
+                        l15_transducer_inval_address_15_4,
+                        l15_transducer_cross_invalidate,
+                        l15_transducer_cross_invalidate_way,
+                        l15_transducer_inval_dcache_inval,
+                        l15_transducer_inval_icache_inval,
+                        l15_transducer_inval_way,
+                        l15_transducer_blockinitstore };
+
+    // see serpent_cache_pkg.sv for definition of the packed struct type "l15_req_t",
+    // note that the constants defined in l15.tmp.h and serpent_cache_pkg.sv need to coincide!
+    assign { transducer_l15_val,
+             transducer_l15_req_ack,
+             transducer_l15_rqtype,
+             transducer_l15_nc,
+             transducer_l15_size,
+             transducer_l15_threadid,
+             transducer_l15_prefetch,
+             transducer_l15_invalidate_cacheline,
+             transducer_l15_blockstore,
+             transducer_l15_blockinitstore,
+             transducer_l15_l1rplway,
+             transducer_l15_address,
+             transducer_l15_data,
+             transducer_l15_data_next_entry,
+             transducer_l15_csm_data,
+             transducer_l15_amo_op} = l15_req;
+
+    wire [63:0] ariane_bootaddr;
+
+<%
+
+def clipAddress(addr, digits):
+    return addr[max(0,len(addr)-digits):]
+
+cacheBegin = 0
+cacheStop  = 0
+for i in range(len(devices)):
+    if devices[i]["name"] == "mem":
+        cacheBegin = devices[i]["base"]
+        cacheStop  = cacheBegin + devices[i]["length"]
+        cacheBegin = "%X" % cacheBegin
+        cacheStop  = "%X" % cacheStop
+
+bootAddr    = cacheBegin
+for i in range(len(devices)):
+    if devices[i]["name"] == "ariane_bootrom":
+        bootAddr = devices[i]["base"]
+        bootAddr = "%X" % bootAddr
+print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
+%>
+
+
+    ariane_verilog_wrap #(
+        // need to convert endianess in l15 adapter
+        .SwapEndianess ( 1                 ),
+        // I/O space is above NC threshold
+<%
+print("        .CachedAddrBeg ( 64'h%s         )," % cacheBegin)
+print("        .CachedAddrEnd ( 64'h%s         )" % cacheStop)
+%>
+    ) core (
+        .clk_i       ( clk_gated              ),
+        .reset_l     ( rst_n_f                ),
+        .boot_addr_i ( ariane_bootaddr        ),
+        .hart_id_i   ( {{64-`JTAG_FLATID_WIDTH{1'b0}}, flat_tileid} ),
+        .irq_i       ( irq_i                  ),
+        .ipi_i       ( ipi_i                  ),
+        .time_irq_i  ( timer_irq_i            ),
+        .debug_req_i ( debug_req_i            ),
+        .l15_req_o   ( l15_req                ),
+        .l15_rtrn_i  ( l15_rtrn               )
+    );
+
+    assign unavailable_o = 1'b0;
+
+    reset_synchronizer #(
+        .NUM_REGS(4)
+    ) i_rst_sync (
+        .clk_i  ( clk_gated  ),
+        .rst_ni ( rst_n_f    ),
+        .rst_no ( spc_grst_l )
+    );
+`endif
+  end
+  endgenerate
+
+
     //////////
     // L1.5 //
     //////////
@@ -891,7 +1026,7 @@ endgenerate
 
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
-                               
+
         .l15_transducer_val                 (l15_transducer_val),
         .l15_transducer_returntype          (l15_transducer_returntype),
         .l15_transducer_l2miss              (l15_transducer_l2miss),
@@ -916,6 +1051,7 @@ endgenerate
         .l15_transducer_blockinitstore      (l15_transducer_blockinitstore),
 
         .transducer_l15_req_ack             (transducer_l15_req_ack),
+
 
         .noc1_out_rdy(router_processor_ready_noc1),
         .noc2_in_val(buffer_processor_valid_noc2),
@@ -948,7 +1084,7 @@ endgenerate
         .config_csm_en(config_csm_en),
         .config_hmt_base(config_hmt_base),
         .config_system_tile_count_5_0(config_system_tile_count[5:0]),
-        .config_home_alloc_method(config_home_alloc_method), 
+        .config_home_alloc_method(config_home_alloc_method),
 
         // sram interfaces
         .srams_rtap_data (l15_rtap_data),
@@ -968,9 +1104,9 @@ endgenerate
         //.dmbr_en(dmbr_en),
         .proc_ld              (config_dmbr_proc_ld      ),
 
-        //inputs (the credits should take into account credit scaling factor, 
+        //inputs (the credits should take into account credit scaling factor,
         //which means creditIn_0 should be 1/10 of the original credit) ???
-        // are you shure that a scale factor can be 10? //alavrov 
+        // are you shure that a scale factor can be 10? //alavrov
         <%
           for i in range(DMBR_BIN_NUM):
             print ".creditIn_%d\t\t(config_dmbr_cred_bin_%d)," % (i,i)
@@ -1052,7 +1188,7 @@ endgenerate
         .config_dmbr_proc_ld          (config_dmbr_proc_ld          ),
         .config_dmbr_replenish_cycles (config_dmbr_replenish_cycles ),
         .config_dmbr_bin_scale        (config_dmbr_bin_scale        ),
-        
+
         // config_registers -> DMBR
         <%
           for i in range(DMBR_BIN_NUM):
@@ -1108,7 +1244,7 @@ endgenerate
         .rtap_arb_req_val (rtap_arb_req_val),
         .rtap_arb_req_data (rtap_arb_req_data),
         .rtap_arb_req_threadid (rtap_arb_req_threadid),
-        
+
         // jtag-config_regs interface
         .rtap_config_req_val (rtap_config_req_val),
         .rtap_config_req_rw (rtap_config_req_rw),

@@ -25,7 +25,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "mc_define.h"
 `include "chipset_define.vh"
 

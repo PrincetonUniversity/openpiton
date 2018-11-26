@@ -1,0 +1,478 @@
+/*
+Copyright (c) 2015 Princeton University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Princeton University nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+//==================================================================================================
+//  Filename      : l2_mshr_wrap.v
+//  Created On    : 2014-02-24
+//  Revision      :
+//  Author        : Yaosheng Fu
+//  Company       : Princeton University
+//  Email         : yfu@princeton.edu
+//
+//  Description   : The wrap module for MSHRs in the L2 cache
+//
+//
+//==================================================================================================
+
+
+`include "l2.tmp.h"
+`include "define.tmp.h"
+
+module l2_mshr_wrap(
+
+    input wire clk,
+    input wire rst_n,
+`ifndef L2_CAM_MSHR
+    input wire pipe_rd_sel,
+`endif // L2_CAM_MSHR
+    input wire pipe_wr_sel,
+
+`ifndef L2_CAM_MSHR
+    input wire rd_en1,
+`endif // L2_CAM_MSHR
+    input wire cam_en1,
+    input wire wr_state_en1,
+    input wire wr_data_en1,
+    input wire pending_ready1,
+    input wire [`L2_MSHR_STATE_BITS-1:0] state_in1,
+    input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_in1,
+    input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in1,
+`ifndef L2_CAM_MSHR
+    input wire [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in1,
+`endif // L2_CAM_MSHR
+    input wire [`L2_MSHR_INDEX_WIDTH-1:0] inv_counter_rd_index_in1,
+    input wire [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in1,
+    input wire [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in1,
+
+`ifndef L2_CAM_MSHR
+    input wire rd_en2,
+    input wire cam_en2,
+`endif // L2_CAM_MSHR
+    input wire wr_state_en2,
+    input wire wr_data_en2,
+`ifndef L2_CAM_MSHR
+    input wire pending_ready2,
+`endif // L2_CAM_MSHR
+    input wire inc_counter_en2,
+    input wire [`L2_MSHR_STATE_BITS-1:0] state_in2,
+    input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_in2,
+    input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in2,
+    input wire [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in2,
+    input wire [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in2,
+`ifndef L2_CAM_MSHR
+    input wire [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in2,
+`endif // L2_CAM_MSHR
+
+`ifndef L2_CAM_MSHR
+    output wire hit,
+    output wire [`L2_MSHR_INDEX_WIDTH-1:0] hit_index,
+    output wire [`L2_MSHR_STATE_BITS-1:0] state_out,
+    output wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_out,
+    output wire [`L2_OWNER_BITS-1:0] inv_counter_out,
+    output wire [`L2_MSHR_INDEX_WIDTH:0] empty_slots,
+    output wire pending,
+    output wire [`L2_MSHR_INDEX_WIDTH-1:0] pending_index,
+    output wire [`L2_MSHR_INDEX_WIDTH-1:0] empty_index
+`else
+    output reg hit,
+    output reg [`L2_MSHR_INDEX_WIDTH-1:0] hit_index,
+    output reg [`L2_MSHR_STATE_BITS-1:0] rd_state_out,
+    output reg [`L2_MSHR_ARRAY_WIDTH-1:0] rd_data_out,
+    // output wire [`L2_MSHR_STATE_BITS-1:0] cam_state_out,
+    output reg [`L2_MSHR_ARRAY_WIDTH-1:0] cam_data_out,
+    output reg [`L2_MSHR_ARRAY_WIDTH-1:0] pending_data_out,
+
+    output reg [`L2_OWNER_BITS-1:0] inv_counter_out,
+    output reg [`L2_MSHR_INDEX_WIDTH:0] empty_slots,
+    output reg pending,
+    output reg [`L2_MSHR_INDEX_WIDTH-1:0] pending_index,
+    output reg [`L2_MSHR_INDEX_WIDTH-1:0] empty_index
+`endif // L2_CAM_MSHR
+);
+
+`ifndef L2_CAM_MSHR
+reg rd_en;
+reg cam_en;
+`endif // L2_CAM_MSHR
+reg wr_state_en;
+reg wr_data_en;
+`ifndef L2_CAM_MSHR
+reg pending_ready;
+`endif // L2_CAM_MSHR
+reg [`L2_MSHR_STATE_BITS-1:0] state_in;
+reg [`L2_MSHR_ARRAY_WIDTH-1:0] data_in;
+reg [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in;
+`ifndef L2_CAM_MSHR
+reg [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in;
+`endif // L2_CAM_MSHR
+reg [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in;
+`ifndef L2_CAM_MSHR
+reg [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in;
+`endif // L2_CAM_MSHR
+
+
+`ifndef L2_CAM_MSHR
+always @ *
+begin
+    if (pipe_rd_sel)
+    begin
+        rd_en = rd_en2;
+        cam_en = cam_en2;
+        pending_ready = pending_ready2;
+        rd_index_in = rd_index_in2;
+        addr_in = addr_in2;
+    end
+    else
+    begin
+        rd_en = rd_en1;
+        cam_en = cam_en1;
+        pending_ready = pending_ready1;
+        rd_index_in = rd_index_in1;
+        addr_in = addr_in1;
+    end
+end
+`endif // L2_CAM_MSHR
+
+always @ *
+begin
+    if (pipe_wr_sel)
+    begin
+        wr_state_en = wr_state_en2;
+        wr_data_en = wr_data_en2;
+        state_in = state_in2;
+        data_in = data_in2;
+        data_mask_in = data_mask_in2;
+        wr_index_in = wr_index_in2;
+    end
+    else
+    begin
+        wr_state_en = wr_state_en1;
+        wr_data_en = wr_data_en1;
+        state_in = state_in1;
+        data_in = data_in1;
+        data_mask_in = data_mask_in1;
+        wr_index_in = wr_index_in1;
+    end
+end
+
+
+`ifndef L2_CAM_MSHR
+l2_mshr l2_mshr(
+    .clk                        (clk),
+    .rst_n                      (rst_n),
+    .rd_en                      (rd_en),
+    .cam_en                     (cam_en),
+    .wr_state_en                (wr_state_en),
+    .wr_data_en                 (wr_data_en),
+    .pending_ready              (pending_ready),
+    .inc_counter_en             (inc_counter_en2),
+    .state_in                   (state_in),
+    .data_in                    (data_in),
+    .data_mask_in               (data_mask_in),
+    .rd_index_in                (rd_index_in),
+    .inv_counter_rd_index_in    (inv_counter_rd_index_in1),
+    .wr_index_in                (wr_index_in),
+    .addr_in                    (addr_in),
+    .hit                        (hit),
+    .hit_index                  (hit_index),
+    .state_out                  (state_out),
+    .data_out                   (data_out),
+    .inv_counter_out            (inv_counter_out), 
+    .empty_slots                (empty_slots),
+    .pending                    (pending),
+    .pending_index              (pending_index),
+    .empty_index                (empty_index)
+);
+
+`else
+
+<%
+L2_MSHR_ENTRIES = 8
+L2_MSHR_INDEX_WIDTH = 3
+%>
+
+reg [`L2_MSHR_STATE_BITS-1:0] state_mem_f [`L2_MSHR_ENTRIES-1:0];
+reg [`L2_MSHR_ARRAY_WIDTH-1:0] data_mem_f [`L2_MSHR_ENTRIES-1:0];
+reg [`L2_OWNER_BITS-1:0] counter_mem_f [`L2_MSHR_ENTRIES-1:0];
+reg [`L2_MSHR_INDEX_WIDTH-1:0] wbg_counter_f;
+reg [`L2_MSHR_INDEX_WIDTH-1:0] wbg_counter_next;
+
+always @ *
+begin
+    empty_slots = 0;
+<%
+for i in range(L2_MSHR_ENTRIES):
+    print "    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
+    print "    begin"
+    print "        empty_slots = empty_slots + 1;"
+    print "    end"
+%>
+end
+
+always @ *
+begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    if i == 0:
+        print "    if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i)
+        print "    begin"
+        print "        pending = 1'b1;" 
+        print "        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "    end"
+    else:
+        print "    else if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i)
+        print "    begin"
+        print "        pending = 1'b1;" 
+        print "        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "    end"
+print "    else"
+print "    begin"
+print "        pending = 1'b0;" 
+print "        pending_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
+print "    end"
+%>
+end
+
+always @ *
+begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    if i == 0:
+        print "    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
+        print "    begin"
+        print "        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "    end"
+    else:
+        print "    else if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
+        print "    begin"
+        print "        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "    end"
+print "    else"
+print "    begin"
+print "        empty_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
+print "    end"
+%>
+end
+
+always @ *
+begin
+    // if (rd_en2)
+    // begin
+    rd_state_out = state_mem_f[rd_index_in2];
+    rd_data_out = data_mem_f[rd_index_in2];
+    // end
+    // else 
+    // if (cam_en1 && hit)
+    // begin
+    // cam_state_out = state_mem_f[hit_index];
+    cam_data_out = data_mem_f[hit_index];
+    // end
+    // else if (pending)
+    // begin
+    // pending_state_out = state_mem_f[pending_index];
+    pending_data_out = data_mem_f[pending_index];
+    // end
+    // else
+    // begin
+    //     state_out = `L2_MSHR_STATE_INVAL;
+    //     data_out = 0;
+    // end
+end
+
+always @ *
+begin
+    inv_counter_out = counter_mem_f[inv_counter_rd_index_in1];
+end
+
+always @ *
+begin
+<%
+print "    if(cam_en1)"
+print "    begin"
+for i in range(L2_MSHR_ENTRIES):
+    if i == 0:
+        print "        if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in1) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i)
+        print "        begin"
+        print "            hit = 1'b1;"
+        print "            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "        end"
+    else:
+        print "        else if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in1) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i)
+        print "        begin"
+        print "            hit = 1'b1;"
+        print "            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
+        print "        end"
+
+print "        else"
+print "        begin"
+print "            hit = 1'b0;"
+print "            hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
+print "        end"
+print "    end"
+print "    else"
+print "    begin"
+print "        hit = 1'b0;"
+print "        hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
+print "    end"
+
+%>
+end
+
+
+
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    print "        state_mem_f[%d] <= `L2_MSHR_STATE_INVAL;" % (i)
+%>
+    end
+    else if (wr_state_en)
+    begin
+        state_mem_f[wr_index_in] <= state_in;
+        if (pending && pending_ready1 && (pending_index != wr_index_in))
+        begin
+            //SMC miss entries are locked in the mshr
+            if (data_mem_f[pending_index][`L2_MSHR_SMC_MISS])
+            begin
+                state_mem_f[pending_index] <= `L2_MSHR_STATE_WAIT;
+            end
+            else
+            begin
+                state_mem_f[pending_index] <= `L2_MSHR_STATE_INVAL;
+            end
+        end
+    end
+    else if (pending && pending_ready1)
+    begin
+        if (data_mem_f[pending_index][`L2_MSHR_SMC_MISS])
+        begin
+            state_mem_f[pending_index] <= `L2_MSHR_STATE_WAIT;
+        end
+        else
+        begin
+            state_mem_f[pending_index] <= `L2_MSHR_STATE_INVAL;
+        end
+    end
+    else if (cam_en1 && hit && (data_mem_f[hit_index][`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ))
+    begin
+        state_mem_f[hit_index] <= `L2_MSHR_STATE_PENDING;
+    end
+    //Clear entries with WB guard requests if they occupy more entries than the threshold
+    else if (wbg_counter_f > `L2_MSHR_WBG_THRESHOLD)
+    begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    print "        if ((state_mem_f[%d] == `L2_MSHR_STATE_WAIT) && (data_mem_f[%d][`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ))" % (i,i)
+    print "        begin"
+    print "            state_mem_f[%d] <= `L2_MSHR_STATE_PENDING;" % (i)
+    print "        end"
+%>
+    end
+end
+
+
+
+always @ *
+begin
+    if(wr_state_en && wr_data_en && (state_in == `L2_MSHR_STATE_WAIT) 
+    && (data_in[`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ) && (data_mask_in[`L2_MSHR_MSG_TYPE] == {`MSG_TYPE_WIDTH{1'b1}}))
+    begin
+        wbg_counter_next = wbg_counter_f + 1;
+    end
+    else if ((~wr_state_en) && (~(pending && pending_ready1)) 
+          && (cam_en1 && hit && (data_mem_f[hit_index][`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ)))
+    begin
+        wbg_counter_next = wbg_counter_f - 1;
+    end
+    else
+    begin
+        wbg_counter_next = wbg_counter_f;
+    end
+end
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin
+        wbg_counter_f <= 0;
+    end
+    else   
+    begin
+        wbg_counter_f <= wbg_counter_next;
+    end
+end
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    print "        counter_mem_f[%d] <= {`L2_OWNER_BITS{1'b0}};" % (i)
+%>
+    end
+    else if (pending && pending_ready1)
+    begin
+        counter_mem_f[pending_index] <= {`L2_OWNER_BITS{1'b0}};
+        if (inc_counter_en2 && (pending_index != wr_index_in))
+        begin
+            counter_mem_f[wr_index_in] <= counter_mem_f[wr_index_in] + 1;
+        end
+    end
+    else if (inc_counter_en2)
+    begin
+        counter_mem_f[wr_index_in] <= counter_mem_f[wr_index_in] + 1;
+    end
+end
+
+
+always @ (posedge clk)
+begin
+    if (!rst_n)
+    begin
+<%
+for i in range(L2_MSHR_ENTRIES):
+    print "        data_mem_f[%d] <= {`L2_MSHR_ARRAY_WIDTH{1'b0}};" % (i)
+%>
+    end
+    else if (wr_data_en)
+    begin
+        data_mem_f[wr_index_in] <= (data_mem_f[wr_index_in] & (~data_mask_in))
+                                 | (data_in & data_mask_in);
+    end
+    else
+    begin
+        data_mem_f[wr_index_in] <= data_mem_f[wr_index_in];
+    end
+end
+`endif // L2_CAM_MSHR
+
+endmodule

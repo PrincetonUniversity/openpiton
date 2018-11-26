@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 02/06/2015 14:58:59
 // Author: Tri Nguyen
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "lsu.tmp.h"
 `ifdef DEFAULT_NETTYPE_NONE
 `default_nettype none
@@ -79,18 +79,18 @@ end
             dout_f <= cache[A];
       end
    end
-   
+
 endmodule
 
 `else
 
 <%
   import pyhplib
-  from pyhplib import * 
+  from pyhplib import *
 
   pyhplib.MakeGenericCacheDefine(
-    modulename="sram_l1d_data", 
-    type="1rw", 
+    modulename="sram_l1d_data",
+    type="1rw",
     height_define="`L1D_SET_COUNT",
     heightlog2_define="`L1D_SET_IDX_WIDTH",
     width_define="`L1D_DATA_ENTRY_WIDTH*`L1D_WAY_COUNT"

@@ -62,7 +62,7 @@ module ccx_l15_transducer (
     //--- CPX (L1.5 -> CCX)
     output reg                      transducer_cpx_data_ready,
     output reg  [144:0]             transducer_cpx_data,
-           
+
     input                           l15_transducer_val,
     input  [3:0]                    l15_transducer_returntype,
     input                           l15_transducer_l2miss,
@@ -85,7 +85,7 @@ module ccx_l15_transducer (
     input                           l15_transducer_inval_icache_inval,
     input  [1:0]                    l15_transducer_inval_way,
     input                           l15_transducer_blockinitstore,
-    
+
     output                          transducer_l15_req_ack
 );
 
@@ -120,33 +120,33 @@ pcx_buffer pcx_buffer(
 );
 
 pcx_decoder pcx_decoder(
-   .clk                                 (clk),
-   .rst_n                               (rst_n),
+   .clk                                 ( clk                                 ),
+   .rst_n                               ( rst_n                               ),
 
-   .pcxbuf_pcxdecoder_data              (pcxbuf_pcxdecoder_data),
-   .pcxbuf_pcxdecoder_data_buf1         (pcxbuf_pcxdecoder_data_buf1),
-   .pcxbuf_pcxdecoder_csm_data          (pcxbuf_pcxdecoder_csm_data),
-   .pcxbuf_pcxdecoder_valid             (pcxbuf_pcxdecoder_valid),
-   .l15_pcxdecoder_ack                  (l15_transducer_ack),
-   .l15_pcxdecoder_header_ack           (l15_transducer_header_ack),
+   .pcxbuf_pcxdecoder_data              ( pcxbuf_pcxdecoder_data              ),
+   .pcxbuf_pcxdecoder_data_buf1         ( pcxbuf_pcxdecoder_data_buf1         ),
+   .pcxbuf_pcxdecoder_csm_data          ( pcxbuf_pcxdecoder_csm_data          ),
+   .pcxbuf_pcxdecoder_valid             ( pcxbuf_pcxdecoder_valid             ),
+   .l15_pcxdecoder_ack                  ( l15_transducer_ack                  ),
+   .l15_pcxdecoder_header_ack           ( l15_transducer_header_ack           ),
 
-   .pcxdecoder_pcxbuf_ack               (pcxdecoder_pcxbuf_ack),
-   .pcxdecoder_l15_rqtype               (transducer_l15_rqtype),
-   .pcxdecoder_l15_amo_op               (transducer_l15_amo_op),
-   .pcxdecoder_l15_nc                   (transducer_l15_nc),
-   .pcxdecoder_l15_size                 (transducer_l15_size),
-   // .pcxdecoder_l15_invalall          (transducer_l15_invalall),
-   .pcxdecoder_l15_threadid             (transducer_l15_threadid),
-   .pcxdecoder_l15_prefetch             (transducer_l15_prefetch),
-   .pcxdecoder_l15_blockstore           (transducer_l15_blockstore),
-   .pcxdecoder_l15_blockinitstore       (transducer_l15_blockinitstore),
-   .pcxdecoder_l15_l1rplway             (transducer_l15_l1rplway),
-   .pcxdecoder_l15_val                  (transducer_l15_val),
-   .pcxdecoder_l15_invalidate_cacheline (transducer_l15_invalidate_cacheline),
-   .pcxdecoder_l15_address              (transducer_l15_address),
-   .pcxdecoder_l15_csm_data             (transducer_l15_csm_data),
-   .pcxdecoder_l15_data                 (transducer_l15_data),
-   .pcxdecoder_l15_data_next_entry      (transducer_l15_data_next_entry)
+   .pcxdecoder_pcxbuf_ack               ( pcxdecoder_pcxbuf_ack               ),
+   .pcxdecoder_l15_rqtype               ( transducer_l15_rqtype               ),
+   .pcxdecoder_l15_amo_op               ( transducer_l15_amo_op               ),
+   .pcxdecoder_l15_nc                   ( transducer_l15_nc                   ),
+   .pcxdecoder_l15_size                 ( transducer_l15_size                 ),
+   // .pcxdecoder_l15_invalall          ( transducer_l15_invalall             ),
+   .pcxdecoder_l15_threadid             ( transducer_l15_threadid             ),
+   .pcxdecoder_l15_prefetch             ( transducer_l15_prefetch             ),
+   .pcxdecoder_l15_blockstore           ( transducer_l15_blockstore           ),
+   .pcxdecoder_l15_blockinitstore       ( transducer_l15_blockinitstore       ),
+   .pcxdecoder_l15_l1rplway             ( transducer_l15_l1rplway             ),
+   .pcxdecoder_l15_val                  ( transducer_l15_val                  ),
+   .pcxdecoder_l15_invalidate_cacheline ( transducer_l15_invalidate_cacheline ),
+   .pcxdecoder_l15_address              ( transducer_l15_address              ),
+   .pcxdecoder_l15_csm_data             ( transducer_l15_csm_data             ),
+   .pcxdecoder_l15_data                 ( transducer_l15_data                 ),
+   .pcxdecoder_l15_data_next_entry      ( transducer_l15_data_next_entry      )
 );
 
 // 9/24/14: adding buffer for CPX to alleviate timing pressure
@@ -154,7 +154,7 @@ wire cpx_data_ready_e;
 wire [144:0] cpx_data_e;
 // always @ (posedge clk)
 //    rst_n_cpx <= rst_n;
-   
+
 always @ (posedge clk)
 begin
    if (!rst_n)
@@ -176,7 +176,7 @@ end
     - ensures that atomic returns are sequentially issued
 */
 l15_cpxencoder l15_cpxencoder(
-    .clk                                (clk), 
+    .clk                                (clk),
     .rst_n                              (rst_n),
     .l15_cpxencoder_val                 (l15_transducer_val),
     .l15_cpxencoder_returntype          (l15_transducer_returntype),

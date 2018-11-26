@@ -22,7 +22,7 @@
 
 `ifndef USE_TEST_TOP // useless for older TOPs
 
-`include "define.vh"
+`include "define.tmp.h"
 `include "piton_system.vh"
 `include "jtag.vh"
 
@@ -55,7 +55,7 @@ module chip(
    // PLL settings
    output                                       pll_lock,
    input                                        pll_bypass,
-   input  [4:0]                                 pll_rangea, 
+   input  [4:0]                                 pll_rangea,
 
    // Clock mux select (bypass PLL or not)
    // Double redundancy with pll_bypass
@@ -70,7 +70,7 @@ module chip(
 
    // Async FIFOs enable
    input                                        async_mux,
-   
+
    // ORAM
    input                                        oram_on,
    input                                        oram_traffic_gen,
@@ -82,7 +82,7 @@ module chip(
    output                                       piton_ready_n,
 
    input                                        chipset_prsnt_n,
- 
+
    output [7:0]                                 leds,
 `endif // endif PITON_CHIP_FPGA
 
@@ -106,7 +106,7 @@ module chip(
    input  [1:0]                                intf_chip_channel_p,
    input  [1:0]                                intf_chip_channel_n,
    output [2:0]                                intf_chip_credit_back_p,
-   output [2:0]                                intf_chip_credit_back_n 
+   output [2:0]                                intf_chip_credit_back_n
 `else // ifndef PITON_CHIP_FPGA
    // Virtual channel credit-based off-chip interface
    input  [31:0]                                intf_chip_data,
@@ -138,7 +138,19 @@ module chip(
    input  [`NOC_DATA_WIDTH-1:0]                 offchip_processor_noc3_data,
    output                                       offchip_processor_noc3_yummy
 `endif // endif PITON_NO_CHIP_BRIDGE
-   
+
+`ifdef PITON_ARIANE
+    ,
+    // Debug
+    input                                       ndmreset_i,    // non-debug module reset
+    input   [`NUM_TILES-1:0]                    debug_req_i,   // async debug request
+    output  [`NUM_TILES-1:0]                    unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
+    // CLINT
+    input   [`NUM_TILES-1:0]                    timer_irq_i,   // Timer interrupts
+    input   [`NUM_TILES-1:0]                    ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
+    // PLIC
+    input   [`NUM_TILES*2-1:0]                  irq_i          // level sensitive IR lines, mip & sip (async)
+`endif
 );
 
 <%
@@ -146,7 +158,7 @@ module chip(
 %>
 
    ///////////////////////
-   // Type Declarations 
+   // Type Declarations
    ///////////////////////
 
    // Need to define types for missing inputs and outputs
@@ -158,7 +170,7 @@ module chip(
 
 
    wire                                         pll_rst_n;
-   
+
    wire                                         clk_en;
 
    wire                                         pll_lock;
@@ -201,7 +213,7 @@ module chip(
 `endif // endif PITON_NO_CHIP_BRIDGE
 
    // OCI internal wires
-   
+
    wire                                         core_ref_clk_inter;
    wire                                         io_clk_inter;
    wire                                         rst_n_inter;
@@ -209,7 +221,7 @@ module chip(
    wire                                         clk_en_inter;
    wire                                         pll_lock_inter;
    wire                                         pll_bypass_inter;
-   wire [4:0]                                   pll_rangea_inter; 
+   wire [4:0]                                   pll_rangea_inter;
    wire [1:0]                                   clk_mux_sel_inter;
    wire                                         jtag_clk_inter;
    wire                                         jtag_rst_l_inter;
@@ -221,15 +233,15 @@ module chip(
    wire                                         oram_on_inter;
    wire                                         oram_traffic_gen_inter;
    wire                                         oram_dummy_gen_inter;
-   wire [31:0]      		                    intf_chip_data_inter;
+   wire [31:0]                              intf_chip_data_inter;
    wire [1:0]                                   intf_chip_channel_inter;
    wire [2:0]                                   intf_chip_credit_back_inter;
    wire [31:0]                                  chip_intf_data_inter;
    wire [1:0]                                   chip_intf_channel_inter;
    wire [2:0]                                   chip_intf_credit_back_inter;
- 
-   // Synchronized resets 
-   wire                                         rst_n_inter_sync; 
+
+   // Synchronized resets
+   wire                                         rst_n_inter_sync;
    reg                                          rst_n_inter_sync_f;
    wire                                         io_clk_rst_n_inter_sync;
    reg                                          io_clk_rst_n_inter_sync_f;
@@ -237,7 +249,7 @@ module chip(
    // PLL signals
    wire                                         core_ref_clk_inter_c;
    wire                                         core_ref_clk_inter_t;
-   wire                                         clk_muxed; 
+   wire                                         clk_muxed;
    wire                                         pll_clk;
 
    // Buffered chip bridge inputs
@@ -278,7 +290,7 @@ module chip(
    wire                                         processor_offchip_noc3_valid;
    wire [`NOC_DATA_WIDTH-1:0]                   processor_offchip_noc3_data;
    wire                                         processor_offchip_noc3_yummy;
-   
+
    wire                                         offchip_processor_noc1_valid;
    wire [`NOC_DATA_WIDTH-1:0]                   offchip_processor_noc1_data;
    wire                                         offchip_processor_noc1_yummy;
@@ -305,7 +317,7 @@ module chip(
    wire                                         oram_proc_valid_oram;
    wire [`NOC_DATA_WIDTH-1:0]                   oram_proc_data_oram;
    wire                                         oram_proc_yummy;
-   
+
    wire                                         offchip_oram_valid;
    wire [`NOC_DATA_WIDTH-1:0]                   offchip_oram_data;
    wire                                         offchip_oram_yummy_oram;
@@ -337,7 +349,7 @@ module chip(
                flatid = i + (j * X_TILES)
                print "wire tile%d_jtag_ucb_val;" % flatid
                print "wire [`UCB_BUS_WIDTH-1:0] tile%d_jtag_ucb_data;" % flatid
-   %> 
+   %>
 
    // Generate tile wiring
 <%
@@ -416,7 +428,7 @@ module chip(
            # print "wire offchip_out_S_noc%d_yummy;" % (k)
            print "wire offchip_out_E_noc%d_yummy;" % (k)
 %>
- 
+
    //////////////////////
    // Sequential logic
    //////////////////////
@@ -432,7 +444,7 @@ module chip(
 
 `ifndef PITON_NO_CHIP_BRIDGE
    // Buffer chip bridge inputs
-   always @(posedge io_clk_inter) 
+   always @(posedge io_clk_inter)
    begin
 `ifdef PITON_PROTO
        if(~io_clk_rst_n_inter_sync_f)
@@ -442,13 +454,13 @@ module chip(
        begin
            intf_chip_data_inter_buf_f <= 0;
            intf_chip_channel_inter_buf_f <= 0;
-           chip_intf_credit_back_inter_buf_f <= 0; 
+           chip_intf_credit_back_inter_buf_f <= 0;
        end
        else
        begin
            intf_chip_data_inter_buf_f <= intf_chip_data_inter;
            intf_chip_channel_inter_buf_f <= intf_chip_channel_inter;
-           chip_intf_credit_back_inter_buf_f <= chip_intf_credit_back_inter; 
+           chip_intf_credit_back_inter_buf_f <= chip_intf_credit_back_inter;
        end
    end
 `endif // endif PITON_NO_CHIP_BRIDGE
@@ -581,7 +593,7 @@ module chip(
      oram_proc_valid = offchip_oram_valid;
      oram_proc_data = offchip_oram_data;
      offchip_oram_yummy = oram_proc_yummy;
-   
+
      if (oram_on_inter)
      begin
        oram_offchip_valid = oram_offchip_valid_oram;
@@ -599,7 +611,7 @@ module chip(
    t1 = 'assign tiles_jtag_ucb_data ='
    for i in range(X_TILES):
        for j in range(Y_TILES):
-           currentid = (i, j);                                                                                   
+           currentid = (i, j);
            flatid = i + (j * X_TILES);
            if flatid == 0:
                t0 = t0 + ' tile%d_jtag_ucb_val' % flatid
@@ -623,7 +635,7 @@ module chip(
    clk_mmcm_chip clk_mmcm (
       .clk_in1_p(clk_osc_p),
       .clk_in1_n(clk_osc_n),
-      
+
       .reset(1'b0),
       .locked(mmcm_locked),
 
@@ -681,76 +693,76 @@ module chip(
 `endif // endif PITON_NO_CHIP_BRIDGE
 
    // Off-Chip Interface Block
-   
+
    OCI oci_inst (
    // Outside
-   .slew						(slew),
-   .impsel1						(impsel1),
-   .impsel2						(impsel2),
-   .core_ref_clk				(core_ref_clk),
-   .io_clk						(io_clk),
+   .slew                (slew),
+   .impsel1                (impsel1),
+   .impsel2                (impsel2),
+   .core_ref_clk           (core_ref_clk),
+   .io_clk                 (io_clk),
 `ifndef PITON_CHIP_FPGA
-   .rst_n						(rst_n),
+   .rst_n                  (rst_n),
 `else // ifndef PITON_CHIP_FPGA
    .rst_n                       (rst_n & (~chipset_prsnt_n)),
 `endif
-   .pll_rst_n					(pll_rst_n),
-   .pll_rangea					(pll_rangea),
-   .clk_mux_sel					(clk_mux_sel),
-   .clk_en						(clk_en),
-   .pll_bypass					(pll_bypass),
-   .async_mux					(async_mux),
-   .oram_on						(oram_on),
-   .oram_traffic_gen			(oram_traffic_gen),
-   .oram_dummy_gen				(oram_dummy_gen),
-   .pll_lock					(pll_lock),
-   .jtag_clk					(jtag_clk),
-   .jtag_rst_l					(jtag_rst_l),
-   .jtag_modesel				(jtag_modesel),
-   .jtag_datain					(jtag_datain),
-   .jtag_dataout				(jtag_dataout),
+   .pll_rst_n              (pll_rst_n),
+   .pll_rangea             (pll_rangea),
+   .clk_mux_sel               (clk_mux_sel),
+   .clk_en                 (clk_en),
+   .pll_bypass             (pll_bypass),
+   .async_mux              (async_mux),
+   .oram_on                (oram_on),
+   .oram_traffic_gen       (oram_traffic_gen),
+   .oram_dummy_gen            (oram_dummy_gen),
+   .pll_lock               (pll_lock),
+   .jtag_clk               (jtag_clk),
+   .jtag_rst_l             (jtag_rst_l),
+   .jtag_modesel           (jtag_modesel),
+   .jtag_datain               (jtag_datain),
+   .jtag_dataout           (jtag_dataout),
 `ifndef PITON_NO_CHIP_BRIDGE
-   .intf_chip_data				(intf_chip_data),
-   .intf_chip_channel			(intf_chip_channel),
-   .intf_chip_credit_back		(intf_chip_credit_back),
-   .chip_intf_data				(chip_intf_data),
-   .chip_intf_channel			(chip_intf_channel),
-   .chip_intf_credit_back		(chip_intf_credit_back),
+   .intf_chip_data            (intf_chip_data),
+   .intf_chip_channel         (intf_chip_channel),
+   .intf_chip_credit_back     (intf_chip_credit_back),
+   .chip_intf_data            (chip_intf_data),
+   .chip_intf_channel         (chip_intf_channel),
+   .chip_intf_credit_back     (chip_intf_credit_back),
 `else // ifdef PITON_NO_CHIP_BRIDGE
    .intf_chip_data              (),
    .intf_chip_channel           (),
    .intf_chip_credit_back       (),
    .chip_intf_data              (),
    .chip_intf_channel           (),
-   .chip_intf_credit_back       (), 
+   .chip_intf_credit_back       (),
 `endif // endif PITON_NO_CHIP_BRIDGE
    // Inside
-   .core_ref_clk_inter			(core_ref_clk_inter),
-   .io_clk_inter				(io_clk_inter),
-   .rst_n_inter					(rst_n_inter),
-   .pll_rst_n_inter				(pll_rst_n_inter),
-   .pll_rangea_inter			(pll_rangea_inter),
-   .clk_mux_sel_inter			(clk_mux_sel_inter),
-   .clk_en_inter				(clk_en_inter),
-   .pll_bypass_inter			(pll_bypass_inter),
-   .async_mux_inter				(async_mux_inter),
-   .oram_on_inter				(oram_on_inter),
-   .oram_traffic_gen_inter		(oram_traffic_gen_inter),
-   .oram_dummy_gen_inter		(oram_dummy_gen_inter),
-   .pll_lock_inter				(pll_lock_inter),
-   .jtag_clk_inter				(jtag_clk_inter),
-   .jtag_rst_l_inter			(jtag_rst_l_inter),
-   .jtag_modesel_inter			(jtag_modesel_inter),
-   .jtag_datain_inter			(jtag_datain_inter),
-   .jtag_dataout_inter			(jtag_dataout_inter),
-   .intf_chip_data_inter		(intf_chip_data_inter),
-   .intf_chip_channel_inter		(intf_chip_channel_inter),
-   .intf_chip_credit_back_inter	(intf_chip_credit_back_inter),
-   .chip_intf_data_inter		(chip_intf_data_inter),
-   .chip_intf_channel_inter		(chip_intf_channel_inter),
-   .chip_intf_credit_back_inter	(chip_intf_credit_back_inter) );
- 
-   // PLL and clock mux.  See above for alternatives 
+   .core_ref_clk_inter        (core_ref_clk_inter),
+   .io_clk_inter           (io_clk_inter),
+   .rst_n_inter               (rst_n_inter),
+   .pll_rst_n_inter           (pll_rst_n_inter),
+   .pll_rangea_inter       (pll_rangea_inter),
+   .clk_mux_sel_inter         (clk_mux_sel_inter),
+   .clk_en_inter           (clk_en_inter),
+   .pll_bypass_inter       (pll_bypass_inter),
+   .async_mux_inter           (async_mux_inter),
+   .oram_on_inter          (oram_on_inter),
+   .oram_traffic_gen_inter    (oram_traffic_gen_inter),
+   .oram_dummy_gen_inter      (oram_dummy_gen_inter),
+   .pll_lock_inter            (pll_lock_inter),
+   .jtag_clk_inter            (jtag_clk_inter),
+   .jtag_rst_l_inter       (jtag_rst_l_inter),
+   .jtag_modesel_inter        (jtag_modesel_inter),
+   .jtag_datain_inter         (jtag_datain_inter),
+   .jtag_dataout_inter        (jtag_dataout_inter),
+   .intf_chip_data_inter      (intf_chip_data_inter),
+   .intf_chip_channel_inter      (intf_chip_channel_inter),
+   .intf_chip_credit_back_inter  (intf_chip_credit_back_inter),
+   .chip_intf_data_inter      (chip_intf_data_inter),
+   .chip_intf_channel_inter      (chip_intf_channel_inter),
+   .chip_intf_credit_back_inter  (chip_intf_credit_back_inter) );
+
+   // PLL and clock mux.  See above for alternatives
    clk_se_to_diff ref_clk_converter (
        .clk_se  (core_ref_clk_inter),
        .clk_p   (core_ref_clk_inter_t),
@@ -767,7 +779,7 @@ module chip(
 
        .clk_muxed(clk_muxed)
    );
-   pll_top pll_top ( 
+   pll_top pll_top (
       .clk_locked(pll_lock_inter),
       .clk_out(pll_clk),
 
@@ -776,12 +788,13 @@ module chip(
       .ref_clk(core_ref_clk_inter),
       .rst(~pll_rst_n_inter)
    );
- 
+
    // reset synchronizer, might need to be placed near the
    //   pll or clock source so that reset signal has the same propagation
    //   as clock for better timing
    // materials on reset tree and placement
    // http://www.sunburst-design.com/papers/CummingsSNUG2002SJ_Resets.pdf
+`ifndef PITON_ARIANE
    synchronizer rst_sync (
       .clk(clk_muxed),
       .presyncdata(rst_n_inter),
@@ -797,6 +810,31 @@ module chip(
       .presyncdata(jtag_rst_l_inter),
       .syncdata(jtag_rst_l_inter_sync)
    );
+`else
+   reset_synchronizer #(
+      .NUM_REGS(2)
+   ) i_rst_sync (
+      .clk_i  ( clk_muxed        ),
+      .rst_ni ( rst_n_inter      ),
+      .rst_no ( rst_n_inter_sync )
+   );
+
+   reset_synchronizer #(
+      .NUM_REGS(2)
+   ) i_io_clk_rst_sync (
+      .clk_i  ( io_clk_inter            ),
+      .rst_ni ( rst_n_inter             ),
+      .rst_no ( io_clk_rst_n_inter_sync )
+   );
+
+   reset_synchronizer #(
+      .NUM_REGS(2)
+   ) i_jtag_rst_sync (
+      .clk_i  ( clk_muxed             ),
+      .rst_ni ( jtag_rst_l_inter      ),
+      .rst_no ( jtag_rst_l_inter_sync )
+   );
+`endif // PITON_ARIANE
 
 `ifndef PITON_NO_CHIP_BRIDGE
    // Chip to FPGA bridge
@@ -807,7 +845,7 @@ module chip(
        .rst_n                  (rst_n_inter),
 `else // ifndef PITON_FPGA_SYNTH
        .rst_n                  (rst_n_inter_sync_f),
-`endif       
+`endif
        .chip_clk               (clk_muxed),
        .intcnct_clk            (io_clk_inter),
        .async_mux              (async_mux_inter),
@@ -836,7 +874,7 @@ module chip(
        .intcnct_channel_out    (chip_intf_channel_inter),
        .intcnct_credit_back_out(chip_intf_credit_back_inter_buf_f)
    );
-  
+
    // Chip Bridge val/rdy to credit
 
    valrdy_to_credit #(4, 3) chip_from_intf_noc1_v2c(
@@ -909,7 +947,7 @@ module chip(
       .data_out(chip_intf_noc3_data),           // Data
       .valid_out(chip_intf_noc3_valid),       // Val signal from dynamic network to processor
       .ready_out(chip_intf_noc3_rdy)    // Rdy signal from processor to dynamic network
-   );  
+   );
 `endif // endif PITON_NO_CHIP_BRIDGE
 
 `ifdef ORAM_ON
@@ -984,7 +1022,7 @@ module chip(
        dynamic_node_top_wrap_para xbar_noc1(
            .clk                (clk_muxed),
            .reset_in           (~rst_n_inter_sync),
-   
+
            .myChipID                   (14'b0),    // the first chip
            .myLocX                     (8'b0),  // not used
            .myLocY                     (8'b0),  // not used
@@ -1026,50 +1064,56 @@ module chip(
         .default_coreid_x           (COREIDX),
         .default_coreid_y           (COREIDY),
         .flat_tileid                (`JTAG_FLATID_WIDTH'd_FLAT_ID_),
-
+    `ifdef PITON_ARIANE
+        .debug_req_i         ( debug_req_i[_FLAT_ID_]   ),
+        .unavailable_o       ( unavailable_o[_FLAT_ID_] ),
+        .timer_irq_i         ( timer_irq_i[_FLAT_ID_]   ),
+        .ipi_i               ( ipi_i[_FLAT_ID_]         ),
+        .irq_i               ( irq_i[_FLAT_ID_*2 +: 2]  ),
+    `endif
         // ucb from tiles to jtag
-        .tile_jtag_ucb_val (tile0_jtag_ucb_val),
-        .tile_jtag_ucb_data    (tile0_jtag_ucb_data),
+        .tile_jtag_ucb_val   ( tile0_jtag_ucb_val      ),
+        .tile_jtag_ucb_data  ( tile0_jtag_ucb_data     ),
         // ucb from jtag to tiles
-        .jtag_tiles_ucb_val (jtag_tiles_ucb_val),
-        .jtag_tiles_ucb_data    (jtag_tiles_ucb_data),
+        .jtag_tiles_ucb_val  ( jtag_tiles_ucb_val      ),
+        .jtag_tiles_ucb_data ( jtag_tiles_ucb_data     ),
     '''
 
     subtemplate = r'''
-        .dyn0_dataIn_N      (in_N_noc1_data),
-        .dyn0_dataIn_E      (in_E_noc1_data),
-        .dyn0_dataIn_W      (in_W_noc1_data),
-        .dyn0_dataIn_S      (in_S_noc1_data),
-        .dyn0_validIn_N     (in_N_noc1_valid),
-        .dyn0_validIn_E     (in_E_noc1_valid),
-        .dyn0_validIn_W     (in_W_noc1_valid),
-        .dyn0_validIn_S     (in_S_noc1_valid),
-        .dyn0_dNo_yummy     (in_N_noc1_yummy),
-        .dyn0_dEo_yummy     (in_E_noc1_yummy),
-        .dyn0_dWo_yummy     (in_W_noc1_yummy),
-        .dyn0_dSo_yummy     (in_S_noc1_yummy),
+        .dyn0_dataIn_N       ( in_N_noc1_data   ),
+        .dyn0_dataIn_E       ( in_E_noc1_data   ),
+        .dyn0_dataIn_W       ( in_W_noc1_data   ),
+        .dyn0_dataIn_S       ( in_S_noc1_data   ),
+        .dyn0_validIn_N      ( in_N_noc1_valid  ),
+        .dyn0_validIn_E      ( in_E_noc1_valid  ),
+        .dyn0_validIn_W      ( in_W_noc1_valid  ),
+        .dyn0_validIn_S      ( in_S_noc1_valid  ),
+        .dyn0_dNo_yummy      ( in_N_noc1_yummy  ),
+        .dyn0_dEo_yummy      ( in_E_noc1_yummy  ),
+        .dyn0_dWo_yummy      ( in_W_noc1_yummy  ),
+        .dyn0_dSo_yummy      ( in_S_noc1_yummy  ),
 
-        .dyn0_dNo           (out_N_noc1_data),
-        .dyn0_dEo           (out_E_noc1_data),
-        .dyn0_dWo           (out_W_noc1_data),
-        .dyn0_dSo           (out_S_noc1_data),
-        .dyn0_dNo_valid     (out_N_noc1_valid),
-        .dyn0_dEo_valid     (out_E_noc1_valid),
-        .dyn0_dWo_valid     (out_W_noc1_valid),
-        .dyn0_dSo_valid     (out_S_noc1_valid),
-        .dyn0_yummyOut_N    (out_N_noc1_yummy),
-        .dyn0_yummyOut_E    (out_E_noc1_yummy),
-        .dyn0_yummyOut_W    (out_W_noc1_yummy),
-        .dyn0_yummyOut_S    (out_S_noc1_yummy),'''
-        #.ec_dyn0            (),'''
+        .dyn0_dNo            ( out_N_noc1_data  ),
+        .dyn0_dEo            ( out_E_noc1_data  ),
+        .dyn0_dWo            ( out_W_noc1_data  ),
+        .dyn0_dSo            ( out_S_noc1_data  ),
+        .dyn0_dNo_valid      ( out_N_noc1_valid ),
+        .dyn0_dEo_valid      ( out_E_noc1_valid ),
+        .dyn0_dWo_valid      ( out_W_noc1_valid ),
+        .dyn0_dSo_valid      ( out_S_noc1_valid ),
+        .dyn0_yummyOut_N     ( out_N_noc1_yummy ),
+        .dyn0_yummyOut_E     ( out_E_noc1_yummy ),
+        .dyn0_yummyOut_W     ( out_W_noc1_yummy ),
+        .dyn0_yummyOut_S     ( out_S_noc1_yummy ),'''
+        #.ec_dyn0            (                  ),'''
     if (NETWORK_CONFIG == "xbar_config"):
         subtemplate = r'''
-        .dyn0_dataIn        (in_noc1_data),
-        .dyn0_validIn       (in_noc1_valid),
-        .dyn0_do_yummy      (in_noc1_yummy),
-        .dyn0_do            (out_noc1_data),
-        .dyn0_do_valid      (out_noc1_valid),
-        .dyn0_yummyOut      (out_noc1_yummy),'''
+        .dyn0_dataIn         ( in_noc1_data     ),
+        .dyn0_validIn        ( in_noc1_valid    ),
+        .dyn0_do_yummy       ( in_noc1_yummy    ),
+        .dyn0_do             ( out_noc1_data    ),
+        .dyn0_do_valid       ( out_noc1_valid   ),
+        .dyn0_yummyOut       ( out_noc1_yummy   ),'''
     sub2 = subtemplate.replace('dyn0', 'dyn1');
     sub2 = sub2.replace("noc1", "noc2");
     sub3 = subtemplate.replace('dyn0', 'dyn2');
@@ -1099,6 +1143,8 @@ module chip(
                     currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
             elif (PITON_PICO):
                 currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
+            elif (PITON_ARIANE):
+                currenttile = currenttile.replace("TYPE_OF_TILE", "`ARIANE_RV64_TILE")
             else:
                 currenttile = currenttile.replace("TYPE_OF_TILE", "`SPARC_TILE")
 

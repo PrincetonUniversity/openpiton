@@ -28,14 +28,13 @@
 // 		pal -r -o lsu_mon2.v lsu_mon2.vpal
 ////////////////////////////////////////////////////////
 
+`include "define.tmp.h"
 `include "cross_module.tmp.h"
 `include "sys.h"
 `include "iop.h"
 
 <%
     from pyhplib import *
-
-    print "`define NUM_TILES %d" % NUM_TILES;
 %>
 
 module lsu_mon2 (clk, rst_l);
@@ -1267,7 +1266,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
     assign spc0_dva_rd_en_e[11:8]        = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b10)}};
     assign spc0_dva_rd_en_e[7:4]         = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b01)}};
     assign spc0_dva_rd_en_e[3:0]         = {4{(`SPARC_CORE0.sparc0.lsu.exu_lsu_early_va_e[5:4] == 2'b00)}};
-    
+
     assign spc0_dva_vld_m_expanded[`L1D_VAL_ARRAY_HI:0] = {4{`SPARC_CORE0.sparc0.lsu.dva_vld_m[`L1D_WAY_MASK]}};
 `endif
 
@@ -1505,7 +1504,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
     assign spc0_pick_destbusy_unqual[0]  = ~|(spc0_pre_qwr[4:0] & `SPARC_CORE0.sparc0.lsu.lsu.qctl1.ld0_l2bnk_dest[4:0]);
 
     assign spc0_mcycle_mask_qwr_d1[4:0] = `SPARC_CORE0.sparc0.lsu.lsu.qctl1.mcycle_mask_qwr_d1[4:0];
-    
+
     assign spc0_pick_atompend_unqual[11] = ~|(~spc0_mcycle_mask_qwr_d1[4:0] & `SPARC_CORE0.sparc0.lsu.lsu.qctl1.strm_l2bnk_dest[4:0]);
     assign spc0_pick_atompend_unqual[10] = ~|(~spc0_mcycle_mask_qwr_d1[4:0] & `SPARC_CORE0.sparc0.lsu.lsu.qctl1.fpop_l2bnk_dest[4:0]);
     assign spc0_pick_atompend_unqual[9]  = ~|(~spc0_mcycle_mask_qwr_d1[4:0] & `SPARC_CORE0.sparc0.lsu.lsu.qctl1.intrpt_l2bnk_dest[4:0]);
@@ -1599,7 +1598,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
     assign spc0_strm_stxa_g[0] = `SPARC_CORE0.sparc0.lsu.lsu.dctl.st_inst_vld_g &
                                     `SPARC_CORE0.sparc0.lsu.lsu.dctl.lsu_alt_space_g &
                                     `SPARC_CORE0.sparc0.lsu.lsu.dctl.stxa_stall_asi_g &
-                                    (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.thrid_g == 2'b00); 
+                                    (`SPARC_CORE0.sparc0.lsu.lsu.qctl1.thrid_g == 2'b00);
 `else
     assign spc0_strm_stxa_g[3] = `SPARC_CORE0.sparc0.lsu.dctl.st_inst_vld_g &
                                     `SPARC_CORE0.sparc0.lsu.dctl.lsu_alt_space_g &
@@ -1682,7 +1681,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
 `else
         spc0_lsu_way_hit_or_w2        <= `SPARC_CORE0.sparc0.lsu.dctl.lsu_way_hit_or;
         spc0_ncache_pcx_rq_w2         <= `SPARC_CORE0.sparc0.lsu.dctl.ncache_pcx_rq_g;
-    
+
         spc0_stb_ld_partial_raw_w2    <= `SPARC_CORE0.sparc0.lsu.stb_ld_partial_raw;
         spc0_stb_ld_partial_raw_w3    <= spc0_stb_ld_partial_raw_w2;
         spc0_stb_ld_partial_raw_w4    <= spc0_stb_ld_partial_raw_w3;
@@ -2535,7 +2534,7 @@ module ack_evict_decode(<%
 
 text = '''
         `ifdef RTL_SPARC0
-        in0, 
+        in0,
         `endif'''
 pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)

@@ -39,13 +39,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2(
 
     input wire clk,
     input wire rst_n,
-    
+
     input wire [`NOC_CHIPID_WIDTH-1:0] chipid,
     input wire [`NOC_X_WIDTH-1:0] coreid_x,
     input wire [`NOC_Y_WIDTH-1:0] coreid_y,
@@ -53,7 +53,7 @@ module l2(
     input wire noc1_valid_in,
     input wire [`NOC_DATA_WIDTH-1:0] noc1_data_in,
     output wire noc1_ready_in,
-    
+
 
     input wire noc3_valid_in,
     input wire [`NOC_DATA_WIDTH-1:0] noc3_data_in,
@@ -106,8 +106,17 @@ wire [`L2_MSHR_INDEX_WIDTH-1:0] mshr_wr_index_in_p2;
 
 wire mshr_hit;
 wire [`L2_MSHR_INDEX_WIDTH-1:0] mshr_hit_index;
+`ifndef L2_CAM_MSHR
 wire [`L2_MSHR_STATE_BITS-1:0] mshr_state_out;
 wire [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_out;
+`else
+wire [`L2_MSHR_STATE_BITS-1:0] rd_mshr_state_out;
+wire [`L2_MSHR_ARRAY_WIDTH-1:0] rd_mshr_data_out;
+// wire [`L2_MSHR_STATE_BITS-1:0] cam_mshr_state_out;
+wire [`L2_MSHR_ARRAY_WIDTH-1:0] cam_mshr_data_out;
+wire [`L2_MSHR_ARRAY_WIDTH-1:0] pending_mshr_data_out;
+`endif
+
 wire [`L2_OWNER_BITS-1:0] mshr_inv_counter_out;
 wire [`L2_MSHR_INDEX_WIDTH:0] mshr_empty_slots;
 wire mshr_pending;
@@ -171,7 +180,7 @@ wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_in_p2;
 wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_mask_in_p2;
 wire [`L2_DATA_ARRAY_WIDTH-1:0] data_data_out;
 
-`ifndef NO_RTL_CSM 
+`ifndef NO_RTL_CSM
 wire smc_rd_en;
 wire smc_rd_diag_en;
 wire smc_wr_diag_en;
@@ -230,7 +239,7 @@ wire [`L2_COREID_WIDTH-1:0] core_max;
 `ifndef NO_RTL_CSM
 wire csm_en;
 `endif
-wire [`L2_SMT_BASE_ADDR_WIDTH-1:0] smt_base_addr;  
+wire [`L2_SMT_BASE_ADDR_WIDTH-1:0] smt_base_addr;
 
 
 wire pipe2_valid_S1;
@@ -292,10 +301,14 @@ l2_config_regs config_regs(
 l2_mshr_wrap mshr_wrap(
     .clk                    (clk),
     .rst_n                  (rst_n),
+`ifndef L2_CAM_MSHR
     .pipe_rd_sel            (active_S1),
+`endif
     .pipe_wr_sel            (active_S3),
 
+`ifndef L2_CAM_MSHR
     .rd_en1                 (1'b0),
+`endif
     .cam_en1                (mshr_cam_en_p1),
     .wr_state_en1           (mshr_wr_state_en_p1),
     .wr_data_en1            (mshr_wr_data_en_p1),
@@ -303,28 +316,44 @@ l2_mshr_wrap mshr_wrap(
     .state_in1              (mshr_state_in_p1),
     .data_in1               (mshr_data_in_p1),
     .data_mask_in1          (mshr_data_mask_in_p1),
+`ifndef L2_CAM_MSHR
     .rd_index_in1           ({`L2_MSHR_INDEX_WIDTH{1'b0}}),
+`endif
     .inv_counter_rd_index_in1(mshr_inv_counter_rd_index_in_p1),
     .wr_index_in1           (mshr_wr_index_in_p1),
     .addr_in1               (mshr_addr_in_p1),
 
+`ifndef L2_CAM_MSHR
     .rd_en2                 (mshr_rd_en_p2),
     .cam_en2                (1'b0),
+`endif
     .wr_state_en2           (mshr_wr_state_en_p2),
     .wr_data_en2            (mshr_wr_data_en_p2),
+`ifndef L2_CAM_MSHR
     .pending_ready2         (1'b0), 
+`endif
     .inc_counter_en2        (mshr_inc_counter_en_p2),
     .state_in2              (mshr_state_in_p2),
     .data_in2               (mshr_data_in_p2),
     .data_mask_in2          (mshr_data_mask_in_p2),
     .rd_index_in2           (mshr_rd_index_in_p2),
     .wr_index_in2           (mshr_wr_index_in_p2),
+`ifndef L2_CAM_MSHR
     .addr_in2               ({`L2_MSHR_ADDR_IN_WIDTH{1'b0}}),
+`endif
 
     .hit                    (mshr_hit),
     .hit_index              (mshr_hit_index),
+`ifndef L2_CAM_MSHR
     .state_out              (mshr_state_out),
     .data_out               (mshr_data_out),
+`else
+    .rd_state_out           (rd_mshr_state_out),
+    .rd_data_out            (rd_mshr_data_out),
+    // .cam_state_out       (cam_mshr_state_out),
+    .cam_data_out           (cam_mshr_data_out),
+    .pending_data_out       (pending_mshr_data_out),
+`endif
     .inv_counter_out        (mshr_inv_counter_out), 
     .empty_slots            (mshr_empty_slots),
     .pending                (mshr_pending),
@@ -385,7 +414,7 @@ l2_tag_wrap tag_wrap(
 
     .data_out               (tag_data_out),
     .pdata_out              (),
-    
+
     // sram interfaces
     .srams_rtap_data (tag_rtap_data),
     .rtap_srams_bist_command (rtap_srams_bist_command),
@@ -414,7 +443,7 @@ l2_dir_wrap dir_wrap(
 
     .data_out               (dir_data_out),
     .pdata_out              (),
-    
+
     // sram interfaces
     .srams_rtap_data (dir_rtap_data),
     .rtap_srams_bist_command (rtap_srams_bist_command),
@@ -443,7 +472,7 @@ l2_data_wrap data_wrap(
 
     .data_out               (data_data_out),
     .pdata_out              (),
-    
+
     // sram interfaces
     .srams_rtap_data (data_rtap_data),
     .rtap_srams_bist_command (rtap_srams_bist_command),
@@ -490,7 +519,7 @@ l2_broadcast_counter_wrap l2_broadcast_counter_wrap(
 
     .counter_op2            (broadcast_counter_op_p2),
     .counter_op_val2        (broadcast_counter_op_val_p2),
- 
+
     .zero1                  (broadcast_counter_zero1),
     .max1                   (broadcast_counter_max1),
     .avail1                 (broadcast_counter_avail1),
@@ -516,7 +545,7 @@ l2_pipe1 pipe1(
     .csm_en                 (csm_en),
     `endif
     .smt_base_addr          (smt_base_addr),
-   
+
     .noc_valid_in           (noc1_valid_in),
     .noc_data_in            (noc1_data_in),
     .noc_ready_in           (noc1_ready_in),
@@ -540,7 +569,12 @@ l2_pipe1 pipe1(
     .global_stall_S4        (active_S3),
 
     .mshr_hit               (mshr_hit),
+`ifndef L2_CAM_MSHR
     .mshr_data_out          (mshr_data_out),
+`else
+    .cam_mshr_data_out      (cam_mshr_data_out),
+    .pending_mshr_data_out  (pending_mshr_data_out),
+`endif
     .mshr_inv_counter_out   (mshr_inv_counter_out),
     .mshr_empty_slots       (mshr_empty_slots),
     .mshr_pending           (mshr_pending),
@@ -572,7 +606,7 @@ l2_pipe1 pipe1(
     .reg_wr_en              (reg_wr_en),
     .reg_rd_addr_type       (reg_rd_addr_type),
     .reg_wr_addr_type       (reg_wr_addr_type),
-    
+
     .reg_data_out           (reg_data_out),
     .reg_data_in            (reg_data_in),
 
@@ -640,13 +674,18 @@ l2_pipe2 pipe2(
     .rst_n                  (rst_n),
     `ifndef NO_RTL_CSM
     .csm_en                 (csm_en),
-    `endif 
+    `endif
     .noc_valid_in           (noc3_valid_in),
     .noc_data_in            (noc3_data_in),
     .noc_ready_in           (noc3_ready_in),
 
+`ifndef L2_CAM_MSHR
     .mshr_state_out         (mshr_state_out),
     .mshr_data_out          (mshr_data_out),
+`else
+    .mshr_state_out         (rd_mshr_state_out),
+    .mshr_data_out          (rd_mshr_data_out),
+`endif
 
     `ifndef NO_RTL_CSM
     .broadcast_counter_zero (broadcast_counter_zero2),
@@ -695,7 +734,7 @@ l2_pipe2 pipe2(
     .data_data_in           (data_data_in_p2),
     .data_data_mask_in      (data_data_mask_in_p2),
 
-     
+
     `ifndef NO_RTL_CSM
     .broadcast_counter_op   (broadcast_counter_op_p2),
     .broadcast_counter_op_val(broadcast_counter_op_val_p2),

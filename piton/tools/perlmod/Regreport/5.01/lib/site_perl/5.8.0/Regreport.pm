@@ -1,23 +1,23 @@
 # Modified by Princeton University on June 9th, 2015
 # ========== Copyright Header Begin ==========================================
-# 
+#
 # OpenSPARC T1 Processor File: Regreport.pm
 # Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
-# 
+#
 # The above named program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public
 # License version 2 as published by the Free Software Foundation.
-# 
-# The above named program is distributed in the hope that it will be 
+#
+# The above named program is distributed in the hope that it will be
 # useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this work; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-# 
+#
 # ========== Copyright Header End ============================================
 package Regreport;
 
@@ -43,9 +43,9 @@ our @ISA = qw(Exporter);
 #-------------------------------------------------------------------------
 
 my @funcs = qw(regenerate chk_single_diag wait_regression regress_stat regreportsendmail);
-my @vars  = qw($wait_sec $vlog $debug $sas_only $simline $full $printpassed $rsfh $summary $emailaddr); 
+my @vars  = qw($wait_sec $vlog $debug $sas_only $simline $full $printpassed $rsfh $summary $emailaddr);
 
-our %EXPORT_TAGS = ( 
+our %EXPORT_TAGS = (
 	funcs => [ @funcs ],
 	vars  => [ @vars ],
         all   => [ @funcs, @vars] );
@@ -64,7 +64,7 @@ $SIG{INT}= \&cleanup;
 
 our($wait_sec)= 300;		# polling interval (for -regress)
 our($vlog, $debug, $sas_only, $simline, $full,
-    $printpassed, $summary, $emailaddr); 
+    $printpassed, $summary, $emailaddr);
 our($rsfh) = \*STDOUT;		# the file handler where regress_stat dumps
 
 my(@errlines);			# error lines being gathered
@@ -159,18 +159,18 @@ sub	chk_single_diag {
     $diag=~ m%([^/]+)$%;
     $diag= $1;
   }elsif(! -d $diag) { die "No such diag directory: $diag\n"; }
-  else{ 
-    chdir($diag); 
+  else{
+    chdir($diag);
     $diag=~ s/\/$//;
   }
 
 # extract key info from files
 #============================
   my($open_sym) = 0;
-  if(-e "symbol.tbl"){ 
+  if(-e "symbol.tbl"){
     open(SYM, "symbol.tbl")  || die "Cannot open symbol.tbl\n";
     $open_sym = 1;
-  } elsif(-e "symbol.tbl.gz"){ 
+  } elsif(-e "symbol.tbl.gz"){
     open(SYM, "$GUNZIP symbol.tbl.gz |")  || die "Cant gunzip symbol.tbl.gz\n";
     $open_sym = 1;
   }
@@ -213,7 +213,7 @@ sub	chk_single_diag {
       if(-r    "sim.log")   { open (FUT, " sim.log ");}
       elsif(-r "sim.log.gz")    { open (FUT, "$GUNZIP sim.log.gz |");}
       &getexecstart;
-      close(FUT); 
+      close(FUT);
 
       if(-r    "sim.log")   { open (FUT, " sim.log ");}
       elsif(-r "sim.log.gz")    { open (FUT, "$GUNZIP sim.log.gz |");}
@@ -245,7 +245,7 @@ sub	chk_single_diag {
 #----------------------------------------------------------------------
 # this is a little hacky but listen up:
 # for the weird situation when I am checking a single diag for sas_only run
-# regreport -1 -sas_only 
+# regreport -1 -sas_only
 # I open  sims.log but perform the jobqloggrep checks
 #----------------------------------------------------------------------
     &jobqloggrep;
@@ -379,23 +379,23 @@ sub	chk_single_diag {
       $long_stat= "$STATUS_NAME{'simx'}";
       $status = 'simx';
       last;
-    }elsif($sas_only && ($curr_line =~ /v:0x$bad_trap_va/i)){	
+    }elsif($sas_only && ($curr_line =~ /v:0x$bad_trap_va/i)){
       $long_stat= "$STATUS_NAME{'fail'} SAS-MEM fail in sas_only mode BAD TRAP v:0x$bad_trap_va";
       $status = 'fail';
       last;
-    }elsif($sas_only && ($curr_line =~ /v:0x$hbad_trap_va/i)){	
+    }elsif($sas_only && ($curr_line =~ /v:0x$hbad_trap_va/i)){
       $long_stat= "$STATUS_NAME{'fail'} SAS-MEM fail in sas_only mode HBAD TRAP v:0x$bad_trap_va";
       $status = 'fail';
       last;
-    }elsif($sas_only && ($curr_line =~ /v:0x$good_trap_va/i)){	
+    }elsif($sas_only && ($curr_line =~ /v:0x$good_trap_va/i)){
       $long_stat= "$STATUS_NAME{'pass'} SAS-MEM pass in sas_only mode GOOD TRAP v:0x$good_trap_va";
       $status = 'pass';
       last;
-    }elsif($sas_only && ($curr_line =~ /v:0x$hgood_trap_va/i)){	
+    }elsif($sas_only && ($curr_line =~ /v:0x$hgood_trap_va/i)){
       $long_stat= "$STATUS_NAME{'pass'} SAS-MEM pass in sas_only mode HGOOD TRAP v:0x$good_trap_va";
       $status = 'pass';
       last;
-    }elsif($curr_line =~ /SAS hits MAX CYCLE -> FAIL/){	
+    }elsif($curr_line =~ /SAS hits MAX CYCLE -> FAIL/){
       $long_stat= "$STATUS_NAME{'maxc'} SAS hits MAX CYCLE -> FAIL";
       $status = 'maxc';
       last;
@@ -529,9 +529,9 @@ sub	wait_regression {
 # sometimes useful - for each diag in the directory
 # go inside its dir. and regrenerate the status.log file.
 #===================================================================
-sub     regenerate {                    
+sub     regenerate {
 
-     my($list);                           
+     my($list);
      $list= `ls -1`;
      my(@dir)= split("\n", $list);
      my($diag);
@@ -543,7 +543,7 @@ sub     regenerate {
        $i++;
        print STDERR "$i: regenerating $diag\n";
        next    if(! -d $diag);
-       chdir($diag); 
+       chdir($diag);
        open(OUTFILE, "> status.log") or die "cannot open status.log";
        $rsfh = \*OUTFILE;
        chk_single_diag(".");
@@ -559,7 +559,7 @@ sub     regenerate {
 #consisting of a single dot as "end of message". The -t option says to use the headers to decide
 #who to send the message to, and -odq says to put the message into the queue.
 #This last option means your message won't be immediately delivered, so
-# leave it out if you want immediate delivery. 
+# leave it out if you want immediate delivery.
 #===================================================================
 
 sub regreportsendmail{
@@ -607,7 +607,7 @@ sub	regress_stat {			#return #diags w/ empty directory
   my(%pass_fail_count, %pass_fail_cyc, %pass_fail_sec);
 
   my($format)= "%-65s %4d";
-  my($name_erase)= "\b" x length( sprintf($format, '',0) );	
+  my($name_erase)= "\b" x length( sprintf($format, '',0) );
 
 #========================================
 # figure out the different groups
@@ -626,7 +626,7 @@ sub	regress_stat {			#return #diags w/ empty directory
   my(@group_list)= reverse sort keys %group_count;
 
 #========================================
-# initialize some variables        
+# initialize some variables
 #========================================
   foreach my $status (%STATUS_NAME) {
     foreach $group (@group_list) {
@@ -743,10 +743,18 @@ sub	regress_stat {			#return #diags w/ empty directory
   }
   print $rsfh "\n";
 
-  print  $rsfh $drawline;
+  print $rsfh $drawline;
+  my $return_status = 0;
+  if($group_count{'ALL'} == $group_count_stat{'ALL'}->{'pass'} && $group_count{'ALL'}>0) {
+    print $rsfh "REGRESSION PASSED\n";
+  } else {
+    print $rsfh "REGRESSION FAILED\n";
+    $return_status = 1;
+  }
+  print $rsfh $drawline;
 
   if($summary){
-     return;
+     return $return_status;
   }
 
 # details
@@ -770,7 +778,7 @@ sub	regress_stat {			#return #diags w/ empty directory
            (((scalar(@diag_name_parts) >  $grp_pos_in_name)  && ($group eq $diag_name_parts[$grp_pos_in_name])) ||
              ((scalar(@diag_name_parts) <= $grp_pos_in_name) && ($group eq 'ALL')))
           )
-        { 
+        {
           if(!$print_header){
             print $rsfh "$STATUS_NAME{$type}:\n";
             print $rsfh "===================\n";
@@ -784,6 +792,7 @@ sub	regress_stat {			#return #diags w/ empty directory
   }
   chdir ($curr_dir) || die " something went wrong with changing directories\n";
   $group_count_stat{'ALL'}->{unfi};
+
 }
 
 #=====================================================================
@@ -834,7 +843,7 @@ sub getexecstart{
       last;
     }
   }
-} 
+}
 
 #===================================================================
 # get the number of tiles
@@ -858,10 +867,10 @@ sub vcsgrep{
                 '|compilation errors:\s+0|error encounter: 0|njecting' .
                 '|total\s+mismatch:\s+0|vca_error:\s+0|fail.expected.:\s+0' .
                 '|info|INFO|Info|Vera:\s+Loading' .
-                '|Unimplemented write to ASI_SPARC_ERROR_EN_REG register' .	
-                '|Got exception\s+0x\w+\s+at MAXTL - entering\s+error_state' .	
-                '|Triggering watchdog reset to end error_state' .	
-                '|tick_reg-MISM' .	
+                '|Unimplemented write to ASI_SPARC_ERROR_EN_REG register' .
+                '|Got exception\s+0x\w+\s+at MAXTL - entering\s+error_state' .
+                '|Triggering watchdog reset to end error_state' .
+                '|tick_reg-MISM' .
 		'|error from sem_wait \d+, retried OK'.
 		'|multi line buserror command specified'.
 		'|DEBUG: incoming command \"BUSERROR\"' .
@@ -912,7 +921,7 @@ sub vcsgrep{
 #===================================================================
 sub sasgrep{
   while(<FUT>){
-     if(/$error_pattern|bring up server connection|did not complete properly|pass|max/i){ 
+     if(/$error_pattern|bring up server connection|did not complete properly|pass|max/i){
         $errlines[$errline_num++] = $_;
 #@6120: 0000.pc=20000000 wb_done
      }elsif(/^.(\d+):\s+([\dabcdef]+).pc=(\w+)\s+wb_done/){
@@ -957,7 +966,7 @@ sub diagplgrep{
        push @perf_errors, ($_);
      }
 
-     if(/fail/i){ 
+     if(/fail/i){
        $diagpl_err = 1;
        $print1 = 1;
        push @perf_errors, ($_);
@@ -997,19 +1006,19 @@ sub jobqloggrep{
 
      elsif(/Can.t bring up server connection/io){	$errlines[$errline_num++] = $_;}
      elsif(/Caught a SIG/io){				$errlines[$errline_num++] = $_;}
-     elsif($sas_only && /v:0x$good_trap_va/i){	
+     elsif($sas_only && /v:0x$good_trap_va/i){
        $errlines[$errline_num++] = $_;
        last;
      }
-     elsif($sas_only && /v:0x$hgood_trap_va/i){	
+     elsif($sas_only && /v:0x$hgood_trap_va/i){
        $errlines[$errline_num++] = $_;
        last;
      }
-     elsif($sas_only && /v:0x$bad_trap_va/i){	
+     elsif($sas_only && /v:0x$bad_trap_va/i){
        $errlines[$errline_num++] = $_;
        last;
      }
-     elsif($sas_only && /v:0x$hbad_trap_va/i){	
+     elsif($sas_only && /v:0x$hbad_trap_va/i){
        $errlines[$errline_num++] = $_;
        last;
      }
@@ -1083,7 +1092,7 @@ sub     chk_statuslog {
       elsif(/cyc=\s+([\.\d]+),\s+sec=\s+([\.\d]+)/i){
         $sim_cyc = $1;
         $wall_sec = $2;
-       
+
       }
       push(@templist, $_);
     }
@@ -1117,7 +1126,7 @@ sub     chk_statuslog {
           $templist[0] = $tmp;
           push(@templist, $_);
           last;
-        }    
+        }
         elsif(/no space left on device/i || /caught a sig/i ){
           $status  = 'jobq';
           my($tmp) = "Diag: " . $diag . "\t\t\t Possible Job Q Manager, disk or SIG Problem\n";
@@ -1162,7 +1171,7 @@ Regreport
 use Regreport;
 
 Regreport - looks for *.log files in a directory and reports status.
-Performs the above in all the directories of a regression 
+Performs the above in all the directories of a regression
 directory.
 
 =head1 ABSTRACT
@@ -1174,13 +1183,13 @@ This is a general module for Niagara regression status reporting.
 Not updated yet.
 
 regreport processes the command line
-arguments and looks for the following: 
+arguments and looks for the following:
   <options> [<directory> [<list>]]
 
-<options>: 
+<options>:
   -1:       print report for the specified or
-	    current-directory diag; 
-  -regress <file>: in regression mode, 
+	    current-directory diag;
+  -regress <file>: in regression mode,
   	    writes summary status for finished
             diags to <directory>/<file> until all diags
 	    are finished. NOTE: if some diag doesn't produce
@@ -1197,7 +1206,7 @@ arguments and looks for the following:
        0 or more of simulation 'group' names, such as 'sparc0', 'cmp', 'cmp1,
        'cmp8', etc. When nothing specified, all groups are included.
 -------------------
-chk_single_diag is an exported function which takes a directory name as 
+chk_single_diag is an exported function which takes a directory name as
 an argument and expect a vcs simulation run there. It analyzes the results
 and reports.
 -------------------

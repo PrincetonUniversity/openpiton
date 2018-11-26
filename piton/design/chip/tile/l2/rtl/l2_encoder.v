@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 module l2_encoder(
 
@@ -65,8 +65,8 @@ module l2_encoder(
     input wire [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits,
     input wire [`MSG_SDID_WIDTH-1:0] msg_sdid,
     input wire [`MSG_LSID_WIDTH-1:0] msg_lsid,
- 
-   
+
+
     output reg [`MSG_HEADER_WIDTH-1:0] msg_header
 );
 

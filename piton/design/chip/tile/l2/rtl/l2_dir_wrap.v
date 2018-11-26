@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 
 `include "l2.tmp.h"
-`include "define.vh"
+`include "define.tmp.h"
 
 
 module l2_dir_wrap(
@@ -111,7 +111,7 @@ l2_dir l2_dir(
     .data_mask_in   (data_mask_in),
     .data_out       (data_out),
     .pdata_out      (pdata_out),
-        
+
     // sram interfaces
     .srams_rtap_data (srams_rtap_data),
     .rtap_srams_bist_command (rtap_srams_bist_command),
