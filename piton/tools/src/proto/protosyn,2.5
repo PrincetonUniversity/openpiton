@@ -602,18 +602,18 @@ def main():
     print_info("---- RTL configuration ----")
 
     # tile config
-    if options.x_tiles*options.y_tiles > 1:
-        options.num_tiles = options.x_tiles*options.y_tiles;
-    elif options.num_tiles > 1:
+    if (int(options.x_tiles)*int(options.y_tiles)) > 1:
+        options.num_tiles = int(options.x_tiles)*int(options.y_tiles);
+    elif int(options.num_tiles) > 1:
         print_info("overriding x_tiles and y_tiles, assuming x dimension is <= 8")
         # this is aligned with the sims behavior
-        options.x_tiles = ((options.num_tiles-1) % 8) + 1;
-        options.y_tiles = int((options.num_tiles-1) / 8 + 1);
+        options.x_tiles = ((int(options.num_tiles)-1) % 8) + 1;
+        options.y_tiles = int((int(options.num_tiles)-1) / 8 + 1);
 
-    if options.x_tiles>256:
+    if int(options.x_tiles)>256:
         print_error("x_tiles can be at most 256")
         sys.exit(1)
-    if options.y_tiles>256:
+    if int(options.y_tiles)>256:
         print_error("y_tiles can be at most 256")
         sys.exit(1)
 
@@ -631,7 +631,7 @@ def main():
 
         os.environ['PITON_PICO']     = "1"
 
-        for i in range(options.num_tiles):
+        for i in range(int(options.num_tiles)):
             os.environ['RTL_PICO' + str(i)] = "1"
             print_info('defining RTL_PICO' + str(i))
 
@@ -640,7 +640,7 @@ def main():
         os.environ['PITON_PICO']     = "1"
         os.environ['PITON_PICO_HET'] = "1"
 
-        for i in range(options.num_tiles):
+        for i in range(int(options.num_tiles)):
             if i %2:
                 os.environ['RTL_PICO' + str(i)] = "1"
                 print_info('defining RTL_PICO' + str(i))
@@ -653,13 +653,13 @@ def main():
         os.environ['PITON_ARIANE'] = "1"
         os.environ['L2_CAM_MSHR']  = "1"
 
-        for i in range(options.num_tiles):
+        for i in range(int(options.num_tiles)):
             os.environ['RTL_ARIANE' + str(i)] = "1"
             print_info('defining RTL_ARIANE' + str(i))
 
     elif options.core == 'sparc':
         # this is the default
-        for i in range(options.num_tiles):
+        for i in range(int(options.num_tiles)):
             os.environ['RTL_SPARC' + str(i)] = "1"
             print_info('defining RTL_SPARC' + str(i))
 
