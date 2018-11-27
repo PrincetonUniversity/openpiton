@@ -392,6 +392,10 @@ assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
     assign cpu_mem_traffic = 1'b1;
 `endif
 
+assign chipset_intf_val_noc2 = buf_chip_noc2_valid;
+assign chipset_intf_data_noc2 = buf_chip_noc2_data;
+assign chip_buf_noc2_ready = chipset_intf_rdy_noc2;
+
 assign chip_filter_noc2_valid = intf_chipset_val_noc2;
 assign chip_filter_noc2_data = intf_chipset_data_noc2;
 assign intf_chipset_rdy_noc2    = filter_chip_noc2_ready & cpu_mem_traffic;
@@ -831,13 +835,13 @@ eth_top eth_top (
 `else // PITONSYS_IOCTRL
 // Fake iobridge
 ciop_fake_iob ciop_fake_iob(
-    .noc_in_val        (intf_chipset_val_noc1),
-    .noc_in_rdy        (intf_chipset_rdy_noc1),
-    .noc_in_data       (intf_chipset_data_noc1),
+    .noc_in_val        ( intf_chipset_val_noc1 ),
+    .noc_in_rdy        ( intf_chipset_rdy_noc1 ),
+    .noc_in_data       ( intf_chipset_data_noc1),
 
-    .noc_out_val       (chipset_intf_val_noc2),
-    .noc_out_rdy       (chipset_intf_rdy_noc2),
-    .noc_out_data      (chipset_intf_data_noc2),
+    .noc_out_val       ( iob_filter_noc2_valid ),
+    .noc_out_rdy       ( filter_iob_noc2_ready ),
+    .noc_out_data      ( iob_filter_noc2_data  ),
 
     <%
         text = r'''
