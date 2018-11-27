@@ -1,9 +1,42 @@
 #!/bin/bash
+# Copyright 2018 ETH Zurich and University of Bologna.
+# Copyright and related rights are licensed under the Solderpad Hardware
+# License, Version 0.51 (the "License"); you may not use this file except in
+# compliance with the License.  You may obtain a copy of the License at
+# http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+# or agreed to in writing, software, hardware and materials distributed under
+# this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
 #
-# this script sets up some environment variables for the OpenPiton+Ariane
-# simulation and build flow. Important: use a bash shell for this,
-# and source it while being in the root folder of OpenPiton.
+# Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
+# Date: 26.11.2018
+# Description: This script sets up some environment variables for the
+# OpenPiton+Ariane simulation and build flow. Important: use a bash shell
+# for this, and source it while being in the root folder of OpenPiton.
 #
+# Make sure you have the following packages installed:
+#
+# sudo apt install \
+#          gcc-7 \
+#          g++-7 \
+#          gperf \
+#          autoconf \
+#          automake \
+#          autotools-dev \
+#          libmpc-dev \
+#          libmpfr-dev \
+#          libgmp-dev \
+#          gawk \
+#          build-essential \
+#          bison \
+#          flex \
+#          texinfo \
+#          python-pexpect \
+#          libusb-1.0-0-dev \
+#          default-jdk \
+#          zlib1g-dev \
+#          valgrind
 
 echo
 echo "----------------------------------------------------------------------"
@@ -65,34 +98,22 @@ export C_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
 export CPLUS_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
 export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
 
-#source OpenPiton setup script
+# source OpenPiton setup script
+# note: customize this script to reflect your tool setup
 source ./piton/piton_settings.bash
 
-git submodule update --init --recursive
-
-echo
-echo "----------------------------------------------------------------------"
-echo "building RISCV toolchain and tests (if not existing)"
-echo "----------------------------------------------------------------------"
-echo
-
-# parallel compilation
-export NUM_JOBS=4
-
-cd piton/design/chip/tile/ariane/
-
-ci/make-tmp.sh
-ci/build-riscv-gcc.sh
-ci/install-fesvr.sh
-ci/build-riscv-tests.sh
-ci/install-dtc.sh
-ci/install-spike.sh
-ci/get-torture.sh
-
-cd -
-
-echo
-echo "----------------------------------------------------------------------"
-echo "setup complete"
-echo "----------------------------------------------------------------------"
-echo
+if [[ $(readlink -e "${RISCV}/bin/spike") == "" ]]
+then
+    echo
+    echo "----------------------------------------------------------------------"
+    echo "setup complete. do not forget to run the ariane_build_tools.sh script"
+    echo "if you run this for the first time."
+    echo "----------------------------------------------------------------------"
+    echo
+else
+    echo
+    echo "----------------------------------------------------------------------"
+    echo "setup complete."
+    echo "----------------------------------------------------------------------"
+    echo
+fi

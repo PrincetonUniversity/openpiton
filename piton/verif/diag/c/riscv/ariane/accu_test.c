@@ -10,17 +10,31 @@
 //
 // Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
 // Date: 26.11.2018
-// Description: Simple hello world program that prints 32 times "hello world".
+// Description: Simpe test program that writes a block of data to memory, reads it
+// back and checks whether the checksum is correct.
 //
 
 #include <stdio.h>
 
+// 64kB of data
+#define NUM_WORDS 16*1024
+
 int main(int argc, char ** argv) {
 
-  for (int k = 0; k < 32; k++) {
-    // assemble number and print
-    printf("Hello world (%d)!\n", k);
+  int tmp[NUM_WORDS];
+  int accu;
+
+  for (int k = 0; k < NUM_WORDS; k++) {
+    tmp[k] = k;
   }
 
-  return 0;
+  accu = 0;
+  for (int k = 0; k < NUM_WORDS; k++) {
+    accu+=tmp[k];
+  }
+
+  int expected = NUM_WORDS*(NUM_WORDS-1)/2;
+  printf("exp: %d, act: %d\n", expected, accu);
+
+  return (expected!=accu);
 }

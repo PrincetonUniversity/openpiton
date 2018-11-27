@@ -185,10 +185,33 @@ tile1_amo_tests_v:
   dependencies:
     - ariane-build
 
-ariane_manycore_simple:
+tile1_benchmarks:
   stage: msm_ariane
   script:
-    - sims -group=ariane_tile16 -sim_type=msm
+    - sims -group=ariane_tile1_benchmarks -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+  dependencies:
+    - ariane-build
+
+ariane_tile1_simple:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile1_simple -sim_type=msm
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+    - "cd ariane*"
+    - "cat fake_uart.log"
+  dependencies:
+    - ariane-build
+
+
+ariane_tile16_simple:
+  stage: msm_ariane
+  script:
+    - sims -group=ariane_tile16_simple -sim_type=msm
     - "cd 2*"
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"

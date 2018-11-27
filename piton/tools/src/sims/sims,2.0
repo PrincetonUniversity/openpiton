@@ -2084,8 +2084,8 @@ sub assemble_diag
 
     # add default path to look for precompiled RISCV 64bit assembly tests diags in case of ariane
     if ($opt{ariane} and $opt{precompiled}) {
-      push @opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
-      push @opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
+      push $opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
+      push $opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
     }
 
     # find diagnostic
@@ -2152,7 +2152,7 @@ sub assemble_diag
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
-        my $cmd = "rv64_cc ${diag_name}" ;
+        my $cmd = "rv64_cc ${diag_name} $ENV{PTON_NUM_TILES}" ;
         print "$prg: $cmd\n";
         my $waitstatus = call_program($cmd, "rv64_cc.log");
         die ("DIE. rv64_cc compilation error") if ($waitstatus) ;

@@ -12,10 +12,19 @@
 # Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
 # Date: 15.08.2018
 # Description: compilation script for rv64 targets
+#
+# The first argument is the path to the c program to be compiled, second argument is the number of tiles in the system.
 
 # Todo: upgrade from IMAC -> IMACFD when FP is available
-riscv64-unknown-elf-gcc -march=rv64imac -mabi=lp64 -static -mcmodel=medany                               \
-                        -fvisibility=hidden -nostartfiles                                                \
-                        -I${DV_ROOT}/verif/diag/assembly/include/riscv/ariane                            \
-                        -T${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/link.ld                    \
-                        $1 ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/text_init.S -o diag.exe
+RISCV_GCC=riscv64-unknown-elf-gcc
+RISCV_GCC_OPTS="-march=rv64imac -mabi=lp64 -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -fno-common -fno-builtin-printf -DPITON_NUMTILES=$2"
+RISCV_LINK_OPTS="-static -nostdlib -nostartfiles -lm -lgcc -T ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/link.ld"
+
+# $(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
+INCS="-I${DV_ROOT}/verif/diag/assembly/include/riscv/ariane"
+
+${RISCV_GCC} ${INCS} ${RISCV_GCC_OPTS} -o diag.exe $1                        \
+             ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/syscalls.c  \
+             ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/crt.S       \
+             ${RISCV_LINK_OPTS}
+

@@ -10,39 +10,27 @@
 //
 // Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
 // Date: 26.11.2018
-// Description: Some common helper functions for simple hello world C programs.
+// Description: Simple hello world program that prints the core id.
+// Also runs correctly on manycore configs.
 //
 
-#pragma once
+#include <stdint.h>
+#include <stdio.h>
 
-#define FAKE_UART_ADDRESS 0XFFF0C2C000
+int main(int argc, char** argv) {
 
-// prints a cstring via the fake UART
-void printStr(char * str) {
-  volatile char * uartAddr = (char*)FAKE_UART_ADDRESS;
-  int k=0;
-  while(str[k]!='\0') {
-    (*uartAddr) = str[k++];
-  }
-  return;
+  // synchronization variable
+  volatile static uint32_t amo_cnt = 0;
+  const           uint32_t one = 1;
+
+  // synchronize with other cores and wait until it is this core's turn
+  while(argv[0][0] != amo_cnt);
+
+  // assemble number and print
+  printf("Hello world, this is hart %d of %d harts!\n", argv[0][0], argv[0][1]);
+
+  // increment atomic counter
+  __asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (amo_cnt) : "r" (one) : "memory");
+
+  return 0;
 }
-
-// inserts number with dig digits at position pos in string
-void num2str(char * str, int num, int pos, int dig) {
-  for (int k=dig-1; k>=0; k--) {
-    str[pos+k] = num % 10 + '0';
-    num /= 10;
-  }
-  return;
-}
-
-// GOOD pass trap for the TB, do not modify the function name
-volatile void pass () {
-  return;
-}
-
-// BAD fail trap for the TB, do not modify the function name
-volatile void fail () {
-  return;
-}
-

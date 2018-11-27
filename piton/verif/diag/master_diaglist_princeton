@@ -287,6 +287,14 @@ pico-xori   xori.S
             ariane-vvadd     vvadd.riscv
         </runargs>
     </ariane_tile1_benchmarks>
+
+    <ariane_tile1_simple>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane>
+            ariane-hello-world hello_world.c
+            ariane-accu        accu_test.c
+        </runargs>
+    </ariane_tile1_simple>
+
 </cmp_default>
 </ariane_tile1>
 
@@ -294,7 +302,7 @@ pico-xori   xori.S
     <cmp_default name=default>
     <ariane_tile16_simple>
         <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask 0x1111111111111111 -rtl_timeout 1000000>
-            ariane-hello-world hello_world.c
+            ariane-hello-world-many hello_world_many.c
         </runargs>
     </ariane_tile16_simple>
     </cmp_default>
