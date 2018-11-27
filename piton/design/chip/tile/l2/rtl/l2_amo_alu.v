@@ -44,9 +44,15 @@ reg  [63:0] amo_64b_tmp, amo_64b_result;
 reg  [64:0] adder_operand_a, adder_operand_b;
 wire [64:0] adder_sum;
 
+// note: the L2_DATA_DATA_WIDTH_LOG2 is calculated for a bit width
+// so we have to subtract 6 from it in order to get the a dword index
+wire [`L2_DATA_DATA_WIDTH_LOG2-7:0] dword_offset;
+
+
 // select dword to operate on
-assign amo_operand_a_mux = memory_operand[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64];
-assign amo_operand_b_mux = cpu_operand[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64];
+assign dword_offset      = address[`L2_DATA_DATA_WIDTH_LOG2-4:3];
+assign amo_operand_a_mux = memory_operand[dword_offset*64 +: 64];
+assign amo_operand_b_mux = cpu_operand[dword_offset*64 +: 64];
 
 // endianess swap (if needed)
 generate
@@ -81,16 +87,16 @@ always @* begin
 
   case (data_size)
     `MSG_DATA_SIZE_1B: begin
-      amo_operand_a[56 +: 8]     = amo_operand_a_swp[address[2:0]<<3 +: 8];
-      amo_operand_b[56 +: 8]     = amo_operand_b_swp[address[2:0]<<3 +: 8];
+      amo_operand_a[56 +: 8]     = amo_operand_a_swp[address[2:0]*8 +: 8];
+      amo_operand_b[56 +: 8]     = amo_operand_b_swp[address[2:0]*8 +: 8];
     end
     `MSG_DATA_SIZE_2B: begin
-        amo_operand_a[48 +: 16]  = amo_operand_a_swp[address[2:1]<<4 +: 16];
-        amo_operand_b[48 +: 16]  = amo_operand_b_swp[address[2:1]<<4 +: 16];
+        amo_operand_a[48 +: 16]  = amo_operand_a_swp[address[2:1]*16 +: 16];
+        amo_operand_b[48 +: 16]  = amo_operand_b_swp[address[2:1]*16 +: 16];
      end
     `MSG_DATA_SIZE_4B: begin
-        amo_operand_a[32 +: 32]  = amo_operand_a_swp[address[2:2]<<5 +: 32];
-        amo_operand_b[32 +: 32]  = amo_operand_b_swp[address[2:2]<<5 +: 32];
+        amo_operand_a[32 +: 32]  = amo_operand_a_swp[address[2:2]*32 +: 32];
+        amo_operand_b[32 +: 32]  = amo_operand_b_swp[address[2:2]*32 +: 32];
     end
     `MSG_DATA_SIZE_8B: begin
         amo_operand_a  = amo_operand_a_swp;
@@ -141,19 +147,18 @@ end
 
 
 // operand select and endianess swap
-integer j;
 always @* begin
   // first read-modify-write 64bit word
-  amo_64b_result = amo_operand_a;
+  amo_64b_result = amo_operand_a_swp;
   case (data_size)
     `MSG_DATA_SIZE_1B: begin
-      amo_64b_result[address[2:0]<<3 +: 8]     = amo_64b_tmp[56 +: 8];
+      amo_64b_result[address[2:0]*8 +: 8]     = amo_64b_tmp[56 +: 8];
     end
     `MSG_DATA_SIZE_2B: begin
-        amo_64b_result[address[2:1]<<4 +: 16]  = amo_64b_tmp[48 +: 16];
+        amo_64b_result[address[2:1]*16 +: 16]  = amo_64b_tmp[48 +: 16];
      end
     `MSG_DATA_SIZE_4B: begin
-        amo_64b_result[address[2:2]<<5 +: 32]  = amo_64b_tmp[32 +: 32];
+        amo_64b_result[address[2:2]*32 +: 32]  = amo_64b_tmp[32 +: 32];
     end
     `MSG_DATA_SIZE_8B: begin
         amo_64b_result  = amo_64b_tmp;
@@ -164,16 +169,16 @@ always @* begin
   // merge back into memory line
   amo_result     = memory_operand;
   if (SWAP_ENDIANESS) begin
-    amo_result[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64] = {amo_64b_result[ 0 +:8],
-                                                                  amo_64b_result[ 8 +:8],
-                                                                  amo_64b_result[16 +:8],
-                                                                  amo_64b_result[24 +:8],
-                                                                  amo_64b_result[32 +:8],
-                                                                  amo_64b_result[40 +:8],
-                                                                  amo_64b_result[48 +:8],
-                                                                  amo_64b_result[56 +:8]};
+    amo_result[dword_offset*64 +: 64] = {amo_64b_result[ 0 +:8],
+                                         amo_64b_result[ 8 +:8],
+                                         amo_64b_result[16 +:8],
+                                         amo_64b_result[24 +:8],
+                                         amo_64b_result[32 +:8],
+                                         amo_64b_result[40 +:8],
+                                         amo_64b_result[48 +:8],
+                                         amo_64b_result[56 +:8]};
   end else begin
-    amo_result[address[`L2_DATA_DATA_WIDTH_LOG2-1:3]<<6 +: 64] = amo_64b_result;
+    amo_result[dword_offset*64 +: 64] = amo_64b_result;
   end
 end
 
