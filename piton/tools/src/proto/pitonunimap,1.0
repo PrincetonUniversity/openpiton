@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,7 +33,7 @@
 #  Email         : openpiton@princeton.edu
 #
 #  Description   : Generates unified Verilog address mapping for all assembly tests in <filename>
-#                  from CPU physical addresses to memory (BRAM or DDR) addresses           
+#                  from CPU physical addresses to memory (BRAM or DDR) addresses
 #
 #####################################################################
 
@@ -57,6 +57,10 @@ def usage():
     print >> sys.stderr, "                  vc707"
     print >> sys.stderr, "                  genesys2"
     print >> sys.stderr, "                  nexysVideo"
+    print >> sys.stderr, "\n       -c, --core <core_config>"
+    print >> sys.stderr, "              Name of a supported core configuration:"
+    print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
+    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
     print >> sys.stderr, "\n       -h, --help"
     print >> sys.stderr, "              Display this help message"
     print >> sys.stderr, "\n"
@@ -83,7 +87,7 @@ def checkCmdOptions(options):
 
     return True
 
-def genUnifiedMapping(st_brd, test_list, uart_div_latch, flog):
+def genUnifiedMapping(st_brd, test_list, uart_div_latch, flog, coreType="sparc"):
     prev_dir = os.getcwd()
 
     os.chdir(MODEL_DIR)
@@ -93,7 +97,7 @@ def genUnifiedMapping(st_brd, test_list, uart_div_latch, flog):
         test_cnt += 1
         # Run midas only to get mem.image file
         print >> sys.stderr, "Compiling %s - %d / %d" % (tname, test_cnt, len(test_list))
-        rv = runMidas(tname, uart_div_latch, flog)
+        rv = runMidas(tname, uart_div_latch, flog, None, coreType)
         if rv != 0:
             print >> sys.stderr, "ERROR: midas. See %s " % FLOG_NAME
             print >> sys.stderr, "Skipping %s" % tname
@@ -117,7 +121,7 @@ def genUnifiedMapping(st_brd, test_list, uart_div_latch, flog):
             sec_start = m.group(1)
             sec_size = int(m.group(2))
             # print sec_start, sec_size
-            # can be overlapping of different sections. This is taken care of in 
+            # can be overlapping of different sections. This is taken care of in
             if sec_start in all_test_sections.keys():
                 if all_test_sections[sec_start] < sec_size:
                     print "INFO: Increasing size of the section 0x%s from %d to %d" %  (sec_start, all_test_sections[sec_start], sec_size)
@@ -163,6 +167,7 @@ def setParserOptions(parser):
     parser.add_option("-b", "--board", dest="board", action="store", default=None)
     parser.add_option("-s", "--storage", dest="storage", action="store", default="ddr")
     parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
+    parser.add_option("-c", "--core", dest="core", action="store", default="sparc")
 
     return parser
 
@@ -181,7 +186,7 @@ def main():
     tests = getTestList(options.fname, flog)
     uart_div_latch = 0x0    # doesn't matter since we care only about addresses
 
-    genUnifiedMapping(st_brd, tests, uart_div_latch, flog)
+    genUnifiedMapping(st_brd, tests, uart_div_latch, flog, options.core)
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,7 +33,7 @@
 #  Email         : openpiton@princeton.edu
 #
 #  Description   : top level script for streaming data from PC to
-#                  OpenPiton proto            
+#                  OpenPiton proto
 #
 #####################################################################
 
@@ -89,6 +89,10 @@ def usage():
     print >> sys.stderr, "\n       -d, --design <design>"
     print >> sys.stderr, "              Name of design used to determine frequency. Default is 'system'."
     print >> sys.stderr, "              See $DV_ROOT/tools/src/proto/block.list for supported design modules"
+    print >> sys.stderr, "\n       -c, --core <core_config>"
+    print >> sys.stderr, "              Name of a supported core configuration:"
+    print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
+    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
     print >> sys.stderr, "\n       -f, --file <filename>"
     print >> sys.stderr, "              File name with test names. If option --ustr is not specified,"
     print >> sys.stderr, "              they should be assembly test names, otherwise list of generated"
@@ -118,7 +122,7 @@ def checkCmdOptions(options):
         usage()
         return False
 
-    # Check if design is specified 
+    # Check if design is specified
     # (It has a default value so always should be)
     if (options.design == None):
         print_error("Invalid parameters")
@@ -191,11 +195,11 @@ def pollUART(ser):
                     tstop = time.time()
                     event = KEY_EVENT_MAP[key]
                     # if keyword was in the current read chunk of data,
-                    # we can remove it, since it's not test output            
+                    # we can remove it, since it's not test output
                     rdata = re.sub("%s" % key, "", rdata)
                     was_key = True
                     break
-            
+
             writeSTDOUT("%s" % rdata)
             # exit polling as soon as key found
             if was_key:
@@ -221,7 +225,7 @@ def loadTest(tname, ser):
     for line in f:
         line_striped = line.strip()
         ser.write(line_striped.decode("hex"))
-        line_cnt += 1 
+        line_cnt += 1
         perc = 100*line_cnt/num_lines
         if (perc > prev_perc):
             sys.stdout.write("%d%%\r" % perc)
@@ -271,12 +275,12 @@ def addrDataFromC(fname):
 
     return test_addr_data_map
 
-def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None):
+def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreType="sparc"):
     prev_dir = os.getcwd()
     os.chdir(MODEL_DIR)
     print_info("Compiling %s" % tname)
     # Run midas only to get mem.image file
-    rv = runMidas(tname, uart_div_latch, flog, midas_args)
+    rv = runMidas(tname, uart_div_latch, flog, midas_args, coreType)
     if rv != 0:
         return rv
 
@@ -298,7 +302,7 @@ def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None):
     if not rv:
         print_error("Can't use existent storage_addr_trans.v for %s" % tname)
         return 1
-    
+
     # Use available functions in make_mem_map.py to generate sections
     # and map them to contiguos memory
     print_info("Extracting test sections") #NOTE: can be optimized and extracted from mem.image
@@ -321,6 +325,7 @@ def setParserOptions(parser):
     parser.add_option("-b", "--board", dest="board", action="store")
     parser.add_option("-d", "--design", dest="design", action="store", default="system")
     parser.add_option("-p", "--port", dest="port", action="store", default="ttyUSB0")
+    parser.add_option("-c", "--core", dest="core", action="store", default="sparc")
     parser.add_option("--midas_args", dest="midas_args", action="store")
     parser.add_option("--ustr", dest="ustr", action="store_true", default=False)
     parser.add_option("--no_wait_fpga_config", dest="no_wait_fpga_config", action="store_true", default=False)
@@ -338,18 +343,18 @@ def main():
     (options, args) = parser.parse_args()
 
     flog = open(FLOG_NAME, 'w')
-    
+
     # Check input options
     rv = checkCmdOptions(options)
     if not rv:
         exitProgram(1, None, flog)
-    
+
     if options.storage == "bram":
         st_brd = StorageBoard("bram", options.board)
 
     if options.storage == "ddr":
         st_brd = StorageBoard("dmw", options.board)
-    
+
     # Get list of tests and board configuration
     tests = getTestList(options.fname, flog, options.ustr)
     # Calculate UART divider latch before test compilation
@@ -388,7 +393,7 @@ def main():
         print_info("Running %s: %d out of %d test" % (tname, test_cnt, test_num))
         # Compile .s tests to get .ustr
         if options.ustr == False:
-            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args)
+            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core)
             if rv != 0:
                 print_error("Test compilation failed")
                 print_error("Skipping %s" % tname)
@@ -411,7 +416,7 @@ def main():
                 writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
                 writeSTDOUT("%s : %sInterrupted by HW reset%s\n\n" % (tname, bcolors.FAILED, bcolors.ENDC))
                 tstatus = "HWRESET"
-            
+
             if event == TEST_PASSED_EVENT:
                 writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
                 writeSTDOUT("%s : %sPASSED%s\n" % (tname, bcolors.PASSED, bcolors.ENDC))
@@ -424,13 +429,13 @@ def main():
 
             if event == TEST_TIMEOUT_EVENT:
                 writeSTDOUT("\n<<< END OF TEST OUTPUT\n")
-                writeSTDOUT("%s : %sTIMEOUT%s\n\n" % (tname, bcolors.TIMEOUT, bcolors.ENDC))      
+                writeSTDOUT("%s : %sTIMEOUT%s\n\n" % (tname, bcolors.TIMEOUT, bcolors.ENDC))
                 tstatus = "TIMEOUT"
 
             test_time = tstop - tstart
             print_info("Execution time: %.8f sec\n\n" % test_time)
-	    csvwriter.writerow([test_cnt-1,tname,tstatus,"%.8f" % test_time]) 
- 
+            csvwriter.writerow([test_cnt-1,tname,tstatus,"%.8f" % test_time])
+
         except KeyboardInterrupt:
             processKeyboardInterrupt(ser, flog)
             return

@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -13,7 +13,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -182,7 +182,7 @@ def genCoe(section_list):
             else:
                 term = ','
             print >> f, blocks[i]+term
-    
+
     f.close()
 
 def genVerilogMapping(section_list, st_brd, fname=MAP_MODULE_NAME, tname="unknown"):
@@ -197,7 +197,7 @@ def genVerilogMapping(section_list, st_brd, fname=MAP_MODULE_NAME, tname="unknow
     print >> f, """ module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
 (
     input       [VA_ADDR_WIDTH-1:0]         va_byte_addr,
-    
+
     output      [STORAGE_ADDR_WIDTH-1:0]    storage_addr_out,
     output                                  hit_any_section
 );
@@ -330,7 +330,7 @@ def makeAddrDataTestDict(fname, memimage_map, flog):
         exit(2)
 
     test_map = dict()
- 
+
     for line in f:
         m = re.search(r'MemRead:[\s]+([0-9a-fA-F]+)[\s]*:[\s]*([0-9a-fA-F]+)', line)
         if (m != None):
@@ -351,7 +351,7 @@ def makeAddrDataTestDict(fname, memimage_map, flog):
     f.close()
 
     return test_map
-    
+
 ###########################################################
 # Name:     memTestData
 # Input:    test_map    -   dictionary { addr : data}
@@ -383,7 +383,7 @@ def memTestData(st_brd, test_map, flog):
     # last interval must be mappend in any case
     test_sections.addSection(Section(sect_first, addr, test_map, st_brd), flog)
     # print >> sys.stderr, "Created %d sections for test in memory" % len(test_sections.getSections())
- 
+
     print_info("Checking correctness of section mapping... ")
 
     sections = test_sections.getSections()
@@ -410,7 +410,7 @@ def makeMapping(st_brd, tname="unknown"):
 
     bram_map_file   = os.path.join(MODEL_DIR, MAP_MODULE_NAME)
 
-    
+
     mem_image_data = memImageData(fname_image)
     print_info("Length of image file: %d" % len(mem_image_data.keys()))
     addr_data_test_map = makeAddrDataTestDict(fsim_log, mem_image_data, flog)
@@ -421,7 +421,7 @@ def makeMapping(st_brd, tname="unknown"):
     if rv != 0:
         flog.close()
         return 1
-    
+
 
     # should be ordered list - does it still true?
     genCoe(sections)

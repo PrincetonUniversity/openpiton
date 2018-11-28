@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -197,22 +197,22 @@ def isTranslatorOK(addr_data_map, flog):
             print >> flog, "ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc)
             print >> sys.stderr, "ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc)
             return False
- 
+
     return True
 
 
 def getTestList(fname, flog, ustr_files=False):
     f = open(fname, 'r')
-    
+
     test_list = list()
-    suff = "ustr" if ustr_files else "s"
+    suff = "ustr" if ustr_files else "[s|S|c]"
     for line in f:
         mstr = "([0-9a-zA-Z_-]+\.%s)" % suff
         m = re.search(mstr, line)
         if m != None:
             tname = m.group(1)
             test_list.append(tname)
-
+            print tname
     f.close()
     return test_list
 
@@ -224,7 +224,7 @@ def getTestList(fname, flog, ustr_files=False):
 # Output:   rv              - return value from midas
 # Description: compile assebly test using midas tool
 ############################################################################
-def runMidas(tname, uart_div_latch, flog, midas_args=None):
+def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc"):
     cmd = ""
     if midas_args is None:
         cmd = "sims -sys=manycore -novcs_build -midas_only \
@@ -233,8 +233,17 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None):
        	cmd = "sims -sys=manycore -novcs_build -midas_only \
               -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC %s' %s" % \
               (uart_div_latch, midas_args, tname)
-    rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
 
+    if coreType == "ariane":
+        cmd += " -ariane"
+    elif coreType == "sparc":
+        # nothing to add at the moment
+        pass
+    else:
+        raise Exception("unknown core type " + coreType)
+
+    rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
+    print cmd
     return rv
 
 
@@ -299,7 +308,7 @@ def buildProjectSuccess(log_dir):
     return True
 
 
-def implFlowSuccess(log_dir, run_dir):    
+def implFlowSuccess(log_dir, run_dir):
     syn_dir = os.path.join(run_dir, "synth_1")
     impl_dir = os.path.join(run_dir, "impl_1")
 
