@@ -104,4 +104,8 @@
 `define PITON_TEST_GOOD_END     40'h8100000000
 `define PITON_TEST_BAD_END      40'h8200000000
 
-`define OLED_STRING "OpenPiton  rel 8Princeton            Parallel              Group"
+`ifndef PITON_ARIANE
+`define OLED_STRING "OpenPiton rel 10Princeton            Parallel              Group"
+`else
+`define OLED_STRING "OpenPiton+ArianePrinceton & ETHZA Collaboration"
+`endif
