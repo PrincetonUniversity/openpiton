@@ -202,8 +202,7 @@ ariane_tile1_simple:
     - "cd 2*"
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"
-    - "cd ariane*"
-    - "cat fake_uart.log"
+    - "cat ariane*/fake_uart.log"
   dependencies:
     - ariane-build
 
@@ -215,7 +214,6 @@ ariane_tile16_simple:
     - "cd 2*"
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"
-    - "cd ariane*"
-    - "cat fake_uart.log"
+    - "cat ariane*/fake_uart.log"
   dependencies:
     - ariane-build
