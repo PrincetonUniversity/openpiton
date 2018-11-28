@@ -46,6 +46,16 @@ set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_c
 set_false_path -from [get_clocks net_axi_clk_clk_mmcm] -to [get_clocks chipset_clk_clk_mmcm]
 
 
+## PMOD Header JC
+set_property -dict {PACKAGE_PIN AC26 IOSTANDARD LVCMOS33} [get_ports tck_i]
+set_property -dict {PACKAGE_PIN AJ27 IOSTANDARD LVCMOS33} [get_ports td_i]
+set_property -dict {PACKAGE_PIN AH30 IOSTANDARD LVCMOS33} [get_ports td_o]
+set_property -dict {PACKAGE_PIN AK29 IOSTANDARD LVCMOS33} [get_ports tms_i]
+set_property -dict {PACKAGE_PIN AD26 IOSTANDARD LVCMOS33} [get_ports trst_ni]
+
+# accept sub-optimal placement
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i_IBUF]
+
 #### UART
 #IO_L11N_T1_SRCC_35 Sch=uart_rxd_out
 set_property IOSTANDARD LVCMOS33 [get_ports uart_rx]

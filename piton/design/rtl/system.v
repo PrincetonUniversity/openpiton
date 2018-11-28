@@ -160,6 +160,16 @@ module system(
     output                                      jtag_dataout,
 `endif  // endif PITON_NO_JTAG
 
+`ifdef PITON_FPGA_SYNTH
+`ifdef PITON_ARIANE
+  input                                         tck_i,
+  input                                         tms_i,
+  input                                         trst_ni,
+  input                                         td_i,
+  output                                        td_o,
+`endif
+`endif
+
     // Asynchronous FIFOs enable
     // for off-chip link (core<->io_clk)
 `ifndef PITON_NO_CHIP_BRIDGE
@@ -461,6 +471,18 @@ assign passthru_jtag_rst_n = 1'b1;
 assign passthru_pll_rst_n = 1'b1;
 `endif
 
+
+`ifndef PITON_FPGA_SYNTH
+`ifdef PITON_ARIANE
+  wire tck_i, tms_i, trst_ni, td_i, td_o;
+  assign tck_i   = 1'b0;
+  assign tms_i   = 1'b0;
+  assign trst_ni = 1'b0;
+  assign td_i    = 1'b0;
+`endif
+`endif
+
+
 //////////////////////////
 // Sub-module Instances //
 //////////////////////////
@@ -522,20 +544,11 @@ chip chip(
     .jtag_datain(1'b0),
     .jtag_dataout(),
 `else // ifndef PITON_NO_JTAG
-`ifdef PITON_ARIANE
-    // Tie off, since Ariane has its own JTAG
-    .jtag_clk(1'b0),
-    .jtag_rst_l(1'b1),
-    .jtag_modesel(1'b1),
-    .jtag_datain(1'b0),
-    .jtag_dataout(),
-`else  //  PITON_ARIANE
     .jtag_clk(jtag_clk),
     .jtag_rst_l(jtag_rst_n_full),
     .jtag_modesel(jtag_modesel),
     .jtag_datain(jtag_datain),
     .jtag_dataout(jtag_dataout),
-`endif // endif PITON_ARIANE
 `endif // endif PITON_NO_JTAG
 
     // Asynchronous FIFOs enable
@@ -895,11 +908,11 @@ chipset chipset(
     .debug_req_o                    ( debug_req                  ), // async debug request
     .unavailable_i                  ( unavailable                ), // communicate whether the hart is unavailable (e.g.: power down)
     // JTAG
-    .tck_i                          ( jtag_clk                   ),
-    .tms_i                          ( jtag_modesel               ),
-    .trst_ni                        ( jtag_rst_n_full            ),
-    .td_i                           ( jtag_datain                ),
-    .td_o                           ( jtag_dataout               ),
+    .tck_i                          ( tck_i                      ),
+    .tms_i                          ( tms_i                      ),
+    .trst_ni                        ( trst_ni                    ),
+    .td_i                           ( td_i                       ),
+    .td_o                           ( td_o                       ),
     .tdo_oe_o                       (                            ),
     //CLINT
     .rtc_i                          ( rtc                        ), // Real-time clock in (usually 32.768 kHz)
