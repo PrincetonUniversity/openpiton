@@ -290,8 +290,9 @@ pico-xori   xori.S
 
     <ariane_tile1_simple>
         <runargs -x_tiles=1 -y_tiles=1 -ariane>
-            ariane-hello-world hello_world.c
-            ariane-accu        accu_test.c
+            ariane-hello-world  hello_world.c
+            ariane-accu         accu_test.c
+            ariane-amo-align    amo_align.c
         </runargs>
     </ariane_tile1_simple>
 

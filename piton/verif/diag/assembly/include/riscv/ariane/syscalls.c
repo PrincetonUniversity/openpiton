@@ -23,7 +23,7 @@
 // HEREUNDER IS PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE
 // MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
-// this file has been copied and adapted for compatibility with the OpenPiton testbench
+// this file has been copied and adapted for the OpenPiton testbench
 
 #include <stdint.h>
 #include <string.h>
@@ -46,6 +46,8 @@ extern volatile uint64_t fromhost;
 #define NUM_COUNTERS 2
 static uintptr_t counters[NUM_COUNTERS];
 static char* counter_names[NUM_COUNTERS];
+
+
 
 // prints a cstring via the fake UART
 void printbuf(const char * buf, int buflen) {
@@ -132,13 +134,13 @@ int __attribute__((weak)) main(int argc, char** argv)
 
     volatile static uint32_t finish_sync0 = 0;
     volatile static uint32_t finish_sync1 = 0;
-    const           uint32_t one = 1;
 
     char num[2]   = {cid, nc};
     char *argv[1] = {num};
     int ret = main(2, argv);
 
-    __asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync0) : "r" (one) : "memory");
+    ATOMIC_OP(finish_sync0, 1, add, w);
+    //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync0) : "r" (1) : "memory");
     while(finish_sync0 != nc);
 
     // synchronize for debug output below
@@ -152,7 +154,8 @@ int __attribute__((weak)) main(int argc, char** argv)
     if (pbuf != buf)
       printstr(buf);
 
-    __asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync1) : "r" (one) : "memory");
+    ATOMIC_OP(finish_sync1, 1, add, w);
+    //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync1) : "r" (1) : "memory");
 
     exit(ret);
   }

@@ -16,12 +16,12 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "util.h"
 
 int main(int argc, char** argv) {
 
   // synchronization variable
   volatile static uint32_t amo_cnt = 0;
-  const           uint32_t one = 1;
 
   // synchronize with other cores and wait until it is this core's turn
   while(argv[0][0] != amo_cnt);
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   printf("Hello world, this is hart %d of %d harts!\n", argv[0][0], argv[0][1]);
 
   // increment atomic counter
-  __asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (amo_cnt) : "r" (one) : "memory");
+  ATOMIC_OP(amo_cnt, 1, add, w);
 
   return 0;
 }

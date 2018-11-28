@@ -23,6 +23,8 @@
 # HEREUNDER IS PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE
 # MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
+# with small modifications for OpenPiton
+
 #include "encoding.h"
 
 #if __riscv_xlen == 64
