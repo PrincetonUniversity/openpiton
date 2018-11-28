@@ -35,9 +35,6 @@
 
 #define SYS_write 64
 
-// openpitons fake uart address
-#define PITON_UART_ADDRESS 0XFFF0C2C000
-
 #undef strcmp
 
 extern volatile uint64_t tohost;
@@ -61,11 +58,15 @@ void printbuf(const char * buf, int buflen) {
 
 // GOOD pass trap for the OpenPiton TB and pitonstream, do not modify the function name
 void __attribute__((noreturn, noinline)) pass () {
+  volatile unsigned long long trap;
+  trap = *((unsigned long long *) PITON_TEST_GOOD_END);
   while(1);
 }
 
 // BAD fail trap for the OpenPiton TB and pitonstream, do not modify the function name
 void __attribute__((noreturn, noinline)) fail () {
+  volatile unsigned long long trap;
+  trap = *((unsigned long long *) PITON_TEST_BAD_END);
   while(1);
 }
 

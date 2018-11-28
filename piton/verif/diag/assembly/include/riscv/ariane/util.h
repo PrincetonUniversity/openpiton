@@ -29,6 +29,12 @@
 #define __UTIL_H
 
 
+// some OpenPiton-specific defines
+#define PITON_UART_ADDRESS  0xFFF0C2C000ULL
+#define PITON_TEST_GOOD_END 0x8100000000ULL
+#define PITON_TEST_BAD_END  0x8200000000ULL
+
+
 extern void setStats(int enable);
 
 #include <stdint.h>

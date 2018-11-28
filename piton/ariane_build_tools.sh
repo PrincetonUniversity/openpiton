@@ -71,7 +71,7 @@ ci/install-spike.sh
 VERSION="7cc76ea83b4f827596158c8ba0763e93da65de8f"
 cd tmp
 
-[ -d $ROOT/tmp/riscv-tests ] || git clone https://github.com/riscv/riscv-tests.git
+[ -d riscv-tests ] || git clone https://github.com/riscv/riscv-tests.git
 cd riscv-tests
 git checkout $VERSION
 git submodule update --init --recursive
@@ -80,8 +80,9 @@ mkdir -p build
 
 # link in adapted syscalls.c such that the benchmarks can be used in the OpenPiton TB
 cd benchmarks/common/
-rm syscalls.c
+rm syscalls.c util.h
 ln -s ${PITON_ROOT}/piton/verif/diag/assembly/include/riscv/ariane/syscalls.c
+ln -s ${PITON_ROOT}/piton/verif/diag/assembly/include/riscv/ariane/util.h
 cd -
 
 cd build
