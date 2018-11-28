@@ -1,3 +1,3 @@
 [submodule "piton/design/chip/tile/ariane"]
 	path = piton/design/chip/tile/ariane
-	url = git@iis-git.ee.ethz.ch:michael.schaffner/ariane-dev.git
+	url = https://github.com/pulp-platform/ariane.git
