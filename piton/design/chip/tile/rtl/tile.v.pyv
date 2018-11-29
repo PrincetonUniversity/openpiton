@@ -975,6 +975,7 @@ print("        .CachedAddrEnd ( 64'h%s         )" % cacheStop)
     ) core (
         .clk_i       ( clk_gated              ),
         .reset_l     ( rst_n_f                ),
+        .spc_grst_l  ( spc_grst_l             ),
         .boot_addr_i ( ariane_bootaddr        ),
         .hart_id_i   ( {{64-`JTAG_FLATID_WIDTH{1'b0}}, flat_tileid} ),
         .irq_i       ( irq_i                  ),
@@ -987,14 +988,6 @@ print("        .CachedAddrEnd ( 64'h%s         )" % cacheStop)
 
     assign unavailable_o = 1'b0;
 
-    reset_synchronizer #(
-        .NUM_REGS(4)
-    ) i_rst_sync (
-        .clk_i   ( clk_gated  ),
-        .rst_ni  ( rst_n_f    ),
-        .tmode_i ( 1'b0       ),
-        .rst_no  ( spc_grst_l )
-    );
 `endif
   end
   endgenerate

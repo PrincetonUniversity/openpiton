@@ -1,6 +1,6 @@
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -26,13 +26,13 @@
 //==================================================================================================
 //  Filename      : synchronizer.v
 //  Created On    : 2014-01-31 12:52:57
-//  Last Modified : 2015-01-26 14:31:14
+//  Last Modified : 2018-11-29 17:02:47
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
 //  Email         : trin@princeton.edu
 //
-//  Description   : 
+//  Description   :
 //==================================================================================================
 
 `ifdef L15_EXTRA_DEBUG
@@ -52,7 +52,21 @@ input wire clk;
 input wire [SIZE-1:0] presyncdata;
 output reg [SIZE-1:0] syncdata;
 
-reg [SIZE-1:0] presyncdata_tmp;
+`ifdef PITON_ARIANE
+// this prevents SV assertion failures in Ariane
+// pragma_translate_off
+`define SIM_RST_INIT
+// pragma translate_on
+`ifdef SIM_RST_INIT
+  reg [SIZE-1:0] presyncdata_tmp = {{SIZE}{1'b0}};
+`else
+  reg [SIZE-1:0] presyncdata_tmp;
+`endif
+`undef SIM_RST_INIT
+`else
+  reg [SIZE-1:0] presyncdata_tmp;
+`endif
+
 
     // bw_u1_syncff_4x u_synchronizer_syncff [SIZE-1:0](.q(presyncdata_tmp),
     //                  .so(),
@@ -73,7 +87,7 @@ reg [SIZE-1:0] presyncdata_tmp;
 always @ (posedge clk)
 begin
     presyncdata_tmp <= presyncdata;
-    syncdata <= presyncdata_tmp;
+    syncdata        <= presyncdata_tmp;
 end
 
 endmodule
