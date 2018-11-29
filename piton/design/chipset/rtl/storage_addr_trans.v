@@ -1,6 +1,6 @@
 // Copyright (c) 2016 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,15 +25,37 @@
 
 //-----------------------------------------
 // Auto generated mapping module
-// It is provided for test: unknown 
+// It is provided for test: unknown
 //-----------------------------------------
  module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
 (
     input       [VA_ADDR_WIDTH-1:0]         va_byte_addr,
-    
+
     output      [STORAGE_ADDR_WIDTH-1:0]    storage_addr_out,
     output                                  hit_any_section
 );
+
+`ifdef PITON_ARIANE
+
+wire [63:0] storage_addr;
+
+wire [63:0]                      bram_addr_0;
+
+wire                          in_section_0;
+
+assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 5) + 0;
+
+assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
+
+assign storage_addr =
+({STORAGE_ADDR_WIDTH{in_section_0}} & bram_addr_0[STORAGE_ADDR_WIDTH-1:0]);
+
+assign storage_addr_out = {storage_addr, 3'b0};
+
+assign hit_any_section =
+in_section_0 ;
+
+`else
 
 wire [63:0] storage_addr;
 
@@ -795,7 +817,7 @@ assign storage_addr =
 
 assign storage_addr_out = {storage_addr, 3'b0};
 
-assign hit_any_section = 
+assign hit_any_section =
 in_section_0 |
 in_section_1 |
 in_section_2 |
@@ -946,6 +968,8 @@ in_section_146 |
 in_section_147 |
 in_section_148 |
 in_section_149 ;
+
+`endif
 
 endmodule
 //-----------------------------------------
