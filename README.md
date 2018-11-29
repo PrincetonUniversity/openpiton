@@ -91,11 +91,9 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 6. For more details on running continuous integration bundles, the available bundles, understanding the output, reprocessing completed bundles, and creating new bundles, please refer to the OpenPiton documentation.
 
 ==========================
-
+![OpenPitonAriane Logo](/docs/openpiton_ariane_logo.png?raw=true)
 
 #### Preliminary Support for Ariane RV64IMAC Core
-
-![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
 This version of OpenPiton has preliminary support for the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
 To this end, Ariane has been equipped with a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
@@ -111,6 +109,7 @@ Check out the sections below to see how to run the RISC-V tests or simple bare-m
 
 > You will need Vivado 2017.3 or newer to build an FPGA bitstream with Ariane.
 
+![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
 ##### Environment Setup
 
@@ -195,7 +194,9 @@ If you would like to get an overview of the exit status of a regression batch, s
 
 ##### FPGA Mapping on Genesys2 Board
 
-We currently have support for the Genesys2 board. Make sure you have Vivado 2017.3 or newer, and run the following command in order to build a bitstream with one Ariane tile,
+> The FPGA mapping is currently being finalized and will be available soon.
+
+<!-- The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (make sure you use Vivado 2017.3 or newer):
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
@@ -204,6 +205,7 @@ Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manag
 ```pitonstream -b genesys2 -d system -f ./tests.txt --core=ariane```
 
 The tests that you would like to run need to be specified in the `test.txt` file, one test per line (e.g. `hello_world.c`).
+ -->
 
 ##### Planned Improvements
 
