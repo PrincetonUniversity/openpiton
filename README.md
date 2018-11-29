@@ -98,11 +98,12 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 ![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
 This version of OpenPiton has preliminary support for the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
-To this end, Ariane has been equipped witha a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
+To this end, Ariane has been equipped with a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
+This L1 cache system is designed to connect directly to the L1.5 cache provided by OpenPiton's P-Mesh.
 
 Check out the sections below to see how to run the RISC-V tests or simple bare-metal C programs in simulation.
 
-> Note that the system has only been tested with a 1x1 tile configuration. Verification of more advanced features such as cache coherency among multiple tiles is still WIP, although simple test programs do work in the manycore setting (see below).
+> Note that the system has only been tested with a 1x1 tile configuration. Verification of more advanced features such as cache coherency among multiple tiles is still a work-in-progress, although simple test programs do work in the manycore setting (see below).
 
 > All RISC-V atomics except LR/SC are supported and tested.
 
@@ -143,7 +144,7 @@ In order to run a RISC-V benchmark, do
 
 The printf output will be directed to `fake_uart.log` in this case (in the build folder).
 
-> Note: if you see the `Warning: [l15_adapter] return type 004 is not (yet) supported by l15 adapter.` warning in the simulation output, do not worry. This is only generated since Ariane does currently not support OpenSPARC interrupt packets arriving over the memory interface.
+> Note: if you see the `Warning: [l15_adapter] return type 004 is not (yet) supported by l15 adapter.` warning in the simulation output, do not worry. This is only generated since Ariane does currently not support OpenPiton's packet-based interrupt packets arriving over the memory interface.
 
 
 
@@ -176,14 +177,13 @@ The RISC-V ISA tests, benchmarks and some additonal simple example programs have
 ```sims -group=ariane_tile1_amo_tests_p -sim_type=msm```
 ```sims -group=ariane_tile1_amo_tests_v -sim_type=msm```
 
-- RISC-V benchmarkscan be called with:
+- RISC-V benchmarks can be run with:
 
 ```sims -group=ariane_tile1_benchmarks -sim_type=msm```
 
 - Simple hello world programs and AMO tests for 1 tile can be invoked with
 
 ```sims -group=ariane_tile1_simple -sim_type=msm```
-
 
 - And a multicore "hello world" example running on 16 tiles can be run with
 
@@ -197,11 +197,11 @@ If you would like to get an overview of the exit status of a regression batch, s
 
 We currently have support for the Genesys2 board. Make sure you have Vivado 2017.3 or newer, and run the following command in order to build a bitstream with one Ariane tile,
 
-```protosyn --board=genesys2 --core=ariane --uart-dmw ddr```
+```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
-Once you loaded the bitstream onto the FPGA using the Vivado Hardware Manager, you first need to connect the UART/USB port of the Genesys2 board to your computer and flip switch 7 on the board as described in the [OpenPiton FPGA Prototype Manual](http://parallel.princeton.edu/openpiton/docs/fpga_man.pdf). Then you can use pitonstream to run a list of tests on the FPGA:
+Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manager or a USB drive plugged into the Genesys2, you first need to connect the UART/USB port of the Genesys2 board to your computer and flip switch 7 on the board as described in the [OpenPiton FPGA Prototype Manual](http://parallel.princeton.edu/openpiton/docs/fpga_man.pdf). Then you can use pitonstream to run a list of tests on the FPGA:
 
-```pitonstream -d system --board genesys2 -f ./tests.txt --core=ariane```
+```pitonstream -b genesys2 -d system -f ./tests.txt --core=ariane```
 
 The tests that you would like to run need to be specified in the `test.txt` file, one test per line (e.g. `hello_world.c`).
 
@@ -209,15 +209,15 @@ The tests that you would like to run need to be specified in the `test.txt` file
 
 The following items are currently under development and will be released soon.
 
-- Validation of cache coherence.
+- Thorough validation of cache coherence.
 
-- RISC-V Compliant Debug. Debug support is provisioned, but not fully tested, yet.
+- RISC-V Compliant Debug. Debug support is included, but not fully tested, yet.
 
-- RISC-V Compliant Interrupt Controllers. The CLINT and PLIC have been provisioned, but are not fully tested yet.
+- RISC-V Compliant Interrupt Controllers. The CLINT and PLIC have been included, but are not fully tested yet.
 
 - RISC-V FESVR support in simulation.
 
-- Support for VCS in simulation.
+- Support for simulation with Synopsys VCS.
 
 - Performance enhancements (cache re-parameterization, write-buffer throughput).
 
@@ -227,6 +227,6 @@ The following items are currently under development and will be released soon.
 
 - Automatic device tree generation for bootrom.
 
-- Also, we are working on SMP Linux support on that platform.
+- Single-core and SMP Linux support.
 
 Stay tuned!
