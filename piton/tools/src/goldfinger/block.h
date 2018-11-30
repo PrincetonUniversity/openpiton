@@ -197,4 +197,6 @@ typedef union {
   unsigned char ch[4];
 } long32_ch4;
 
+extern void blk_set_blk_tsbcsm_clump_num(block_t *block, uint64_t clump_num) ;
+
 #endif

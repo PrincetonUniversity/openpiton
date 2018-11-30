@@ -40,6 +40,14 @@ typedef unsigned long seclen_t;
 #define seclen_d_f "%ld"
 #define seclen_x_f "%lx"
 
+#ifdef __x86_64__
+#define uint64_d_f "ld"
+#define uint64_x_f "lx"
+#else
+#define uint64_d_f "lld"
+#define uint64_x_f "llx"
+#endif
+
 typedef struct bit_range_s {
   int hi;
   int lo;

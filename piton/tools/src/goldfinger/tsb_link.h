@@ -162,8 +162,20 @@ extern void close_tsbcsm_link(int lineno);
 #define SET_TSB_LINK_PROTO(_member_name, _type)			\
 extern void set_tsb_link_ ## _member_name(_type _member_name)
 
+#define SET_TSBCSM_LINK_PROTO(_member_name, _type)			\
+extern void set_tsbcsm_link_ ## _member_name(_type _member_name)
+
+#define SET_TSBCSM_PROTO(_member_name, _type)			\
+extern void set_tsbcsm_ ## _member_name(_type _member_name)
+
 SET_TSB_LINK_PROTO(start_addr, uint64_t);
 SET_TSB_LINK_PROTO(srcfile, char *);
 SET_TSB_LINK_PROTO(srcline, int);
+SET_TSBCSM_LINK_PROTO(start_addr, uint64_t);
+SET_TSBCSM_LINK_PROTO(srcfile, char *);
+SET_TSBCSM_LINK_PROTO(srcline, int);
+SET_TSBCSM_PROTO(start_addr, uint64_t);
+SET_TSBCSM_PROTO(srcfile, char *);
+SET_TSBCSM_PROTO(srcline, int);
 
 #endif

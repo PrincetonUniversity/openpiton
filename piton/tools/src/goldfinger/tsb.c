@@ -351,9 +351,9 @@ print_tsb(tsb_vector_el_t *tsbp, void *data) {
   gf_say(VERBOSE_DEBUG, "TSB: name = '%s', lineno=%d\n", tsb->name,
 	 tsb->lineno);
   gf_say(VERBOSE_DEBUG, "     start_addr  = 0x%llx\n", tsb->start_addr);
-  gf_say(VERBOSE_DEBUG, "     num_entries = %lld\n", tsb->num_entries);
+  gf_say(VERBOSE_DEBUG, "     num_entries = %"uint64_d_f"\n", tsb->num_entries);
   gf_say(VERBOSE_DEBUG, "     size_bits   = 0x%llx\n", tsb->size_bits);
-  gf_say(VERBOSE_DEBUG, "     split       = %lld\n", tsb->split);
+  gf_say(VERBOSE_DEBUG, "     split       = %"uint64_d_f"\n", tsb->split);
   gf_say(VERBOSE_DEBUG, "     link_area   = '%s'\n", 
 	 tsb->link_area ? tsb->link_area : "<NULL>");
   gf_say(VERBOSE_DEBUG, "\n");
@@ -366,9 +366,9 @@ print_tsbcsm(tsbcsm_vector_el_t *tsbp, void *data) {
   gf_say(VERBOSE_DEBUG, "TSBCSM: name = '%s', lineno=%d\n", tsb->name,
 	 tsb->lineno);
   gf_say(VERBOSE_DEBUG, "     start_addr  = 0x%llx\n", tsb->start_addr);
-  gf_say(VERBOSE_DEBUG, "     num_entries = %lld\n", tsb->num_entries);
+  gf_say(VERBOSE_DEBUG, "     num_entries = %"uint64_d_f"\n", tsb->num_entries);
   gf_say(VERBOSE_DEBUG, "     size_bits   = 0x%llx\n", tsb->size_bits);
-  gf_say(VERBOSE_DEBUG, "     split       = %lld\n", tsb->split);
+  gf_say(VERBOSE_DEBUG, "     split       = %"uint64_d_f"\n", tsb->split);
   gf_say(VERBOSE_DEBUG, "     link_area   = '%s'\n", 
 	 tsb->link_area ? tsb->link_area : "<NULL>");
   gf_say(VERBOSE_DEBUG, "\n");
@@ -551,7 +551,7 @@ add_entry(tsb_t *tsb, uint64_t index, uint64_t tag, uint64_t data,
   if(index >= tsb->num_entries) {
     gf_error(M_BADTSB,
 	     FLINE_f "Cannot insert entry into TSB '%s' at "
-	     "index %lld since it has only %lld entries!\n",
+	     "index %"uint64_d_f" since it has only %"uint64_d_f" entries!\n",
 	     SRC_FLINE(tsb), tsb->name, index, tsb->num_entries);
   }
 
@@ -565,7 +565,7 @@ add_entry(tsb_t *tsb, uint64_t index, uint64_t tag, uint64_t data,
     /* need to create a linked vector */
     if(!Allow_tsb_conflicts) {
       gf_error(M_VACOLLIDE,
-	       "VA collision in TSB %s at index %lld.\n"
+	       "VA collision in TSB %s at index %"uint64_d_f".\n"
 	       FLINE_f
 	       "This_va=0x%llx (tag %llx) from block %s.\n"
 	       FLINE_f
@@ -608,7 +608,7 @@ add_entry_csm(tsbcsm_t *tsbcsm, tsb_t *tsb, uint64_t index, uint64_t tag, uint64
   if(index >= tsbcsm->num_entries) {
     gf_error(M_BADTSB,
 	     FLINE_f "Cannot insert entry into TSBCSM '%s' at "
-	     "index %lld since it has only %lld entries!\n",
+	     "index %"uint64_d_f" since it has only %"uint64_d_f" entries!\n",
 	     SRC_FLINE(tsbcsm), tsbcsm->name, index, tsbcsm->num_entries);
   }
 
@@ -623,7 +623,7 @@ add_entry_csm(tsbcsm_t *tsbcsm, tsb_t *tsb, uint64_t index, uint64_t tag, uint64
     /* need to create a linked vector */
     if(!Allow_tsb_conflicts) {
       gf_error(M_VACOLLIDE,
-	       "VA collision in TSBCSM %s at index %lld.\n"
+	       "VA collision in TSBCSM %s at index %"uint64_d_f".\n"
 	       FLINE_f
 	       "This_va=0x%llx (tag %llx) from block %s.\n"
 	       FLINE_f
@@ -699,7 +699,7 @@ write_tsb(tsb_vector_el_t *tsbp, FILE *ofh) {
 			tsb->start_addr + tsb->num_entries * BYTES_PER_ENTRY,
 			"TSB", tsb->name);
 
-  fprintf(ofh, "@%016llx\t// TSB '%s'\n", tsb->start_addr, tsb->name);
+  fprintf(ofh, "@%016"uint64_x_f"\t// TSB '%s'\n", tsb->start_addr, tsb->name);
 
   last_addr = tsb->start_addr;
   
@@ -720,22 +720,22 @@ write_tsb(tsb_vector_el_t *tsbp, FILE *ofh) {
     if(skip) {
       if(EnvZero) {
 	if(printed_data) {
-	  fprintf(ofh, "\n@%016llx\t// from compressed 0x%016llx\n",
+	  fprintf(ofh, "\n@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 		  last_addr, tsb->start_addr);
 	}
 
-	fprintf(ofh, "// zero_bytes %lld\n\n",  
+	fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n",  
 		(tsb->start_addr + (i * 16)) - last_addr);
       } else {
 	fprintf(ofh, "\n");
       }
 
-      fprintf(ofh, "@%016llx\t// from compressed 0x%016llx\n",
+      fprintf(ofh, "@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 	      tsb->start_addr + (i * 16), tsb->start_addr);
     }
 
     skip = 0;
-    fprintf(ofh, "%016llx %016llx %016llx %016llx\n",
+    fprintf(ofh, "%016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f"\n",
 	    tsb->entries[i].tag, tsb->entries[i].data,
 	    tsb->entries[i+1].tag, tsb->entries[i+1].data);
 
@@ -752,10 +752,10 @@ write_tsb(tsb_vector_el_t *tsbp, FILE *ofh) {
   if(skip) {
     if(EnvZero) {
       if(printed_data) {
-	fprintf(ofh, "\n@%016llx\t// from compressed 0x%016llx\n",
+	fprintf(ofh, "\n@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 		last_addr, tsb->start_addr);
       }
-      fprintf(ofh, "// zero_bytes %lld\n\n",  
+      fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n",  
 	      (tsb->start_addr + (i * 16)) - last_addr);
     } else {
       fprintf(ofh, "\n");
@@ -780,7 +780,7 @@ write_tsbcsm(tsbcsm_vector_el_t *tsbp, FILE *ofh) {
 			tsb->start_addr + tsb->num_entries * BYTES_PER_ENTRY,
 			"TSB", tsb->name);
 
-  fprintf(ofh, "@%016llx\t// TSBCSM '%s'\n", tsb->start_addr, tsb->name);
+  fprintf(ofh, "@%016"uint64_x_f"\t// TSBCSM '%s'\n", tsb->start_addr, tsb->name);
 
   last_addr = tsb->start_addr;
   
@@ -801,22 +801,22 @@ write_tsbcsm(tsbcsm_vector_el_t *tsbp, FILE *ofh) {
     if(skip) {
       if(EnvZero) {
 	if(printed_data) {
-	  fprintf(ofh, "\n@%016llx\t// from compressed 0x%016llx\n",
+	  fprintf(ofh, "\n@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 		  last_addr, tsb->start_addr);
 	}
 
-	fprintf(ofh, "// zero_bytes %lld\n\n",  
+	fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n",  
 		(tsb->start_addr + (i * 16)) - last_addr);
       } else {
 	fprintf(ofh, "\n");
       }
 
-      fprintf(ofh, "@%016llx\t// from compressed 0x%016llx\n",
+      fprintf(ofh, "@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 	      tsb->start_addr + (i * 16), tsb->start_addr);
     }
 
     skip = 0;
-    fprintf(ofh, "%016llx %016llx %016llx %016llx\n",
+    fprintf(ofh, "%016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f"\n",
 	    tsb->entries[i].tag, tsb->entries[i].clump_num,
 	    tsb->entries[i+1].tag, tsb->entries[i+1].clump_num);
     printed_data = 1;
@@ -825,10 +825,10 @@ write_tsbcsm(tsbcsm_vector_el_t *tsbp, FILE *ofh) {
   if(skip) {
     if(EnvZero) {
       if(printed_data) {
-	fprintf(ofh, "\n@%016llx\t// from compressed 0x%016llx\n",
+	fprintf(ofh, "\n@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 		last_addr, tsb->start_addr);
       }
-      fprintf(ofh, "// zero_bytes %lld\n\n",  
+      fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n",  
 	      (tsb->start_addr + (i * 16)) - last_addr);
     } else {
       fprintf(ofh, "\n");
@@ -872,7 +872,7 @@ set_tsbcsm_ ## _member_name (_type _member_name) {				 \
 #define SET_TSBCSM_STRING(_member_name) 					 \
 void									 \
 set_tsbcsm_ ## _member_name (char *_member_name) {				 \
-  tsb_t *tsbcsm = VECTOR_ELEM(Tsbcsm_vector, Open_tsbcsm_index, tsbcsm_vector_el_t); \
+  tsbcsm_t *tsbcsm = VECTOR_ELEM(Tsbcsm_vector, Open_tsbcsm_index, tsbcsm_vector_el_t); \
   tsbcsm->_member_name = strdup(_member_name);				 \
 }
 
