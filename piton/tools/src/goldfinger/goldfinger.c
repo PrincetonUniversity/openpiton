@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <strings.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -407,7 +407,7 @@ static void
 usage(int status, char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  fprintf(stderr, "goldfinger: ", status);
+  fprintf(stderr, "goldfinger: "/*, status*/);
   vfprintf(stderr, fmt, ap);
   va_end(ap);
 

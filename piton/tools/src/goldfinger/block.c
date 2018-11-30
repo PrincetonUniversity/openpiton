@@ -29,7 +29,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <libelf.h>
 
 #include "block.h"
@@ -135,16 +135,16 @@ print_block(block_vector_el_t *blockp, void *data) {
 	 block->segment_name ? block->segment_name : "<NULL>");
   gf_say(VERBOSE_DEBUG, "       link_section = '%s'\n", 
 	 block->link_section ? block->link_section : "<NULL>");
-  gf_say(VERBOSE_DEBUG, "             offset = 0x%llx\n", block->d_offset);
-  gf_say(VERBOSE_DEBUG, "             length = 0x%llx\n", block->d_length);
-  gf_say(VERBOSE_DEBUG, "                 va = 0x%llx\n", block->va);
-  gf_say(VERBOSE_DEBUG, "                 ra = 0x%llx\n", block->ra);
-  gf_say(VERBOSE_DEBUG, "                 pa = 0x%llx\n", block->pa);
+  gf_say(VERBOSE_DEBUG, "             offset = 0x%"uint64_x_f"\n", block->d_offset);
+  gf_say(VERBOSE_DEBUG, "             length = 0x%"uint64_x_f"\n", block->d_length);
+  gf_say(VERBOSE_DEBUG, "                 va = 0x%"uint64_x_f"\n", block->va);
+  gf_say(VERBOSE_DEBUG, "                 ra = 0x%"uint64_x_f"\n", block->ra);
+  gf_say(VERBOSE_DEBUG, "                 pa = 0x%"uint64_x_f"\n", block->pa);
   gf_say(VERBOSE_DEBUG, "           compress = %d\n", block->compress);
   gf_say(VERBOSE_DEBUG, "           in_image = %d\n", block->in_image);
 
  gf_say(VERBOSE_DEBUG,
-         "     end_va         = 0x%llx\n", block->end_va);
+         "     end_va         = 0x%"uint64_x_f"\n", block->end_va);
   gf_say(VERBOSE_DEBUG,
          "     startlabel     = '%s'\n",
          block->start_label ? block->start_label : "<NULL>");
@@ -379,16 +379,16 @@ block_calculate_size(block_t *block) {
  if(block->va < seg_start) {
     gf_error(M_OUTOFRANGE,
 	     FLINE_f
-	     "Block block start va 0x%llx is before beginning of "
-	     "section 0x%llx.\n",
+	     "Block block start va 0x%"uint64_x_f" is before beginning of "
+	     "section 0x%"uint64_x_f".\n",
 	     SRC_FLINE(block),
 	     block->va, seg_start);
   }
  if(block->va > seg_end) {
    gf_error(M_OUTOFRANGE,
 	    FLINE_f
-	    "Block block start va 0x%llx is beyond section range "
-	    "section 0x%llx -> 0x%llx.\n",
+	    "Block block start va 0x%"uint64_x_f" is beyond section range "
+	    "section 0x%"uint64_x_f" -> 0x%"uint64_x_f".\n",
 	    SRC_FLINE(block),
 	    block->va, seg_start, seg_end);
  }
@@ -414,23 +414,23 @@ block_calculate_size(block_t *block) {
   if(block->end_va < seg_start) {
     gf_error(M_OUTOFRANGE,
 	     FLINE_f
-	     "Block block end va 0x%llx is before beginning of "
-	     "section 0x%llx.\n",
+	     "Block block end va 0x%"uint64_x_f" is before beginning of "
+	     "section 0x%"uint64_x_f".\n",
 	     SRC_FLINE(block),
 	     block->end_va, seg_start);
   }
   if(!(block->no_end_range_check) && (block->end_va > seg_end)) {
     gf_error(M_OUTOFRANGE,
 	     FLINE_f
-	     "Block block end va 0x%llx is beyond section range "
-	     "section 0x%llx = 0x%llx.\n",
+	     "Block block end va 0x%"uint64_x_f" is beyond section range "
+	     "section 0x%"uint64_x_f" = 0x%"uint64_x_f".\n",
 	     SRC_FLINE(block),
 	     block->end_va, seg_start, seg_end);
   }
   if(block->end_va < block->va) {
     gf_error(M_OUTOFRANGE,
 	     FLINE_f
-	     "Block block end va 0x%llx < start va 0x%llx!\n",
+	     "Block block end va 0x%"uint64_x_f" < start va 0x%"uint64_x_f"!\n",
 	     SRC_FLINE(block),
 	     block->end_va, block->va);
   }
@@ -476,7 +476,7 @@ void
 block_add_to_tsbcsms(block_vector_el_t *blockp, void *data) {
   block_t *block = *blockp;
   iterate_vector2(&(block->tsbcsms), &(block->tsbs),
-		 (vector_elem_func_t) add_block_tsbcsm_to_tsbcsm,
+		 (vector_elem_func2_t) add_block_tsbcsm_to_tsbcsm,
 		 data);
 }
 
@@ -521,7 +521,7 @@ block_generate_image(block_t *block, Elf *elf, Elf_Scn *scn, FILE *ofh) {
   adjusted_pa = start_pa;
   adjusted_pa &= (1ULL << get_pa_size()) - 1;
 
-  fprintf(ofh, "\n@%016llx\t// Section '%s', segment '%s'\n",
+  fprintf(ofh, "\n@%016"uint64_x_f"\t// Section '%s', segment '%s'\n",
           adjusted_pa, block->section_name, block->segment_name);
 
   shdr = elf64_getshdr(scn);
@@ -577,16 +577,16 @@ block_generate_image(block_t *block, Elf *elf, Elf_Scn *scn, FILE *ofh) {
       if(EnvZero) {
 
 	if(printed_data) {
-	  fprintf(ofh, "\n@%016llx\t// from compressed 0x%016llx\n",
+	  fprintf(ofh, "\n@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
 		  last_addr, start_pa);
 	}
 
-	fprintf(ofh, "// zero_bytes %lld\n\n", line_pa - last_addr);
+	fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n", line_pa - last_addr);
       } else {
 	fprintf(ofh, "\n");
       }
 
-      fprintf(ofh, "@%016llx\t// from compressed 0x%016llx\n",
+      fprintf(ofh, "@%016"uint64_x_f"\t// from compressed 0x%016"uint64_x_f"\n",
               line_pa, start_pa);
       doing_compress = 0;
     }
@@ -657,7 +657,7 @@ block_generate_image(block_t *block, Elf *elf, Elf_Scn *scn, FILE *ofh) {
 
   if(doing_compress) {
     if(EnvZero) {
-      fprintf(ofh, "// zero_bytes %lld\n\n", line_pa - last_addr);
+      fprintf(ofh, "// zero_bytes %"uint64_d_f"\n\n", line_pa - last_addr);
     }
   }
 
@@ -692,15 +692,15 @@ print_symtab_ent_if_in_range(symtab_vector_el_t* entp, symtab_ent_args_t *args) 
   }
 
   offset = entry->value - args->start_va;
-  fprintf(ofh, "%s.%s\t%016llx ", args->prefix ? args->prefix : "",
+  fprintf(ofh, "%s.%s\t%016"uint64_x_f" ", args->prefix ? args->prefix : "",
 	  entry->name, entry->value);
   if(args->start_ra == NO_ADDR) {
     fprintf(ofh, "X ");
   } else {
     if(pa_size == 40) {
-      fprintf(ofh, "%010llx ", (args->start_ra + offset) & pa_mask);
+      fprintf(ofh, "%010"uint64_x_f" ", (args->start_ra + offset) & pa_mask);
     } else {
-      fprintf(ofh, "%016llx ", (args->start_ra + offset) & pa_mask);
+      fprintf(ofh, "%016"uint64_x_f" ", (args->start_ra + offset) & pa_mask);
     }
   }
 
@@ -708,9 +708,9 @@ print_symtab_ent_if_in_range(symtab_vector_el_t* entp, symtab_ent_args_t *args) 
     fprintf(ofh, "X");
   } else {
     if(pa_size == 40) {
-      fprintf(ofh, "%010llx", (args->start_pa + offset) & pa_mask);
+      fprintf(ofh, "%010"uint64_x_f"", (args->start_pa + offset) & pa_mask);
     } else {
-      fprintf(ofh, "%016llx", (args->start_pa + offset) & pa_mask);
+      fprintf(ofh, "%016"uint64_x_f"", (args->start_pa + offset) & pa_mask);
     }
   }
 

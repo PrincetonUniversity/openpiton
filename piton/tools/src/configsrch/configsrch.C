@@ -340,12 +340,12 @@ int main (int argc, char* argv[]) {
             }
    
             if (debug>1) {
-               fprintf(stderr,   "    : returned \"%s\"\n",  PROGRAM, tverName);
+               fprintf(stderr,   "    : returned \"%s%s\"\n",  PROGRAM, tverName);
                if ( tverName != "" && access( tverName, R_OK ) != 0 )
-                  fprintf(stderr,"    :  File \"%s\" read access error:  %s\n", PROGRAM, tverName, strerror(errno));
+                  fprintf(stderr,"    :  File \"%s%s\" read access error:  %s\n", PROGRAM, tverName, strerror(errno));
                if ( tverName != "" && access( tverName, F_OK ) != 0 )
-                  fprintf(stderr,"    :  File \"%s\" existance access error:  %s\n", PROGRAM, tverName, strerror(errno));
-               fprintf(stderr,   "    : tverName=\"%s\"\n", PROGRAM, tverName);
+                  fprintf(stderr,"    :  File \"%s%s\" existance access error:  %s\n", PROGRAM, tverName, strerror(errno));
+               fprintf(stderr,   "    : tverName=\"%s%s\"\n", PROGRAM, tverName);
             }
    
             // initialize a collection of TverLine object pointers...
@@ -355,7 +355,7 @@ int main (int argc, char* argv[]) {
             strcpy(tmpTver, tverName);
             ifstream curTverFile(tmpTver);
    
-            if (debug>1) fprintf(stderr,"   :[B] tverName=\"%s\",  tmpTver=\"%s\"\n", PROGRAM, tverName, tmpTver);
+            if (debug>1) fprintf(stderr,"%s   :[B] tverName=\"%s\",  tmpTver=\"%s\"\n", PROGRAM, tverName, tmpTver);
    
             if ( !curTverFile ) {
    
@@ -369,7 +369,7 @@ int main (int argc, char* argv[]) {
                      fprintf(stderr,"%s-DEBUG:  File \"%s\" existance access error:  %s\n", PROGRAM, tverName, strerror(errno));
    
                   fprintf(stderr, "%s-DEBUG:  ifstream failed to open the tver file \"%s\":  %s\n",
-                     PROGRAM, tverName,  (errno != NULL) ? strerror(errno) : "NULL");
+                     PROGRAM, tverName, errno ? strerror(errno) : "NULL");
                }
    
                fprintf(stderr,"%s-ERROR:  Error opening the tver file \"%s\": %s.\n", PROGRAM,tverName,strerror(errno));
@@ -498,7 +498,7 @@ char* ParseTreEntry(const char* passedString)
     // lastSlash is a pointer to the last '/' char in the string...
     char* lastSlash = (char *) strrchr(entryString, '/');
     if (lastSlash == NULL) {
-        fprintf(stderr,"%s-ERROR:  Invalid TRE_ENTRY value <%s>.\n", entryString);
+        fprintf(stderr,"ERROR:  Invalid TRE_ENTRY value <%s>.\n", entryString);
         exit(1);
     }
     int newLength = lastSlash - entryString;

@@ -119,6 +119,9 @@ extern void gf_say(int verbose_lvl, char *fmt, ...);
 extern void *gf_malloc(size_t size);
 
 /* Misc utilities */
+/* log2 is a library function, hack around it for now */
+#include <math.h>
+#define log2 gf_log2
 extern uint64_t log2(uint64_t num);  /* num must be power-of-2 */
 extern int is_pow2(uint64_t num);
 extern int is_aligned(uint64_t num, uint64_t alignment); /* num must be

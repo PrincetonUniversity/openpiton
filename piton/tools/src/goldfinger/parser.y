@@ -30,6 +30,16 @@
   #include "tsb_link.h"
   #include "gf_error.h"
 
+extern void set_block_tsbcsm_clump_num (uint64_t clump_num) ;
+extern void set_tsbcsm_num_entries (uint64_t num_entries) ;
+extern void set_tsbcsm_size_bits (uint64_t size_bits) ;
+extern void set_tsbcsm_split (uint64_t split) ;
+extern void set_tsbcsm_link_area (char *link_area) ;
+extern void set_tsbcsm_link_start_addr (uint64_t start_addr) ;
+extern void set_tsb_link_start_addr(uint64_t start_addr);
+extern void set_tsb_link_srcfile(char * srcfile);
+extern void set_tsb_link_srcline(int srcline);
+
   int lineno = 1;
 
   extern int yyerror(char *msg);

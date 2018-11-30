@@ -156,4 +156,8 @@ BLK_TSB_SET_BITS_PROTO(va_index_bits);
 BLK_TSB_SET_BITS_PROTO(tag_addr_bits);
 BLK_TSB_SET_BITS_PROTO(data_addr_bits);
 
+extern void blk_tsbcsm_set_clump_num (block_tsbcsm_t *block_tsb, uint64_t clump_num) ;
+extern void blk_tsbcsm_set_clump_num (block_tsbcsm_t *block_tsb, uint64_t clump_num) ;
+extern void blk_tsb_set_tte_tag_addr_bits(block_tsb_t *block_tsb, int hi_bit, int lo_bit) ;
+
 #endif

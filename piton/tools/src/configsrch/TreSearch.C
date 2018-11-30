@@ -65,7 +65,7 @@ const char* TreSearch::NextWord(void) {
 void TreSearch::MoveAndSetEndPtr(void) {
     for (endPtr = trakPtr + 1; (*endPtr != '\0') && (! isspace(*endPtr));
 	endPtr++) ;
-    if (endPtr == '\0') {
+    if (*endPtr == '\0') {
 	assert((endPtr - LineBf) < (MAXENVSIZE - 1));
 	*(endPtr + 1) = '\0';
     }

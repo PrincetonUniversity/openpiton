@@ -394,7 +394,7 @@ print_tsb_link(tsb_link_vector_el_t *tsb_linkp, void *data) {
 	 "TSB_LINK: name = '%s', lineno=%d\n", tsb_link->name, 
 	 tsb_link->lineno);
   gf_say(VERBOSE_DEBUG, 
-	 "     start_addr  = 0x%llx\n", tsb_link->start_addr);
+	 "     start_addr  = 0x%"uint64_x_f"\n", tsb_link->start_addr);
   gf_say(VERBOSE_DEBUG, "\n");
 
   print_vector(&(tsb_link->entries));
@@ -407,7 +407,7 @@ print_tsbcsm_link(tsbcsm_link_vector_el_t *tsb_linkp, void *data) {
 	 "TSBCSM_LINK: name = '%s', lineno=%d\n", tsb_link->name, 
 	 tsb_link->lineno);
   gf_say(VERBOSE_DEBUG, 
-	 "     start_addr  = 0x%llx\n", tsb_link->start_addr);
+	 "     start_addr  = 0x%"uint64_x_f"\n", tsb_link->start_addr);
   gf_say(VERBOSE_DEBUG, "\n");
 
   print_vector(&(tsb_link->entries));
@@ -514,7 +514,7 @@ write_tsb_link(tsb_link_vector_el_t *tsb_linkp, FILE *ofh) {
 			VECTOR_LEN(tsb_link->entries) * LINK_SIZE,
 			"TSB_LINK", tsb_link->name);
 
-  fprintf(ofh, "@%016llx\t// TSB_LINK '%s'\n", tsb_link->start_addr,
+  fprintf(ofh, "@%016"uint64_x_f"\t// TSB_LINK '%s'\n", tsb_link->start_addr,
 	  tsb_link->name);
 
   iterate_vector(&(tsb_link->entries),
@@ -536,7 +536,7 @@ write_tsbcsm_link(tsbcsm_link_vector_el_t *tsb_linkp, FILE *ofh) {
 			VECTOR_LEN(tsb_link->entries) * LINK_SIZE,
 			"TSBCSM_LINK", tsb_link->name);
 
-  fprintf(ofh, "@%016llx\t// TSBCSM_LINK '%s'\n", tsb_link->start_addr,
+  fprintf(ofh, "@%016"uint64_x_f"\t// TSBCSM_LINK '%s'\n", tsb_link->start_addr,
 	  tsb_link->name);
 
   iterate_vector(&(tsb_link->entries),
@@ -576,7 +576,7 @@ tsb_link_add_entry(tsb_link_t *tsb_link, uint64_t tag, uint64_t data,
 
 	gf_error(M_DUPLICATETAG,
 		 "Conflict in TSB_Link '%s'.\n"
-		 "Tag 0x%llx being added twice.\n"
+		 "Tag 0x%"uint64_x_f" being added twice.\n"
 		 FLINE_f
 		 "First from block '%s'\n"
 		 FLINE_f
@@ -598,7 +598,7 @@ tsb_link_add_entry(tsb_link_t *tsb_link, uint64_t tag, uint64_t data,
  /*   if((link_entry->tag == tag) && !Suppress_dup_tags_error) {
       gf_error(M_DUPLICATETAG,
 	       "Conflict in TSB_Link '%s'.\n"
-	       "Tag 0x%llx being added twice.\n"
+	       "Tag 0x%"uint64_x_f" being added twice.\n"
 	       FLINE_f
 	       "First from block '%s'\n"
 	       FLINE_f
@@ -636,7 +636,7 @@ tsbcsm_link_add_entry(tsbcsm_link_t *tsb_link, uint64_t tag, uint64_t clump_num,
 
 	gf_error(M_DUPLICATETAG,
 		 "Conflict in TSBCSM_Link '%s'.\n"
-		 "Tag 0x%llx being added twice.\n"
+		 "Tag 0x%"uint64_x_f" being added twice.\n"
 		 FLINE_f
 		 "First from block '%s'\n"
 		 FLINE_f
@@ -657,7 +657,7 @@ tsbcsm_link_add_entry(tsbcsm_link_t *tsb_link, uint64_t tag, uint64_t clump_num,
  /*   if((link_entry->tag == tag) && !Suppress_dup_tags_error) {
       gf_error(M_DUPLICATETAG,
 	       "Conflict in TSBCSM_Link '%s'.\n"
-	       "Tag 0x%llx being added twice.\n"
+	       "Tag 0x%"uint64_x_f" being added twice.\n"
 	       FLINE_f
 	       "First from block '%s'\n"
 	       FLINE_f
@@ -761,7 +761,7 @@ add_csm_to_chain(tsbcsm_link_t *tsb_link, tsbcsm_link_entry_t *link_entry,
 {
   tsbcsm_link_entry_t *entry;
   int new_index = add_vector_elements(&(tsb_link->entries), 1);
-  entry = VECTOR_ELEM(tsb_link->entries, new_index,
+  entry = (tsbcsm_link_entry_t *)VECTOR_ELEM(tsb_link->entries, new_index,
 		      tsb_link_entry_vector_el_t);
 
   entry->tag = tag;
@@ -809,13 +809,13 @@ print_entry(tsb_link_entry_vector_el_t *entryp, void *data) {
   tsb_link_entry_t *entry = *entryp;
 
   gf_say(VERBOSE_DEBUG,
-	 "         tag      = 0x%llx\n", entry->tag);
+	 "         tag      = 0x%"uint64_x_f"\n", entry->tag);
   gf_say(VERBOSE_DEBUG,
-	 "         data     = 0x%llx\n", entry->data);
+	 "         data     = 0x%"uint64_x_f"\n", entry->data);
   gf_say(VERBOSE_DEBUG,
-	 "         link     = 0x%llx\n", entry->link);
+	 "         link     = 0x%"uint64_x_f"\n", entry->link);
   gf_say(VERBOSE_DEBUG,
-	 "         my link  = 0x%llx\n", entry->my_link);
+	 "         my link  = 0x%"uint64_x_f"\n", entry->my_link);
   gf_say(VERBOSE_DEBUG,
 	 "         next     = 0x%p\n", entry->next);
 
@@ -833,7 +833,7 @@ static void
 write_tsb_link_entry(tsb_link_entry_vector_el_t *entryp, FILE *ofh) {
   tsb_link_entry_t *entry = *entryp;
   fprintf(ofh, 
-	  "%016llx %016llx %016llx %016llx\n",
+	  "%016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f"\n",
 	  entry->tag,  entry->data, 
 	  entry->link, entry->link);  
 }
@@ -850,7 +850,7 @@ static void
 write_tsbcsm_link_entry(tsbcsm_link_entry_vector_el_t *entryp, FILE *ofh) {
   tsbcsm_link_entry_t *entry = *entryp;
   fprintf(ofh, 
-	  "%016llx %016llx %016llx %016llx\n",
+	  "%016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f" %016"uint64_x_f"\n",
 	  entry->tag,  entry->clump_num, 
 	  entry->link, entry->link);  
 }

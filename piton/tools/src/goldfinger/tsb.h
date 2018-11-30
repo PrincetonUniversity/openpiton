@@ -162,7 +162,7 @@ extern void close_tsb(int lineno);
 extern void open_new_tsbcsm(char *name, int lineno);
 extern void close_tsbcsm(int lineno);
 
-/* Used by parser to set attriibutes of open tsb */
+/* Used by parser to set attributes of open tsb */
 
 #define SET_TSB_PROTO(_member_name, _type)			\
 extern void set_tsb_ ## _member_name(_type _member_name)
