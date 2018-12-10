@@ -42,6 +42,7 @@ We also host GitHub repositories for other parts of the project, including:
     - A CShell version of this script is provided, but OpenPiton has not been tested for and currently does not support CShell
 
 - Note: On many systems, you must run the ```mktools``` command once to rebuild a number of the tools before continuing. If you see issues later with building or running simulations, try running ```mktools``` if you have not already.
+- Note: You also need the Perl Bit::Vector package installed on your machine. On CentOS this package is `perl-Bit-Vector.x86_64` and on Ubuntu this package is `libbit-vector-perl`
 
 - Top level directory structure:
     - piton/
