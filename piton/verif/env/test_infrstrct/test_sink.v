@@ -29,7 +29,7 @@
  * a .vmh file
  */
 
-//`include "test_infrstrct.v"
+`include "test_infrstrct.v"
 
 module test_sink
 #(
