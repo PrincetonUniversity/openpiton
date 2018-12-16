@@ -1,0 +1,17 @@
+CAPI=2:
+name: ::chip_bridge:0.1
+description: chip_bridge testbench
+
+filesets:
+    rtl:
+        files:
+            - sync_fifo.v
+            - chip_bridge_rcv_32.v
+            - chip_bridge_send_32.v
+            - chip_net_chooser_32.v
+            - chip_bridge.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
