@@ -1,0 +1,35 @@
+CAPI=2:
+name: ::chip_fpga_bridge_tb:0.1
+description: chip_fpga_bridge testbench
+
+filesets:
+    tb_files:
+        depend:
+            - test_infrstrct
+            - chip_bridge
+            - fpga_rcv_32
+            - piton_include
+            - piton_common
+        files:
+            - chip_bridge_send_top.v
+            - chip_bridge_send_top.t.v
+        file_type: verilogSource
+
+parameters:
+    VERBOSITY:
+        datatype: str
+        description: verbosity level
+        paramtype: vlogdefine
+
+targets:
+    sim:
+        default_tool: icarus
+        filesets: [tb_files]
+        toplevel: [bridge_out_tb]
+        parameters: [VERBOSITY]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+            vcs:
+                vcs_options: [-timescale=1ps/1ps]
+                

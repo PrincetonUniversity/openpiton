@@ -1,0 +1,13 @@
+CAPI=2:
+name: ::piton_common:0.1
+description: Top-level Piton common files
+
+filesets:
+    rtl:
+        files:
+            - async_fifo.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]

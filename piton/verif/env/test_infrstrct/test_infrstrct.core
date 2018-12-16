@@ -1,0 +1,17 @@
+CAPI=2:
+name: ::test_infrstrct:0.1
+description: testbench infrastructure
+
+filesets:
+    tb_files:
+        files:
+            - test_infrstrct.v: {is_include_file: true}
+            - test_source.v
+            - test_sink.v
+            - test_infrstrct_fifo.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        default_tool: icarus
+        filesets: [tb_files]
