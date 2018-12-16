@@ -1,0 +1,38 @@
+CAPI=2:
+name: ::ifu_esl_lfsr_tb:0.1
+description: ifu_esl_lfsr testbench
+
+filesets:
+    tb_files:
+        depend:
+            - test_infrstrct
+            - ifu_esl_lfsr
+        files:
+            - ifu_esl_lfsr_top.v
+        file_type: verilogSource-2001
+
+parameters:
+    test_cases_path:
+        datatype: str
+        description: Path to test cases
+        paramtype: plusarg
+    test_case:
+        datatype: str
+        description: Specific test case to run
+        paramtype: plusarg
+
+    VERBOSITY:
+        datatype: str
+        description: verbosity level
+        paramtype: vlogdefine
+
+targets:
+    sim:
+        default_tool: icarus
+        filesets: [tb_files]
+        toplevel: [ifu_esl_lfsr_top]
+        parameters: [test_cases_path, test_case, VERBOSITY]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+                
