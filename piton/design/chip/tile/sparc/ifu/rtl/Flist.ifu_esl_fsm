@@ -1,5 +1,3 @@
-+incdir+$DV_ROOT/design/include
-
 sparc_ifu_esl_fsm.v
 sparc_ifu_esl_stsm.v
 sparc_ifu_esl_rtsm.v
