@@ -2084,8 +2084,8 @@ sub assemble_diag
 
     # add default path to look for precompiled RISCV 64bit assembly tests diags in case of ariane
     if ($opt{ariane} and $opt{precompiled}) {
-      push $opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
-      push $opt{asm_diag_root}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
+      push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
+      push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
     }
 
     # find diagnostic
