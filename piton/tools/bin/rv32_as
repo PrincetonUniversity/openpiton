@@ -24,7 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 echo $ASM_DIAG_NAME_NO_EXT
-riscv32-unknown-elf-gcc -march=rv32im -nostdlib -nostartfiles                \
+riscv32-unknown-elf-gcc -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles    \
                         -DTEST_FUNC_NAME=${ASM_DIAG_NAME_NO_EXT}             \
                         -DTEST_FUNC_TXT='"${ASM_DIAG_NAME_NO_EXT}"'          \
                         -DTEST_FUNC_RET=${ASM_DIAG_NAME_NO_EXT}_ret          \
