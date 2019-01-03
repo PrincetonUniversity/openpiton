@@ -215,7 +215,7 @@ begin
     // Wait for SRAM init
     // trin: 5000 cycles is about the lowest for 64KB L2
     // 128KB L2 requires at least 10000
-    repeat(40000)@(posedge `CHIP_INT_CLK); // trin: supports at least 512KB L2 per-tile
+    repeat(5000)@(posedge `CHIP_INT_CLK); // trin: supports at least 512KB L2 per-tile
 
     diag_done = 1'b1;
 `ifndef PITONSYS_IOCTRL
