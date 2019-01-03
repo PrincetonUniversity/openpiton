@@ -2037,7 +2037,7 @@ sub expand_filename {
       { $1 ? (getpwnam($1))[7] :
           ( $ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7]) }ex;
   # environment variable expansion
-  $filename =~ s/\${*(\w+)}*/expand_env($1)/ge;
+  $filename =~ s/\$\{*(\w+)\}*/expand_env($1)/ge;
 
   return $filename;
 }
