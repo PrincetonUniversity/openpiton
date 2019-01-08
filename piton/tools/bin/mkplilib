@@ -22,7 +22,7 @@
 # ========== Copyright Header End ============================================
 
 if ($1 == "") then
-    echo "Usage: $0 vcs/ncverilog/icarus/clean"
+    echo "Usage: $0 vcs/ncverilog/icarus/modelsim/clean"
     echo "e.g. : $0 vcs"
     exit
 endif

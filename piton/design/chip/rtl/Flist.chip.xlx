@@ -1,5 +1,0 @@
--v $DV_ROOT/design/chip/rtl/chip.v
--v $DV_ROOT/design/proto/blinker.v
-synchronizer.v
-// module for FPGA prototype
-$DV_ROOT/design/chip/rtl/OCI.v

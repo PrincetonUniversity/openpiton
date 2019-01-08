@@ -104,6 +104,7 @@ module picorv32 #(
 	output reg [31:0] mem_addr,
 	output reg [31:0] mem_wdata,
 	output reg [ 3:0] mem_wstrb,
+    output reg [`L15_AMO_OP_WIDTH-1:0] mem_amo_op,
 	input      [31:0] mem_rdata,
 
     input  wire       pico_int,
@@ -113,6 +114,7 @@ module picorv32 #(
 	output     [31:0] mem_la_addr,
 	output reg [31:0] mem_la_wdata,
 	output reg [ 3:0] mem_la_wstrb,
+    output reg [`L15_AMO_OP_WIDTH-1:0] mem_la_amo_op,
 
 	// Pico Co-Processor Interface (PCPI)
 	output reg        pcpi_valid,
@@ -410,6 +412,7 @@ module picorv32 #(
 	end
 
 	always @* begin
+        mem_la_amo_op = instr_amo_op;
 		(* full_case *)
 		case (mem_wordsize)
 			0: begin
@@ -588,6 +591,7 @@ module picorv32 #(
 			end
 			if (mem_la_write) begin
 				mem_wdata <= mem_la_wdata;
+                mem_amo_op <= mem_la_amo_op;
 			end
 			case (mem_state)
 				0: begin
@@ -668,6 +672,7 @@ module picorv32 #(
 	reg instr_add, instr_sub, instr_sll, instr_slt, instr_sltu, instr_xor, instr_srl, instr_sra, instr_or, instr_and;
 	reg instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh, instr_ecall_ebreak;
 	reg instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer;
+    reg [`L15_AMO_OP_WIDTH-1:0] instr_amo_op;
 	wire instr_trap;
 
 	reg [regindex_bits-1:0] decoded_rd, decoded_rs1, decoded_rs2;
@@ -692,6 +697,7 @@ module picorv32 #(
 	reg is_alu_reg_imm;
 	reg is_alu_reg_reg;
 	reg is_compare;
+    reg is_amo;
 
 	assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,
 			instr_beq, instr_bne, instr_blt, instr_bge, instr_bltu, instr_bgeu,
@@ -699,7 +705,7 @@ module picorv32 #(
 			instr_addi, instr_slti, instr_sltiu, instr_xori, instr_ori, instr_andi, instr_slli, instr_srli, instr_srai,
 			instr_add, instr_sub, instr_sll, instr_slt, instr_sltu, instr_xor, instr_srl, instr_sra, instr_or, instr_and,
 			instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh,
-			instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer};
+			instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer, |instr_amo_op};
 
 	wire is_rdcycle_rdcycleh_rdinstr_rdinstrh;
 	assign is_rdcycle_rdcycleh_rdinstr_rdinstrh = |{instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh};
@@ -771,8 +777,10 @@ module picorv32 #(
 		if (instr_maskirq)  new_ascii_instr = "maskirq";
 		if (instr_waitirq)  new_ascii_instr = "waitirq";
 		if (instr_timer)    new_ascii_instr = "timer";
-	end
 
+        if (instr_amo_op) new_ascii_instr = "amo_op";
+	end                     
+                            
 	reg [63:0] q_ascii_instr;
 	reg [31:0] q_insn_imm;
 	reg [31:0] q_insn_opcode;
@@ -892,6 +900,7 @@ module picorv32 #(
 			is_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;
 			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;
 			is_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;
+            is_amo                       <= mem_rdata_latched[6:0] == 7'b0101111;
 
 			{ decoded_imm_uj[31:20], decoded_imm_uj[10:1], decoded_imm_uj[11], decoded_imm_uj[19:12], decoded_imm_uj[0] } <= {{12{mem_rdata_latched[31]}}, mem_rdata_latched[31:12], 1'b0};
 
@@ -1070,6 +1079,44 @@ module picorv32 #(
 			instr_sh    <= is_sb_sh_sw && mem_rdata_q[14:12] == 3'b001;
 			instr_sw    <= is_sb_sh_sw && mem_rdata_q[14:12] == 3'b010;
 
+            if (is_amo) begin
+                case (mem_rdata_q[31:27])
+                    5'b00001: begin
+                        instr_amo_op <= `L15_AMO_OP_SWAP;
+                    end
+                    5'b00000: begin
+                        instr_amo_op <= `L15_AMO_OP_ADD;
+                    end
+                    5'b00100: begin
+                        instr_amo_op <= `L15_AMO_OP_XOR;
+                    end
+                    5'b01100: begin
+                        instr_amo_op <= `L15_AMO_OP_AND;
+                    end
+                    5'b01000: begin
+                        instr_amo_op <= `L15_AMO_OP_OR;
+                    end
+                    5'b10000: begin
+                        instr_amo_op <= `L15_AMO_OP_MIN;
+                    end
+                    5'b10100: begin
+                        instr_amo_op <= `L15_AMO_OP_MAX;
+                    end
+                    5'b11000: begin
+                        instr_amo_op <= `L15_AMO_OP_MINU;
+                    end
+                    5'b11100: begin
+                        instr_amo_op <= `L15_AMO_OP_MAXU;
+                    end
+                    default: begin
+                        instr_amo_op <= {`L15_AMO_OP_WIDTH{1'bX}};
+                    end
+                endcase
+            end
+            else begin
+                instr_amo_op <= `L15_AMO_OP_NONE;
+            end
+
 			instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b000;
 			instr_slti  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b010;
 			instr_sltiu <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b011;
@@ -1176,22 +1223,25 @@ module picorv32 #(
 			instr_sra   <= 0;
 			instr_or    <= 0;
 			instr_and   <= 0;
+
+            instr_amo_op <= `L15_AMO_OP_NONE;
 		end
 	end
 
 
 	// Main State Machine
 
-	localparam cpu_state_trap   = 8'b10000000;
-	localparam cpu_state_fetch  = 8'b01000000;
-	localparam cpu_state_ld_rs1 = 8'b00100000;
-	localparam cpu_state_ld_rs2 = 8'b00010000;
-	localparam cpu_state_exec   = 8'b00001000;
-	localparam cpu_state_shift  = 8'b00000100;
-	localparam cpu_state_stmem  = 8'b00000010;
-	localparam cpu_state_ldmem  = 8'b00000001;
+	localparam cpu_state_trap   = 9'b100000000;
+	localparam cpu_state_fetch  = 9'b010000000;
+	localparam cpu_state_ld_rs1 = 9'b001000000;
+	localparam cpu_state_ld_rs2 = 9'b000100000;
+	localparam cpu_state_exec   = 9'b000010000;
+	localparam cpu_state_shift  = 9'b000001000;
+	localparam cpu_state_stmem  = 9'b000000100;
+	localparam cpu_state_ldmem  = 9'b000000010;
+    localparam cpu_state_amo    = 9'b000000001;
 
-	reg [7:0] cpu_state;
+	reg [9:0] cpu_state;
 	reg [1:0] irq_state;
 
 	`FORMAL_KEEP reg [127:0] dbg_ascii_state;
@@ -1206,6 +1256,7 @@ module picorv32 #(
 		if (cpu_state == cpu_state_shift)  dbg_ascii_state = "shift";
 		if (cpu_state == cpu_state_stmem)  dbg_ascii_state = "stmem";
 		if (cpu_state == cpu_state_ldmem)  dbg_ascii_state = "ldmem";
+        if (cpu_state == cpu_state_amo)    dbg_ascii_state = "amo";
 	end
 
 	reg set_mem_do_rinst;
@@ -1752,6 +1803,10 @@ module picorv32 #(
 									cpu_state <= cpu_state_stmem;
 									mem_do_rinst <= 1;
 								end
+                                is_amo: begin
+                                    cpu_state <= cpu_state_amo;
+                                    mem_do_rinst <= 1;
+                                end
 								is_sll_srl_sra && !BARREL_SHIFTER: begin
 									cpu_state <= cpu_state_shift;
 								end
@@ -1890,6 +1945,30 @@ module picorv32 #(
 					end
 				end
 			end
+
+            cpu_state_amo: begin
+				latched_store <= 1;
+                if (ENABLE_TRACE) begin
+                    reg_out <= reg_op2;
+                end
+                if (!mem_do_prefetch || mem_done) begin
+                    if (!mem_do_wdata) begin
+                        mem_wordsize <= 0;
+						if (ENABLE_TRACE) begin
+							trace_valid <= 1;
+							trace_data <= (irq_active ? TRACE_IRQ : 0) | TRACE_ADDR | ((reg_op1 + decoded_imm) & 32'hffffffff);
+						end
+						reg_op1 <= reg_op1;
+						set_mem_do_wdata = 1;
+                    end
+					if (!mem_do_prefetch && mem_done) begin
+						cpu_state <= cpu_state_fetch;
+						decoder_trigger <= 1;
+						decoder_pseudo_trigger <= 1;
+                        reg_out <= mem_rdata_word;
+					end
+                end
+            end
 
 			cpu_state_ldmem: begin
 				latched_store <= 1;

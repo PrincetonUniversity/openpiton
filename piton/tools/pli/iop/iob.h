@@ -49,7 +49,6 @@ private:
   //cpx request variable
   //no request zero. One hot
   int zero_delay;
-  int available;
   char req, thrid;
   //flag for cpx packet.
   int pkt_vld, next_req, next_cpx;
@@ -85,7 +84,6 @@ private:
   void grant_check();
   //drive signals, which is less than 32 bits.
   void trig_pc_event();
-  void read_core();
   void replace(char* str);
   void copy(char* buf, int* idx,  char* cbuf);
   KeyType getEight(char *buf);

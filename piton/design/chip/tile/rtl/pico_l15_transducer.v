@@ -34,6 +34,7 @@ module pico_l15_transducer (
     input [ 3:0]                    pico_transducer_mem_wstrb,
 
     input [31:0]                    pico_transducer_mem_wdata,
+    input [`L15_AMO_OP_WIDTH-1:0]   pico_transducer_mem_amo_op,
     input                           l15_transducer_ack,
     input                           l15_transducer_header_ack,
 
@@ -72,7 +73,7 @@ module pico_l15_transducer (
 );
 
 // not supported at the moment
-assign transducer_l15_amo_op = `L15_AMO_OP_NONE;
+//assign transducer_l15_amo_op = `L15_AMO_OP_NONE;
 
 //--- Pico -> L1.5
 pico_decoder pico_decoder(
@@ -83,10 +84,12 @@ pico_decoder pico_decoder(
     .pico_mem_addr                          (pico_transducer_mem_addr),
     .pico_mem_wstrb                         (pico_transducer_mem_wstrb),
     .pico_mem_wdata                         (pico_transducer_mem_wdata),
+    .pico_mem_amo_op                        (pico_transducer_mem_amo_op),
     .l15_picodecoder_ack                    (l15_transducer_ack),
     .l15_picodecoder_header_ack             (l15_transducer_header_ack),
                            
     .picodecoder_l15_rqtype                 (transducer_l15_rqtype),
+    .picodecoder_l15_amo_op                 (transducer_l15_amo_op),
     .picodecoder_l15_size                   (transducer_l15_size),
     .picodecoder_l15_val                    (transducer_l15_val),
     .picodecoder_l15_address                (transducer_l15_address),

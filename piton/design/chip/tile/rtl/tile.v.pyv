@@ -28,7 +28,8 @@ DMBR_BIN_NUM = 10
 import pyhplib
 from pyhplib import *
 
-devices = pyhplib.ReadDevicesXMLFile()
+if PITON_ARIANE:
+    devices = pyhplib.ReadDevicesXMLFile()
 
 %>
 
@@ -815,6 +816,7 @@ end else if (TILE_TYPE == `PICORV32_TILE) begin : g_core
     wire [31:0]  pico_transducer_mem_addr;
     wire [31:0]  pico_transducer_mem_wdata;
     wire [ 3:0]  pico_transducer_mem_wstrb;
+    wire [`L15_AMO_OP_WIDTH-1:0] pico_transducer_mem_amo_op;
     wire [31:0]  transducer_pico_mem_rdata;
     wire         pico_int;
 
@@ -828,6 +830,7 @@ end else if (TILE_TYPE == `PICORV32_TILE) begin : g_core
         .mem_addr   (pico_transducer_mem_addr),
         .mem_wdata  (pico_transducer_mem_wdata),
         .mem_wstrb  (pico_transducer_mem_wstrb),
+        .mem_amo_op (pico_transducer_mem_amo_op),
         .mem_rdata  (transducer_pico_mem_rdata),
 
         .pico_int   (pico_int)
@@ -847,6 +850,7 @@ end else if (TILE_TYPE == `PICORV32_TILE) begin : g_core
         .pico_transducer_mem_addr           (pico_transducer_mem_addr),
         .pico_transducer_mem_wstrb          (pico_transducer_mem_wstrb),
         .pico_transducer_mem_wdata          (pico_transducer_mem_wdata),
+        .pico_transducer_mem_amo_op         (pico_transducer_mem_amo_op),
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
 
@@ -948,18 +952,20 @@ def clipAddress(addr, digits):
 
 cacheBegin = 0
 cacheStop  = 0
-for i in range(len(devices)):
-    if devices[i]["name"] == "mem":
-        cacheBegin = devices[i]["base"]
-        cacheStop  = cacheBegin + devices[i]["length"]
-        cacheBegin = "%X" % cacheBegin
-        cacheStop  = "%X" % cacheStop
+if PITON_ARIANE:
+    for i in range(len(devices)):
+        if devices[i]["name"] == "mem":
+            cacheBegin = devices[i]["base"]
+            cacheStop  = cacheBegin + devices[i]["length"]
+            cacheBegin = "%X" % cacheBegin
+            cacheStop  = "%X" % cacheStop
 
 bootAddr    = cacheBegin
-for i in range(len(devices)):
-    if devices[i]["name"] == "ariane_bootrom":
-        bootAddr = devices[i]["base"]
-        bootAddr = "%X" % bootAddr
+if PITON_ARIANE:
+    for i in range(len(devices)):
+        if devices[i]["name"] == "ariane_bootrom":
+            bootAddr = devices[i]["base"]
+            bootAddr = "%X" % bootAddr
 print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
 %>
 

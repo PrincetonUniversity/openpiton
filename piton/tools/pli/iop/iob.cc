@@ -39,44 +39,7 @@ int iob::manual_init(char* ev)
   pargs = mc_scan_plusargs ("zero_delay_int=");
   if(pargs != (char *) 0)zero_delay = atoi(pargs);
   else zero_delay = 0;
-  available = 0xffffffff;
-  // available = 0xffffffffffffffff;
-  read_core();
   return 0;
-}
-/*-----------------------------------------------------------------------------
-  deceide the bbot thread to start cmp.
------------------------------------------------------------------------------*/
-void iob::read_core()
-{
-  FILE *fp;//file pointer
-  char  buf [BUFFER];
-  char  cbuf[BUFFER];//temp variavle for intermiate data
-  int   at, num, idx;
-
-  at = 0;
-  if((fp = fopen("efuse.img", "r")) != 0){//if not, assume 32 threads avaiable
-    while(fgets(buf, BUFFER, fp)){
-      idx = rmSpace(buf, 0, BUFFER);
-      if(idx < 0)continue;
-      if(!strncmp(buf, "@", 1)){
-	at = 1;
-	continue; 
-      }
-      if(at){
-	copy(buf, &idx, cbuf);
-	num       = (int)getEight(cbuf);
-	available = 0;
-	for(idx = 0; idx < 8; idx++){
-	  if(num & 1)available |= (0xf << (idx * 4));
-	  num >>= 1;
-	}
-	break;
-      }
-    }
-  }
-  io_printf("Info: Core available value = %x\n", available);
-  fclose(fp);
 }
 /*-----------------------------------------------------------------------------
   deceide the bbot thread to start cmp.

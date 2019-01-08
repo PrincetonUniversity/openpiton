@@ -33,11 +33,11 @@ module l15_picoencoder(
     
     input wire [63:0]   l15_picoencoder_data_0,
     input wire [63:0]   l15_picoencoder_data_1,
-   
+    
     input wire [39:0]   picodecoder_l15_address,  
-  
+    
     output reg          pico_mem_ready,
-    output wire [31:0]   pico_mem_rdata,
+    output wire [31:0]  pico_mem_rdata,
     
     output wire         picoencoder_l15_req_ack,
     output reg          pico_int
@@ -63,59 +63,56 @@ module l15_picoencoder(
     end
        
     always @ * begin
-       if (l15_picoencoder_val) begin
-          case(l15_picoencoder_returntype)
-            `LOAD_RET:
-              begin
-                 // load
-                 int_recv = 1'b0;
-                 pico_mem_ready = 1'b1;
-                 case(picodecoder_l15_address[3:2])
-                   2'b00: begin
-                      rdata_part = l15_picoencoder_data_0[63:32];
-                   end
-                   2'b01: begin
-                      rdata_part = l15_picoencoder_data_0[31:0];
-                   end
-                   2'b10: begin
-                      rdata_part = l15_picoencoder_data_1[63:32];
-                   end
-                   2'b11: begin
-                      rdata_part = l15_picoencoder_data_1[31:0];
-                   end
-                   default: begin
-                   end
-                 endcase 
-              end
-            `ST_ACK:
-              begin
-                 int_recv = 1'b0;
-                 pico_mem_ready = 1'b1;
-                 rdata_part = 32'b0;
-              end
-            `INT_RET:
-              begin
-                 if (l15_picoencoder_data_0[17:16] == 2'b01) begin
-                    int_recv = 1'b1;
-                 end
-                 else begin
+        if (l15_picoencoder_val) begin
+            case(l15_picoencoder_returntype)
+                `LOAD_RET, `CPX_RESTYPE_ATOMIC_RES: begin
+                    // load
                     int_recv = 1'b0;
-                 end
-                 pico_mem_ready = 1'b0;
-                 rdata_part = 32'b0;
-              end
-            default: begin
-               int_recv = 1'b0;
-               pico_mem_ready = 1'b0;
-               rdata_part = 32'b0;
-            end
-          endcase 
-       end
-       else begin
-           int_recv = 1'b0;
-           pico_mem_ready = 1'b0;
-           rdata_part = 32'b0;
-       end
+                    pico_mem_ready = 1'b1;
+                    case(picodecoder_l15_address[3:2])
+                        2'b00: begin
+                            rdata_part = l15_picoencoder_data_0[63:32];
+                        end
+                        2'b01: begin
+                            rdata_part = l15_picoencoder_data_0[31:0];
+                        end
+                        2'b10: begin
+                            rdata_part = l15_picoencoder_data_1[63:32];
+                        end
+                        2'b11: begin
+                            rdata_part = l15_picoencoder_data_1[31:0];
+                        end
+                        default: begin
+                        end
+                    endcase 
+                end
+                `ST_ACK: begin
+                    int_recv = 1'b0;
+                    pico_mem_ready = 1'b1;
+                    rdata_part = 32'b0;
+                end
+                `INT_RET: begin
+                    if (l15_picoencoder_data_0[17:16] == 2'b01) begin
+                        int_recv = 1'b1;
+                    end
+                    else begin
+                        int_recv = 1'b0;
+                    end
+                    pico_mem_ready = 1'b0;
+                    rdata_part = 32'b0;
+                end
+                default: begin
+                    int_recv = 1'b0;
+                    pico_mem_ready = 1'b0;
+                    rdata_part = 32'b0;
+                end
+            endcase 
+        end
+        else begin
+            int_recv = 1'b0;
+            pico_mem_ready = 1'b0;
+            rdata_part = 32'b0;
+        end
     end
     
 endmodule // l15_picoencoder

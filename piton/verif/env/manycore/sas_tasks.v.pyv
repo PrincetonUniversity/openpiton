@@ -878,8 +878,8 @@ task mra_val;
                 tt = ReplicatePatternSpecial(t, ["SPARC0", "10'd0", "PATH0"]);
                 print tt;
             %>
-        default: begin
-        end
+            default: begin
+            end
         endcase // case(cpu)
     end
 endtask // mra_val

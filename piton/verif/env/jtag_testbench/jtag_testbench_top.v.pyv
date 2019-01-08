@@ -666,7 +666,7 @@ module jtag_testbench_top;
         end
 
         if (force_cache)
-            force helper.chip.tile0.core.sparc0.lsu.lsu.lsu_ifu_icache_en = 4'b1111;
+            force helper.chip.tile0.g_core.core.sparc0.lsu.lsu.lsu_ifu_icache_en = 4'b1111;
 
         pll_rst_n = 0;           // reset is held low upon boot up
         chip_rst_n = 0;

@@ -792,6 +792,8 @@ module chip(
    // reset synchronizer, might need to be placed near the
    //   pll or clock source so that reset signal has the same propagation
    //   as clock for better timing
+   // materials on reset tree and placement
+   // http://www.sunburst-design.com/papers/CummingsSNUG2002SJ_Resets.pdf
    synchronizer rst_sync (
       .clk(clk_muxed),
       .presyncdata(rst_n_inter),

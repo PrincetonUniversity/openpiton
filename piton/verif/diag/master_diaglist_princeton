@@ -70,6 +70,19 @@ pico-sub    sub.S
 pico-sw     sw.S
 pico-xor    xor.S
 pico-xori   xori.S
+<pico_tile1_amo>
+<runargs -pico>
+pico-amoadd     amoadd_w.S
+pico-amoand     amoand_w.S
+pico-amomax     amomax_w.S
+pico-amomaxu    amomaxu_w.S
+pico-amomin     amomin_w.S
+pico-amominu    amominu_w.S
+pico-amoor      amoor_w.S
+pico-amoswap    amoswap_w.S
+pico-amoxor     amoxor_w.S
+</runargs>
+</pico_tile1_amo>
 </cmp_default>
 </pico_tile1>
 
@@ -1437,7 +1450,7 @@ pico-xori   xori.S
         mt_cache1       -rtl_timeout=500000 -max_cycle=10000000 -finish_mask=33 mt_icache.s
         th_sync         -midas_args="-DTHREAD_COUNT=2" -finish_mask=3 th_sync.s
         ldst_quad           ldst_quad.s  -max_cycle=10000000 -finish_mask=3 -midas_args=-DTHREAD_COUNT=2
-        v9_mmu_ttebit       v9_mmu_ttebit.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -midas_args=-nocompress_image -midas_args=-DTHREAD_COUNT=4 -finish_mask=33 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -max_cycle=10000000
+        v9_mmu_ttebit       v9_mmu_ttebit.s -midas_args=-allow_tsb_conflicts -midas_args=-allow_empty_sections -midas_args=-nocompress_image -midas_args=-DTHREAD_COUNT=4 -finish_mask=33 -midas_args=-allow_duplicate_tags -sim_run_args=+turn_off_thread_monitor=1 -sim_run_args=+turn_off_exu_monitor=1 -max_cycle=10000000 -midas_args=-DCIOP -midas_args=-DNO_SLAN_INIT_SPC
         exu_win_traps       -finish_mask=33 -midas_args=-DTHREAD_COUNT=4 -midas_args=-DTHREAD_STRIDE=1 -max_cycle=600000 exu_win_traps.s
         exu_muldiv_stress   -finish_mask=33 -max_cycle=1300000 -midas_args=-DTHREAD_STRIDE=1 exu_muldiv_stress_1.s
         hp_sir                  hp_sir.s -finish_mask=33 -fast_boot

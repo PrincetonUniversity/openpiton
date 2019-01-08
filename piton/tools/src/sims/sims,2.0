@@ -24,13 +24,13 @@
 # Verilog run/build/regression script
 # sims -help for help
 #
-#           +-------------->sims
-#           |                 |
-#           |     +-------+--------+--------+------------+--------+
-#           |     |       |        |        |            |        |
-#           |  use_iver   |      injobq  interactive     help   version
-#           |     |       |        |        |
-#           +-----+       |<-------+--------+
+#                           sims
+#                             |
+#                         +--------+--------+------------+--------+
+#                         |        |        |            |        |
+#                         |      injobq  interactive     help   version
+#                         |        |        |
+#                         |<-------+--------+
 #                         |
 #                       normal
 #                         |
@@ -207,8 +207,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'tmp_dir' => ".",
         'tarcopy' => 0,
         'use_config' => 1,
-        'use_iver' => "",
-        'use_sims_iver' => 0,
         'vcd' => 0,
         'vcdfile' => "",
         'vcs_build' => 0,
@@ -226,7 +224,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'vcs_use_cm' => 0,
         'vcs_use_cli' => 0,
         'vcs_use_initreg' => 0,
-        'vcs_use_rad' => 0,
         'vcs_use_sdf' => 0,
         'version' => 0,
         'vfile' => [],
@@ -241,33 +238,7 @@ GetOptions (\%opt,
             'h!',
             'help!',
             'version!',
-            'use_iver=s',
            ) ;
-
-################################################################################
-# relaunch sims with a new iver
-################################################################################
-
-if ($opt{use_iver} ne "") {
-
-  die ("DIE. Could not read specified iver \"file\" $opt{use_iver}") if (! -r $opt{use_iver}) ;
-
-  $ENV{TRE_SEARCH} = "$opt{use_iver} $ENV{TRE_SEARCH}" ;
-
-  my $cmd ;
-  $cmd .= "$prg " ;
-  $cmd .= "-h " if ($opt{h}) ;
-  $cmd .= "-help " if ($opt{help}) ;
-  $cmd .= "-version " if ($opt{version}) ;
-
-  foreach my $x (@ARGV) {
-    ($x =~ s/(-.*?)=(.*)/$1=\"$2\"/) if (($x =~ /\s/) and ($x !~ /-.*?="/)) ;
-    $cmd .= "$x " ;
-  }
-
-  system ($cmd) ;
-  exit (0) ;
-}
 
 ################################################################################
 # print out version
@@ -296,7 +267,6 @@ GetOptions (\%opt,
             'rerun!',
             'dryrun!',
             'dv_root=s',
-            'use_sims_iver',
            ) ;
 
 if ($opt{rerun}) {
@@ -525,14 +495,6 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 &oram_image () if (($opt{vcs_run} or $opt{ncv_run} or
                     $opt{icv_run} or $opt{other_sim_run} or
                     $opt{msm_run}) and $opt{oram}); #if ($opt{image_diag_name}
-
-################################################################################
-# copy efuse image
-################################################################################
-
-&copy_efuse_image () if ($opt{vcs_run} or $opt{ncv_run} or
-                         $opt{icv_run} or $opt{other_sim_run} or
-                         $opt{msm_run}) ;
 
 ################################################################################
 # launch simulator
@@ -1060,15 +1022,6 @@ sub rerun
   $sims_tg_seed =~ s/.*?(\d+)/$1/ ;
   chomp $sims_tg_seed ;
 
-  if ($opt{use_sims_iver}) {
-    my @sims_iver = `grep tre_search sims.log` ;
-
-    my $sims_iver = $sims_iver[0] ;
-    $sims_iver =~ s/^.*?:\stre_search\s// ;
-    chomp $sims_iver ;
-    $ENV{TRE_SEARCH} = $sims_iver ;
-  }
-
   if (!$opt{overwrite}) {
     my $count = 0 ;
     while (-d "rerun_${count}") {$count++;}
@@ -1134,7 +1087,7 @@ sub gen_flist
 
     open (IFLIST, "< $flist") or die ("DIE. can't open flist file $flist") ;
 
-    print "$flist\n\n\n\n";
+    print "$flist\n";
 
     while (<IFLIST>) {
       my $line = $_ ;
@@ -1337,7 +1290,6 @@ sub generic_sim_build
       $lib_path .= "/lib ";
 
       push (@{$opt{vcs_build_args}}, "+compsdf") if ($opt{vcs_use_sdf}) ;
-      push (@{$opt{vcs_build_args}}, "+rad") if ($opt{vcs_use_rad}) ;
       push (@{$opt{vcs_build_args}}, "+initreg") if ($opt{vcs_use_initreg}) ;
       push (@{$opt{vcs_build_args}}, "-cm $opt{vcs_cm_args}") if ($opt{vcs_use_cm}) ;
       push (@{$opt{vcs_build_args}}, "-cm_cond $opt{vcs_cm_cond}") if ($opt{vcs_use_cm} and ($opt{vcs_cm_cond} ne "")) ;
@@ -2295,24 +2247,6 @@ sub oram_image
 }
 
 ################################################################################
-# copy efuse image
-################################################################################
-
-sub copy_efuse_image
-{
-    # first clean up the diag area
-    `rm -rf efuse.img` ;
-    die ("die. could not clean up efuse image from run area")  if ($?) ;
-
-    my $efuse_image_full_path = &find_diag_path ("default.dat", "", ["$ENV{DV_ROOT}/verif/diag"]) ;
-
-    `cp $efuse_image_full_path efuse.img` ;
-    die ("die. could not copy efuse image to $ENV{PWD}") if ($?) ;
-    `chmod +w efuse.img` ;
-    die ("die. could not change permission of efuse image") if ($?) ;
-}
-
-################################################################################
 # locate a diag based on diag_root, diag_path and diag_name
 ################################################################################
 
@@ -2443,7 +2377,6 @@ sub parse_args
             'tmp_dir=s',
             'tarcopy!',
             'use_config!',
-            'use_sims_iver!',
             'vcd!',
             'vcdfile=s',
             'vcs_build!',
@@ -2461,7 +2394,6 @@ sub parse_args
             'vcs_use_cli!',
             'vcs_use_cm!',
             'vcs_use_initreg!',
-            'vcs_use_rad!',
             'vcs_use_sdf!',
             'verbose!',
             'vfile=s@',
@@ -2872,10 +2804,6 @@ VERILOG COMPILATION RELATED
            this feature works with -tg_seed to set the seed of the random
            initialization. this defaults to off.
 
-    -vcs_use_rad/-novcs_use_rad
-           use the +rad option when building a vcs model (simv).
-           defaults to off.
-
     -vcs_use_sdf/-novcs_use_sdf
            build vcs model (simv) with an sdf file.
            defaults to off.
@@ -3079,13 +3007,6 @@ MISC
             prints this
 
 IT SYSTEM RELATED
-
-    -use_iver=FILE
-            full path to iver file for frozen tools
-
-    -use_sims_iver
-            For reruns of regression tests only, use sims.iver to choose
-            TRE tool versions saved during original regression run
 
     -dv_root=PATH
             absolute path to design root directory. this overrides DV_ROOT.

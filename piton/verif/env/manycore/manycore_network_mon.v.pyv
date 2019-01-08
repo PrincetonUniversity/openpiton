@@ -42,6 +42,7 @@
 module manycore_network_mon (
     input wire clk
     );
+`ifndef DISABLE_ALL_MONITORS
 `ifndef DISABLE_NETWORK_MONITOR
 `ifndef MINIMAL_MONITORING
 `ifndef XBAR_CONFIG
@@ -295,6 +296,7 @@ begin
     //     `MONITOR_PATH.fail("network_mon: network_mon: packet going out of bound");
     // end
 end
+`endif
 `endif
 `endif
 `endif // DISABLE_ALL_MONITORS

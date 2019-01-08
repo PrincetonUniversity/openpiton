@@ -1913,11 +1913,7 @@ end
 
 always @ *
 begin
-`ifndef L2_CAM_MSHR
-    amo_alu_op_S2 = !stall_real_S2 && cs_S2[`CS_AMO_ALU_OP_P1S2];
-`else
     amo_alu_op_S2 = cs_S2[`CS_AMO_ALU_OP_P1S2];
-`endif // L2_CAM_MSHR
 end
 
 

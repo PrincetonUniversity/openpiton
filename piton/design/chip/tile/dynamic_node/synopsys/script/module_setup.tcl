@@ -107,6 +107,7 @@ set ADDITIONAL_SPICE_MERGE_FILES  ""
 
 # Enter the list of source RTL files if reading from RTL
 set RTL_SOURCE_FILES           "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top_wrap.v "
+append RTL_SOURCE_FILES        "${DV_ROOT}/design/include/define.h " ;# Just for PyHP pre-processing
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top.v "
 
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_top_16.v "

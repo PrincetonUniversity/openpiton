@@ -109,6 +109,7 @@ set ADDITIONAL_SPICE_MERGE_FILES  "FFU_SRAM_LVS_SPICE_HERE (.cdl/.sp) L1I_DATA_S
 
 # Top level stuff
 set RTL_SOURCE_FILES           "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc_core.v "
+append RTL_SOURCE_FILES        "${DV_ROOT}/design/include/define.h " ;# Just for PyHP pre-processing
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/rtl/sparc.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/rtl/bw_clk_cl_sparc_cmp.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/rtl/cpx_spc_rpt.v "

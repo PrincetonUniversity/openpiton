@@ -28,24 +28,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 module pico_decoder(
     input wire         clk,
     input wire         rst_n,
-
+    
     input wire         pico_mem_valid,
     input wire [31:0]  pico_mem_addr,
     input wire [ 3:0]  pico_mem_wstrb,
-
+    
     input wire [31:0]  pico_mem_wdata,
+    input wire [`L15_AMO_OP_WIDTH-1:0] pico_mem_amo_op,
     input wire         l15_picodecoder_ack,
     input wire         l15_picodecoder_header_ack,
-
+    
     // outputs pico uses                    
     output reg  [4:0]  picodecoder_l15_rqtype,
+    output      [`L15_AMO_OP_WIDTH-1:0] picodecoder_l15_amo_op,
     output reg  [2:0]  picodecoder_l15_size,
     output wire        picodecoder_l15_val,
     output wire [39:0] picodecoder_l15_address,
     output wire [63:0] picodecoder_l15_data,
     output wire        picodecoder_l15_nc,
-
-
+    
+    
     // outputs pico doesn't use                    
     output wire [0:0]  picodecoder_l15_threadid,
     output wire        picodecoder_l15_prefetch,
@@ -58,6 +60,8 @@ module pico_decoder(
 );
     localparam ACK_IDLE = 1'b0;
     localparam ACK_WAIT = 1'b1;
+
+    assign picodecoder_l15_amo_op = pico_mem_amo_op;
 
     reg current_val;
     reg prev_val;
@@ -125,20 +129,26 @@ module pico_decoder(
     // logic to check if a request is new
 	assign picodecoder_l15_address = {{8{pico_mem_addr[31]}}, pico_mem_addr};
 
-   	assign picodecoder_l15_nc = pico_mem_addr[31];
+   	assign picodecoder_l15_nc = pico_mem_addr[31] | (picodecoder_l15_rqtype == `PCX_REQTYPE_AMO);
 
     assign picodecoder_l15_data = {pico_wdata_flipped, pico_wdata_flipped};
 	// set rqtype specific data
 	always @ *
 	begin
         if (pico_mem_valid) begin
-	        // store operation
+	        // store or atomic operation 
             if (pico_mem_wstrb) begin
 	            picodecoder_l15_rqtype = `STORE_RQ;
-	            // for now. some endian wizardry needs to be done
-                // duplicate the data
-		        pico_wdata_flipped = {pico_mem_wdata[7:0], pico_mem_wdata[15:8],
+                // endian wizardry
+                pico_wdata_flipped = {pico_mem_wdata[7:0], pico_mem_wdata[15:8],
                                       pico_mem_wdata[23:16], pico_mem_wdata[31:24]};
+
+                // if it's an atomic operation, modify the request type.
+                // That's it
+                if (pico_mem_amo_op != `L15_AMO_OP_NONE) begin
+                    picodecoder_l15_rqtype = `PCX_REQTYPE_AMO;
+                end
+
                 case(pico_mem_wstrb)
 		            4'b1111: begin
 		                picodecoder_l15_size = `PCX_SZ_4B;

@@ -342,8 +342,8 @@ begin
         addr_S1 = pending_mshr_addr_S1;
         mshrid_S1 = pending_mshr_mshrid_S1;
         src_chipid_S1 = pending_mshr_src_chipid_S1;
-        src_x_S1 = pending_mshr_src_x_S1;   
-        src_y_S1 = pending_mshr_src_y_S1;   
+        src_x_S1 = pending_mshr_src_x_S1;
+        src_y_S1 = pending_mshr_src_y_S1;
         src_fbits_S1 = pending_mshr_src_fbits_S1;
         sdid_S1 = pending_mshr_sdid_S1;
         lsid_S1 = pending_mshr_lsid_S1;
