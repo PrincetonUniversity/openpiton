@@ -31,7 +31,7 @@ riscv64-unknown-elf-objcopy -I elf64-littleriscv -O binary diag.exe diag.o
 du diag.o -b | awk '{print(128 - ($1 % 128));}' | xargs -t -ISIZE truncate diag.o -s +SIZE
 printf "\n@0000000080000000\t// Section '.RED_SEC', segment 'text'\n" >mem.image
 #od -tx -v -An -w32 diag.o >>mem.image
-xxd -g 16 -c 32 diag.o | awk '{printf("%s %s\n", $2, $3);}' >>mem.image
+xxd -g 8 -c 32 diag.o | awk '{printf("%s %s %s %s\n", $2, $3, $4, $5);}' >> mem.image
 
 #create symbol.tbl
 riscv64-unknown-elf-objdump -d diag.exe | grep "<pass>:" | awk '{printf("good_trap %s X %s\n", $1, $1);}' >symbol.tbl
