@@ -194,9 +194,7 @@ If you would like to get an overview of the exit status of a regression batch, s
 
 ##### FPGA Mapping on Genesys2 Board
 
-> The FPGA mapping is currently being finalized and will be available soon.
-
-<!-- The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (make sure you use Vivado 2017.3 or newer):
+The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (make sure you use Vivado 2017.3 or newer):
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
@@ -205,7 +203,10 @@ Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manag
 ```pitonstream -b genesys2 -d system -f ./tests.txt --core=ariane```
 
 The tests that you would like to run need to be specified in the `test.txt` file, one test per line (e.g. `hello_world.c`).
- -->
+
+##### Debugging with GDB via JTAG
+
+The RISCV compliant debug infrastructure will be available soon. This will enable in-system debugging with GDB.
 
 ##### Planned Improvements
 
