@@ -194,9 +194,11 @@ If you would like to get an overview of the exit status of a regression batch, s
 
 ##### FPGA Mapping on Genesys2 Board
 
-The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (currently this has only been tested with Vivado 2018.2, and it is known to have problems in Vivado 2018.1):
+The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command:
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
+
+> It is recommended to use Vivado 2018.2 since other versions might not produce a working bitstream.
 
 Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manager or a USB drive plugged into the Genesys2, you first need to connect the UART/USB port of the Genesys2 board to your computer and flip switch 7 on the board as described in the [OpenPiton FPGA Prototype Manual](http://parallel.princeton.edu/openpiton/docs/fpga_man.pdf). Then you can use pitonstream to run a list of tests on the FPGA:
 
@@ -208,7 +210,7 @@ You can also run the precompiled RISCV benchmarks by using the following command
 
 ```pitonstream -b genesys2 -d system -f ./piton/design/chip/tile/ariane/ci/riscv-benchmarks.list --core=ariane --precompiled```
 
-Note the `-precompiled` switch here, which has the same effect as when used with the `sims` command (see [Running RISC-V Tests and Benchmarks][]).
+> Note the `-precompiled` switch here, which has the same effect as when used with the `sims` command.
 
 ##### Debugging via JTAG
 
