@@ -36,7 +36,9 @@
 #          libusb-1.0-0-dev \
 #          default-jdk \
 #          zlib1g-dev \
-#          valgrind
+#          valgrind \
+#          csh
+
 
 echo
 echo "----------------------------------------------------------------------"
@@ -90,8 +92,8 @@ if [[ $(readlink -e "${RISCV}/bin/spike") == "" ]]
 then
     echo
     echo "----------------------------------------------------------------------"
-    echo "setup complete. do not forget to run the ariane_build_tools.sh script"
-    echo "if you run this for the first time."
+    echo "setup complete. do not forget to run the following script             "
+    echo "if you run the setup for the first time: ./piton/ariane_build_tools.sh"
     echo "----------------------------------------------------------------------"
     echo
 else
