@@ -194,7 +194,7 @@ If you would like to get an overview of the exit status of a regression batch, s
 
 ##### FPGA Mapping on Genesys2 Board
 
-The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (make sure you use Vivado 2017.3 or newer):
+The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command (currently this has only been tested with Vivado 2018.2, and it is known to have problems in Vivado 2018.1):
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
@@ -204,9 +204,82 @@ Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manag
 
 The tests that you would like to run need to be specified in the `test.txt` file, one test per line (e.g. `hello_world.c`).
 
-##### Debugging with GDB via JTAG
+You can also run the precompiled RISCV benchmarks by using the following command
 
-The RISCV compliant debug infrastructure will be available soon. This will enable in-system debugging with GDB.
+```pitonstream -b genesys2 -d system -f ./piton/design/chip/tile/ariane/ci/riscv-benchmarks.list --core=ariane --precompiled```
+
+Note the `-precompiled` switch here, which has the same effect as when used with the `sims` command (see [Running RISC-V Tests and Benchmarks][]).
+
+##### Debugging via JTAG
+
+OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD, both to be used with Olimex Debug adapter. The JTAG port is mapped to PMOD `JC` on the Genesys 2 board. You will need to connect the following wires to your debug adapter:
+
+![](https://reference.digilentinc.com/_media/genesys2/fig_16.png)
+
+|   Pin    | Nr. |
+|----------|-----|
+| `tck`    | JC1 |
+| `tdi`    | JC2 |
+| `tdo`    | JC3 |
+| `tms`    | JC4 |
+| `trst_n` | JC7 |
+
+
+```
+$ openocd -f ./piton/design/chip/tile/ariane/fpga/ariane_tiny.cfg
+Open On-Chip Debugger 0.10.0+dev-00195-g933cb87 (2018-09-14-19:32)
+Licensed under GNU GPL v2
+For bug reports, read
+    http://openocd.org/doc/doxygen/bugs.html
+adapter speed: 1000 kHz
+Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+Info : clock speed 1000 kHz
+Info : TAP riscv.cpu does not have IDCODE
+Info : datacount=2 progbufsize=12
+Info : Examined RISC-V core; found 1 harts
+Info :  hart 0: XLEN=64, misa=0x8000000000141105
+Info : Listening on port 3333 for gdb connections
+Ready for Remote Connections
+Info : Listening on port 6666 for tcl connections
+Info : Listening on port 4444 for telnet connections
+Info : accepting 'gdb' connection on tcp/3333
+```
+
+Then you will be able to either connect through `telnet` or with `gdb`:
+
+```
+$ riscv64-unknown-elf-gdb /path/to/elf
+(gdb) target remote localhost:3333
+(gdb) load
+Loading section .text, size 0x6508 lma 0x80000000
+Loading section .rodata, size 0x900 lma 0x80006508
+(gdb) b putchar
+(gdb) c
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x0000000080009126 in putchar (s=72) at lib/qprintf.c:69
+69    uart_sendchar(s);
+(gdb) si
+0x000000008000912a  69    uart_sendchar(s);
+(gdb) p/x $mepc
+$1 = 0xfffffffffffdb5ee
+```
+
+You can read or write device memory by using:
+```
+(gdb) x/i 0x1000
+    0x1000: lui t0,0x4
+(gdb) set {int} 0x1000 = 22
+(gdb) set $pc = 0x1000
+```
+
+If you are on an Ubuntu based system you need to add the following udev rule to `/etc/udev/rules.d/olimex-arm-usb-tiny-h.rules`
+
+>```
+> SUBSYSTEM=="usb", ACTION=="add", ATTRS{idProduct}=="002a", ATTRS{idVendor}=="15ba", MODE="664", GROUP="plugdev"
+>```
+
 
 ##### Planned Improvements
 
