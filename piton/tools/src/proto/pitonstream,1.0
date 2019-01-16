@@ -100,6 +100,8 @@ def usage():
     print >> sys.stderr, "\n       -p, --port <portname>"
     print >> sys.stderr, "              Port name for serial device of FPGA board. Default is 'ttyUSB0'"
     print >> sys.stderr, "              Check your /dev directory to determine serial device name"
+    print >> sys.stderr, "\n       --precompiled"
+    print >> sys.stderr, "              Optional.  This switch is needed to run precompiled RISCV asm tests."
     print >> sys.stderr, "\n       --midas_args <midas args>"
     print >> sys.stderr, "              Optional.  String containing arguments to midas to add during "
     print >> sys.stderr, "              compilation of the assembly test"
@@ -275,12 +277,12 @@ def addrDataFromC(fname):
 
     return test_addr_data_map
 
-def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreType="sparc"):
+def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreType="sparc", precompiled=False):
     prev_dir = os.getcwd()
     os.chdir(MODEL_DIR)
     print_info("Compiling %s" % tname)
     # Run midas only to get mem.image file
-    rv = runMidas(tname, uart_div_latch, flog, midas_args, coreType)
+    rv = runMidas(tname, uart_div_latch, flog, midas_args, coreType, precompiled)
     if rv != 0:
         return rv
 
@@ -326,6 +328,7 @@ def setParserOptions(parser):
     parser.add_option("-d", "--design", dest="design", action="store", default="system")
     parser.add_option("-p", "--port", dest="port", action="store", default="ttyUSB0")
     parser.add_option("-c", "--core", dest="core", action="store", default="sparc")
+    parser.add_option("--precompiled", dest="precompiled", action="store_true", default=False)
     parser.add_option("--midas_args", dest="midas_args", action="store")
     parser.add_option("--ustr", dest="ustr", action="store_true", default=False)
     parser.add_option("--no_wait_fpga_config", dest="no_wait_fpga_config", action="store_true", default=False)
@@ -391,9 +394,11 @@ def main():
     for tname in tests:
         test_cnt += 1
         print_info("Running %s: %d out of %d test" % (tname, test_cnt, test_num))
+        if options.precompiled and options.core == "Ariane":
+            print_info("Using precompiled RISCV test for Ariane.")
         # Compile .s tests to get .ustr
         if options.ustr == False:
-            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core)
+            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core, options.precompiled)
             if rv != 0:
                 print_error("Test compilation failed")
                 print_error("Skipping %s" % tname)
