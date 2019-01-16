@@ -95,7 +95,7 @@ module picorv32 #(
 	parameter [31:0] PROGADDR_IRQ = 32'h 0000_0010,
 	parameter [31:0] STACKADDR = 32'h ffff_ffff
 ) (
-	input clk, reset_l, 
+	input clk, reset_l,
 	output reg trap,
 
 	output reg        mem_valid,
@@ -206,7 +206,7 @@ module picorv32 #(
             resetn <= 1'b1;
         end
     end
-    
+
 	reg irq_delay;
 	reg irq_active;
 	reg [31:0] irq_mask;
@@ -412,6 +412,7 @@ module picorv32 #(
 		end
 	end
 
+  reg [`L15_AMO_OP_WIDTH-1:0] instr_amo_op;
 	always @* begin
         mem_la_amo_op = instr_amo_op;
 		(* full_case *)
@@ -608,7 +609,7 @@ module picorv32 #(
 						    mem_instr <= 0;
 						    mem_state <= 0;
                         end
-                        else begin 
+                        else begin
 						    mem_valid <= 1;
 						    mem_instr <= 0;
 						    mem_state <= 2;
@@ -673,7 +674,6 @@ module picorv32 #(
 	reg instr_add, instr_sub, instr_sll, instr_slt, instr_sltu, instr_xor, instr_srl, instr_sra, instr_or, instr_and;
 	reg instr_rdcycle, instr_rdcycleh, instr_rdinstr, instr_rdinstrh, instr_ecall_ebreak;
 	reg instr_getq, instr_setq, instr_retirq, instr_maskirq, instr_waitirq, instr_timer;
-    reg [`L15_AMO_OP_WIDTH-1:0] instr_amo_op;
 	wire instr_trap;
 
 	reg [regindex_bits-1:0] decoded_rd, decoded_rs1, decoded_rs2;
@@ -780,8 +780,8 @@ module picorv32 #(
 		if (instr_timer)    new_ascii_instr = "timer";
 
         if (instr_amo_op) new_ascii_instr = "amo_op";
-	end                     
-                            
+	end
+
 	reg [63:0] q_ascii_instr;
 	reg [31:0] q_insn_imm;
 	reg [31:0] q_insn_opcode;
