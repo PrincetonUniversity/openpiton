@@ -89,7 +89,7 @@ export PERL_CMD="/usr/bin/perl"
 
 # Set path
 
-NEWPATH=".:$DV_ROOT/tools/bin"
+NEWPATH="$DV_ROOT/tools/bin"
 
 if [ ! -z $VCS_HOME ]
 then

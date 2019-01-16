@@ -85,7 +85,7 @@ setenv PERL_CMD "/usr/bin/perl"
 
 # Set path
 
-setenv PATH ".:$DV_ROOT/tools/bin:$NCV_HOME/tools/bin:$VCS_HOME/bin:$VERA_HOME/bin:$SYN_BIN/:$CC_BIN/:$PATH"
+setenv PATH "$DV_ROOT/tools/bin:$NCV_HOME/tools/bin:$VCS_HOME/bin:$VERA_HOME/bin:$SYN_BIN/:$CC_BIN/:$PATH"
 
 set path = (. $DV_ROOT/tools/bin $NCV_HOME/tools/bin $VCS_HOME/bin $VERA_HOME/bin $SYN_BIN $CC_BIN $path)
 
