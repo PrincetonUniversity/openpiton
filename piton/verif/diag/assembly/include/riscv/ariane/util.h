@@ -57,6 +57,19 @@ extern void setStats(int enable);
     : "r" (i)                                    \
     : "memory");
 
+#define LR_OP(ret, mem, asm_type)               \
+  __asm__ __volatile__ (                        \
+    " lr." #asm_type " %1, %0"                  \
+    : "+A" (mem), "=r" (ret)                    \
+    :                                           \
+    : "memory");
+
+#define SC_OP(ret, mem, i, asm_type)            \
+  __asm__ __volatile__ (                        \
+    " sc." #asm_type " %1, %2, %0"              \
+    : "+A" (mem), "=r" (ret)                    \
+    : "r" (i)                                   \
+    : "memory");
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
