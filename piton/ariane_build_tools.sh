@@ -62,7 +62,7 @@ else
   # not all tools are required at the moment
   ci/make-tmp.sh
   ci/build-riscv-gcc.sh
-  # ci/install-fesvr.sh
+  ci/install-fesvr.sh
   # ci/build-riscv-tests.sh
   # ci/install-dtc.sh
   ci/install-spike.sh
