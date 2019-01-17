@@ -50,6 +50,8 @@ static char* counter_names[NUM_COUNTERS];
 void printbuf(const char * buf, int buflen) {
   volatile char * uartAddr = (char*)PITON_UART_ADDRESS;
   for (int k=0; k < buflen; k++) {
+    // poll bit 5 of the LSR
+    while(!((*(uartAddr+5)) & 0x20));
     (*uartAddr) = buf[k];
     if(buf[k]=='\n') break;
   }
