@@ -133,6 +133,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_wmt.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_lruarray.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_mesi.v" \
+    "${DV_ROOT}/design/chip/tile/l15/rtl/rf_l15_lrsc_flag.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_pipeline.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_mshr.v" \
     "${DV_ROOT}/design/chip/tile/l15/rtl/l15_csm.v" \

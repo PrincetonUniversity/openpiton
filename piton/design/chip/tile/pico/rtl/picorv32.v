@@ -370,6 +370,7 @@ module picorv32 #(
 	reg mem_do_rinst;
 	reg mem_do_rdata;
 	reg mem_do_wdata;
+        reg [`L15_AMO_OP_WIDTH-1:0] instr_amo_op;
 
 	wire mem_xfer;
 	reg mem_la_secondword, mem_la_firstword_reg, last_mem_valid;
