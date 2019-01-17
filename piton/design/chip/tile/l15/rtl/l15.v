@@ -565,6 +565,27 @@ rf_l15_mesi mesi(
     .read_data(mesi_l15_dout_s2)
 );
 
+// LRSC Flag array
+wire l15_lrsc_flag_read_val_s1;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_read_index_s1;
+wire l15_lrsc_flag_write_val_s2;
+wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_write_index_s2;
+wire [3:0] l15_lrsc_flag_write_mask_s2;
+wire [3:0] l15_lrsc_flag_write_data_s2;
+wire [3:0] lrsc_flag_l15_dout_s2;
+
+rf_l15_lrsc_flag lrsc_flag(
+    .clk(clk),
+    .rst_n(rst_n),
+    .read_valid(l15_lrsc_flag_read_val_s1),
+    .read_index(l15_lrsc_flag_read_index_s1),
+    .write_valid(l15_lrsc_flag_write_val_s2),
+    .write_index(l15_lrsc_flag_write_index_s2),
+    .write_mask(l15_lrsc_flag_write_mask_s2),
+    .write_data(l15_lrsc_flag_write_data_s2),
+    .read_data(lrsc_flag_l15_dout_s2)
+);
+
 // // home map table array
 // wire l15_hmt_read_val_s1;
 // wire [8:0] l15_hmt_read_index_s1;
@@ -635,6 +656,7 @@ l15_pipeline pipeline(
     .dtag_l15_dout_s2(dtag_l15_dout_s2),
     .dcache_l15_dout_s3(dcache_l15_dout_s3),
     .mesi_l15_dout_s2(mesi_l15_dout_s2),
+    .lrsc_flag_l15_dout_s2(lrsc_flag_l15_dout_s2),
     .lruarray_l15_dout_s2(lruarray_l15_dout_s2),
     .wmt_l15_data_s3(wmt_l15_data_s3),
     .pcxdecoder_l15_rqtype               (transducer_l15_rqtype),
@@ -696,6 +718,12 @@ l15_pipeline pipeline(
     .l15_mesi_write_index_s2(l15_mesi_write_index_s2),
     .l15_mesi_write_mask_s2(l15_mesi_write_mask_s2),
     .l15_mesi_write_data_s2(l15_mesi_write_data_s2),
+    .l15_lrsc_flag_read_val_s1(l15_lrsc_flag_read_val_s1),
+    .l15_lrsc_flag_read_index_s1(l15_lrsc_flag_read_index_s1),
+    .l15_lrsc_flag_write_val_s2(l15_lrsc_flag_write_val_s2),
+    .l15_lrsc_flag_write_index_s2(l15_lrsc_flag_write_index_s2),
+    .l15_lrsc_flag_write_mask_s2(l15_lrsc_flag_write_mask_s2),
+    .l15_lrsc_flag_write_data_s2(l15_lrsc_flag_write_data_s2),
     .l15_wmt_read_val_s2(l15_wmt_read_val_s2),
     .l15_wmt_read_index_s2(l15_wmt_read_index_s2),
     .l15_wmt_write_val_s3(l15_wmt_write_val_s3),

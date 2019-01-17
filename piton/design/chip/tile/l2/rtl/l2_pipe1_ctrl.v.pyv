@@ -728,6 +728,7 @@ begin
             case (msg_type_trans_S1)
                 `MSG_TYPE_LOAD_REQ, `MSG_TYPE_NC_LOAD_REQ, `MSG_TYPE_NC_STORE_REQ, `MSG_TYPE_PREFETCH_REQ,
                 `MSG_TYPE_STORE_REQ,
+                `MSG_TYPE_LR_REQ,
                 `MSG_TYPE_WBGUARD_REQ, `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
                 `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ, `MSG_TYPE_L2_DIS_FLUSH_REQ,`MSG_TYPE_L2_LINE_FLUSH_REQ,
                 `MSG_TYPE_AMO_ADD_P1_REQ, `MSG_TYPE_AMO_ADD_P2_REQ,
@@ -1581,6 +1582,45 @@ begin
                                 cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
                                          `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
                             end
+                        end
+                    end
+                    default:
+                    begin
+                        cs_S2 = {`CS_SIZE_P1S2{1'bx}};
+                    end
+                    endcase
+                end
+                // Just like LD or STORE
+                `MSG_TYPE_LR_REQ:
+                begin
+                    case (l2_way_state_mesi_S2)
+                    `L2_MESI_I:
+                    begin
+                        if (cache_type_S2_f == `MSG_CACHE_TYPE_DATA)
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       y,         `OP_LD,     y,      n,
+                                     `OP_ADD,   y,       n,      `L2_VD_INVAL,  y,      `L2_MESI_E,   y,     `L2_LRU_SET};
+                        end
+                        else begin
+                            cs_S2 = {`CS_SIZE_P1S2{1'bx}};
+                        end
+                    end
+                    `L2_MESI_S:   // change MESI state to I in pipe2
+                    begin
+                        cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,          n,
+                                 `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
+                    end
+                    `L2_MESI_E:
+                    begin
+                        if (req_from_owner_S2 && (cache_type_S2_f == l2_way_state_cache_type_S2))
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
+                                     `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};
+                        end
+                        else
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                     `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
                         end
                     end
                     default:
@@ -3035,6 +3075,34 @@ begin
                     end
                     endcase
                 end
+                `MSG_TYPE_LR_REQ:   // TODO same as store, any changes???
+                begin
+                    case (l2_way_state_mesi_S4)
+                    `L2_MESI_I:
+                    begin
+                        cs_S4 = {n,         y,          `MSG_TYPE_DATA_ACK,    n,          `MSG_TYPE_ERROR};
+                    end
+                    `L2_MESI_S:
+                    begin
+                        cs_S4 = {y,         y,          `MSG_TYPE_INV_FWD,    n,          `MSG_TYPE_ERROR};
+                    end
+                    `L2_MESI_E:
+                    begin
+                        if (req_from_owner_S4 && (cache_type_S4_f == l2_way_state_cache_type_S4))
+                        begin
+                            cs_S4 = {n,         y,          `MSG_TYPE_DATA_ACK,    n,          `MSG_TYPE_ERROR};
+                        end
+                        else
+                        begin
+                            cs_S4 = {y,         y,          `MSG_TYPE_STORE_FWD,    n,          `MSG_TYPE_ERROR};
+                        end
+                    end
+                    default:
+                    begin
+                        cs_S4 = {`CS_SIZE_S4{1'bx}};
+                    end
+                    endcase
+                end
                 `MSG_TYPE_PREFETCH_REQ:
                 begin
                     cs_S4 = {n,         y,          `MSG_TYPE_NODATA_ACK,    n,          `MSG_TYPE_ERROR};
@@ -3557,7 +3625,7 @@ end
 
 always @ *
 begin
-    if (msg_type_S4_f == `MSG_TYPE_STORE_REQ && msg_send_type_S4 == `MSG_TYPE_DATA_ACK)
+    if ((msg_type_S4_f == `MSG_TYPE_STORE_REQ || msg_type_S4_f == `MSG_TYPE_LR_REQ) && msg_send_type_S4 == `MSG_TYPE_DATA_ACK)
     begin
         msg_send_mesi_S4 = `MSG_MESI_M;
     end

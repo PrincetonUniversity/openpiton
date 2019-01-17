@@ -218,6 +218,8 @@ print "`define Y_TILES %d"   % Y_TILES;
 `define MSG_TYPE_AMO_MIN_P2_REQ      8'd58
 `define MSG_TYPE_AMO_MINU_P2_REQ     8'd59
 
+`define MSG_TYPE_LR_REQ              8'd60
+
 
 //Forward requests from L2 to L15
 `define MSG_TYPE_LOAD_FWD           8'd16
