@@ -69,7 +69,7 @@ lex.yy.c:  lexer.l parser.tab.h
 	$(YACC) $(YACCFLAGS) $<
 
 clean:
-	\rm -f $(OBJS) *~ *.tab.c *.tab.h lex.yy.c
+	\rm -f $(OBJS) *~ *.tab.c *.tab.h lex.yy.c goldfinger
 
 clobber: clean
 	\rm -f $(TARGET) $(MANPAGE)
