@@ -413,7 +413,6 @@ module picorv32 #(
 		end
 	end
 
-  reg [`L15_AMO_OP_WIDTH-1:0] instr_amo_op;
 	always @* begin
         mem_la_amo_op = instr_amo_op;
 		(* full_case *)
