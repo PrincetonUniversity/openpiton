@@ -1501,7 +1501,10 @@ begin
                 //end
                 case (predecode_reqtype_s1)
                     `L15_REQTYPE_AMO_LR:
+                    begin
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LR_REQUEST;
+                        decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_WAIT_ACK;
+                    end
                     `L15_REQTYPE_CAS:
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
                     `L15_REQTYPE_SWP_LOADSTUB:
