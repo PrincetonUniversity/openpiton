@@ -235,7 +235,8 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", pre
               (uart_div_latch, midas_args, tname)
 
     if coreType == "ariane":
-        cmd += " -ariane"
+        # specify uart_dmw in order to include load instructions for PASS/FAIL
+        cmd += " -ariane -uart_dmw"
     elif coreType == "sparc":
         # nothing to add at the moment
         pass

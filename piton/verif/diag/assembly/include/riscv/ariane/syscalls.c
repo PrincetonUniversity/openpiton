@@ -60,15 +60,23 @@ void printbuf(const char * buf, int buflen) {
 
 // GOOD pass trap for the OpenPiton TB and pitonstream, do not modify the function name
 void __attribute__((noreturn, noinline)) pass () {
+#ifdef PITONSTREAM  
+  // only do this with pitonstream - otherwise this might block the core since the load does not return in HW
+  // this can freeze GDB debug sessions via the DTM
   volatile unsigned long long trap;
   trap = *((unsigned long long *) PITON_TEST_GOOD_END);
+#endif  
   while(1);
 }
 
 // BAD fail trap for the OpenPiton TB and pitonstream, do not modify the function name
 void __attribute__((noreturn, noinline)) fail () {
+#ifdef PITONSTREAM  
+  // only do this with pitonstream - otherwise this might block the core since the load does not return in HW
+  // this can freeze GDB debug sessions via the DTM
   volatile unsigned long long trap;
   trap = *((unsigned long long *) PITON_TEST_BAD_END);
+#endif    
   while(1);
 }
 
