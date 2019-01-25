@@ -224,7 +224,7 @@ def getTestList(fname, flog, ustr_files=False):
 # Output:   rv              - return value from midas
 # Description: compile assebly test using midas tool
 ############################################################################
-def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", precompiled=False):
+def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", precompiled=False, x_tiles=1, y_tiles=1):
     cmd = ""
     if midas_args is None:
         cmd = "sims -sys=manycore -novcs_build -midas_only \
@@ -236,7 +236,7 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", pre
 
     if coreType == "ariane":
         # specify uart_dmw in order to include load instructions for PASS/FAIL
-        cmd += " -ariane -uart_dmw"
+        cmd += " -ariane -uart_dmw -x_tiles=%d -y_tiles=%d" % (int(x_tiles), int(y_tiles))
     elif coreType == "sparc":
         # nothing to add at the moment
         pass
