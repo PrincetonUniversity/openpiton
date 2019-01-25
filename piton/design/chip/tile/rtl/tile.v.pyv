@@ -952,6 +952,7 @@ def clipAddress(addr, digits):
 
 cacheBegin = 0
 cacheStop  = 0
+dmBase     = 0
 if PITON_ARIANE:
     for i in range(len(devices)):
         if devices[i]["name"] == "mem":
@@ -959,6 +960,8 @@ if PITON_ARIANE:
             cacheStop  = cacheBegin + devices[i]["length"]
             cacheBegin = "%X" % cacheBegin
             cacheStop  = "%X" % cacheStop
+        if devices[i]["name"] == "ariane_debug":
+            dmBase     = "%X" % devices[i]["base"]    
 
 bootAddr    = cacheBegin
 if PITON_ARIANE:
@@ -976,7 +979,8 @@ print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
         // I/O space is above NC threshold
 <%
 print("        .CachedAddrBeg ( 64'h%s         )," % cacheBegin)
-print("        .CachedAddrEnd ( 64'h%s         )" % cacheStop)
+print("        .CachedAddrEnd ( 64'h%s         )," % cacheStop)
+print("        .DmBaseAddress ( 64'h%s         )" % dmBase)
 %>
     ) core (
         .clk_i       ( clk_gated              ),
