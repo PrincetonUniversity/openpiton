@@ -44,7 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //`timescale 1 ns / 10 ps
 //`default_nettype none
 
-// 12/17 timing fix: move write to s3
 
 <%
   import pyhplib

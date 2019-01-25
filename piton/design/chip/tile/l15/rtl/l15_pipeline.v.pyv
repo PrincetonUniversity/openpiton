@@ -618,8 +618,9 @@ begin
                         else if (predecode_dcache_noc2_store_sm_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_SM;
                         else if (predecode_atomic_s1)
-                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR; // Only Load Reserve is both Cacheable and AMO (just store NC=0 to mshr, nc bit is still 1 in LR PCX req)
-                            // TODO This is a relatively obscure design choice, need to be improved
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
+                            // Only Load Reserve is both Cacheable and AMO 
+                            // (just store NC=0 to mshr[in MSHR S1 logic], nc bit is still 1 in LR PCX req)
                         else
                             predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
                     end
@@ -1401,9 +1402,10 @@ begin
             end
         end
 
-        `L15_REQTYPE_AMO_SC: // TODO NOW!!!
+        `L15_REQTYPE_AMO_SC: 
         begin
-            begin // sc
+            begin 
+            // Store Conditional
                 decoder_pcx_ack_stage_s1 = `L15_ACK_STAGE_S1;
                 decoder_stall_on_matched_bypassed_index_s1 = 1'b1;
                 decoder_stall_on_matched_mshr_s1 = 1'b1;
@@ -1504,6 +1506,9 @@ begin
                     begin
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LR_REQUEST;
                         decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_WAIT_ACK;
+                        // For LR, mshr_update_state can not be IM or SM, 
+                        // otherwise the ACKDT_LR will be recognised as a ACKDT_ST_IM/SM. 
+                        // So we explicitly set the mshr_update_state to WAIT_ACK
                     end
                     `L15_REQTYPE_CAS:
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
@@ -1803,7 +1808,7 @@ begin
                 decoder_dtag_operation_s1 = `L15_DTAG_OP_WRITE;
                 decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_LRU_WAY_FROM_NOC2;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
-                decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE; // TODO currently do this for unity, but can be set to M directly.
+                decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE; // do this for unity, it can be set to M directly.
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_SET_LRU_WAY;
                 // decoder_wmt_operation_s1 = `L15_WMT_WRITE_LRU_WAY_L1_REPL_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
@@ -2037,7 +2042,6 @@ end
 ////////////////////////////
 // LRSC FLAG read control logics
 ////////////////////////////
-//TODO NOW!!! define the flag read value!!! define the flag array!!!
 reg lrsc_flag_read_val_s1;
 reg [`L15_CACHE_INDEX_WIDTH-1:0] lrsc_flag_read_index_s1;
 always @ *
@@ -2072,7 +2076,7 @@ begin
     mshr_control_bits_write_s1 [`L15_CONTROL_SIZE_3B -: 3] = predecode_size_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_THREADID -: `L15_THREADID_WIDTH] = predecode_threadid_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_L1_REPLACEMENT_WAY_2B -: `L15_WAY_WIDTH] = predecode_l1_replacement_way_s1;
-    // for Load Reserve, we evict and send INVs like a NC req. But when we get the data ack, we reagrd it as a cacheable req
+    // for Load Reserve, we evict and send INVs like a NC req. But when we get the data ack, we reagrd it as a Cacheable req
     mshr_control_bits_write_s1 [`L15_CONTROL_NC_1B -: 1] = (predecode_reqtype_s1 == `L15_REQTYPE_AMO_LR) ? 1'b0 : predecode_non_cacheable_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_BLOCKSTORE_1B -: 1] = predecode_blockstore_bit_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_BLOCKSTOREINIT_1B -: 1] = predecode_blockstore_init_s1;
@@ -2933,34 +2937,27 @@ begin
             lrsc_flag_write_way_s2 = lru_way_s2;
             lrsc_flag_write_state_s2 = 1'b1;
         end
-        `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY:  // Evict or SC? or downgrade or inv... TODO
+        `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY:  
         begin
-            lrsc_flag_write_val_s2 = tagcheck_state_m_s2;  // TODO can be always 1
+            lrsc_flag_write_val_s2 = tagcheck_state_m_s2;  // can be always 1
             lrsc_flag_write_index_s2 = cache_index_s2;
             lrsc_flag_write_way_s2 = tagcheck_way_s2;
             lrsc_flag_write_state_s2 = 1'b0;
         end
-        `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY:  // Evict or SC? or downgrade or inv... TODO
+        `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY:  
         begin
             lrsc_flag_write_val_s2 = 1'b1;
             lrsc_flag_write_index_s2 = cache_index_s2;
             lrsc_flag_write_way_s2 = lru_way_s2;
             lrsc_flag_write_state_s2 = 1'b0;
         end
-        `L15_S2_LRSC_FLAG_CLEAR_FLUSH_WAY:  // Evict or SC? or downgrade or inv... TODO
+        `L15_S2_LRSC_FLAG_CLEAR_FLUSH_WAY:  
         begin
             lrsc_flag_write_val_s2 = flush_state_m_s2;
             lrsc_flag_write_index_s2 = cache_index_s2;
             lrsc_flag_write_way_s2 = flush_way_s2;
             lrsc_flag_write_state_s2 = 1'b0;
         end
-        /*`L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY_IF_MX: // from M to SI
-        begin
-            lrsc_flag_write_val_s2 = tagcheck_state_me_s2;
-            lrsc_flag_write_index_s2 = cache_index_s2;
-            lrsc_flag_write_way_s2 = tagcheck_way_s2;
-            lrsc_flag_write_state_s2 = `L15_MESI_STATE_S;
-        end*/
     endcase
     // bugfix (stall signal needs to be here)
     // trin todo: why stall_s2 is needed
@@ -3947,12 +3944,6 @@ begin
             cpx_type_s3 = `CPX_RESTYPE_LOAD;
             cpx_data_source_s3 = `L15_CPX_SOURCE_NOC2_BUFFER;
         end
-        /*`L15_CPX_GEN_LR_RESPONSE_FROM_NOC2:
-        begin
-            cpx_req_val_s3 = 1'b1;
-            cpx_type_s3 = `CPX_RESTYPE_LOAD_RESERVE; // TODO Is it necessary to add a new type?
-            cpx_data_source_s3 = `L15_CPX_SOURCE_NOC2_BUFFER;
-        end*/
         `L15_CPX_GEN_ST_ACK:
         begin
             cpx_req_val_s3 = 1'b1;

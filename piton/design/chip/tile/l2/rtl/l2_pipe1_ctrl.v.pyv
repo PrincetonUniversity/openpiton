@@ -1590,7 +1590,7 @@ begin
                     end
                     endcase
                 end
-                // Just like LD or STORE
+                // Just like a STORE
                 `MSG_TYPE_LR_REQ:
                 begin
                     case (l2_way_state_mesi_S2)
@@ -1785,7 +1785,6 @@ begin
                     endcase
                 end
 
-                //TODO
                 `MSG_TYPE_CAS_P2Y_REQ,
                 `MSG_TYPE_SWAP_P2_REQ,
                 `MSG_TYPE_AMO_ADD_P2_REQ,
@@ -3075,7 +3074,7 @@ begin
                     end
                     endcase
                 end
-                `MSG_TYPE_LR_REQ:   // TODO same as store, any changes???
+                `MSG_TYPE_LR_REQ:   // Jsut same as a store req 
                 begin
                     case (l2_way_state_mesi_S4)
                     `L2_MESI_I:
