@@ -102,6 +102,10 @@ def usage():
     print >> sys.stderr, "              Check your /dev directory to determine serial device name"
     print >> sys.stderr, "\n       --precompiled"
     print >> sys.stderr, "              Optional.  This switch is needed to run precompiled RISCV asm tests."
+    print >> sys.stderr, "\n       --x_tiles"
+    print >> sys.stderr, "              Optional.  Needs to be specified if this parameter differs from the board default."
+    print >> sys.stderr, "\n       --y_tiles"
+    print >> sys.stderr, "              Optional.  Needs to be specified if this parameter differs from the board default."
     print >> sys.stderr, "\n       --midas_args <midas args>"
     print >> sys.stderr, "              Optional.  String containing arguments to midas to add during "
     print >> sys.stderr, "              compilation of the assembly test"
@@ -277,12 +281,12 @@ def addrDataFromC(fname):
 
     return test_addr_data_map
 
-def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreType="sparc", precompiled=False):
+def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreType="sparc", precompiled=False, x_tiles=1, y_tiles=1):
     prev_dir = os.getcwd()
     os.chdir(MODEL_DIR)
     print_info("Compiling %s" % tname)
     # Run midas only to get mem.image file
-    rv = runMidas(tname, uart_div_latch, flog, midas_args, coreType, precompiled)
+    rv = runMidas(tname, uart_div_latch, flog, midas_args, coreType, precompiled, x_tiles, y_tiles)
     if rv != 0:
         return rv
 
@@ -328,6 +332,8 @@ def setParserOptions(parser):
     parser.add_option("-d", "--design", dest="design", action="store", default="system")
     parser.add_option("-p", "--port", dest="port", action="store", default="ttyUSB0")
     parser.add_option("-c", "--core", dest="core", action="store", default="sparc")
+    parser.add_option("--x_tiles", dest="x_tiles", action="store", default=1)
+    parser.add_option("--y_tiles", dest="y_tiles", action="store", default=1)
     parser.add_option("--precompiled", dest="precompiled", action="store_true", default=False)
     parser.add_option("--midas_args", dest="midas_args", action="store")
     parser.add_option("--ustr", dest="ustr", action="store_true", default=False)
@@ -398,7 +404,7 @@ def main():
             print_info("Using precompiled RISCV test for Ariane.")
         # Compile .s tests to get .ustr
         if options.ustr == False:
-            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core, options.precompiled)
+            rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core, options.precompiled, options.x_tiles, options.y_tiles)
             if rv != 0:
                 print_error("Test compilation failed")
                 print_error("Skipping %s" % tname)
