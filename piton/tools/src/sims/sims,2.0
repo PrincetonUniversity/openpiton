@@ -2104,10 +2104,11 @@ sub assemble_diag
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
-        my $defs = "-DPITON_NUMTILES=$ENV{PTON_NUM_TILES}";
+        my $defs = "-DPITON_NUMTILES=$ENV{PTON_NUM_TILES} ";
         if ($opt{uart_dmw}) {
-          $defs .= " -DPITONSTREAM";
+          $defs .= " -DPITONSTREAM ";
         }
+        $defs .= $opt{gcc_args};
         my $cmd = "rv64_cc ${diag_name} \"$defs\"" ;
         print "$prg: $cmd\n";
         my $waitstatus = call_program($cmd, "rv64_cc.log");
@@ -2307,6 +2308,7 @@ sub parse_args
             'asm_diag_root=s@',
             'build!',
             'precompiled!',
+            'gcc_args=s',
             'uart_dmw!',
             'trap_offset=s',
             'config_cpp_args=s@',
@@ -2918,6 +2920,9 @@ this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane swit
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks
            to @{$opt{asm_diag_root}}, and skips the compilation step.
+
+    -gcc_args
+           additional gcc arguments       
              
 VCS COVERMETER
 
