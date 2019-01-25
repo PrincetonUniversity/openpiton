@@ -359,6 +359,12 @@ begin
          msg_dest_l2_ypos = req_data0[63] ? msg_dest_l2_ypos_new : msg_dest_l2_ypos_compat; 
          msg_dest_chipid  = req_data0[63] ? req_data0[`NOC_CHIPID_WIDTH+`NOC_Y_WIDTH+`NOC_X_WIDTH+17:`NOC_Y_WIDTH+`NOC_X_WIDTH+18] : `NOC_CHIPID_WIDTH'b0;
       end
+      `L15_NOC1_REQTYPE_LR_REQUEST:
+      begin
+         msg_type = `MSG_TYPE_LR_REQ;
+         msg_length = 2; // 2 extra headers
+         msg_cache_type = `MSG_CACHE_TYPE_DATA;
+      end
       `L15_NOC1_REQTYPE_AMO_ADD_REQUEST:
       begin
          msg_type = `MSG_TYPE_AMO_ADD_REQ;

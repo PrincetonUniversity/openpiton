@@ -126,6 +126,15 @@ module l15_pipeline(
     output reg [`L15_UNPARAM_7_0] l15_mesi_write_mask_s2,
     output reg [`L15_UNPARAM_7_0] l15_mesi_write_data_s2,
 
+    // lrsc_flag
+    output reg l15_lrsc_flag_read_val_s1,
+    output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_read_index_s1,
+    input wire [`L15_UNPARAM_3_0] lrsc_flag_l15_dout_s2,
+    output reg l15_lrsc_flag_write_val_s2,
+    output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_write_index_s2,
+    output reg [`L15_UNPARAM_3_0] l15_lrsc_flag_write_mask_s2,
+    output reg [`L15_UNPARAM_3_0] l15_lrsc_flag_write_data_s2,
+
     // lruarray
     output reg l15_lruarray_read_val_s1,
     output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lruarray_read_index_s1,
@@ -608,6 +617,9 @@ begin
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_IM;
                         else if (predecode_dcache_noc2_store_sm_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_SM;
+                        else if (predecode_atomic_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR; // Only Load Reserve is both Cacheable and AMO (just store NC=0 to mshr, nc bit is still 1 in LR PCX req)
+                            // TODO This is a relatively obscure design choice, need to be improved
                         else
                             predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
                     end
@@ -1006,7 +1018,7 @@ begin
     fetch_is_noc2_data_invalidation_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_INVALIDATION ||
                                     predecode_reqtype_s1 == `L15_REQTYPE_DOWNGRADE);
     fetch_is_noc2_instruction_invalidation_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_ICACHE_INVALIDATION);
-    fetch_is_noc2_ackdt_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_ACKDT_LD || predecode_reqtype_s1 == `L15_REQTYPE_ACKDT_ST_IM);
+    fetch_is_noc2_ackdt_s1 = (predecode_reqtype_s1 == `L15_REQTYPE_ACKDT_LD || predecode_reqtype_s1 == `L15_REQTYPE_ACKDT_ST_IM || predecode_reqtype_s1 == `L15_REQTYPE_ACKDT_LR);
     fetch_state_next_s1 = `L15_FETCH_STATE_NORMAL;
     fetch_is_pcx_flush_s1 = predecode_reqtype_s1 == `L15_REQTYPE_LINE_FLUSH;
 
@@ -1016,7 +1028,8 @@ begin
             fetch_state_next_s1 = `L15_FETCH_STATE_NORMAL;
             if (!stall_s1)
             begin
-                if (fetch_is_pcx_atomic_instruction_s1
+                // AMO_SC can be finished within one cycle.
+                if ((fetch_is_pcx_atomic_instruction_s1 && (predecode_reqtype_s1 != `L15_REQTYPE_AMO_SC))
                     || fetch_is_pcx_storenc_instruction_s1 || fetch_is_pcx_loadnc_instruction_s1 || fetch_is_pcx_flush_s1)
                     fetch_state_next_s1 = `L15_FETCH_STATE_PCX_WRITEBACK_DONE;
                 else if (fetch_is_noc2_data_invalidation_s1)
@@ -1099,6 +1112,8 @@ reg [`L15_CONFIG_OP_WIDTH-1:0]decoder_config_op_s1;
 reg decoder_no_free_mshr_s1;
 reg decoder_stall_on_matched_mshr_s1;
 reg [`L15_MSHR_ID_WIDTH-1:0]decoder_mshrid_s1;
+reg decoder_lrsc_flag_read_op_s1;
+reg [`L15_LRSC_FLAG_WRITE_OP_WIDTH-1:0] decoder_lrsc_flag_write_op_s1;
 
 always @ *
 begin
@@ -1129,8 +1144,9 @@ begin
     decoder_creditman_req_8B_s1 = 1'b0;
     decoder_creditman_req_16B_s1 = 1'b0;
     decoder_stall_on_matched_mshr_s1 = 1'b0;
-    decoder_mshr_allocation_type_s1 = 0;
-
+    decoder_mshr_allocation_type_s1 = 0; 
+    decoder_lrsc_flag_read_op_s1 = 1'b0;
+    decoder_lrsc_flag_write_op_s1 = 2'b0;
     decoder_no_free_mshr_s1 = 0;
     `ifndef NO_RTL_CSM
     decoder_hmt_op_s1 = 0;
@@ -1148,6 +1164,7 @@ begin
                 decoder_dtag_operation_s1 = `L15_DTAG_OP_READ;
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
@@ -1271,6 +1288,7 @@ begin
                     decoder_dcache_operation_s1 = `L15_DCACHE_READ_TAGCHECK_WAY_IF_M;
 
                     decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
+                    decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
                     // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
                     decoder_wmt_read_op_s1 = `L15_WMT_READ;
                     decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
@@ -1369,6 +1387,7 @@ begin
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_FLUSH_WAY_IF_M;
 
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_FLUSH_WAY_IF_MES;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_FLUSH_WAY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_FLUSH_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_FLUSH;
@@ -1382,10 +1401,40 @@ begin
             end
         end
 
+        `L15_REQTYPE_AMO_SC: // TODO NOW!!!
+        begin
+            begin // sc
+                decoder_pcx_ack_stage_s1 = `L15_ACK_STAGE_S1;
+                decoder_stall_on_matched_bypassed_index_s1 = 1'b1;
+                decoder_stall_on_matched_mshr_s1 = 1'b1;
+                decoder_stall_on_mshr_allocation_s1 = 1'b1;
+                decoder_s1_mshr_operation_s1 = `L15_S1_MSHR_OP_ALLOCATE;
+                decoder_mshr_allocation_type_s1 = `L15_MSHR_ID_ST;
+                decoder_dtag_operation_s1 = `L15_DTAG_OP_READ;
+
+                decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
+                decoder_lrsc_flag_read_op_s1 = `L15_S1_LRSC_FLAG_READ;
+
+                decoder_s2_mshr_operation_s1 = `L15_S2_MSHR_OP_READ_WRITE_CACHE;
+                decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_TAGCHECK_WAY_IF_LRSC_SET_FROM_MSHR;
+
+                decoder_wmt_read_op_s1 = `L15_WMT_READ;
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+
+                decoder_lruarray_write_op_s1 = `L15_LRU_UPDATE_ACCESS_BITS_IF_TAGCHECK_WAY_LRSC_SET;
+                //decoder_csm_op_s1 = `L15_CSM_OP_READ_GHID_IF_TAGCHECK_SI;
+                decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;  // deallocate anyway
+                //decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_TAGCHECK_WAY_M_IF_LRSC_SET;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
+                decoder_cpx_operation_s1 = `L15_CPX_GEN_SC_ACK;
+                //decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_ST_UPGRADE_IF_TAGCHECK_S_ELSE_ST_FILL_IF_TAGCHECK_I;
+                //decoder_creditman_noc1_needed = 2'd1;
+            end
+        end
+
         `L15_REQTYPE_CAS,
         `L15_REQTYPE_SWP_LOADSTUB,
         `L15_REQTYPE_AMO_LR,
-        `L15_REQTYPE_AMO_SC,
         `L15_REQTYPE_AMO_ADD,
         `L15_REQTYPE_AMO_AND,
         `L15_REQTYPE_AMO_OR,
@@ -1408,6 +1457,7 @@ begin
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_TAGCHECK_WAY_IF_M;
 
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
                 // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
@@ -1423,12 +1473,11 @@ begin
                 // move data request to the first operation to keep atomicity
                 if (predecode_reqtype_s1 == `L15_REQTYPE_CAS)
                 begin
-                    // decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
                     decoder_creditman_req_16B_s1 = 1'b1;
                 end
-                else
+                else if (predecode_reqtype_s1 != `L15_REQTYPE_AMO_LR)
                 begin
-                    // decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_SWAP_REQUEST_FROM_PCX;
+                    // LR won't sent NOC1 msg with data; other AMO reqs will
                     decoder_creditman_req_8B_s1 = 1'b1;
                 end
             end
@@ -1451,6 +1500,11 @@ begin
                 //    // decoder_creditman_req_8B_s1 = 1'b1;
                 //end
                 case (predecode_reqtype_s1)
+                    `L15_REQTYPE_AMO_LR:
+                    begin
+                        decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LR_REQUEST;
+                        decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_WAIT_ACK;
+                    end
                     `L15_REQTYPE_CAS:
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
                     `L15_REQTYPE_SWP_LOADSTUB:
@@ -1535,6 +1589,7 @@ begin
 
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_TAGCHECK_WAY_MATCHES;
             decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
+            decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
             // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
             decoder_wmt_read_op_s1 = `L15_WMT_READ;
             decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
@@ -1575,6 +1630,7 @@ begin
             decoder_dcache_operation_s1 = `L15_DCACHE_READ_TAGCHECK_WAY_IF_M;
 
             decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_TAGCHECK_WAY_S_IF_ME;
+            decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
 
             if (predecode_is_last_inval_s1)
                 decoder_noc3_operation_s1 = `L15_NOC3_GEN_DOWNGRADE_ACK_FROM_DCACHE;
@@ -1596,6 +1652,7 @@ begin
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
                 decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_LRU_M;
                 decoder_creditman_noc1_needed = 2'd1;
@@ -1657,6 +1714,7 @@ begin
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
                 decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_LRU_M;
                 decoder_creditman_noc1_needed = 2'd1;
@@ -1716,6 +1774,52 @@ begin
             decoder_stall_on_matched_bypassed_index_s1 = 1;
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
             decoder_cpx_operation_s1 = `L15_CPX_GEN_ATOMIC_ACK_FROM_NOC2;
+        end
+
+        `L15_REQTYPE_ACKDT_LR:
+        begin
+            if (fetch_state_s1 == `L15_FETCH_STATE_NORMAL)
+            begin // eviction for the fill
+                decoder_stall_on_matched_bypassed_index_s1 = 1;
+                decoder_dtag_operation_s1 = `L15_DTAG_OP_READ;
+                decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
+                decoder_dcache_operation_s1 = `L15_DCACHE_READ_LRU_WAY_IF_M;
+                decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_LRU_WAY_MATCHES;
+                // decoder_wmt_operation_s1 = `L15_WMT_READ_LRU_WAY_IF_MES_AND_DEMAP_ENTRY;
+                decoder_wmt_read_op_s1 = `L15_WMT_READ;
+                decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
+                decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
+                decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
+                decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_LRU_M;
+                decoder_creditman_noc1_needed = 2'd1;
+                decoder_noc3_operation_s1 = `L15_NOC3_GEN_WRITEBACK_IF_LRU_M_FROM_DCACHE;
+                decoder_creditman_noc1_unreserve_s1 = 1'b1;
+                decoder_csm_op_s1 = `L15_CSM_OP_EVICT_IF_LRU_M;
+            end
+            else // the fill
+            begin
+                decoder_noc2_ack_stage_s1 = `L15_ACK_STAGE_S3;
+                decoder_dtag_operation_s1 = `L15_DTAG_OP_WRITE;
+                decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_LRU_WAY_FROM_NOC2;
+                decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
+                decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE; // TODO currently do this for unity, but can be set to M directly.
+                decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_SET_LRU_WAY;
+                // decoder_wmt_operation_s1 = `L15_WMT_WRITE_LRU_WAY_L1_REPL_AND_DEMAP_ENTRY;
+                decoder_wmt_read_op_s1 = `L15_WMT_READ;
+                decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
+`ifdef PITON_ASIC_RTL
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+`else
+                // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug fix 3/28/16
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
+`endif
+                decoder_lruarray_write_op_s1 = `L15_LRU_REPLACEMENT;
+                decoder_cpx_operation_s1 = `L15_CPX_GEN_ATOMIC_ACK_FROM_NOC2;
+                `ifndef NO_RTL_CSM
+                decoder_hmt_op_s1 = `L15_HMT_OP_WRITE;
+                `endif
+            end
         end
 
         `L15_REQTYPE_L2_INTERRUPT:
@@ -1931,6 +2035,28 @@ begin
 end
 
 ////////////////////////////
+// LRSC FLAG read control logics
+////////////////////////////
+//TODO NOW!!! define the flag read value!!! define the flag array!!!
+reg lrsc_flag_read_val_s1;
+reg [`L15_CACHE_INDEX_WIDTH-1:0] lrsc_flag_read_index_s1;
+always @ *
+begin
+    lrsc_flag_read_val_s1 = 0;
+    lrsc_flag_read_index_s1 = 0;
+    case (decoder_lrsc_flag_read_op_s1)
+        `L15_S1_LRSC_FLAG_READ:
+        begin
+            lrsc_flag_read_val_s1 = 1'b1;
+            lrsc_flag_read_index_s1 = predecode_cache_index_s1;
+        end
+    endcase
+
+    l15_lrsc_flag_read_val_s1 = lrsc_flag_read_val_s1 && val_s1 && !stall_s1;
+    l15_lrsc_flag_read_index_s1[`L15_CACHE_INDEX_WIDTH-1:0] = lrsc_flag_read_index_s1;
+end
+
+////////////////////////////
 // MSHR S1 logic
 ////////////////////////////
 // depends on predecode and decode
@@ -1946,7 +2072,8 @@ begin
     mshr_control_bits_write_s1 [`L15_CONTROL_SIZE_3B -: 3] = predecode_size_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_THREADID -: `L15_THREADID_WIDTH] = predecode_threadid_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_L1_REPLACEMENT_WAY_2B -: `L15_WAY_WIDTH] = predecode_l1_replacement_way_s1;
-    mshr_control_bits_write_s1 [`L15_CONTROL_NC_1B -: 1] = predecode_non_cacheable_s1;
+    // for Load Reserve, we evict and send INVs like a NC req. But when we get the data ack, we reagrd it as a cacheable req
+    mshr_control_bits_write_s1 [`L15_CONTROL_NC_1B -: 1] = (predecode_reqtype_s1 == `L15_REQTYPE_AMO_LR) ? 1'b0 : predecode_non_cacheable_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_BLOCKSTORE_1B -: 1] = predecode_blockstore_bit_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_BLOCKSTOREINIT_1B -: 1] = predecode_blockstore_init_s1;
     mshr_control_bits_write_s1 [`L15_CONTROL_PREFETCH_1B -: 1] = predecode_prefetch_bit_s1;
@@ -2113,6 +2240,7 @@ s2floplist = [
     ('f4b','1'),
     ('predecode_noc2_inval', '1'),
     ('predecode_fwd_subcacheline_vector', '4'),
+    ('lrsc_flag_write_op','`L15_LRSC_FLAG_WRITE_OP_WIDTH'),
     ('blockstore', '1'),
     ('blockstoreinit', '1'),
     ('predecode_reqtype', '`L15_REQTYPE_WIDTH'),
@@ -2152,6 +2280,7 @@ s2floplist_no_rtl_csm = [
     ('l1_replacement_way','2'),
     ('l2_miss','1'),
     ('f4b','1'),
+    ('lrsc_flag_write_op','`L15_LRSC_FLAG_WRITE_OP_WIDTH'),
     ('predecode_noc2_inval', '1'),
     ('predecode_fwd_subcacheline_vector', '4'),
     ('blockstore', '1'),
@@ -2275,6 +2404,7 @@ begin
         blockstore_s2_next = predecode_blockstore_bit_s1;
         blockstoreinit_s2_next = predecode_blockstore_init_s1;
         noc2_src_homeid_s2_next = noc2decoder_l15_src_homeid;
+        lrsc_flag_write_op_s2_next = decoder_lrsc_flag_write_op_s1;
 
         `ifndef NO_RTL_CSM
         hmt_fill_homeid_s2_next = predecode_mshr_read_homeid_s1;
@@ -2287,6 +2417,7 @@ begin
         `endif
     end
 end
+
 
 always @ *
 begin
@@ -2329,6 +2460,7 @@ reg tagcheck_state_e_s2;
 reg [`L15_UNPARAM_1_0] tagcheck_way_s2;
 // reg [`L15_UNPARAM_3_0] tagcheck_way_mask_s2;
 reg tagcheck_val_s2;
+reg tagcheck_lrsc_flag_s2;
 
 reg [`L15_UNPARAM_1_0] lru_state_s2;
 reg lru_state_m_s2;
@@ -2387,6 +2519,12 @@ begin
     //                                                               2'd2 ? 4'b0100 :
     //                                                                         4'b1000 ;
 
+    tagcheck_lrsc_flag_s2 = (tagcheck_val_s2 == 1'b0) ? 1'b0 :
+                                (tagcheck_way_s2 == 2'd0) ? lrsc_flag_l15_dout_s2[0] :
+                                (tagcheck_way_s2 == 2'd1) ? lrsc_flag_l15_dout_s2[1] :
+                                (tagcheck_way_s2 == 2'd2) ? lrsc_flag_l15_dout_s2[2] :
+                                                            lrsc_flag_l15_dout_s2[3] ;
+
     tagcheck_state_s2 = (tagcheck_val_s2 == 1'b0) ? `L15_MESI_STATE_I :
                                 (tagcheck_way_s2 == 2'd0) ? mesi_state_way0_s2 :
                                 (tagcheck_way_s2 == 2'd1) ? mesi_state_way1_s2 :
@@ -2398,6 +2536,7 @@ begin
                             (flush_way_s2 == 2'd1) ? mesi_state_way1_s2 :
                             (flush_way_s2 == 2'd2) ? mesi_state_way2_s2 :
                                                              mesi_state_way3_s2 ;
+
     flush_way_tag_s2[`L15_CACHE_TAG_WIDTH-1:0] =
                         (flush_way_s2 == 0) ? dtag_tag_way0_s2[`L15_CACHE_TAG_WIDTH-1:0] :
                         (flush_way_s2 == 1) ? dtag_tag_way1_s2[`L15_CACHE_TAG_WIDTH-1:0] :
@@ -2566,6 +2705,14 @@ begin
         `L15_DCACHE_WRITE_TAGCHECK_WAY_IF_ME_FROM_MSHR:
         begin
             dcache_val_s2 = tagcheck_state_me_s2;
+            dcache_rw_s2 = `L15_DTAG_RW_WRITE;
+            dcache_index_s2 = cache_index_s2;
+            dcache_way_s2 = tagcheck_way_s2;
+            dcache_source_s2 = `L15_DCACHE_SOURCE_MSHR;
+        end
+        `L15_DCACHE_WRITE_TAGCHECK_WAY_IF_LRSC_SET_FROM_MSHR:
+        begin
+            dcache_val_s2 = (tagcheck_state_m_s2 & tagcheck_lrsc_flag_s2); // Check state_m is just redundant, but need to be conservative
             dcache_rw_s2 = `L15_DTAG_RW_WRITE;
             dcache_index_s2 = cache_index_s2;
             dcache_way_s2 = tagcheck_way_s2;
@@ -2765,6 +2912,66 @@ begin
 end
 
 
+////////////////////////
+// LRSC flag write control
+////////////////////////
+reg lrsc_flag_write_val_s2;
+reg [`L15_CACHE_INDEX_MASK] lrsc_flag_write_index_s2;
+reg [`L15_UNPARAM_1_0] lrsc_flag_write_way_s2;
+reg lrsc_flag_write_state_s2;
+always @ *
+begin
+    lrsc_flag_write_val_s2 = 0;
+    lrsc_flag_write_index_s2 = 0;
+    lrsc_flag_write_way_s2 = 0;
+    lrsc_flag_write_state_s2 = 0;
+    case (lrsc_flag_write_op_s2)
+        `L15_S2_LRSC_FLAG_SET_LRU_WAY:
+        begin
+            lrsc_flag_write_val_s2 = 1'b1;
+            lrsc_flag_write_index_s2 = cache_index_s2;
+            lrsc_flag_write_way_s2 = lru_way_s2;
+            lrsc_flag_write_state_s2 = 1'b1;
+        end
+        `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY:  // Evict or SC? or downgrade or inv... TODO
+        begin
+            lrsc_flag_write_val_s2 = tagcheck_state_m_s2;  // TODO can be always 1
+            lrsc_flag_write_index_s2 = cache_index_s2;
+            lrsc_flag_write_way_s2 = tagcheck_way_s2;
+            lrsc_flag_write_state_s2 = 1'b0;
+        end
+        `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY:  // Evict or SC? or downgrade or inv... TODO
+        begin
+            lrsc_flag_write_val_s2 = 1'b1;
+            lrsc_flag_write_index_s2 = cache_index_s2;
+            lrsc_flag_write_way_s2 = lru_way_s2;
+            lrsc_flag_write_state_s2 = 1'b0;
+        end
+        `L15_S2_LRSC_FLAG_CLEAR_FLUSH_WAY:  // Evict or SC? or downgrade or inv... TODO
+        begin
+            lrsc_flag_write_val_s2 = flush_state_m_s2;
+            lrsc_flag_write_index_s2 = cache_index_s2;
+            lrsc_flag_write_way_s2 = flush_way_s2;
+            lrsc_flag_write_state_s2 = 1'b0;
+        end
+        /*`L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY_IF_MX: // from M to SI
+        begin
+            lrsc_flag_write_val_s2 = tagcheck_state_me_s2;
+            lrsc_flag_write_index_s2 = cache_index_s2;
+            lrsc_flag_write_way_s2 = tagcheck_way_s2;
+            lrsc_flag_write_state_s2 = `L15_MESI_STATE_S;
+        end*/
+    endcase
+    // bugfix (stall signal needs to be here)
+    // trin todo: why stall_s2 is needed
+    l15_lrsc_flag_write_val_s2 = lrsc_flag_write_val_s2 && val_s2 && !stall_s2;
+    l15_lrsc_flag_write_index_s2[`L15_CACHE_INDEX_MASK] = lrsc_flag_write_index_s2;
+    l15_lrsc_flag_write_mask_s2[`L15_UNPARAM_3_0] =  (lrsc_flag_write_way_s2 == 0) ? 4'b0001 :
+                            (lrsc_flag_write_way_s2 == 1) ? 4'b0010 :
+                            (lrsc_flag_write_way_s2 == 2) ? 4'b0100 :
+                                                    4'b1000 ;
+    l15_lrsc_flag_write_data_s2[`L15_UNPARAM_3_0] = {4{lrsc_flag_write_state_s2}};
+end
 
 ////////////////////////////
 // output to CSM
@@ -2958,6 +3165,7 @@ end
 s3floplist = [
     ('tagcheck_way','2'),
     ('tagcheck_state','2'),
+    ('tagcheck_lrsc_flag','1'),
     ('flush_way','2'),
     ('flush_state','2'),
     ('lru_way','2'),
@@ -3348,6 +3556,15 @@ begin
                 lruarray_write_data_s3[`L15_UNPARAM_3_0] = lru_data_s3[`L15_UNPARAM_3_0] | lruarray_tagcheck_mask_s3;
             lruarray_write_data_s3[5:4] = lru_data_s3[5:4]; // retain old round robin
         end
+        `L15_LRU_UPDATE_ACCESS_BITS_IF_TAGCHECK_WAY_LRSC_SET:
+        begin
+            lruarray_write_val_s3 = tagcheck_lrsc_flag_s3;
+            if ((lru_data_s3[`L15_UNPARAM_3_0] | lruarray_tagcheck_mask_s3) == 4'b1111)
+                lruarray_write_data_s3[`L15_UNPARAM_3_0] = 4'b0000;
+            else
+                lruarray_write_data_s3[`L15_UNPARAM_3_0] = lru_data_s3[`L15_UNPARAM_3_0] | lruarray_tagcheck_mask_s3;
+            lruarray_write_data_s3[5:4] = lru_data_s3[5:4]; // retain old round robin
+        end
         `L15_LRU_EVICTION:
         begin
             // lruarray_write_val_s3 = 1'b1; // might be an error to change here
@@ -3730,10 +3947,23 @@ begin
             cpx_type_s3 = `CPX_RESTYPE_LOAD;
             cpx_data_source_s3 = `L15_CPX_SOURCE_NOC2_BUFFER;
         end
+        /*`L15_CPX_GEN_LR_RESPONSE_FROM_NOC2:
+        begin
+            cpx_req_val_s3 = 1'b1;
+            cpx_type_s3 = `CPX_RESTYPE_LOAD_RESERVE; // TODO Is it necessary to add a new type?
+            cpx_data_source_s3 = `L15_CPX_SOURCE_NOC2_BUFFER;
+        end*/
         `L15_CPX_GEN_ST_ACK:
         begin
             cpx_req_val_s3 = 1'b1;
             cpx_type_s3 = `CPX_RESTYPE_STORE_ACK;
+        end
+        `L15_CPX_GEN_SC_ACK:
+        begin
+            cpx_req_val_s3 = 1'b1;
+            cpx_type_s3 = `CPX_RESTYPE_ATOMIC_RES;
+            cpx_data_source_s3 = `L15_CPX_SOURCE_LRSC_FLAG;
+            cpx_atomic_bit_s3 = 1;
         end
         `L15_CPX_GEN_ST_ACK_WITH_POSSIBLE_INVAL:
         begin
@@ -3849,6 +4079,15 @@ begin
     l15_cpxencoder_data_2[`L15_UNPARAM_63_0] = 0;
     l15_cpxencoder_data_3[`L15_UNPARAM_63_0] = 0;
     case (cpx_data_source_s3)
+        `L15_CPX_SOURCE_LRSC_FLAG:
+        begin
+            l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+                {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
+                {7'b0,(~tagcheck_lrsc_flag_s3),56'b0});
+            l15_cpxencoder_data_1[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+                {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
+                {7'b0,(~tagcheck_lrsc_flag_s3),56'b0}); // write 0 on success
+        end
         `L15_CPX_SOURCE_DCACHE:
         begin
             l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = dcache_l15_dout_s3[127:64];
@@ -3968,6 +4207,15 @@ begin
             noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
             creditman_noc1_mispredicted_s3 = noc1_req_val_s3 ? 1'b0 : val_s3;
             creditman_noc1_reserve_s3 = noc1_req_val_s3 ? 1'b1 : 1'b0;
+        end
+        `L15_NOC1_GEN_DATA_LR_REQUEST:
+        begin
+            noc1_req_val_s3 = val_s3;
+            noc1_type_s3 = `L15_NOC1_REQTYPE_LR_REQUEST;
+            //noc1_data_source_s3 = `L15_NOC1_SOURCE_PCX_128B;
+            l15_noc1buffer_req_address = address_s3;
+            noc1_homeid_source_s3 = `L15_HOMEID_SRC_CSM_MODULE;
+            creditman_noc1_reserve_s3 = val_s3;
         end
         `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX:
         begin
