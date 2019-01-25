@@ -255,7 +255,7 @@ pico-amoxor     amoxor_w.S
         ariane-rv64ua-p-amomin_w  rv64ua-p-amomin_w.S
         ariane-rv64ua-p-amominu_d rv64ua-p-amominu_d.S
         ariane-rv64ua-p-amominu_w rv64ua-p-amominu_w.S
-        // ariane-rv64ua-p-lrsc      rv64ua-p-lrsc.S
+        ariane-rv64ua-p-lrsc      rv64ua-p-lrsc.S
         </runargs>
     </ariane_tile1_amo_tests_p>
 
@@ -282,7 +282,7 @@ pico-amoxor     amoxor_w.S
         ariane-rv64ua-v-amomin_w  rv64ua-v-amomin_w.S
         ariane-rv64ua-v-amominu_d rv64ua-v-amominu_d.S
         ariane-rv64ua-v-amominu_w rv64ua-v-amominu_w.S
-        // ariane-rv64ua-v-lrsc      rv64ua-v-lrsc.S
+        ariane-rv64ua-v-lrsc      rv64ua-v-lrsc.S
         </runargs>
     </ariane_tile1_amo_tests_v>
 
