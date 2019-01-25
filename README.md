@@ -103,8 +103,6 @@ Check out the sections below to see how to run the RISC-V tests or simple bare-m
 
 > Note that the system has only been tested with a 1x1 tile configuration. Verification of more advanced features such as cache coherency among multiple tiles is still a work-in-progress, although simple test programs do work in the manycore setting (see below).
 
-> All RISC-V atomics except LR/SC are supported and tested.
-
 > For simulation, Questasim 10.6b is needed (older versions might work, but have not been tested).
 
 > You will need Vivado 2017.3 or newer to build an FPGA bitstream with Ariane.
@@ -226,6 +224,7 @@ OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.
 | `tms`    | JC4 |
 | `trst_n` | JC7 |
 
+The simple OpenOCD script below currently only supports one hart to be debugged at a time. Select the hart to debug by changing the core id (look for the `-coreid` in the `ariane*.cfg` file). 
 
 ```
 $ openocd -f ./piton/design/chip/tile/ariane/fpga/ariane_tiny.cfg
@@ -281,6 +280,12 @@ If you are on an Ubuntu based system you need to add the following udev rule to 
 >```
 > SUBSYSTEM=="usb", ACTION=="add", ATTRS{idProduct}=="002a", ATTRS{idVendor}=="15ba", MODE="664", GROUP="plugdev"
 >```
+
+In order to compile programs that you can load with GDB, use the following command:
+
+```sims -sys=manycore -novcs_build -midas_only hello_world.c -ariane -x_tiles=1 -y_tiles=1 -gcc_args="-g"```
+
+Note that the tile configuration needs to correspond to your actual platform configuration if your program is a multi-hart program. Otherwise you can omit these switches (the additional cores will not execute the program in that case).
 
 
 ##### Planned Improvements
