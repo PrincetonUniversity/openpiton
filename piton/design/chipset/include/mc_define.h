@@ -1,7 +1,7 @@
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,7 +29,8 @@
 `define MIG_RD_CMD  3'b001
 
 `ifdef VC707_BOARD
-    `define BOARD_MEM_SIZE_BYTES    1073741824
+    // specify mem size in MByte here
+    `define BOARD_MEM_SIZE_MB       1024
     `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
@@ -44,8 +45,25 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+`elsif VCU118_BOARD
+    `define BOARD_MEM_SIZE_MB       2048
+    `define WORDS_PER_BURST         8
+    `define MIG_APP_ADDR_WIDTH      28
+    `define MIG_APP_CMD_WIDTH       3
+    `define MIG_APP_DATA_WIDTH      512
+    `define MIG_APP_MASK_WIDTH      64
+
+    `define DDR3_DQ_WIDTH           64
+    `define DDR3_DQS_WIDTH          8
+    `define DDR3_ADDR_WIDTH         17
+    `define DDR3_BA_WIDTH           2
+    `define DDR3_DM_WIDTH           8
+    `define DDR3_CK_WIDTH           1
+    `define DDR3_CKE_WIDTH          1
+    `define DDR3_CS_WIDTH           1
+    `define DDR3_BG_WIDTH           1
 `elsif NEXYS4DDR_BOARD
-    `define BOARD_MEM_SIZE_BYTES    268435456
+    `define BOARD_MEM_SIZE_MB       256
     `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      27
     `define MIG_APP_CMD_WIDTH       3
@@ -61,7 +79,7 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `elsif GENESYS2_BOARD
-    `define BOARD_MEM_SIZE_BYTES    1073741824
+    `define BOARD_MEM_SIZE_MB       1024
     `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
@@ -77,7 +95,7 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `elsif NEXYSVIDEO_BOARD
-    `define BOARD_MEM_SIZE_BYTES    536870912
+    `define BOARD_MEM_SIZE_MB       512
     `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
@@ -93,7 +111,7 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
 `else
-    `define BOARD_MEM_SIZE_BYTES    1073741824
+    `define BOARD_MEM_SIZE_MB       1024
     `define MIG_APP_ADDR_WIDTH      29
     `define WORDS_PER_BURST         8
     `define MIG_APP_CMD_WIDTH       3

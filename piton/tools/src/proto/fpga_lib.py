@@ -47,17 +47,20 @@ DESIGN_BLOCK_LIST = os.path.join(DV_ROOT, "tools/src/proto/block.list")
 MAP_MODULE_NAME = "storage_addr_trans.v"
 NOC_PAYLOAD_WIDTH = 512
 STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
+                                                    "vcu118":512,
                                                     "nexys4ddr":128,
                                                     "genesys2":256,
                                                     "nexysVideo":128
                                                 },
                                         "bram": {   "vc707":512,
+                                                    "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512
                                                 },
                                         "dmw":  {   "vc707":512,
+                                                    "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
@@ -66,17 +69,20 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                     }
 
 STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
+                                                    "vcu118":64,
                                                     "nexys4ddr":16,
                                                     "genesys2":32,
                                                     "nexysVideo":16
                                                 },
                                         "bram": {   "vc707":512,
+                                                    "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512
                                                 },
-                                        "dmw": {   "vc707":512,
+                                        "dmw": {    "vc707":512,
+                                                    "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
@@ -85,17 +91,20 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                     }
 
 STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
+                                                    "vcu118":2*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20
                                                 },
                                         "bram": {   "vc707":16384*512,
+                                                    "vcu118":16384*512,
                                                     "nexys4ddr":16384*512,
                                                     "genesys2":16384*512,
                                                     "nexysVideo":16384*512,
                                                     "piton_board":256*512
                                                 },
                                         "dmw":  {   "vc707":8*2**30,
+                                                    "vcu118":2*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20

@@ -41,25 +41,39 @@ module mc_top (
     input                           mc_flit_out_rdy,
 
     input                           uart_boot_en,
+    
+`ifdef VCU118_BOARD
+    // directly feed in 250MHz ref clock
+    input                           sys_clk_p,
+    input                           sys_clk_n,
 
+    output                          ddr_act_n,
+    output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
+`else // VCU118_BOARD
     input                           sys_clk,
+
+    output                          ddr_cas_n,
+    output                          ddr_ras_n,
+    output                          ddr_we_n,
+`endif
 
     output [`DDR3_ADDR_WIDTH-1:0]   ddr_addr,
     output [`DDR3_BA_WIDTH-1:0]     ddr_ba,
-    output                          ddr_cas_n,
     output [`DDR3_CK_WIDTH-1:0]     ddr_ck_n,
     output [`DDR3_CK_WIDTH-1:0]     ddr_ck_p,
     output [`DDR3_CKE_WIDTH-1:0]    ddr_cke,
-    output                          ddr_ras_n,
     output                          ddr_reset_n,
-    output                          ddr_we_n,
     inout  [`DDR3_DQ_WIDTH-1:0]     ddr_dq,
     inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_n,
     inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_p,
 `ifndef NEXYSVIDEO_BOARD
     output [`DDR3_CS_WIDTH-1:0]     ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
+`ifdef VCU118_BOARD
+    inout [`DDR3_DM_WIDTH-1:0]      ddr_dm,
+`else 
     output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
+`endif
     output                          ddr_odt,
 
     output                          init_calib_complete_out,
@@ -169,6 +183,7 @@ end
 assign afifo_rst_2 = afifo_ui_rst_r_r | ui_clk_sync_rst;
 
 // TODO: zeroed based on example simulation of MIG7
+// not used for DDR4 MIG
 assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
@@ -294,6 +309,56 @@ memory_zeroer #(
 );
 `endif
 
+`ifdef VCU118_BOARD
+
+// reserved, tie to 0
+wire app_hi_pri;
+assign app_hi_pri = 1'b0;
+  
+ddr4_0 i_ddr4_0 (
+  .sys_rst                   ( ~sys_rst_n                ),
+  .c0_sys_clk_p              ( sys_clk_p                 ),
+  .c0_sys_clk_n              ( sys_clk_n                 ),
+  .dbg_clk                   (                           ), // not used 
+  .dbg_bus                   (                           ), // not used
+  .c0_ddr4_ui_clk            ( ui_clk                    ),
+  .c0_ddr4_ui_clk_sync_rst   ( ui_clk_sync_rst           ),
+  
+  .c0_ddr4_act_n             ( ddr_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4
+  .c0_ddr4_adr               ( ddr_addr                  ),
+  .c0_ddr4_ba                ( ddr_ba                    ),
+  .c0_ddr4_bg                ( ddr_bg                    ), // bank group address
+  .c0_ddr4_cke               ( ddr_cke                   ),
+  .c0_ddr4_odt               ( ddr_odt                   ),
+  .c0_ddr4_cs_n              ( ddr_cs_n                  ),
+  .c0_ddr4_ck_t              ( ddr_ck_p                  ),
+  .c0_ddr4_ck_c              ( ddr_ck_n                  ),
+  .c0_ddr4_reset_n           ( ddr_reset_n               ),
+  .c0_ddr4_dm_dbi_n          ( ddr_dm                    ), // dbi_n is a data bus inversion feature that cannot be used simultaneously with dm
+  .c0_ddr4_dq                ( ddr_dq                    ), 
+  .c0_ddr4_dqs_c             ( ddr_dqs_n                 ), 
+  .c0_ddr4_dqs_t             ( ddr_dqs_p                 ), 
+  .c0_init_calib_complete    ( init_calib_complete       ),
+  
+  // Application interface ports
+  .c0_ddr4_app_addr          ( app_addr                  ),
+  .c0_ddr4_app_cmd           ( app_cmd                   ),
+  .c0_ddr4_app_en            ( app_en                    ),
+
+  .c0_ddr4_app_hi_pri        ( app_hi_pri                ), // reserved, tie to 0
+  .c0_ddr4_app_wdf_data      ( app_wdf_data              ), 
+  .c0_ddr4_app_wdf_end       ( app_wdf_end               ),
+  .c0_ddr4_app_wdf_mask      ( app_wdf_mask              ), 
+  .c0_ddr4_app_wdf_wren      ( app_wdf_wren              ),
+  .c0_ddr4_app_rd_data       ( app_rd_data               ), 
+  .c0_ddr4_app_rd_data_end   ( app_rd_data_end           ),
+  .c0_ddr4_app_rd_data_valid ( app_rd_data_valid         ),
+  .c0_ddr4_app_rdy           ( app_rdy                   ),
+  .c0_ddr4_app_wdf_rdy       ( app_wdf_rdy               )
+);
+
+
+`else // VCU118_BOARD
 mig_7series_0   mig_7series_0 (
     // Memory interface ports
 `ifndef NEXYS4DDR_BOARD
@@ -359,6 +424,7 @@ mig_7series_0   mig_7series_0 (
     .sys_clk_i                      (sys_clk),
     .sys_rst                        (sys_rst_n)
 );
+`endif // VCU118_BOARD
 
 `else // ifdef AXI4_MEM, use AXI, works only with VC707
 
