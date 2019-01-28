@@ -2104,7 +2104,12 @@ sub assemble_diag
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
-        my $cmd = "rv64_cc ${diag_name} $ENV{PTON_NUM_TILES}" ;
+        my $defs = "-DPITON_NUMTILES=$ENV{PTON_NUM_TILES} ";
+        if ($opt{uart_dmw}) {
+          $defs .= " -DPITONSTREAM ";
+        }
+        $defs .= $opt{gcc_args};
+        my $cmd = "rv64_cc ${diag_name} \"$defs\"" ;
         print "$prg: $cmd\n";
         my $waitstatus = call_program($cmd, "rv64_cc.log");
         die ("DIE. rv64_cc compilation error") if ($waitstatus) ;
@@ -2303,6 +2308,8 @@ sub parse_args
             'asm_diag_root=s@',
             'build!',
             'precompiled!',
+            'gcc_args=s',
+            'uart_dmw!',
             'trap_offset=s',
             'config_cpp_args=s@',
             'config_rtl=s@',
@@ -2832,8 +2839,20 @@ VERILOG COMPILATION RELATED
            is $ENV{MODEL_DIR}/model/build_id.
 
     -build_id=NAME
-            specify the build id of the model to be built. the full path
-            to a model is $ENV{MODEL_DIR}/model/build_id.
+           specify the build id of the model to be built. the full path
+           to a model is $ENV{MODEL_DIR}/model/build_id.
+
+    -pico
+           this specifies that the PICORV32 core shall be used instead of OpenSPARC. 
+           in this case, programs are compiled and assembled using the RISCV GCC toolchain.
+    
+    -pico_het
+           this specifies that a heterogeneous arrangement with OpenSPARC and PICORV32 shall be built, 
+           where every odd core is a PICORV32 core (along the x-dimension).
+
+    -ariane
+           this specifies that the ARIANE RV64GC core shall be used instead of OpenSPARC. 
+           in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
 VERILOG RUNTIME RELATED
 
@@ -2886,6 +2905,25 @@ midas is the diag assembler
            Add -DTG_SEED=tg_seed to midas command line. Use -tg_seed to
            set the value passed to midas or use a random value from /dev/random.
 
+RISCV GCC
+
+this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane switches are specified).
+
+    -uart_dmw
+           use this switch when compiling code for Pitonstream. this will add load 
+           instructions to magic addresses in the pass/fail exit functions in order to signal
+           PASS/FAIL to the UART-DMW module.              
+
+    -precompiled
+           specify this in order to use pre-built assembly tests and benchmarks from the RISC-V toolchain folder.
+           this basically adds the two search paths 
+             $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa
+             $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks
+           to @{$opt{asm_diag_root}}, and skips the compilation step.
+
+    -gcc_args
+           additional gcc arguments       
+             
 VCS COVERMETER
 
     -vcs_use_cm/-novcs_use_cmd

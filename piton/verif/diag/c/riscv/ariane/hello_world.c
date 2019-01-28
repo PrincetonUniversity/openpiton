@@ -19,8 +19,10 @@ int main(int argc, char ** argv) {
 
   for (int k = 0; k < 32; k++) {
     // assemble number and print
-    printf("Hello world (%d)!\n", k);
+    printf("Hello world, I am HART %d! Counting (%d of 32)...\n", argv[0][0], k);
   }
+
+  printf("Done!\n");
 
   return 0;
 }
