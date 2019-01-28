@@ -141,6 +141,8 @@ begin
             $display("L15_REQTYPE_AMO_MIN");
         `L15_REQTYPE_AMO_MINU:
             $display("L15_REQTYPE_AMO_MINU");
+        `L15_REQTYPE_ACKDT_LR:
+            $display("L15_REQTYPE_ACKDT_LR");    
         default:
             $display("UNKNOWN_ERROR_OPERATION");
     endcase
