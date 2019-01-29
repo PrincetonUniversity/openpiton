@@ -212,22 +212,24 @@ You can also run the precompiled RISCV benchmarks by using the following command
 
 ##### Debugging via JTAG
 
-OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD, both to be used with Olimex Debug adapter. The JTAG port is mapped to PMOD `JC` on the Genesys 2 board. You will need to connect the following wires to your debug adapter:
+OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD below.
 
-![](https://reference.digilentinc.com/_media/genesys2/fig_16.png)
+To get started, connect the micro USB port that is labeled with JTAG to your machine. This port is attached to the FTDI 2232 USB-to-serial chip on the Genesys 2 board, and is usually used to access the native JTAG interface of the Kintex-7 FPGA (e.g. to program the device using Vivado). However, the FTDI chip also exposes a second serial link that is routed to GPIO pins on the FPGA, and we leverage this to wire up the JTAG from the RISC-V debug module.
 
-|   Pin    | Nr. |
-|----------|-----|
-| `tck`    | JC1 |
-| `tdi`    | JC2 |
-| `tdo`    | JC3 |
-| `tms`    | JC4 |
-| `trst_n` | JC7 |
+If you are on an Ubuntu based system you need to add the following udev rule to `/etc/udev/rules.d/99-ftdi.rules`
 
-The simple OpenOCD script below currently only supports one hart to be debugged at a time. Select the hart to debug by changing the core id (look for the `-coreid` in the `ariane*.cfg` file). 
+>```
+> SUBSYSTEM=="usb", ACTION=="add", ATTRS{idProduct}=="6010", ATTRS{idVendor}=="0403", MODE="664", GROUP="plugdev"
+>```
 
+Once attached to your system, the FTDI chip should be listed when you type `lsusb`
 ```
-$ openocd -f ./piton/design/chip/tile/ariane/fpga/ariane_tiny.cfg
+Bus 005 Device 019: ID 0403:6010 Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
+```
+
+If this is the case, you can go on and start openocd with the `fpga/ariane.cfg` configuration file below.
+```
+$ openocd -f fpga/ariane.cfg
 Open On-Chip Debugger 0.10.0+dev-00195-g933cb87 (2018-09-14-19:32)
 Licensed under GNU GPL v2
 For bug reports, read
@@ -236,7 +238,7 @@ adapter speed: 1000 kHz
 Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
 Info : clock speed 1000 kHz
 Info : TAP riscv.cpu does not have IDCODE
-Info : datacount=2 progbufsize=12
+Info : datacount=2 progbufsize=8
 Info : Examined RISC-V core; found 1 harts
 Info :  hart 0: XLEN=64, misa=0x8000000000141105
 Info : Listening on port 3333 for gdb connections
@@ -245,9 +247,9 @@ Info : Listening on port 6666 for tcl connections
 Info : Listening on port 4444 for telnet connections
 Info : accepting 'gdb' connection on tcp/3333
 ```
+Note that this simple OpenOCD script currently only supports one hart to be debugged at a time. Select the hart to debug by changing the core id (look for the `-coreid` switch in the `ariane.cfg` file). 
 
 Then you will be able to either connect through `telnet` or with `gdb`:
-
 ```
 $ riscv64-unknown-elf-gdb /path/to/elf
 (gdb) target remote localhost:3333
@@ -274,12 +276,6 @@ You can read or write device memory by using:
 (gdb) set {int} 0x1000 = 22
 (gdb) set $pc = 0x1000
 ```
-
-If you are on an Ubuntu based system you need to add the following udev rule to `/etc/udev/rules.d/olimex-arm-usb-tiny-h.rules`
-
->```
-> SUBSYSTEM=="usb", ACTION=="add", ATTRS{idProduct}=="002a", ATTRS{idVendor}=="15ba", MODE="664", GROUP="plugdev"
->```
 
 In order to compile programs that you can load with GDB, use the following command:
 
