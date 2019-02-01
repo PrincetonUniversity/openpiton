@@ -467,7 +467,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/debug/dmi_jtag_tap.sv"                            \
     "${DV_ROOT}/design/chip/tile/ariane/openpiton/serpent_peripherals.sv"                     \
     "${DV_ROOT}/design/chip/tile/ariane/openpiton/ariane_verilog_wrap.sv"                     \
-    "${DV_ROOT}/design/chip/tile/ariane/bootrom/bootrom.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/openpiton/bootrom/bootrom.sv"                         \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic.sv"                                     \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_claim_complete_tracker.sv"              \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_comparator.sv"                          \

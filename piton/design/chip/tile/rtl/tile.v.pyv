@@ -26,10 +26,20 @@
 <%
 DMBR_BIN_NUM = 10
 import pyhplib
+from riscvlib import *
+import os
 from pyhplib import *
+import riscvlib
 
 if PITON_ARIANE:
-    devices = pyhplib.ReadDevicesXMLFile()
+  devices = pyhplib.ReadDevicesXMLFile()
+
+  # just use a default frequency for device tree generation if not defined
+  sysFreq = 50000000
+  if 'CONFIG_SYS_FREQ' in os.environ:
+    sysFreq = int(os.environ['CONFIG_SYS_FREQ'])
+
+  gen_riscv_dts(devices, X_TILES*Y_TILES, sysFreq, sysFreq/128, sysFreq, os.environ['ARIANE_ROOT']+"/openpiton/bootrom/")
 
 %>
 

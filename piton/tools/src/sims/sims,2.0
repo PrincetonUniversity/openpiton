@@ -1230,6 +1230,13 @@ sub pre_build
 
   system("cp -f flist $cur_dir");
 
+  if($opt{ariane}) {
+    print "compiling DTS for ariane...\n";
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom && make && cd - > /dev/null") or
+      die (" Error compiling DTS for ariane.");
+    print "done\n";  
+  }
+
   # go back to where this block was invoked
   chdir $cur_dir ;
 }
