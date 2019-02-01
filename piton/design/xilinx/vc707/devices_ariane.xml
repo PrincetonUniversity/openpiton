@@ -74,7 +74,7 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <port>
         <name>ariane_plic</name>
         <base>0xfff1030000</base>
-        <length>0x10000</length>
+        <length>0x4000000</length>
     </port>
     <!-- end ariane specific periphs -->
 </devices>

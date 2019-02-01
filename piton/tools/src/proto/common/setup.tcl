@@ -115,3 +115,15 @@ source $DV_ROOT/tools/src/proto/common/pyhp_preprocess.tcl
 set ALL_RTL_IMPL_FILES [pyhp_preprocess ${ALL_RTL_IMPL_FILES}]
 set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
+
+if  {[info exists ::env(PITON_ARIANE)]} {
+  puts "INFO: compiling DTS for ariane..."
+  set TMP [pwd]
+  cd $::env(ARIANE_ROOT)/openpiton/bootrom 
+  # Note: dd dumps info to stderr that we do not want to interpret
+  # otherwise this command fails...
+  exec make 2> /dev/null
+  cd $TMP
+  puts "INFO: done"
+}
+

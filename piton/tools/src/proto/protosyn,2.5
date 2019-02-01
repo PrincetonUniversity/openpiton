@@ -694,6 +694,9 @@ def main():
     os.environ['CONFIG_L2_SIZE']           = str(options.config_l2_size)
     os.environ['CONFIG_L2_ASSOCIATIVITY']  = str(options.config_l2_associativity)
 
+    # this is needed to generate the device tree
+    os.environ['CONFIG_SYS_FREQ']          = str(int(float(design_data["BOARDS"][options.board]["FREQ"]) * 1e6))
+
     print_info("---------------------------")
 
     ##################################
