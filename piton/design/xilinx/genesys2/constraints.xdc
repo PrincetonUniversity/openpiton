@@ -31,8 +31,6 @@ set_property IOSTANDARD LVDS [get_ports chipset_clk_osc_n]
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets chipset/clk_mmcm/inst/clk_in1_clk_mmcm]
 
-
-
 # Reset
 set_property IOSTANDARD LVCMOS33 [get_ports sys_rst_n]
 set_property PACKAGE_PIN R19 [get_ports sys_rst_n]
@@ -46,36 +44,23 @@ set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_c
 set_false_path -from [get_clocks net_axi_clk_clk_mmcm] -to [get_clocks chipset_clk_clk_mmcm]
 
 
-# ## PMOD Header JC
-# set_property -dict {PACKAGE_PIN AC26 IOSTANDARD LVCMOS33} [get_ports tck_i]
-# set_property -dict {PACKAGE_PIN AJ27 IOSTANDARD LVCMOS33} [get_ports td_i]
-# set_property -dict {PACKAGE_PIN AH30 IOSTANDARD LVCMOS33} [get_ports td_o]
-# set_property -dict {PACKAGE_PIN AK29 IOSTANDARD LVCMOS33} [get_ports tms_i]
-# set_property -dict {PACKAGE_PIN AD26 IOSTANDARD LVCMOS33} [get_ports trst_ni]
-
-# # accept sub-optimal placement
-# set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i_IBUF]
-
 ## To use FTDI FT2232 JTAG
-set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports { trst_ni  }]; 
-set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports { tck_i    }]; 
-set_property -dict { PACKAGE_PIN W27   IOSTANDARD LVCMOS33 } [get_ports { td_i     }]; 
-set_property -dict { PACKAGE_PIN W28   IOSTANDARD LVCMOS33 } [get_ports { td_o     }]; 
-set_property -dict { PACKAGE_PIN W29   IOSTANDARD LVCMOS33 } [get_ports { tms_i    }]; 
-
 ## Add some additional constraints for JTAG signals, set to 20MHz to be on the safe side
-create_clock -period 50.000 -name { tck_i } [get_ports tck_i]
+create_clock -period 50.000 -name tck_i [get_ports tck_i]
 # minimize routing delay
-set_max_delay -to   [get_ports { td_i    } ] 5 
-set_max_delay -from [get_ports { tms_i   } ] 5 
-set_max_delay -from [get_ports { trst_ni } ] 5
-
-# reset signal 
-set_false_path -from [get_ports { trst_ni } ]
+set_max_delay -datapath_only -from [get_pins */i_dmi_jtag_tap/td_o_reg/Q] -to [get_ports td_o    ] 5 
+set_max_delay -from [get_ports td_i    ] 5 
+set_max_delay -from [get_ports tms_i   ] 5 
+set_max_delay -from [get_ports trst_ni ] 5
 
 # constrain clock domain crossing
-set_false_path -from [get_clocks tck_i] -to [get_clocks chipset_clk]
-set_max_delay  -from [get_clocks tck_i] -to [get_clocks chipset_clk] 5
+set_max_delay  -from [get_clocks tck_i] -to [get_clocks -include_generated_clocks chipset_clk_osc_p] 10
+
+set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports trst_ni ]; 
+set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports tck_i   ]; 
+set_property -dict { PACKAGE_PIN W27   IOSTANDARD LVCMOS33 } [get_ports td_i    ]; 
+set_property -dict { PACKAGE_PIN W28   IOSTANDARD LVCMOS33 } [get_ports td_o    ]; 
+set_property -dict { PACKAGE_PIN W29   IOSTANDARD LVCMOS33 } [get_ports tms_i   ]; 
 
 #### UART
 #IO_L11N_T1_SRCC_35 Sch=uart_rxd_out
