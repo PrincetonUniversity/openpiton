@@ -551,6 +551,9 @@ wire    [3:0]   net_phy_rxd_inter;
 
 wire            sd_clk_out_internal;
 
+// the packet filter to peripherals flags invalid accesses
+wire            invalid_access;
+
 
 //////////////////////
 // Sequential Logic //
@@ -681,26 +684,22 @@ end
     assign leds[3] = processor_offchip_noc2_valid;
     assign leds[4] = offchip_processor_noc3_valid;
     assign leds[5] = 1'b0;
+    assign leds[6] = invalid_access;
     `ifdef PITONSYS_IOCTRL
         `ifdef PITONSYS_UART
             `ifdef PITONSYS_UART_BOOT
                 `ifdef PITONSYS_NON_UART_BOOT
-                    assign leds[6] = uart_timeout_en;
                     assign leds[7] = uart_boot_en;
                 `else // ifndef PITONSYS_NON_UART_BOOT
-                    assign leds[6] = uart_timeout_en;
                     assign leds[7] = 1'b1;
                 `endif // endif PITONSYS_NON_UART_BOOT
             `else // ifndef PITONSYS_UART_BOOT
-                assign leds[6] = 1'b0;
                 assign leds[7] = 1'b0;
             `endif // endif PITONSYS_UART_BOOT
         `else // ifndef PITONSYS_UART
-            assign leds[6] = 1'b0;
             assign leds[7] = 1'b0;
         `endif // endif PITONSYS_UART
     `else // ifndef PITONSYS_IOCTRL
-        assign leds[6] = 1'b0;
         assign leds[7] = 1'b0;
     `endif // endif PITONSYS_IOCTRL
 
@@ -1101,6 +1100,7 @@ chipset_impl_noc_power_test  chipset_impl (
     .piton_ready_n      (piton_ready_n      ),
 
     .test_start         (test_start         ),
+    .invalid_access_o   (invalid_access     ),
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     .noc_power_test_hop_count (noc_power_test_hop_count),
