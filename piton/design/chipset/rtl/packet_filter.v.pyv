@@ -82,9 +82,10 @@ devices = pyhplib.ReadDevicesXMLFile()
     reg [2:0] state_reg;
     reg [2:0] state_next;
 
-    reg invalid_access_d, invalid_access_q;
+    reg invalid_access, invalid_access_d, invalid_access_q;
 
     always @* begin
+		    invalid_access_d = invalid_access_q;
         case (state_reg)
         IDLE: begin
             filter_xbar_val = 1'b0;
@@ -150,7 +151,9 @@ devices = pyhplib.ReadDevicesXMLFile()
             flits_sent_next = `MSG_LENGTH_WIDTH'b0;
 
             state_next = noc2_filter_val ? TWOFLITS : ONEFLIT;
-        end
+        
+		        invalid_access_d = invalid_access_q | (noc2_filter_val & invalid_access); 
+		end
         TWOFLITS: begin
             if ((num_flits_reg == `MSG_LENGTH_WIDTH'd1)) begin
                 if (xbar_filter_rdy) begin
@@ -285,7 +288,7 @@ devices = pyhplib.ReadDevicesXMLFile()
 
     always @* begin
         readdressed_flit0 = flit_buffer_0_reg;
-        invalid_access_d  = invalid_access_q;
+        invalid_access  = 1'b0;
         if (flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_LOAD_MEM ||
             flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_STORE_MEM ||
             flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ ||
@@ -317,20 +320,20 @@ for i in range(1, len(devices)):
     if info["name"] == "mem":
         outputstr = """
                 else begin
-`ifndef PITONSYS_NO_MC
-`ifdef PITON_FPGA_SYNTH
+//`ifndef PITONSYS_NO_MC
+//`ifdef PITON_FPGA_SYNTH
                     // route everything else to the memory when uart_boot_en is asserted
                     if ((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x) ||
                         (uart_boot_en)) begin
                         readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
                     end else begin
-                        invalid_access_d = 1'b1;
+						            invalid_access = 1'b1;
                     end
-`else // PITON_FPGA_SYNTH
-                // route everything else to the memory in simulation
-                readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
-`endif
-`endif
+//`else // PITON_FPGA_SYNTH
+//                // route everything else to the memory in simulation
+//                readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
+//`endif
+//`endif
                 end
 """ % (info["base"], info["base"], info["length"], i, i)
         print outputstr
@@ -338,7 +341,6 @@ for i in range(1, len(devices)):
         end
     end
 
-    // simply capture the invalid access signal
     assign invalid_access_o = invalid_access_q;
 
     always @(posedge clk) begin
@@ -347,15 +349,19 @@ for i in range(1, len(devices)):
             flit_buffer_0_reg <= `NOC_DATA_WIDTH'd0;
             flit_buffer_1_reg <= `NOC_DATA_WIDTH'd0;
 
-            num_flits_reg <= `MSG_LENGTH_WIDTH'd0;
-            flits_sent_reg <= `MSG_LENGTH_WIDTH'd0;
+            num_flits_reg     <= `MSG_LENGTH_WIDTH'd0;
+            flits_sent_reg    <= `MSG_LENGTH_WIDTH'd0;
 
-            state_reg <= IDLE;
+            state_reg         <= IDLE;
         end
         else
         begin
-            invalid_access_q  <= invalid_access_d;
-            flit_buffer_0_reg <= flit_buffer_0_next;
+      			invalid_access_q  <= invalid_access_d;
+      			if (invalid_access_d) begin
+      				$fatal(1,"Access to invalid address in packet filter");
+      			end
+
+			      flit_buffer_0_reg <= flit_buffer_0_next;
             flit_buffer_1_reg <= flit_buffer_1_next;
 
             num_flits_reg <= num_flits_next;
@@ -370,6 +376,8 @@ for i in range(1, len(devices)):
     // the wires together
     assign filter_xbar_rdy = noc3_filter_rdy;
     assign filter_noc3_val = xbar_filter_val;
-    assign filter_noc3_data = xbar_filter_data;
+    assign filter_noc3_data = xbar_filter_data;	
+
+
 
 endmodule
