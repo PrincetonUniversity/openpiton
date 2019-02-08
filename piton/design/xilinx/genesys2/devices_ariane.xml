@@ -22,7 +22,7 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <port>
         <name>mem</name>
         <base>0x80000000</base>
-        <!-- 1 GB -->
+        <!-- 1GB -->
         <length>0x40000000</length>
     </port>
     <port>
@@ -44,11 +44,11 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <length>0xd4000</length>
         <noc2in/>
     </port>
-    <port>
+<!--     <port>
         <name>net</name>
         <base>0xfff0d00000</base>
         <length>0x100000</length>
-    </port>
+    </port> -->
     <!-- note: the following modules are ariane-specific and are only instantiated in HW when using the ariane core -->
     <port>
         <!-- this is the shared debug module for JTAG access to all cores -->
@@ -66,7 +66,7 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <!-- core local interrupt controller with real-time counter. this is shared among all cores -->
         <name>ariane_clint</name>
         <base>0xfff1020000</base>
-        <length>0x10000</length>
+        <length>0xc0000</length>
     </port>
     <!-- platform level interrupt controller -->
     <port>
