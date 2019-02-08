@@ -83,6 +83,9 @@ module chipset_impl(
 
     output                                      test_start,
 
+    // invalid access inside packet filter
+    output                                      invalid_access_o,
+
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     input                                       mc_clk,
@@ -432,7 +435,7 @@ packet_filter %s_packet_filter(
     .clk(chipset_clk),
     .rst_n(chipset_rst_n),
     // need to connect this to a LED
-    .invalid_access_o(),
+    .invalid_access_o(invalid_access_o),
 
     // noc2 to filter wires
     .noc2_filter_val(%s_filter_noc2_valid),
