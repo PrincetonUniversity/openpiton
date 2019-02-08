@@ -134,51 +134,6 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
-#ifdef PITON_NUMTILES
-
-  // entry for multi-threaded openpiton programs
-  void thread_entry(const int cid, const int nc)
-  {
-    if(nc==1) {
-      return;
-    }
-
-    volatile static uint32_t finish_sync0 = 0;
-    volatile static uint32_t finish_sync1 = 0;
-
-    char num[2]   = {cid, nc};
-    char *argv[1] = {num};
-    int ret = main(2, argv);
-
-    ATOMIC_OP(finish_sync0, 1, add, w);
-    //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync0) : "r" (1) : "memory");
-    while(finish_sync0 != nc);
-
-    // synchronize for debug output below
-    while(finish_sync1 != cid);
-
-    char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
-    char* pbuf = buf;
-    for (int i = 0; i < NUM_COUNTERS; i++)
-      if (counters[i])
-        pbuf += sprintf(pbuf, "core %d: %s = %d\n", cid, counter_names[i], counters[i]);
-    if (pbuf != buf)
-      printstr(buf);
-
-    ATOMIC_OP(finish_sync1, 1, add, w);
-    //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync1) : "r" (1) : "memory");
-
-    exit(ret);
-  }
-#else
-  void __attribute__((weak)) thread_entry(int cid, int nc)
-  {
-    // multi-threaded programs override this function.
-    // for the case of single-threaded programs, only let core 0 proceed.
-    while (cid != 0);
-  }
-#endif
-
 static void init_tls()
 {
   register void* thread_pointer asm("tp");
@@ -190,23 +145,56 @@ static void init_tls()
   memset(thread_pointer + tdata_size, 0, tbss_size);
 }
 
+// always init all threads
 void _init(int cid, int nc)
 {
-  init_tls();
-  thread_entry(cid, nc);
+  volatile static uint32_t finish_sync0 = 0;
+  volatile static uint32_t finish_sync1 = 0;
 
-  // only single-threaded programs should ever get here.
-  int ret = main(0, 0);
+  char num[2]   = {cid, nc};
+  char *argv[1] = {num};
+  int ret = main(2, argv);
+
+  ATOMIC_OP(finish_sync0, 1, add, w);
+  //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync0) : "r" (1) : "memory");
+  while(finish_sync0 != nc);
+
+  // synchronize for debug output below
+  while(finish_sync1 != cid);
 
   char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
   char* pbuf = buf;
   for (int i = 0; i < NUM_COUNTERS; i++)
     if (counters[i])
-      pbuf += sprintf(pbuf, "%s = %d\n", counter_names[i], counters[i]);
+      pbuf += sprintf(pbuf, "core %d: %s = %d\n", cid, counter_names[i], counters[i]);
   if (pbuf != buf)
     printstr(buf);
 
+  ATOMIC_OP(finish_sync1, 1, add, w);
+  //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync1) : "r" (1) : "memory");
+
   exit(ret);
+ 
+  // // only single-threaded programs should ever get here.
+  // if(nc!=1) {
+  //   return;
+  // }
+
+  // init_tls();
+
+  // char num[2]   = {cid, nc};
+  // char *argv[1] = {num};
+  // int ret = main(2, argv);
+
+  // char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
+  // char* pbuf = buf;
+  // for (int i = 0; i < NUM_COUNTERS; i++)
+  //   if (counters[i])
+  //     pbuf += sprintf(pbuf, "%s = %d\n", counter_names[i], counters[i]);
+  // if (pbuf != buf)
+  //   printstr(buf);
+
+  // exit(ret);
 }
 
 #undef putchar
