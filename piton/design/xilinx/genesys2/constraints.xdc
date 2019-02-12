@@ -54,7 +54,7 @@ set_max_delay -from [get_ports tms_i   ] 5
 set_max_delay -from [get_ports trst_ni ] 5
 
 # constrain clock domain crossing
-set_max_delay  -from [get_clocks tck_i] -to [get_clocks -include_generated_clocks chipset_clk_osc_p] 10
+set_max_delay  -from [get_clocks tck_i] -to [get_clocks -include_generated_clocks chipset_clk_osc_p] 15
 
 set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports trst_ni ]; 
 set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports tck_i   ]; 
