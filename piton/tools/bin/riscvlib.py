@@ -28,16 +28,16 @@ def regFmt(addrBase, addrLen, addrCells, sizeCells):
     tmpStr = " "
     
     if addrCells >= 2:
-        tmpStr += "0x%08X " % (addrBase >> 32)
+        tmpStr += "0x%08x " % (addrBase >> 32)
     
     if addrCells >= 1:
-        tmpStr += "0x%08X " % (addrBase & 0xFFFFFFFF)
+        tmpStr += "0x%08x " % (addrBase & 0xFFFFFFFF)
     
     if sizeCells >= 2:
-        tmpStr += "0x%08X " % (addrLen >> 32)
+        tmpStr += "0x%08x " % (addrLen >> 32)
     
     if sizeCells >= 1:
-        tmpStr += "0x%08X " % (addrLen & 0xFFFFFFFF)
+        tmpStr += "0x%08x " % (addrLen & 0xFFFFFFFF)
             
     return tmpStr
 
@@ -94,7 +94,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-    memory@%08X {
+    memory@%08x {
         device_type = "memory";
         reg = <%s>;
     };
@@ -124,7 +124,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        clint@%08X {
+        clint@%08x {
             compatible = "riscv,clint0";
             interrupts-extended = <''' % (addrBase)
             for k in range(nCpus):
@@ -139,7 +139,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        PLIC0: plic@%08X {
+        PLIC0: plic@%08x {
             #address-cells = <0>;
             #interrupt-cells = <1>;
             compatible = "sifive,plic-1.0.0", "riscv,plic0";
@@ -159,7 +159,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        debug-controller@%08X {
+        debug-controller@%08x {
             compatible = "riscv,debug-013";
             interrupts-extended = <''' % (addrBase)
             for k in range(nCpus):
@@ -174,7 +174,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        uart@%08X {
+        uart@%08x {
             compatible = "ns16550";
             reg = <%s>;
             clock-frequency = <%d>;
@@ -191,7 +191,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        eth: lowrisc-eth@%08X {
+        eth: lowrisc-eth@%08x {
             compatible = "lowrisc-eth";
             device_type = "network";
             interrupt-parent = <&PLIC0>;
