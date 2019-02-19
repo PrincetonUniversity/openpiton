@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::ifu_esl_htsm:0.1
-description: ifu_esl_htsm testbench
+name: ::fpga_bridge_rcv_32:0.1
+description: fpga_bridge_rcv_32 core
 
 filesets:
     rtl:
         files:
-            - sparc_ifu_esl_htsm.v
-        file_type: verilogSource-2001
+            - fpga_bridge_rcv_32.v
+        file_type: verilogSource
 
 targets:
     default:
@@ -14,7 +14,7 @@ targets:
     pickle:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [ifu_esl_htsm]
+        toplevel: [fpga_bridge_rcv_32]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]

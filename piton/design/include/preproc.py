@@ -6,20 +6,22 @@ import pprint
 import subprocess
 import os
 
-include_template = """CAPI=2:
+include_core_template = """CAPI=2:
 name: __VLNV_TEMPLATE__
 description: Top-level Piton generated includes
 
 filesets:
     rtl:
         files:
-            - define.tmp.h: {is_include_file: true}
+__RTL_FILES_TEMPLATE__
         file_type: verilogSource
 
 targets:
     default:
         filesets: [rtl]
 
+"""
+rtl_file_template = """            - __RTL_FILE_TEMPLATE__: {is_include_file: true}
 """
 
 
@@ -41,6 +43,7 @@ if __name__ == "__main__":
     # Run PyHP for each input/output pair
     cmd = "pyhp.py"
     io_pairs = config["parameters"]["process_me"]
+    rtl_files = ""
     for in_f, out_f in io_pairs:
         full_out_f = out_f
         
@@ -55,13 +58,17 @@ if __name__ == "__main__":
             except subprocess.CalledProcessError:
                 self.errormsg = '"{}" exited with an error code. See stderr for details.'
                 raise RuntimeError(self.errormsg.format(str(self)))
-        
-        full_core_f = "piton_include_gen.core"
-        with open(full_core_f, "w") as full_core_fp:
-            replace_dict = {"__VLNV_TEMPLATE__" : vlnv}
-            s = include_template
-            for key, value in replace_dict.items():
-                print(key, value)
-                s = s.replace(key, value)
-            full_core_fp.write(s)
+        rtl_files += rtl_file_template.replace("__RTL_FILE_TEMPLATE__", out_f)
+
+    print("rtl_files:" + rtl_files)
+    replace_dict = {"__VLNV_TEMPLATE__" : vlnv,
+                    "__RTL_FILES_TEMPLATE__": rtl_files}
+    s = include_core_template
+    for key, value in replace_dict.items():
+        print(key, value)
+        s = s.replace(key, value)
+
+    full_core_f = "piton_include_gen.core"
+    with open(full_core_f, "w") as full_core_fp:
+        full_core_fp.write(s)
 

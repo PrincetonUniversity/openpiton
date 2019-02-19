@@ -1,0 +1,21 @@
+CAPI=2:
+name: ::ifu_errdp:0.1
+description: ifu_errdp module
+
+filesets:
+    rtl:
+        depend:
+            - piton_include
+            - preprocessor
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[sparc_ifu_errdp.v.pyv, sparc_ifu_errdp.v]]
