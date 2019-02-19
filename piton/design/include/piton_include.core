@@ -7,6 +7,8 @@ filesets:
         files:
             - piton_system.vh: {is_include_file: true}
             - network_define.v: {is_includ_file: true}
+            - sys.h: {is_includ_file: true}
+            - iop.h: {is_includ_file: true}
         depend:
             - preprocessor
         file_type: verilogSource
@@ -20,4 +22,6 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[define.h.pyv, define.tmp.h]]
+            process_me : [[define.h.pyv, define.tmp.h],
+                          [lsu.h.pyv, lsu.tmp.h],
+                          [ifu.h.pyv, ifu.tmp.h]]
