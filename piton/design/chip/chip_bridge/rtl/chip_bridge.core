@@ -10,8 +10,17 @@ filesets:
             - chip_bridge_send_32.v
             - chip_net_chooser_32.v
             - chip_bridge.v
+        depend:
+            - piton_include
         file_type: verilogSource-2001
 
 targets:
     default:
         filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [chip_bridge]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]

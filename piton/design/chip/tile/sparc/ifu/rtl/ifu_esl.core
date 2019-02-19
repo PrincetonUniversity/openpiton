@@ -19,3 +19,10 @@ filesets:
 targets:
     default:
         filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [ifu_esl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
