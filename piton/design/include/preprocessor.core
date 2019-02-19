@@ -1,0 +1,8 @@
+CAPI=2:
+name : ::preprocessor:0
+
+generators:
+    pyhp_preprocess_gen:
+        command: preproc.py
+        interpreter: python
+ 

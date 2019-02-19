@@ -1,0 +1,21 @@
+CAPI=2:
+name: ::ifu_esl:0.1
+description: ifu_esl testbench
+
+filesets:
+    rtl:
+        depend:
+            - ifu_esl_fsm
+            - ifu_esl_stsm
+            - ifu_esl_rtsm
+            - ifu_esl_htsm
+            - ifu_esl_counter
+            - ifu_esl_lfsr
+            - ifu_esl_shiftreg
+        files:
+            - sparc_ifu_esl.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]

@@ -6,8 +6,18 @@ filesets:
     rtl:
         files:
             - piton_system.vh: {is_include_file: true}
+            - network_define.v: {is_includ_file: true}
+        depend:
+            - preprocessor
         file_type: verilogSource
 
 targets:
     default:
         filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[define.h.pyv, define.tmp.h]]
