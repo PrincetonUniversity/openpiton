@@ -1,0 +1,13 @@
+CAPI=2:
+name: ::ifu_esl_rtsm:0.1
+description: ifu_esl_rtsm testbench
+
+filesets:
+    rtl:
+        files:
+            - sparc_ifu_esl_rtsm.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
