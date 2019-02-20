@@ -1,0 +1,22 @@
+CAPI=2:
+name: ::l15_sram_wrappers:0.1
+description: Top-level L15 cache SRAM wrappers
+
+filesets:
+    rtl:
+        depend:
+            - preprocessor
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[sram_l15_data.v.pyv, sram_l15_data.v],
+                          [sram_l15_hmt.v.pyv, sram_l15_hmt.v],
+                          [sram_l15_tag.v.pyv, sram_l15_tag.v]]
