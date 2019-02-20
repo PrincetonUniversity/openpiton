@@ -1232,7 +1232,7 @@ sub pre_build
 
   if($opt{ariane}) {
     print "compiling DTS for ariane...\n";
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom && make all && cd - > /dev/null") or
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom && make clean && make all && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";  
   }
