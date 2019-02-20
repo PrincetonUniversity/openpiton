@@ -24,4 +24,5 @@ generate:
         parameters:
             process_me : [[define.h.pyv, define.tmp.h],
                           [lsu.h.pyv, lsu.tmp.h],
-                          [ifu.h.pyv, ifu.tmp.h]]
+                          [ifu.h.pyv, ifu.tmp.h],
+                          [l15.h.pyv, l15.tmp.h]]

@@ -1,0 +1,51 @@
+CAPI=2:
+name: ::l15:0.1
+description: Top-level L15 cache
+
+filesets:
+    rtl:
+        files:
+            - l15.v
+            - l15_cpxencoder.v
+            - l15_picoencoder.v
+            - l15_wrap.v
+            - noc1encoder.v
+            - noc2decoder.v
+            - noc3buffer.v
+            - noc3encoder.v
+            - pcx_buffer.v
+            - pcx_decoder.v
+            - pico_decoder.v
+            - simplenocbuffer.v
+        depend:
+            - piton_include
+            - l15_sram_wrappers
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [ifu_esl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[l15_csm.v.pyv, l15_csm.v],
+                          [l15_hmc.v.pyv, l15_hmc.v],
+                          [l15_home_encoder.v.pyv, l15_home_encoder.v],
+                          [l15_mshr.v.pyv, l15_mshr.v],
+                          [l15_pipeline.v.pyv, l15_pipeline.v],
+                          [l15_priority_encoder.v.pyv, l15_priority_encoder.v],
+                          [noc1buffer.v.pyv, noc1buffer.v],
+                          [rf_l15_lruarray.v.pyv, rf_l15_lruarray.v],
+                          [rf_l15_mesi.v.pyv, rf_l15_mesi.v],
+                          [rf_l15_wmt.v.pyv, rf_l15_wmt.v]]
