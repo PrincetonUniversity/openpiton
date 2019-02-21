@@ -61,6 +61,7 @@
 //`include "sys.h" // system level definition file which contains the
 // time scale definition
 
+`include "lsu.tmp.h"
 //`include "iop.h"
 
 ////////////////////////////////////////////////////////////////////////
