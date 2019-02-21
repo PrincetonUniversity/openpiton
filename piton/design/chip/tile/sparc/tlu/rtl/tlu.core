@@ -1,0 +1,46 @@
+CAPI=2:
+name: ::sparc_tlu:0.1
+description: SPARC Trap Logic and Memory Management Unit (TLU)
+
+filesets:
+    rtl:
+        depend:
+            - piton_include
+        files:
+            - sparc_tlu_intctl.v
+            - sparc_tlu_intdp.v
+            - sparc_tlu_zcmp64.v
+            - tlu.v
+            - tlu_addern_32.v
+            - tlu_hyperv.v
+            - tlu_incr64.v
+            - tlu_misctl.v
+            - tlu_mmu_ctl.v
+            - tlu_mmu_dp.v
+            - tlu_nospu_wrap.v
+            - tlu_pib.v
+            - tlu_prencoder16.v
+            - tlu_rrobin_picker.v
+            - tlu_tcl.v
+            - tlu_tdp.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [tlu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[sparc_tlu_dec64.v.pyv, sparc_tlu_dec64.v],
+                          [sparc_tlu_penc64.v.pyv, sparc_tlu_penc64.v]]

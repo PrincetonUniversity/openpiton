@@ -1,0 +1,76 @@
+CAPI=2:
+name: ::l2:0.1
+description: Top-level L2 cache
+
+filesets:
+    rtl:
+        files:
+            - l2.v
+            - l2_amo_alu.v
+            - l2_broadcast_counter.v
+            - l2_broadcast_counter_wrap.v
+            - l2_config_regs.v
+            - l2_data.v
+            - l2_data_wrap.v
+            - l2_decoder.v
+            - l2_dir.v
+            - l2_dir_wrap.v
+            - l2_encoder.v
+            - l2_mshr_decoder.v
+            - l2_pipe1.v
+            - l2_pipe2.v
+            - l2_smc_wrap.v
+            - l2_state_wrap.v
+            - l2_tag.v
+            - l2_tag_wrap.v
+        depend:
+            - piton_include
+            - l2_sram_wrappers
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [l2]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[l2_data_ecc.v.pyv, l2_data_ecc.v],         
+                          [l2_data_pgen.v.pyv, l2_data_pgen.v],        
+                          [l2_mshr.v.pyv, l2_mshr.v],             
+                          [l2_mshr_wrap.v.pyv, l2_mshr_wrap.v],        
+                          [l2_pipe1_buf_in.v.pyv, l2_pipe1_buf_in.v],     
+                          [l2_pipe1_buf_out.v.pyv, l2_pipe1_buf_out.v],    
+                          [l2_pipe1_ctrl.v.pyv, l2_pipe1_ctrl.v],       
+                          [l2_pipe1_dpath.v.pyv, l2_pipe1_dpath.v],      
+                          [l2_pipe2_buf_in.v.pyv, l2_pipe2_buf_in.v],     
+                          [l2_pipe2_ctrl.v.pyv, l2_pipe2_ctrl.v],       
+                          [l2_pipe2_dpath.v.pyv, l2_pipe2_dpath.v],      
+                          [l2_priority_encoder.v.pyv, l2_priority_encoder.v], 
+                          [l2_smc.v.pyv, l2_smc.v],              
+                          [l2_state.v.pyv, l2_state.v]]            
+                          
+   
+
+
+
+
+
+
+
+
+
+
+
+
+

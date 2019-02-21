@@ -1,0 +1,24 @@
+CAPI=2:
+name: ::sparc_sram_wrappers:0.1
+description: Top-level SPARC Core cache SRAM wrappers
+
+filesets:
+    rtl:
+        depend:
+            - preprocessor
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[sram_1rw_128x78.v.pyv, sram_1rw_128x78.v],
+                          [sram_l1d_data.v.pyv, sram_l1d_data.v],
+                          [sram_l1d_tag.v.pyv, sram_l1d_tag.v],
+                          [sram_l1i_data.v.pyv, sram_l1i_data.v],
+                          [sram_l1i_tag.v.pyv, sram_l1i_tag.v]]  

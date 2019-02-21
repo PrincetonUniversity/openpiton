@@ -1,0 +1,23 @@
+CAPI=2:
+name: ::sparc_mul:0.1
+description: SPARC Multiplier unit
+
+filesets:
+    rtl:
+        files:
+            - sparc_mul_top_nospu_wrap.v
+            - sparc_mul_top.v
+            - sparc_mul_cntl.v
+            - sparc_mul_dp.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_mul_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
