@@ -23,6 +23,7 @@
 // `define DEBUGREGS
 // `define DEBUGASM
 // `define DEBUG
+`include "l15.tmp.h"
 
 `ifdef DEBUG
   `define debug(debug_command) debug_command
