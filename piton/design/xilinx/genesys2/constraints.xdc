@@ -46,12 +46,7 @@ set_false_path -from [get_clocks net_axi_clk_clk_mmcm] -to [get_clocks chipset_c
 
 ## To use FTDI FT2232 JTAG
 ## Add some additional constraints for JTAG signals, set to 10MHz to be on the safe side
-create_clock -period 100.000 -name tck_i [get_ports tck_i]
-# minimize routing delay
-#set_max_delay -datapath_only -from [get_pins */i_dmi_jtag_tap/td_o_reg/Q] -to [get_ports td_o    ] 5 
-#set_max_delay -from [get_ports td_i    ] 5 
-#set_max_delay -from [get_ports tms_i   ] 5 
-#set_max_delay -from [get_ports trst_ni ] 5
+create_clock -period 100.000 -name tck_i -waveform {0.000 50.000} [get_ports tck_i]
 
 set_input_delay  -clock tck_i -clock_fall 5 [get_ports td_i    ]
 set_input_delay  -clock tck_i -clock_fall 5 [get_ports tms_i   ]
@@ -59,10 +54,9 @@ set_output_delay -clock tck_i             5 [get_ports td_o    ]
 set_false_path   -from                      [get_ports trst_ni ] 
 
 # constrain clock domain crossing
-set_max_delay  -from [get_clocks tck_i]             -to [get_clocks -include_generated_clocks chipset_clk_osc_p] 10
-set_max_delay  -from [get_clocks chipset_clk_osc_p] -to [get_clocks -include_generated_clocks tck_i]             10
-
-
+set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_src/data_src_q_reg*/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_dst/data_dst_q_reg*/D] 20.000
+set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_src/req_src_q_reg/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_dst/req_dst_q_reg/D] 20.000
+set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_req/i_dst/ack_dst_q_reg/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_req/i_src/ack_src_q_reg/D] 20.000
 
 set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports trst_ni ]; 
 set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports tck_i   ]; 
