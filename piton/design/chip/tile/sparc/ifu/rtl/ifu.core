@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::ifu:0.1
+name: ::sparc_ifu:0.1
 description: ifu testbench
 
 filesets:

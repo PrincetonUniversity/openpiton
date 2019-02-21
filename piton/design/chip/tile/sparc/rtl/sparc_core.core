@@ -1,0 +1,30 @@
+CAPI=2:
+name: ::sparc_core:0.1
+description: SPARC Core
+
+filesets:
+    rtl:
+        depend:
+            - piton_include
+            - sparc_srams
+            - sparc_ifu
+            - sparc_lsu
+        files:
+            - sparc_core.v
+            - sparc.v
+            - cpx_spc_rpt.v
+            - cpx_spc_buf.v
+            - cfg_asi.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_core]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+

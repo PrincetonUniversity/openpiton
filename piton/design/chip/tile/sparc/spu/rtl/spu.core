@@ -1,0 +1,35 @@
+CAPI=2:
+name: ::sparc_spu:0.1
+description: SPARC Stream Processing Unit for Sparc Core
+
+filesets:
+    rtl:
+        depend:
+            - piton_include
+        files:
+            - spu.v
+            - spu_ctl.v
+            - spu_wen.v
+            - spu_madp.v
+            - spu_mactl.v
+            - spu_maaddr.v
+            - spu_mald.v
+            - spu_mamul.v
+            - spu_maaeqb.v
+            - spu_mared.v
+            - spu_maexp.v
+            - spu_mast.v
+            - spu_lsurpt1.v
+            - spu_lsurpt.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [spu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
