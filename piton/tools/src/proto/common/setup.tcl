@@ -117,12 +117,18 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 
 if  {[info exists ::env(PITON_ARIANE)]} {
-  puts "INFO: compiling DTS for ariane..."
+  puts "INFO: compiling DTS and bootroms for ariane (MAX_HARTS=$::env(PTON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
   set TMP [pwd]
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom 
+  cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal 
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
-  exec make 2> /dev/null
+  exec make clean 2> /dev/null
+  exec make all 2> /dev/null
+  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux 
+  # Note: dd dumps info to stderr that we do not want to interpret
+  # otherwise this command fails...
+  exec make clean 2> /dev/null 
+  exec make all MAX_HARTS=$::env(PTON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
   cd $TMP
   puts "INFO: done"
 }

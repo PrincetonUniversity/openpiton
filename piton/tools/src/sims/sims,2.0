@@ -1231,8 +1231,10 @@ sub pre_build
   system("cp -f flist $cur_dir");
 
   if($opt{ariane}) {
-    print "compiling DTS for ariane...\n";
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom && make clean && make all && cd - > /dev/null") or
+    print "compiling DTS and bootroms for ariane...\n";
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
+      die (" Error compiling DTS for ariane.");
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";  
   }
