@@ -913,6 +913,18 @@ fake_uart fake_uart (
     wire [1:0] irq_sources;
     assign irq_sources = {net_interrupt, uart_interrupt};
 
+    // this is for selecting the right bootrom (1: baremetal, 0: linux)
+    wire ariane_boot_sel;
+`ifdef PITON_FPGA_SYNTH
+  assign ariane_boot_sel   = uart_boot_en;
+`else  
+  `ifdef ARIANE_SIM_LINUX_BOOT
+    assign ariane_boot_sel = 1'b0;  
+  `else 
+    assign ariane_boot_sel = 1'b1;  
+  `endif  
+`endif
+
     serpent_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
@@ -947,7 +959,7 @@ fake_uart fake_uart (
         .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    ),
         .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    ),
         // This selects either the BM or linux bootrom
-        .uart_boot_en_i                  ( uart_boot_en ),
+        .ariane_boot_sel_i               ( ariane_boot_sel               ),
         // Debug sigs to cores
         .ndmreset_o                      ( ndmreset_o                    ),
         .dmactive_o                      ( dmactive_o                    ),

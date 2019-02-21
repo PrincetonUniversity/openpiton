@@ -53,10 +53,9 @@ set_input_delay  -clock tck_i -clock_fall 5 [get_ports tms_i   ]
 set_output_delay -clock tck_i             5 [get_ports td_o    ]
 set_false_path   -from                      [get_ports trst_ni ] 
 
-# constrain clock domain crossing
-set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_src/data_src_q_reg*/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_dst/data_dst_q_reg*/D] 20.000
-set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_src/req_src_q_reg/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_resp/i_dst/req_dst_q_reg/D] 20.000
-set_max_delay -datapath_only -from [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_req/i_dst/ack_dst_q_reg/C] -to [get_pins */i_dmi_jtag/i_dmi_cdc/i_cdc_req/i_src/ack_src_q_reg/D] 20.000
+# constrain clock domain crossing 
+set_max_delay -datapath_only -from [get_clocks -include_generated_clocks chipset_clk_clk_mmcm] -to [get_clocks tck_i] 15.0 
+set_max_delay -datapath_only -from [get_clocks tck_i] -to [get_clocks -include_generated_clocks chipset_clk_clk_mmcm] 15.0
 
 set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports trst_ni ]; 
 set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports tck_i   ]; 
