@@ -408,7 +408,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rstgen_bypass.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/sync_wedge.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/cdc_2phase.sv"                   \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/pipe_reg_simple.sv"              \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpga-support/rtl/SyncSpRamBeNx64.sv"              \
     "${DV_ROOT}/design/chip/tile/ariane/src/axi_mem_if/src/axi2mem.sv"                        \
     "${DV_ROOT}/design/chip/tile/ariane/src/tech_cells_generic/src/cluster_clock_inverter.sv" \
@@ -469,7 +468,8 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/riscv-dbg/src/dmi_jtag_tap.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/openpiton/serpent_peripherals.sv"                     \
     "${DV_ROOT}/design/chip/tile/ariane/openpiton/ariane_verilog_wrap.sv"                     \
-    "${DV_ROOT}/design/chip/tile/ariane/openpiton/bootrom/bootrom.sv"                         \
+    "${DV_ROOT}/design/chip/tile/ariane/openpiton/bootrom/baremetal/bootrom.sv"               \
+    "${DV_ROOT}/design/chip/tile/ariane/openpiton/bootrom/linux/bootrom_linux.sv"             \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic.sv"                                     \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_claim_complete_tracker.sv"              \
     "${DV_ROOT}/design/chip/tile/ariane/src/plic/plic_comparator.sv"                          \

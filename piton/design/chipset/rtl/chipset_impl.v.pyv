@@ -946,6 +946,8 @@ fake_uart fake_uart (
         .ariane_plic_buf_noc3_data_o     ( ariane_plic_buf_noc3_data     ),
         .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    ),
         .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    ),
+        // This selects either the BM or linux bootrom
+        .uart_boot_en_i                  ( uart_boot_en ),
         // Debug sigs to cores
         .ndmreset_o                      ( ndmreset_o                    ),
         .dmactive_o                      ( dmactive_o                    ),
