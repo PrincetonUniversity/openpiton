@@ -131,6 +131,8 @@ def usage():
     print >> sys.stderr, "              Run steps of flow using SLURM job scheduler"
     print >> sys.stderr, "\n       --swait"
     print >> sys.stderr, "\n            Wait for slurm jobs to finish"
+    print >> sys.stderr, "\n       -j, --jobs"
+    print >> sys.stderr, "              Number of jobs to use in Vivado implementation flow"
     print >> sys.stderr, "\n       -h, --help"
     print >> sys.stderr, "              Display this help message and exit"
     print >> sys.stderr, "\n"
@@ -400,6 +402,7 @@ def setParserOptions(parser):
     parser.add_option("--passthru-dec-uart-pkttrace", dest="passthru_dec_uart_pkttrace", action="store_true", default=False)
     parser.add_option("--define", dest="define", action="store", default=None)
     parser.add_option("--oled", dest="oled", action="store")
+    parser.add_option("-j", "--jobs", dest="jobs", action="store", default=1)
     parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
     parser.add_option("--gen-test-bram", dest="gen_test_bram", action="store_true", default=False)  # depricated ?
     parser.add_option("--make-mem-map", dest="make_mem_map", action="store_true", default=False)
@@ -789,6 +792,9 @@ def main():
 
     # FPGA implementation
     if run_fpga_impl:
+        if int(options.jobs)>1:
+            print_info("Using %d jobs in Vivado" % int(options.jobs))
+        os.environ['NUM_VIVADO_JOBS']   = str(int(options.jobs))
         jid = runImplFlow(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
         if jid != None:
             dep_list.append(jid)
