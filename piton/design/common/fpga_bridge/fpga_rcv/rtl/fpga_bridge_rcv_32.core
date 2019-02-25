@@ -4,6 +4,8 @@ description: fpga_bridge_rcv_32 core
 
 filesets:
     rtl:
+        depend:
+            - piton_common
         files:
             - fpga_bridge_rcv_32.v
         file_type: verilogSource
@@ -18,3 +20,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fpga_bridge_rcv_32]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

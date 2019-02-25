@@ -6,6 +6,7 @@ filesets:
     rtl:
         depend:
             - preprocessor
+            - piton_common
         file_type: verilogSource
 
 targets:
@@ -17,7 +18,7 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[sram_l2_data.v.pyv, sram_l2_data.v],
-                          [sram_l2_dir.v.pyv, sram_l2_dir.v],
-                          [sram_l2_state.v.pyv, sram_l2_state.v],
-                          [sram_l2_tag.v.pyv, sram_l2_tag.v]]
+            process_me : [[sram_l2_data.v.pyv, sram_l2_data.tmp.v],
+                          [sram_l2_dir.v.pyv, sram_l2_dir.tmp.v],
+                          [sram_l2_state.v.pyv, sram_l2_state.tmp.v],
+                          [sram_l2_tag.v.pyv, sram_l2_tag.tmp.v]]

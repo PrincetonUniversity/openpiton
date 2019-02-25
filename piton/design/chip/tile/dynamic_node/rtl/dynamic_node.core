@@ -8,6 +8,9 @@ filesets:
             - dynamic_node_top_wrap.v
             - dynamic_node_top.v
         depend:
+            - dynamic_node_components
+            - dynamic_node_dynamic
+            - dynamic_node_common
             - piton_include
         file_type: verilogSource
 
@@ -15,6 +18,7 @@ targets:
     default:
         filesets: [rtl]
         generate: [pyhp_preprocess]
+
     pickle:
         default_tool: icarus
         filesets: [rtl]
@@ -24,9 +28,18 @@ targets:
             icarus:
                 iverilog_options: [-g 2001 -E]
 
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [dynamic_node_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[dynamic_node_top_wrap_para.v.pyv, dynamic_node_top_wrap_para.v],
-                          [dynamic_node_top_para.v.pyv, dynamic_node_top_para.v]]
+            process_me : [[dynamic_node_top_wrap_para.v.pyv, dynamic_node_top_wrap_para.tmp.v],
+                          [dynamic_node_top_para.v.pyv, dynamic_node_top_para.tmp.v]]

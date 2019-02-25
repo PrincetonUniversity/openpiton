@@ -1,0 +1,24 @@
+CAPI=2:
+name: ::dynamic_node_components:0.1
+description: Dynamic node components
+
+filesets:
+    rtl:
+       files:
+            - bus_compare_equal.v
+            - flip_bus.v
+            - one_of_eight.v
+            - one_of_five.v
+            - net_dff.v
+       file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[one_of_n.v.pyv, one_of_n.tmp.v],
+                          [one_of_n_plus_3.v.pyv, one_of_n_plus_3.tmp.v]]

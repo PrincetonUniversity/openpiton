@@ -14,7 +14,14 @@ targets:
     pickle:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [ifu_esl_lfsr]
+        toplevel: [sparc_ifu_esl_lfsr]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_ifu_esl_lfsr]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

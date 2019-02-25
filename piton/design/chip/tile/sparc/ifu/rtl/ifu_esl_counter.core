@@ -18,3 +18,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_ifu_esl_counter]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

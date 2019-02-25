@@ -1,0 +1,77 @@
+CAPI=2:
+name: ::manycore_tb:0.1
+description: manycore testbench
+
+filesets:
+    tb_files:
+        depend:
+            - piton_include
+            - piton_chipset_include
+        files:
+            - cmp_pcxandcpx.v
+            - exu_mon.v
+            - fake_pll.v
+            - icache_mutex_mon.v
+            - iob_mon.v
+            - l_cache_mon.v
+            - mask_mon.v
+            - nc_inv_chk.v
+            - nukeint_mon.v
+            - pc_muxsel_mon.v
+            - sas_intf.v
+            - sas_task.v
+            - softint_mon.v
+            - sparc_pipe_flow.v
+            - stb_ovfl_mon.v
+            - thrfsm_mon.v
+            - tlu_mon.v
+            - fake_uart.v
+        file_type: verilogSource-2001
+
+parameters:
+    test_cases_path:
+        datatype: str
+        description: Path to test cases
+        paramtype: plusarg
+    test_case:
+        datatype: str
+        description: Specific test case to run
+        paramtype: plusarg
+
+    VERBOSITY:
+        datatype: str
+        description: verbosity level
+        paramtype: vlogdefine
+
+targets:
+    sim:
+        default_tool: icarus
+        filesets: [tb_files]
+        generate: [pyhp_preprocess]
+        toplevel: [system]
+        parameters: [test_cases_path, test_case, VERBOSITY]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+                
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[async_fifo_mon.v.pyv, async_fifo_mon.tmp.v],
+                          [ciop_iob.v.pyv, ciop_iob.tmp.v],
+                          [cmp_l15_messages_mon.v.pyv, cmp_l15_messages_mon.tmp.v],
+                          [dmbr_mon.v.pyv, dmbr_mon.tmp.v],
+                          [jtag_mon.v.pyv, jtag_mon.tmp.v],
+                          [l2_mon.v.pyv, l2_mon.tmp.v],
+                          [lsu_mon.v.pyv, lsu_mon.tmp.v],
+                          [lsu_mon2.v.pyv, lsu_mon2.tmp.v],
+                          [manycore_network_mon.v.pyv, manycore_network_mon.tmp.v],
+                          [manycore_top.v.pyv, manycore_top.tmp.v],
+                          [monitor.v.pyv, monitor.tmp.v],
+                          [multicycle_mon.v.pyv, multicycle_mon.tmp.v],
+                          [pc_cmp.v.pyv, pc_cmp.tmp.v],
+                          [sas_tasks.v.pyv, sas_tasks.tmp.v],
+                          [slam_init.v.pyv, slam_init.tmp.v],
+                          [tso_mon.v.pyv, tso_mon.tmp.v],
+                          [cross_module.h.pyv, cross_module.tmp.h]]

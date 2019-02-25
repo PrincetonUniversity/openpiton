@@ -18,4 +18,4 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[sparc_ifu_errdp.v.pyv, sparc_ifu_errdp.v]]
+            process_me : [[sparc_ifu_errdp.v.pyv, sparc_ifu_errdp.tmp.v]]

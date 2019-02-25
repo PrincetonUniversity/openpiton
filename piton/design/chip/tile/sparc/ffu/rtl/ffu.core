@@ -1,19 +1,21 @@
 CAPI=2:
-name: ::ifu_esl_fsm:0.1
-description: ifu_esl_fsm testbench
+name: ::sparc_ffu:0.1
+description: ffu testbench
 
 filesets:
     rtl:
         depend:
             - piton_include
-            - ifu_esl_counter
-            - ifu_esl_htsm
-            - ifu_esl_lfsr
-            - ifu_esl_rtsm
-            - ifu_esl_shiftreg
-            - ifu_esl_stsm
+            - piton_tile_common
+            - sparc_srams
         files:
-            - sparc_ifu_esl_fsm.v
+            - sparc_ffu_nospu_wrap.v
+            - sparc_ffu.v
+            - sparc_ffu_ctl.v
+            - sparc_ffu_ctl_visctl.v
+            - sparc_ffu_dp.v
+            - sparc_ffu_part_add32.v
+            - sparc_ffu_vis.v
         file_type: verilogSource-2001
 
 targets:
@@ -22,14 +24,14 @@ targets:
     pickle:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [sparc_ifu_esl_fsm]
+        toplevel: [sparc_ffu_nospu_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
     verify:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [sparc_ifu_esl_fsm]
+        toplevel: [sparc_ffu_nospu_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001]

@@ -1,0 +1,39 @@
+CAPI=2:
+name: ::dynamic_node_dynamic:0.1
+description: Dynamic node dynamic
+
+filesets:
+    rtl:
+       files:
+            - dynamic_input_control.v
+            - dynamic_input_route_request_calc.v
+            - dynamic_input_top_16.v
+            - dynamic_input_top_4.v
+            - dynamic_output_control.v
+            - dynamic_output_datapath.v
+            - dynamic_output_top.v
+       file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[dynamic_input_control_para.v.pyv, dynamic_input_control_para.tmp.v],            
+                          [dynamic_input_route_request_calc_para.v.pyv, dynamic_input_route_request_calc_para.tmp.v], 
+                          [dynamic_input_top_16_para.v.pyv, dynamic_input_top_16_para.tmp.v],             
+                          [dynamic_input_top_4_para.v.pyv, dynamic_input_top_4_para.tmp.v],              
+                          [dynamic_output_control_para.v.pyv, dynamic_output_control_para.tmp.v],           
+                          [dynamic_output_datapath_para.v.pyv, dynamic_output_datapath_para.tmp.v],          
+                          [dynamic_output_top_para.v.pyv, dynamic_output_top_para.tmp.v]]               
+     
+
+
+
+
+
+
+

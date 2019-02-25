@@ -19,6 +19,8 @@ filesets:
             - simplenocbuffer.v
         depend:
             - piton_include
+            - piton_common
+            - piton_tile_common
             - l15_sram_wrappers
         file_type: verilogSource
 
@@ -34,18 +36,26 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [l15]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[l15_csm.v.pyv, l15_csm.v],
-                          [l15_hmc.v.pyv, l15_hmc.v],
-                          [l15_home_encoder.v.pyv, l15_home_encoder.v],
-                          [l15_mshr.v.pyv, l15_mshr.v],
-                          [l15_pipeline.v.pyv, l15_pipeline.v],
-                          [l15_priority_encoder.v.pyv, l15_priority_encoder.v],
-                          [noc1buffer.v.pyv, noc1buffer.v],
-                          [rf_l15_lruarray.v.pyv, rf_l15_lruarray.v],
-                          [rf_l15_mesi.v.pyv, rf_l15_mesi.v],
-                          [rf_l15_wmt.v.pyv, rf_l15_wmt.v]]
+            process_me : [[l15_csm.v.pyv, l15_csm.tmp.v],
+                          [l15_hmc.v.pyv, l15_hmc.tmp.v],
+                          [l15_home_encoder.v.pyv, l15_home_encoder.tmp.v],
+                          [l15_mshr.v.pyv, l15_mshr.tmp.v],
+                          [l15_pipeline.v.pyv, l15_pipeline.tmp.v],
+                          [l15_priority_encoder.v.pyv, l15_priority_encoder.tmp.v],
+                          [noc1buffer.v.pyv, noc1buffer.tmp.v],
+                          [rf_l15_lruarray.v.pyv, rf_l15_lruarray.tmp.v],
+                          [rf_l15_mesi.v.pyv, rf_l15_mesi.tmp.v],
+                          [rf_l15_wmt.v.pyv, rf_l15_wmt.tmp.v]]

@@ -5,7 +5,11 @@ description: SPARC Trap Logic and Memory Management Unit (TLU)
 filesets:
     rtl:
         depend:
+            - piton_tile_common
+            - piton_tile_common_srams
             - piton_include
+            - sparc_srams
+            - sparc_ifu
         files:
             - sparc_tlu_intctl.v
             - sparc_tlu_intdp.v
@@ -33,14 +37,22 @@ targets:
         default_tool: icarus
         filesets: [rtl]
         generate: [pyhp_preprocess]
-        toplevel: [tlu]
+        toplevel: [tlu_nospu_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [tlu_nospu_wrap]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[sparc_tlu_dec64.v.pyv, sparc_tlu_dec64.v],
-                          [sparc_tlu_penc64.v.pyv, sparc_tlu_penc64.v]]
+            process_me : [[sparc_tlu_dec64.v.pyv, sparc_tlu_dec64.tmp.v],
+                          [sparc_tlu_penc64.v.pyv, sparc_tlu_penc64.tmp.v]]

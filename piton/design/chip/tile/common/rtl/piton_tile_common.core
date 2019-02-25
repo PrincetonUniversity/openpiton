@@ -1,0 +1,27 @@
+CAPI=2:
+name: ::piton_tile_common:0.1
+description: Top-level Piton Tile common files
+
+filesets:
+    rtl:
+       files:
+           - swrvr_clib.v  
+           - test_stub_scan.v
+           - swrvr_dlib.v  
+           - u1.beh.v
+           - m1.beh.v
+           - mul64.v
+       depend:
+           - preprocessor
+       file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[flat_id_to_xy.v.pyv, flat_id_to_xy.tmp.v]]

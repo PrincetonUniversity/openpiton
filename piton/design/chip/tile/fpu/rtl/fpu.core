@@ -4,6 +4,10 @@ description: Top-level FPU
 
 filesets:
     rtl:
+        depend:
+            - piton_include
+            - piton_tile_common
+            - piton_tile_common_srams
         files:
             - fpu.v
             - fpu_add.v
@@ -55,3 +59,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fpu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

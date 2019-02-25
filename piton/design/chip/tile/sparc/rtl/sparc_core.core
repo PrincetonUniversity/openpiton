@@ -9,6 +9,10 @@ filesets:
             - sparc_srams
             - sparc_ifu
             - sparc_lsu
+            - sparc_exu
+            - sparc_tlu
+            - sparc_mul
+            - sparc_ffu
         files:
             - sparc_core.v
             - sparc.v
@@ -27,4 +31,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
-
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_core]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
