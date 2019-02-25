@@ -5,6 +5,7 @@ description: Top-level SPARC Core cache SRAM wrappers
 filesets:
     rtl:
         depend:
+            - piton_common
             - preprocessor
         file_type: verilogSource
 
@@ -17,8 +18,8 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[sram_1rw_128x78.v.pyv, sram_1rw_128x78.v],
-                          [sram_l1d_data.v.pyv, sram_l1d_data.v],
-                          [sram_l1d_tag.v.pyv, sram_l1d_tag.v],
-                          [sram_l1i_data.v.pyv, sram_l1i_data.v],
-                          [sram_l1i_tag.v.pyv, sram_l1i_tag.v]]  
+            process_me : [[sram_1rw_128x78.v.pyv, sram_1rw_128x78.tmp.v],
+                          [sram_l1d_data.v.pyv, sram_l1d_data.tmp.v],
+                          [sram_l1d_tag.v.pyv, sram_l1d_tag.tmp.v],
+                          [sram_l1i_data.v.pyv, sram_l1i_data.tmp.v],
+                          [sram_l1i_tag.v.pyv, sram_l1i_tag.tmp.v]]  

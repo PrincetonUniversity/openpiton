@@ -17,6 +17,6 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[sram_l15_data.v.pyv, sram_l15_data.v],
-                          [sram_l15_hmt.v.pyv, sram_l15_hmt.v],
-                          [sram_l15_tag.v.pyv, sram_l15_tag.v]]
+            process_me : [[sram_l15_data.v.pyv, sram_l15_data.tmp.v],
+                          [sram_l15_hmt.v.pyv, sram_l15_hmt.tmp.v],
+                          [sram_l15_tag.v.pyv, sram_l15_tag.tmp.v]]

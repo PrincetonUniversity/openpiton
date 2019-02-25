@@ -4,6 +4,9 @@ description: SPARC Multiplier unit
 
 filesets:
     rtl:
+        depend:
+            - piton_tile_common
+            - piton_include
         files:
             - sparc_mul_top_nospu_wrap.v
             - sparc_mul_top.v
@@ -17,7 +20,14 @@ targets:
     pickle:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [sparc_mul_top]
+        toplevel: [sparc_mul_top_nospu_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_mul_top_nospu_wrap]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

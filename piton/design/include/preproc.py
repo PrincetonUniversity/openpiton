@@ -21,7 +21,9 @@ targets:
         filesets: [rtl]
 
 """
-rtl_file_template = """            - __RTL_FILE_TEMPLATE__: {is_include_file: true}
+rtl_file_template_h_file = """            - __RTL_FILE_TEMPLATE__: {is_include_file: true}
+"""
+rtl_file_template_v_file = """            - __RTL_FILE_TEMPLATE__
 """
 
 
@@ -58,7 +60,13 @@ if __name__ == "__main__":
             except subprocess.CalledProcessError:
                 self.errormsg = '"{}" exited with an error code. See stderr for details.'
                 raise RuntimeError(self.errormsg.format(str(self)))
-        rtl_files += rtl_file_template.replace("__RTL_FILE_TEMPLATE__", out_f)
+        if out_f[-1] == "h":
+            rtl_files += rtl_file_template_h_file.replace("__RTL_FILE_TEMPLATE__", out_f)
+        elif out_f[-1] == "v":
+            rtl_files += rtl_file_template_v_file.replace("__RTL_FILE_TEMPLATE__", out_f)
+        else:
+            print("Error: {}".format(out_f))
+            assert(0)
 
     print("rtl_files:" + rtl_files)
     replace_dict = {"__VLNV_TEMPLATE__" : vlnv,
@@ -68,7 +76,8 @@ if __name__ == "__main__":
         print(key, value)
         s = s.replace(key, value)
 
-    full_core_f = "piton_include_gen.core"
+    new_core_file_name = vlnv.split(':')[2]
+    full_core_f = new_core_file_name+".core"
     with open(full_core_f, "w") as full_core_fp:
         full_core_fp.write(s)
 

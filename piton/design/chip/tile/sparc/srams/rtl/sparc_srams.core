@@ -29,16 +29,24 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [sram_l1i_val]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[bw_r_dcd.v.pyv, bw_r_dcd.v], 
-                          [bw_r_dct.v.pyv, bw_r_dct.v], 
-                          [bw_r_dtlb.v.pyv, bw_r_dtlb.v],
-                          [bw_r_ict.v.pyv, bw_r_ict.v], 
-                          [bw_r_itlb.v.pyv, bw_r_itlb.v]]
+            process_me : [[bw_r_dcd.v.pyv, bw_r_dcd.tmp.v], 
+                          [bw_r_dct.v.pyv, bw_r_dct.tmp.v], 
+                          [bw_r_dtlb.v.pyv, bw_r_dtlb.tmp.v],
+                          [bw_r_ict.v.pyv, bw_r_ict.tmp.v], 
+                          [bw_r_itlb.v.pyv, bw_r_itlb.tmp.v]]
 
  
 

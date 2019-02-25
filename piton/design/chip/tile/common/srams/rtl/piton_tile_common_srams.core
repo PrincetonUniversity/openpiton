@@ -1,0 +1,13 @@
+CAPI=2:
+name: ::piton_tile_common_srams:0.1
+description: Top-level Piton Tile common srams files
+
+filesets:
+    rtl:
+       files:
+           - bw_r_rf16x160.v
+       file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
