@@ -25,6 +25,10 @@
 //	Description: Execution unit containing register file(IRF),
 //			execution control (ECL), ALU, shifting (SHFT).
 */
+
+`include "define.tmp.h"
+`include "lsu.tmp.h"
+
 module sparc_exu (/*AUTOARG*/
    // Outputs
    exu_tlu_wsr_data_m, exu_tlu_va_oor_m, exu_tlu_va_oor_jl_ret_m, 
