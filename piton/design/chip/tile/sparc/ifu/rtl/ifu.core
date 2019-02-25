@@ -6,9 +6,12 @@ filesets:
     rtl:
         depend:
             - piton_include
+            - piton_tile_common
+            - sparc_srams
             - ifu_esl
             - ifu_errdp
         files:
+            - sparc_ifu_rndrob.v
             - sparc_ifu_nospu_wrap.v
             - sparc_ifu.v
             - sparc_ifu_cmp35.v
@@ -47,3 +50,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_ifu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

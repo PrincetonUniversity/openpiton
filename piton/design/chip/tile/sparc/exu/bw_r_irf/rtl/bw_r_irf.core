@@ -1,0 +1,25 @@
+CAPI=2:
+name: ::exu_bw_r_irf:0.1
+description: EXU Register file
+
+filesets:
+    rtl:
+        depend:
+            - piton_include
+            - exu_bw_r_irf_register8
+            - exu_bw_r_irf_register16
+        files:
+            - bw_r_irf_wrap.v
+            - bw_r_irf.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [bw_r_irf_wrap]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]

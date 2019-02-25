@@ -1,14 +1,14 @@
 CAPI=2:
-name: ::piton_common:0.1
-description: Top-level Piton common files
+name: ::exu_bw_r_irf_register8:0.1
+description: EXU Register file
 
 filesets:
     rtl:
+        depend:
+            - exu_bw_r_irf_common
         files:
-            - async_fifo.v
-            - bram_1rw_wrapper.v
-            - bram_1r1w_wrapper.v
-        file_type: verilogSource
+            - bw_r_irf_register8.v
+        file_type: verilogSource-2001
 
 targets:
     default:
@@ -16,7 +16,7 @@ targets:
     pickle:
         default_tool: icarus
         filesets: [rtl]
-        toplevel: [async_fifo]
+        toplevel: [bw_r_irf_register8]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]

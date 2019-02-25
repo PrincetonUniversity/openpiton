@@ -40,25 +40,33 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [l2]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[l2_data_ecc.v.pyv, l2_data_ecc.v],         
-                          [l2_data_pgen.v.pyv, l2_data_pgen.v],        
-                          [l2_mshr.v.pyv, l2_mshr.v],             
-                          [l2_mshr_wrap.v.pyv, l2_mshr_wrap.v],        
-                          [l2_pipe1_buf_in.v.pyv, l2_pipe1_buf_in.v],     
-                          [l2_pipe1_buf_out.v.pyv, l2_pipe1_buf_out.v],    
-                          [l2_pipe1_ctrl.v.pyv, l2_pipe1_ctrl.v],       
-                          [l2_pipe1_dpath.v.pyv, l2_pipe1_dpath.v],      
-                          [l2_pipe2_buf_in.v.pyv, l2_pipe2_buf_in.v],     
-                          [l2_pipe2_ctrl.v.pyv, l2_pipe2_ctrl.v],       
-                          [l2_pipe2_dpath.v.pyv, l2_pipe2_dpath.v],      
-                          [l2_priority_encoder.v.pyv, l2_priority_encoder.v], 
-                          [l2_smc.v.pyv, l2_smc.v],              
-                          [l2_state.v.pyv, l2_state.v]]            
+            process_me : [[l2_data_ecc.v.pyv, l2_data_ecc.tmp.v],         
+                          [l2_data_pgen.v.pyv, l2_data_pgen.tmp.v],        
+                          [l2_mshr.v.pyv, l2_mshr.tmp.v],             
+                          [l2_mshr_wrap.v.pyv, l2_mshr_wrap.tmp.v],        
+                          [l2_pipe1_buf_in.v.pyv, l2_pipe1_buf_in.tmp.v],     
+                          [l2_pipe1_buf_out.v.pyv, l2_pipe1_buf_out.tmp.v],    
+                          [l2_pipe1_ctrl.v.pyv, l2_pipe1_ctrl.tmp.v],       
+                          [l2_pipe1_dpath.v.pyv, l2_pipe1_dpath.tmp.v],      
+                          [l2_pipe2_buf_in.v.pyv, l2_pipe2_buf_in.tmp.v],     
+                          [l2_pipe2_ctrl.v.pyv, l2_pipe2_ctrl.tmp.v],       
+                          [l2_pipe2_dpath.v.pyv, l2_pipe2_dpath.tmp.v],      
+                          [l2_priority_encoder.v.pyv, l2_priority_encoder.tmp.v], 
+                          [l2_smc.v.pyv, l2_smc.tmp.v],              
+                          [l2_state.v.pyv, l2_state.tmp.v]]            
                           
    
 

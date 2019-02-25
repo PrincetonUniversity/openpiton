@@ -22,4 +22,11 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [picorv32]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 

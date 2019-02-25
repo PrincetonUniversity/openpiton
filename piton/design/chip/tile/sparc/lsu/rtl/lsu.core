@@ -6,7 +6,10 @@ filesets:
     rtl:
         depend:
             - piton_include
+            - piton_tile_common
+            - sparc_srams
         files:
+            - lsu_dc_parity_gen.v
             - lsu_nospu_wrap.v
             - lsu.v
             - lsu_asi_decode.v
@@ -29,7 +32,6 @@ targets:
     default:
         filesets: [rtl]
         generate: [pyhp_preprocess]
-
     pickle:
         default_tool: icarus
         filesets: [rtl]
@@ -38,15 +40,23 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [lsu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[lsu_dcdp.v.pyv, lsu_dcdp.v], 
-                          [lsu_dctl.v.pyv, lsu_dctl.v], 
-                          [lsu_qctl2.v.pyv, lsu_qctl2.v],
-                          [lsu_tagdp.v.pyv, lsu_tagdp.v]]
+            process_me : [[lsu_dcdp.v.pyv, lsu_dcdp.tmp.v], 
+                          [lsu_dctl.v.pyv, lsu_dctl.tmp.v], 
+                          [lsu_qctl2.v.pyv, lsu_qctl2.tmp.v],
+                          [lsu_tagdp.v.pyv, lsu_tagdp.tmp.v]]
 
  
 

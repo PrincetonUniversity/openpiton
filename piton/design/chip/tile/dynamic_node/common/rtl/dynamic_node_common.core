@@ -1,0 +1,14 @@
+CAPI=2:
+name: ::dynamic_node_common:0.1
+description: Dynamic Node common files
+
+filesets:
+    rtl:
+        files:
+            - network_input_blk_multi_out.v
+            - space_avail_top.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]

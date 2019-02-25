@@ -6,6 +6,7 @@ filesets:
     rtl:
         depend:
             - piton_include
+            - piton_tile_common
         files:
             - spu.v
             - spu_ctl.v
@@ -33,3 +34,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [spu]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

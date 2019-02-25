@@ -12,6 +12,7 @@ filesets:
             - chip_bridge.v
         depend:
             - piton_include
+            - piton_common
         file_type: verilogSource-2001
 
 targets:
@@ -24,3 +25,10 @@ targets:
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [chip_bridge]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
