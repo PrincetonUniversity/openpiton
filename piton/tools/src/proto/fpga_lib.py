@@ -50,21 +50,24 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                                     "vcu118":512,
                                                     "nexys4ddr":128,
                                                     "genesys2":256,
-                                                    "nexysVideo":128
+                                                    "nexysVideo":128,
+                                                    "f1":512
                                                 },
                                         "bram": {   "vc707":512,
                                                     "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
-                                                    "piton_board":512
+                                                    "piton_board":512,
+                                                    "f1":512
                                                 },
                                         "dmw":  {   "vc707":512,
                                                     "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
-                                                    "piton_board":512
+                                                    "piton_board":512,
+                                                    "f1":512
                                                 }
                                     }
 
@@ -72,21 +75,24 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                                     "vcu118":64,
                                                     "nexys4ddr":16,
                                                     "genesys2":32,
-                                                    "nexysVideo":16
+                                                    "nexysVideo":16,
+                                                    "f1":64
                                                 },
                                         "bram": {   "vc707":512,
                                                     "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
-                                                    "piton_board":512
+                                                    "piton_board":512,
+                                                    "f1":512
                                                 },
                                         "dmw": {    "vc707":512,
                                                     "vcu118":512,
                                                     "nexys4ddr":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
-                                                    "piton_board":512
+                                                    "piton_board":512,
+                                                    "f1":512
                                                 }
                                     }
 
@@ -94,20 +100,23 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "vcu118":2*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
-                                                    "nexysVideo":8*512*2**20
+                                                    "nexysVideo":8*512*2**20,
+                                                    "f1":8*4*2**30
                                                 },
                                         "bram": {   "vc707":16384*512,
                                                     "vcu118":16384*512,
                                                     "nexys4ddr":16384*512,
                                                     "genesys2":16384*512,
                                                     "nexysVideo":16384*512,
-                                                    "piton_board":256*512
+                                                    "piton_board":256*512,
+                                                    "f1":256*512
                                                 },
                                         "dmw":  {   "vc707":8*2**30,
                                                     "vcu118":2*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
-                                                    "nexysVideo":8*512*2**20
+                                                    "nexysVideo":8*512*2**20,
+                                                    "f1":8*4*2**30
                                                 }
                                     }
 DW_BIT_SIZE     = 64
@@ -195,7 +204,7 @@ def isTranslatorOK(addr_data_map, flog, ariane):
                 if cnt == 0:
                     trans_sections.append((int(m.group(1), 16), int(m.group(2), 16)))
             else:
-                if cnt > 0:
+                if cnt >= 0:
                     trans_sections.append((int(m.group(1), 16), int(m.group(2), 16)))
             cnt+=1
 

@@ -42,7 +42,7 @@
 `include "define.tmp.h"
 
 `define C_DATA_FLITS_CNT 8  // Assume data is always packed in 8 flits
-`define OFFSET_WIDTH clogb2(`C_M_AXI4_STRB_WIDTH)
+`define OFFSET_WIDTH 6
 
 module noc_axi4_bridge (
     // Clock + Reset
@@ -226,6 +226,8 @@ module noc_axi4_bridge (
     reg  [`C_M_AXI4_ADDR_WIDTH-1:0]     waddr;
     reg  [6:0]                          wsize;
     wire [`OFFSET_WIDTH-1:0]            woffset;
+    wire                                nc_store;
+    wire                                sd_store;
 
     // Buffer registers for load responses
     reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_header0_f;
@@ -234,6 +236,8 @@ module noc_axi4_bridge (
     reg  [1:0]                          r_resp_buf_status_f;
     reg[`C_M_AXI4_DATA_WIDTH-1:0]       rdata;
     reg[`C_M_AXI4_DATA_WIDTH-1:0]       rdata_offseted;
+    wire                                nc_load;
+    wire                                sd_load;
 
     // Buffer registers for store responses
     reg  [`NOC_DATA_WIDTH-1:0]          w_resp_buf_header0_f;
@@ -248,8 +252,6 @@ module noc_axi4_bridge (
     wire                         splitter_io_load_go;
     wire                         splitter_io_store_go;
 
-    wire                         splitter_io_msg_is_load;
-    wire                         splitter_io_msg_is_store;
     wire                         splitter_io_msg_is_load_next;
     wire                         splitter_io_msg_is_store_next;
 
@@ -308,16 +310,12 @@ module noc_axi4_bridge (
         (splitter_io_msg_state_next == MSG_STATE_INVAL   ) ? MSG_TYPE_INVAL               :
         (splitter_io_msg_state_next == MSG_STATE_HEADER_0) ? splitter_io_msg_type_mux_out :
                                                              splitter_io_msg_type_f       ;
-    // Is the current message a load or a store?
-    assign splitter_io_msg_is_load       = (splitter_io_msg_type_f    == MSG_TYPE_LOAD ) ||  (splitter_io_msg_type_f    == MSG_TYPE_LOAD_NC );
-    assign splitter_io_msg_is_store      = (splitter_io_msg_type_f    == MSG_TYPE_STORE) ||  (splitter_io_msg_type_f    == MSG_TYPE_STORE_NC);
-
     // Is the incoming message a load or a store?
     assign splitter_io_msg_is_load_next  = (splitter_io_msg_type_next == MSG_TYPE_LOAD ) || (splitter_io_msg_type_next == MSG_TYPE_LOAD_NC );
     assign splitter_io_msg_is_store_next = (splitter_io_msg_type_next == MSG_TYPE_STORE) || (splitter_io_msg_type_next == MSG_TYPE_STORE_NC);
 
     // Should we read data from splitter_bridge_data?
-    assign splitter_io_go = splitter_bridge_val && bridge_splitter_rdy;
+    assign splitter_io_go = splitter_bridge_val && splitter_bridge_rdy;
 
     // Should we read a load request (store request)?
     assign splitter_io_load_go  = splitter_io_msg_is_load_next  && splitter_io_go && (r_req_buf_status_f == BUF_STATUS_INCOMP);
@@ -457,6 +455,12 @@ module noc_axi4_bridge (
     assign raddr_virt = r_req_buf_header1_f[`MSG_ADDR_];
     assign waddr_virt = w_req_buf_header1_f[`MSG_ADDR_];
 
+    assign sd_load = (raddr_virt[`PHY_ADDR_WIDTH-1] && !uart_boot_en);
+    assign sd_store = (waddr_virt[`PHY_ADDR_WIDTH-1] && !uart_boot_en);
+
+    assign nc_load =  ( (r_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ) || sd_load );
+    assign nc_store = ( (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) || sd_store );
+
     // If running uart tests - we need to do address translation
     `ifdef PITONSYS_UART_BOOT
       storage_addr_trans_unified   #(
@@ -504,7 +508,7 @@ module noc_axi4_bridge (
             end
 
             raddr <= uart_boot_en ? {raddr_phys[`C_M_AXI4_ADDR_WIDTH-4:0], 3'b0} : raddr_virt; // use translated address if running uart tests
-            waddr <= uart_boot_en ? {waddr_phys[`C_M_AXI4_ADDR_WIDTH-4:0], 3'b0}  : waddr_virt; // use translated address if running uart tests
+            waddr <= uart_boot_en ? {waddr_phys[`C_M_AXI4_ADDR_WIDTH-4:0], 3'b0} : waddr_virt; // use translated address if running uart tests
 
         end
         else begin
@@ -516,22 +520,22 @@ module noc_axi4_bridge (
     end
 
     //how offseted we are from natural alignment on 64 bytes
-    assign roffset = raddr_virt[`OFFSET_WIDTH-1:0]; 
+    assign roffset = sd_load ? (raddr_virt[`OFFSET_WIDTH-1:0] & `OFFSET_WIDTH'b111000 ): raddr_virt[`OFFSET_WIDTH-1:0]; 
     assign woffset = waddr_virt[`OFFSET_WIDTH-1:0]; 
 
     // If uncacheable request - we should offset the data and strobe so that the right 
     // is written in the right place
-    always @(*) begin
-        if (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
+    always @(posedge clk) begin
+        if (nc_store) begin
             if (wsize == 0) begin
-                m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'b0;
+                m_axi_wstrb <= `C_M_AXI4_STRB_WIDTH'b0;
             end 
             else begin 
-                m_axi_wstrb = (((`C_M_AXI4_STRB_WIDTH'b1 << wsize) - 1) << woffset);
+                m_axi_wstrb <= (((`C_M_AXI4_STRB_WIDTH'b1 << wsize) - 1) << woffset);
             end
         end 
         else begin
-            m_axi_wstrb = {`C_M_AXI4_STRB_WIDTH{1'b1}};
+            m_axi_wstrb <= {`C_M_AXI4_STRB_WIDTH{1'b1}};
         end
     end
 
@@ -569,8 +573,8 @@ module noc_axi4_bridge (
     // If uncacheable request - we should offset the data and strobe so that the right 
     // is written in the right place
     always @ (*) begin
-        if (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
-            m_axi_wdata = wdata_before_offset << woffset;
+        if (nc_store) begin
+            m_axi_wdata = wdata_before_offset << (woffset * 8);
         end 
         else begin
             m_axi_wdata = wdata_before_offset;
@@ -677,11 +681,13 @@ module noc_axi4_bridge (
         end
     end
 
-
     // 64 bytes read -> choose the needed bytes and duplicate them to fill rdata with only these bytes
     always @(*) begin
-        rdata_offseted = (m_axi_rdata << roffset);
-        if (r_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ) begin
+        rdata_offseted = (m_axi_rdata >> (roffset * 8));
+        if (sd_load) begin 
+            rdata = {`C_M_AXI4_DATA_WIDTH/64{rdata_offseted[63:0]}};
+        end
+        else if (nc_load) begin
             case (rsize) 
                 7'd0: begin 
                     rdata = `C_M_AXI4_DATA_WIDTH'b0;
@@ -741,8 +747,8 @@ module noc_axi4_bridge (
     assign  io_splitter_ack_load = (io_splitter_ack_load_counter_f == r_resp_buf_header0_f[`MSG_LENGTH]) ? r_resp_buf_header0_f
                                                        : r_resp_buf_data_f[`MSG_LENGTH_WIDTH'd`C_DATA_FLITS_CNT - 1 - io_splitter_ack_load_counter_f];
 
-    assign  io_splitter_ack_load_go = (io_splitter_ack_mux_sel == LOAD_ACK) && (r_resp_buf_val) && splitter_bridge_rdy;
-    assign  io_splitter_ack_store_go = (io_splitter_ack_mux_sel == STORE_ACK) && (w_resp_buf_val) && splitter_bridge_rdy;
+    assign  io_splitter_ack_load_go = (io_splitter_ack_mux_sel == LOAD_ACK) && (r_resp_buf_val) && bridge_splitter_rdy;
+    assign  io_splitter_ack_store_go = (io_splitter_ack_mux_sel == STORE_ACK) && (w_resp_buf_val) && bridge_splitter_rdy;
 
     always @( * ) begin
         // val flag and output to splitter
@@ -805,21 +811,10 @@ module noc_axi4_bridge (
         end
     end
 
-    assign bridge_splitter_rdy =
+    assign splitter_bridge_rdy =
          (r_resp_buf_status_f == BUF_STATUS_INCOMP) &&
          (r_req_buf_status_f  != BUF_STATUS_COMP)   && 
          (w_resp_buf_status   == BUF_STATUS_INCOMP) && 
          (w_req_buf_status    != BUF_STATUS_COMP);
-
-
-function integer clogb2;
-    input [31:0] value;
-    begin
-        value = value - 1;
-        for (clogb2 = 0; value > 0; clogb2 = clogb2 + 1) begin
-            value = value >> 1;
-        end
-    end
-endfunction
 
 endmodule

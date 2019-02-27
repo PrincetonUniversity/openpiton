@@ -165,14 +165,7 @@ assign se_l = ~se;
         assign BUFHCE_clk_en = !fmul_clken_l | !se_l;
     `endif
 
-    BUFHCE #(
-       .CE_TYPE("SYNC"), // "SYNC" (glitchless switching) or "ASYNC" (immediate switch)
-       .INIT_OUT(0)      // Initial output value (0-1)
-    ) ckbuf_mul_exp_dp_BUFHCE(
-       .O(clk),   // 1-bit output: Clock output
-       .CE(BUFHCE_clk_en), // 1-bit input: Active high enable
-       .I(rclk)    // 1-bit input: Clock input
-    );
+	assign clk = rclk;
 `else
     clken_buf  ckbuf_mul_exp_dp (
       .clk(clk),

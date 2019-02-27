@@ -41,6 +41,10 @@ module mc_top (
     input                           mc_flit_out_rdy,
 
     input                           uart_boot_en,
+    input                           sys_rst_n,
+    output                          init_calib_complete_out,
+
+`ifndef F1_BOARD
     
 `ifdef VCU118_BOARD
     // directly feed in 250MHz ref clock
@@ -74,17 +78,80 @@ module mc_top (
 `else 
     output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
 `endif
-    output                          ddr_odt,
+    output                          ddr_odt
 
-    output                          init_calib_complete_out,
-    input                           sys_rst_n
+`else //ifndef F1_BOARD
+
+    // AXI Write Address Channel Signals
+    output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
+    output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
+    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
+    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
+    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
+    output wire                                  m_axi_awlock,
+    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
+    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
+    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
+    output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
+    output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
+    output wire                                  m_axi_awvalid,
+    input  wire                                  m_axi_awready,
+
+    // AXI Write Data Channel Signals
+    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire                                   m_axi_wlast,
+    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    output wire                                   m_axi_wvalid,
+    input  wire                                   m_axi_wready,
+
+    // AXI Read Address Channel Signals
+    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    output wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    output wire                                   m_axi_arlock,
+    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    output wire                                   m_axi_arvalid,
+    input  wire                                   m_axi_arready,
+
+    // AXI Read Data Channel Signals
+    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    input  wire                                   m_axi_rlast,
+    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    input  wire                                   m_axi_rvalid,
+    output wire                                   m_axi_rready,
+
+    // AXI Write Response Channel Signals
+    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    input  wire                                   m_axi_bvalid,
+    output wire                                   m_axi_bready, 
+
+    input wire                                    ddr_ready
+
+`endif // ifndef F1_BOARD
+
 );
+
+`ifndef F1_BOARD
+
 reg     [31:0]                      delay_cnt;
 reg                                 ui_clk_syn_rst_delayed;
 wire                                init_calib_complete;
 wire                                afifo_rst_1;
 wire                                afifo_rst_2;
 
+`ifndef PITONSYS_AXI4_MEM
  wire                               app_en;
  wire    [`MIG_APP_CMD_WIDTH-1 :0]  app_cmd;
  wire    [`MIG_APP_ADDR_WIDTH-1:0]  app_addr;
@@ -121,13 +188,12 @@ wire    [`MIG_APP_MASK_WIDTH-1:0]   zero_app_wdf_mask;
 wire                                zero_app_wdf_end;
 wire                                init_calib_complete_zero;
 `endif
+`endif //ifndef PITONSYS_AXI4_MEM
 
 wire                                app_sr_req;
 wire                                app_ref_req;
 wire                                app_zq_req;
-wire                                app_sr_active;
-wire                                app_ref_ack;
-wire                                app_zq_ack;
+
 wire                                ui_clk;
 wire                                ui_clk_sync_rst;
 wire                                noc_mig_bridge_rst;
@@ -188,6 +254,7 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
+`ifndef PITONSYS_AXI4_MEM
 `ifdef PITONSYS_MEM_ZEROER
 assign app_en                   = zero_app_en;
 assign app_cmd                  = zero_app_cmd;
@@ -217,6 +284,12 @@ assign core_app_rd_data_valid   = app_rd_data_valid;
 assign core_app_rd_data_end     = app_rd_data_end;
 assign core_app_rd_data         = app_rd_data;
 
+`else //ifndef PITONSYS_AXI4_MEM
+assign noc_mig_bridge_rst       = ui_clk_sync_rst;
+assign noc_mig_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
+
 noc_bidir_afifo  mig_afifo  (
     .clk_1           (core_ref_clk      ),
     .rst_1           (afifo_rst_1       ),
@@ -245,6 +318,7 @@ noc_bidir_afifo  mig_afifo  (
 
 
 `ifndef PITONSYS_AXI4_MEM
+
 noc_mig_bridge    #  (
     .MIG_APP_ADDR_WIDTH (`MIG_APP_ADDR_WIDTH        ),
     .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
@@ -413,9 +487,9 @@ mig_7series_0   mig_7series_0 (
     .app_sr_req                     (app_sr_req),
     .app_ref_req                    (app_ref_req),
     .app_zq_req                     (app_zq_req),
-    .app_sr_active                  (app_sr_active),
-    .app_ref_ack                    (app_ref_ack),
-    .app_zq_ack                     (app_zq_ack),
+    .app_sr_active                  (),
+    .app_ref_ack                    (),
+    .app_zq_ack                     (),
     .ui_clk                         (ui_clk),
     .ui_clk_sync_rst                (ui_clk_sync_rst),
     .app_wdf_mask                   (app_wdf_mask),
@@ -426,7 +500,8 @@ mig_7series_0   mig_7series_0 (
 );
 `endif // VCU118_BOARD
 
-`else // ifdef AXI4_MEM, use AXI, works only with VC707
+
+`else // ifndef PITONSYS_AXI4_MEM
 
     // AXI Write Address Channel Signals
     wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid;
@@ -482,7 +557,6 @@ mig_7series_0   mig_7series_0 (
     wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser;
     wire                                   m_axi_bvalid;
     wire                                   m_axi_bready;
-
 
     noc_axi4_bridge noc_axi4_bridge  (
         .clk                (ui_clk               ),  
@@ -630,13 +704,12 @@ mig_7series_0   mig_7series_0 (
         .sys_rst                        (sys_rst_n) // input sys_rst
     );
 
-
-
-`endif
+`endif // ifndef PITONSYS_AXI4_MEM
 
 
 `ifdef PITON_PROTO
 `ifndef PITON_PROTO_NO_MON
+`ifndef PITONSYS_AXI4_MEM
 
     always @(posedge ui_clk) begin
         if (app_en) begin
@@ -652,7 +725,141 @@ mig_7series_0   mig_7series_0 (
         end
     end
 
+`endif  // PITONSYS_AXI4_MEM
 `endif  // PITON_PROTO_NO_MON
 `endif  // PITON_PROTO
+
+`else //ifndef F1_BOARD
+
+    noc_axi4_bridge noc_axi4_bridge  (
+        .clk                (core_ref_clk               ),  
+        .rst_n              (sys_rst_n                  ), 
+        .uart_boot_en       (uart_boot_en               ),
+
+        .splitter_bridge_val(mc_flit_in_val),
+        .splitter_bridge_data(mc_flit_in_data),
+        .splitter_bridge_rdy(mc_flit_in_rdy),
+
+        .bridge_splitter_val(mc_flit_out_val),
+        .bridge_splitter_data(mc_flit_out_data),
+        .bridge_splitter_rdy(mc_flit_out_rdy),
+
+        .m_axi_awid(m_axi_awid),
+        .m_axi_awaddr(m_axi_awaddr),
+        .m_axi_awlen(m_axi_awlen),
+        .m_axi_awsize(m_axi_awsize),
+        .m_axi_awburst(m_axi_awburst),
+        .m_axi_awlock(m_axi_awlock),
+        .m_axi_awcache(m_axi_awcache),
+        .m_axi_awprot(m_axi_awprot),
+        .m_axi_awqos(m_axi_awqos),
+        .m_axi_awregion(m_axi_awregion),
+        .m_axi_awuser(m_axi_awuser),
+        .m_axi_awvalid(m_axi_awvalid),
+        .m_axi_awready(m_axi_awready),
+
+        .m_axi_wid(m_axi_wid),
+        .m_axi_wdata(m_axi_wdata),
+        .m_axi_wstrb(m_axi_wstrb),
+        .m_axi_wlast(m_axi_wlast),
+        .m_axi_wuser(m_axi_wuser),
+        .m_axi_wvalid(m_axi_wvalid),
+        .m_axi_wready(m_axi_wready),
+
+        .m_axi_bid(m_axi_bid),
+        .m_axi_bresp(m_axi_bresp),
+        .m_axi_buser(m_axi_buser),
+        .m_axi_bvalid(m_axi_bvalid),
+        .m_axi_bready(m_axi_bready),
+
+        .m_axi_arid(m_axi_arid),
+        .m_axi_araddr(m_axi_araddr),
+        .m_axi_arlen(m_axi_arlen),
+        .m_axi_arsize(m_axi_arsize),
+        .m_axi_arburst(m_axi_arburst),
+        .m_axi_arlock(m_axi_arlock),
+        .m_axi_arcache(m_axi_arcache),
+        .m_axi_arprot(m_axi_arprot),
+        .m_axi_arqos(m_axi_arqos),
+        .m_axi_arregion(m_axi_arregion),
+        .m_axi_aruser(m_axi_aruser),
+        .m_axi_arvalid(m_axi_arvalid),
+        .m_axi_arready(m_axi_arready),
+
+        .m_axi_rid(m_axi_rid),
+        .m_axi_rdata(m_axi_rdata),
+        .m_axi_rresp(m_axi_rresp),
+        .m_axi_rlast(m_axi_rlast),
+        .m_axi_ruser(m_axi_ruser),
+        .m_axi_rvalid(m_axi_rvalid),
+        .m_axi_rready(m_axi_rready)
+
+    );
+
+    assign init_calib_complete_out = ddr_ready;
+    assign mc_ui_clk_sync_rst = ~sys_rst_n;
+
+
+    ila_1 pitonbus_axi (
+        .clk    (core_ref_clk),
+        .probe0 (m_axi_awvalid),
+        .probe1 (m_axi_awaddr),
+        .probe2 (2'b0),
+        .probe3 (m_axi_awready),
+        .probe4 (m_axi_wvalid),
+        .probe5 (m_axi_wstrb),
+        .probe6 (m_axi_wlast),
+        .probe7 (m_axi_wready),
+        .probe8 (1'b0),
+        .probe9 (1'b0),
+        .probe10 (m_axi_wdata),
+        .probe11 (1'b0),
+        .probe12 (m_axi_arready),
+        .probe13 (2'b0),
+        .probe14 (m_axi_rdata),
+        .probe15 (m_axi_araddr),
+        .probe16 (m_axi_arvalid),
+        .probe17 (3'b0),
+        .probe18 (3'b0),
+        .probe19 (m_axi_awid),
+        .probe20 (m_axi_arid),
+        .probe21 (m_axi_awlen),
+        .probe22 (m_axi_rlast),
+        .probe23 (3'b0), 
+        .probe24 (m_axi_rresp),
+        .probe25 (m_axi_rid),
+        .probe26 (m_axi_rvalid),
+        .probe27 (m_axi_arlen),
+        .probe28 (3'b0),
+        .probe29 (m_axi_bresp),
+        .probe30 (m_axi_rready),
+        .probe31 (4'b0),
+        .probe32 (4'b0),
+        .probe33 (4'b0),
+        .probe34 (4'b0),
+        .probe35 (m_axi_bvalid),
+        .probe36 (4'b0),
+        .probe37 (4'b0),
+        .probe38 (m_axi_bid),
+        .probe39 (m_axi_bready),
+        .probe40 (1'b0),
+        .probe41 (1'b0),
+        .probe42 (1'b0),
+        .probe43 (1'b0)
+    );
+
+    ila_0 noc_piton_bus (
+        .clk(core_ref_clk), // input wire clk
+
+
+        .probe0(mc_flit_in_val), // input wire [0:0]  probe0  
+        .probe1(mc_flit_in_data), // input wire [63:0]  probe1 
+        .probe2(mc_flit_in_rdy), // input wire [0:0]  probe2 
+        .probe3(mc_flit_out_val), // input wire [0:0]  probe3 
+        .probe4(mc_flit_out_data), // input wire [63:0]  probe4 
+        .probe5(mc_flit_out_rdy) // input wire [0:0]  probe5
+    );
+
+`endif
 
 endmodule 
