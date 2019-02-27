@@ -54,9 +54,6 @@
 //  PITONSYS_UART_BOOT                  Set for UART boot hardware to be included.  If this is the
 //                                      only boot option set, it is always used.  If there is another
 //                                      boot option, a switch can be used to enable UART boot
-//  PITONSYS_NON_UART_BOOT              This is set whenever another boot method is specified besides UART.
-//                                      This is important so UART knows if it needs to be enabled or not.
-//                                      This is only used if PITONSYS_UART_BOOT is set
 //  PITONSYS_SPI                        Set to include a SPI in the Piton system chipset.  SPI is generally
 //                                      used for SD card boot, but could potentially be used for other
 //                                      purposes
@@ -89,12 +86,14 @@ module chipset_impl(
 
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
+`ifndef F1_BOARD
 `ifdef PITONSYS_DDR4
     input                                       mc_clk_p,
     input                                       mc_clk_n,
 `else  // PITONSYS_DDR4
     input                                       mc_clk,
 `endif // PITONSYS_DDR4
+`endif // ifndef F1_BOARD
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -123,13 +122,16 @@ module chipset_impl(
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     ,
-    output                                      init_calib_complete,
+    output                                      init_calib_complete
+`ifndef F1_BOARD
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
 `ifdef PITONSYS_DDR4
+    ,
     output                                      ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
 `else // PITONSYS_DDR4
+    ,
     output                                      ddr_cas_n,
     output                                      ddr_ras_n,
     output                                      ddr_we_n,
@@ -156,7 +158,66 @@ module chipset_impl(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt
-`endif // endif PITON_FPGA_MC_DDR3
+`else // ifndef F1_BOARD
+    // AXI Write Address Channel Signals
+    ,
+    output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
+    output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
+    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
+    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
+    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
+    output wire                                  m_axi_awlock,
+    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
+    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
+    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
+    output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
+    output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
+    output wire                                  m_axi_awvalid,
+    input  wire                                  m_axi_awready,
+
+    // AXI Write Data Channel Signals
+    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire                                   m_axi_wlast,
+    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    output wire                                   m_axi_wvalid,
+    input  wire                                   m_axi_wready,
+
+    // AXI Read Address Channel Signals
+    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    output wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    output wire                                   m_axi_arlock,
+    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    output wire                                   m_axi_arvalid,
+    input  wire                                   m_axi_arready,
+
+    // AXI Read Data Channel Signals
+    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    input  wire                                   m_axi_rlast,
+    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    input  wire                                   m_axi_rvalid,
+    output wire                                   m_axi_rready,
+
+    // AXI Write Response Channel Signals
+    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    input  wire                                   m_axi_bvalid,
+    output wire                                   m_axi_bready, 
+
+    input  wire                                   ddr_ready
+`endif // ifndef F1_BOARD
+`endif // ifdef PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
 `ifdef PITONSYS_IOCTRL
@@ -165,11 +226,9 @@ module chipset_impl(
     output                                      uart_tx,
     input                                       uart_rx
 `ifdef PITONSYS_UART_BOOT
-`ifdef PITONSYS_NON_UART_BOOT
     ,
     input                                       uart_boot_en,
     input                                       uart_timeout_en
-`endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 
@@ -244,11 +303,6 @@ wire                                            uart_timeout_en;
 `ifndef PITONSYS_UART_BOOT
 wire                                            uart_boot_en;
 wire                                            uart_timeout_en;
-`else // ifdef PITONSYS_UART_BOOT
-`ifndef PITONSYS_NON_UART_BOOT
-wire                                            uart_boot_en;
-wire                                            uart_timeout_en;
-`endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -267,6 +321,8 @@ wire                                            test_bad_end;
 
 <%
 for i in range(len(devices)):
+    if devices[i]["virtual"]:
+            continue
 # wires for the noc2 crossbar
     print """
 wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc2_data;
@@ -399,10 +455,6 @@ assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
         `ifndef PITONSYS_UART_BOOT
             assign uart_boot_en = 1'b0;
             assign uart_timeout_en = 1'b0;
-        `else // ifdef PITONSYS_UART_BOOT
-            `ifndef PITONSYS_NON_UART_BOOT
-                assign uart_boot_en = 1'b1;
-            `endif // endif PITONSYS_NON_UART_BOOT
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -520,12 +572,14 @@ io_xbar_top_wrap io_xbar_noc2 (
 '''
 
 for i in range(len(devices)):
-            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc2_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc2_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc2_yummy),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc2_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc2_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc2_yummy),\n\n" % (i, devices[i]["name"])
+            if devices[i]["virtual"]:
+                        continue
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc2_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc2_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc2_yummy),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc2_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc2_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc2_yummy),\n\n" % (devices[i]["portnum"], devices[i]["name"])
 
 xbartemplate = xbartemplate[:-3] + r'''
 );'''
@@ -544,12 +598,15 @@ io_xbar_top_wrap io_xbar_noc3 (
 '''
 
 for i in range(len(devices)):
-            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc3_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc3_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc3_yummy),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc3_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc3_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc3_yummy),\n\n" % (i, devices[i]["name"])
+            if devices[i]["virtual"]:
+                        continue
+
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc3_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc3_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc3_yummy),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc3_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc3_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc3_yummy),\n\n" % (devices[i]["portnum"], devices[i]["name"])
 
 xbartemplate = xbartemplate[:-3] + r'''
     ,
@@ -560,6 +617,9 @@ xbartemplate = xbartemplate[:-3] + r'''
 print xbartemplate
 
 for i in range(len(devices)):
+    if devices[i]["virtual"]:  
+        continue
+
     valrdy_credit_template = r'''
 valrdy_to_credit noc2_%s_to_xbar (
       .clk(chipset_clk),
@@ -637,7 +697,6 @@ mc_top mc_top(
     .mc_ui_clk_sync_rst(mc_ui_clk_sync_rst),
 
     .core_ref_clk(chipset_clk),
-
     .sys_rst_n(chipset_rst_n),
 
     .mc_flit_in_val(buf_mem_noc2_valid),
@@ -649,6 +708,8 @@ mc_top mc_top(
     .mc_flit_out_rdy(buf_mem_noc3_ready),
 
     .uart_boot_en(uart_boot_en),
+    .init_calib_complete_out(init_calib_complete),
+`ifndef F1_BOARD
 
 `ifdef PITONSYS_DDR4
     .sys_clk_p(mc_clk_p),
@@ -679,10 +740,67 @@ mc_top mc_top(
 `else
     .ddr_dm(ddr_dm),
 `endif // XUPP3R_BOARD
-    .ddr_odt(ddr_odt),
+    .ddr_odt(ddr_odt)
+`else //F1_BOARD
+    // AXI Write Address Channel Signals
+    .m_axi_awid(m_axi_awid),
+    .m_axi_awaddr(m_axi_awaddr),
+    .m_axi_awlen(m_axi_awlen),
+    .m_axi_awsize(m_axi_awsize),
+    .m_axi_awburst(m_axi_awburst),
+    .m_axi_awlock(m_axi_awlock),
+    .m_axi_awcache(m_axi_awcache),
+    .m_axi_awprot(m_axi_awprot),
+    .m_axi_awqos(m_axi_awqos),
+    .m_axi_awregion(m_axi_awregion),
+    .m_axi_awuser(m_axi_awuser),
+    .m_axi_awvalid(m_axi_awvalid),
+    .m_axi_awready(m_axi_awready),
 
-    .init_calib_complete_out(init_calib_complete)
+    // AXI Write Data Channel Signals
+    .m_axi_wid(m_axi_wid),
+    .m_axi_wdata(m_axi_wdata),
+    .m_axi_wstrb(m_axi_wstrb),
+    .m_axi_wlast(m_axi_wlast),
+    .m_axi_wuser(m_axi_wuser),
+    .m_axi_wvalid(m_axi_wvalid),
+    .m_axi_wready(m_axi_wready),
+
+    // AXI Read Address Channel Signals
+    .m_axi_arid(m_axi_arid),
+    .m_axi_araddr(m_axi_araddr),
+    .m_axi_arlen(m_axi_arlen),
+    .m_axi_arsize(m_axi_arsize),
+    .m_axi_arburst(m_axi_arburst),
+    .m_axi_arlock(m_axi_arlock),
+    .m_axi_arcache(m_axi_arcache),
+    .m_axi_arprot(m_axi_arprot),
+    .m_axi_arqos(m_axi_arqos),
+    .m_axi_arregion(m_axi_arregion),
+    .m_axi_aruser(m_axi_aruser),
+    .m_axi_arvalid(m_axi_arvalid),
+    .m_axi_arready(m_axi_arready),
+
+    // AXI Read Data Channel Signals
+    .m_axi_rid(m_axi_rid),
+    .m_axi_rdata(m_axi_rdata),
+    .m_axi_rresp(m_axi_rresp),
+    .m_axi_rlast(m_axi_rlast),
+    .m_axi_ruser(m_axi_ruser),
+    .m_axi_rvalid(m_axi_rvalid),
+    .m_axi_rready(m_axi_rready),
+
+    // AXI Write Response Channel Signals
+    .m_axi_bid(m_axi_bid),
+    .m_axi_bresp(m_axi_bresp),
+    .m_axi_buser(m_axi_buser),
+    .m_axi_bvalid(m_axi_bvalid),
+    .m_axi_bready(m_axi_bready), 
+    .ddr_ready(ddr_ready)
+`endif //F1_BOARD
+
 );
+
 `else
 
 `include "cross_module.tmp.h"
@@ -836,7 +954,7 @@ uart_top        uart_top (
     .xbar_uart_noc3_valid       ( filter_uart_noc3_valid                ),
     .xbar_uart_noc3_data        ( filter_uart_noc3_data                 ),
     .uart_xbar_noc3_ready       ( uart_filter_noc3_ready                )
-);''' % (i)
+);''' % (devices[i]["portnum"])
 %>
 `else // ifndef PITONSYS_UART
     assign uart_interrupt = 1'b0;

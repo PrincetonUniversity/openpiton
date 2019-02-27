@@ -26,9 +26,10 @@
 
 
 from optparse import OptionParser
+from fpga_lib import StorageBoard
 
 import make_mem_map
-import os, sys
+import os, sys, re
 
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
@@ -45,9 +46,9 @@ def getLogs(tname, log_stream=None):
     os.system('mkdir -p test2bram_logs')
     print >> log_stream, "Compilation started"
     # can't we build withoug -debug_all ?
-    # os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -debug_all > test2bram_logs/compilation.log')
+    os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -debug_all > test2bram_logs/compilation.log')
     print >> log_stream, "Simulation started"
-    # os.system('sims -sys=manycore -vcs_run %s > test2bram_logs/simulation.log' % tname)
+    os.system('sims -sys=manycore -vcs_run %s > test2bram_logs/simulation.log' % tname)
 
     f = open('test2bram_logs/simulation.log', 'r')
     cont = f.read()
@@ -75,7 +76,8 @@ def main():
     getLogs(options.tname)
     
     # generate mapping and .coe file in default output places
-    make_mem_map.makeMapping(options.tname)
+    st_brd = StorageBoard("bram", "f1")
+    make_mem_map.makeMapping(st_brd, options.tname)
     
     # regenerate a block memory with new .coe file
     # is is required? Vivado could take an updated .coe file

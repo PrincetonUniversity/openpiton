@@ -32,7 +32,17 @@ import os
 
 devices = pyhplib.ReadDevicesXMLFile()
 
-DYNAMIC_NODE_PORT = len(devices)
+num_phys_devices = 0
+max_port = -1
+for i in range(len(devices)):
+    if not devices[i]["virtual"]:
+        num_phys_devices += 1
+    if devices[i]["portnum"] > max_port:
+        max_port = devices[i]["portnum"]
+
+assert(max_port == num_phys_devices - 1)
+
+DYNAMIC_NODE_PORT = num_phys_devices
 DYNAMIC_NODE_PORT_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT, 2)))
 DYNAMIC_NODE_PORT_P_3 = DYNAMIC_NODE_PORT + 3
 DYNAMIC_NODE_PORT_P_3_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT_P_3, 2)))
