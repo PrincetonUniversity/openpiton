@@ -1331,35 +1331,35 @@ begin
         data_addr_S3_f <= 0;
         recycled_S3_f <= 0;
         data_clk_en_S3_f <= 0;
-    end
-    else if (!stall_S3)
-    begin
-        addr_S3_f <= addr_S2;
-        mshrid_S3_f <= mshrid_S2_f;
-        src_chipid_S3_f <= src_chipid_S2_f;
-        src_x_S3_f <= src_x_S2_f;
-        src_y_S3_f <= src_y_S2_f;
-        src_fbits_S3_f <= src_fbits_S2_f;
-        sdid_S3_f <= sdid_S2_f;
-        lsid_S3_f <= lsid_S2_f;
-        mshr_miss_lsid_S3_f <= mshr_miss_lsid_S2_f;
-        evict_addr_S3_f <= evict_addr_S2;
-        l2_tag_hit_S3_f <= l2_tag_hit_S2;
-        l2_evict_S3_f <= l2_evict_S2;
-        l2_way_sel_S3_f <= l2_way_sel_S2;
-        l2_way_state_owner_S3_f <= l2_way_state_owner_S2;
-        l2_way_state_mesi_S3_f <= l2_way_state_mesi_S2;
-        l2_way_state_vd_S3_f <= l2_way_state_vd_S2;
-        l2_way_state_subline_S3_f <= l2_way_state_subline_S2;
-        l2_way_state_cache_type_S3_f <= l2_way_state_cache_type_S2;
-        msg_data_S3_f <= msg_data_S2_next;
-        req_from_owner_S3_f <= req_from_owner_S2; 
-        state_data_in_S3_f <= state_data_in_S2;
-        state_data_mask_in_S3_f <= state_data_mask_in_S2;
-        data_addr_S3_f <= data_addr_S2;
-        recycled_S3_f <= recycled_S2_f;
-    end
-    data_clk_en_S3_f <= (data_clk_en_S2 && valid_S2 && !stall_real_S2); // note: should not be qualified by stall_S3
+    end else begin
+    		data_clk_en_S3_f <= (data_clk_en_S2 && valid_S2 && !stall_real_S2); // note: should not be qualified by stall_S3
+		    if (!stall_S3) begin
+		        addr_S3_f <= addr_S2;
+		        mshrid_S3_f <= mshrid_S2_f;
+		        src_chipid_S3_f <= src_chipid_S2_f;
+		        src_x_S3_f <= src_x_S2_f;
+		        src_y_S3_f <= src_y_S2_f;
+		        src_fbits_S3_f <= src_fbits_S2_f;
+		        sdid_S3_f <= sdid_S2_f;
+		        lsid_S3_f <= lsid_S2_f;
+		        mshr_miss_lsid_S3_f <= mshr_miss_lsid_S2_f;
+		        evict_addr_S3_f <= evict_addr_S2;
+		        l2_tag_hit_S3_f <= l2_tag_hit_S2;
+		        l2_evict_S3_f <= l2_evict_S2;
+		        l2_way_sel_S3_f <= l2_way_sel_S2;
+		        l2_way_state_owner_S3_f <= l2_way_state_owner_S2;
+		        l2_way_state_mesi_S3_f <= l2_way_state_mesi_S2;
+		        l2_way_state_vd_S3_f <= l2_way_state_vd_S2;
+		        l2_way_state_subline_S3_f <= l2_way_state_subline_S2;
+		        l2_way_state_cache_type_S3_f <= l2_way_state_cache_type_S2;
+		        msg_data_S3_f <= msg_data_S2_next;
+		        req_from_owner_S3_f <= req_from_owner_S2; 
+		        state_data_in_S3_f <= state_data_in_S2;
+		        state_data_mask_in_S3_f <= state_data_mask_in_S2;
+		        data_addr_S3_f <= data_addr_S2;
+		        recycled_S3_f <= recycled_S2_f;
+		    end
+		end 
 end
 
 

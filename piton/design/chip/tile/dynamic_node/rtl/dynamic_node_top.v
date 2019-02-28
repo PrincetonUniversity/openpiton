@@ -356,60 +356,90 @@ always @(posedge clk)
    wire ec_thanks_to_w = ec_thanks_n_to_w_reg | ec_thanks_e_to_w_reg | ec_thanks_s_to_w_reg | ec_thanks_w_to_w_reg | ec_thanks_p_to_w_reg;
    wire ec_thanks_to_p = ec_thanks_n_to_p_reg | ec_thanks_e_to_p_reg | ec_thanks_s_to_p_reg | ec_thanks_w_to_p_reg | ec_thanks_p_to_p_reg;
 
-one_of_eight #(1) ec_mux_north(.in0(ec_wants_to_send_but_cannot_N),
-                        .in1(ec_thanks_p_to_n_reg),
-                        .in2(ec_thanks_w_to_n_reg),
-                        .in3(ec_thanks_s_to_n_reg),
-                        .in4(ec_thanks_e_to_n_reg),
-                        .in5(ec_thanks_n_to_n_reg),
-                        .in6(ec_thanks_to_n),
-                        .in7(ec_north_input_valid_reg & ~ec_thanks_to_n),
-                        .sel(ec_cfg[14:12]),
-                        .out(ec_out[4]));
+one_of_n #(
+  .NUM_IN(8),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) ec_mux_north (
+  .in({ec_north_input_valid_reg & ~ec_thanks_to_n,
+       ec_thanks_to_n,
+       ec_thanks_n_to_n_reg,
+       ec_thanks_e_to_n_reg,
+       ec_thanks_s_to_n_reg,
+       ec_thanks_w_to_n_reg,
+       ec_thanks_p_to_n_reg,
+       ec_wants_to_send_but_cannot_N}),
+  .sel(ec_cfg[14:12]),
+  .out(ec_out[4])
+);
 
-one_of_eight #(1) ec_mux_east(.in0(ec_wants_to_send_but_cannot_E),
-                       .in1(ec_thanks_p_to_e_reg),
-                       .in2(ec_thanks_w_to_e_reg),
-                       .in3(ec_thanks_s_to_e_reg),
-                       .in4(ec_thanks_e_to_e_reg),
-                       .in5(ec_thanks_n_to_e_reg),
-                       .in6(ec_thanks_to_e),
-                       .in7(ec_east_input_valid_reg & ~ec_thanks_to_e),
-                       .sel(ec_cfg[11:9]),
-                       .out(ec_out[3]));
+one_of_n #(
+  .NUM_IN(8),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) ec_mux_east (
+  .in({ec_east_input_valid_reg & ~ec_thanks_to_e,
+       ec_thanks_to_e,
+       ec_thanks_n_to_e_reg,
+       ec_thanks_e_to_e_reg,
+       ec_thanks_s_to_e_reg,
+       ec_thanks_w_to_e_reg,
+       ec_thanks_p_to_e_reg,
+       ec_wants_to_send_but_cannot_E}),
+  .sel(ec_cfg[11:9]),
+  .out(ec_out[3])
+);
 
-one_of_eight #(1) ec_mux_south(.in0(ec_wants_to_send_but_cannot_S),
-                        .in1(ec_thanks_p_to_s_reg),
-                        .in2(ec_thanks_w_to_s_reg),
-                        .in3(ec_thanks_s_to_s_reg),
-                        .in4(ec_thanks_e_to_s_reg),
-                        .in5(ec_thanks_n_to_s_reg),
-                        .in6(ec_thanks_to_s),
-                        .in7(ec_south_input_valid_reg & ~ec_thanks_to_s),
-                        .sel(ec_cfg[8:6]),
-                        .out(ec_out[2]));
+one_of_n #(
+  .NUM_IN(8),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) ec_mux_south (
+  .in({ec_south_input_valid_reg & ~ec_thanks_to_s,
+       ec_thanks_to_s,
+       ec_thanks_n_to_s_reg,
+       ec_thanks_e_to_s_reg,
+       ec_thanks_s_to_s_reg,
+       ec_thanks_w_to_s_reg,
+       ec_thanks_p_to_s_reg,
+       ec_wants_to_send_but_cannot_S}),
+  .sel(ec_cfg[8:6]),
+  .out(ec_out[2])
+);
 
-one_of_eight #(1) ec_mux_west( .in0(ec_wants_to_send_but_cannot_W),
-                        .in1(ec_thanks_p_to_w_reg),
-                        .in2(ec_thanks_w_to_w_reg),
-                        .in3(ec_thanks_s_to_w_reg),
-                        .in4(ec_thanks_e_to_w_reg),
-                        .in5(ec_thanks_n_to_w_reg),
-                        .in6(ec_thanks_to_w),
-                        .in7(ec_west_input_valid_reg & ~ec_thanks_to_w),
-                        .sel(ec_cfg[5:3]),
-                        .out(ec_out[1]));
+one_of_n #(
+  .NUM_IN(8),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) ec_mux_west (
+  .in({ec_west_input_valid_reg & ~ec_thanks_to_w,
+       ec_thanks_to_w,
+       ec_thanks_n_to_w_reg,
+       ec_thanks_e_to_w_reg,
+       ec_thanks_s_to_w_reg,
+       ec_thanks_w_to_w_reg,
+       ec_thanks_p_to_w_reg,
+       ec_wants_to_send_but_cannot_W}),
+  .sel(ec_cfg[5:3]),
+  .out(ec_out[1])
+);
 
-one_of_eight #(1) ec_mux_proc( .in0(ec_wants_to_send_but_cannot_P),
-                        .in1(ec_thanks_p_to_p_reg),
-                        .in2(ec_thanks_w_to_p_reg),
-                        .in3(ec_thanks_s_to_p_reg),
-                        .in4(ec_thanks_e_to_p_reg),
-                        .in5(ec_thanks_n_to_p_reg),
-                        .in6(ec_thanks_to_p),
-                        .in7(ec_proc_input_valid_reg & ~ec_thanks_to_p),
-                        .sel(ec_cfg[2:0]),
-                        .out(ec_out[0]));
+one_of_n #(
+  .NUM_IN(8),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) ec_mux_proc (
+  .in({ec_proc_input_valid_reg & ~ec_thanks_to_p,
+       ec_thanks_to_p,
+       ec_thanks_n_to_p_reg,
+       ec_thanks_e_to_p_reg,
+       ec_thanks_s_to_p_reg,
+       ec_thanks_w_to_p_reg,
+       ec_thanks_p_to_p_reg,
+       ec_wants_to_send_but_cannot_P}),
+  .sel(ec_cfg[2:0]),
+  .out(ec_out[0])
+);
 
 // end event counter logic
 

@@ -163,8 +163,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_top_4.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_top_16.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_route_request_calc.v" \
-    "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/one_of_five.v" \
-    "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/one_of_eight.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/one_of_n.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/net_dff.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/flip_bus.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/bus_compare_equal.v" \
@@ -615,7 +614,6 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_xbar/dynamic/rtl/io_xbar_output_top.v" \
     "${DV_ROOT}/design/chipset/io_xbar/common/rtl/io_xbar_space_avail_top.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_one_of_n.v" \
-    "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_one_of_n_plus_3.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_net_dff.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_bus_compare_equal.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_flip_bus.v" \
