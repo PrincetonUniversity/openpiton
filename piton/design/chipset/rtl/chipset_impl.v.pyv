@@ -428,6 +428,24 @@ test_end_checker test_end_checker(
 `endif
 
 <%
+
+# need to figure out number of invalid access signals
+tmpNum=0
+for i in range(len(devices)):
+    if devices[i]["noc2_in"]:
+        tmpNum +=1
+
+if tmpNum:
+    print """
+wire [%d-1:0] invalid_access;
+assign invalid_access_o = |invalid_access;
+""" % (tmpNum)
+else:
+    print """
+assign invalid_access_o = 1'b0;
+"""
+
+tmpIdx=0
 for i in range(len(devices)):
     if devices[i]["noc2_in"]:
         print """
@@ -435,7 +453,7 @@ packet_filter %s_packet_filter(
     .clk(chipset_clk),
     .rst_n(chipset_rst_n),
     // need to connect this to a LED
-    .invalid_access_o(invalid_access_o),
+    .invalid_access_o(invalid_access[%d]),
 
     // noc2 to filter wires
     .noc2_filter_val(%s_filter_noc2_valid),
@@ -459,11 +477,12 @@ packet_filter %s_packet_filter(
 
     .uart_boot_en(uart_boot_en)
 );
-""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"],
+""" % (devices[i]["name"], tmpIdx,
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
-       devices[i]["name"], devices[i]["name"], devices[i]["name"],devices[i]["name"],
-)
+       devices[i]["name"], devices[i]["name"], devices[i]["name"],
+       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+        tmpIdx+=1
 %>
 
 <%
@@ -917,12 +936,12 @@ fake_uart fake_uart (
     wire ariane_boot_sel;
 `ifdef PITON_FPGA_SYNTH
   assign ariane_boot_sel   = uart_boot_en;
-`else  
+`else
   `ifdef ARIANE_SIM_LINUX_BOOT
-    assign ariane_boot_sel = 1'b0;  
-  `else 
-    assign ariane_boot_sel = 1'b1;  
-  `endif  
+    assign ariane_boot_sel = 1'b0;
+  `else
+    assign ariane_boot_sel = 1'b1;
+  `endif
 `endif
 
     serpent_peripherals #(
@@ -971,6 +990,7 @@ fake_uart fake_uart (
         .trst_ni                         ( trst_ni                       ),
         .td_i                            ( td_i                          ),
         .td_o                            ( td_o                          ),
+        .tdo_oe_o                        (                               ),
         // CLINT
         .rtc_i                           ( rtc_i                         ),
         .timer_irq_o                     ( timer_irq_o                   ),
