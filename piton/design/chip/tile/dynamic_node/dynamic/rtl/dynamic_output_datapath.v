@@ -75,7 +75,32 @@ input [2:0] current_route_in;
 //assigns
 
 //instantiations
-one_of_five #(`DATA_WIDTH) data_mux(.in0(data_a_in), .in1(data_b_in), .in2(data_c_in), .in3(data_d_in), .in4(data_x_in), .sel(current_route_in), .out(data_out));
-one_of_five #(1) valid_mux(.in0(valid_a_in), .in1(valid_b_in), .in2(valid_c_in), .in3(valid_d_in), .in4(valid_x_in), .sel(current_route_in), .out(valid_out_temp));
+one_of_n #(
+  .NUM_IN(5),
+  .SEL_WIDTH(3),
+  .WIDTH(`DATA_WIDTH)
+) data_mux (
+	.in({data_x_in,
+       data_d_in,
+       data_c_in,
+       data_b_in,
+       data_a_in}),
+  .sel(current_route_in),
+  .out(data_out)
+);
+
+one_of_n #(
+  .NUM_IN(5),
+  .SEL_WIDTH(3),
+  .WIDTH(1)
+) valid_mux (
+	.in({valid_x_in,
+       valid_d_in,
+       valid_c_in,
+       valid_b_in,
+       valid_a_in}),
+  .sel(current_route_in),
+  .out(valid_out_temp)
+);
 
 endmodule

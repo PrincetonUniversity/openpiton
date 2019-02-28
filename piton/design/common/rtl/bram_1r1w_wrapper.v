@@ -78,7 +78,7 @@ wire                            rw_conflict;
 reg                             rw_conflict_r;
 wire                            ww_conflict;
 reg                             ww_conflict_r;
-
+reg [DATA_WIDTH-1:0]            DOUTA_r;
 /* renaming signals */
 assign read_enable_in    = CEA & (RDWENA == 1'b1);
 assign write_enable_in   = CEB & (RDWENB == 1'b0);
@@ -96,6 +96,7 @@ always @(posedge MEMCLK) begin
   bram_data_in_r <= bram_data_in;
   rw_conflict_r  <= rw_conflict;
   ww_conflict_r  <= ww_conflict;
+  DOUTA_r        <= DOUTA;
   // DOUTB_r  <= DOUTB;
 end
 
@@ -111,12 +112,11 @@ always @ * begin
     bram_data_in = bram_data_in | (bram_data_in_r & ~WRITE_BIT_MASK_REG);
   else
     bram_data_in = bram_data_in | (bram_data_write_read_out_reg & ~WRITE_BIT_MASK_REG);
-  
 
-  // note: DOUT retains value if read enable is not asserted
-  // which is why default value is not set for DOUT
+  // retain old value
+  DOUTA = DOUTA_r;
   if (read_enable_in_reg) begin
-    DOUTA = bram_data_read_out_reg; 
+    DOUTA = bram_data_read_out_reg;
     if (rw_conflict_r) begin
       DOUTA = bram_data_in_r;
     end
