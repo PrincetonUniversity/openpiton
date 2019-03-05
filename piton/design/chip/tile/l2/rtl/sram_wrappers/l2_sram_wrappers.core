@@ -7,6 +7,7 @@ filesets:
         depend:
             - preprocessor
             - piton_common
+            - piton_include
         file_type: verilogSource
 
 targets:
