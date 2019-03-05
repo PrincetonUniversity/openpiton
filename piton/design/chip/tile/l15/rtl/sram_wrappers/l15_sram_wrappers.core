@@ -5,6 +5,7 @@ description: Top-level L15 cache SRAM wrappers
 filesets:
     rtl:
         depend:
+            - piton_include
             - preprocessor
         file_type: verilogSource
 
