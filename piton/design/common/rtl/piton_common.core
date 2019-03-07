@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::piton_common:0.1
+name: openpiton::piton_common:0.1
 description: Top-level Piton common files
 
 filesets:

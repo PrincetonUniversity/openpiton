@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::piton_tile_common_srams:0.1
+name: openpiton::piton_tile_common_srams:0.1
 description: Top-level Piton Tile common srams files
 
 filesets:

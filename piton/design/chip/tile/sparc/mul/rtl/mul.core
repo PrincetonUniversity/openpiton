@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::sparc_mul:0.1
+name: openpiton::sparc_mul:0.1
 description: SPARC Multiplier unit
 
 filesets:
     rtl:
         depend:
-            - piton_tile_common
-            - piton_include
+            - openpiton::piton_tile_common
+            - openpiton::piton_include
         files:
             - sparc_mul_top_nospu_wrap.v
             - sparc_mul_top.v

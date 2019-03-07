@@ -1,13 +1,13 @@
 CAPI=2:
-name: ::sparc_lsu:0.1
+name: openpiton::sparc_lsu:0.1
 description: SPARC Load/Store Unit for Sparc Core
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - piton_tile_common
-            - sparc_srams
+            - openpiton::piton_include
+            - openpiton::piton_tile_common
+            - openpiton::sparc_srams
         files:
             - lsu_dc_parity_gen.v
             - lsu_nospu_wrap.v

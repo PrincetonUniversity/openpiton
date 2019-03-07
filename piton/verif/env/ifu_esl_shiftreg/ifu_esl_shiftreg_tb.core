@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::ifu_esl_shiftreg_tb:0.1
+name: openpiton::ifu_esl_shiftreg_tb:0.1
 description: ifu_esl_shiftreg testbench
 
 filesets:
     tb_files:
         depend:
-            - test_infrstrct
-            - ifu_esl_shiftreg
+            - openpiton::test_infrstrct
+            - openpiton::ifu_esl_shiftreg
         files:
             - ifu_esl_shiftreg_top.v
         file_type: verilogSource-2001

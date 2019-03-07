@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::test_infrstrct:0.1
+name: openpiton::test_infrstrct:0.1
 description: testbench infrastructure
 
 filesets:

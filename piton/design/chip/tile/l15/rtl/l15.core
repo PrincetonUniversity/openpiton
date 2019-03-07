@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::l15:0.1
+name: openpiton::l15:0.1
 description: Top-level L15 cache
 
 filesets:
@@ -18,10 +18,10 @@ filesets:
             - pico_decoder.v
             - simplenocbuffer.v
         depend:
-            - piton_include
-            - piton_common
-            - piton_tile_common
-            - l15_sram_wrappers
+            - openpiton::piton_include
+            - openpiton::piton_common
+            - openpiton::piton_tile_common
+            - openpiton::l15_sram_wrappers
         file_type: verilogSource
 
 targets:

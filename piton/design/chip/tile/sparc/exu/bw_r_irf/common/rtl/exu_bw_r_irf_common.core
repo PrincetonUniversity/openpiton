@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::exu_bw_r_irf_common:0.1
+name: openpiton::exu_bw_r_irf_common:0.1
 description: 
 
 filesets:

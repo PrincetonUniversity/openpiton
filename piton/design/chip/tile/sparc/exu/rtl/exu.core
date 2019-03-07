@@ -1,13 +1,13 @@
 CAPI=2:
-name: ::sparc_exu:0.1
+name: openpiton::sparc_exu:0.1
 description: Execution unit containing register file(IRF), execution control (ECL), ALU, shifting (SHFT).
 
 filesets:
     rtl:
         depend:
-            - exu_bw_r_irf
-            - piton_include
-            - piton_tile_common
+            - openpiton::exu_bw_r_irf
+            - openpiton::piton_include
+            - openpiton::piton_tile_common
         files:
             - sparc_exu.v
             - sparc_exu_alu.v

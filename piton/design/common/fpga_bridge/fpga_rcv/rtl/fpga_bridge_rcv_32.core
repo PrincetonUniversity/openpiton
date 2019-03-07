@@ -1,11 +1,11 @@
 CAPI=2:
-name: ::fpga_bridge_rcv_32:0.1
+name: openpiton::fpga_bridge_rcv_32:0.1
 description: fpga_bridge_rcv_32 core
 
 filesets:
     rtl:
         depend:
-            - piton_common
+            - openpiton::piton_common
         files:
             - fpga_bridge_rcv_32.v
         file_type: verilogSource
