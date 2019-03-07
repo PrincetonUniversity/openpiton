@@ -10,6 +10,8 @@ filesets:
             - piton_system.vh: {is_include_file: true}
             - sys.h: {is_includ_file: true}
             - tlu.h: {is_includ_file: true}
+            - jtag.vh
+            - dmbr_define.v
         depend:
             - preprocessor
         file_type: verilogSource

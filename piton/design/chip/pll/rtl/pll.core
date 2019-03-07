@@ -1,0 +1,29 @@
+CAPI=2:
+name: ::pll:0.1
+description: OpenPiton 
+
+filesets:
+    rtl:
+        files:
+            - clk_mux.v
+            - clk_se_to_diff.v
+            - pll_top.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [pll_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [pll_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

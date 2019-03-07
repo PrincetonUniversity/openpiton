@@ -1,0 +1,20 @@
+CAPI=2:
+name: ::dmbr:0.1
+description: Top-level Piton includes
+
+filesets:
+    rtl:
+        depend:
+            - preprocessor
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[dmbr.v.pyv, dmbr.tmp.v]]

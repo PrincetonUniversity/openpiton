@@ -1,0 +1,32 @@
+CAPI=2:
+name: ::jtag:0.1
+description: OpenPiton JTAG
+
+filesets:
+    rtl:
+        files:
+            - jtag.v
+            - jtag_interface.v
+            - jtag_interface_tap.v
+            - jtag_ctap.v
+            - jtag_ucb_receiver.v
+            - jtag_ucb_transmitter.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [jtag]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [jtag]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

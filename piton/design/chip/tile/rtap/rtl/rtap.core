@@ -1,0 +1,16 @@
+CAPI=2:
+name: ::rtap:0.1
+description: Top-level Piton includes
+
+filesets:
+    rtl:
+        files:
+            - rtap.v
+            - rtap_ucb_receiver.v
+            - rtap_ucb_transmitter.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+

@@ -5,12 +5,17 @@ description: Top-level Piton Tile common files
 filesets:
     rtl:
        files:
-           - swrvr_clib.v  
-           - test_stub_scan.v
-           - swrvr_dlib.v  
-           - u1.beh.v
+           - clk_gating_latch.v
+           - credit_to_valrdy.v
            - m1.beh.v
            - mul64.v
+           - swrvr_clib.v  
+           - swrvr_dlib.v  
+           - test_stub_scan.v
+           - u1.beh.v
+           - ucb_bus_in.v
+           - ucb_bus_out.v
+           - valrdy_to_credit.v
        depend:
            - preprocessor
        file_type: verilogSource
