@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // This file is auto-generated
 // Author: Tri Nguyen
 
+`include "l2.tmp.h"
 <%
   import pyhplib
   from pyhplib import * 
