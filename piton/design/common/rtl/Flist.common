@@ -4,3 +4,4 @@ async_fifo.v
 // bram_sdp_wrapper.v // trin: no longer needed with synthesizable BRAM implementation
 bram_1rw_wrapper.v
 bram_1r1w_wrapper.v
+synchronizer.v
