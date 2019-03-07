@@ -9,7 +9,6 @@ filesets:
             - openpiton::piton_tile_common
             - openpiton::sparc_srams
             - openpiton::ifu_esl
-            - openpiton::ifu_errdp
         files:
             - sparc_ifu_rndrob.v
             - sparc_ifu_nospu_wrap.v
@@ -43,9 +42,11 @@ filesets:
 targets:
     default:
         filesets: [rtl]
+        generate: [pyhp_preprocess]
     pickle:
         default_tool: icarus
         filesets: [rtl]
+        generate: [pyhp_preprocess]
         toplevel: [sparc_ifu]
         tools:
             icarus:
@@ -53,7 +54,14 @@ targets:
     verify:
         default_tool: icarus
         filesets: [rtl]
+        generate: [pyhp_preprocess]
         toplevel: [sparc_ifu]
         tools:
             icarus:
                 iverilog_options: [-g 2001]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[sparc_ifu_errdp.v.pyv, sparc_ifu_errdp.tmp.v]]
