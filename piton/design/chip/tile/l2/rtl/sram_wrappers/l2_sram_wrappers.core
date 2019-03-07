@@ -1,13 +1,13 @@
 CAPI=2:
-name: ::l2_sram_wrappers:0.1
+name: openpiton::l2_sram_wrappers:0.1
 description: Top-level L2 cache SRAM wrappers
 
 filesets:
     rtl:
         depend:
-            - preprocessor
-            - piton_common
-            - piton_include
+            - openpiton::preprocessor
+            - openpiton::piton_common
+            - openpiton::piton_include
         file_type: verilogSource
 
 targets:

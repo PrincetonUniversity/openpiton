@@ -1,13 +1,13 @@
 CAPI=2:
-name: ::fpu:0.1
+name: openpiton::fpu:0.1
 description: Top-level FPU
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - piton_tile_common
-            - piton_tile_common_srams
+            - openpiton::piton_include
+            - openpiton::piton_tile_common
+            - openpiton::piton_tile_common_srams
         files:
             - fpu.v
             - fpu_add.v

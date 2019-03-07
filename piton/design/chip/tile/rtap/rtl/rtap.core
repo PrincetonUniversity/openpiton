@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::rtap:0.1
+name: openpiton::rtap:0.1
 description: Top-level Piton includes
 
 filesets:

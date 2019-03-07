@@ -1,18 +1,18 @@
 CAPI=2:
-name: ::sparc_core:0.1
+name: openpiton::sparc_core:0.1
 description: SPARC Core
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - sparc_srams
-            - sparc_ifu
-            - sparc_lsu
-            - sparc_exu
-            - sparc_tlu
-            - sparc_mul
-            - sparc_ffu
+            - openpiton::piton_include
+            - openpiton::sparc_srams
+            - openpiton::sparc_ifu
+            - openpiton::sparc_lsu
+            - openpiton::sparc_exu
+            - openpiton::sparc_tlu
+            - openpiton::sparc_mul
+            - openpiton::sparc_ffu
         files:
             - sparc_core.v
             - sparc.v

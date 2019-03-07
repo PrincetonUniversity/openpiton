@@ -1,11 +1,11 @@
 CAPI=2:
-name: ::exu_bw_r_irf_register16:0.1
+name: openpiton::exu_bw_r_irf_register16:0.1
 description: EXU Register file
 
 filesets:
     rtl:
         depend:
-            - exu_bw_r_irf_common
+            - openpiton::exu_bw_r_irf_common
         files:
             - bw_r_irf_register16.v
         file_type: verilogSource-2001

@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::ifu_esl_tb:0.1
+name: openpiton::ifu_esl_tb:0.1
 description: ifu_esl testbench
 
 filesets:
     tb_files:
         depend:
-            - test_infrstrct
-            - ifu_esl
+            - openpiton::test_infrstrct
+            - openpiton::ifu_esl
         files:
             - ifu_esl_top.v
         file_type: verilogSource-2001

@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::sparc_srams:0.1
+name: openpiton::sparc_srams:0.1
 description: SPARC Core cache SRAMS
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - sparc_sram_wrappers
+            - openpiton::piton_include
+            - openpiton::sparc_sram_wrappers
         files:
             - bw_r_frf.v
             - bw_r_icd.v

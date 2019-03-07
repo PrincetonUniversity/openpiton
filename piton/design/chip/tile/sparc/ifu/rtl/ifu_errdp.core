@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::ifu_errdp:0.1
+name: openpiton::ifu_errdp:0.1
 description: ifu_errdp module
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - preprocessor
+            - openpiton::piton_include
+            - openpiton::preprocessor
         file_type: verilogSource
 
 targets:

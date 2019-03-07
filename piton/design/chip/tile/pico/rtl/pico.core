@@ -1,11 +1,11 @@
 CAPI=2:
-name: ::pico:0.1
-description: Top-level PICO processor 
+name: openpiton::pico:0.1
+description: Top-level PicoRV32 processor 
 
 filesets:
     rtl:
         depend:
-            - piton_include
+            - openpiton::piton_include
         files:
             - picorv32.v
             - pico_reset.v

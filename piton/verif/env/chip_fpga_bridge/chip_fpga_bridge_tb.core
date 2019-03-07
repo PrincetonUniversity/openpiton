@@ -1,15 +1,15 @@
 CAPI=2:
-name: ::chip_fpga_bridge_tb:0.1
+name: openpiton::chip_fpga_bridge_tb:0.1
 description: chip_fpga_bridge testbench
 
 filesets:
     tb_files:
         depend:
-            - test_infrstrct
-            - chip_bridge
-            - fpga_rcv_32
-            - piton_include
-            - piton_common
+            - openpiton::test_infrstrct
+            - openpiton::chip_bridge
+            - openpiton::fpga_rcv_32
+            - openpiton::piton_include
+            - openpiton::piton_common
         files:
             - chip_bridge_send_top.v
             - chip_bridge_send_top.t.v

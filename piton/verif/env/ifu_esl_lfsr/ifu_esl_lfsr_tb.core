@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::ifu_esl_lfsr_tb:0.1
+name: openpiton::ifu_esl_lfsr_tb:0.1
 description: ifu_esl_lfsr testbench
 
 filesets:
     tb_files:
         depend:
-            - test_infrstrct
-            - ifu_esl_lfsr
+            - openpiton::test_infrstrct
+            - openpiton::ifu_esl_lfsr
         files:
             - ifu_esl_lfsr_top.v
         file_type: verilogSource-2001

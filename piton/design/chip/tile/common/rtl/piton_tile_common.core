@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::piton_tile_common:0.1
+name: openpiton::piton_tile_common:0.1
 description: Top-level Piton Tile common files
 
 filesets:
@@ -17,7 +17,7 @@ filesets:
            - ucb_bus_out.v
            - valrdy_to_credit.v
        depend:
-           - preprocessor
+           - openpiton::preprocessor
        file_type: verilogSource
 
 targets:
