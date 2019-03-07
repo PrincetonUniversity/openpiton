@@ -1,0 +1,41 @@
+CAPI=2:
+name: ::chip:0.1
+description: OpenPiton Tile
+
+filesets:
+    rtl:
+        files:
+            - OCI.v
+            - reset_synchronizer.v
+        depend:
+            - tile
+            - jtag
+            - chip_bridge
+            - pll
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [chip]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [chip]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[chip.v.pyv, chip.tmp.v]]

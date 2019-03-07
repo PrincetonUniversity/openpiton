@@ -1,0 +1,47 @@
+CAPI=2:
+name: ::tile:0.1
+description: OpenPiton Tile
+
+filesets:
+    rtl:
+        files:
+            - cpx_arbitrator.v
+            - ccx_l15_transducer.v
+        depend:
+            - rtap
+            - piton_include
+            - piton_tile_common
+            - dynamic_node
+            - l15
+            - l2
+            - sparc_core
+            - fpu
+            - dmbr
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [tile]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [tile]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[tile.v.pyv, tile.tmp.v],
+                          [config_regs.v.pyv, config_regs.tmp.v]]
