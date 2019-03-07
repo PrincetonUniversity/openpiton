@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::ifu_esl_stsm:0.1
+name: openpiton::ifu_esl_stsm:0.1
 description: ifu_esl_stsm testbench
 
 filesets:

@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::dynamic_node:0.1
+name: openpiton::dynamic_node:0.1
 description: Top-level Dynamic Node
 
 filesets:
@@ -8,10 +8,10 @@ filesets:
             - dynamic_node_top_wrap.v
             - dynamic_node_top.v
         depend:
-            - dynamic_node_components
-            - dynamic_node_dynamic
-            - dynamic_node_common
-            - piton_include
+            - openpiton::dynamic_node_components
+            - openpiton::dynamic_node_dynamic
+            - openpiton::dynamic_node_common
+            - openpiton::piton_include
         file_type: verilogSource
 
 targets:

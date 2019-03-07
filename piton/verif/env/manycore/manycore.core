@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::manycore_tb:0.1
+name: openpiton::manycore_tb:0.1
 description: manycore testbench
 
 filesets:
     tb_files:
         depend:
-            - piton_include
-            - piton_chipset_include
+            - openpiton::piton_include
+            - openpiton::piton_chipset_include
         files:
             - cmp_pcxandcpx.v
             - exu_mon.v

@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::pll:0.1
+name: openpiton::pll:0.1
 description: OpenPiton 
 
 filesets:

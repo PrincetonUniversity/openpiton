@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::chip_bridge:0.1
+name: openpiton::chip_bridge:0.1
 description: chip_bridge testbench
 
 filesets:
@@ -11,8 +11,8 @@ filesets:
             - chip_net_chooser_32.v
             - chip_bridge.v
         depend:
-            - piton_include
-            - piton_common
+            - openpiton::piton_include
+            - openpiton::piton_common
         file_type: verilogSource-2001
 
 targets:

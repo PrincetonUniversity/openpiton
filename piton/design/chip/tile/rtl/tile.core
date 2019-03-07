@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::tile:0.1
+name: openpiton::tile:0.1
 description: OpenPiton Tile
 
 filesets:
@@ -8,15 +8,15 @@ filesets:
             - cpx_arbitrator.v
             - ccx_l15_transducer.v
         depend:
-            - rtap
-            - piton_include
-            - piton_tile_common
-            - dynamic_node
-            - l15
-            - l2
-            - sparc_core
-            - fpu
-            - dmbr
+            - openpiton::rtap
+            - openpiton::piton_include
+            - openpiton::piton_tile_common
+            - openpiton::dynamic_node
+            - openpiton::l15
+            - openpiton::l2
+            - openpiton::sparc_core
+            - openpiton::fpu
+            - openpiton::dmbr
         file_type: verilogSource-2001
 
 targets:

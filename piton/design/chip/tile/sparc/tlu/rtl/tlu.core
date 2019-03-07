@@ -1,15 +1,15 @@
 CAPI=2:
-name: ::sparc_tlu:0.1
+name: openpiton::sparc_tlu:0.1
 description: SPARC Trap Logic and Memory Management Unit (TLU)
 
 filesets:
     rtl:
         depend:
-            - piton_tile_common
-            - piton_tile_common_srams
-            - piton_include
-            - sparc_srams
-            - sparc_ifu
+            - openpiton::piton_tile_common
+            - openpiton::piton_tile_common_srams
+            - openpiton::piton_include
+            - openpiton::sparc_srams
+            - openpiton::sparc_ifu
         files:
             - sparc_tlu_intctl.v
             - sparc_tlu_intdp.v

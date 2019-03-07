@@ -1,12 +1,12 @@
 CAPI=2:
-name: ::sparc_spu:0.1
+name: openpiton::sparc_spu:0.1
 description: SPARC Stream Processing Unit for Sparc Core
 
 filesets:
     rtl:
         depend:
-            - piton_include
-            - piton_tile_common
+            - openpiton::piton_include
+            - openpiton::piton_tile_common
         files:
             - spu.v
             - spu_ctl.v

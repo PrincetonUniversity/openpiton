@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::piton_include:0.1
+name: openpiton::piton_include:0.1
 description: Top-level Piton includes
 
 filesets:
@@ -13,7 +13,7 @@ filesets:
             - jtag.vh
             - dmbr_define.v
         depend:
-            - preprocessor
+            - openpiton::preprocessor
         file_type: verilogSource
 
 targets:

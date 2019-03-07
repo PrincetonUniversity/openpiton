@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::dynamic_node_components:0.1
+name: openpiton::dynamic_node_components:0.1
 description: Dynamic node components
 
 filesets:

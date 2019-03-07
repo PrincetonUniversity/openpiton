@@ -1,11 +1,11 @@
 CAPI=2:
-name: ::dmbr:0.1
+name: openpiton::dmbr:0.1
 description: Top-level Piton includes
 
 filesets:
     rtl:
         depend:
-            - preprocessor
+            - openpiton::preprocessor
         file_type: verilogSource
 
 targets:

@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::piton_chipset_include:0.1
+name: openpiton::piton_chipset_include:0.1
 description: Top-level Piton Chipset includes
 
 filesets:
@@ -9,7 +9,7 @@ filesets:
             - chipset_define.vh: {is_includ_file: true}
             - uart16550_define.vh: {is_includ_file: true}
         depend:
-            - preprocessor
+            - openpiton::preprocessor
         file_type: verilogSource
 
 targets:

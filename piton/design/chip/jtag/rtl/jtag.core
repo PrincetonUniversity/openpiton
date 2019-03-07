@@ -1,5 +1,5 @@
 CAPI=2:
-name: ::jtag:0.1
+name: openpiton::jtag:0.1
 description: OpenPiton JTAG
 
 filesets:
