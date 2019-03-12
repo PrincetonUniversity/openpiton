@@ -83,6 +83,9 @@ module chipset_impl(
 
     output                                      test_start,
 
+    // invalid access inside packet filter
+    output                                      invalid_access_o,
+
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     input                                       mc_clk,
@@ -432,7 +435,7 @@ packet_filter %s_packet_filter(
     .clk(chipset_clk),
     .rst_n(chipset_rst_n),
     // need to connect this to a LED
-    .invalid_access_o(),
+    .invalid_access_o(invalid_access_o),
 
     // noc2 to filter wires
     .noc2_filter_val(%s_filter_noc2_valid),
@@ -680,10 +683,12 @@ fake_mem_ctrl fake_mem_ctrl(
 
 `endif // endif PITONSYS_NO_MC
 
-`ifdef PITONSYS_IOCTRL
 
 wire net_interrupt;
 wire uart_interrupt;
+
+`ifdef PITONSYS_IOCTRL
+
 wire ciop_iob_rst_n;
 assign ciop_iob_rst_n = io_ctrl_rst_n & test_start & ~piton_ready_n;
 
@@ -833,6 +838,10 @@ eth_top eth_top (
 );
 
 `else // PITONSYS_IOCTRL
+
+assign net_interrupt  = 1'b0;
+assign uart_interrupt = 1'b0;
+
 // Fake iobridge
 ciop_fake_iob ciop_fake_iob(
     .noc_in_val        ( intf_chipset_val_noc1 ),
@@ -901,13 +910,25 @@ fake_uart fake_uart (
 `ifdef PITON_ARIANE
 
     // irq sources into PLIC are not connected yet
-    wire irq_sources;
-    assign irq_sources = 1'b0;
+    wire [1:0] irq_sources;
+    assign irq_sources = {net_interrupt, uart_interrupt};
+
+    // this is for selecting the right bootrom (1: baremetal, 0: linux)
+    wire ariane_boot_sel;
+`ifdef PITON_FPGA_SYNTH
+  assign ariane_boot_sel   = uart_boot_en;
+`else  
+  `ifdef ARIANE_SIM_LINUX_BOOT
+    assign ariane_boot_sel = 1'b0;  
+  `else 
+    assign ariane_boot_sel = 1'b1;  
+  `endif  
+`endif
 
     serpent_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
-        .NumSources     (               1 ),
+        .NumSources     (               2 ),
         .SwapEndianess  (               1 )
     ) i_serpent_peripherals (
         .clk_i                           ( chipset_clk                   ),
@@ -937,6 +958,8 @@ fake_uart fake_uart (
         .ariane_plic_buf_noc3_data_o     ( ariane_plic_buf_noc3_data     ),
         .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    ),
         .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    ),
+        // This selects either the BM or linux bootrom
+        .ariane_boot_sel_i               ( ariane_boot_sel               ),
         // Debug sigs to cores
         .ndmreset_o                      ( ndmreset_o                    ),
         .dmactive_o                      ( dmactive_o                    ),

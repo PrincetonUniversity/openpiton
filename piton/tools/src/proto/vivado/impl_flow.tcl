@@ -54,7 +54,7 @@ close_project
 open_project ${VIVADO_PROJECT_FILE}
 
 # Launch implementation
-launch_run impl_1 -to_step write_bitstream
+launch_run impl_1 -to_step write_bitstream -jobs $::env(NUM_VIVADO_JOBS)
 puts "INFO: Implementation launched for project '${PROJECT_NAME}'"
 
 # Wait for run to finish

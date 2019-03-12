@@ -31,8 +31,6 @@ set_property IOSTANDARD LVDS [get_ports chipset_clk_osc_n]
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets chipset/clk_mmcm/inst/clk_in1_clk_mmcm]
 
-
-
 # Reset
 set_property IOSTANDARD LVCMOS33 [get_ports sys_rst_n]
 set_property PACKAGE_PIN R19 [get_ports sys_rst_n]
@@ -46,15 +44,24 @@ set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_c
 set_false_path -from [get_clocks net_axi_clk_clk_mmcm] -to [get_clocks chipset_clk_clk_mmcm]
 
 
-## PMOD Header JC
-set_property -dict {PACKAGE_PIN AC26 IOSTANDARD LVCMOS33} [get_ports tck_i]
-set_property -dict {PACKAGE_PIN AJ27 IOSTANDARD LVCMOS33} [get_ports td_i]
-set_property -dict {PACKAGE_PIN AH30 IOSTANDARD LVCMOS33} [get_ports td_o]
-set_property -dict {PACKAGE_PIN AK29 IOSTANDARD LVCMOS33} [get_ports tms_i]
-set_property -dict {PACKAGE_PIN AD26 IOSTANDARD LVCMOS33} [get_ports trst_ni]
+## To use FTDI FT2232 JTAG
+## Add some additional constraints for JTAG signals, set to 10MHz to be on the safe side
+create_clock -period 100.000 -name tck_i -waveform {0.000 50.000} [get_ports tck_i]
 
-# accept sub-optimal placement
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i_IBUF]
+set_input_delay  -clock tck_i -clock_fall 5 [get_ports td_i    ]
+set_input_delay  -clock tck_i -clock_fall 5 [get_ports tms_i   ]
+set_output_delay -clock tck_i             5 [get_ports td_o    ]
+set_false_path   -from                      [get_ports trst_ni ] 
+
+# constrain clock domain crossing 
+set_max_delay -datapath_only -from [get_clocks -include_generated_clocks chipset_clk_clk_mmcm] -to [get_clocks tck_i] 15.0 
+set_max_delay -datapath_only -from [get_clocks tck_i] -to [get_clocks -include_generated_clocks chipset_clk_clk_mmcm] 15.0
+
+set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports trst_ni ]; 
+set_property -dict { PACKAGE_PIN AD27  IOSTANDARD LVCMOS33 } [get_ports tck_i   ]; 
+set_property -dict { PACKAGE_PIN W27   IOSTANDARD LVCMOS33 } [get_ports td_i    ]; 
+set_property -dict { PACKAGE_PIN W28   IOSTANDARD LVCMOS33 } [get_ports td_o    ]; 
+set_property -dict { PACKAGE_PIN W29   IOSTANDARD LVCMOS33 } [get_ports tms_i   ]; 
 
 #### UART
 #IO_L11N_T1_SRCC_35 Sch=uart_rxd_out
