@@ -207,7 +207,7 @@ begin: FSM_OUT
         byte_alignment_reg <= 0;
         blksize_reg <= 0;
         data_cycles <= 0;
-        bus_4bit_reg <= 0;      
+        bus_4bit_reg <= 0;
     end
     else begin
         state <= next_state;
@@ -259,15 +259,15 @@ begin: FSM_OUT
                     crc_en <= 1;
                     if (bus_4bit_reg) begin
                         last_din <= {
-                            data_in[31-(byte_alignment_reg << 3)], 
-                            data_in[30-(byte_alignment_reg << 3)], 
-                            data_in[29-(byte_alignment_reg << 3)], 
+                            data_in[31-(byte_alignment_reg << 3)],
+                            data_in[30-(byte_alignment_reg << 3)],
+                            data_in[29-(byte_alignment_reg << 3)],
                             data_in[28-(byte_alignment_reg << 3)]
                             };
                         crc_in <= {
-                            data_in[31-(byte_alignment_reg << 3)], 
-                            data_in[30-(byte_alignment_reg << 3)], 
-                            data_in[29-(byte_alignment_reg << 3)], 
+                            data_in[31-(byte_alignment_reg << 3)],
+                            data_in[30-(byte_alignment_reg << 3)],
+                            data_in[29-(byte_alignment_reg << 3)],
                             data_in[28-(byte_alignment_reg << 3)]
                             };
                     end
@@ -283,15 +283,15 @@ begin: FSM_OUT
                     DAT_oe_o_reg<=1;
                     if (bus_4bit_reg) begin
                         last_din <= {
-                            data_in[31-(data_index[2:0]<<2)], 
-                            data_in[30-(data_index[2:0]<<2)], 
-                            data_in[29-(data_index[2:0]<<2)], 
+                            data_in[31-(data_index[2:0]<<2)],
+                            data_in[30-(data_index[2:0]<<2)],
+                            data_in[29-(data_index[2:0]<<2)],
                             data_in[28-(data_index[2:0]<<2)]
                             };
                         crc_in <= {
-                            data_in[31-(data_index[2:0]<<2)], 
-                            data_in[30-(data_index[2:0]<<2)], 
-                            data_in[29-(data_index[2:0]<<2)], 
+                            data_in[31-(data_index[2:0]<<2)],
+                            data_in[30-(data_index[2:0]<<2)],
+                            data_in[29-(data_index[2:0]<<2)],
                             data_in[28-(data_index[2:0]<<2)]
                             };
                         if (data_index[2:0] == 3'h6/*not 7 - read delay !!!*/ && transf_cnt <= data_cycles-8) begin

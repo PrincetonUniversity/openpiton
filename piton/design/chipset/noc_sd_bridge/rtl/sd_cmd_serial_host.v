@@ -115,7 +115,7 @@ parameter
 reg [STATE_SIZE-1:0] state;
 reg [STATE_SIZE-1:0] next_state;
 //Misc
-`define cmd_idx  (CMD_SIZE-1-counter) 
+`define cmd_idx  (CMD_SIZE-1-counter)
 
 //sd cmd input pad register
 always @(posedge sd_clk)
@@ -185,7 +185,7 @@ begin: FSM_COMBO
             end
         FINISH_WR:
             next_state <= IDLE;
-        default: 
+        default:
             next_state <= INIT;
     endcase
 end
