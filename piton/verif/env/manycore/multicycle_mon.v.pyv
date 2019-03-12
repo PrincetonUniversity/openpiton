@@ -45,6 +45,8 @@
 `include "sys.h"
 `include "iop.h"
 
+`ifndef VERILATOR
+
 `define NO_OF_SIGNALS 1
 
 <%
@@ -439,4 +441,4 @@ print tt
 
 endmodule
 
-
+`endif // ifndef VERILATOR

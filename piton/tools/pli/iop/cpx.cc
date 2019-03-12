@@ -45,7 +45,9 @@ void cpx::get_data(char* data)
 
  mask  = addr & 0x30;
  if(data == 0){
+#ifndef VERILATOR
    io_printf("(%0d):access unitialized location addres(%llx)", tf_gettime(), addr);
+#endif
    for(i = 1; i < 5;i++){
      cpx_pkt[i] = random();
      io_printf("%08x",cpx_pkt[i]); 
@@ -58,7 +60,9 @@ void cpx::get_data(char* data)
    for(j = 0; j < 4;j++){
      tmp <<= 8;
      if(mask >= 64){
+#ifndef VERILATOR
        io_printf("(%0d):info out of bound %llx %x\n", tf_gettime(), addr, mask);
+#endif
      }
      else tmp  |= (data[mask++] & 0xff);
    }
@@ -258,7 +262,9 @@ int* cpx::get_cpx()
     break;
   }
   //print cpx packet
+#ifndef VERILATOR
   io_printf("(%0d)Info: cpx packet from iob ->", tf_gettime());
+#endif
   io_printf("%x", cpx_pkt[0] & 0x1ffff);
   for(idx = 1; idx < 5;idx++)io_printf("%08x", cpx_pkt[idx]);
   io_printf("\n");

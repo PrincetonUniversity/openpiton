@@ -109,7 +109,9 @@ reg  spc_pipe_on;
 
 initial
 begin
+`ifndef VERILATOR
      $monInit();
+`endif
      pc_f = "     ";
      inst_f = "   - ";
      inst_s = "   - ";

@@ -4574,7 +4574,11 @@ module sas_intf (/*AUTOARG*/
 `ifdef RTL_SPARC0
    always @(posedge clk)begin//clean up buffer
       if(rst_l)begin
+`ifndef VERILATOR
 	 if(`PC_CMP.active_thread[31:0] && (`PC_CMP.good[31:0] == `PC_CMP.active_thread[31:0]))match_count = match_count + 1;
+`else // ifndef VERILATOR
+	 if(`PC_CMP.active_thread[3:0] && (`PC_CMP.good[3:0] == `PC_CMP.active_thread[3:0]))match_count = match_count + 1;
+`endif // ifndef VERILATOR
 	 if(match_count == `CLEAN_CYCLE)match = 0;
       end
       else begin

@@ -179,31 +179,29 @@ input   clk;
 input   rst_l;
 reg [7:0] in_used;
 reg [2:0] cpu_num;
-reg        kill_fsr;
 reg       dead_socket;
 reg       inst_checker_off;
-reg       fprs_on;
 
 `ifdef SAS_DISABLE
 `else
 initial begin
     in_used = 0;
+`ifndef VERILATOR
     if($value$plusargs("cpu_num=%d", cpu_num))
         $display("Info:Number of cpu = %d", cpu_num);
     else cpu_num = 0;
-    if($test$plusargs("kill_fsr"))kill_fsr = 1;
-    else kill_fsr = 0;
+`else // ifndef VERILATOR
+    cpu_num = 0;
+`endif // ifndef VERILATOR
     dead_socket      = 0;
     inst_checker_off = 0;
+`ifndef VERILATOR
     if($value$plusargs("inst_check_off=%d", inst_checker_off))begin
         $display("Info:instruction checker is on", inst_checker_off);
         inst_checker_off =1;
     end
+`endif // ifndef VERILATOR
 end // initial begin
-initial begin
-    fprs_on = 0;
-    if($value$plusargs("fprs_comp_on=%d", fprs_on))fprs_on = 1;
-end
 
 `ifdef SAS_DISABLE
 `else
@@ -738,16 +736,13 @@ reg        sas_int;
 
 integer    i, max;
 reg         reset_status, expected_warm, swap;
-reg       debug_sas;
 initial begin
     reset_status = 0;
     expected_warm= 0;
     swap         = 0;
-
-    if($test$plusargs("debug_sas")) debug_sas =1;
-    else debug_sas = 0;
 end // initial begin
 
+`ifndef NO_MRA_VAL
 //mra memory contets
 task mra_val;
     input [9:0] cpu;
@@ -883,6 +878,7 @@ task mra_val;
         endcase // case(cpu)
     end
 endtask // mra_val
+`endif // endif NO_MRA_VAL
 reg timestamp, timest;
 reg [63:0] time_stamp;
 reg         pli_flag;
@@ -1131,7 +1127,7 @@ begin
 end
 
 task register_cmp;
-    input [7:0]  type;
+    input [7:0]  type_i;
     input [9:0]  spc;
     input [1:0]  thread;
     input [2:0]  window;
@@ -1147,7 +1143,7 @@ task register_cmp;
     reg   [63:0] sas_temp;
 
     begin
-        case(type)
+        case(type_i)
             `REG_WRITE_BACK : begin
                 sym = sym_tab[rtl_reg_addr[5:3]];
                 $display("%0t:reg_updated -> spc(%1d) thread(%d) window(%d) rs1(%x)->%x rs2(%x)->%x reg#(%s%0x) val = %x",
@@ -1217,19 +1213,19 @@ task register_cmp;
             end
             `TPC1, `TPC2, `TPC3, `TPC4, `TPC5, `TPC6 : begin
                 $display("%0t:tpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                         $time, type - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0]);
+                         $time, type_i - `PIL_SAS, spc, thread, window, rtl_reg_val[47:0]);
             end
             `TNPC1, `TNPC2, `TNPC3, `TNPC4, `TNPC5, `TNPC6 : begin
                 $display("%0t:tnpc%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                         $time, type - 56, spc, thread, window, rtl_reg_val[47:0]);
+                         $time, type_i - 56, spc, thread, window, rtl_reg_val[47:0]);
             end
             `TSTATE1, `TSTATE2, `TSTATE3, `TSTATE4, `TSTATE5, `TSTATE6 : begin
                 $display("%0t:tstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                         $time, type - 66, spc, thread, window, rtl_reg_val[39:0]);
+                         $time, type_i - 66, spc, thread, window, rtl_reg_val[39:0]);
             end
             `TT1, `TT2, `TT3, `TT4, `TT5, `TT6 : begin
                 $display("%0t:ttype%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                         $time, type - 76, spc, thread, window, rtl_reg_val[8:0]);
+                         $time, type_i - 76, spc, thread, window, rtl_reg_val[8:0]);
             end // case: `TT1, `TT2, `TT3, `TT4, `TT5, `TT6
 
             `TBA_SAS            : begin
@@ -1321,7 +1317,7 @@ task register_cmp;
             end // case: `HPSTATE
             `HTSTATE1, `HTSTATE2, `HTSTATE3, `HTSTATE4, `HTSTATE5, `HTSTATE6 : begin
                 $display("%0t:htstate%0d_reg-updated -> spc(%1d) thread(%d) window(%d) val = %x",
-                         $time, type - 108, spc, thread, window, rtl_reg_val[2:0]);
+                         $time, type_i - 108, spc, thread, window, rtl_reg_val[2:0]);
             end // case: `HTSTATE1, `HTSTATE2, `HTSTATE3, `HTSTATE4, `HTSTATE5, `HTSTATE6
             `ISFSR            : begin
                 $display("%0t:isfsr_reg-updated-> spc(%1d) thread(%d) window(%d) val = %x",

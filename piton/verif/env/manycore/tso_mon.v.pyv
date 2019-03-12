@@ -29,6 +29,8 @@
 //
 ////////////////////////////////////////////////////////
 
+`ifndef VERILATOR
+
 `define FPOP1_RQ 5'b01010
 `define FPOP2_RQ 5'b01011
 `define STB_DRAIN_TO 8000
@@ -1289,3 +1291,4 @@ endtask
 
 `endif	// ifdef GATE_SIM
 endmodule
+`endif // ifndef VERILATOR

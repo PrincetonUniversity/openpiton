@@ -205,7 +205,9 @@ begin
                     if (boundary_err == 1)
                     begin
                         $display("%d : Simulation -> FAIL. network_mon: packet out of valid bound from tile_%0d_%0d_out_%0s_noc%0d", $time, error_y, error_x, error_dir, error_noc);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("network_mon: network_mon: packet going out of valid bound");
                     end
                     '''
@@ -280,7 +282,9 @@ begin
                     if (boundary_err == 1)
                     begin
                         $display("%d : Simulation -> FAIL. network_mon: packet from invalid tile_%0d_%0d_out_%0s_noc%0d", $time, error_y, error_x, error_dir, error_noc);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("network_mon: network_mon: packet from invalid tile");
                     end
                     '''

@@ -84,7 +84,9 @@ begin
             begin
                 $write("UNKNOWN CTAP REQ: %0d", `JTAG_CTAP.jtag_req[`JTAG_REQ_OP_MASK]);
                 $display("");
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("JTAG CTAP mon: error jtag request");
             end
         endcase

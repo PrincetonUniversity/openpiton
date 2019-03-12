@@ -169,6 +169,17 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/bus_compare_equal.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/common/rtl/space_avail_top.v" \
     "${DV_ROOT}/design/chip/tile/dynamic_node/common/rtl/network_input_blk_multi_out.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top_wrap_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/rtl/dynamic_node_top_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_output_datapath_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_output_control_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_control_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_output_top_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_top_4_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_top_16_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/dynamic/rtl/dynamic_input_route_request_calc_para.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/one_of_n.v" \
+    "${DV_ROOT}/design/chip/tile/dynamic_node/components/rtl/one_of_n_plus_3.v" \
     "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_arb_wrap.v" \
     "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu.v" \
     "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_arb.v" \

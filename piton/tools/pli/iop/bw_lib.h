@@ -25,8 +25,12 @@
 #define _BW_LIB_H_
 #include "b_ary.h"
 #include "list.h"
+#ifndef VERILATOR
 #include "veriuser.h"
 #include "acc_user.h"
+#else
+#include "global.h"
+#endif
 #ifdef __ICARUS__
 #include "icarus-compat.h"
 #endif
