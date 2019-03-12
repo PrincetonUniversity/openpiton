@@ -134,8 +134,12 @@ void read_mem(char*              str,
     int dev, zero;
 
     if((fp = fopen(str, "r")) == 0){
+        #ifndef VERILATOR
         io_printf("Error:  can not open file %s for reading\n", str);
         tf_dofinish();
+        #else
+        printf("Error:  can not open file %s for reading\n", str);
+        #endif
     }
 
     cidx = 0;
@@ -193,6 +197,7 @@ void read_mem(char*              str,
 /*------------------------------------------
 set random seed
 -------------------------------------------*/
+#ifndef VERILATOR
 void set_random()
 {
     char  *pargs;
@@ -204,3 +209,4 @@ void set_random()
         srandom(seed);
     }
 }
+#endif

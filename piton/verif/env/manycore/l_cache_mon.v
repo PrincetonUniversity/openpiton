@@ -337,7 +337,9 @@ module l_cache_mon(/*AUTOARG*/
 		    $display("%0d:Error->way(%x) index(%x) Icache received the store invalid befor imiss return",
 			     $time, way, d_index);
 		    $display("%d : Simulation -> FAIL(%0s)", $time, "Icache valid bit is zero");
+            `ifndef VERILATOR
 		    repeat(5)@(posedge clk);
+            `endif
 		    `MONITOR_PATH.fail("Icache received the store invalid before imiss return");
 		 end
 	      end

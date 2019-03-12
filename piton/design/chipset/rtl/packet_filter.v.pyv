@@ -295,23 +295,22 @@ devices = pyhplib.ReadDevicesXMLFile()
             flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
 <%
 elseStr = ""
-for i in range(1, len(devices)):
-    info = devices[i]
-    if info["name"] == "uart":
-        outputstr = """
-                if (((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x) && (noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x))) begin
-                    readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
-                end""" % (info["base"], info["base"], info["length"], i)
-        print outputstr
-        elseStr = "else "
 
 for i in range(1, len(devices)):
     info = devices[i]
-    if info["name"] != "uart" and info["name"] != "mem":
+    if info["name"] != "mem":
         outputStr = """
-                %sif (noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x) begin
+                %sif ((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x)""" \
+                % (elseStr, info["base"], info["base"], info["length"])
+        print outputStr,
+        if not info["stream_accessible"]:
+            print "& (~uart_boot_en))",
+        else:
+            print ")",
+        outputStr = """
+                begin
                     readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
-                end""" % (elseStr, info["base"], info["base"], info["length"], i)
+                end""" % (i)
         print outputStr
         elseStr = "else "
 

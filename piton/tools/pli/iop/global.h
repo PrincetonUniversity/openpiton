@@ -23,8 +23,12 @@
 */
 #ifndef _G_GLOBAL_H_
 #define _G_GLOBAL_H_
+#ifndef VERILATOR
 #include "veriuser.h"
 #include "acc_user.h"
+#else
+#include "verilated_vpi.h"
+#endif
 #include "b_ary.h"
 #include "avl.h"
 #include <stdlib.h>

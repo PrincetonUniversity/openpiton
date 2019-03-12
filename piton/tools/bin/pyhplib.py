@@ -269,6 +269,7 @@ def ReadDevicesXMLFile():
     length = 0
     name = ""
     noc2_in = False
+    stream_accessible = False
     for j in range(0, len(devices[i])):
       tag = devices[i][j].tag
       text = devices[i][j].text
@@ -280,11 +281,13 @@ def ReadDevicesXMLFile():
         name = text
       elif tag == "noc2in":
         noc2_in = True
+      elif tag == "stream_accessible":
+        stream_accessible = True
 
     if name == "chip":
-        devicesInfo.insert(0, {"name": name, "base": base, "length": length, "noc2_in": noc2_in})
+        devicesInfo.insert(0, {"name": name, "base": base, "length": length, "noc2_in": noc2_in, "stream_accessible":stream_accessible})
     else:
-        devicesInfo.append({"name": name, "base": base, "length": length, "noc2_in": noc2_in})
+        devicesInfo.append({"name": name, "base": base, "length": length, "noc2_in": noc2_in, "stream_accessible":stream_accessible})
 
   return devicesInfo
 

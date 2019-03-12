@@ -33,6 +33,8 @@
 `include "sys.h"
 `include "iop.h"
 
+`ifndef VERILATOR
+
 <%
     from pyhplib import *
 %>
@@ -2586,4 +2588,5 @@ wire   [3:0]  count;
 
 endmodule
 
+`endif //ifndef VERILATOR
 

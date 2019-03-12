@@ -1239,7 +1239,11 @@ end
 reg ifu_rstint_w;
 
 //grab warm and power reset.
+`ifndef VERILATOR
 always @(posedge rst_l or ifu_rstint_m)begin
+`else // ifndef VERILATOR
+always @(posedge rst_l or posedge ifu_rstint_m)begin
+`endif // ifndef VERILATOR
     if(rst_l)begin
         htickcmp_rst = 4'hf;
         stickcmp_rst = 4'hf;
@@ -1309,12 +1313,9 @@ reg [3:0]  store_delay_flush;
 reg [63:0] prev_pc[3:0];
 reg [63:0] prev_npc[3:0];
 reg [3:0]  wtchpt_before;
-reg	      debug_sas;
 
 // initialize all the regs.
 initial begin
-    if($test$plusargs("debug_sas")) debug_sas = 1;
-    else debug_sas = 0;
     block_load_kill_off = 0;
     late_load        = 0;
     spu_step         = 0;
@@ -1324,10 +1325,12 @@ initial begin
     softint_off      = 0;
     no_mmu_reg_cmp   = 0;
     mmu_fiveregs_off = 0;
+`ifndef VERILATOR
     if($value$plusargs("softint_off=%h", softint_off))$display ("Info: softint option  %h", softint_off);
     if($value$plusargs("no_mmu_reg_cmp=%h", no_mmu_reg_cmp))$display ("Info: no_mmu_reg_cmp option  %h", no_mmu_reg_cmp);
     if($value$plusargs("mmu_fiveregs_off=%h", mmu_fiveregs_off))$display ("Info: mmu_fiveregs_off  %h", mmu_fiveregs_off);
     if($value$plusargs("block_load_kill_off=%h", block_load_kill_off))$display ("Info: block_load_kill_off  %h", block_load_kill_off);
+`endif // ifndef VERILATOR
     store_delay_flush = 0;
     spec_load      = 0;
     pure_load      = 0;
@@ -2700,7 +2703,9 @@ assign  spc0_tcmp_cntl       = (|tickcmp_intdis_en_del);
 initial
 begin
     throw_pc_w      = 0;
+`ifndef VERILATOR
     delay_spu       = 0;
+`endif // ifndef VERILATOR
     sft_vld0        = 0;
     sft_vld1        = 0;
     sft_vld2        = 0;
@@ -3000,7 +3005,7 @@ initial check_only = 0;
 reg updated_reg_list_reg ;
 
 task  updated_reg_list;
-    input [7:0]  type;
+    input [7:0]  type_i;
     input [2:0]  wind;
     input [1:0]  thread;
     input [5:0]  addr;
@@ -3024,9 +3029,9 @@ task  updated_reg_list;
     ------------------------------------------------------------*/
     begin
         updated_reg_list_reg = 1;
-        if((type > 31) && (type < `REG_WRITE_BACK))begin //special register
+        if((type_i > 31) && (type_i < `REG_WRITE_BACK))begin //special register
             //special care need for the below registers.
-            case(type)
+            case(type_i)
                 `PC, `NPC    : val     = cond[3] ? val[31:0] : val[47:0];
                 `FSR         :
                 begin
@@ -3036,10 +3041,10 @@ task  updated_reg_list;
                 `TPC1, `TPC2, `TPC3, `TPC4, `TPC5, `TPC6,
                 `TNPC1, `TNPC2, `TNPC3, `TNPC4, `TNPC5, `TNPC6 : val = val[47:0];//cond[3] ? val[31:0] : val[47:0];
                 `TBA_SAS : val = val[47:15];
-            endcase // case(type)
+            endcase // case(type_i)
             //window is switched
 
-            if(type == `CWP)begin
+            if(type_i == `CWP)begin
                 pcur = cwp[thread];
                 if(save_happen[thread])begin //local register
                     tmp_keep0 = 0;tmp_keep2 = 0;
@@ -3103,69 +3108,69 @@ task  updated_reg_list;
                     end // for (windex = 24; windex < 32;windex = windex + 1)
                     save_happen[thread] = 0;
                 end // if (save_happen[thread])
-            end // if (type == `CWP)
+            end // if (type_i == `CWP)
             case(thread)
                 2'b00 : begin
-                    updated_reg_list_reg              = thr0_reg_vld[type]       &&  (thr0_reg[type] == val)   ||
-                    (thr0_reg_vld[type] == 0) && !(//type  == `INTR_RECEIVE   ||
-                        (type  == `SOFTINT) && val||
-                        (type  == `GSR) && val);
+                    updated_reg_list_reg              = thr0_reg_vld[type_i]       &&  (thr0_reg[type_i] == val)   ||
+                    (thr0_reg_vld[type_i] == 0) && !(//type_i  == `INTR_RECEIVE   ||
+                        (type_i  == `SOFTINT) && val||
+                        (type_i  == `GSR) && val);
 
-                    if(type == `HINTP_SAS || type  == `INTR_RECEIVE)updated_reg_list_reg = type == 1;
-                    if(type  == `INTR_RECEIVE)begin
-                        back_intr[0] = thr0_reg[type];
+                    if(type_i == `HINTP_SAS || type_i  == `INTR_RECEIVE)updated_reg_list_reg = type_i == 1;
+                    if(type_i  == `INTR_RECEIVE)begin
+                        back_intr[0] = thr0_reg[type_i];
                     end
-                    if(check_only == 0 )begin//&& !((type == `FPRS) && !which_fprs))begin
-                        thr0_reg[type]                = val;
-                        thr0_reg_vld[type]            = 1'b1;
+                    if(check_only == 0 )begin//&& !((type_i == `FPRS) && !which_fprs))begin
+                        thr0_reg[type_i]                = val;
+                        thr0_reg_vld[type_i]            = 1'b1;
                     end
                 end
                 2'b01 : begin
-                    updated_reg_list_reg              = thr1_reg_vld[type]      && (thr1_reg[type] == val) ||
-                    (thr1_reg_vld[type] == 0)&& !(//type == `INTR_RECEIVE ||
-                        (type == `SOFTINT) && val||
-                        (type == `GSR) && val);
-                    if(type == `HINTP_SAS|| type  == `INTR_RECEIVE)updated_reg_list_reg = type == 1;
-                    if(type  == `INTR_RECEIVE)back_intr[1] = thr1_reg[type];
+                    updated_reg_list_reg              = thr1_reg_vld[type_i]      && (thr1_reg[type_i] == val) ||
+                    (thr1_reg_vld[type_i] == 0)&& !(//type_i == `INTR_RECEIVE ||
+                        (type_i == `SOFTINT) && val||
+                        (type_i == `GSR) && val);
+                    if(type_i == `HINTP_SAS|| type_i  == `INTR_RECEIVE)updated_reg_list_reg = type_i == 1;
+                    if(type_i  == `INTR_RECEIVE)back_intr[1] = thr1_reg[type_i];
                     if(check_only == 0 )begin
-                        thr1_reg[type]                = val;
-                        thr1_reg_vld[type]            = 1'b1;
+                        thr1_reg[type_i]                = val;
+                        thr1_reg_vld[type_i]            = 1'b1;
                     end
                 end
                 2'b10 : begin
-                    updated_reg_list_reg              = thr2_reg_vld[type]      && (thr2_reg[type] == val) ||
-                    (thr2_reg_vld[type] == 0)&& !(//type == `INTR_RECEIVE ||
-                        (type == `SOFTINT) && val||
-                        (type == `GSR) && val);
-                    if(type == `HINTP_SAS|| type  == `INTR_RECEIVE)updated_reg_list_reg = type == 1;
-                    if(type  == `INTR_RECEIVE)back_intr[2] = thr2_reg[type];
+                    updated_reg_list_reg              = thr2_reg_vld[type_i]      && (thr2_reg[type_i] == val) ||
+                    (thr2_reg_vld[type_i] == 0)&& !(//type_i == `INTR_RECEIVE ||
+                        (type_i == `SOFTINT) && val||
+                        (type_i == `GSR) && val);
+                    if(type_i == `HINTP_SAS|| type_i  == `INTR_RECEIVE)updated_reg_list_reg = type_i == 1;
+                    if(type_i  == `INTR_RECEIVE)back_intr[2] = thr2_reg[type_i];
                     if(check_only == 0)begin
-                        thr2_reg[type]                = val;
-                        thr2_reg_vld[type]            = 1'b1;
+                        thr2_reg[type_i]                = val;
+                        thr2_reg_vld[type_i]            = 1'b1;
                     end
                 end
                 2'b11 : begin
-                    updated_reg_list_reg              = thr3_reg_vld[type]      && (thr3_reg[type] == val) ||
-                    (thr3_reg_vld[type] == 0)&& !(//type == `INTR_RECEIVE ||
-                        (type == `SOFTINT) && val||
-                        (type == `GSR) && val);
-                    if(type == `HINTP_SAS || type  == `INTR_RECEIVE)updated_reg_list_reg = type == 1;
-                    if(type  == `INTR_RECEIVE)back_intr[3] = thr3_reg[type];
+                    updated_reg_list_reg              = thr3_reg_vld[type_i]      && (thr3_reg[type_i] == val) ||
+                    (thr3_reg_vld[type_i] == 0)&& !(//type_i == `INTR_RECEIVE ||
+                        (type_i == `SOFTINT) && val||
+                        (type_i == `GSR) && val);
+                    if(type_i == `HINTP_SAS || type_i  == `INTR_RECEIVE)updated_reg_list_reg = type_i == 1;
+                    if(type_i  == `INTR_RECEIVE)back_intr[3] = thr3_reg[type_i];
                     if(check_only == 0)begin
-                        thr3_reg[type]                = val;
-                        thr3_reg_vld[type]            = 1'b1;
+                        thr3_reg[type_i]                = val;
+                        thr3_reg_vld[type_i]            = 1'b1;
                     end
                 end
             endcase // case(thread)
-            if(type == `TICK_SAS || type == `CCR || type == `FPRS)updated_reg_list_reg = 1'b1;
-        end // if (type >= 32)
+            if(type_i == `TICK_SAS || type_i == `CCR || type_i == `FPRS)updated_reg_list_reg = 1'b1;
+        end // if (type_i >= 32)
         /*------------------------------------------------------------
         floating point
         ------------------------------------------------------------*/
-        else if(type > `REG_WRITE_BACK)begin
+        else if(type_i > `REG_WRITE_BACK)begin
             case(thread)
                 2'b00 : begin
-                    if(type == `FLOAT_X)begin
+                    if(type_i == `FLOAT_X)begin
                         updated_reg_list_reg  = fp0_vld[addr]            && (fp0_reg[addr]              == val[63:32])||
                         fp0_vld[{addr[5:1], 1'b1}]   && (fp0_reg[{addr[5:1], 1'b1}] == val[31:0]) ||
                         (fp0_vld[addr]              == 0) ||
@@ -3180,10 +3185,10 @@ task  updated_reg_list;
                         fp0_vld[addr] == 0;
                         fp0_reg[addr]     = val[31:0];
                         fp0_vld[addr]     = 1'b1;
-                    end // else: !if(type == `FLOAT_X)
+                    end // else: !if(type_i == `FLOAT_X)
                 end // case: 2'b00
                 2'b01 : begin
-                    if(type == `FLOAT_X)begin
+                    if(type_i == `FLOAT_X)begin
                         updated_reg_list_reg  = fp1_vld[addr]            && (fp1_reg[addr]              == val[63:32]) ||
                         fp1_vld[{addr[5:1], 1'b1}]   && (fp1_reg[{addr[5:1], 1'b1}] == val[31:0]) ||
                         (fp1_vld[addr]              == 0) ||
@@ -3198,10 +3203,10 @@ task  updated_reg_list;
                         fp1_vld[addr] == 0;
                         fp1_reg[addr]     = val[31:0];
                         fp1_vld[addr]     = 1'b1;
-                    end // else: !if(type == `FLOAT_X)
+                    end // else: !if(type_i == `FLOAT_X)
                 end // case: 2'b00
                 2'b10 : begin
-                    if(type == `FLOAT_X)begin
+                    if(type_i == `FLOAT_X)begin
                         updated_reg_list_reg  = fp2_vld[addr]            && (fp2_reg[addr]              == val[63:32]) ||
                         fp2_vld[{addr[5:1], 1'b1}]   && (fp2_reg[{addr[5:1], 1'b1}] == val[31:0]) ||
                         (fp2_vld[addr]              == 0) ||
@@ -3216,10 +3221,10 @@ task  updated_reg_list;
                         fp2_vld[addr] == 0;
                         fp2_reg[addr]     = val[31:0];
                         fp2_vld[addr]     = 1'b1;
-                    end // else: !if(type == `FLOAT_X)
+                    end // else: !if(type_i == `FLOAT_X)
                 end // case: 2'b00
                 2'b11 : begin
-                    if(type == `FLOAT_X)begin
+                    if(type_i == `FLOAT_X)begin
                         updated_reg_list_reg  = fp3_vld[addr]            && (fp3_reg[addr]              == val[63:32])||
                         fp3_vld[{addr[5:1], 1'b1}]   && (fp3_reg[{addr[5:1], 1'b1}] == val[31:0]) ||
                         (fp3_vld[addr]              == 0) ||
@@ -3235,13 +3240,13 @@ task  updated_reg_list;
                         fp3_vld[addr] == 0;
                         fp3_reg[addr]     = val[31:0];
                         fp3_vld[addr]     = 1'b1;
-                    end // else: !if(type == `FLOAT_X)
+                    end // else: !if(type_i == `FLOAT_X)
                 end // case: 2'b00
             endcase // case(thread)
-        end // if (type > 125)
+        end // if (type_i > 125)
         /*------------------------------------------------------------
         save global register.
-        if cond, it contains the muls type instruction result
+        if cond, it contains the muls type_i instruction result
         and only the lowest 32 bit valid.
         ------------------------------------------------------------*/
         else if(addr < 8) begin//global register
@@ -6100,7 +6105,11 @@ always @(posedge clk)begin
         delay_inst_vld[spc0_thread_pc]     <= fcl_fdp_inst_sel_nop_w_l;
         delay_inst_retract[spc0_thread_pc] <= retract_iferr_w;
         delay_inst_vld_w[spc0_thread_pc]   <= inst_vld_w;
+`ifndef VERILATOR
         delay_spu[spc0_thread_pc]          <= spu_ldxa_w[spc0_thread_pc];
+`else // ifndef VERILATOR
+        delay_spu[spc0_thread_pc]          <= 0;
+`endif // ifndef VERILATOR
     end
     prev_pc[spc0_thread_pc]  <= spc0_rtl_pc;
     prev_npc[spc0_thread_pc] <= spc0_rtl_npc;
@@ -6540,7 +6549,6 @@ endfunction // tlb_asi
 // S, D, E, M, W
 // ^
 // |------------------- TLB operation
-reg use_rtl_tte;
 //itlb
 reg [63:0] itte_data0[3:0], itte_pc0[3:0];
 reg [63:0] itte_data1[3:0], itte_pc1[3:0];
@@ -6580,9 +6588,6 @@ reg [3:0]  delay_spu_done;
 
 initial
 begin
-    if($value$plusargs("use_rtl_tte=%h", use_rtl_tte))
-        $display ("Info: simics use rtl tte to translate address = %h", use_rtl_tte);
-    else use_rtl_tte = 0;
     delay_dsfsr = 0;
     delay_sfar  = 0;
     delay_mul_vld = 0;
@@ -6633,53 +6638,6 @@ always @(posedge clk)begin
         dtte_inst[spc0_thread_pc] <= dtlb_cam_vld_w;
     end
 end
-
-//get tte data for simics.
-task get_tte;
-    begin
-        if(use_rtl_tte)begin
-            //itlb site
-            case(ifu_lsu_thrid_d)
-                2'b00 :
-                    if(xlate_en_d[0] && cam_vld_d1 &&
-                            !(tlu_hpstate_priv[0] && tlu_hpstate_enb[0]) &&
-                            itlb_rd_tte_tag_del[`STLB_TAG_V])begin
-                        itte_data0[tte_wr0] = formatted_tte_data_del;
-                        itte_pc0[tte_wr0]   = pc_d;
-                        tte_wr0             = tte_wr0 + 1;//overrun
-                        if(tte_wr0 == tte_rd0)tte_rd0 = tte_rd0 + 1;
-                    end
-                2'b01 :
-                    if(xlate_en_d[1] &&  cam_vld_d1 &&
-                            !(tlu_hpstate_priv[1] && tlu_hpstate_enb[1]) &&
-                            itlb_rd_tte_tag_del[`STLB_TAG_V] )begin
-                        itte_data1[tte_wr1] = formatted_tte_data_del;
-                        itte_pc1[tte_wr1]   = pc_d;
-                        tte_wr1             = tte_wr1 + 1;
-                        if(tte_wr1 == tte_rd1)tte_rd1 = tte_rd1 + 1;
-                    end
-                2'b10 :
-                    if(xlate_en_d[2] &&  cam_vld_d1 &&
-                            !(tlu_hpstate_priv[2] && tlu_hpstate_enb[2]) &&
-                            itlb_rd_tte_tag_del[`STLB_TAG_V])begin
-                        itte_data2[tte_wr2] = formatted_tte_data_del;
-                        itte_pc2[tte_wr2]   = pc_d;
-                        tte_wr2             = tte_wr2 + 1;
-                        if(tte_wr2 == tte_rd2)tte_rd2 = tte_rd2 + 1;
-                    end
-                2'b11 :
-                    if(xlate_en_d[3] &&  cam_vld_d1 &&
-                            !(tlu_hpstate_priv[3] && tlu_hpstate_enb[3]) &&
-                            itlb_rd_tte_tag_del[`STLB_TAG_V])begin
-                        itte_data3[tte_wr3] = formatted_tte_data_del;
-                        itte_pc3[tte_wr3]   = pc_d;
-                        tte_wr3             = tte_wr3 + 1;
-                        if(tte_wr3 == tte_rd3)tte_rd3 = tte_rd3 + 1;
-                    end
-            endcase // case(ifu_lsu_thrid_s)
-        end // if (use_rtl_tte)
-    end
-endtask
 
 //----------------------------------------------------------------------------
 //warm reset process
@@ -6757,7 +6715,9 @@ task process;
         //------------------------------------------------------
 
         for(ind = 0;ind < 4; ind = ind + 1)begin
+`ifndef VERILATOR
             if(delay_spu_done[ind])delay_spu[ind] = 0;
+`endif // ifndef VERILATOR
             delay_spu_done[ind] = 0;
 
         end
@@ -6883,7 +6843,9 @@ task process;
                 stepping[ind]   = 1'b1;
                 once_step[ind]  = 1'b1;
                 delay_done[ind] = 1'b0;
+`ifndef VERILATOR
                 delay_spu[ind]  = 0;
+`endif // ifndef VERILATOR
             end // if (spu_lsu_ldxa_illgl_va_w2 && spu_lsu_ldxa_data_vld_w2 && spu_delay)
             else begin
                 // $display("ttt: spc_trap_cntl");
@@ -6910,7 +6872,9 @@ task process;
                     stepping[ind]   = 1'b1;
                     once_step[ind]  = 1'b1;
                     delay_done[ind] = 1'b0;
+`ifndef VERILATOR
                     delay_spu[ind]  = 0;
+`endif // ifndef VERILATOR
                     is_load[ind]    = 0;
                 end
             end
@@ -7282,7 +7246,6 @@ task process;
 
         //if(stepping[spc0_thread_pc])delay_spu_done[spc0_thread_pc] = 1;
         turn_off_throw;
-        get_tte;
         //if the precise trap is taken, send the stepping to simics.
         if(spc0_flush_happen &&
                 (tlu_exu_early_flush_pipe_w ||

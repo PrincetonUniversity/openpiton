@@ -22,10 +22,13 @@
 
 `include "define.tmp.h"
 `include "ifu.tmp.h"
-`define GOOD_TRAP_COUNTER 32
 
 <%
     from pyhplib import *
+
+    GOOD_TRAP_COUNTER = 32
+
+    print("`define GOOD_TRAP_COUNTER " + str(GOOD_TRAP_COUNTER))
 %>
 
  module pc_cmp(/*AUTOARG*/
@@ -39,7 +42,12 @@ input rst_l;
 // trap register
 <%
     tt1 = r'''
-    reg [31:0]   finish_mask, diag_mask;
+    `ifndef VERILATOR
+    reg [31:0]   finish_mask;
+    `else
+    integer      finish_mask;
+    `endif
+    reg [31:0]   diag_mask;
     reg [31:0]   active_thread;
     reg [31:0]   back_thread, good_delay;
     reg [31:0]   good, good_for;
@@ -56,6 +64,9 @@ input rst_l;
 
 reg [39:0]    good_trap[`GOOD_TRAP_COUNTER-1:0];
 reg [39:0]    bad_trap [`GOOD_TRAP_COUNTER-1:0];
+
+reg [`GOOD_TRAP_COUNTER-1:0] good_trap_exists;
+reg [`GOOD_TRAP_COUNTER-1:0] bad_trap_exists;
 
 reg           dum;
 reg           hit_bad;
@@ -82,9 +93,10 @@ reg           max_cycle;
 integer      good_trap_count;
 integer      bad_trap_count;
 //argment for stub
-reg [7:0]    stub_mask;
+integer    stub_mask;
 reg [7:0]     stub_good;
 reg          good_flag;
+reg         local_diag_done;
 
 //use this for the second reset.
 initial begin
@@ -92,35 +104,18 @@ initial begin
     good_delay  = 0;
     good_for    = 0;
     stub_good   = 0;
+    local_diag_done = 0;
 
+    good_trap_exists = {`GOOD_TRAP_COUNTER{1'b0}};
+    bad_trap_exists = {`GOOD_TRAP_COUNTER{1'b0}};
+
+    good_flag = 0;
     if($test$plusargs("stop_2nd_good"))good_flag= 1;
-    else good_flag = 0;
 
     max_cycle = 1;
     if($test$plusargs("thread_timeout_off"))max_cycle = 0;
 end
 //-----------------------------------------------------------
-// check bad trap
-task check_bad_trap;
-    input [39:0] pc;
-    input [2:0] i;
-    input [9:0] thread;
-    integer l, j;
-
-    begin
-        if(active_thread[thread])begin
-            for(l = 0; l < bad_trap_count; l = l + 1)begin
-                if(bad_trap[l] == pc)begin
-                    hit_bad     = 1'b1;
-                    good[l]     = 1;
-                    `TOP_MOD.diag_done = 1;
-                    $display("%0d: Info - > Hit Bad trap. spc(%0d) thread(%0d)", $time, i, l % 4);
-                    `MONITOR_PATH.fail("HIT BAD TRAP");
-                end
-            end
-        end
-    end // if (active_thread[thread])
-endtask // endtask
 
 `ifdef INCLUDE_SAS_TASKS
 task get_thread_status;
@@ -283,44 +278,38 @@ task trap_extract;
         finish_mask    = 1;
         diag_mask      = 0;
         stub_mask      = 0;
-        if($value$plusargs("finish_mask=%h", finish_mask))$display ("%t: finish_mask %h", $time, finish_mask);
-        if($value$plusargs("good_trap=%s", pc_str))       $display ("%t: good_trap list %s", $time, pc_str);
+        if($value$plusargs("finish_mask=%h", finish_mask))$display ("%t: finish_mask %h", $time, finish_mask);<%
+        for i in range(GOOD_TRAP_COUNTER):
+            good_string = """
+                    if($value$plusargs("good_trap{0}=%h", tmp_val)) begin
+                        good_trap[{0}] = tmp_val;
+                        good_trap_exists[{0}] = 1'b1;
+                        $display ("%t: good_trap %h", $time, good_trap[{0}]);
+                    end"""
+            print(good_string.format(i))
+%>
         if($value$plusargs("stub_mask=%h", stub_mask))    $display ("%t: stub_mask  %h", $time, stub_mask);
 
+`ifndef VERILATOR
         for(i = 0; i < `NUM_TILES;i = i + 1)if(finish_mask[i] === 1'bx)finish_mask[i] = 1'b0;
         for(i = 0; i < 8;i = i + 1) if(stub_mask[i] === 1'bx)stub_mask[i] = 1'b0;
+`endif
 
-        good_trap_count = 0;
-        while ($parse (pc_str, "%h:", tmp_val))
-        begin
-            good_trap[good_trap_count] = tmp_val;
-            $display ("%t: good_trap %h", $time, good_trap[good_trap_count]);
-            good_trap_count = good_trap_count + 1;
-            if (good_trap_count > `GOOD_TRAP_COUNTER)
-            begin
-                $display ("%t: good_trap_count more than max-count %d.", $time, `GOOD_TRAP_COUNTER);
-                `MONITOR_PATH.fail("good_trap_count more than max-count");
-            end
-        end
-        if($value$plusargs("bad_trap=%s", pc_str))$display ("%t: bad_trap list %s", $time, pc_str);
-        bad_trap_count = 0;
-        while ($parse (pc_str, "%h:", tmp_val))
-        begin
-            bad_trap[bad_trap_count] = tmp_val;
-            $display ("%t: bad_trap %h", $time, bad_trap[bad_trap_count]);
-            bad_trap_count = bad_trap_count + 1;
-            if (bad_trap_count > `GOOD_TRAP_COUNTER)
-            begin
-                $display ("%t: bad_trap_count more than max-count %d.", $time,`GOOD_TRAP_COUNTER);
-                `MONITOR_PATH.fail("bad_trap_count more than max-count.");
-            end
-        end // while ($parse (pc_str, "%h:", tmp_val))
+<%
+        for i in range(GOOD_TRAP_COUNTER):
+            bad_string = """
+                    if($value$plusargs("bad_trap{0}=%h", tmp_val)) begin
+                        bad_trap[{0}] = tmp_val;
+                        bad_trap_exists[{0}] = 1'b1;
+                        $display ("%t: bad_trap %h", $time, bad_trap[{0}]);
+                    end"""
+            print(bad_string.format(i))
+%>
         trap_count = good_trap_count > bad_trap_count ? good_trap_count :  bad_trap_count;
 
     end
 endtask // trap_extract
 // deceide pass or fail
-reg [63:0]    rpc;
 integer       ind;
 //post-silicon request
 reg [63:0]    last_hit [31:0];
@@ -328,90 +317,10 @@ reg [63:0]    last_hit [31:0];
 reg [31:0]    hitted;
 initial hitted = 0;
 
-task check_done;
-    input   [`NUM_TILES:0] cpu;
-    integer       j, l;
-    reg     [63:0]pc;
-    reg     [9:0] i; // Tri
-    // reg     [7:0] tileid;
-
-    begin
-        for(i = 0; i < `NUM_TILES; i = i + 1)
-        begin
-            if(cpu[i])
-            begin
-                // tileid = i[]
-                case(i)
-                    <%
-                        t = r'''
-                        0 :
-                        begin j = {i, spc0_thread_id};pc = spc0_phy_pc_w;rpc = spc0_rtl_pc;end'''
-                        tt = Replicate(t);
-                        print tt;
-                    %>
-                endcase
-                timeout[j] = 0;
-                check_bad_trap(pc, i, j);
-                if(active_thread[j])
-                begin
-                    for(l = 0; l < good_trap_count; l = l + 1)
-                    begin
-                        if(good_trap[l] == pc[39:0])
-                        begin
-                            if(good[j] == 0)
-                                $display("Info: spc(%0x) thread(%0x) Hit Good trap", j / 4, j % 4);
-
-                            //post-silicon debug
-                            if(finish_mask[j])
-                            begin
-                                if(good_flag)
-                                begin
-                                    if(!hitted[j])
-                                    begin
-                                        last_hit[j] = pc[39:0];
-                                        hitted[j]   = 1;
-                                    end
-                                    else if(last_hit[j] == pc[39:0])
-                                        good[j] = 1'b1;
-                                end
-                                else
-                                begin
-                                    good[j] = 1'b1;
-                                end
-                            end
-                        end
-
-                        if((good == finish_mask) &&
-                           (hit_bad == 0)        &&
-                           (stub_mask == stub_good))
-                        begin
-                            `TOP_MOD.diag_done = 1;
-                            @(posedge clk);
-                            $display("%0d: Simulation -> PASS (HIT GOOD TRAP)", $time);
-                            $finish;
-                        end
-                    end // for (l = 0; l < good_trap_count; l = l + 1)
-                end // if (active_thread[j])
-            end // if (cpu[i])
-        end
-    end
-endtask
-
-// get done signal;
-task gen_done;
-    begin
-        <%
-            t = r'''done[0]   = spc0_inst_done;//sparc 0'''
-            tt = Replicate(t);
-            print tt;
-        %>
-    end
-endtask // gen_done
-
 reg first_rst;
 initial begin
-    if($value$plusargs("TIMEOUT=%d", time_tmp))max = time_tmp;
-    else max = 1000;
+    max = 1000;
+    if($value$plusargs("TIMEOUT=%d", max)) $display("rtl_timeout = %d", max);
     #20//need to wait for socket initializing.
      trap_extract;
     done    = 0;
@@ -480,7 +389,9 @@ task check_stub;
         end
         if ((good == finish_mask) && (stub_mask == stub_good)) begin
             `TOP_MOD.diag_done = 1;
+            `ifndef VERILATOR
             @(posedge clk);
+            `endif
             $display("Info->Simulation terminated by stub.");
             $display("%0d: Simulation -> PASS (HIT GOOD TRAP)", $time);
             $finish;
@@ -488,14 +399,109 @@ task check_stub;
     end
 endtask // check_stub
 
+task set_diag_done;
+    input local_diag_done;
+
+    begin
+        if (local_diag_done) begin
+            `TOP_MOD.diag_done = 1;
+        end
+    end
+endtask
+
+<%
+for i in range(NUM_TILES):
+    outputStr = """
+    wire[31:0] long_cpuid""" + str(i) + """;
+    assign long_cpuid""" + str(i) + """ = {30'd""" + str(i) + """, spc""" + str(i) + """_thread_id};"""
+    print(outputStr)
+%>
+
+always @* begin
+<%
+    t = r'''done[0]   = spc0_inst_done;//sparc 0'''
+    tt = Replicate(t);
+    print tt;
+%>
+end
 
 //main routine of pc cmp to finish the simulation.
 always @(posedge clk)begin
     if(rst_l)begin
         if(`TOP_MOD.stub_done)check_stub;
-        gen_done;
 
-        if(|done[`NUM_TILES-1:0])check_done(done);
+        if(|done[`NUM_TILES-1:0]) begin
+<%
+        for i in range(NUM_TILES):
+            j = "long_cpuid" + str(i)
+            pc = "spc" + str(i) + "_phy_pc_w"
+            outputStr = """
+                if (done[{2}]) begin
+                    timeout[{0}] = 0;
+                    //check_bad_trap({1}, {2}, {0});
+                    if(active_thread[{0}])begin"""
+            print(outputStr.format(j, pc, i))
+            for l in range(GOOD_TRAP_COUNTER):
+                check_bad_string = """
+                        if(bad_trap_exists[{0}] & (bad_trap[{0}] == {2}))begin
+                            hit_bad     = 1'b1;
+                            good[{0}]     = 1;
+                            local_diag_done = 1;
+                            $display("%0d: Info - > Hit Bad trap. spc(%0d) thread(%0d)", $time, {1}, {0} % 4);
+                            `MONITOR_PATH.fail("HIT BAD TRAP");
+                        end"""
+                print(check_bad_string.format(l, i, pc))
+            outputStr = """
+                    end
+                if (active_thread[{0}]) begin
+            """
+            print(outputStr.format(j, pc, i))
+
+            for l in range(GOOD_TRAP_COUNTER):
+                outputStr = """if(good_trap_exists[{0}] & (good_trap[{0}] == {2}[39:0]))
+                        begin
+                            if(good[{1}] == 0)
+                                $display("Info: spc(%0x) thread(%0x) Hit Good trap", {1} / 4, {1} % 4);
+
+                            //post-silicon debug
+                            if(finish_mask[{1}])
+                            begin
+                                if(good_flag)
+                                begin
+                                    if(!hitted[{1}])
+                                    begin
+                                        last_hit[{1}] = {2}[39:0];
+                                        hitted[{1}]   = 1;
+                                    end
+                                    else if(last_hit[{1}] == {2}[39:0])
+                                        good[{1}] = 1'b1;
+                                end
+                                else
+                                begin
+                                    good[{1}] = 1'b1;
+                                end
+                            end
+                        end"""
+                print(outputStr.format(l, j, pc))
+
+            outputStr = """
+                        if((good == finish_mask) &&
+                           (hit_bad == 0)        &&
+                           (stub_mask == stub_good))
+                        begin
+                            local_diag_done = 1;
+                            `ifndef VERILATOR
+                            @(posedge clk);
+                            `endif
+                            $display("%0d: Simulation -> PASS (HIT GOOD TRAP)", $time);
+                            $finish;
+                        end
+                    end // if (active_thread[{0}])
+                end // if (done[{2}])"""
+            print(outputStr.format(j, pc, i))
+        %>
+        
+        end
 `ifdef INCLUDE_SAS_TASKS
         get_thread_status;
 `endif
@@ -506,6 +512,8 @@ always @(posedge clk)begin
                 ii = i * 4
                 print 'if(active_thread[%d:%d])check_time(%d, %d);' % (jj-1, ii, ii, jj);
         %>
+
+        set_diag_done(local_diag_done);
     end // if (rst_l)
 end // always @ (posedge clk)
 endmodule
