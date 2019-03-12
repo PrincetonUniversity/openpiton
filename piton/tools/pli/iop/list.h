@@ -52,5 +52,7 @@ public:
   void set_next();
   void destroy();
 };
+#ifndef VERILATOR
 #include "list.cc"
+#endif
 #endif

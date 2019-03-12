@@ -116,7 +116,11 @@ module softint_mon(/*AUTOARG*/
 
   //=========================
   // SOFTINT0 register update
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or negedge rtl_sftint_en_l_g[0] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -134,7 +138,11 @@ module softint_mon(/*AUTOARG*/
       local_softint0[14:1] <= local_softint0[14:1];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b0_en[0] or posedge rtl_tickcmp_int[0] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -153,7 +161,11 @@ module softint_mon(/*AUTOARG*/
       local_softint0[0] <= local_softint0[0];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b16_en[0] or posedge rtl_stickcmp_int[0] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -172,7 +184,11 @@ module softint_mon(/*AUTOARG*/
       local_softint0[16] <= local_softint0[16];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b15_en[0] or posedge rtl_pib_picl_wrap[0] or posedge rtl_pib_pich_wrap[0] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -203,13 +219,19 @@ module softint_mon(/*AUTOARG*/
         $display("*WARNING*: %0d: softint_mon: Thread0 SOFTINT register MISMATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint0[16:0], local_softint0[16:0]);
       end
     end
+`ifndef VERILATOR
     else begin
       $display("*Info*: %0d: softint_mon: Thread0 SOFTINT register MATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint0[16:0], local_softint0[16:0]);
     end
+`endif // ifndef VERILATOR
   end
   //=========================
   // SOFTINT1 register update
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or negedge rtl_sftint_en_l_g[1] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -227,7 +249,11 @@ module softint_mon(/*AUTOARG*/
       local_softint1[14:1] <= local_softint1[14:1];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b0_en[1] or posedge rtl_tickcmp_int[1] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -246,7 +272,11 @@ module softint_mon(/*AUTOARG*/
       local_softint1[0] <= local_softint1[0];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b16_en[1] or posedge rtl_stickcmp_int[1] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -265,7 +295,11 @@ module softint_mon(/*AUTOARG*/
       local_softint1[16] <= local_softint1[16];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b15_en[1] or posedge rtl_pib_picl_wrap[1] or posedge rtl_pib_pich_wrap[1] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -296,13 +330,19 @@ module softint_mon(/*AUTOARG*/
         $display("*WARNING*: %0d: softint_mon: Thread1 SOFTINT register MISMATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint1[16:0], local_softint1[16:0]);
       end
     end
+`ifndef VERILATOR
     else begin
       $display("*Info*: %0d: softint_mon: Thread1 SOFTINT register MATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint1[16:0], local_softint1[16:0]);
     end
+`endif // ifndef VERILATOR
   end
   //=========================
   // SOFTINT2 register update
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or negedge rtl_sftint_en_l_g[2] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -320,7 +360,11 @@ module softint_mon(/*AUTOARG*/
       local_softint2[14:1] <= local_softint2[14:1];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b0_en[2] or posedge rtl_tickcmp_int[2] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -339,7 +383,11 @@ module softint_mon(/*AUTOARG*/
       local_softint2[0] <= local_softint2[0];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b16_en[2] or posedge rtl_stickcmp_int[2] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -358,7 +406,11 @@ module softint_mon(/*AUTOARG*/
       local_softint2[16] <= local_softint2[16];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b15_en[2] or posedge rtl_pib_picl_wrap[2] or posedge rtl_pib_pich_wrap[2] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -389,13 +441,19 @@ module softint_mon(/*AUTOARG*/
         $display("*WARNING*: %0d: softint_mon: Thread2 SOFTINT register MISMATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint2[16:0], local_softint2[16:0]);
       end
     end
+`ifndef VERILATOR
     else begin
       $display("*Info*: %0d: softint_mon: Thread2 SOFTINT register MATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint2[16:0], local_softint2[16:0]);
     end
+`endif // ifndef VERILATOR
   end
   //=========================
   // SOFTINT3 register update
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or negedge rtl_sftint_en_l_g[3] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -413,7 +471,11 @@ module softint_mon(/*AUTOARG*/
       local_softint3[14:1] <= local_softint3[14:1];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b0_en[3] or posedge rtl_tickcmp_int[3] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -432,7 +494,11 @@ module softint_mon(/*AUTOARG*/
       local_softint3[0] <= local_softint3[0];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b16_en[3] or posedge rtl_stickcmp_int[3] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -451,7 +517,11 @@ module softint_mon(/*AUTOARG*/
       local_softint3[16] <= local_softint3[16];
     end
   end // always
+`ifndef VERILATOR
   always @(posedge rtl_clk or rtl_reset) begin
+`else
+  always @(posedge rtl_clk) begin
+`endif
 /*
   always @(rtl_reset or posedge rtl_sftint_b15_en[3] or posedge rtl_pib_picl_wrap[3] or posedge rtl_pib_pich_wrap[3] or negedge rtl_wr_sftint_l_g or negedge rtl_set_sftint_l_g or negedge rtl_clr_sftint_l_g) begin
 #1
@@ -482,9 +552,11 @@ module softint_mon(/*AUTOARG*/
         $display("*WARNING*: %0d: softint_mon: Thread3 SOFTINT register MISMATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint3[16:0], local_softint3[16:0]);
       end
     end
+`ifndef VERILATOR
     else begin
       $display("*Info*: %0d: softint_mon: Thread3 SOFTINT register MATCH: RTL(17'h%x) Vs Expected(17'h%x)", $time, rtl_softint3[16:0], local_softint3[16:0]);
     end
+`endif // ifndef VERILATOR
   end
 
 endmodule

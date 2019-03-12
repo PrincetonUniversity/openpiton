@@ -35,7 +35,25 @@
 %>
 
 `timescale 1ps/1ps
-module cmp_top ();
+module cmp_top (
+`ifdef VERILATOR
+input reg                             core_ref_clk,
+
+input reg                             sys_rst_n,
+
+input reg                             pll_rst_n,
+
+input reg                             clk_en,
+
+input reg                             pll_bypass,
+input reg [4:0]                       pll_rangea,
+output wire                            pll_lock,
+input reg [1:0]                       clk_mux_sel,
+input reg                             async_mux,
+input                                 diag_done,
+input                                 ok_iob
+`endif
+);
 
 //////////////////////
 // Type Declarations
@@ -88,10 +106,12 @@ reg [3:0]                       stub_pass;
 // Simulated Clocks
 ////////////////////
 
+`ifndef VERILATOR
 `ifndef USE_FAKE_PLL_AND_CLKMUX
 always #5000 core_ref_clk = ~core_ref_clk;                      // 100MHz
 `else
 always #500 core_ref_clk = ~core_ref_clk;                       // 1000MHz
+`endif
 `endif
 
 `ifndef SYNC_MUX
@@ -100,6 +120,7 @@ always #1429 io_clk = ~io_clk;                                  // 350MHz
 always @ * io_clk = core_ref_clk;
 `endif
 
+`ifndef VERILATOR
 always #50000 jtag_clk = ~jtag_clk;                             // 10MHz
 
 always #2500 chipset_clk_osc_p = ~chipset_clk_osc_p;            // 200MHz
@@ -118,11 +139,13 @@ always @ * passthru_chipset_clk_n = ~passthru_chipset_clk_p;
 always #1000 mem_clk = ~mem_clk;                                // 500MHz
 
 always #25000 spi_sys_clk = ~spi_sys_clk;                       // 20MHz
+`endif
 
 ////////////////////////////////////////////////////////
 // SIMULATED BOOT SEQUENCE
 ////////////////////////////////////////////////////////
 
+`ifndef VERILATOR
 initial
 begin
     // These are not referenced elsewhere in this module,
@@ -223,6 +246,13 @@ begin
     cmp_top.system.chipset.chipset_impl.ciop_fake_iob.ok_iob = 1'b1;
 `endif // endif PITONSYS_IOCTRL
 end
+`endif
+
+`ifdef VERILATOR
+always @(posedge ok_iob) begin
+    cmp_top.system.chipset.chipset_impl.ciop_fake_iob.ok_iob = 1'b1;
+end
+`endif
 
 ////////////////////////////////////////////////////////
 // SYNTHESIZABLE SYSTEM
@@ -261,7 +291,11 @@ system system(
     .chipset_clk_osc(chipset_clk_osc),
 `endif // endif PITON_CHIPSET_DIFF_CLK
 `else // ifndef PITON_CHIPSET_CLKS_GEN
+`ifndef VERILATOR
     .chipset_clk(chipset_clk),
+`else
+    .chipset_clk(core_ref_clk),
+`endif
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     .mc_clk(mem_clk),
@@ -434,8 +468,10 @@ system system(
             print tt
     %>
 
+`ifndef VERILATOR
     // T1's TSO monitor, stripped of all L2 references
     tso_mon tso_mon(`CHIP_INT_CLK, `SPARC_CORE0.reset_l);
+`endif
 
     // L15 MONITORS
     cmp_l15_messages_mon l15_messages_mon(
@@ -464,9 +500,11 @@ system system(
         .clk (jtag_clk)
         );
 
+`ifndef VERILATOR
     iob_mon iob_mon(
         .clk (chipset_clk)
     );
+`endif
     // sas, more debug info
 
     // turn on sas interface after a delay

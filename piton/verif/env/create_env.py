@@ -353,6 +353,8 @@ def writeConfigFile (file, name) :
 
     file.write ("<" + name + ">\n")
     file.write ("    -model=" + name + "\n")
+    file.write ("    // TODO: Specify top level module(s) to be simulated\n")
+    file.write ("    -toplevel=" + name + "_top\n")
     file.write ("    -novera_build\n")
     file.write ("    -novera_run\n")
     file.write ("    // TODO: Change the flist file for the DUT which specifies all\n")

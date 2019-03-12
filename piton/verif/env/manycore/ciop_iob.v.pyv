@@ -49,6 +49,7 @@ tt = ReplicatePattern(text, pattern)
 print tt
 %>
 );
+`ifndef VERILATOR
 //temp. memory.
 reg [`IOB_CPU_WIDTH-1:0] 	    fake_iob_out_req;
 reg [`CPX_WIDTH-1:0] 	    fake_iob_out_data;
@@ -321,4 +322,75 @@ print tt
         end
     end // if (ok_iob)
 end // always @ (posedge cmp_gclk)
+
+`else
+// Code from ciop_iob for FPGA
+reg                     ok_iob;
+
+initial
+begin
+    ok_iob    = 0;
+end
+
+// making wake up packet
+parameter FLIT_TO_SEND = 2;
+
+wire [63:0]         iob_buffer_flit1;
+wire [63:0]         iob_buffer_flit2;
+reg                 iob_buffer_val;
+reg  [1:0]          flit_cnt;
+
+assign iob_buffer_flit1     = 64'h0000_0000_0048_4000;
+assign iob_buffer_flit2     = 64'h0000_0000_0001_0001;
+
+reg                 ok_iob_sent;
+
+always @(posedge clk) begin
+    if (~rst_n) begin
+        flit_cnt <= 2'b0;
+    end
+    else if (~ok_iob_sent) begin
+        flit_cnt <= noc_out_val & noc_out_rdy ? flit_cnt + 1 : flit_cnt;
+    end 
+    else begin
+        flit_cnt <= flit_cnt;
+    end
+end
+
+always @(posedge clk)
+    iob_buffer_val <= ok_iob;
+
+always @* begin
+    noc_out_val = iob_buffer_val & (((flit_cnt < FLIT_TO_SEND) && !ok_iob_sent));
+end
+
+always @(*) begin
+    if (!ok_iob_sent) begin
+        if(flit_cnt == 2'b0) begin
+            noc_out_data = iob_buffer_flit1;
+        end else if (flit_cnt == 2'b1) begin
+            noc_out_data = iob_buffer_flit2;
+        end 
+        else begin
+            noc_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+        end
+    end 
+    else begin
+        noc_out_data =  {`NOC_DATA_WIDTH{1'b0}};
+    end
+end
+
+// Note when ok_iob finishes sending both packets
+// ok_iob_sent could technically be a wire fed by flit_cnt?
+always @(posedge clk) begin
+    if (~rst_n) begin
+        ok_iob_sent <= 1'b0;
+    end
+    else if (flit_cnt == FLIT_TO_SEND) begin
+       ok_iob_sent <= 1'b1;
+    end
+end
+
+`endif
+
 endmodule

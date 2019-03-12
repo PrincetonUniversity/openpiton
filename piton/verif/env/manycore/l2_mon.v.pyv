@@ -246,7 +246,9 @@ begin
         if ( ^`L2_TOP0.pipe1.buf_out.data_out === 1'bx)
         begin
             $display("%d : Simulation -> FAIL(TILE0 noc2 sends X data 0x%x)", $time,  `L2_TOP0.pipe1.buf_out.data_out);
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("l2_mon: TILE0 noc2 sends X data");
         end
     end
@@ -271,9 +273,9 @@ begin
         $display("Msg length: %b", `L2_TOP0.pipe2.ctrl.msg_length_S1);
         $display("P2S1 addr: 0x%h", `L2_TOP0.pipe2.dpath.addr_S1);
         $display("Mshr_rd_index: %b", `L2_TOP0.pipe2.dpath.mshr_rd_index_S1);
-        $display("Tag_addr: 0x%h", `L2_TOP0.pipe2.dpath.tag_addr_S1,);
-        $display("Tag_data_in: 0x%h", `L2_TOP0.pipe2.dpath.tag_data_in_S1,);
-        $display("Tag_data_mask_in: 0x%h", `L2_TOP0.pipe2.dpath.tag_data_mask_in_S1,);
+        $display("Tag_addr: 0x%h", `L2_TOP0.pipe2.dpath.tag_addr_S1);
+        $display("Tag_data_in: 0x%h", `L2_TOP0.pipe2.dpath.tag_data_in_S1);
+        $display("Tag_data_mask_in: 0x%h", `L2_TOP0.pipe2.dpath.tag_data_mask_in_S1);
         $display("State_rd_addr: 0x%h",`L2_TOP0.pipe2.dpath.state_rd_addr_S1);
         $display("src x: %b, src y: %b", `L2_TOP0.pipe2.dpath.src_x_S1, `L2_TOP0.pipe2.dpath.src_y_S1);
 
@@ -349,25 +351,33 @@ begin
             if((!`L2_TOP0.pipe1.dpath.state_way_S2[0][`L2_STATE_VD]) && `L2_TOP0.pipe1.dpath.l2_lru_bits_S2[0])
             begin
                 $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 lru bit 0 is valid but the line itself is invalid.)", $time);
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 lru bit 0 is valid but the line itself is invalid ");
             end
             if((!`L2_TOP0.pipe1.dpath.state_way_S2[1][`L2_STATE_VD]) && `L2_TOP0.pipe1.dpath.l2_lru_bits_S2[1])
             begin
                 $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 lru bit 1 is valid but the line itself is invalid.)", $time);
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 lru bit 1 is valid but the line itself is invalid ");
             end
             if((!`L2_TOP0.pipe1.dpath.state_way_S2[2][`L2_STATE_VD]) && `L2_TOP0.pipe1.dpath.l2_lru_bits_S2[2])
             begin
                 $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 lru bit 2 is valid but the line itself is invalid.)", $time);
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 lru bit 2 is valid but the line itself is invalid ");
             end
             if((!`L2_TOP0.pipe1.dpath.state_way_S2[3][`L2_STATE_VD]) && `L2_TOP0.pipe1.dpath.l2_lru_bits_S2[3])
             begin
                 $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 lru bit 3 is valid but the line itself is invalid.)", $time);
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 lru bit 3 is valid but the line itself is invalid ");
             end
 
@@ -383,7 +393,9 @@ begin
             && `L2_TOP0.pipe1.dpath.state_way_S2[`L2_TOP0.pipe1.dpath.l2_evict_way_sel_S2][`L2_STATE_VD])
             begin
                 $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 evicts a non-empty line %d with other empty line left.)", $time,  `L2_TOP0.pipe1.dpath.l2_evict_way_sel_S2);
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 evicts a wrong line ");
             end
         end
@@ -397,7 +409,9 @@ begin
         if ( ^`L2_TOP0.pipe2.buf_in.data_in === 1'bx)
         begin
             $display("%d : Simulation -> FAIL(TILE0 noc3 receives X data 0x%x)", $time,  `L2_TOP0.pipe2.buf_in.data_in);
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("l2_mon: TILE0 noc3 receives X data");
         end
     end
@@ -420,7 +434,9 @@ begin
                 != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
+                    `ifndef VERILATOR
                     repeat(5)@(posedge clk);
+                    `endif
                     `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 receive illegal address");
                 end
             end
@@ -433,7 +449,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 receive illegal address");
                     end
                 end
@@ -443,7 +461,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 receive illegal address");
                     end
                 end
@@ -453,7 +473,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 receive illegal address");
                     end
                 end
@@ -463,7 +485,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe1 receive illegal address");
                     end
                 end
@@ -487,7 +511,9 @@ begin
                 != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
+                    `ifndef VERILATOR
                     repeat(5)@(posedge clk);
+                    `endif
                     `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe2 receive illegal address");
                 end
             end
@@ -500,7 +526,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe2 receive illegal address");
                     end
                 end
@@ -510,7 +538,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe2 receive illegal address");
                     end
                 end
@@ -520,7 +550,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe2 receive illegal address");
                     end
                 end
@@ -530,7 +562,9 @@ begin
                     != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
+                        `ifndef VERILATOR
                         repeat(5)@(posedge clk);
+                        `endif
                         `MONITOR_PATH.fail("l2_mon: TILE0 L2 pipe2 receive illegal address");
                     end
                 end
@@ -552,7 +586,9 @@ begin
             if(`L2_TOP0.pipe2.dpath.l2_way_sel_S2 === 2'bxx)
             begin
                 $display("%d : Simulation -> FAIL(%0s)", $time, "Cannot find the pre-allocated entry in L2");
+                `ifndef VERILATOR
                 repeat(5)@(posedge clk);
+                `endif
                 `MONITOR_PATH.fail("l2_mon: Cannot find the pre-allocated entry in L2");
             end
         end
@@ -565,7 +601,9 @@ begin
         && (`L2_TOP0.pipe2.ctrl.msg_length_S1))
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "inv_fwdack contain data flits");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("l2_mon: inv_fwdack contain data flits");
 
         end
@@ -581,7 +619,9 @@ begin
              |`L2_TOP0.pipe2.dpath.smc_data_in_S2[63]  | `L2_TOP0.pipe2.dpath.smc_data_in_S2[31])))
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "l2_mon: SMC refills invalid data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("l2_mon: SMC refills invalid data");
         end
     end

@@ -114,7 +114,9 @@ begin
         if (chip_fpga_noc1_buffer[chip_fpga_buffer1_rd_ptr] != `TOP_MOD.offfpga_fpga_noc1_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo chip->fpga noc1 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -141,7 +143,9 @@ begin
         if (chip_fpga_noc2_buffer[chip_fpga_buffer2_rd_ptr] != `TOP_MOD.offfpga_fpga_noc2_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo chip->fpga noc2 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -168,7 +172,9 @@ begin
         if (chip_fpga_noc3_buffer[chip_fpga_buffer3_rd_ptr] != `TOP_MOD.offfpga_fpga_noc3_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo chip->fpga noc3 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -196,7 +202,9 @@ begin
         if (fpga_chip_noc1_buffer[fpga_chip_buffer1_rd_ptr] != `TOP_MOD.offchip_processor_noc1_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo fpga->chip noc1 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -223,7 +231,9 @@ begin
         if (fpga_chip_noc2_buffer[fpga_chip_buffer2_rd_ptr] != `TOP_MOD.offchip_processor_noc2_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo fpga->chip noc2 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -250,7 +260,9 @@ begin
         if (fpga_chip_noc3_buffer[fpga_chip_buffer3_rd_ptr] != `TOP_MOD.offchip_processor_noc3_data)
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo fpga->chip noc3 output wrong data");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
             `MONITOR_PATH.fail("async_fifo_mon: Async fifo output wrong data");
             
         end 
@@ -270,37 +282,49 @@ begin
     if (chip_fpga_buffer1_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor chip->fpga buffer1 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: chip->fpga buffer1 overflow");
     end
     if (chip_fpga_buffer2_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor chip->fpga buffer2 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: chip->fpga buffer2 overflow");
     end
     if (chip_fpga_buffer3_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor chip->fpga buffer3 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: chip->fpga buffer3 overflow");
     end
     if (fpga_chip_buffer1_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor fpga->chip buffer1 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: fpga->chip buffer1 overflow");
     end
     if (fpga_chip_buffer2_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor fpga->chip buffer2 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: fpga->chip buffer2 overflow");
     end
     if (fpga_chip_buffer3_counter > 256)
     begin
         $display("%d : Simulation -> FAIL(%0s)", $time, "Async fifo monitor fpga->chip buffer3 overflow");
+        `ifndef VERILATOR
         repeat(5)@(posedge clk);
+        `endif
         `MONITOR_PATH.fail("async_fifo_mon: fpga->chip buffer3 overflow");
     end
 

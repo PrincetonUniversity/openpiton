@@ -706,14 +706,14 @@ def main():
         config = ' -x_tiles=' + str(options.x_tiles)                         + \
                  ' -y_tiles=' + str(options.y_tiles)                         + \
                  ' -network_config=' + str(options.network_config)           + \
-                 ' -config_l1i_size=' + str(options.network_config)          + \
-                 ' -config_l1d_size=' + str(options.network_config)          + \
-                 ' -config_l15_size=' + str(options.network_config)          + \
-                 ' -config_l2_size='  + str(options.network_config)          + \
-                 ' -config_l1i_associativity=' + str(options.network_config) + \
-                 ' -config_l1d_associativity=' + str(options.network_config) + \
-                 ' -config_l15_associativity=' + str(options.network_config) + \
-                 ' -config_l2_associativity='  + str(options.network_config)
+                 ' -config_l1i_size=' + str(options.config_l1i_size)          + \
+                 ' -config_l1d_size=' + str(options.config_l1d_size)          + \
+                 ' -config_l15_size=' + str(options.config_l1i_size)          + \
+                 ' -config_l2_size='  + str(options.config_l2_size)          + \
+                 ' -config_l1i_associativity=' + str(options.config_l1i_associativity) + \
+                 ' -config_l1d_associativity=' + str(options.config_l1d_associativity) + \
+                 ' -config_l15_associativity=' + str(options.config_l15_associativity) + \
+                 ' -config_l2_associativity='  + str(options.config_l2_associativity)
 
         if options.core == 'pico':
             config + ' -pico'

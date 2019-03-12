@@ -968,7 +968,9 @@ begin
 	  begin
 		spc1_fpicko =  1'b1;
 		$display("%0d ERROR: lsu_mon1 final picker imiss not picked", $time);
+        `ifndef VERILATOR
 		repeat(100) @(posedge clk);
+        `endif
 		$finish;
 	  end
        endcase

@@ -28,8 +28,10 @@
 #define KeyType unsigned long long
 #define ATOM_DATA_SIZE  64 //hold 64 bytes
 #include <stdio.h>
+#ifndef VERILATOR
 #include "veriuser.h"
 #include "acc_user.h"
+#endif // ifndef VERILATOR
 //declare B-tree atom
 typedef struct b_tree_atom{
   unsigned long long key;
