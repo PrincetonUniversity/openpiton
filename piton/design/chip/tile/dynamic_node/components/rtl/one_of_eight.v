@@ -25,57 +25,26 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-//Function: This is the Datapath for the dynamic output
-//
-//Instantiates: 
-//
-//State: NONE
-//
-//Note:
-//
-`include "network_define.v"
-
-module dynamic_output_datapath(data_out, valid_out_temp, data_a_in, data_b_in, data_c_in, data_d_in, data_x_in, valid_a_in, valid_b_in, valid_c_in, valid_d_in, valid_x_in, current_route_in);
-
-// begin port declarations
-
-output [`DATA_WIDTH-1:0] data_out;
-output valid_out_temp;
-
-input [`DATA_WIDTH-1:0] data_a_in;
-input [`DATA_WIDTH-1:0] data_b_in;
-input [`DATA_WIDTH-1:0] data_c_in;
-input [`DATA_WIDTH-1:0] data_d_in;
-input [`DATA_WIDTH-1:0] data_x_in;
-input valid_a_in;
-input valid_b_in;
-input valid_c_in;
-input valid_d_in;
-input valid_x_in;
-input [2:0] current_route_in;
-
-// end port declarations
-
-// `define ROUTE_A 3'b000
-// `define ROUTE_B 3'b001
-// `define ROUTE_C 3'b010
-// `define ROUTE_D 3'b011
-// `define ROUTE_X 3'b100
-
-//This is the state
-//NONE HERE
-
-//inputs to the state
-//NOTHING HERE EITHER
-
-//wires
-
-//wire regs
-
-//assigns
-
-//instantiations
-one_of_five #(`DATA_WIDTH) data_mux(.in0(data_a_in), .in1(data_b_in), .in2(data_c_in), .in3(data_d_in), .in4(data_x_in), .sel(current_route_in), .out(data_out));
-one_of_five #(1) valid_mux(.in0(valid_a_in), .in1(valid_b_in), .in2(valid_c_in), .in3(valid_d_in), .in4(valid_x_in), .sel(current_route_in), .out(valid_out_temp));
-
+module one_of_eight(in0,in1,in2,in3,in4,in5,in6,in7,sel,out);
+    parameter WIDTH = 8;
+    parameter BHC = 10;
+    input [2:0] sel;
+    input [WIDTH-1:0] in0,in1,in2,in3,in4,in5,in6,in7;
+    output reg [WIDTH-1:0] out;
+    always@ (*)
+    begin
+        case(sel)
+            3'd0:out=in0;
+            3'd1:out=in1;
+            3'd2:out=in2;
+            3'd3:out=in3;
+            3'd4:out=in4;
+            3'd5:out=in5;
+            3'd6:out=in6;
+            3'd7:out=in7;
+            default:; // indicates null
+        endcase
+    end
 endmodule
+
+

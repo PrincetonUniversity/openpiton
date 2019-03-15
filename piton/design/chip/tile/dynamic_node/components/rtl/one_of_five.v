@@ -25,31 +25,23 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-module one_of_n_clk #(
-  parameter NUM_IN    = 5,
-  parameter SEL_WIDTH = 3, //ceil(log2(NUM_IN)
-  parameter WIDTH     = 8
-) (
-  input                     clk,
-  input                     rst_n,
-  input  [WIDTH*NUM_IN-1:0] in,
-  input  [SEL_WIDTH-1:0]    sel,
-  output [WIDTH-1:0]        out);
-
-  wire [WIDTH-1:0] tmp [0:2**SEL_WIDTH-1];
-  
-  assign out    = tmp[sel];
- 
-  genvar k;
-  generate
-    for (k=0; k<NUM_IN; k=k+1) begin : g_connect
-      assign tmp[k] = in[k*WIDTH +: WIDTH];
+module one_of_five(in0,in1,in2,in3,in4,sel,out);
+    parameter WIDTH = 8;
+    parameter BHC = 10;
+    input [2:0] sel;
+    input [WIDTH-1:0] in0,in1,in2,in3,in4;
+    output reg [WIDTH-1:0] out;
+    always@(*)
+    begin
+        case(sel)
+            3'd0:out=in0;
+            3'd1:out=in1;
+            3'd2:out=in2;
+            3'd3:out=in3;
+            3'd4:out=in4;
+            default:; // indicates null
+        endcase
     end
-    for (k=NUM_IN; k<2**SEL_WIDTH; k=k+1) begin : g_pad
-      assign tmp[k] = {WIDTH{1'b0}};
-    end
-  endgenerate
-
 endmodule
 
 

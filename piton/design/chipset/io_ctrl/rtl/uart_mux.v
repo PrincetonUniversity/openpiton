@@ -233,16 +233,6 @@ assign  reader_axi_rvalid   = s_axi_rvalid;
 
 
 always @(*) begin
-    // default assignments
-    s_axi_awaddr    = 13'b0;
-    s_axi_awvalid   = 1'b0;
-    s_axi_wdata     = 32'b0;
-    s_axi_wstrb     = 4'b0;
-    s_axi_wvalid    = 1'b0;
-    s_axi_bready    = 1'b0;
-    s_axi_araddr    = 13'b0;
-    s_axi_arvalid   = 1'b0;
-    s_axi_rready    = 1'b0;
     case(mux_sel)
         INIT_SEL: begin
             s_axi_awaddr    = init_axi_awaddr;
@@ -251,6 +241,9 @@ always @(*) begin
             s_axi_wstrb     = init_axi_wstrb;
             s_axi_wvalid    = init_axi_wvalid;
             s_axi_bready    = init_axi_bready;
+            s_axi_araddr    = 13'b0;
+            s_axi_arvalid   = 1'b0;
+            s_axi_rready    = 1'b0;
         end
         WRITER_SEL: begin
             s_axi_awaddr    = writer_axi_awaddr;
@@ -264,6 +257,12 @@ always @(*) begin
             s_axi_rready    = writer_axi_rready;
         end
         READER_SEL: begin
+            s_axi_awaddr    = 13'b0;
+            s_axi_awvalid   = 1'b0;
+            s_axi_wdata     = 32'b0;
+            s_axi_wstrb     = 4'b0;
+            s_axi_wvalid    = 1'b0;
+            s_axi_bready    = 1'b0;
             s_axi_araddr    = reader_axi_araddr;
             s_axi_arvalid   = reader_axi_arvalid;
             s_axi_rready    = reader_axi_rready;
@@ -279,7 +278,13 @@ always @(*) begin
             s_axi_arvalid   = core_axi_arvalid;
             s_axi_rready    = core_axi_rready;
         end
-        default: ;
+        default: begin
+            s_axi_awvalid   = 1'b0;
+            s_axi_wvalid    = 1'b0;
+            s_axi_bready    = 1'b0;
+            s_axi_arvalid   = 1'b0;
+            s_axi_rready    = 1'b0;
+        end
     endcase
 end
 

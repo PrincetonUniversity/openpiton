@@ -24,30 +24,38 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-module io_xbar_one_of_n #(
-  parameter NUM_IN    = 5,
-  parameter SEL_WIDTH = 3, //ceil(log2(NUM_IN)
-  parameter WIDTH     = 8
-) (
-  input  [WIDTH*NUM_IN-1:0] in,
-  input  [SEL_WIDTH-1:0]    sel,
-  output [WIDTH-1:0]        out);
-
-  wire [WIDTH-1:0] tmp [0:2**SEL_WIDTH-1];
-   
-  assign out    = tmp[sel];
- 
-  genvar k;
-  generate
-    for (k=0; k<NUM_IN; k=k+1) begin : g_connect
-      assign tmp[k] = in[k*WIDTH +: WIDTH];
+<%
+import os
+import sys
+sys.path.append(os.environ["DV_ROOT"]+"/design/chipset/io_xbar/parameter")
+import io_xbar_node_define
+DYNAMIC_NODE_PORT = io_xbar_node_define.DYNAMIC_NODE_PORT
+DYNAMIC_NODE_PORT_LOG2 = io_xbar_node_define.DYNAMIC_NODE_PORT_LOG2
+%>
+module io_xbar_one_of_n(
+  <%
+  print ""
+  io_xbar_node_define.print_ports("  in%d,")
+  %>
+  sel,
+  out);
+    parameter WIDTH = 8;
+    parameter BHC = 10;
+    input [<%= DYNAMIC_NODE_PORT_LOG2 - 1%>:0] sel;
+    <% io_xbar_node_define.print_ports_oneline("input [WIDTH-1:0] ", "in%d,")%>
+    output reg [WIDTH-1:0] out;
+    always@(*)
+    begin
+        case(sel)
+        <%
+        print ""
+        for a in range (DYNAMIC_NODE_PORT):
+          s = "            %d'd%d:out=in%d;" % (DYNAMIC_NODE_PORT_LOG2, a, a)
+          print s
+        %>
+            default:; // indicates null
+        endcase
     end
-    for (k=NUM_IN; k<2**SEL_WIDTH; k=k+1) begin : g_pad
-      assign tmp[k] = {WIDTH{1'b0}};
-    end
-  endgenerate
-
 endmodule
 
 

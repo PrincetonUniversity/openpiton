@@ -1107,22 +1107,10 @@ end
 
 
 
-reg [`CS_SIZE_P1S2-1:0] cs_S2, cs_S2_q;
-
-
-always @ (posedge clk, negedge rst_n)
-begin
-		if (!rst_n) begin
-	    cs_S2_q <= {`CS_SIZE_P1S2{1'b0}};
-	  end else begin
-	    cs_S2_q <= cs_S2;
-	  end  
-end
+reg [`CS_SIZE_P1S2-1:0] cs_S2;
 
 always @ *
 begin
-	// default assignment to prevent latch inferral
-	cs_S2 = cs_S2_q;
     if (valid_S2)
     begin
         if (special_addr_type_S2_f)

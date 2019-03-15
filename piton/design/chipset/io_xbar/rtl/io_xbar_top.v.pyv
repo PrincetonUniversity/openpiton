@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <%
 import os
 import sys
-import math
 sys.path.append(os.environ["DV_ROOT"]+"/design/chipset/io_xbar/parameter")
 import io_xbar_node_define
 DYNAMIC_NODE_PORT = io_xbar_node_define.DYNAMIC_NODE_PORT
@@ -354,30 +353,15 @@ for a in range (DYNAMIC_NODE_PORT):
    wire ec_thanks_to_p = ec_thanks_n_to_p_reg | ec_thanks_e_to_p_reg | ec_thanks_s_to_p_reg | ec_thanks_w_to_p_reg | ec_thanks_p_to_p_reg;
 */
 <%
+indent = "                        "
 for a in range (DYNAMIC_NODE_PORT):
-  indent = "         "
-  s = indent + "ec_wants_to_send_but_cannot_%d}" % (a)
+  s = "io_xbar_one_of_n_plus_3 #(1) ec_mux_%d(.in0(ec_wants_to_send_but_cannot_%d),\n"% (a, a)
   for b in range (1, DYNAMIC_NODE_PORT + 1):
-    s = indent + "ec_thanks_%d_to_%d_reg, \n" % ((DYNAMIC_NODE_PORT - b), a) + s
-  s = indent + "ec_thanks_to_%d, \n" % (a) + s
-  s = "{ec_%d_input_valid_reg & ~ec_thanks_to_%d, \n" % (a, a) + s
-
-  s = """
-io_xbar_one_of_n #(
-    .NUM_IN(%d),
-    .SEL_WIDTH(%d),
-    .WIDTH(1)
-) ec_mux_%d (
-		.in(%s),
-    .sel(ec_cfg[%d:%d]),
-    .out(ec_out[%d])
-);
-"""% (DYNAMIC_NODE_PORT+3,
-      math.ceil(math.log(DYNAMIC_NODE_PORT+3, 2)),
-      a, s,
-      (DYNAMIC_NODE_PORT - a) * DYNAMIC_NODE_PORT_P_3_LOG2 - 1,
-      (DYNAMIC_NODE_PORT - a - 1) * DYNAMIC_NODE_PORT_P_3_LOG2,
-      (DYNAMIC_NODE_PORT - a - 1))
+    s = s + indent + ".in%d(ec_thanks_%d_to_%d_reg),\n" % (b, (DYNAMIC_NODE_PORT - b), a)
+  s = s + indent + ".in%d(ec_thanks_to_%d),\n" % (DYNAMIC_NODE_PORT + 1, a)
+  s = s + indent + ".in%d(ec_%d_input_valid_reg & ~ec_thanks_to_%d),\n" % (DYNAMIC_NODE_PORT + 2, a, a)
+  s = s + indent + ".sel(ec_cfg[%d:%d]),\n" % ((DYNAMIC_NODE_PORT - a) * DYNAMIC_NODE_PORT_P_3_LOG2 - 1, (DYNAMIC_NODE_PORT - a - 1) * DYNAMIC_NODE_PORT_P_3_LOG2)
+  s = s + indent + ".out(ec_out[%d]));" % (DYNAMIC_NODE_PORT - a - 1)
   print s
 
 %>

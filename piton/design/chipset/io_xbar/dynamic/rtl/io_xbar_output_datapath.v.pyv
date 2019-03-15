@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <%
 import os
 import sys
-import math
 sys.path.append(os.environ["DV_ROOT"]+"/design/chipset/io_xbar/parameter")
 import io_xbar_node_define
 DYNAMIC_NODE_PORT = io_xbar_node_define.DYNAMIC_NODE_PORT
@@ -84,62 +83,15 @@ input [<%= DYNAMIC_NODE_PORT_LOG2 - 1%>:0] current_route_in;
 
 //assigns
 
-// valid mux instance
+//instantiations
 <%
-indent = "         "
-s = ""
+data_ins_inst = ""
+valid_ins_inst = ""
 for a in range (DYNAMIC_NODE_PORT):
-  if a == 0:
-    s = indent + ("valid_%d_in}" % (a)) + s
-  elif a == DYNAMIC_NODE_PORT-1:
-    s = ("{valid_%d_in, \n" % (a)) + s
-  else:
-    s = indent + ("valid_%d_in, \n" % (a)) + s
-
-s = """
-io_xbar_one_of_n #(
-    .NUM_IN(%d),
-    .SEL_WIDTH(%d),
-    .WIDTH(1)
-) valid_mux (
-		.in(%s),
-    .sel(current_route_in),
-    .out(valid_out_temp)
-);
-"""% (DYNAMIC_NODE_PORT,
-      math.ceil(math.log(DYNAMIC_NODE_PORT,2)),
-      s)
-
-print s
+  data_ins_inst = data_ins_inst + (".in%d(data_%d_in), " % (a, a))
+  valid_ins_inst = valid_ins_inst + (".in%d(valid_%d_in), " % (a, a))
 %>
-
-// data mux instance
-<%
-indent = "         "
-s = ""
-for a in range (DYNAMIC_NODE_PORT):
-  if a == 0:
-    s = indent + ("data_%d_in}" % (a)) + s
-  elif a == DYNAMIC_NODE_PORT-1:
-    s = ("{data_%d_in, \n" % (a)) + s
-  else:
-    s = indent + ("data_%d_in, \n" % (a)) + s
-
-s = """
-io_xbar_one_of_n #(
-    .NUM_IN(%d),
-    .SEL_WIDTH(%d),
-    .WIDTH(`DATA_WIDTH)
-) data_mux (
-		.in(%s),
-    .sel(current_route_in),
-    .out(data_out)
-);
-"""% (DYNAMIC_NODE_PORT,
-      math.ceil(math.log(DYNAMIC_NODE_PORT,2)),
-      s)
-
-print s
-%>
+io_xbar_one_of_n #(`DATA_WIDTH) data_mux(<%= data_ins_inst%>.sel(current_route_in), .out(data_out));
+io_xbar_one_of_n #(1) valid_mux(<%= valid_ins_inst%>.sel(current_route_in), .out(valid_out_temp));
 
 endmodule
