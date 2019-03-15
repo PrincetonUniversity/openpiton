@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : rtap.v
 //  Created On    : 2014-01-31 12:52:57
-//  Last Modified : 2019-03-05 11:58:47
+//  Last Modified : 2018-11-16 17:23:14
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -433,7 +433,6 @@ begin
     rtap_config_req_val = 0;
     rtap_config_req_rw = 0;
     rtap_config_req_address = 0;
-    rtap_config_write_req_data = 0;
 
     case (req_op)
         // `JTAG_REQ_OP_CPX_INTERRUPT:
