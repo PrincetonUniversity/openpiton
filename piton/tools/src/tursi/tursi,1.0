@@ -1,0 +1,442 @@
+#!/usr/bin/env python
+# Copyright (c) 2019 Princeton University
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Princeton University nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#####################################################################
+#  Filename      : tursi,1.0
+#  Version       : 1.0
+#  Created On    : 2019-03-05
+#  Author        : Georgios Tziantzioulis
+#  Company       : Princeton University
+#  Email         : openpiton@princeton.edu
+#
+#  Description   : top level script for 
+#
+#####################################################################
+
+# For Python 2 and 3 print compatibility
+from __future__ import print_function 
+
+import os, sys, re, subprocess, stat, time
+import argparse
+from dbg import *
+from tool_common import *
+
+
+DV_ROOT = os.environ['DV_ROOT']
+MODEL_DIR = os.environ['MODEL_DIR']
+
+def setParserOptions(parser):
+
+    fusesoc_core_choices = {
+        "openpiton::chip_bridge"        : "** core description **",
+        "openpiton::dynamic_node"       : "** core description **",
+        "openpiton::fpu"                : "** core description **",
+        "openpiton::ifu_esl"            : "** core description **",
+        "openpiton::ifu_esl_counter"    : "** core description **",
+        "openpiton::ifu_esl_fsm"        : "** core description **",
+        "openpiton::ifu_esl_htsm"       : "** core description **",
+        "openpiton::ifu_esl_lfsr"       : "** core description **",
+        "openpiton::ifu_esl_rtsm"       : "** core description **",
+        "openpiton::ifu_esl_shiftreg"   : "** core description **",
+        "openpiton::ifu_esl_stsm"       : "** core description **",
+        "openpiton::l15"                : "** core description **",
+        "openpiton::l2"                 : "** core description **",
+        "openpiton::pico"               : "** core description **",
+        "openpiton::sparc_core"         : "** core description **",
+        "openpiton::sparc_exu"          : "** core description **",
+        "openpiton::sparc_ffu"          : "** core description **",
+        "openpiton::sparc_ifu"          : "** core description **",
+        "openpiton::sparc_lsu"          : "** core description **",
+        "openpiton::sparc_mul"          : "** core description **",
+        "openpiton::sparc_srams"        : "** core description **",
+        "openpiton::sparc_tlu"          : "** core description **",
+        "openpiton::fpga_bridge_rcv_32" : "** core description **",
+        "openpiton::tile"               : "** core description **",
+        "openpiton::chip"               : "** core description **"
+    }
+    fusesoc_core_help_str = \
+"""Available core for picking using FuseSoc (default: %(default)s):
+{}""".format("\n".join("\t* {} ({})".format(key,val) for key, val in fusesoc_core_choices.items()))
+    parser.add_argument("--fusesoc_core", dest="fusesoc_core", action="store",
+                        default="openpiton::chip",
+                        choices=fusesoc_core_choices,
+                        help=fusesoc_core_help_str)
+    
+    parser.add_argument("-b", "--board", dest="board", action="store",
+                        choices=["vc707", "genesys2", "nexysVideo"],
+                        help="Name of a supported Xilinx's development board. Choose one of available options: %(choices)s",
+                        metavar='<board type>')
+
+    design_help_str = \
+"""Name of design module to synthesize (default: %(default)s
+which synthesizes a full system with chip and chipset).
+See $DV_ROOT/tools/src/proto/block.list for supported design modules"""
+    parser.add_argument("-d", "--design", dest="design", action="store",
+                        default="system",
+                        help=design_help_str)
+    
+    core_choices={"sparc"   : "(opensparc T1 core, default)",
+                  "pico"    : "(32bit RISCV core)",
+                  "pico_het": "(heterogeneous pico+sparc arrangement)",
+                  "ariane"  : "(64bit RISCV core)"}
+    core_help_str = \
+"""Name of a supported core configurations (default: %(default)s):
+{}""".format("\n".join("\t* {} : {}".format(key,val) for key, val in core_choices.items()))
+    parser.add_argument("-c", "--core", dest="core", action="store",
+                        default="sparc",
+                        choices=core_choices,
+                        help=core_help_str,
+                        metavar="<core>")
+
+    network_config_choices = ["2dmesh_config", "xbar_config"]
+    network_config_help_str="""Name of the network type to be used (default: %(default)s).
+Available options are:
+{}""".format(network_config_choices)
+    parser.add_argument("--network_config", dest="network_config", action="store",
+                        default="2dmesh_config",
+                        choices=network_config_choices,
+                        help=network_config_help_str)
+
+    parser.add_argument("--x_tiles", dest="x_tiles", action="store",
+                        type=int, default=1,
+                        help="Number of tiles to instantiate in x direction (default: %(default)s).")
+
+    parser.add_argument("--y_tiles", dest="y_tiles", action="store",
+                        type=int, default=1,
+                        help="Number of tiles to instantiate in x direction (default: %(default)s).")
+
+    num_tiles_help_str = """Total number of tiles (default: %(default)s).
+In case the x/y tile defaults are not overridden, this creates an arrangement assuming x_tiles<=8."""
+    parser.add_argument("--num_tiles", dest="num_tiles", action="store",
+                        type=int, default=1,
+                        help=num_tiles_help_str)
+
+    parser.add_argument("--config_l1i_size", dest="config_l1i_size", action="store",
+                        default=16384,
+                        metavar="<bytes>",
+                        help="Cache size in bytes (default: %(default)s)")
+
+    parser.add_argument("--config_l1d_size", dest="config_l1d_size", action="store",
+                        default=8192,
+                        metavar="<bytes>",
+                        help="Cache size in bytes (default: %(default)s)")
+
+    parser.add_argument("--config_l15_size", dest="config_l15_size", action="store",
+                        default=8192,
+                        metavar="<bytes>",
+                        help="Cache size in bytes (default: %(default)s)")
+
+    parser.add_argument("--config_l2_size", dest="config_l2_size",   action="store",
+                        default=65536,
+                        metavar="<bytes>",
+                        help="Cache size in bytes (default: %(default)s)")
+
+    parser.add_argument("--config_l1i_associativity", dest="config_l1i_associativity", action="store",
+                        default=4,
+                        help="Cache associativity (default: %(default)s)")
+
+    parser.add_argument("--config_l1d_associativity", dest="config_l1d_associativity",   action="store",
+                        default=4,
+                        help="Cache associativity (default: %(default)s)")
+
+    parser.add_argument("--config_l15_associativity", dest="config_l15_associativity",   action="store",
+                        default=4,
+                        help="Cache associativity (default: %(default)s)")
+
+    parser.add_argument("--config_l2_associativity", dest="config_l2_associativity",   action="store",
+                        default=4,
+                        help="Cache associativity (default: %(default)s)")
+    parser.add_argument("--pickle", dest="pickle", action="store_true", default=False)
+    parser.add_argument("--verify", dest="verify", action="store_true", default=False)
+
+    return parser
+
+def makeDefList(options):
+    defines = list()
+
+    #df = options.board.upper() + "_BOARD"
+    #defines.append(df)
+
+    # --no-ddr option
+    if (options.no_ddr == True) or (options.board == "piton_board"):
+        defines.append("PITONSYS_NO_MC")
+    else:   # default option
+        defines.append("PITON_FPGA_MC_DDR3")
+
+    # do not use SD controller if BRAM is used for boot or a test
+    if (options.test_name != None) or (options.board == "piton_board"):
+        pass
+    else:   # default option
+        defines.append("PITON_FPGA_SD_BOOT")
+
+    # --bram-test option
+    if options.test_name != None:
+        defines.append("PITON_FPGA_BRAM_TEST")
+        defines.append("PITONSYS_NO_MC")
+
+    # --uart-dmw option
+    if options.uart_dmw == "ddr":
+        defines.append("PITONSYS_UART_BOOT")
+    elif options.uart_dmw == "bram":
+        defines.append("PITONSYS_UART_BOOT")
+        defines.append("PITON_FPGA_BRAM_TEST")
+
+    # --asic-rtl option
+    if options.asic_rtl == True:
+        defines.append("PITON_ASIC_RTL")
+
+    # --chip-bridge option
+    if (options.board == "piton_board") and (options.design == "chipset"):
+        pass
+    # chip-bridge is used for chipset by default
+    elif options.chip_bridge == False and options.design != "chipset":
+        defines.append("PITON_NO_CHIP_BRIDGE")
+
+    # --inc-passthru option
+    if options.inc_passthru == True:
+        defines.append("PITONSYS_INC_PASSTHRU")
+
+    # --passthru-dec option
+    if options.passthru_dec == True:
+        defines.append("PITON_PASSTHRU_DEC")
+
+    # --passthru-dec-uart-pkttrace option
+    if options.passthru_dec_uart_pkttrace == True:
+        defines.append("PITON_PASSTHRU_DEC_UART_PKTTRACE")
+
+    if options.design == "passthru" or options.design == "passthru_loopback" or \
+        options.design == "chip_bridge_test_chip":
+        defines.append("PITONSYS_PASSTHRU_TOP")
+
+    if options.design == "chipset":
+        defines.append("PITONSYS_CHIPSET_TOP")
+
+    # Custom defines
+    if options.define != None:
+        defines.extend(options.define.split(","))
+
+    # Specific options for chipset implementations on piton_board:
+    if options.design == "chipset":
+        if options.board == "piton_board":
+            defines.append("PITON_BOARD_CHIPSET")
+        else:
+            defines.append("PITON_ASIC_CHIPSET")
+
+    # Define for  UART16550 required (so for all except Piton Board)
+    if options.board != "piton_board":
+        defines.append("PITON_UART16550")
+
+    # --eth CL options is default for chipset
+    if options.eth or options.design == "chipset" or options.design == "system":
+        # Ethernet controller is supported on Genesys2 and nexysVideo only
+        if options.board == "genesys2" or options.board == "nexysVideo":
+            defines.append("PITON_FPGA_ETHERNETLITE")
+        else:
+            print_info("--eth option is ignored for %s" % options.board)
+
+    # --oled option for String on a display
+    if options.oled != None:
+        if options.board == "genesys2" or options.board == "nexysVideo":
+            if len(options.oled) > OLED_STRING_LEN:
+                disp_string = options.oled[0:64]
+                # strip is important. Vivado fails if there is whitespace at the end
+                disp_string = disp_string.strip()
+                print_warning("\"%s\" is too long string for OLED. \
+                                Cutting down to \"%s\"" % (options.oled, disp_string))
+            else:
+                # strip is important. Vivado fails if there is whitespace at the end
+                disp_string = options.oled.strip()
+            defines.append("{OLED_STRING=\\\"%s\\\"}" % disp_string)
+        else:
+            print_warning("--oled option is ignored for %s" % options.board)
+    elif options.design == "chipset" and (options.board == "genesys2" or options.board == "nexysVideo"):
+        disp_string = "Heeey!          I am a chipset  for (Open)Piton Enjoy debugging!"
+        defines.append("{OLED_STRING=\\\"%s\\\"}" % disp_string)
+
+    return defines
+
+
+def main():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser = setParserOptions(parser)
+    args = parser.parse_args()
+
+    exit_code = 0
+
+    ###################################################
+    # All options are considered valid from this point
+    ###################################################
+
+    # Make a list of configuration specific defines
+    ### Georgios: FIXME (should be uncommented)
+    #defines = makeDefList(options)
+
+
+
+    ##################################
+    # Setting directory structure
+    ##################################
+    prev_dir = os.getcwd()
+    w_env = WorkingEnvironment()
+    os.chdir(MODEL_DIR)
+
+    ##################################
+    # Set environment vars for pyhp
+    ##################################
+
+    print_info("---- RTL configuration ----")
+
+    # tile config
+    if (int(args.x_tiles)*int(args.y_tiles)) > 1:
+        args.num_tiles = int(args.x_tiles)*int(args.y_tiles);
+    elif int(args.num_tiles) > 1:
+        print_info("overriding x_tiles and y_tiles, assuming x dimension is <= 8")
+        # this is aligned with the sims behavior
+        args.x_tiles = ((int(args.num_tiles)-1) % 8) + 1;
+        args.y_tiles = int((int(args.num_tiles)-1) / 8 + 1);
+
+    if int(args.x_tiles)>256:
+        print_error("x_tiles can be at most 256")
+        sys.exit(1)
+    if int(args.y_tiles)>256:
+        print_error("y_tiles can be at most 256")
+        sys.exit(1)
+
+    print_info("x_tiles   = " + str(args.x_tiles))
+    print_info("y_tiles   = " + str(args.y_tiles))
+    print_info("num_tiles = " + str(args.num_tiles))
+
+    os.environ['PTON_X_TILES']   = str(args.x_tiles)
+    os.environ['PTON_Y_TILES']   = str(args.y_tiles)
+    os.environ['PTON_NUM_TILES'] = str(args.num_tiles)
+
+    # core variant
+    print_info("core      = " + str(args.core))
+    if args.core == 'pico':
+
+        os.environ['PITON_PICO']     = "1"
+
+        for i in range(int(args.num_tiles)):
+            os.environ['RTL_PICO' + str(i)] = "1"
+            print_info('defining RTL_PICO' + str(i))
+
+    elif args.core == 'pico_het':
+
+        os.environ['PITON_PICO']     = "1"
+        os.environ['PITON_PICO_HET'] = "1"
+
+        for i in range(int(args.num_tiles)):
+            if i %2:
+                os.environ['RTL_PICO' + str(i)] = "1"
+                print_info('defining RTL_PICO' + str(i))
+
+            else:
+                os.environ['RTL_SPARC' + str(i)] = "1"
+                print_info('defining RTL_SPARC' + str(i))
+
+    elif args.core == 'ariane':
+        os.environ['PITON_ARIANE'] = "1"
+        os.environ['L2_CAM_MSHR']  = "1"
+
+        for i in range(int(args.num_tiles)):
+            os.environ['RTL_ARIANE' + str(i)] = "1"
+            print_info('defining RTL_ARIANE' + str(i))
+
+    elif args.core == 'sparc':
+        # this is the default
+        for i in range(int(args.num_tiles)):
+            os.environ['RTL_SPARC' + str(i)] = "1"
+            print_info('defining RTL_SPARC' + str(i))
+
+    else:
+        print_error("invalid core configuration " + str(args.core))
+        sys.exit(1)
+
+    # network config
+    if args.network_config not in ['2dmesh_config', 'xbar_config']:
+        print_error('invalid network config ' + str(args.network_config))
+        sys.exit(1)
+
+    print_info("network   = " + str(args.network_config))
+    os.environ['PTON_NETWORK_CONFIG'] = args.network_config
+
+    # cache config
+    print_info("l15 size  = " + str(args.config_l15_size))
+    print_info("l15 assoc = " + str(args.config_l15_associativity))
+    print_info("l1d size  = " + str(args.config_l1d_size))
+    print_info("l1d assoc = " + str(args.config_l1d_associativity))
+    print_info("l1i size  = " + str(args.config_l1i_size))
+    print_info("l1i assoc = " + str(args.config_l1i_associativity))
+    print_info("l2  size  = " + str(args.config_l2_size))
+    print_info("l2  assoc = " + str(args.config_l2_associativity))
+
+    os.environ['CONFIG_L15_SIZE']          = str(args.config_l15_size)
+    os.environ['CONFIG_L15_ASSOCIATIVITY'] = str(args.config_l15_associativity)
+    os.environ['CONFIG_L1D_SIZE']          = str(args.config_l1d_size)
+    os.environ['CONFIG_L1D_ASSOCIATIVITY'] = str(args.config_l1d_associativity)
+    os.environ['CONFIG_L1I_SIZE']          = str(args.config_l1i_size)
+    os.environ['CONFIG_L1I_ASSOCIATIVITY'] = str(args.config_l1i_associativity)
+    os.environ['CONFIG_L2_SIZE']           = str(args.config_l2_size)
+    os.environ['CONFIG_L2_ASSOCIATIVITY']  = str(args.config_l2_associativity)
+
+    print_info("---------------------------")
+
+    ##################################
+    # Pickle 
+    ##################################
+    do_pickle = args.pickle
+    do_verify = args.verify
+    if (not do_pickle) and (not do_verify):
+        do_pickle = True
+
+    if do_pickle:
+        #print_info("Pickling: %s" % args.core_name)
+        cmd = 'fusesoc build --target=pickle --tool=icarus {}'.format(args.fusesoc_core)
+        ret_val = os.system(cmd)
+        if ret_val != 0:
+            print_error("Pickling didn't finish successfully!")
+            print_info("See for Errors in %s/pickling.log" % w_env.log)
+            sys.exit(1)
+        print_info("Pickling completed succesfully")
+    if do_verify:
+        #print_info("Pickling: %s" % args.core_name)
+        cmd = 'fusesoc run --target=verify --tool=icarus {}'.format(args.fusesoc_core)
+        ret_val = os.system(cmd)
+        if ret_val != 0:
+            print_error("Pickling didn't finish successfully!")
+            print_info("See for Errors in %s/pickling.log" % w_env.log)
+            sys.exit(1)
+        print_info("Pickling completed succesfully")
+
+
+
+    os.chdir(prev_dir)
+
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()
