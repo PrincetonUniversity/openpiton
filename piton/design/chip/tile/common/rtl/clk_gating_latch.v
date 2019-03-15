@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : clk_gating_latch.v
 //  Created On    : 2015-01-26 14:10:43
-//  Last Modified : 2019-03-06 21:10:45
+//  Last Modified : 2015-01-26 15:13:40
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -43,49 +43,19 @@ module clk_gating_latch (
     output wire clk_out
 );
 
-`ifdef PITON_FPGA_SYNTH
+wire clk_en_sync;
+reg clk_en_sync_latch;
 
-  wire clk_en_sync;
-  reg clk_en_sync_reg;
-  
-  synchronizer sync(
-      .clk            (clk),
-      .presyncdata    (clk_en),
-      .syncdata       (clk_en_sync)
-  );
+assign clk_out = clk & clk_en_sync_latch;
 
-  // clk_en_sync_reg changes only on the negative edge of clk
-  always @ (negedge clk)
-    clk_en_sync_reg = clk_en_sync;
+synchronizer sync(
+    .clk            (clk),
+    .presyncdata    (clk_en),
+    .syncdata       (clk_en_sync)
+);
 
-  // use clock buffer on FPGA
-  BUFGCE #(
-    .CE_TYPE        ( "ASYNC" ),
-    .IS_CE_INVERTED ( 1'b0   ),
-    .IS_I_INVERTED  ( 1'b0   )
-  ) BUFGCE_inst (
-    .I  ( clk              ),
-    .CE ( clk_en_sync_reg  ),
-    .O  ( clk_out          )
-  );
-
-`else
-
-  wire clk_en_sync;
-  reg clk_en_sync_latch;
-
-  assign clk_out = clk & clk_en_sync_latch;
-
-  synchronizer sync(
-      .clk            (clk),
-      .presyncdata    (clk_en),
-      .syncdata       (clk_en_sync)
-  );
-
-  // clk_en_sync_latch changes only on the negative duty of the cycle
-  always @ (clk or clk_en_sync)
-      if (~clk) clk_en_sync_latch = clk_en_sync;
-`endif
-
+// clk_en_sync_latch changes only on the negative duty of the cycle
+always @ (clk or clk_en_sync)
+    if (~clk) clk_en_sync_latch = clk_en_sync;
 
 endmodule // clk_gating_latch
