@@ -28,14 +28,14 @@ rtl_file_template_v_file = """            - __RTL_FILE_TEMPLATE__
 
 
 if __name__ == "__main__":
-    print("preproc.py")
-    print(sys.argv)
+    #print("preproc.py")
+    #print(sys.argv)
     # Parse YAML file
     with open(sys.argv[1], 'r') as yaml_fp:
         try:
             config = yaml.load(yaml_fp)
-            pp = pprint.PrettyPrinter(indent=2)
-            pp.pprint(config)
+            #pp = pprint.PrettyPrinter(indent=2)
+            #pp.pprint(config)
         except yaml.YAMLError as exc:
             print("Error in configuration file:", exc)
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         full_out_f = out_f
         
         args = [in_f]
-        print("input: {}, output: {}".format(in_f, full_out_f))
+        #print("input: {}, output: {}".format(in_f, full_out_f))
         with open(full_out_f, "w") as full_out_fp:
             try:
                 subprocess.check_call([cmd] + args,
@@ -68,12 +68,12 @@ if __name__ == "__main__":
             print("Error: {}".format(out_f))
             assert(0)
 
-    print("rtl_files:" + rtl_files)
+    #print("rtl_files:" + rtl_files)
     replace_dict = {"__VLNV_TEMPLATE__" : vlnv,
                     "__RTL_FILES_TEMPLATE__": rtl_files}
     s = include_core_template
     for key, value in replace_dict.items():
-        print(key, value)
+        #print(key, value)
         s = s.replace(key, value)
 
     new_core_file_name = vlnv.split(':')[2]
