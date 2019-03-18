@@ -445,12 +445,12 @@ always @(posedge clk)begin
                 check_bad_string = """
                         if(bad_trap_exists[{0}] & (bad_trap[{0}] == {2}))begin
                             hit_bad     = 1'b1;
-                            good[{0}]     = 1;
+                            good[{3}]     = 1;
                             local_diag_done = 1;
                             $display("%0d: Info - > Hit Bad trap. spc(%0d) thread(%0d)", $time, {1}, {0} % 4);
                             `MONITOR_PATH.fail("HIT BAD TRAP");
                         end"""
-                print(check_bad_string.format(l, i, pc))
+                print(check_bad_string.format(l, i, pc, j))
             outputStr = """
                     end
                 if (active_thread[{0}]) begin
