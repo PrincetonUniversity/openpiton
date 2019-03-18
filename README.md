@@ -301,7 +301,7 @@ The default parameters are 1 core for all boards, but you can override this with
 
 ```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
 
-Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card (a pre-built image is also available). 
+Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card (make sure you use the `openpiton` branch in that repository). If you do not want to go through the hassle of building your own image, you can download a pre-built linux image from [here](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.2.0-op).
 
 > Note that the board specific settings are encoded in the device tree that is automatically generated and compiled into the FPGA bitfile, so no specific configuration of the Linux kernel is needed.
 

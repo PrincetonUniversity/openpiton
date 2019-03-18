@@ -1,8 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
@@ -10,14 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Device tree generator for Ariane-based configuration
-- Support for SMP Linux
-- Support for Ariane builds on VC707 FPGA board
+- Support for Pitonstream
+- Support for RISC-V compliant debug for Ariane
+- Device tree generator for Ariane-based configurations
 - RISC-V compliant interrupt controllers (PLIC, CLINT)
+- Support for SMP Linux
+- Support for Ariane builds on the Genesys2, Nexsys Video and VC707 FPGA boards
 
 ### Changed
 
-- Updated to Ariane v4.1.0
+- Updated to Ariane v4.1.1
 - Bugfixes in write-through cache system of Ariane
-- Rerouted the JTAG from PMOD to second channel of FTDI 2232 chip on Genesys 2 board
 
