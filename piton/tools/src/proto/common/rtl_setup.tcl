@@ -394,13 +394,15 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1d_tag.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_data.v" \
     "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/sram_l1i_tag.v" \
+    "${DV_ROOT}/design/chip/tile/ariane/tb/ariane_soc_pkg.sv"                                 \
     "${DV_ROOT}/design/chip/tile/ariane/src/axi/src/axi_pkg.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/riscv-dbg/src/dm_pkg.sv"                          \
     "${DV_ROOT}/design/chip/tile/ariane/include/riscv_pkg.sv"                                 \
     "${DV_ROOT}/design/chip/tile/ariane/include/ariane_pkg.sv"                                \
     "${DV_ROOT}/design/chip/tile/ariane/include/ariane_axi_pkg.sv"                            \
-    "${DV_ROOT}/design/chip/tile/ariane/include/serpent_cache_pkg.sv"                         \
+    "${DV_ROOT}/design/chip/tile/ariane/include/wt_cache_pkg.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/include/axi_intf.sv"                                  \
+    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pkg.sv"                             \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_pkg.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_if.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/sram.sv"                                     \
@@ -459,14 +461,14 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/store_unit.sv"                                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/tlb.sv"                                           \
     "${DV_ROOT}/design/chip/tile/ariane/src/commit_stage.sv"                                  \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_ctrl.sv"           \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_mem.sv"            \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_missunit.sv"       \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache_wbuffer.sv"        \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_dcache.sv"                \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_icache.sv"                \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_l15_adapter.sv"           \
-    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/serpent_cache_subsystem.sv"       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_dcache_ctrl.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_dcache_mem.sv"                 \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_dcache_missunit.sv"            \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_dcache_wbuffer.sv"             \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_dcache.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_icache.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_l15_adapter.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/src/cache_subsystem/wt_cache_subsystem.sv"            \
     "${DV_ROOT}/design/chip/tile/ariane/src/clint/clint.sv"                                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/clint/axi_lite_interface.sv"                      \
     "${DV_ROOT}/design/chip/tile/ariane/src/riscv-dbg/debug_rom/debug_rom.sv"                 \
@@ -524,7 +526,6 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_multifmt_slice.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_in.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_out.sv"                              \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pkg.sv"                                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_rounding.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_top.sv"                                   \
 ]
@@ -734,6 +735,7 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_16384x512/bram_16384x512" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_8192x512/bram_8192x512" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_0/mig_7series_0" \
+    "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/ddr4_0/ddr4_0" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_fifo/sd_fifo" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_cache_bram/sd_cache_bram" \
     "${DV_ROOT}/design/common/fpga_bridge/common/xilinx/${BOARD}/ip_cores/afifo_w64/afifo_w64" \

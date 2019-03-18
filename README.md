@@ -170,8 +170,11 @@ The RISC-V ISA tests, benchmarks and some additonal simple example programs have
 - RISC-V ISA tests are grouped into the following four batches, where the last two are the regressions for atomic memory operations (AMOs):
 
 ```sims -group=ariane_tile1_asm_tests_p -sim_type=msm```
+
 ```sims -group=ariane_tile1_asm_tests_v -sim_type=msm```
+
 ```sims -group=ariane_tile1_amo_tests_p -sim_type=msm```
+
 ```sims -group=ariane_tile1_amo_tests_v -sim_type=msm```
 
 - RISC-V benchmarks can be run with:
@@ -282,29 +285,37 @@ In order to compile programs that you can load with GDB, use the following comma
 
 Note that the tile configuration needs to correspond to your actual platform configuration if your program is a multi-hart program. Otherwise you can omit these switches (the additional cores will not execute the program in that case).
 
-##### Booting Linux on Genesys2, VC707 and VCU118
+##### Booting SMP Linux on Genesys2 and VC707
 
-We currently support single core and SMP Linux on the Genesys2, VC707 and VCU118 FPGA development boards. The single-core configurations are relatively stable, however the SMP versions can sometimes crash as we have not fully validated/verified the cache coherency mechanisms yet.
+We currently support single core and SMP Linux on the Genesys2, VC707 and VCU118 FPGA development boards. The single-core configurations are relatively stable, however the SMP versions can sometimes crash during boot. This is a known issue and will be addressed in a future release.
 
 In order to build an FPGA image for these boards, use either of the following commands:
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
+
 ```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr```
-```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr```
 
 The default parameters are 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2```
-```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
-```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr --x_tiles=4 --x_tiles=4```
 
-Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card. 
+```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
+
+Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card (a pre-built image is also available). 
 
 > Note that the board specific settings are encoded in the device tree that is automatically generated and compiled into the FPGA bitfile, so no specific configuration of the Linux kernel is needed.
 
-> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to boot Linux.
-
 Insert the SD card into the corresponding slot of the FPGA board, connect a terminal to the UART using e.g. `screen /dev/ttyUSB0 115200`, and program the FPGA. Once the device comes out of reset, the zero-stage bootloader copies the Linux image (including the first stage bootloader) into DRAM, and executes it. Be patient, copying from SD takes a couple of seconds.
+
+
+<!-- ##### Booting Linux on Genesys2, VC707 and VCU118
+
+```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr```
+
+```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr --x_tiles=4 --x_tiles=4```
+
+> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
+ -->
 
 ##### Planned Improvements
 
