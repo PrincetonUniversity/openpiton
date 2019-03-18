@@ -2603,6 +2603,7 @@ sub parse_args
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
   push (@{$opt{config_rtl}}, "L2_CAM_MSHR")    if ($opt{ariane});
 
 
