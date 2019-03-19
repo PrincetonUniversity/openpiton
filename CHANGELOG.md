@@ -9,15 +9,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Support for Verilator simulation
+
+For Ariane:
 - Support for Pitonstream
-- Support for RISC-V compliant debug for Ariane
-- Device tree generator for Ariane-based configurations
+- Support for RISC-V compliant debug
+- Device tree generator
 - RISC-V compliant interrupt controllers (PLIC, CLINT)
 - Support for SMP Linux
-- Support for Ariane builds on the Genesys2, Nexsys Video and VC707 FPGA boards
+- Support for Ariane builds on the Genesys2, Nexys Video and VC707 FPGA boards
 
 ### Changed
 
+For Ariane:
 - Updated to Ariane v4.1.1
 - Bugfixes in write-through cache system of Ariane
 
