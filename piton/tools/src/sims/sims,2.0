@@ -467,7 +467,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 ################################################################################
 
 &create_model_path () if ($opt{vcs_build} or $opt{other_sim_build} or
-                          $opt{icv_build} or $opt{ncv_build} or 
+                          $opt{icv_build} or $opt{ncv_build} or
                           $opt{msm_build} or $opt{vlt_build}) ;
 
 ################################################################################
@@ -475,7 +475,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 ################################################################################
 
 &pre_build () if ($opt{vcs_build} or $opt{other_sim_build} or
-                  $opt{icv_build} or $opt{ncv_build} or 
+                  $opt{icv_build} or $opt{ncv_build} or
                   $opt{msm_build} or $opt{vlt_build}) ;
 
 ################################################################################
@@ -1247,7 +1247,7 @@ sub pre_build
       die (" Error compiling DTS for ariane.");
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
-    print "done\n";  
+    print "done\n";
   }
 
   # go back to where this block was invoked
@@ -1703,6 +1703,11 @@ sub generic_sim_run
       #modelsim cannot be called with -c and -gui at the same time
       if (!$opt{gui}) {
         $cmd .= " -c " ;
+      }
+      if ($opt{log_all}) {
+      	# this logs everything such that the sim can be inspected later on
+      	print("$prg: dumping all waves to save.wlf - this file can get very large so make sure you run this on a fast disk with enough space.\n");
+      	$cmd .= " -wlfcompress -wlf all-waves.wlf -do \"log -r /*\" ";
       }
       $cmd .= "-lib ";
       $cmd .= "$model_path/work ";
@@ -2467,6 +2472,7 @@ sub parse_args
             'y_tiles=s',
             'dynamic_csm=s',
             'gui!',
+            'log_all!',
             'debug_all!',
             'ibm!',
             'ed_enable!',
@@ -2819,6 +2825,9 @@ OPENPITON ARGUMENTS
             model specified by the -sys option, the -debug_all argument
             must have been passed to sims.
 
+    -log_all
+            in a msm_run, this command logs all signals and dumps them to the "all-waves.wlf" file for later inspection with a wave viewer.
+
     -slurm -sim_q_command=sbatch
             specifies simulations should be submitted with the Simple Linux
             Utility for Resource Management (SLURM) and run in parallel. The
@@ -2910,15 +2919,15 @@ VERILOG COMPILATION RELATED
            to a model is $ENV{MODEL_DIR}/model/build_id.
 
     -pico
-           this specifies that the PICORV32 core shall be used instead of OpenSPARC. 
+           this specifies that the PICORV32 core shall be used instead of OpenSPARC.
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
-    
+
     -pico_het
-           this specifies that a heterogeneous arrangement with OpenSPARC and PICORV32 shall be built, 
+           this specifies that a heterogeneous arrangement with OpenSPARC and PICORV32 shall be built,
            where every odd core is a PICORV32 core (along the x-dimension).
 
     -ariane
-           this specifies that the ARIANE RV64GC core shall be used instead of OpenSPARC. 
+           this specifies that the ARIANE RV64GC core shall be used instead of OpenSPARC.
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
 VERILOG RUNTIME RELATED
@@ -2977,20 +2986,20 @@ RISCV GCC
 this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane switches are specified).
 
     -uart_dmw
-           use this switch when compiling code for Pitonstream. this will add load 
+           use this switch when compiling code for Pitonstream. this will add load
            instructions to magic addresses in the pass/fail exit functions in order to signal
-           PASS/FAIL to the UART-DMW module.              
+           PASS/FAIL to the UART-DMW module.
 
     -precompiled
            specify this in order to use pre-built assembly tests and benchmarks from the RISC-V toolchain folder.
-           this basically adds the two search paths 
+           this basically adds the two search paths
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks
            to @{$opt{asm_diag_root}}, and skips the compilation step.
 
     -gcc_args
-           additional gcc arguments       
-             
+           additional gcc arguments
+
 VCS COVERMETER
 
     -vcs_use_cm/-novcs_use_cmd
