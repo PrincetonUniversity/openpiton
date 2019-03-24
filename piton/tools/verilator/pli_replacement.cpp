@@ -20,15 +20,20 @@
 //
 // ========== Copyright Header End ============================================
 #include "pli_replacement.h"
+#include "svdpi.h"
 
-// CONSTRUCTORS
-pli_replacement::pli_replacement() {
-    sysMem = b_create();//create
-    read_mem("mem.image", &sysMem);//read memory
-    for(int idx = 0; idx < 32; idx++)last_addr[idx] = 0;
+static struct pli_replacement *static_var = NULL;
+
+void initialise_static_var() {
+    static_var->sysMem = b_create();//create
+    read_mem((char *)"mem.image", &(static_var->sysMem));//read memory
+    for(int idx = 0; idx < 32; idx++)(static_var->last_addr)[idx] = 0;
 }
 
-vluint64_t pli_replacement::get_eight_byte(char* data, KeyType key)
+#ifdef __cplusplus
+extern "C" {
+#endif
+vluint64_t get_eight_byte(char* data, KeyType key)
 {
   vluint64_t  val;
   int mask  = key & 0x38;
@@ -40,8 +45,14 @@ vluint64_t pli_replacement::get_eight_byte(char* data, KeyType key)
   }
   return val;
 }
+#ifdef __cplusplus
+}
+#endif
 
-void pli_replacement::write_eight_byte(char* data, KeyType key, vluint64_t val)
+#ifdef __cplusplus
+extern "C" {
+#endif
+void write_eight_byte(char* data, KeyType key, vluint64_t val)
 {
   unsigned first = val >> 32;
   unsigned second = val & 0xffff0000;
@@ -58,25 +69,35 @@ void pli_replacement::write_eight_byte(char* data, KeyType key, vluint64_t val)
   // io_printf("iob_main.cc wrote 0x%x%x\n", val, key);
   return;
 }
+#ifdef __cplusplus
+}
+#endif
 
 // get 64b of data from memory
-vluint64_t pli_replacement::read_64b_call(vluint64_t key_var)
+#ifdef __cplusplus
+extern "C" {
+#endif
+vluint64_t read_64b_call(vluint64_t key_var)
 {
+  if (static_var == NULL) {
+    static_var = (struct pli_replacement*) malloc(sizeof(struct pli_replacement));
+    initialise_static_var();
+  }
     KeyType key = key_var;
     KeyType   mask_addr;
     mask_addr = (((unsigned long long)key & 0x000000ffffffffffULL) >> 6);
     
-    if(last_addr[0] == mask_addr){
-        return get_eight_byte(data[0]->data, key);
+    if((static_var->last_addr)[0] == mask_addr){
+        return get_eight_byte((static_var->data)[0]->data, key);
     }
     else {
         // trin
-        b_tree_atom_ptr data_ptr = b_Find(&sysMem, &mask_addr);
+        b_tree_atom_ptr data_ptr = b_Find(&(static_var->sysMem), &mask_addr);
         if(data_ptr){
-            data[0]      = data_ptr;
-            last_addr[0] = mask_addr;
+            (static_var->data)[0]      = data_ptr;
+            (static_var->last_addr)[0] = mask_addr;
 
-            return get_eight_byte(data[0]->data, key);
+            return get_eight_byte((static_var->data)[0]->data, key);
         }
         else{
             // io_printf("iob_main.cc: cache line not found at address 0x%llx\n", mask_addr << 6);
@@ -87,28 +108,38 @@ vluint64_t pli_replacement::read_64b_call(vluint64_t key_var)
         }
     }
 }
+#ifdef __cplusplus
+}
+#endif
 
 // get 64b of data from memory
-void pli_replacement::write_64b_call(vluint64_t key_var, vluint64_t val)
+#ifdef __cplusplus
+extern "C" {
+#endif
+void write_64b_call(vluint64_t key_var, vluint64_t val)
 {
+  if (static_var == NULL) {
+    static_var = (struct pli_replacement*) malloc(sizeof(struct pli_replacement));
+    initialise_static_var();
+  }
   KeyType key = key_var;
   KeyType   mask_addr;
   mask_addr = (((unsigned long long)key & 0x000000ffffffffffULL) >> 6);
 
 
-  if(last_addr[0] == mask_addr){
+  if((static_var->last_addr)[0] == mask_addr){
     //io_printf("iob_main.cc: invaling cache\n");
     // invalidate cached data
-    last_addr[0] = 0;
+    (static_var->last_addr)[0] = 0;
   }
 
-  b_tree_atom_ptr data_ptr = b_Find(&sysMem, &mask_addr);
+  b_tree_atom_ptr data_ptr = b_Find(&(static_var->sysMem), &mask_addr);
   if(data_ptr){
     // io_printf("iob_main.cc : writing %x_%x\n", high, low);
     // io_printf("iob_main.cc : writing %x_%x\n", val >> 32, val & 0x0000ffff);
-    data[0]      = data_ptr;
-    last_addr[0] = mask_addr;
-    write_eight_byte(data[0]->data, key, val);
+    (static_var->data)[0]      = data_ptr;
+    (static_var->last_addr)[0] = mask_addr;
+    write_eight_byte((static_var->data)[0]->data, key, val);
     return;
   }
   else{
@@ -123,7 +154,10 @@ void pli_replacement::write_64b_call(vluint64_t key_var, vluint64_t val)
     atom->key        = mask_addr;
     atom->size       = 64;
 
-    b_insert(&sysMem, &atom);
+    b_insert(&(static_var->sysMem), &atom);
     return;
   }
 }
+#ifdef __cplusplus
+}
+#endif

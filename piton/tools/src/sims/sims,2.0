@@ -1499,7 +1499,8 @@ sub generic_sim_build
       $build_cmd .= "$dv_root/tools/verilator/pli_replacement.cpp " ;
       $build_cmd .= "--top-module cmp_top " ;
       $build_cmd .= "-Wno-fatal " ;
-      $build_cmd .= "-CFLAGS -DVERILATOR " ;
+      $build_cmd .= "-DPITON_DPI " ;
+      $build_cmd .= "-CFLAGS -DVERILATOR -DPITON_DPI " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/pli/iop " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/verilator " ;
     }

@@ -34,6 +34,11 @@
     from pyhplib import *
 %>
 
+`ifdef PITON_DPI
+import "DPI-C" function longint read_64b_call (input longint addr);
+import "DPI-C" function void write_64b_call (input longint addr, input longint data);
+`endif
+
 `timescale 1ps/1ps
 module cmp_top (
 `ifdef VERILATOR
