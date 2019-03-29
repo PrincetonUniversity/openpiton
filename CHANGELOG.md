@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-<!-- ## [Unreleased] -->
+### [Unreleased]
+- Remove inferred latches in all dynamic_node variants, l2_pipe1_ctrl and uart_mux
+- Update storage_addr_trans* to include different board configurations for Ariane
 
 ### Release 11
 
