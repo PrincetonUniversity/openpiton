@@ -43,17 +43,43 @@ wire [63:0]                      bram_addr_0;
 
 wire                          in_section_0;
 
-assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 5) + 0;
+`ifdef VC707_BOARD
+  // align to 64bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 6) + 0;
+  // 1GB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
+`elsif VCU118_BOARD
+  // align to 64bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 6) + 0;
+  // 2GB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'h100000000);
+`elsif NEXYS4DDR_BOARD
+  // align to 16bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 4) + 0;
+  // 256MB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'h90000000);
+`elsif GENESYS2_BOARD
+  // align to 32bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 5) + 0;
+  // 1GB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
+`elsif NEXYSVIDEO_BOARD
+  // align to 16bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 4) + 0;
+  // 512MB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hA0000000);
+`else
+  // align to 64bit
+  assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 6) + 0;
+  // 1GB
+  assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
+`endif
 
-assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
-
-assign storage_addr =
-({STORAGE_ADDR_WIDTH{in_section_0}} & bram_addr_0[STORAGE_ADDR_WIDTH-1:0]);
+assign storage_addr = ({STORAGE_ADDR_WIDTH{in_section_0}} & bram_addr_0[STORAGE_ADDR_WIDTH-1:0]);
 
 assign storage_addr_out = {storage_addr, 3'b0};
 
-assign hit_any_section =
-in_section_0 ;
+assign hit_any_section = in_section_0 ;
 
 `else
 
