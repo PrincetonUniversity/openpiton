@@ -408,7 +408,8 @@ def setParserOptions(parser):
     parser.add_option("--make-mem-map", dest="make_mem_map", action="store_true", default=False)
     parser.add_option("--slurm", dest="slurm", action="store_true", default=False)
     parser.add_option("--swait", dest="swait", action="store_true", default=False)
-    parser.add_option("--axi4_mem_intf", dest="axi4_mem_intf", action="store_true", default=False)
+    parser.add_option("--axi4_mem", dest="axi4_mem", action="store_true", default=False)
+    parser.add_option("--zeroer_off", dest="zeroer_off", action="store_true", default=False)
 
     return parser
 
@@ -424,12 +425,16 @@ def makeDefList(options):
     else:   # default option
         defines.append("PITON_FPGA_MC_DDR3")
 
-    # --axi4_mem_intf option
-    if (options.axi4_mem_intf == True):
+    # --axi4_mem option
+    if (options.axi4_mem == True):
         if (options.board != "vc707"):
-            print_warning("axi4_mem_intf option is ignored without board != vc707")
+            print_warning("axi4_mem option is ignored without board != vc707")
         else:
-            defines.append("AXI4_MEM_INTF")        
+            defines.append("PITONSYS_AXI4_MEM")      
+        
+    # --zeroer_off option
+    if (options.zeroer_off == False):
+        defines.append("PITONSYS_MEM_ZEROER")    
 
     # do not use SD controller if BRAM is used for boot or a test
     if (options.test_name != None) or (options.board == "piton_board"):
