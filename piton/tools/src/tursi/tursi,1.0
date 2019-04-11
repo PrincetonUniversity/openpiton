@@ -50,6 +50,10 @@ MODEL_DIR = os.environ['MODEL_DIR']
 
 def setParserOptions(parser):
 
+    parser.add_argument("--fusesoc-config", dest="fusesoc_conf", action="store",
+                        type=str,
+                        help="FuseSoC configuration file location")
+
     fusesoc_core_choices = {
         "openpiton::chip_bridge"        : "** core description **",
         "openpiton::dynamic_node"       : "** core description **",
@@ -325,6 +329,15 @@ def main():
         print_error("y_tiles can be at most 256")
         sys.exit(1)
 
+    # FuseSoC library configuration file
+    fusesoc_config_arg = os.environ['PITON_ROOT'] + "/fusesoc.conf"
+    if args.fusesoc_conf != None:
+        fusesoc_config_arg = args.fusesoc_conf
+    if not os.path.isfile(fusesoc_config_arg):
+        print_error("FuseSoC configuration file {} does not exist.".format(fusesoc_config_arg))
+        print_error("You can generate a local FuseSoC configuration file using: # fusesoc library add openpiton ${PITON_ROOT}")
+        sys.exit(1)
+
     print_info("x_tiles   = " + str(args.x_tiles))
     print_info("y_tiles   = " + str(args.y_tiles))
     print_info("num_tiles = " + str(args.num_tiles))
@@ -414,7 +427,8 @@ def main():
 
     if do_pickle:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc build --target=pickle --tool=icarus {}'.format(args.fusesoc_core)
+        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {}'.format(fusesoc_config_arg, args.fusesoc_core)
+        print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:
             print_error("Pickling didn't finish successfully!")
@@ -423,7 +437,8 @@ def main():
         print_info("Pickling completed succesfully")
     if do_verify:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc run --target=verify --tool=icarus {}'.format(args.fusesoc_core)
+        cmd = 'fusesoc --config {} run --target=verify --tool=icarus {}'.format(fusesoc_config_arg, args.fusesoc_core)
+        print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:
             print_error("Pickling didn't finish successfully!")
