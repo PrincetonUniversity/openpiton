@@ -1495,12 +1495,16 @@ sub generic_sim_build
       $build_cmd .= "-exe $dv_root/tools/verilator/my_top.cpp " ;
       $build_cmd .= "$dv_root/tools/pli/iop/b_ary.c " ;
       $build_cmd .= "$dv_root/tools/pli/iop/bw_lib.c " ;
-      $build_cmd .= "$dv_root/tools/pli/iop/list.cc " ;
-      $build_cmd .= "$dv_root/tools/verilator/pli_replacement.cpp " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/iob_main.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/iob.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/cpx.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/pcx.cc " ;
       $build_cmd .= "--top-module cmp_top " ;
       $build_cmd .= "-Wno-fatal " ;
       $build_cmd .= "-DPITON_DPI " ;
-      $build_cmd .= "-CFLAGS -DVERILATOR -DPITON_DPI " ;
+      $build_cmd .= "-CFLAGS -DVERILATOR " ;
+      $build_cmd .= "-CFLAGS -DPITON_DPI " ;
+      $build_cmd .= "-CFLAGS -lstdc++ " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/pli/iop " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/verilator " ;
     }

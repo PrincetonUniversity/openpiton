@@ -70,18 +70,22 @@ private:
   pcx pcx_inst, *p_pkt;
   cpx cpx_inst, *c_pkt;
   //tf variable for cpx packet.
+  #ifndef PITON_DPI
   s_tfnodeinfo node_info;
+  #endif // ifndef PITON_DPI
   int *ptr;
   //interrupt register
 
   //routines
   void boot();
   void get_event(char* ev);
+#ifndef PITON_DPI
   void handle_pcx();  
   void handle_cpx();  
   void gen_event();
   //drive signals, which is less than 32 bits.
   void trig_pc_event();
+#endif // ifndef PITON_DPI
   void replace(char* str);
   void copy(char* buf, int* idx,  char* cbuf);
   KeyType getEight(char *buf);
@@ -89,9 +93,11 @@ private:
 public:
   //constructor
   int manual_init(char *ev);
+#ifndef PITON_DPI
   //iob functions
   void do_iob();
   void drive_cpx(int loc);
   void drive_req();
+#endif // ifndef PITON_DPI
 };
 #endif

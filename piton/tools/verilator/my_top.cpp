@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "verilated_vcd_c.h"
 #endif
 
+extern "C" void init_jbus_model_call(char *str, int oram);
+
 uint64_t main_time = 0; // Current simulation time
 uint64_t clk = 0;
 Vcmp_top* top;
@@ -89,7 +91,7 @@ void reset_and_init() {
 
     top->async_mux = 0;
 
-    //@@@ init_jbus_model("mem.image", 0);
+    init_jbus_model_call((char *) "mem.image", 0);
 
     std::cout << "Before first ticks" << std::endl << std::flush;
     tick();

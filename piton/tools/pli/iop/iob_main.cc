@@ -38,7 +38,12 @@
 #include "pcx.h"
 #include "b_ary.h"
 
+#ifdef PITON_DPI
+#include "svdpi.h"
+#endif
+
 // Routines called by the verilog code.
+#ifndef PITON_DPI
 extern "C" void iob_cdrive_call();
 extern "C" void init_jbus_model_call();
 
@@ -46,6 +51,9 @@ extern "C" void read_64b_call();
 extern "C" void write_64b_call();
 
 extern "C" void init_oram_call();
+#else // ifndef PITON_DPI
+extern "C" void init_jbus_model_call(char *str, int oram);
+#endif
 
 //define global variable
 //This memory is common for all devices.
@@ -63,33 +71,59 @@ static static_for_pli pli_var;
 /*------------------------------------------
 initialize all variable to be used in this env.
 -------------------------------------------*/
+#ifdef PITON_DPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+void init_jbus_model_call(char *str, int oram) {
+#else // ifndef PITON_DPI
 void init_jbus_model_call(){
   char  *str;
-  int   idx;
   int   oram;
+#endif // ifndef PITON_DPI
+  int   idx;
+#ifndef PITON_DPI
   set_random();
-
-  iob_inst.manual_init((char *)"diag.ev");
 
   str       = tf_getcstringp(1);  // a get file name.
   oram      = tf_getp(2); //whether to use oram or not
+#else // ifndef PITON_DPI
+  str       = (char *) "mem.image";
+  oram      = 0;
+#endif // ifndef PITON_DPI
+
+#ifndef PITON_DPI
+  iob_inst.manual_init((char *)"diag.ev");
+#endif
   sysMem              = b_create();//create
   if (!oram)
           read_mem(str, &sysMem);//read memory
   for(idx = 0; idx < 32; idx++)pli_var.last_addr[idx] = oram ? -1 : 0;
 }
+#ifdef PITON_DPI
+#ifdef __cplusplus
+}
+#endif
+#endif
 /*------------------------------------------
 handle the cmp clock domain jobs.
 -------------------------------------------*/
+#ifndef PITON_DPI
 void iob_cdrive_call()
 {
   iob_inst.do_iob();//do iob operations.
   iob_inst.drive_cpx(CPX_LOC);
   iob_inst.drive_req();
 }
+#endif
 /*------------------------------------------
 It return 8 junk bytes to caller.
 -------------------------------------------*/
+#ifdef PITON_DPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+#endif
 long long get_eight_byte(char* data, KeyType key)
 {
   long long  val;
@@ -102,7 +136,17 @@ long long get_eight_byte(char* data, KeyType key)
   }
   return val;
 }
+#ifdef PITON_DPI
+#ifdef __cplusplus
+}
+#endif
+#endif
 
+#ifdef PITON_DPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+#endif
 void write_eight_byte(char* data, KeyType key, unsigned long long val)
 {
   unsigned first = val >> 32;
@@ -120,27 +164,47 @@ void write_eight_byte(char* data, KeyType key, unsigned long long val)
   // io_printf("iob_main.cc wrote 0x%x%x\n", val, key);
   return;
 }
+#ifdef PITON_DPI
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 // get 64b of data from memory
+#ifdef PITON_DPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+vluint64_t read_64b_call(vluint64_t key_var)
+#else // ifdef PITON_DPI
 void read_64b_call()
+#endif
 {
   KeyType key;
+#ifndef PITON_DPI
   int low, high;
   low  = tf_getlongp(&high, 1);
   key   = high;
   key <<= 32;
   key  |= (unsigned)low;
+#else // ifndef PITON_DPI
+  key = key_var;
+#endif // ifndef PITON_DPI
   b_tree_atom_ptr data;
   KeyType   mask_addr;
   mask_addr = (((unsigned long long)key & 0x000000ffffffffffULL) >> 6);
 
   if(pli_var.last_addr[0] == mask_addr){
-      int low, high;
       unsigned long long data = get_eight_byte(pli_var.data[0]->data, key);
+    #ifndef PITON_DPI
+      int low, high;
       low = data & 0xffffffff;
       high = (data >> 32) & 0xffffffff;
       tf_putlongp(2, low, high);
     return;
+    #else // ifndef PITON_DPI
+    return data;
+    #endif // ifndef PITON_DPI
   }
   else {
     // trin
@@ -149,28 +213,49 @@ void read_64b_call()
       pli_var.data[0]      = data;
       pli_var.last_addr[0] = mask_addr;
 
-      int low, high;
       unsigned long long data = get_eight_byte(pli_var.data[0]->data, key);
+      #ifndef PITON_DPI
+      int low, high;
       low = data & 0xffffffff;
       high = (data >> 32) & 0xffffffff;
       tf_putlongp(2, low, high);
       return;
+      #else // ifndef PITON_DPI
+      return data;
+      #endif // ifndef PITON_DPI
     }
     else{
       // io_printf("iob_main.cc: cache line not found at address 0x%llx\n", mask_addr << 6);
       // io_printf("iob_main.cc1: key was 0x%llx\n", key);
       // io_printf("iob_main.cc1: high was 0x%x\n", high);
       // io_printf("iob_main.cc1: low was 0x%x\n", low);
+      #ifndef PITON_DPI
       tf_putlongp(2, 0, 0);
       return;
+      #else // ifndef PITON_DPI
+      return 0;
+      #endif // ifndef PITON_DPI
     }
   }
 }
+#ifdef PITON_DPI
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 // get 64b of data from memory
+#ifdef PITON_DPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+void write_64b_call(vluint64_t key_var, vluint64_t val)
+#else // ifdef PITON_DPI
 void write_64b_call()
+#endif
 {
   KeyType key;
+  #ifndef PITON_DPI
   int low, high;
   low  = tf_getlongp(&high, 1);
   key   = high;
@@ -181,6 +266,9 @@ void write_64b_call()
   val   = (unsigned)high;
   val <<= 32;
   val  |= (unsigned)low;
+  #else // ifndef PITON_DPI
+  key = key_var;
+  #endif // ifndef PITON_DPI
   b_tree_atom_ptr data;
   KeyType   mask_addr;
   mask_addr = (((unsigned long long)key & 0x000000ffffffffffULL) >> 6);
@@ -217,6 +305,11 @@ void write_64b_call()
     return;
   }
 }
+#ifdef PITON_DPI
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 /*------------------------------------------
 repeatedly call this to get the queue
@@ -232,6 +325,7 @@ pli argument 9 : val5 (output)
 pli argument 10: val6 (output)
 pli argument 11: val7 (output)
 -------------------------------------------*/
+#ifndef PITON_DPI
 void init_oram_call(){
   char  *fn;
   int   idx;
@@ -280,3 +374,4 @@ void init_oram_call(){
   }
   free(line);
 }
+#endif // ifndef PITON_DPI

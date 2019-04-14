@@ -41,8 +41,12 @@ extern "C" {
 
 //global define
 #ifndef __ICARUS__
+#ifndef PITON_DPI
 extern "C" void io_printf(char*, ...);
-#endif
+#else // ifndef PITON_DPI
+#define io_printf printf
+#endif // ifndef PITON_DPI
+#endif // ifndef __ICARUS__
 #define KeyType unsigned long long
 //define event record.
 typedef struct event_record{

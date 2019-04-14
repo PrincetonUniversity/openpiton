@@ -46,7 +46,11 @@ void iob::boot()
 {
   char  *pargs;
   int mask, i;
+  #ifndef PITON_DPI
   pargs = mc_scan_plusargs ((char *)"bootthread=");
+  #else
+  pargs = (char *) 0;
+  #endif
   if(pargs != (char *) 0){
     mask = atoi(pargs);
   }
@@ -89,7 +93,11 @@ void iob::get_event(char* str)
  
   if((fp = fopen(str, "r")) == 0){
     io_printf((char *)"Error:  can not open the event file %s for reading\n", str);
+    #ifndef PITON_DPI
     tf_dofinish();
+    #else // ifndef PITON_DPI
+    exit(1);
+    #endif // ifndef PITON_DPI
   }
   while(fgets(buf, BUFFER, fp)){
     idx = rmSpace(buf, 0, BUFFER);    
@@ -143,6 +151,7 @@ void iob::get_event(char* str)
   }
   fclose(fp); 
 }
+#ifndef PITON_DPI
 /*-----------------------------------------------------------------------------
 generate event.
 source is in the list event_list.
@@ -172,8 +181,10 @@ void iob::gen_event()
         p_pkt->pkt[3] |= one_event->vec;
         p_pkt->wait   = 3;
       pcx_list.push_back(p_pkt);
+      #ifndef VERILATOR
       io_printf((char *)"(%0d)Info:generating interrupt pcx packet thread(%d) many(%d)\n",
 		tf_gettime(), p_pkt->thrid, one_event->wait);
+      #endif
       one_event->wait--;
       /* if(one_event->wait == 0){
 	delete one_event;
@@ -326,6 +337,7 @@ void iob::do_iob()
   if(pcx_list.empty() == 0)handle_pcx();
   if(cpx_list.empty() == 0)handle_cpx();
 }
+#endif // ifndef PITON_DPI
 
 // Below is from strclass.cc / strclass.h which became unnecessary
 /*---------------------------------------
