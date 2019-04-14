@@ -32,10 +32,6 @@ module ciop_fake_iob(
     input clk,
     input rst_n,
 
-    input noc_in_val,
-    output reg noc_in_rdy,
-    input [`NOC_DATA_WIDTH-1:0] noc_in_data,
-
     output reg noc_out_val,
     input noc_out_rdy,
     output reg [`NOC_DATA_WIDTH-1:0] noc_out_data
@@ -51,83 +47,9 @@ print tt
 );
 `ifndef VERILATOR
 //temp. memory.
-reg [`IOB_CPU_WIDTH-1:0] 	    fake_iob_out_req;
 reg [`CPX_WIDTH-1:0] 	    fake_iob_out_data;
 
 wire [`CPX_WIDTH-1:0]       cpx_data = fake_iob_out_data;
-
-//Input buffer
-reg [`NOC_DATA_WIDTH-1:0] in_buffer [1:0];
-reg [`NOC_DATA_WIDTH-1:0] noc_buffer_write_packet;
-reg [3:0] in_buffer_counter;
-reg [3:0] in_buffer_counter_next;
-
-// buffer to iob interface
-reg buffer_iob_val;
-reg buffer_iob_rdy = 1'b1; // iob always accept packets
-reg [2*`NOC_DATA_WIDTH-1:0] buffer_iob_data; // TODO: error?
-
-// this block determines the next index for writing
-always @ (posedge clk)
-begin
-    if (noc_in_val && noc_in_rdy)
-    begin
-        in_buffer_counter_next = in_buffer_counter + 1;
-    end
-    else if (buffer_iob_val && buffer_iob_rdy)
-    begin
-        in_buffer_counter_next = 0;
-    end
-    else
-    begin
-        in_buffer_counter_next = in_buffer_counter;
-    end
-
-    if (in_buffer_counter > 2)
-    begin
-        $display("%d : Simulation -> FAIL(%0s)", $time, "ciop_iob.v: IOB in buffer overflowed");
-        repeat(5)@(posedge clk);
-`ifndef DISABLE_ALL_MONITORS
-        `MONITOR_PATH.fail("ciop_iob.v: IOB in buffer overflowed");
-`endif
-    end
-end
-
-always @ (posedge clk)
-begin
-    if (!rst_n)
-    begin
-        in_buffer[0] <= 0;
-        in_buffer[1] <= 0;
-    end
-    else
-    begin
-        if (noc_in_val && noc_in_rdy)
-            in_buffer[in_buffer_counter] <= noc_in_data;
-    end
-end
-
-always @ (posedge clk)
-begin
-    if (!rst_n)
-    begin
-        in_buffer_counter <= 0;
-    end
-    else
-    begin
-        in_buffer_counter <= in_buffer_counter_next;
-    end
-end
-
-reg noc_in_buf_full;
-always @ *
-begin
-    noc_in_buf_full = (in_buffer_counter ==  2);
-    noc_in_rdy = !noc_in_buf_full;
-    buffer_iob_val = noc_in_buf_full;
-    buffer_iob_data = {in_buffer[0], in_buffer[1]};
-end
-
 
 // Output buffer
 // The output buffer need to be asynchronous and cannot ever be overflowed.
@@ -266,8 +188,6 @@ end
 
 
 // input signals
-wire  [`PCX_WIDTH-1:0]           pcx_iob_data        = {buffer_iob_val,5'b01001,1'b0,3'b0,2'b0,48'b0,buffer_iob_data[63:0]};
-wire  [`IOB_CPU_WIDTH-1:0]       cpx_iob_grant       = fake_iob_out_req; // basically always ready
 <%
 text = '''
 wire                             spc0_inst_done_buf  = spc0_inst_done;
@@ -282,7 +202,6 @@ reg 	 ok_iob;
 initial
 begin
     ok_iob    = 0;
-    fake_iob_out_req   = 0;
     fake_iob_out_data  = 0;
 end
 
@@ -294,13 +213,8 @@ begin
     if(ok_iob)
     begin
         $iob_cdriver(//input to pli
-            //pcx packet from core
-            pcx_iob_data,
             //cpx request from iob
-            fake_iob_out_req,
-            fake_iob_out_data,
-            //grand and request
-            cpx_iob_grant<%
+            fake_iob_out_data<%
 text = ''',
             //pc event
             spc0_inst_done_buf,

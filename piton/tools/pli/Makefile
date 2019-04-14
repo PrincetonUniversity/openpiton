@@ -35,21 +35,18 @@ LIB_PATH = ${DV_ROOT}/tools/$(OS)/$(CPU)/lib
 
 LIB_A	=	$(TOOL_PLI_DIR)/mem/libmem_pli.a \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli.a \
-		$(TOOL_PLI_DIR)/utility/libutility_pli.a \
 		$(TOOL_PLI_DIR)/iop/libiob.a
 
 # ncverilog .a libraries
 
 LIB_A_NCV=	$(TOOL_PLI_DIR)/mem/libmem_pli_ncv.a \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli_ncv.a \
-		$(TOOL_PLI_DIR)/utility/libutility_ncv.a \
 		$(TOOL_PLI_DIR)/iop/libiob_ncv.a
 
 # ncverilog .so libraries
 
 LIB_SO	=	$(TOOL_PLI_DIR)/mem/libmem_pli_ncv.so \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli_ncv.so \
-		$(TOOL_PLI_DIR)/utility/libutility_ncv.so \
 		$(TOOL_PLI_DIR)/iop/libiob_ncv.so \
 		$(TOOL_PLI_DIR)/libpli.so
 
@@ -57,14 +54,12 @@ LIB_SO	=	$(TOOL_PLI_DIR)/mem/libmem_pli_ncv.so \
 
 LIB_A_ICARUS=	$(TOOL_PLI_DIR)/mem/libmem_pli_icarus.a \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli_icarus.a \
-		$(TOOL_PLI_DIR)/utility/libutility_icarus.a \
 		$(TOOL_PLI_DIR)/iop/libiob_icarus.a
 
 # icarus .a libraries
 
 LIB_A_MODELSIM=	$(TOOL_PLI_DIR)/mem/libmem_pli_modelsim.a \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli_modelsim.a \
-		$(TOOL_PLI_DIR)/utility/libutility_modelsim.a \
 		$(TOOL_PLI_DIR)/iop/libiob_modelsim.a
 
 NCV_EXE = 	ncsim ncelab
@@ -99,11 +94,6 @@ $(TOOL_PLI_DIR)/socket/libsocket_pli.a:
 	(rm -f $(LIB_PATH)/libsocket_pli.a)
 	cp $@ $(LIB_PATH)
 
-$(TOOL_PLI_DIR)/utility/libutility_pli.a:
-	(cd $(TOOL_PLI_DIR)/utility; make)
-	(rm -f $(LIB_PATH)/libutility_pli.a)
-	cp $@ $(LIB_PATH)
-
 $(TOOL_PLI_DIR)/iop/libiob.a:
 	(cd $(TOOL_PLI_DIR)/iop; make)
 	(rm -f $(LIB_PATH)/libiob.a)
@@ -119,11 +109,6 @@ $(TOOL_PLI_DIR)/mem/libmem_pli_ncv.so:
 $(TOOL_PLI_DIR)/socket/libsocket_pli_ncv.so:
 	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.ncv)
 	(rm -f $(LIB_PATH)/libsocket_pli_ncv.so)
-	cp $@ $(LIB_PATH)
-
-$(TOOL_PLI_DIR)/utility/libutility_ncv.so:
-	(cd $(TOOL_PLI_DIR)/utility; make -f Makefile.ncv)
-	(rm -f $(LIB_PATH)/libutility_ncv.so)
 	cp $@ $(LIB_PATH)
 
 $(TOOL_PLI_DIR)/iop/libiob_ncv.so:
@@ -143,11 +128,6 @@ $(TOOL_PLI_DIR)/socket/libsocket_pli_icarus.a:
 	(rm -f $(LIB_PATH)/libsocket_pli_icarus.a)
 	cp $@ $(LIB_PATH)
 
-$(TOOL_PLI_DIR)/utility/libutility_icarus.a:
-	(cd $(TOOL_PLI_DIR)/utility; make -f Makefile.icarus)
-	(rm -f $(LIB_PATH)/libutility_icarus.a)
-	cp $@ $(LIB_PATH)
-
 $(TOOL_PLI_DIR)/iop/libiob_icarus.a:
 	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.icarus)
 	(rm -f $(LIB_PATH)/libiob_icarus.a)
@@ -163,11 +143,6 @@ $(TOOL_PLI_DIR)/mem/libmem_pli_modelsim.a:
 $(TOOL_PLI_DIR)/socket/libsocket_pli_modelsim.a:
 	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.modelsim)
 	(rm -f $(LIB_PATH)/libsocket_pli_modelsim.a)
-	cp $@ $(LIB_PATH)
-
-$(TOOL_PLI_DIR)/utility/libutility_modelsim.a:
-	(cd $(TOOL_PLI_DIR)/utility; make -f Makefile.modelsim)
-	(rm -f $(LIB_PATH)/libutility_modelsim.a)
 	cp $@ $(LIB_PATH)
 
 $(TOOL_PLI_DIR)/iop/libiob_modelsim.a:
@@ -199,7 +174,6 @@ ncelab:
 	${NCV_HOME}/tools/inca/lib/64bit/ncelab.o \
 	-L$(LIB_PATH) -lsocket_pli_ncv \
 	-lpli \
-	-lutility_ncv \
 	-lmem_pli_ncv \
 	-liob_ncv \
 	-L${NCV_HOME}/tools/inca/lib/64bit -lvoids \
@@ -217,7 +191,6 @@ ncsim:
 	main.cc \
 	-L$(LIB_PATH) -lsocket_pli_ncv \
 	-lpli \
-	-lutility_ncv \
 	-lmem_pli_ncv \
 	-liob_ncv \
 	-L${NCV_HOME}/tools/lib/64bit -ludm -lsimcontrol \
@@ -263,7 +236,6 @@ veriuser.vpi: $(LIB_A_ICARUS) veriuser_icarus.o
 	-L$(ICARUS_HOME)/lib -lvpi \
 	-lveriuser \
 	-L$(LIB_PATH) -lsocket_pli_icarus \
-	-lutility_icarus \
 	-lmem_pli_icarus \
 	-liob_icarus \
         $(ADDITIONAL_ARGS)
@@ -275,7 +247,6 @@ veriuser.vpi: $(LIB_A_ICARUS) veriuser_icarus.o
 libmodelsimpli.so: $(LIB_A_MODELSIM) veriuser_modelsim.o
 	$(CXX) -shared -o $@ veriuser_modelsim.o \
 	-L$(LIB_PATH) -lsocket_pli_modelsim \
-	-lutility_modelsim \
 	-lmem_pli_modelsim \
 	-liob_modelsim \
         $(ADDITIONAL_ARGS)

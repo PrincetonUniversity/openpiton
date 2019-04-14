@@ -31,13 +31,12 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <inttypes.h>
+#include "iob.h"
 #include "global.h"
 #include "bw_lib.h"
-#include "list.h"
 #include "cpx.h"
 #include "pcx.h"
 #include "b_ary.h"
-#include "iob.h"
 
 // Routines called by the verilog code.
 extern "C" void iob_cdrive_call();
@@ -56,7 +55,7 @@ static iob iob_inst; //("diag.ev");
 static FILE *oram_fp = NULL;
 
 //define dummy structure for static variable.
-typedef struct static_for_pli{
+struct static_for_pli{
   b_tree_atom_ptr data[32];
   KeyType      last_addr[32];
 };
@@ -70,7 +69,7 @@ void init_jbus_model_call(){
   int   oram;
   set_random();
 
-  iob_inst.manual_init("diag.ev");
+  iob_inst.manual_init((char *)"diag.ev");
 
   str       = tf_getcstringp(1);  // a get file name.
   oram      = tf_getp(2); //whether to use oram or not
@@ -86,7 +85,7 @@ void iob_cdrive_call()
 {
   iob_inst.do_iob();//do iob operations.
   iob_inst.drive_cpx(CPX_LOC);
-  iob_inst.drive_req(CPX_REQ);
+  iob_inst.drive_req();
 }
 /*------------------------------------------
 It return 8 junk bytes to caller.
@@ -265,8 +264,11 @@ void init_oram_call(){
   } else {
           tf_putp(2, 0); //done = 0
           sscanf(line, "%s %s %s %s %s %s %s %s %s\n",
-                 &buf[0], &buf[1], &buf[2], &buf[3], &buf[4],
-                 &buf[5], &buf[6], &buf[7], &buf[8]);
+                 (char *)(&buf[0]), (char *)(&buf[1]),
+                 (char *)(&buf[2]), (char *)(&buf[3]),
+                 (char *)(&buf[4]), (char *)(&buf[5]),
+                 (char *)(&buf[6]), (char *)(&buf[7]),
+                 (char *)(&buf[8]));
           addr = strtoul(buf[0], NULL, 16);
           //io_printf("oram init. addr: %x\n", addr);
           tf_putlongp(3, addr & 0xffffffff, (addr >> 32) & 0xffffffff);

@@ -76,17 +76,6 @@ extern "C" {
   // used in update and from user
   b_tree_atom_ptr b_Find(b_tree_node_ptr* p,
 			 KeyType* key);
-
-  // presumably used from user
-  int b_update(b_tree_atom_ptr* atom,
-	       b_tree_node_ptr* p);
-
-  // presumably used by user
-  int b_rmFind(b_tree_node_ptr* p,
-	       b_tree_node_ptr* parent,
-	       b_tree_atom_ptr* atom);
-  int b_delete(b_tree_node_ptr* root,
-	       KeyType key);
 #ifdef __cplusplus
 }
 #endif

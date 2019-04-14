@@ -135,7 +135,7 @@ void read_mem(char*              str,
 
     if((fp = fopen(str, "r")) == 0){
         #ifndef VERILATOR
-        io_printf("Error:  can not open file %s for reading\n", str);
+        io_printf((char *)"Error:  can not open file %s for reading\n", str);
         tf_dofinish();
         #else
         printf("Error:  can not open file %s for reading\n", str);
@@ -202,7 +202,7 @@ void set_random()
 {
     char  *pargs;
     unsigned int seed;
-    pargs = mc_scan_plusargs ("tg_seed=");  
+    pargs = mc_scan_plusargs ((char *)"tg_seed=");  
     if(pargs != (char *) 0) {
         seed = atoi(pargs);
         srand(seed);

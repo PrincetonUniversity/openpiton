@@ -1771,7 +1771,7 @@ sub generic_sim_run
       close (NCVCMD) ;
       `chmod +x ncv_cmd`;
 
-      $cmd = "ncv_cmd";
+      $cmd = "./ncv_cmd";
 
       $ENV{LD_LIBRARY_PATH} = $ld_lib_path;
     }

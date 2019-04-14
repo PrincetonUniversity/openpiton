@@ -34,20 +34,16 @@ private:
 
 public:
   //public pcx packet field vaiable
-  char  rqtype, nc, way, bf_id, cpu_id; 
-  char  thrid, size,  pa_10_6, way_vld;
+  char  cpu_id; 
+  char  thrid;
   int true_id;
 
   char  wait ;
-  int up, low;
   //pkt holds the pcx packet.
   int pkt[4];
-  KeyType addr, mask_addr;
   //constructor
   pcx(int* pkt);
   pcx(){wait = random() & 0x7;}//no initialize
-  //get pkt field
-  void chop_pkt(int* pcx_pkt, int avail);
   int  get_delay(){--wait;return wait;}
   void set_delay(){wait = 1;}
   //clean

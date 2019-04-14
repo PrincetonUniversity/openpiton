@@ -51,19 +51,11 @@ module iob_mon (
 
 always @ (posedge clk)
 begin
-    if(`FAKE_IOB.noc_in_val && `FAKE_IOB.noc_in_rdy)
-    begin
-        $display("Iob NOC1 received a packet: %h", `FAKE_IOB.noc_in_data);
-    end
     if(`FAKE_IOB.noc_out_val && `FAKE_IOB.noc_out_rdy)
     begin
         $display("Iob NOC2 sent a packet: %h", `FAKE_IOB.noc_out_data);
     end
     
-    if(`FAKE_IOB.pcx_iob_data[123])
-    begin
-        $display("Iob PCX received a packet: %h\n", `FAKE_IOB.pcx_iob_data);
-    end
     if(`FAKE_IOB.cpx_data[144])
     begin
         $display("Iob CPX sent a packet: %h\n", `FAKE_IOB.cpx_data);
