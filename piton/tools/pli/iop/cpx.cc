@@ -79,9 +79,11 @@ int* cpx::get_cpx()
   //case INT_RET :
     cpx_pkt[0] &= 0x17000;
   //print cpx packet
-#ifndef VERILATOR
+#ifndef PITON_DPI
   io_printf((char *)"(%0d)Info: cpx packet from iob ->", tf_gettime());
-#endif
+#else // ifndef PITON_DPI
+  io_printf((char *)"Info: cpx packet from iob ->");
+#endif // ifndef PITON_DPI
   io_printf((char *)"%x", cpx_pkt[0] & 0x1ffff);
   for(idx = 1; idx < 5;idx++)io_printf((char *)"%08x", cpx_pkt[idx]);
   io_printf((char *)"\n");

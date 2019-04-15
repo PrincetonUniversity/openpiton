@@ -25,15 +25,15 @@
 #define _BW_LIB_H_
 #include "b_ary.h"
 #include <stdlib.h>
-#ifndef VERILATOR
+#ifndef PITON_DPI
 #include "veriuser.h"
 #include "acc_user.h"
-#else
+#else // ifndef PITON_DPI
 #include "global.h"
-#endif
+#endif // ifndef PITON_DPI
 #ifdef __ICARUS__
 #include "icarus-compat.h"
-#endif
+#endif // ifdef __ICARUS__
 //general
 #define BUFFER 1024
 

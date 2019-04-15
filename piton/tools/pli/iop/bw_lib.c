@@ -134,7 +134,7 @@ void read_mem(char*              str,
     int dev, zero;
 
     if((fp = fopen(str, "r")) == 0){
-        #ifndef VERILATOR
+        #ifndef PITON_DPI
         io_printf((char *)"Error:  can not open file %s for reading\n", str);
         tf_dofinish();
         #else
@@ -197,7 +197,7 @@ void read_mem(char*              str,
 /*------------------------------------------
 set random seed
 -------------------------------------------*/
-#ifndef VERILATOR
+#ifndef PITON_DPI
 void set_random()
 {
     char  *pargs;
