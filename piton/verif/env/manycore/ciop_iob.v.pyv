@@ -45,7 +45,6 @@ tt = ReplicatePattern(text, pattern)
 print tt
 %>
 );
-`ifndef VERILATOR
 //temp. memory.
 reg [`CPX_WIDTH-1:0] 	    fake_iob_out_data;
 
@@ -205,6 +204,8 @@ begin
     fake_iob_out_data  = 0;
 end
 
+integer cpx_driven;
+
 // cmp clock domain
 // trin bug #65: use reference clock from the chip b/c the fake iob
 // needs to monitor the core PC
@@ -212,6 +213,7 @@ always @(negedge `CHIP.clk_muxed)
 begin
     if(ok_iob)
     begin
+        `ifndef PITON_DPI
         $iob_cdriver(//input to pli
             //cpx request from iob
             fake_iob_out_data<%
@@ -224,87 +226,41 @@ tt = ReplicatePattern(text, pattern)
 print tt
 %>
         );
+        `else // ifndef PITON_DPI
+            <%
+text = '''
+        if (spc0_inst_done_buf) begin
+            report_pc({{16{pc_w0_buf[39]}}, pc_w0_buf});
+        end'''
+pattern = ["spc0", "pc_w0"]
+tt = ReplicatePattern(text, pattern)
+print tt
+%>
+        cpx_driven = drive_iob();
+        if (cpx_driven) begin
+            fake_iob_out_data[159:128] = get_cpx_word(0);
+            fake_iob_out_data[127:96] = get_cpx_word(1);
+            fake_iob_out_data[95:64] = get_cpx_word(2);
+            fake_iob_out_data[63:32] = get_cpx_word(3);
+            fake_iob_out_data[31:0] = get_cpx_word(4);
+            $display("Doing IOB stuff - got values: %x %x %x %x %x", fake_iob_out_data[159:128], fake_iob_out_data[127:96], fake_iob_out_data[95:64], fake_iob_out_data[63:32], fake_iob_out_data[31:0]);
+        end else begin
+            fake_iob_out_data = {160{1'b0}};
+        end
+        `endif
 
         // a little error check
         if (iob_buffer_val && (out_buffer_val[out_write_index] | out_buffer_val[out_write_index + 1] == 1'b1))
         begin
             $display("%d : Simulation -> FAIL(%0s)", $time, "ciop_iob.v: IOB out buffer overflowed");
+            `ifndef VERILATOR
             repeat(5)@(posedge clk);
+            `endif
 `ifndef DISABLE_ALL_MONITORS
             `MONITOR_PATH.fail("ciop_iob.v: IOB out buffer overflowed");
 `endif
         end
     end // if (ok_iob)
 end // always @ (posedge cmp_gclk)
-
-`else
-// Code from ciop_iob for FPGA
-reg                     ok_iob;
-
-initial
-begin
-    ok_iob    = 0;
-end
-
-// making wake up packet
-parameter FLIT_TO_SEND = 2;
-
-wire [63:0]         iob_buffer_flit1;
-wire [63:0]         iob_buffer_flit2;
-reg                 iob_buffer_val;
-reg  [1:0]          flit_cnt;
-
-assign iob_buffer_flit1     = 64'h0000_0000_0048_4000;
-assign iob_buffer_flit2     = 64'h0000_0000_0001_0001;
-
-reg                 ok_iob_sent;
-
-always @(posedge clk) begin
-    if (~rst_n) begin
-        flit_cnt <= 2'b0;
-    end
-    else if (~ok_iob_sent) begin
-        flit_cnt <= noc_out_val & noc_out_rdy ? flit_cnt + 1 : flit_cnt;
-    end 
-    else begin
-        flit_cnt <= flit_cnt;
-    end
-end
-
-always @(posedge clk)
-    iob_buffer_val <= ok_iob;
-
-always @* begin
-    noc_out_val = iob_buffer_val & (((flit_cnt < FLIT_TO_SEND) && !ok_iob_sent));
-end
-
-always @(*) begin
-    if (!ok_iob_sent) begin
-        if(flit_cnt == 2'b0) begin
-            noc_out_data = iob_buffer_flit1;
-        end else if (flit_cnt == 2'b1) begin
-            noc_out_data = iob_buffer_flit2;
-        end 
-        else begin
-            noc_out_data =  {`NOC_DATA_WIDTH{1'b0}};
-        end
-    end 
-    else begin
-        noc_out_data =  {`NOC_DATA_WIDTH{1'b0}};
-    end
-end
-
-// Note when ok_iob finishes sending both packets
-// ok_iob_sent could technically be a wire fed by flit_cnt?
-always @(posedge clk) begin
-    if (~rst_n) begin
-        ok_iob_sent <= 1'b0;
-    end
-    else if (flit_cnt == FLIT_TO_SEND) begin
-       ok_iob_sent <= 1'b1;
-    end
-end
-
-`endif
 
 endmodule

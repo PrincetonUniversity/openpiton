@@ -53,6 +53,11 @@ extern "C" void write_64b_call();
 extern "C" void init_oram_call();
 #else // ifndef PITON_DPI
 extern "C" void init_jbus_model_call(char *str, int oram);
+extern "C" vluint64_t read_64b_call(vluint64_t key_var);
+extern "C" void write_64b_call(vluint64_t key_var, vluint64_t val);
+extern "C" int drive_iob();
+extern "C" int get_cpx_word(int index);
+extern "C" void report_pc(unsigned long long thread_pc);
 #endif
 
 //define global variable
@@ -72,9 +77,6 @@ static static_for_pli pli_var;
 initialize all variable to be used in this env.
 -------------------------------------------*/
 #ifdef PITON_DPI
-#ifdef __cplusplus
-extern "C" {
-#endif
 void init_jbus_model_call(char *str, int oram) {
 #else // ifndef PITON_DPI
 void init_jbus_model_call(){
@@ -92,19 +94,12 @@ void init_jbus_model_call(){
   oram      = 0;
 #endif // ifndef PITON_DPI
 
-#ifndef PITON_DPI
   iob_inst.manual_init((char *)"diag.ev");
-#endif
   sysMem              = b_create();//create
   if (!oram)
           read_mem(str, &sysMem);//read memory
   for(idx = 0; idx < 32; idx++)pli_var.last_addr[idx] = oram ? -1 : 0;
 }
-#ifdef PITON_DPI
-#ifdef __cplusplus
-}
-#endif
-#endif
 /*------------------------------------------
 handle the cmp clock domain jobs.
 -------------------------------------------*/
@@ -115,15 +110,28 @@ void iob_cdrive_call()
   iob_inst.drive_cpx(CPX_LOC);
   iob_inst.drive_req();
 }
+#else
+int drive_iob()
+{
+    iob_inst.do_iob();
+    int cpx_driven = iob_inst.drive_cpx();
+    iob_inst.drive_req();
+    return cpx_driven;
+}
+
+int get_cpx_word(int index)
+{
+    return iob_inst.get_cpx_word(index);
+}
+
+void report_pc(unsigned long long thread_pc)
+{
+    iob_inst.trig_pc_event(thread_pc);
+}
 #endif
 /*------------------------------------------
 It return 8 junk bytes to caller.
 -------------------------------------------*/
-#ifdef PITON_DPI
-#ifdef __cplusplus
-extern "C" {
-#endif
-#endif
 long long get_eight_byte(char* data, KeyType key)
 {
   long long  val;
@@ -136,17 +144,7 @@ long long get_eight_byte(char* data, KeyType key)
   }
   return val;
 }
-#ifdef PITON_DPI
-#ifdef __cplusplus
-}
-#endif
-#endif
 
-#ifdef PITON_DPI
-#ifdef __cplusplus
-extern "C" {
-#endif
-#endif
 void write_eight_byte(char* data, KeyType key, unsigned long long val)
 {
   unsigned first = val >> 32;
@@ -164,17 +162,9 @@ void write_eight_byte(char* data, KeyType key, unsigned long long val)
   // io_printf("iob_main.cc wrote 0x%x%x\n", val, key);
   return;
 }
-#ifdef PITON_DPI
-#ifdef __cplusplus
-}
-#endif
-#endif
 
 // get 64b of data from memory
 #ifdef PITON_DPI
-#ifdef __cplusplus
-extern "C" {
-#endif
 vluint64_t read_64b_call(vluint64_t key_var)
 #else // ifdef PITON_DPI
 void read_64b_call()
@@ -238,17 +228,9 @@ void read_64b_call()
     }
   }
 }
-#ifdef PITON_DPI
-#ifdef __cplusplus
-}
-#endif
-#endif
 
 // get 64b of data from memory
 #ifdef PITON_DPI
-#ifdef __cplusplus
-extern "C" {
-#endif
 void write_64b_call(vluint64_t key_var, vluint64_t val)
 #else // ifdef PITON_DPI
 void write_64b_call()
@@ -305,11 +287,6 @@ void write_64b_call()
     return;
   }
 }
-#ifdef PITON_DPI
-#ifdef __cplusplus
-}
-#endif
-#endif
 
 /*------------------------------------------
 repeatedly call this to get the queue

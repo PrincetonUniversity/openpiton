@@ -151,7 +151,6 @@ void iob::get_event(char* str)
   }
   fclose(fp); 
 }
-#ifndef PITON_DPI
 /*-----------------------------------------------------------------------------
 generate event.
 source is in the list event_list.
@@ -181,9 +180,12 @@ void iob::gen_event()
         p_pkt->pkt[3] |= one_event->vec;
         p_pkt->wait   = 3;
       pcx_list.push_back(p_pkt);
-      #ifndef VERILATOR
+      #ifndef PITON_DPI
       io_printf((char *)"(%0d)Info:generating interrupt pcx packet thread(%d) many(%d)\n",
 		tf_gettime(), p_pkt->thrid, one_event->wait);
+      #else
+      io_printf((char *)"Info:generating interrupt pcx packet thread(%d) many(%d)\n",
+		p_pkt->thrid, one_event->wait);
       #endif
       one_event->wait--;
       /* if(one_event->wait == 0){
@@ -203,6 +205,7 @@ layout:
 1). inst_done 
 2). phyical pc
 -----------------------------------------------------------------------------*/
+#ifndef PITON_DPI
 void iob::trig_pc_event()
 {
   for(idx = PC_EVENT; idx < PC_EVENT + 8; idx += 2){
@@ -217,6 +220,17 @@ void iob::trig_pc_event()
     }
   }
 }
+#else // ifndef PITON_DPI
+void iob::trig_pc_event(unsigned long long thread_pc)
+{
+    pc = thread_pc;
+    if(inst_event.count(pc) > 0) {
+        event_list = &inst_event.at(pc);
+	io_printf((char *)"Info:generate interrupt events for this pc(%llx)\n", pc);
+	gen_event();
+    }
+}
+#endif // ifndef PITON_DPI
 /*-----------------------------------------------------------------------------
   process pcx packet.
   -----------------------------------------------------------------------------*/
@@ -245,8 +259,13 @@ void iob::handle_pcx()
   1). pkt_vld, send the valid cpx packet.
   2). next_cpx = 1, reset the valid bit.
 -----------------------------------------------------------------------------*/
+#ifndef PITON_DPI
 void iob::drive_cpx(int loc)
 {
+#else // ifndef PITON_DPI
+int iob::drive_cpx()
+{
+#endif // ifndef PITON_DPI
 #ifdef USE_ACC
   s_setval_delay delay_s;
   s_setval_value value_s;
@@ -267,6 +286,7 @@ void iob::drive_cpx(int loc)
       cpx_heap.push_back(c_pkt);//free memory
     }
 
+#ifndef PITON_DPI
 #ifdef USE_ACC
     sprintf(outdata,"%x", next_cpx ? (ptr[0] & 0x1ffff) : 0);
     for(idx = 1; idx < 5;idx++) {
@@ -279,7 +299,7 @@ void iob::drive_cpx(int loc)
     value_s.value.str = outdata;
     acc_set_value(tmphandle, &value_s, &delay_s);
 
-#else
+#else // ifdef USE_ACC
     tf_nodeinfo(loc, &node_info);
     idx = 0;
     for(groups = node_info.node_ngroups -1 ; groups >= 0; groups--){
@@ -287,16 +307,31 @@ void iob::drive_cpx(int loc)
       node_info.node_value.vecval_p[groups].bvalbits = 0;
     }
     tf_propagatep(loc);
-#endif
+#endif // ifdef USE_ACC
+#endif // ifndef PITON_DPI
   }
+#ifdef PITON_DPI
+  return next_cpx;
+#endif // ifndef PITON_DPI
 }
+
+#ifdef PITON_DPI
+int iob::get_cpx_word(int index)
+{
+    return ptr[index];
+}
+#endif // ifdef PITON_DPI
 /*-----------------------------------------------------------------------------
  drive the valid. At the next cycle, reset request.
 -----------------------------------------------------------------------------*/
 void iob::drive_req()
 {
   if(next_req){
+    #ifndef PITON_DPI
     io_printf((char *)"Info(%0d): cpx request %x\n", tf_gettime(), req & 0xff);
+    #else // ifndef PITON_DPI
+    io_printf((char *)"Info: cpx request %x\n", req & 0xff);
+    #endif // ifndef PITON_DPI
     grant = req; // Was used to push data in verilog
     next_req = req ? 1 : 0;
     req      = 0;
@@ -312,7 +347,11 @@ void iob::handle_cpx()
   if((*c_pkt).get_req_wait() && (Qsel[(*c_pkt).cpu_id] != 2)){//send request
     req     = (*c_pkt).get_req();
     next_req= 1;   
+    #ifndef PITON_DPI
     io_printf((char *)"Info(%d): Qsel value(%d)\n", tf_gettime(), Qsel[(*c_pkt).cpu_id]);
+    #else // ifndef PITON_DPI
+    io_printf((char *)"Info: Qsel value(%d)\n", Qsel[(*c_pkt).cpu_id]);
+    #endif // ifndef PITON_DPI
     Qsel[(*c_pkt).cpu_id]++;
   }
   if((*c_pkt).get_cpx_wait())pkt_vld = 1;
@@ -333,11 +372,12 @@ void iob::do_iob()
       grant >>= 1;
     }
   }
+  #ifndef PITON_DPI
   trig_pc_event();//check pc event
+  #endif // ifndef PITON_DPI
   if(pcx_list.empty() == 0)handle_pcx();
   if(cpx_list.empty() == 0)handle_cpx();
 }
-#endif // ifndef PITON_DPI
 
 // Below is from strclass.cc / strclass.h which became unnecessary
 /*---------------------------------------

@@ -37,6 +37,9 @@
 `ifdef PITON_DPI
 import "DPI-C" function longint read_64b_call (input longint addr);
 import "DPI-C" function void write_64b_call (input longint addr, input longint data);
+import "DPI-C" function int drive_iob ();
+import "DPI-C" function int get_cpx_word (int index);
+import "DPI-C" function void report_pc (longint thread_pc);
 `endif
 
 `timescale 1ps/1ps
@@ -505,11 +508,9 @@ system system(
         .clk (jtag_clk)
         );
 
-`ifndef VERILATOR
     iob_mon iob_mon(
         .clk (chipset_clk)
     );
-`endif
     // sas, more debug info
 
     // turn on sas interface after a delay
