@@ -59,73 +59,73 @@
 
 module noc_axi4_bridge (
     // Clock + Reset
-    input  wire                                   clk,
-    input  wire                                   rst_n,
+    (* mark_debug = "true" *) input  wire                                   clk,
+    (* mark_debug = "true" *) input  wire                                   rst_n,
 
     // Memory Splitter -> AXI SPI
-    input  wire                                   splitter_bridge_val,
-    input  wire [`NOC_DATA_WIDTH-1:0]             splitter_bridge_data,
-    output wire                                   bridge_splitter_rdy,
+    (* mark_debug = "true" *) input  wire                                   splitter_bridge_val,
+    (* mark_debug = "true" *) input  wire [`NOC_DATA_WIDTH-1:0]             splitter_bridge_data,
+    (* mark_debug = "true" *) output wire                                   splitter_bridge_rdy,
 
     // Memory Splitter <- AXI SPI
-    output  reg                                   bridge_splitter_val,
-    output  reg  [`NOC_DATA_WIDTH-1:0]            bridge_splitter_data,
-    input  wire                                   splitter_bridge_rdy,
+    (* mark_debug = "true" *) output  reg                                   bridge_splitter_val,
+    (* mark_debug = "true" *) output  reg  [`NOC_DATA_WIDTH-1:0]            bridge_splitter_data,
+    (* mark_debug = "true" *) input  wire                                   bridge_splitter_rdy,
 
     // AXI Write Address Channel Signals
-    output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
-    output  reg [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
-    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
-    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
-    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
-    output wire                                  m_axi_awlock,
-    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
-    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
-    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
-    output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
-    output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
-    output  reg                                  m_axi_awvalid,
-    input  wire                                  m_axi_awready,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
+    (* mark_debug = "true" *) output  reg [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
+    (* mark_debug = "true" *) output wire                                  m_axi_awlock,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
+    (* mark_debug = "true" *) output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
+    (* mark_debug = "true" *) output  reg                                  m_axi_awvalid,
+    (* mark_debug = "true" *) input  wire                                  m_axi_awready,
 
     // AXI Write Data Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    output  reg  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    output  reg  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
-    output  reg                                   m_axi_wlast,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
-    output  reg                                   m_axi_wvalid,
-    input  wire                                   m_axi_wready,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    (* mark_debug = "true" *) output  reg  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    (* mark_debug = "true" *) output  reg  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    (* mark_debug = "true" *) output  reg                                   m_axi_wlast,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    (* mark_debug = "true" *) output  reg                                   m_axi_wvalid,
+    (* mark_debug = "true" *) input  wire                                   m_axi_wready,
 
     // AXI Read Address Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
-    output  reg  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
-    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
-    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
-    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
-    output wire                                   m_axi_arlock,
-    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
-    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
-    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
-    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
-    output  reg                                   m_axi_arvalid,
-    input  wire                                   m_axi_arready,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    (* mark_debug = "true" *) output  reg  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    (* mark_debug = "true" *) output wire                                   m_axi_arlock,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    (* mark_debug = "true" *) output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    (* mark_debug = "true" *) output  reg                                   m_axi_arvalid,
+    (* mark_debug = "true" *) input  wire                                   m_axi_arready,
 
     // AXI Read Data Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
-    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
-    input  wire                                   m_axi_rlast,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
-    input  wire                                   m_axi_rvalid,
-    output  reg                                   m_axi_rready,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    (* mark_debug = "true" *) input  wire                                   m_axi_rlast,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    (* mark_debug = "true" *) input  wire                                   m_axi_rvalid,
+    (* mark_debug = "true" *) output  reg                                   m_axi_rready,
 
     // AXI Write Response Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
-    input  wire                                   m_axi_bvalid,
-    output  reg                                   m_axi_bready
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    (* mark_debug = "true" *) input  wire                                   m_axi_bvalid,
+    (* mark_debug = "true" *) output  reg                                   m_axi_bready
 );
 
 //==============================================================================
@@ -205,38 +205,38 @@ localparam STORE_ACK = 1'd1;
 //==============================================================================
 
 // Meta-registers for tracking incoming Piton packets (used in parsing)
- reg  [2:0]                          splitter_io_msg_state_f;
- reg  [1:0]                          splitter_io_msg_type_f;
- reg  [`MSG_LENGTH_WIDTH-1:0]        splitter_io_msg_counter_f;
- reg  [`MSG_LENGTH_WIDTH-1:0]        splitter_io_msg_data_counter_f;
+ (* mark_debug = "true" *) reg  [2:0]                          splitter_io_msg_state_f;
+ (* mark_debug = "true" *) reg  [1:0]                          splitter_io_msg_type_f;
+ (* mark_debug = "true" *) reg  [`MSG_LENGTH_WIDTH-1:0]        splitter_io_msg_counter_f;
+ (* mark_debug = "true" *) reg  [`MSG_LENGTH_WIDTH-1:0]        splitter_io_msg_data_counter_f;
 
 // Buffer registers for load requests
- reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header0_f;
- reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header1_f;
- reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header2_f;
- reg  [1:0]                          r_req_buf_status_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header0_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header1_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_req_buf_header2_f;
+ (* mark_debug = "true" *) reg  [1:0]                          r_req_buf_status_f;
 
 // Buffer registers for store requests
- reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header0_f;
- reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header1_f;
- reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header2_f;
- reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_data_f[`C_DATA_FLITS_CNT-1:0];
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header0_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header1_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header2_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_data_f[`C_DATA_FLITS_CNT-1:0];
  wire [1:0]                          w_req_buf_status;
- reg  [1:0]                          w_addr_req_buf_status_f;
- reg  [1:0]                          w_data_req_buf_status_f;
+ (* mark_debug = "true" *) reg  [1:0]                          w_addr_req_buf_status_f;
+ (* mark_debug = "true" *) reg  [1:0]                          w_data_req_buf_status_f;
 
 // Buffer registers for load responses
- reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_header0_f;
- reg  [`C_M_AXI4_DATA_WIDTH-1:0]     r_resp_buf_data_f[`C_DATA_FLITS_CNT-1:0];
- reg  [`C_M_AXI4_RESP_WIDTH-1:0]     r_resp_buf_rresp_f;
- reg  [1:0]                          r_resp_buf_status_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_header0_f;
+ (* mark_debug = "true" *) reg  [`C_M_AXI4_DATA_WIDTH-1:0]     r_resp_buf_data_f[`C_DATA_FLITS_CNT-1:0];
+ (* mark_debug = "true" *) reg  [`C_M_AXI4_RESP_WIDTH-1:0]     r_resp_buf_rresp_f;
+ (* mark_debug = "true" *) reg  [1:0]                          r_resp_buf_status_f;
 
 // Buffer registers for store responses
- reg  [`NOC_DATA_WIDTH-1:0]          w_resp_buf_header0_f;
- reg  [`C_M_AXI4_RESP_WIDTH-1:0]     w_resp_buf_bresp_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_resp_buf_header0_f;
+ (* mark_debug = "true" *) reg  [`C_M_AXI4_RESP_WIDTH-1:0]     w_resp_buf_bresp_f;
  wire [1:0]                          w_resp_buf_status;
- reg  [1:0]                          w_addr_resp_buf_status_f;
- reg  [1:0]                          w_data_resp_buf_status_f;
+ (* mark_debug = "true" *) reg  [1:0]                          w_addr_resp_buf_status_f;
+ (* mark_debug = "true" *) reg  [1:0]                          w_data_resp_buf_status_f;
 
 // Helper Signals for saving requests
  wire                         splitter_io_go;
@@ -269,9 +269,9 @@ localparam STORE_ACK = 1'd1;
  wire [`NOC_DATA_WIDTH-1:0]   r_resp_buf_header0_next;
  wire [`NOC_DATA_WIDTH-1:0]   w_resp_buf_header0_next;
 
- reg  [`MSG_LENGTH_WIDTH-1:0] io_splitter_ack_load_counter_f;
- reg                          io_splitter_arb_f;
- reg                          io_splitter_ack_mux_sel;
+ (* mark_debug = "true" *) reg  [`MSG_LENGTH_WIDTH-1:0] io_splitter_ack_load_counter_f;
+ (* mark_debug = "true" *) reg                          io_splitter_arb_f;
+ (* mark_debug = "true" *) reg                          io_splitter_ack_mux_sel;
 
  wire                         r_resp_buf_val;
  wire                         w_resp_buf_val;
@@ -482,7 +482,7 @@ localparam STORE_ACK = 1'd1;
 
     // Calculate data size (which bytes are valid in our word)
     always @ (*) begin
-        if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
+        /*if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
             m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'h0;
         end
         else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_1B) begin
@@ -508,7 +508,9 @@ localparam STORE_ACK = 1'd1;
         end
         else begin
             m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffffffffffff;
-        end
+        end*/
+        m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffffffffffff;
+
     end
 
     assign m_axi_ar_go = m_axi_arvalid && m_axi_arready;
