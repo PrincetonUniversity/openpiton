@@ -249,7 +249,7 @@ Info : Listening on port 6666 for tcl connections
 Info : Listening on port 4444 for telnet connections
 Info : accepting 'gdb' connection on tcp/3333
 ```
-Note that this simple OpenOCD script currently only supports one hart to be debugged at a time. Select the hart to debug by changing the core id (look for the `-coreid` switch in the `ariane.cfg` file). 
+Note that this simple OpenOCD script currently only supports one hart to be debugged at a time. Select the hart to debug by changing the core id (look for the `-coreid` switch in the `ariane.cfg` file). If you would like to debug multiple harts at once, you can use `ariane-multi-hart.cfg`.
 
 Then you will be able to either connect through `telnet` or with `gdb`:
 ```
