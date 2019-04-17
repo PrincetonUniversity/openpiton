@@ -76,6 +76,7 @@ module l_cache_mon(/*AUTOARG*/
    reg [3:0] 	 i_ptr, l_ptr, ia_ptr, la_ptr;
    reg [127:0] 	 wait_fill[3:0];
    reg [127:0] 	 one_way;
+   integer       ictag_check_value;
    reg           ictag_check_off;
 
    initial begin
@@ -84,11 +85,12 @@ module l_cache_mon(/*AUTOARG*/
       ia_ptr  = 0;
       la_ptr  = 0;
 
-      ictag_check_off = 0;
-      if($value$plusargs("ictag_check_off=%d", ictag_check_off))begin
-      	 $display("Info:ictag check off\n");
+      if($value$plusargs("ictag_check_off=%d", ictag_check_value))begin
 	 ictag_check_off = 1;
+      end else begin
+         ictag_check_off = 0;
       end
+      $display("Info:ictag check %s\n", ictag_check_off ? "off" : "on");
 
       for(i = 0; i <= 512 ; i = i + 1) begin
 	 vld[i] = 1'b0;

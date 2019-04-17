@@ -655,7 +655,6 @@ module monitor(/*AUTOARG*/
 <%
     t = r'''
        `ifdef RTL_SPARC0
-       `ifndef VERILATOR
        l_cache_mon l_cache_mon0(/*AUTOINST*/
     			    // Inputs
     			    .clk	(clk),
@@ -678,7 +677,6 @@ module monitor(/*AUTOARG*/
     			    .w1		(128'b0),		 // Templated
     			    .w2		(128'b0),		 // Templated
     			    .w3		(128'b0));		 // Templated
-       `endif
        thrfsm_mon thrfsm_mon0(/*AUTOINST*/
     			  // Inputs
     			  .clk		(clk),
