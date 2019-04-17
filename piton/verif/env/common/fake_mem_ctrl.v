@@ -325,7 +325,10 @@ begin
             msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b0000}, msg_send_data[0]);
             $read_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b1000}, msg_send_data[1]);
-`endif
+`else // ifndef PITON_DPI
+            msg_send_data[0] = read_64b_call({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG], msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b0000});
+            msg_send_data[1] = read_64b_call({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG], msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b1000});
+`endif // ifndef PITON_DPI
 `ifndef MINIMAL_MONITORING
             $display("NC_MemRead: %h : %h", {{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b0000}, msg_send_data[0]);
@@ -340,12 +343,17 @@ begin
 `ifndef PITON_DPI
             $read_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
-`endif
+`else // ifndef PITON_DPI
+            mem_temp = read_64b_call({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG], msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000});
+`endif // ifndef PITON_DPI
             mem_temp = (mem_temp & ~write_mask) | (buf_in_mem_f[3] & write_mask);
 `ifndef PITON_DPI
             $write_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
-`endif
+`else // ifndef PITON_DPI
+            write_64b_call({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
+            msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
+`endif // ifndef PITON_DPI
 `ifndef MINIMAL_MONITORING
             $display("NC_MemWrite: %h : %h", {{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
