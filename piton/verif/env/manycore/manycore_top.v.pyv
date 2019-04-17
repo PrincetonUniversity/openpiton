@@ -40,6 +40,7 @@ import "DPI-C" function void write_64b_call (input longint addr, input longint d
 import "DPI-C" function int drive_iob ();
 import "DPI-C" function int get_cpx_word (int index);
 import "DPI-C" function void report_pc (longint thread_pc);
+import "DPI-C" function void init_jbus_model_call(string str, int oram);
 `endif
 
 `timescale 1ps/1ps
@@ -216,14 +217,22 @@ begin
     // Init JBUS model plus some ORAM stuff
     if ($test$plusargs("oram"))
     begin
+`ifndef PITON_DPI
         $init_jbus_model("mem.image", 1);
+`else // ifndef PITON_DPI
+        init_jbus_model_call("mem.image", 1);
+`endif // ifndef PITON_DPI
 `ifndef __ICARUS__
         force system.chip.ctap_oram_clk_en = 1'b1;
 `endif
     end
     else
     begin
+`ifndef PITON_DPI
         $init_jbus_model("mem.image", 0);
+`else // ifndef PITON_DPI
+        init_jbus_model_call("mem.image", 0);
+`endif // ifndef PITON_DPI
     end
 
 

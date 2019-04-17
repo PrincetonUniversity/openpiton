@@ -23,11 +23,13 @@
 */
 #ifndef _G_GLOBAL_H_
 #define _G_GLOBAL_H_
-#ifndef VERILATOR
+#ifndef PITON_DPI
 #include "veriuser.h"
 #include "acc_user.h"
 #else
+#ifdef VERILATOR
 #include "verilated_vpi.h"
+#endif
 #endif
 extern "C" {
 #include "b_ary.h"

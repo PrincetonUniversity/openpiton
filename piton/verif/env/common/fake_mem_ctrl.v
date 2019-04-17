@@ -320,7 +320,7 @@ begin
         end
         `MSG_TYPE_NC_LOAD_REQ:
         begin
-`ifndef VERILATOR
+`ifndef PITON_DPI
             $read_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[`L2_DATA_SUBLINE],4'b0000}, msg_send_data[0]);
             $read_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
@@ -337,12 +337,12 @@ begin
         end
         `MSG_TYPE_NC_STORE_REQ:
         begin
-`ifndef VERILATOR
+`ifndef PITON_DPI
             $read_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
 `endif
             mem_temp = (mem_temp & ~write_mask) | (buf_in_mem_f[3] & write_mask);
-`ifndef VERILATOR
+`ifndef PITON_DPI
             $write_64b({{(`MEM_ADDR_WIDTH-`PHY_ADDR_WIDTH){1'b0}}, msg_addr[`L2_TAG],
             msg_addr[`L2_TAG_INDEX],msg_addr[5:3],3'b000}, mem_temp);
 `endif

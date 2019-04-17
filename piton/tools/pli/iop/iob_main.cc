@@ -53,8 +53,8 @@ extern "C" void write_64b_call();
 extern "C" void init_oram_call();
 #else // ifndef PITON_DPI
 extern "C" void init_jbus_model_call(char *str, int oram);
-extern "C" vluint64_t read_64b_call(vluint64_t key_var);
-extern "C" void write_64b_call(vluint64_t key_var, vluint64_t val);
+extern "C" unsigned long long read_64b_call(unsigned long long key_var);
+extern "C" void write_64b_call(unsigned long long key_var, unsigned long long val);
 extern "C" int drive_iob();
 extern "C" int get_cpx_word(int index);
 extern "C" void report_pc(unsigned long long thread_pc);
@@ -165,7 +165,7 @@ void write_eight_byte(char* data, KeyType key, unsigned long long val)
 
 // get 64b of data from memory
 #ifdef PITON_DPI
-vluint64_t read_64b_call(vluint64_t key_var)
+unsigned long long read_64b_call(unsigned long long key_var)
 #else // ifdef PITON_DPI
 void read_64b_call()
 #endif
@@ -231,7 +231,7 @@ void read_64b_call()
 
 // get 64b of data from memory
 #ifdef PITON_DPI
-void write_64b_call(vluint64_t key_var, vluint64_t val)
+void write_64b_call(unsigned long long key_var, unsigned long long val)
 #else // ifdef PITON_DPI
 void write_64b_call()
 #endif
