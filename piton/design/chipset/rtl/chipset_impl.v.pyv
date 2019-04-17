@@ -944,7 +944,7 @@ fake_uart fake_uart (
   `endif
 `endif
 
-    serpent_peripherals #(
+    riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
         .NumSources     (               2 ),
