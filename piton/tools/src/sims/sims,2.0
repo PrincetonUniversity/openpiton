@@ -1468,6 +1468,10 @@ sub generic_sim_build
       }
       # compile everything as one compile unit (in order to keep the global defines in config.v)
       $build_cmd .= " -mfcu ";
+      # also suppress the following warning, which unfortunately is hardly avoidable when using
+      # always_comb blocks that operate on arrays inside a generate statement.
+      # [SVCHK] - Some checking for conflicts with always_comb and always_latch variables not yet supported.
+      $build_cmd .= " -suppress 2583 ";
     }
     if ($opt{vlt_build}) {
       $build_cmd = "verilator -cc " ;
