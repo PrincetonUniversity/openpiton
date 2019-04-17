@@ -1222,8 +1222,8 @@ module monitor(/*AUTOARG*/
 `endif
 
    lsu_mon lsu_mon0( .clk       (clk), .rst_l   (rst_l));
-`ifndef VERILATOR
    lsu_mon2 lsu_mon2( .clk       (clk), .rst_l   (rst_l));
+`ifndef VERILATOR
    multicycle_mon multicycle_mon(.clk       (clk), .rst_l   (rst_l));
 `endif
 
