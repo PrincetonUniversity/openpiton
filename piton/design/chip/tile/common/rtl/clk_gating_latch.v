@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : clk_gating_latch.v
 //  Created On    : 2015-01-26 14:10:43
-//  Last Modified : 2019-03-15 16:24:53
+//  Last Modified : 2019-04-17 11:56:55
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -46,30 +46,9 @@ module clk_gating_latch (
 // use clock buffer on FPGA
 // note that not all FPGAs have enough of these available
 // so we use the latch as a fallback on certain boards (e.g., vc707)
-`ifdef PITON_CLK_GATE_USE_BUFG
+`ifdef PITON_FPGA_SYNTH
 
-  wire clk_en_sync;
-  reg clk_en_sync_reg;
-
-  synchronizer sync(
-      .clk            (clk),
-      .presyncdata    (clk_en),
-      .syncdata       (clk_en_sync)
-  );
-
-  // clk_en_sync_reg changes only on the negative edge of clk
-  always @ (negedge clk)
-    clk_en_sync_reg = clk_en_sync;
-
-  BUFGCE #(
-    .CE_TYPE        ( "ASYNC" ),
-    .IS_CE_INVERTED ( 1'b0   ),
-    .IS_I_INVERTED  ( 1'b0   )
-  ) BUFGCE_inst (
-    .I  ( clk              ),
-    .CE ( clk_en_sync_reg  ),
-    .O  ( clk_out          )
-  );
+  assign clk_out = clk;
 
 `else // PITON_FPGA_SYNTH
 
@@ -84,6 +63,7 @@ module clk_gating_latch (
       .syncdata       (clk_en_sync)
   );
 
+  // if possible, replace this with a native clock gate from the std cell lib
   // clk_en_sync_latch changes only on the negative duty of the cycle
   always @ (clk or clk_en_sync)
       if (~clk) clk_en_sync_latch = clk_en_sync;
