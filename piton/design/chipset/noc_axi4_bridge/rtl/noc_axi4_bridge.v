@@ -450,15 +450,40 @@ localparam STORE_ACK = 1'd1;
 //==============================================================================
 
     wire [`NOC_DATA_WIDTH-1:0]          paddings;
+    wire [`PHY_ADDR_WIDTH-1:0]              raddr_phys;
+    wire [`PHY_ADDR_WIDTH-1:0]              waddr_phys;
 
     assign paddings = 0;
 
 
     // Calculate Valid, Addr, Data signals
+
+    `ifdef PITONSYS_UART_BOOT
+      storage_addr_trans_unified   #(
+    `else
+      storage_addr_trans #(
+    `endif
+        .STORAGE_ADDR_WIDTH(`PHY_ADDR_WIDTH)
+      ) cpu_mig_raddr_translastor (
+        .va_byte_addr       (r_req_buf_header1_f[`MSG_ADDR_]            ),
+        .storage_addr_out   (raddr_phys            )
+      );
+
+    `ifdef PITONSYS_UART_BOOT
+      storage_addr_trans_unified   #(
+    `else
+      storage_addr_trans #(
+    `endif
+        .STORAGE_ADDR_WIDTH(`PHY_ADDR_WIDTH)
+      ) cpu_mig_waddr_translastor (
+        .va_byte_addr       (w_req_buf_header1_f[`MSG_ADDR_]            ),
+        .storage_addr_out   (waddr_phys            )
+      );
+
     always @ (*) begin
         // Write Address Channel
         m_axi_awvalid = (w_req_buf_status == BUF_STATUS_COMP) && (w_addr_resp_buf_status_f == BUF_STATUS_INCOMP);
-        m_axi_awaddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], w_req_buf_header1_f[`MSG_ADDR_] & (~(`PHY_ADDR_WIDTH'b111111))};
+        m_axi_awaddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], waddr_phys & (~(`PHY_ADDR_WIDTH'b111111))};
 
         // Write Data Channel
         m_axi_wvalid    = (w_req_buf_status == BUF_STATUS_COMP) && (w_data_resp_buf_status_f == BUF_STATUS_INCOMP);
@@ -466,7 +491,7 @@ localparam STORE_ACK = 1'd1;
 
         // Read Address Channel
         m_axi_arvalid = (r_req_buf_status_f == BUF_STATUS_COMP) && (r_resp_buf_status_f == BUF_STATUS_INCOMP);
-        m_axi_araddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], r_req_buf_header1_f[`MSG_ADDR_] & (~(`PHY_ADDR_WIDTH'b111111))};
+        m_axi_araddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], raddr_phys & (~(`PHY_ADDR_WIDTH'b111111))};
     end
 
     genvar k;
