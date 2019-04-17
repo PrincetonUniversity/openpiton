@@ -740,7 +740,6 @@ module monitor(/*AUTOARG*/
     		    .exu_rd		(`EXUPATH0.irf.irf.ecl_irf_rd_w ), // Templated
     		    .restore_request	(`EXUPATH0.ecl.writeback.restore_request), // Templated
     		    .divcntl_wb_req_g	(`EXUPATH0.ecl.writeback.divcntl_wb_req_g)); // Templated
-    `ifndef VERILATOR
     `ifdef GATE_SIM
     `else
        tlu_mon tlu_mon0(/*AUTOINST*/
@@ -980,7 +979,6 @@ module monitor(/*AUTOARG*/
                 .tlu_lng_ltncy_en_l (`SPARC_CORE0.sparc0.tlu.mmu_dp.tlu_lng_ltncy_en_l)); // Templated
         `endif
     `endif // ifdef GATE_SIM
-    `endif
 
     `ifdef GATE_SIM
     `else
