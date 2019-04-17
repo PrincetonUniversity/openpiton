@@ -397,6 +397,7 @@ always @ *
 begin
     pipe_mshr_readreq_mshrid_s1 = noc2decoder_l15_mshrid;
     pipe_mshr_readreq_threadid_s1 = noc2decoder_l15_threadid;
+
     predecode_mshr_read_control_s1 = mshr_pipe_readres_control_s1;
     // predecode_mshr_read_address_s1 = mshr_pipe_address_s1;
     predecode_mshr_read_homeid_s1 = mshr_pipe_readres_homeid_s1;
@@ -1812,9 +1813,10 @@ begin
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_SET_LRU_WAY;
                 // decoder_wmt_operation_s1 = `L15_WMT_WRITE_LRU_WAY_L1_REPL_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
-                decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
+                // L1 won't save the line after an LR, so L15 should not update the wmt
+                //decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
 `ifdef PITON_ASIC_RTL
-                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;   // TODO Check why???
 `else
                 // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug fix 3/28/16
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
@@ -3681,7 +3683,7 @@ begin
             wmt_write_inval_val_s3 = 1'b1;
             // wmt_write_inval_way_s3 = flush_way_s3;
         end
-        `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY:
+        `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY: // TODO: why??? Is dedup redundant?
         begin
             wmt_write_val_s3 = 1'b1;
             wmt_write_index_s3 = cache_index_l1d_s3[`L1D_SET_IDX_MASK];
