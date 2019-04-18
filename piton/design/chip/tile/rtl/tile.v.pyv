@@ -30,6 +30,7 @@ from riscvlib import *
 import os
 from pyhplib import *
 import riscvlib
+import time
 
 if PITON_ARIANE:
   devices = pyhplib.ReadDevicesXMLFile()
@@ -39,8 +40,9 @@ if PITON_ARIANE:
   if 'CONFIG_SYS_FREQ' in os.environ:
     sysFreq = int(os.environ['CONFIG_SYS_FREQ'])
 
-  gen_riscv_dts(devices, X_TILES*Y_TILES, sysFreq, sysFreq/128, sysFreq, os.environ['ARIANE_ROOT']+"/openpiton/bootrom/")
-
+  timeStamp = time.strftime("%b %d %Y %H:%M:%S", time.localtime())
+  gen_riscv_dts(devices, X_TILES*Y_TILES, sysFreq, sysFreq/128, sysFreq, os.environ['ARIANE_ROOT']+"/openpiton/bootrom/", timeStamp)
+  get_bootrom_info(devices, X_TILES*Y_TILES, sysFreq, sysFreq/128, sysFreq, os.environ['ARIANE_ROOT']+"/openpiton/bootrom/", timeStamp)
 %>
 
 module tile #(
@@ -971,7 +973,7 @@ if PITON_ARIANE:
             cacheBegin = "%X" % cacheBegin
             cacheStop  = "%X" % cacheStop
         if devices[i]["name"] == "ariane_debug":
-            dmBase     = "%X" % devices[i]["base"]    
+            dmBase     = "%X" % devices[i]["base"]
 
 bootAddr    = cacheBegin
 if PITON_ARIANE:

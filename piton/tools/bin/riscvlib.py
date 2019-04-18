@@ -15,38 +15,122 @@
 
 
 import pyhplib
+import os
+import subprocess
 from pyhplib import *
 
-import time
+# this prints some system information, to be printed by the bootrom at power-on
+def get_bootrom_info(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, timeStamp):
+
+    piton_ver  = subprocess.check_output(["git log | grep commit -m1 | awk -e '{print $2;}'"], shell=True)
+    ariane_ver = subprocess.check_output(["cd  %s && git log | grep commit -m1 | awk -e '{print $2;}'" % dtsPath], shell=True)
+
+    # get length of memory
+    memLen  = 0
+    for i in range(len(devices)):
+        if devices[i]["name"] == "mem":
+            memLen  = devices[i]["length"]
+
+    if 'PROTOSYN_RUNTIME_BOARD' in os.environ:
+        boardName = os.environ['PROTOSYN_RUNTIME_BOARD']
+        if not boardName:
+            boardName = 'None (Simulation)'
+    else:
+        boardName = 'None (Simulation)'
+
+    if 'CONFIG_SYS_FREQ' in os.environ:
+        sysFreq = os.environ['CONFIG_SYS_FREQ']
+        sysFreq = "%d MHz" % int(float(int(sysFreq))/1e6)
+    else:
+        sysFreq = "Unknown"
+
+    tmpStr = '''// Info string generated with get_bootrom_info(...)
+// OpenPiton + Ariane framework
+// Date: %s
+
+const char info[] = {
+"\\r\\n\\r\\n"
+"----------------------------------------\\r\\n"
+"--     OpenPiton+Ariane Platform      --\\r\\n"
+"----------------------------------------\\r\\n"
+"OpenPiton Version: %s                   \\r\\n"
+"Ariane Version:    %s                   \\r\\n"
+"                                        \\r\\n"
+"FPGA Board:        %s                   \\r\\n"
+"Build Date:        %s                   \\r\\n"
+"                                        \\r\\n"
+"#X-Tiles:          %d                   \\r\\n"
+"#Y-Tiles:          %d                   \\r\\n"
+"#Cores:            %d                   \\r\\n"
+"Core Freq:         %s                   \\r\\n"
+"Network:           %s                   \\r\\n"
+"DRAM Size:         %d MB                \\r\\n"
+"                                        \\r\\n"
+"L1I Size / Assoc:  %3d kB / %d          \\r\\n"
+"L1D Size / Assoc:  %3d kB / %d          \\r\\n"
+"L15 Size / Assoc:  %3d kB / %d          \\r\\n"
+"L2  Size / Assoc:  %3d kB / %d          \\r\\n"
+"----------------------------------------\\r\\n\\r\\n\\r\\n"
+};
+
+''' % (timeStamp,
+       piton_ver[0:8],
+       ariane_ver[0:8],
+       boardName,
+       timeStamp,
+       int(os.environ['PTON_X_TILES']),
+       int(os.environ['PTON_Y_TILES']),
+       int(os.environ['PTON_NUM_TILES']),
+       sysFreq,
+       os.environ['PTON_NETWORK_CONFIG'],
+       int(memLen/1024/1024),
+       int(os.environ['CONFIG_L1I_SIZE'])/1024,
+       int(os.environ['CONFIG_L1I_ASSOCIATIVITY']),
+       int(os.environ['CONFIG_L1D_SIZE'])/1024,
+       int(os.environ['CONFIG_L1D_ASSOCIATIVITY']),
+       int(os.environ['CONFIG_L15_SIZE'])/1024,
+       int(os.environ['CONFIG_L15_ASSOCIATIVITY']),
+       int(os.environ['CONFIG_L2_SIZE'] )/1024,
+       int(os.environ['CONFIG_L2_ASSOCIATIVITY'] ))
+
+    with open(dtsPath + '/info.h','w') as file:
+        file.write(tmpStr)
+
 
 # format reg leaf entry
-def regFmt(addrBase, addrLen, addrCells, sizeCells):         
-    
+def _reg_fmt(addrBase, addrLen, addrCells, sizeCells):
+
     assert addrCells >= 1 or addrCells <= 2
     assert sizeCells >= 0 or sizeCells <= 2
 
     tmpStr = " "
-    
+
     if addrCells >= 2:
         tmpStr += "0x%08x " % (addrBase >> 32)
-    
+
     if addrCells >= 1:
         tmpStr += "0x%08x " % (addrBase & 0xFFFFFFFF)
-    
+
     if sizeCells >= 2:
         tmpStr += "0x%08x " % (addrLen >> 32)
-    
+
     if sizeCells >= 1:
         tmpStr += "0x%08x " % (addrLen & 0xFFFFFFFF)
-            
+
     return tmpStr
 
-
-def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
+def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, timeStamp):
 
     assert nCpus >= 1
 
-    tmpStr = '''// DTS generated with gen_riscv_dts(...) 
+    # get UART base
+    uartBase = 0xDEADBEEF
+    for i in range(len(devices)):
+        if devices[i]["name"] == "uart":
+            uartBase = devices[i]["base"]
+
+
+    tmpStr = '''// DTS generated with gen_riscv_dts(...)
 // OpenPiton + Ariane framework
 // Date: %s
 
@@ -57,21 +141,26 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
     #size-cells = <2>;
     compatible = "eth,ariane-bare-dev";
     model = "eth,ariane-bare";
+    // interrupt-based UART is currently very slow
+    // with this configuration. this needs to be fixed.
+    // chosen {
+    //     stdout-path = "/soc/uart@%08x:115200";
+    // };
     cpus {
         #address-cells = <1>;
         #size-cells = <0>;
-        timebase-frequency = <%d>; 
-    ''' % (time.strftime("%b %d %Y %H:%M:%S", time.localtime()), timeBaseFreq)
+        timebase-frequency = <%d>;
+    ''' % (timeStamp, uartBase, timeBaseFreq)
 
     for k in range(nCpus):
-        tmpStr += '''    
+        tmpStr += '''
         CPU%d: cpu@%d {
-            clock-frequency = <%d>; 
+            clock-frequency = <%d>;
             device_type = "cpu";
             reg = <%d>;
             status = "okay";
             compatible = "eth, ariane", "riscv";
-            riscv,isa = "rv64imacsu";
+            riscv,isa = "rv64imafdc";
             mmu-type = "riscv,sv39";
             tlb-split;
             // HLIC - hart local interrupt controller
@@ -98,9 +187,9 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
         device_type = "memory";
         reg = <%s>;
     };
-            ''' % (addrBase, regFmt(addrBase, addrLen, 2, 2))
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
 
-    tmpStr += '''        
+    tmpStr += '''
     soc {
         #address-cells = <2>;
         #size-cells = <2>;
@@ -115,7 +204,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
     for i in range(len(devices)):
         if devices[i]["name"] in devWithIrq:
             numIrqs += 1
-        
+
 
     # get the remaining periphs
     for i in range(len(devices)):
@@ -133,7 +222,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             reg = <%s>;
             reg-names = "control";
         };
-            ''' % (regFmt(addrBase, addrLen, 2, 2))
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # PLIC
         if devices[i]["name"] == "ariane_plic":
             addrBase = devices[i]["base"]
@@ -153,7 +242,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             riscv,max-priority = <7>;
             riscv,ndev = <%d>;
         };
-            ''' % (regFmt(addrBase, addrLen, 2, 2), numIrqs)
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2), numIrqs)
         # DTM
         if devices[i]["name"] == "ariane_debug":
             addrBase = devices[i]["base"]
@@ -168,7 +257,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             reg = <%s>;
             reg-names = "control";
         };
-            ''' % (regFmt(addrBase, addrLen, 2, 2))
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # UART
         if devices[i]["name"] == "uart":
             addrBase = devices[i]["base"]
@@ -181,10 +270,9 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             current-speed = <115200>;
             interrupt-parent = <&PLIC0>;
             interrupts = <1>;
-            reg-shift = <1>; // regs are spaced on 8 bit boundary
-            reg-io-width = <1>; // only 8-bit access are supported
+            reg-shift = <2>; // regs are spaced on 32 bit boundary
         };
-            ''' % (addrBase, regFmt(addrBase, addrLen, 2, 2), periphFreq)
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq)
 
         # Ethernet
         if devices[i]["name"] == "net":
@@ -199,12 +287,12 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath):
             local-mac-address = [ee e1 e2 e3 e4 e5];
             reg = <%s>;
         };
-            ''' % (addrBase, regFmt(addrBase, addrLen, 2, 2))
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
 
-    tmpStr += '''    
+    tmpStr += '''
     };
 };
-    '''    
-    
+    '''
+
     with open(dtsPath + '/ariane.dts','w') as file:
         file.write(tmpStr)
