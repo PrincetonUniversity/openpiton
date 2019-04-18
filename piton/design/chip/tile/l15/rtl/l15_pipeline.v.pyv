@@ -1816,7 +1816,7 @@ begin
                 // L1 won't save the line after an LR, so L15 should not update the wmt
                 //decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
 `ifdef PITON_ASIC_RTL
-                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;   // TODO Check why???
+                decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;   
 `else
                 // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug fix 3/28/16
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
@@ -3683,7 +3683,7 @@ begin
             wmt_write_inval_val_s3 = 1'b1;
             // wmt_write_inval_way_s3 = flush_way_s3;
         end
-        `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY: // TODO: why??? Is dedup redundant?
+        `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY: 
         begin
             wmt_write_val_s3 = 1'b1;
             wmt_write_index_s3 = cache_index_l1d_s3[`L1D_SET_IDX_MASK];
