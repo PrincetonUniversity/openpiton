@@ -437,6 +437,7 @@ mig_7series_0   mig_7series_0 (
     noc_axi4_bridge noc_axi4_bridge  (
         .clk                (ui_clk               ),  
         .rst_n              (~noc_mig_bridge_rst  ), 
+        .uart_boot_en       (uart_boot_en         ),
 
         .splitter_bridge_val(fifo_trans_val),
         .splitter_bridge_data(fifo_trans_data),

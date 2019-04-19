@@ -61,6 +61,7 @@ module noc_axi4_bridge (
     // Clock + Reset
     (* mark_debug = "true" *) input  wire                                   clk,
     (* mark_debug = "true" *) input  wire                                   rst_n,
+    input wire uart_boot_en, 
 
     // Memory Splitter -> AXI SPI
     (* mark_debug = "true" *) input  wire                                   splitter_bridge_val,
@@ -186,9 +187,11 @@ localparam MSG_STATE_HEADER_2   = 3'd3; // Header 2
 localparam MSG_STATE_DATA       = 3'd4; // Data Lines
 
 // Types for Incoming Piton Messages
-localparam MSG_TYPE_INVAL       = 2'd0; // Invalid Message
-localparam MSG_TYPE_LOAD        = 2'd1; // Load Request
-localparam MSG_TYPE_STORE       = 2'd2; // Store Request
+localparam MSG_TYPE_INVAL       = 3'd0; // Invalid Message
+localparam MSG_TYPE_LOAD        = 3'd1; // Load Request
+localparam MSG_TYPE_LOAD_NC     = 3'd2; // Load Request non cacheable
+localparam MSG_TYPE_STORE       = 3'd3; // Store Request
+localparam MSG_TYPE_STORE_NC    = 3'd4; // Store Request non cacheable
 
 // States for Buffer Status
 localparam BUF_STATUS_INCOMP    = 2'd0; // Buffer not yet filled by one complete request/response
@@ -221,19 +224,23 @@ localparam STORE_ACK = 1'd1;
  (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header1_f;
  (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_header2_f;
  (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_req_buf_data_f[`C_DATA_FLITS_CNT-1:0];
+ (* mark_debug = "true" *) reg  [`C_M_AXI4_DATA_WIDTH-1:0]     wdata_before_offset;
+ (* mark_debug = "true" *) reg  [6:0]                          wsize;
+
  wire [1:0]                          w_req_buf_status;
  (* mark_debug = "true" *) reg  [1:0]                          w_addr_req_buf_status_f;
  (* mark_debug = "true" *) reg  [1:0]                          w_data_req_buf_status_f;
 
 // Buffer registers for load responses
  (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_header0_f;
- (* mark_debug = "true" *) reg  [`C_M_AXI4_DATA_WIDTH-1:0]     r_resp_buf_data_f[`C_DATA_FLITS_CNT-1:0];
- (* mark_debug = "true" *) reg  [`C_M_AXI4_RESP_WIDTH-1:0]     r_resp_buf_rresp_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_data_f[`C_DATA_FLITS_CNT-1:0];
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          r_resp_buf_rresp_f;
  (* mark_debug = "true" *) reg  [1:0]                          r_resp_buf_status_f;
+ (* mark_debug = "true" *) reg  [6:0]                          rsize;
 
 // Buffer registers for store responses
  (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_resp_buf_header0_f;
- (* mark_debug = "true" *) reg  [`C_M_AXI4_RESP_WIDTH-1:0]     w_resp_buf_bresp_f;
+ (* mark_debug = "true" *) reg  [`NOC_DATA_WIDTH-1:0]          w_resp_buf_bresp_f;
  wire [1:0]                          w_resp_buf_status;
  (* mark_debug = "true" *) reg  [1:0]                          w_addr_resp_buf_status_f;
  (* mark_debug = "true" *) reg  [1:0]                          w_data_resp_buf_status_f;
@@ -287,13 +294,13 @@ localparam STORE_ACK = 1'd1;
     // What type of message is arriving currently?
     assign splitter_io_msg_type_mux_out =
         (!splitter_bridge_val) ? MSG_TYPE_INVAL :
-        (((splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_LOAD_REQ   )  ||
-          (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ)  ||
-          (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_LOAD_MEM   )     ) ? MSG_TYPE_LOAD  :
-         ((splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_STORE_REQ   ) ||
-          (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) ||
-          (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_STORE_MEM   )    ) ? MSG_TYPE_STORE :
-                                                                            MSG_TYPE_INVAL );
+        ((splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_LOAD_REQ   )  ||
+         (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_LOAD_MEM   )      ) ? MSG_TYPE_LOAD     :
+        ( splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ       ) ? MSG_TYPE_LOAD_NC  : 
+        ((splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_STORE_REQ   ) ||
+         (splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_STORE_MEM   )     ) ? MSG_TYPE_STORE    :
+        ( splitter_bridge_data[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ      ) ? MSG_TYPE_STORE_NC : 
+                                                                             MSG_TYPE_INVAL    ;
 
     // What type of message will we be receiving?
     assign splitter_io_msg_type_next =
@@ -301,12 +308,12 @@ localparam STORE_ACK = 1'd1;
         (splitter_io_msg_state_next == MSG_STATE_HEADER_0) ? splitter_io_msg_type_mux_out :
                                                              splitter_io_msg_type_f       ;
     // Is the current message a load or a store?
-    assign splitter_io_msg_is_load       = (splitter_io_msg_type_f    == MSG_TYPE_LOAD );
-    assign splitter_io_msg_is_store      = (splitter_io_msg_type_f    == MSG_TYPE_STORE);
+    assign splitter_io_msg_is_load       = (splitter_io_msg_type_f    == MSG_TYPE_LOAD ) ||  (splitter_io_msg_type_f    == MSG_TYPE_LOAD_NC );
+    assign splitter_io_msg_is_store      = (splitter_io_msg_type_f    == MSG_TYPE_STORE) ||  (splitter_io_msg_type_f    == MSG_TYPE_STORE_NC);
 
     // Is the incoming message a load or a store?
-    assign splitter_io_msg_is_load_next  = (splitter_io_msg_type_next == MSG_TYPE_LOAD );
-    assign splitter_io_msg_is_store_next = (splitter_io_msg_type_next == MSG_TYPE_STORE);
+    assign splitter_io_msg_is_load_next  = (splitter_io_msg_type_next == MSG_TYPE_LOAD ) || (splitter_io_msg_type_next == MSG_TYPE_LOAD_NC );
+    assign splitter_io_msg_is_store_next = (splitter_io_msg_type_next == MSG_TYPE_STORE) || (splitter_io_msg_type_next == MSG_TYPE_STORE_NC);
 
     // Should we read data from splitter_bridge_data?
     assign splitter_io_go = splitter_bridge_val && bridge_splitter_rdy;
@@ -444,17 +451,24 @@ localparam STORE_ACK = 1'd1;
         ((w_addr_req_buf_status_f == BUF_STATUS_INCOMP) &&
          (w_data_req_buf_status_f == BUF_STATUS_INCOMP)    ) ? BUF_STATUS_INCOMP :
                                                                BUF_STATUS_COMP   ;
+    //==============================================================================
+    // Calculate addresses and offsets and sizes
+    //==============================================================================
 
-//==============================================================================
-// Forward Requests to AXI
-//==============================================================================
 
-    wire [`NOC_DATA_WIDTH-1:0]          paddings;
-    wire [`PHY_ADDR_WIDTH-1:0]              raddr_phys;
-    wire [`PHY_ADDR_WIDTH-1:0]              waddr_phys;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              paddings;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              raddr_virt;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              waddr_virt;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              raddr_phys;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              waddr_phys;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              raddr;
+    wire [`C_M_AXI4_ADDR_WIDTH-1:0]              waddr;
+    reg  [6:0]                                   rsize;
+    reg  [6:0]                                   wsize;
 
     assign paddings = 0;
-
+    assign raddr_virt = r_req_buf_header1_f[`MSG_ADDR_];
+    assign waddr_virt = w_req_buf_header1_f[`MSG_ADDR_];
 
     // Calculate Valid, Addr, Data signals
 
@@ -463,10 +477,10 @@ localparam STORE_ACK = 1'd1;
     `else
       storage_addr_trans #(
     `endif
-        .STORAGE_ADDR_WIDTH(`PHY_ADDR_WIDTH)
+        .STORAGE_ADDR_WIDTH(`C_M_AXI4_ADDR_WIDTH)
       ) cpu_mig_raddr_translastor (
-        .va_byte_addr       (r_req_buf_header1_f[`MSG_ADDR_]            ),
-        .storage_addr_out   (raddr_phys            )
+        .va_byte_addr       (raddr_virt  ),
+        .storage_addr_out   (raddr_phys  )
       );
 
     `ifdef PITONSYS_UART_BOOT
@@ -474,16 +488,56 @@ localparam STORE_ACK = 1'd1;
     `else
       storage_addr_trans #(
     `endif
-        .STORAGE_ADDR_WIDTH(`PHY_ADDR_WIDTH)
+        .STORAGE_ADDR_WIDTH(`C_M_AXI4_ADDR_WIDTH)
       ) cpu_mig_waddr_translastor (
-        .va_byte_addr       (w_req_buf_header1_f[`MSG_ADDR_]            ),
-        .storage_addr_out   (waddr_phys            )
+        .va_byte_addr       (waddr_virt  ),
+        .storage_addr_out   (waddr_phys  )
       );
+
+    assign raddr = uart_boot_en ? raddr_phys : raddr_virt; // use translated address if running uart tests
+    assign waddr = uart_boot_en ? waddr_phys : waddr_virt; // use translated address if running uart tests
+
+    assign roffset = raddr[5:0]; //how offseted we are from natural alignment on 64 bytes
+    assign woffset = waddr[5:0]; //how offseted we are from natural alignment on 64 bytes
+
+    // Calculate data sizes
+    always @ (*) begin
+        if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
+            wsize = 7'b0;
+        end 
+        else begin
+            wsize = (7'b1 << (w_req_buf_header1_f[`MSG_DATA_SIZE_] - 1));
+        end
+
+        if (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
+            if (wsize == 0) begin
+                m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'b0;
+            end 
+            else begin 
+                m_axi_wstrb = ((`C_M_AXI4_STRB_WIDTH'b1 << wsize) - 1) << woffset;
+            end
+        end 
+        else begin
+            m_axi_wstrb = {`C_M_AXI4_STRB_WIDTH{1'b1}};
+        end
+
+        if (r_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
+            rsize = 7'b0;
+        end 
+        else begin
+            rsize = (7'b1 << (r_req_buf_header1_f[`MSG_DATA_SIZE_] - 1));
+        end
+    end
+
+
+//==============================================================================
+// Forward Requests to AXI
+//==============================================================================
 
     always @ (*) begin
         // Write Address Channel
         m_axi_awvalid = (w_req_buf_status == BUF_STATUS_COMP) && (w_addr_resp_buf_status_f == BUF_STATUS_INCOMP);
-        m_axi_awaddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], waddr_phys & (~(`PHY_ADDR_WIDTH'b111111))};
+        m_axi_awaddr = {paddings[`C_M_AXI4_ADDR_WIDTH-1:`PHY_ADDR_WIDTH], waddr[`PHY_ADDR_WIDTH-1:6], 6'b0};
 
         // Write Data Channel
         m_axi_wvalid    = (w_req_buf_status == BUF_STATUS_COMP) && (w_data_resp_buf_status_f == BUF_STATUS_INCOMP);
@@ -491,7 +545,7 @@ localparam STORE_ACK = 1'd1;
 
         // Read Address Channel
         m_axi_arvalid = (r_req_buf_status_f == BUF_STATUS_COMP) && (r_resp_buf_status_f == BUF_STATUS_INCOMP);
-        m_axi_araddr = {paddings[`NOC_DATA_WIDTH-1:`PHY_ADDR_WIDTH], raddr_phys & (~(`PHY_ADDR_WIDTH'b111111))};
+        m_axi_araddr = {paddings[`C_M_AXI4_ADDR_WIDTH-1:`PHY_ADDR_WIDTH], raddr[`PHY_ADDR_WIDTH-1:6], 6'b0};
     end
 
     genvar k;
@@ -500,43 +554,11 @@ localparam STORE_ACK = 1'd1;
       begin : transform_requests_array_in_bus
         always @ (*)
         begin
-          m_axi_wdata[`NOC_DATA_WIDTH*(k+1)-1:`NOC_DATA_WIDTH*k] = w_req_buf_data_f[k];
+          wdata_before_offset[`NOC_DATA_WIDTH*(k+1)-1:`NOC_DATA_WIDTH*k] = w_req_buf_data_f[k];
+          m_axi_wdata = wdata_before_offset << woffset;
         end
       end
     endgenerate
-
-    // Calculate data size (which bytes are valid in our word)
-    always @ (*) begin
-        /*if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'h0;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_1B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'h1;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_2B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'h3;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_4B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hf;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_8B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hff;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_16B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffff;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_32B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffff;
-        end
-        else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_64B) begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffffffffffff;
-        end
-        else begin
-            m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffffffffffff;
-        end*/
-        m_axi_wstrb = `C_M_AXI4_STRB_WIDTH'hffffffffffffffff;
-
-    end
 
     assign m_axi_ar_go = m_axi_arvalid && m_axi_arready;
     assign m_axi_w_go  = m_axi_wvalid & m_axi_wready;
@@ -585,7 +607,7 @@ localparam STORE_ACK = 1'd1;
     always @(posedge clk) begin
         if (~rst_n) begin
             w_resp_buf_header0_f     <=  {`NOC_DATA_WIDTH{1'b0}};
-            w_resp_buf_bresp_f       <=  {`C_M_AXI4_RESP_WIDTH{1'b0}};
+            w_resp_buf_bresp_f       <=  {`NOC_DATA_WIDTH{1'b0}};
             w_addr_resp_buf_status_f <=  BUF_STATUS_INCOMP;
             w_data_resp_buf_status_f <=  BUF_STATUS_INCOMP;
         end
@@ -621,7 +643,7 @@ localparam STORE_ACK = 1'd1;
     always @(posedge clk) begin
         if (~rst_n) begin
             r_resp_buf_header0_f <= {`NOC_DATA_WIDTH{1'b0}};
-            r_resp_buf_rresp_f   <= {`C_M_AXI4_RESP_WIDTH{1'b0}};
+            r_resp_buf_rresp_f   <= {`NOC_DATA_WIDTH{1'b0}};
             r_resp_buf_status_f  <= BUF_STATUS_INCOMP;
         end
         else begin
@@ -638,6 +660,43 @@ localparam STORE_ACK = 1'd1;
         end
     end
 
+
+    reg[`C_M_AXI4_DATA_WIDTH-1:0] rdata;
+    always @(*) begin
+        if (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
+            case (rsize) 
+                7'd0: begin 
+                    rdata = `C_M_AXI4_DATA_WIDTH'b0;
+                end
+                7'd1: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/8{m_axi_rdata[roffset+7:roffset]}};
+                end
+                7'd2: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/16{m_axi_rdata[roffset+15:roffset]}};
+                end
+                7'd4: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/32{m_axi_rdata[roffset+31:roffset]}};
+                end
+                7'd8: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/64{m_axi_rdata[roffset+63:roffset]}};
+                end
+                7'd16: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/128{m_axi_rdata[roffset+127:roffset]}};
+                end
+                7'd32: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/256{m_axi_rdata[roffset+255:roffset]}};
+                end
+                default: begin
+                    rdata = {`C_M_AXI4_DATA_WIDTH/512{m_axi_rdata[roffset+511:roffset]}};
+                end
+        end 
+        else begin
+            rdata = m_axi_rdata;
+        end
+    end
+
+
+
     genvar j;
     generate
       for ( j = 0; j < `C_DATA_FLITS_CNT; j = j + 1 )
@@ -645,9 +704,9 @@ localparam STORE_ACK = 1'd1;
         always @(posedge clk)
         begin
           if (~rst_n)
-            r_resp_buf_data_f[j]   <= {`C_M_AXI4_DATA_WIDTH{1'b0}};
+            r_resp_buf_data_f[j]   <= {`NOC_DATA_WIDTH{1'b0}};
           else
-            r_resp_buf_data_f[j]   <= m_axi_r_go        ? m_axi_rdata[`NOC_DATA_WIDTH*(j+1)-1:`NOC_DATA_WIDTH*j] :
+            r_resp_buf_data_f[j]   <= m_axi_r_go        ? rdata[`NOC_DATA_WIDTH*(j+1)-1:`NOC_DATA_WIDTH*j] :
                                                           r_resp_buf_data_f[j]                                       ;
         end
       end
