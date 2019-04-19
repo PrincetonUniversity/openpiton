@@ -662,33 +662,36 @@ localparam STORE_ACK = 1'd1;
 
 
     reg[`C_M_AXI4_DATA_WIDTH-1:0] rdata;
+    reg[`C_M_AXI4_DATA_WIDTH-1:0] rdata_offseted;
     always @(*) begin
+        rdata_offseted = (m_axi_rdata << roffset);
         if (w_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
             case (rsize) 
                 7'd0: begin 
                     rdata = `C_M_AXI4_DATA_WIDTH'b0;
                 end
                 7'd1: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/8{m_axi_rdata[roffset+7:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/8{rdata_offseted[7:0]}};
                 end
                 7'd2: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/16{m_axi_rdata[roffset+15:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/16{rdata_offseted[15:0]}};
                 end
                 7'd4: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/32{m_axi_rdata[roffset+31:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/32{rdata_offseted[31:0]}};
                 end
                 7'd8: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/64{m_axi_rdata[roffset+63:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/64{rdata_offseted[63:0]}};
                 end
                 7'd16: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/128{m_axi_rdata[roffset+127:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/128{rdata_offseted[127:0]}};
                 end
                 7'd32: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/256{m_axi_rdata[roffset+255:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/256{rdata_offseted[255:0]}};
                 end
                 default: begin
-                    rdata = {`C_M_AXI4_DATA_WIDTH/512{m_axi_rdata[roffset+511:roffset]}};
+                    rdata = {`C_M_AXI4_DATA_WIDTH/512{rdata_offseted[511:0]}};
                 end
+            endcase
         end 
         else begin
             rdata = m_axi_rdata;
