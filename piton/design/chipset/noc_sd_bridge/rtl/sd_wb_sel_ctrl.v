@@ -100,7 +100,7 @@ always @(posedge wb_clk or posedge rst)
         xfersize_reg <= 0;
     end
     else begin
-        if (!ena) begin
+        if (ena) begin
             base_adr_reg <= base_adr_i;
             xfersize_reg <= xfersize;
         end

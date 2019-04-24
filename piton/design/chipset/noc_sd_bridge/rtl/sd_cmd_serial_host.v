@@ -85,6 +85,8 @@ parameter RESP_SIZE = 128;
 
 //---------------Internal variable-----------
 reg cmd_dat_reg;
+reg cmd_out_o_reg;
+reg cmd_oe_o_reg;
 integer resp_len;
 reg with_response;
 reg [CMD_SIZE-1:0] cmd_buff;
@@ -118,6 +120,12 @@ reg [STATE_SIZE-1:0] next_state;
 //sd cmd input pad register
 always @(posedge sd_clk)
     cmd_dat_reg <= cmd_dat_i;
+
+//launch on falling edge
+always @(negedge sd_clk) begin
+    cmd_oe_o    <= cmd_oe_o_reg;
+    cmd_out_o   <= cmd_out_o_reg;
+end
 
 //------------------------------------------
 sd_crc_7 CRC_7(
@@ -215,8 +223,8 @@ begin: FSM_OUT
     if (rst) begin
         crc_enable <= 0;
         resp_idx <= 0;
-        cmd_oe_o <= 1;
-        cmd_out_o <= 1;
+        cmd_oe_o_reg <= 1;
+        cmd_out_o_reg <= 1;
         resp_buff <= 0;
         finish_o <= 0;
         crc_rst <= 1;
@@ -232,11 +240,11 @@ begin: FSM_OUT
         case(state)
             INIT: begin
                 counter <= counter+1;
-                cmd_oe_o <= 1;
-                cmd_out_o <= 1;
+                cmd_oe_o_reg <= 1;
+                cmd_out_o_reg <= 1;
             end
             IDLE: begin
-                cmd_oe_o <= 0;      //Put CMD to Z
+                cmd_oe_o_reg <= 0;      //Put CMD to Z
                 counter <= 0;
                 crc_rst <= 1;
                 crc_enable <= 0;
@@ -253,8 +261,8 @@ begin: FSM_OUT
             end
             WRITE: begin
                 if (counter < BITS_TO_SEND-8) begin  // 1->40 CMD, (41 >= CNT && CNT <=47) CRC, 48 stop_bit
-                    cmd_oe_o <= 1;
-                    cmd_out_o <= cmd_buff[`cmd_idx];
+                    cmd_oe_o_reg <= 1;
+                    cmd_out_o_reg <= cmd_buff[`cmd_idx];
                     if (counter < BITS_TO_SEND-9) begin //1 step ahead
                         crc_bit <= cmd_buff[`cmd_idx-1];
                     end else begin
@@ -262,17 +270,17 @@ begin: FSM_OUT
                     end
                 end
                 else if (counter < BITS_TO_SEND-1) begin
-                    cmd_oe_o <= 1;
+                    cmd_oe_o_reg <= 1;
                     crc_enable <= 0;
-                    cmd_out_o <= crc_val[BITS_TO_SEND-counter-2];
+                    cmd_out_o_reg <= crc_val[BITS_TO_SEND-counter-2];
                 end
                 else if (counter == BITS_TO_SEND-1) begin
-                    cmd_oe_o <= 1;
-                    cmd_out_o <= 1'b1;
+                    cmd_oe_o_reg <= 1;
+                    cmd_out_o_reg <= 1'b1;
                 end
                 else begin
-                    cmd_oe_o <= 0;
-                    cmd_out_o <= 1'b1;
+                    cmd_oe_o_reg <= 0;
+                    cmd_out_o_reg <= 1'b1;
                 end
                 counter <= counter+1;
             end
@@ -280,7 +288,7 @@ begin: FSM_OUT
                 crc_enable <= 0;
                 crc_rst <= 1;
                 counter <= 1;
-                cmd_oe_o <= 0;
+                cmd_oe_o_reg <= 0;
                 resp_buff[RESP_SIZE-1] <= cmd_dat_reg;
             end
             FINISH_WO: begin
@@ -288,12 +296,12 @@ begin: FSM_OUT
                 crc_enable <= 0;
                 crc_rst <= 1;
                 counter <= 0;
-                cmd_oe_o <= 0;
+                cmd_oe_o_reg <= 0;
             end
             READ: begin
                 crc_rst <= 0;
                 crc_enable <= (resp_len != RESP_SIZE-1 || counter > 7);
-                cmd_oe_o <= 0;
+                cmd_oe_o_reg <= 0;
                 if (counter <= resp_len) begin
                     if (counter < 8) //1+1+6 (S,T,Index)
                         resp_buff[RESP_SIZE-1-counter] <= cmd_dat_reg;
@@ -324,7 +332,7 @@ begin: FSM_OUT
                 crc_enable <= 0;
                 crc_rst <= 1;
                 counter <= 0;
-                cmd_oe_o <= 0;
+                cmd_oe_o_reg <= 0;
                 response_o <= resp_buff[119:0];
             end
         endcase

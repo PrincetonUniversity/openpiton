@@ -1,9 +1,7 @@
-bistable_domain_cross.v
+async_fifo.v
 byte_en_reg.v
-edge_detect.v
-generic_dpram.v
-generic_fifo_dc_gray.v
-monostable_domain_cross.v
+cdc_bits.v
+cdc_pulse.v
 piton_sd_buffer.v
 piton_sd_cache_tag.v
 piton_sd_cache_manager.v
