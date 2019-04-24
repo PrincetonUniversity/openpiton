@@ -123,7 +123,7 @@ input wire [`CORE_JTAG_BUS_WIDTH-1:0] rtap_core_data;
    input [4:0]          ifu_exu_muldivop_d;     // To ecl of sparc_exu_ecl.v
    input                ifu_exu_muls_d;         // To ecl of sparc_exu_ecl.v
    input                ifu_exu_nceen_e;        // To ecl of sparc_exu_ecl.v
-   (* mark_debug = "true" *)input [47:0]         ifu_exu_pc_d;           // To bypass of sparc_exu_byp.v
+   input [47:0]         ifu_exu_pc_d;           // To bypass of sparc_exu_byp.v
    input [63:0]         ifu_exu_pcver_e;        // To bypass of sparc_exu_byp.v
    input                ifu_exu_range_check_jlret_d;// To ecl of sparc_exu_ecl.v
    input                ifu_exu_range_check_other_d;// To ecl of sparc_exu_ecl.v
