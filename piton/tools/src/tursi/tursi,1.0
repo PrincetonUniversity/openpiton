@@ -55,8 +55,10 @@ def setParserOptions(parser):
                         help="FuseSoC configuration file location")
 
     fusesoc_core_choices = {
+        "openpiton::chip"               : "** core description **",
         "openpiton::chip_bridge"        : "** core description **",
         "openpiton::dynamic_node"       : "** core description **",
+        "openpiton::fpga_bridge_rcv_32" : "** core description **",
         "openpiton::fpu"                : "** core description **",
         "openpiton::ifu_esl"            : "** core description **",
         "openpiton::ifu_esl_counter"    : "** core description **",
@@ -77,9 +79,7 @@ def setParserOptions(parser):
         "openpiton::sparc_mul"          : "** core description **",
         "openpiton::sparc_srams"        : "** core description **",
         "openpiton::sparc_tlu"          : "** core description **",
-        "openpiton::fpga_bridge_rcv_32" : "** core description **",
-        "openpiton::tile"               : "** core description **",
-        "openpiton::chip"               : "** core description **"
+        "openpiton::tile"               : "** core description **"
     }
     fusesoc_core_help_str = \
 """Available core for picking using FuseSoc (default: %(default)s):
@@ -115,7 +115,7 @@ See $DV_ROOT/tools/src/proto/block.list for supported design modules"""
                         help=core_help_str,
                         metavar="<core>")
 
-    network_config_choices = ["2dmesh_config", "xbar_config"]
+    network_config_choices = ["2dmesh", "xbar"]
     network_config_help_str="""Name of the network type to be used (default: %(default)s).
 Available options are:
 {}""".format(network_config_choices)
@@ -283,6 +283,65 @@ def makeDefList(options):
     return defines
 
 
+fusesoc2toplevel = {
+    "openpiton::chip"               : "chip",
+    "openpiton::chip_bridge"        : "chip_bridge",
+    "openpiton::dynamic_node"       : "[*](#dynamic-node-top-module)",
+    "openpiton::fpga_bridge_rcv_32" : "fpga_bridge_rcv_32",
+    "openpiton::fpu"                : "fpu",
+    "openpiton::ifu_esl"            : "sparc_ifu_esl",
+    "openpiton::ifu_esl_counter"    : "sparc_ifu_esl_counter",
+    "openpiton::ifu_esl_fsm"        : "sparc_ifu_esl_fsm",
+    "openpiton::ifu_esl_htsm"       : "sparc_ifu_esl_htsm",
+    "openpiton::ifu_esl_lfsr"       : "sparc_ifu_esl_lfsr",
+    "openpiton::ifu_esl_rtsm"       : "sparc_ifu_esl_rtsm",
+    "openpiton::ifu_esl_shiftreg"   : "sparc_ifu_esl_shiftreg",
+    "openpiton::ifu_esl_stsm"       : "sparc_ifu_esl_stsm",
+    "openpiton::l15"                : "l15",
+    "openpiton::l2"                 : "l2",
+    "openpiton::pico"               : "picorv32",
+    "openpiton::sparc_core"         : "sparc_core",
+    "openpiton::sparc_exu"          : "sparc_exu_wrap",
+    "openpiton::sparc_ffu"          : "sparc_ffu_nospu_wrap",
+    "openpiton::sparc_ifu"          : "sparc_ifu",
+    "openpiton::sparc_lsu"          : "lsu",
+    "openpiton::sparc_mul"          : "sparc_mul_top_nospu_wrap",
+    "openpiton::sparc_tlu"          : "tlu_nospu_wrap",
+    "openpiton::tile"               : "tile"
+}
+
+json_template = """{{
+ "version"  : {__version__},
+ "toplevel" : {__toplevel__}
+}}
+"""
+
+def generate_IDF_minimal_json(args, w_env):
+    core = args.fusesoc_core
+    toplevel = None
+    
+    if core in fusesoc2toplevel: # Check dict
+        toplevel = fusesoc2toplevel[core]
+    elif core == "openpiton::dynamic_node": # Handle dynamic_node special case
+        if args.network_config == "2dmesh":
+            toplevel = "dynamic_node_top_wrap"
+        elif args.network_config == "xbar":
+            toplevel = "dynamic_node_top_wrap_para"
+
+    if toplevel == None: # No match found
+        print_error("No toplevel available for core {}. Aborting..".format(core))
+        sys.exit(1)
+        
+    with open("build/floorplan.json", "w") as json_fp:
+        r_dict = {
+            "__version__" : "0.3",
+            "__toplevel__" : toplevel
+        }
+        json_file = json_template.format(**r_dict)
+        json_fp.write(json_file)
+        json_fp.close()
+
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser = setParserOptions(parser)
@@ -389,12 +448,12 @@ def main():
         sys.exit(1)
 
     # network config
-    if args.network_config not in ['2dmesh_config', 'xbar_config']:
+    if args.network_config not in ['2dmesh', 'xbar']:
         print_error('invalid network config ' + str(args.network_config))
         sys.exit(1)
 
     print_info("network   = " + str(args.network_config))
-    os.environ['PTON_NETWORK_CONFIG'] = args.network_config
+    os.environ['PTON_NETWORK_CONFIG'] = args.network_config + "_config"
 
     # cache config
     print_info("l15 size  = " + str(args.config_l15_size))
@@ -434,6 +493,10 @@ def main():
             print_error("Pickling didn't finish successfully!")
             print_info("See for Errors in %s/pickling.log" % w_env.log)
             sys.exit(1)
+
+        # Generate IDF minimal json
+        generate_IDF_minimal_json(args, w_env)
+
         print_info("Pickling completed succesfully")
     if do_verify:
         #print_info("Pickling: %s" % args.core_name)
@@ -445,8 +508,6 @@ def main():
             print_info("See for Errors in %s/pickling.log" % w_env.log)
             sys.exit(1)
         print_info("Pickling completed succesfully")
-
-
 
     os.chdir(prev_dir)
 
