@@ -5,11 +5,11 @@ description: Top-level Piton includes
 filesets:
     rtl:
         files:
-            - iop.h: {is_includ_file: true}
-            - network_define.v: {is_includ_file: true}
+            - iop.h: {is_include_file: true}
+            - network_define.v: {is_include_file: true}
             - piton_system.vh: {is_include_file: true}
-            - sys.h: {is_includ_file: true}
-            - tlu.h: {is_includ_file: true}
+            - sys.h: {is_include_file: true}
+            - tlu.h: {is_include_file: true}
             - jtag.vh
             - dmbr_define.v
         depend:

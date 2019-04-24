@@ -5,9 +5,9 @@ description: Top-level Piton Chipset includes
 filesets:
     rtl:
         files:
-            - mc_define.h: {is_includ_file: true}
-            - chipset_define.vh: {is_includ_file: true}
-            - uart16550_define.vh: {is_includ_file: true}
+            - mc_define.h: {is_include_file: true}
+            - chipset_define.vh: {is_include_file: true}
+            - uart16550_define.vh: {is_include_file: true}
         depend:
             - openpiton::preprocessor
         file_type: verilogSource
