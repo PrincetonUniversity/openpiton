@@ -1454,9 +1454,18 @@ sub generic_sim_build
     print "$prg: Building rtl model\n" ;
 
     if ($opt{vcs_build}) {
-      $build_cmd  = "vcs " ;
+      if ($ENV{VCS_BIN}) {
+        $build_cmd = "$ENV{VCS_BIN} ";
+      } else {
+        $build_cmd  = "vcs " ;
+      }
       # lib_path needs to be before vcs_build_args
       $build_cmd .= $lib_path;
+
+      # the ariane files do not contain the timescale
+      if ($opt{ariane}) {
+        $build_cmd .= " -timescale=1ps/1ps ";
+      }
     }
     if ($opt{ncv_build}) {
       $build_cmd = "LD_LIBRARY_PATH=";
@@ -2623,7 +2632,7 @@ sub parse_args
   push (@{$opt{config_rtl}}, "L2_CAM_MSHR")    if ($opt{ariane});
 
 
-  if ($opt{pico} or $opt{pico_het}) {
+  if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {
     push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
     push (@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
   }

@@ -962,37 +962,74 @@ end else if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_core
 def clipAddress(addr, digits):
     return addr[max(0,len(addr)-digits):]
 
-cacheBegin = 0
-cacheStop  = 0
-dmBase     = 0
+cacheBase    = 0
+cacheLength  = 0
+dmBase       = 0
+dmLength     = 0
+romBase      = 0
+romLength    = 0
+romIsPresent = 0
+
+execBase   = "{"
+execLength = "{"
+numRules   = 0
 if PITON_ARIANE:
     for i in range(len(devices)):
         if devices[i]["name"] == "mem":
-            cacheBegin = devices[i]["base"]
-            cacheStop  = cacheBegin + devices[i]["length"]
-            cacheBegin = "%X" % cacheBegin
-            cacheStop  = "%X" % cacheStop
+            cacheBase    = "%X" % devices[i]["base"]
+            cacheLength  = "%X" % devices[i]["length"]
+            numRules    += 1
+            if execBase != "{":
+              execBase   += ", 64'h" + cacheBase
+              execLength += ", 64'h" + cacheLength
+            else:
+              execBase   += "64'h" + cacheBase
+              execLength += "64'h" + cacheLength
         if devices[i]["name"] == "ariane_debug":
-            dmBase     = "%X" % devices[i]["base"]
-
-bootAddr    = cacheBegin
-if PITON_ARIANE:
-    for i in range(len(devices)):
+            dmBase       = "%X" % devices[i]["base"]
+            dmLength     = "%X" % devices[i]["length"]
+            numRules    += 1
+            if execBase != "{":
+              execBase   += ", 64'h" + dmBase
+              execLength += ", 64'h" + dmLength
+            else:
+              execBase   += "64'h" + dmBase
+              execLength += "64'h" + dmLength
         if devices[i]["name"] == "ariane_bootrom":
-            bootAddr = devices[i]["base"]
-            bootAddr = "%X" % bootAddr
+            romBase      = "%X" % devices[i]["base"]
+            romLength    = "%X" % devices[i]["length"]
+            numRules    += 1
+            romIsPresent = 1
+            if execBase != "{":
+              execBase   += ", 64'h" + romBase
+              execLength += ", 64'h" + romLength
+            else:
+              execBase   += "64'h" + romBase
+              execLength += "64'h" + romLength
+
+execBase   += "}"
+execLength += "}"
+
+bootAddr = cacheBase
+if romIsPresent:
+  bootAddr = romBase
+
 print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
 %>
 
 
     ariane_verilog_wrap #(
-        // need to convert endianess in l15 adapter
-        .SwapEndianess ( 1                 ),
-        // I/O space is above NC threshold
 <%
-print("        .CachedAddrBeg ( 64'h%s         )," % cacheBegin)
-print("        .CachedAddrEnd ( 64'h%s         )," % cacheStop)
-print("        .DmBaseAddress ( 64'h%s         )" % dmBase)
+str = '''
+        .DmBaseAddress          ( 64'h%s ),
+        .SwapEndianess          ( 1'b1 ),
+        .NrExecuteRegionRules   ( %d   ),
+        .ExecuteRegionAddrBase  ( %s   ),
+        .ExecuteRegionLength    ( %s   ),
+        .NrCachedRegionRules    (  1   ),
+        .CachedRegionAddrBase   ( {64'h%s} ),
+        .CachedRegionLength     ( {64'h%s} )''' % (dmBase, numRules, execBase, execLength, cacheBase, cacheLength)
+print(str)
 %>
     ) core (
         .clk_i       ( clk_gated              ),

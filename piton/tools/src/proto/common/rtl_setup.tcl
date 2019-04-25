@@ -403,26 +403,25 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/include/wt_cache_pkg.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/include/axi_intf.sv"                                  \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pkg.sv"                             \
-    "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_pkg.sv"                   \
-    "${DV_ROOT}/design/chip/tile/ariane/src/util/instruction_tracer_if.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/sram.sv"                                     \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_master_connect.sv"                       \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_master_connect_rev.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_slave_connect.sv"                        \
     "${DV_ROOT}/design/chip/tile/ariane/src/util/axi_slave_connect_rev.sv"                    \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v1.sv"                      \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v2.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/rrarbiter.sv"         \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/fifo_v1.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/fifo_v2.sv"           \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v3.sv"                      \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/stream_arbiter_flushable.sv"     \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/shift_reg.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lfsr_8bit.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lzc.sv"                          \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rr_arb_tree.sv"                  \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rrarbiter.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rstgen_bypass.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/sync.sv"                         \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/sync_wedge.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/cdc_2phase.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/unread.sv"                       \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/popcount.sv"                     \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpga-support/rtl/SyncSpRamBeNx64.sv"              \
     "${DV_ROOT}/design/chip/tile/ariane/src/axi_mem_if/src/axi2mem.sv"                        \
     "${DV_ROOT}/design/chip/tile/ariane/src/tech_cells_generic/src/pulp_clock_gating.sv"      \
@@ -443,9 +442,10 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/frontend/bht.sv"                                  \
     "${DV_ROOT}/design/chip/tile/ariane/src/frontend/ras.sv"                                  \
     "${DV_ROOT}/design/chip/tile/ariane/src/frontend/instr_scan.sv"                           \
+    "${DV_ROOT}/design/chip/tile/ariane/src/frontend/instr_queue.sv"                          \
     "${DV_ROOT}/design/chip/tile/ariane/src/frontend/frontend.sv"                             \
     "${DV_ROOT}/design/chip/tile/ariane/src/id_stage.sv"                                      \
-    "${DV_ROOT}/design/chip/tile/ariane/src/instr_realigner.sv"                               \
+    "${DV_ROOT}/design/chip/tile/ariane/src/instr_realign.sv"                                 \
     "${DV_ROOT}/design/chip/tile/ariane/src/issue_read_operands.sv"                           \
     "${DV_ROOT}/design/chip/tile/ariane/src/issue_stage.sv"                                   \
     "${DV_ROOT}/design/chip/tile/ariane/src/load_unit.sv"                                     \
@@ -527,6 +527,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_multifmt_slice.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_in.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_out.sv"                              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_fma_inside.sv"                       \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_rounding.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_top.sv"                                   \
 ]
