@@ -1,6 +1,6 @@
 # Copyright (c) 2016 Princeton University
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -57,36 +57,36 @@ set_property IOSTANDARD LVCMOS18 [get_ports uart_rx]
 set_property PACKAGE_PIN AU33 [get_ports uart_rx]
 
 # Switches
-set_property PACKAGE_PIN AV30 [get_ports {sw[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[0]}]
-set_property PACKAGE_PIN AY33 [get_ports {sw[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[1]}]
-set_property PACKAGE_PIN BA31 [get_ports {sw[2]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[2]}]
-set_property PACKAGE_PIN BA32 [get_ports {sw[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[3]}]
-set_property PACKAGE_PIN AW30 [get_ports {sw[4]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[4]}]
-set_property PACKAGE_PIN AY30 [get_ports {sw[5]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[5]}]
-set_property PACKAGE_PIN BA30 [get_ports {sw[6]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[6]}]
-set_property PACKAGE_PIN BB31 [get_ports {sw[7]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw[7]}]
+set_property PACKAGE_PIN AV30 [get_ports sw[0]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[0]]
+set_property PACKAGE_PIN AY33 [get_ports sw[1]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[1]]
+set_property PACKAGE_PIN BA31 [get_ports sw[2]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[2]]
+set_property PACKAGE_PIN BA32 [get_ports sw[3]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[3]]
+set_property PACKAGE_PIN AW30 [get_ports sw[4]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[4]]
+set_property PACKAGE_PIN AY30 [get_ports sw[5]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[5]]
+set_property PACKAGE_PIN BA30 [get_ports sw[6]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[6]]
+set_property PACKAGE_PIN BB31 [get_ports sw[7]]
+set_property IOSTANDARD LVCMOS18 [get_ports sw[7]]
 
 # SD
 set_property IOSTANDARD LVCMOS18 [get_ports sd_clk_out]
 set_property PACKAGE_PIN AN30 [get_ports sd_clk_out]
 set_property IOSTANDARD LVCMOS18 [get_ports sd_cmd]
 set_property PACKAGE_PIN AP30 [get_ports sd_cmd]
-set_property IOSTANDARD LVCMOS18 [get_ports {sd_dat[0]}]
-set_property PACKAGE_PIN AR30 [get_ports {sd_dat[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sd_dat[1]}]
-set_property PACKAGE_PIN AU31 [get_ports {sd_dat[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sd_dat[2]}]
-set_property PACKAGE_PIN AV31 [get_ports {sd_dat[2]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sd_dat[3]}]
-set_property PACKAGE_PIN AT30 [get_ports {sd_dat[3]}]
+set_property IOSTANDARD LVCMOS18 [get_ports sd_dat[0]]
+set_property PACKAGE_PIN AR30 [get_ports sd_dat[0]]
+set_property IOSTANDARD LVCMOS18 [get_ports sd_dat[1]]
+set_property PACKAGE_PIN AU31 [get_ports sd_dat[1]]
+set_property IOSTANDARD LVCMOS18 [get_ports sd_dat[2]]
+set_property PACKAGE_PIN AV31 [get_ports sd_dat[2]]
+set_property IOSTANDARD LVCMOS18 [get_ports sd_dat[3]]
+set_property PACKAGE_PIN AT30 [get_ports sd_dat[3]]
 # set_property IOSTANDARD LVCMOS18 [get_ports sd_cd]
 # set_property PACKAGE_PIN AP32 [get_ports sd_cd]
 
@@ -95,22 +95,22 @@ set_property PACKAGE_PIN AT30 [get_ports {sd_dat[3]}]
 
 ## LEDs
 
-set_property PACKAGE_PIN AM39 [get_ports {leds[0]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[0]}]
-set_property PACKAGE_PIN AN39 [get_ports {leds[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[1]}]
-set_property PACKAGE_PIN AR37 [get_ports {leds[2]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[2]}]
-set_property PACKAGE_PIN AT37 [get_ports {leds[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[3]}]
-set_property PACKAGE_PIN AR35 [get_ports {leds[4]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[4]}]
-set_property PACKAGE_PIN AP41 [get_ports {leds[5]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[5]}]
-set_property PACKAGE_PIN AP42 [get_ports {leds[6]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[6]}]
-set_property PACKAGE_PIN AU39 [get_ports {leds[7]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {leds[7]}]
+set_property PACKAGE_PIN AM39 [get_ports leds[0]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[0]]
+set_property PACKAGE_PIN AN39 [get_ports leds[1]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[1]]
+set_property PACKAGE_PIN AR37 [get_ports leds[2]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[2]]
+set_property PACKAGE_PIN AT37 [get_ports leds[3]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[3]]
+set_property PACKAGE_PIN AR35 [get_ports leds[4]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[4]]
+set_property PACKAGE_PIN AP41 [get_ports leds[5]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[5]]
+set_property PACKAGE_PIN AP42 [get_ports leds[6]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[6]]
+set_property PACKAGE_PIN AU39 [get_ports leds[7]]
+set_property IOSTANDARD LVCMOS18 [get_ports leds[7]]
 
 #############################################
 # SD Card Constraints for 25MHz
@@ -139,6 +139,4 @@ set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -min -add_delay 2000.000
 set_input_delay -clock [get_clocks VIRTUAL_sd_slow_clk] -max -add_delay 3500.000 [get_ports sd_cmd]
 set_clock_groups -physically_exclusive -group [get_clocks -include_generated_clocks sd_clk_out] -group [get_clocks -include_generated_clocks sd_clk_out_1]
 set_clock_groups -logically_exclusive -group [get_clocks -include_generated_clocks {VIRTUAL_sd_fast_clk sd_fast_clk}] -group [get_clocks -include_generated_clocks {sd_slow_clk VIRTUAL_sd_slow_clk}]
-set_clock_groups -asynchronous -group [get_clocks [get_clocks -of_objects [get_pins chipset/clk_mmcm/inst/mmcm_adv_inst/CLKOUT0]]] -group [get_clocks -filter { NAME =~  "*sd*" }]
-
-
+set_clock_groups -asynchronous -group [get_clocks [list [get_clocks -of_objects [get_pins chipset/clk_mmcm/inst/mmcm_adv_inst/CLKOUT0]]]] -group [get_clocks -filter { NAME =~  "*sd*" }]
