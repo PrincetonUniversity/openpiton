@@ -1248,10 +1248,12 @@ sub pre_build
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";
+    # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
+    my $num_sources = 2;
     # 2 targets per core (M/S mode)
-    print "generating PLIC for Ariane with 2*$ENV{PTON_NUM_TILES} targets...\n";
-    my $tmp = 2 * $ENV{PTON_NUM_TILES};
-    !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $tmp > plic_regmap.sv") or
+    my $num_targets = 2 * $ENV{PTON_NUM_TILES};
+    print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
+    !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
       die (" Error generating PLIC for Ariane.");
     print "done\n";
   }
