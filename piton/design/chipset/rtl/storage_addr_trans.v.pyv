@@ -56,6 +56,7 @@ wire                          in_section_0;
 
 // align physical address, and use correct memory offsets as specified in platform config
 <%
+if PITON_ARIANE:
   for i in range(len(devices)):
       if devices[i]["name"] == "mem":
           memBegin = devices[i]["base"]
