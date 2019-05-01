@@ -289,8 +289,7 @@ pico-amoxor     amoxor_w.S
     // note: these asm tests assume that the RISCV tests have been precompiled with the
     // correct environment
     <ariane_tile1_fp_tests_p>
-        // note: we have to offset the trap here since the core operates in VM
-        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled -trap_offset=0x80000000>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -precompiled>
         ariane-rv64uf-p-fadd       rv64uf-p-fadd.S
         ariane-rv64uf-p-fclass     rv64uf-p-fclass.S
         ariane-rv64uf-p-fcmp       rv64uf-p-fcmp.S
@@ -313,7 +312,7 @@ pico-amoxor     amoxor_w.S
         ariane-rv64ud-p-ldst       rv64ud-p-ldst.S
         ariane-rv64ud-p-move       rv64ud-p-move.S
         ariane-rv64ud-p-recoding   rv64ud-p-recoding.S
-        ariane-rv64ud-p-structural rv64ud-p-structural.S
+        // ariane-rv64ud-p-structural rv64ud-p-structural.S
         </runargs>
     </ariane_tile1_fp_tests_p>
 
@@ -344,7 +343,7 @@ pico-amoxor     amoxor_w.S
         ariane-rv64ud-v-ldst       rv64ud-v-ldst.S
         ariane-rv64ud-v-move       rv64ud-v-move.S
         ariane-rv64ud-v-recoding   rv64ud-v-recoding.S
-        ariane-rv64ud-v-structural rv64ud-v-structural.S
+        // ariane-rv64ud-v-structural rv64ud-v-structural.S
         </runargs>
     </ariane_tile1_fp_tests_v>
 
