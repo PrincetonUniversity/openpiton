@@ -54,6 +54,7 @@ module io_xbar_one_of_n_plus_3(
     output reg [WIDTH-1:0] out;
     always@(*)
     begin
+        out={WIDTH{1'b0}};
         case(sel)
         <%
         print ""

@@ -27,7 +27,18 @@
 // Auto generated mapping module
 // It is provided for test: unknown
 //-----------------------------------------
-module storage_addr_trans_unified #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
+
+<%
+import pyhplib
+import os
+from pyhplib import *
+
+if PITON_ARIANE:
+  devices = pyhplib.ReadDevicesXMLFile()
+%>
+
+
+module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
 (
     input       [VA_ADDR_WIDTH-1:0]         va_byte_addr,
 
@@ -43,17 +54,23 @@ wire [63:0]                      bram_addr_0;
 
 wire                          in_section_0;
 
-assign bram_addr_0 = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h80000000) >> 5) + 0;
+// align physical address, and use correct memory offsets as specified in platform config
+<%
+  for i in range(len(devices)):
+      if devices[i]["name"] == "mem":
+          memBegin = devices[i]["base"]
+          memStop  = memBegin + devices[i]["length"]
+          memBegin = "%X" % memBegin
+          memStop  = "%X" % memStop
+  print("assign bram_addr_0  = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h%s) >> `ADDR_TRANS_PHYS_WIDTH_ALIGN) + 0;" % (memBegin));
+  print("assign in_section_0 = (va_byte_addr >= 64'h%s) & (va_byte_addr < 64'h%s);" % (memBegin, memStop))
+%>
 
-assign in_section_0 = (va_byte_addr >= 64'h80000000) & (va_byte_addr < 64'hC0000000);
-
-assign storage_addr =
-({STORAGE_ADDR_WIDTH{in_section_0}} & bram_addr_0[STORAGE_ADDR_WIDTH-1:0]);
+assign storage_addr = ({STORAGE_ADDR_WIDTH{in_section_0}} & bram_addr_0[STORAGE_ADDR_WIDTH-1:0]);
 
 assign storage_addr_out = {storage_addr, 3'b0};
 
-assign hit_any_section =
-in_section_0 ;
+assign hit_any_section = in_section_0 ;
 
 `else
 

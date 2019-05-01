@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //  Filename      : clk_gating_latch.v
 //  Created On    : 2015-01-26 14:10:43
-//  Last Modified : 2015-01-26 15:13:40
+//  Last Modified : 2019-04-17 11:56:55
 //  Revision      :
 //  Author        : Tri Nguyen
 //  Company       : Princeton University
@@ -43,19 +43,31 @@ module clk_gating_latch (
     output wire clk_out
 );
 
-wire clk_en_sync;
-reg clk_en_sync_latch;
+// use clock buffer on FPGA
+// note that not all FPGAs have enough of these available
+// so we use the latch as a fallback on certain boards (e.g., vc707)
+`ifdef PITON_FPGA_SYNTH
 
-assign clk_out = clk & clk_en_sync_latch;
+  assign clk_out = clk;
 
-synchronizer sync(
-    .clk            (clk),
-    .presyncdata    (clk_en),
-    .syncdata       (clk_en_sync)
-);
+`else // PITON_FPGA_SYNTH
 
-// clk_en_sync_latch changes only on the negative duty of the cycle
-always @ (clk or clk_en_sync)
-    if (~clk) clk_en_sync_latch = clk_en_sync;
+  wire clk_en_sync;
+  reg clk_en_sync_latch;
+
+  assign clk_out = clk & clk_en_sync_latch;
+
+  synchronizer sync(
+      .clk            (clk),
+      .presyncdata    (clk_en),
+      .syncdata       (clk_en_sync)
+  );
+
+  // if possible, replace this with a native clock gate from the std cell lib
+  // clk_en_sync_latch changes only on the negative duty of the cycle
+  always @ (clk or clk_en_sync)
+      if (~clk) clk_en_sync_latch = clk_en_sync;
+`endif
+
 
 endmodule // clk_gating_latch

@@ -11,7 +11,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -101,7 +101,7 @@
     `define PITONSYS_UART
 `endif  // PITON_BOARD_CHIPSET
 
-// If we are synthesizing the chip 
+// If we are synthesizing the chip
 // only for FPGA, we need to use these
 // macros
 `ifdef PITON_CHIP_FPGA
@@ -116,6 +116,8 @@
 
 `ifdef VC707_BOARD
     `define PITON_CHIPSET_DIFF_CLK
+`elsif VCU118_BOARD
+    `define PITON_CHIPSET_DIFF_CLK
 `elsif GENESYS2_BOARD
     `define PITON_CHIPSET_DIFF_CLK
 `elsif PITON_BOARD
@@ -128,7 +130,9 @@
 // Reset is active high on VC707
 `ifdef VC707_BOARD
     `define PITON_FPGA_RST_ACT_HIGH
-`endif // endif VC707 board
+`elsif VCU118_BOARD
+    `define PITON_FPGA_RST_ACT_HIGH
+`endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
 `ifdef PITON_FPGA_SD_BOOT

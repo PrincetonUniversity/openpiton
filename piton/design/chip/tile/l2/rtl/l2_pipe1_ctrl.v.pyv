@@ -1106,11 +1106,12 @@ begin
 end
 
 
-
 reg [`CS_SIZE_P1S2-1:0] cs_S2;
 
 always @ *
 begin
+    // default assignment to prevent latch inferral
+    cs_S2 = {`CS_SIZE_P1S2{1'bx}};
     if (valid_S2)
     begin
         if (special_addr_type_S2_f)
@@ -3074,7 +3075,7 @@ begin
                     end
                     endcase
                 end
-                `MSG_TYPE_LR_REQ:   // Jsut same as a store req 
+                `MSG_TYPE_LR_REQ:   // Jsut same as a store req
                 begin
                     case (l2_way_state_mesi_S4)
                     `L2_MESI_I:

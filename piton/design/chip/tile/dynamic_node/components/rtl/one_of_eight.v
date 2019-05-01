@@ -33,6 +33,7 @@ module one_of_eight(in0,in1,in2,in3,in4,in5,in6,in7,sel,out);
     output reg [WIDTH-1:0] out;
     always@ (*)
     begin
+        out={WIDTH{1'b0}};
         case(sel)
             3'd0:out=in0;
             3'd1:out=in1;

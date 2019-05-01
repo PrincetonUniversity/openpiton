@@ -928,7 +928,6 @@ fake_uart fake_uart (
 
 `ifdef PITON_ARIANE
 
-    // irq sources into PLIC are not connected yet
     wire [1:0] irq_sources;
     assign irq_sources = {net_interrupt, uart_interrupt};
 
@@ -944,7 +943,7 @@ fake_uart fake_uart (
   `endif
 `endif
 
-    serpent_peripherals #(
+    riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
         .NumSources     (               2 ),
