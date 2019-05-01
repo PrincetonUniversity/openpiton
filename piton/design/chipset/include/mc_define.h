@@ -60,6 +60,20 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+
+    `define C_M_AXI4_DATA_WIDTH  512
+    `define C_M_AXI4_ID_WIDTH    16
+    `define C_M_AXI4_ADDR_WIDTH  64
+    `define C_M_AXI4_LEN_WIDTH   8
+    `define C_M_AXI4_SIZE_WIDTH  3
+    `define C_M_AXI4_STRB_WIDTH  64
+    `define C_M_AXI4_BURST_WIDTH 2
+    `define C_M_AXI4_RESP_WIDTH  2
+    `define C_M_AXI4_CACHE_WIDTH 4
+    `define C_M_AXI4_PROT_WIDTH 3
+    `define C_M_AXI4_QOS_WIDTH 4
+    `define C_M_AXI4_REGION_WIDTH 4
+    `define C_M_AXI4_USER_WIDTH 11
 `elsif GENESYS2_BOARD
     `define BOARD_MEM_SIZE_BYTES    1073741824
     `define WORDS_PER_BURST         8
@@ -76,6 +90,20 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+
+    `define C_M_AXI4_DATA_WIDTH  512
+    `define C_M_AXI4_ID_WIDTH    16
+    `define C_M_AXI4_ADDR_WIDTH  64
+    `define C_M_AXI4_LEN_WIDTH   8
+    `define C_M_AXI4_SIZE_WIDTH  3
+    `define C_M_AXI4_STRB_WIDTH  64
+    `define C_M_AXI4_BURST_WIDTH 2
+    `define C_M_AXI4_RESP_WIDTH  2
+    `define C_M_AXI4_CACHE_WIDTH 4
+    `define C_M_AXI4_PROT_WIDTH 3
+    `define C_M_AXI4_QOS_WIDTH 4
+    `define C_M_AXI4_REGION_WIDTH 4
+    `define C_M_AXI4_USER_WIDTH 11
 `elsif NEXYSVIDEO_BOARD
     `define BOARD_MEM_SIZE_BYTES    536870912
     `define WORDS_PER_BURST         8
@@ -92,6 +120,20 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+
+    `define C_M_AXI4_DATA_WIDTH  512
+    `define C_M_AXI4_ID_WIDTH    16
+    `define C_M_AXI4_ADDR_WIDTH  64
+    `define C_M_AXI4_LEN_WIDTH   8
+    `define C_M_AXI4_SIZE_WIDTH  3
+    `define C_M_AXI4_STRB_WIDTH  64
+    `define C_M_AXI4_BURST_WIDTH 2
+    `define C_M_AXI4_RESP_WIDTH  2
+    `define C_M_AXI4_CACHE_WIDTH 4
+    `define C_M_AXI4_PROT_WIDTH 3
+    `define C_M_AXI4_QOS_WIDTH 4
+    `define C_M_AXI4_REGION_WIDTH 4
+    `define C_M_AXI4_USER_WIDTH 11
 `else
     `define BOARD_MEM_SIZE_BYTES    1073741824
     `define MIG_APP_ADDR_WIDTH      29
@@ -108,6 +150,20 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+
+    `define C_M_AXI4_DATA_WIDTH  512
+    `define C_M_AXI4_ID_WIDTH    16
+    `define C_M_AXI4_ADDR_WIDTH  64
+    `define C_M_AXI4_LEN_WIDTH   8
+    `define C_M_AXI4_SIZE_WIDTH  3
+    `define C_M_AXI4_STRB_WIDTH  64
+    `define C_M_AXI4_BURST_WIDTH 2
+    `define C_M_AXI4_RESP_WIDTH  2
+    `define C_M_AXI4_CACHE_WIDTH 4
+    `define C_M_AXI4_PROT_WIDTH 3
+    `define C_M_AXI4_QOS_WIDTH 4
+    `define C_M_AXI4_REGION_WIDTH 4
+    `define C_M_AXI4_USER_WIDTH 11
 `endif
 
     `define C_M_AXI4_DATA_WIDTH  512
