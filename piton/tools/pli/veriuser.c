@@ -44,13 +44,6 @@ int (*endofcompile_routines[])() =
     0 /*** final entry must be 0 ***/
 };
 
-bool err_intercept(level,facility,code)
-int level; char *facility; char *code;
-{ 
-printf("OpenSPARC T1 PLI: err_intercept: %d %s %s\n",level,facility,code);
-return(true); 
-}
-
 extern  int read_64b_call();
 extern  int write_64b_call();
 
@@ -60,11 +53,6 @@ extern  int iob_cdrive_call();
 extern int slam_random_call();
 
 extern int bw_tlb_reset_vld_call();
-
-extern int monInit_check();
-extern int monInit_call();
-extern int parse_check();
-extern int parse_call();
 
 int Size_32() { return (32); }
 int Size_64() { return (64); }
@@ -84,9 +72,6 @@ s_tfcell veriusertfs[] =
     {usertask, 0, 0, 0, write_64b_call, 0, "$write_64b"},
 
     {usertask, 0, 0, 0, bw_tlb_reset_vld_call, 0, "$bw_force_by_name"},
-
-    {usertask, 0, monInit_check, 0, monInit_call, 0, "$monInit"},
-    {userfunction, 0, parse_check, Size_32, parse_call, 0, "$parse"},
 
     {0}
 };
@@ -144,23 +129,6 @@ static void veriusertfs_register(void)
     task_data_p->type = vpiSysTask;
     task_data_p->tfname = "$bw_force_by_name";
     task_data_p->calltf = bw_tlb_reset_vld_call;
-    task_data_p->compiletf = 0;
-    vpi_register_systf(task_data_p);
-
-    //{usertask, 0, monInit_check, 0, monInit_call, 0, "$monInit"},
-    task_data_p->type = vpiSysTask;
-    task_data_p->tfname = "$monInit";
-    task_data_p->calltf = monInit_call;
-    //task_data_p->checktf = monInit_check;
-    task_data_p->compiletf = 0;
-    vpi_register_systf(task_data_p);
-
-    //{userfunction, 0, parse_check, Size_32, parse_call, 0, "$parse"},
-    task_data_p->type = vpiSysFunc;
-    task_data_p->sysfunctype = vpiIntFunc;
-    task_data_p->tfname = "$parse";
-    task_data_p->calltf = parse_call;
-    //task_data_p->checktf = parse_check;
     task_data_p->compiletf = 0;
     vpi_register_systf(task_data_p);
 }

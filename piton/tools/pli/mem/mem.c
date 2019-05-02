@@ -206,5 +206,6 @@ int slam_random_call()
       }
     }
   }
+  return 0;
 }
 #endif

@@ -27,35 +27,31 @@
 #include "global.h"
 #include "pcx.h"
 #define CPX_SIZE 4
+
+#define INT_RET         0x7
+
 class cpx{
  //start private funcs and variable here
 private:
   int idx, cpx_wait, req_wait, cpu, pdata;  
   //packet field
-  char req_sent, req,  atom, pa_10_6, bf_id, size;
+  char req_sent, req;
   //cpx packet
   int cpx_pkt[5];
-  KeyType addr;
-  //get the imiss data from memory.
-  void get_data(char* data);
-  void ucb_data(int* data);
   
  //start funcs and variable here
 
 public:
   //constructor
-  char nc, rqtype, way, cpu_id, thrid, way_vld;
+  char cpu_id, thrid;
   int true_id;
   cpx();
   void  xlation(pcx* pkt, char* data);
-  void  xlation(pcx* pkt, int* data);
-  void  xlation(pcx* pkt);
   int*  get_cpx();
   void  dec_wait();
   int   get_req_wait(){return (req_wait == 0) && (req_sent == 1);}
   int   get_cpx_wait(){return (cpx_wait == 0) && (req_sent == 2);}
   int   get_req();
   void  clean();
-  void  core_avail(int avail);
 };
 #endif

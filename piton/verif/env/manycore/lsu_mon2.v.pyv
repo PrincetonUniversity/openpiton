@@ -33,7 +33,6 @@
 `include "sys.h"
 `include "iop.h"
 
-`ifndef VERILATOR
 
 <%
     from pyhplib import *
@@ -66,6 +65,7 @@ end
 
 // Reset code requested by Rudi
 // This is to turn off monitor during reset
+`ifndef VERILATOR
 reg     lsu_mon_rst_l;
 initial lsu_mon_rst_l = 0 ;
 
@@ -75,6 +75,9 @@ always @(posedge clk) begin
   while (rst_l !== 1) @(posedge clk) ;
   lsu_mon_rst_l = 1 ;
 end
+`else // ifndef VERILATOR
+wire lsu_mon_rst_l = rst_l;
+`endif // ifndef VERILATOR
 // End Reset code requested by Rudi
 
 // Enumerate monitors for all 8 cores
@@ -618,14 +621,20 @@ begin
 `else
     if (~`SPARC_CORE0.sparc0.ifu.fcl.running_e) begin
 `endif
+      `ifndef VERILATOR
       force `SPARC_CORE0.sparc0.exu_lsu_ldst_va_e = 48'bx;
+      `else // ifndef VERILATOR
+      `SPARC_CORE0.sparc0.exu_lsu_ldst_va_e = 48'bx;
+      `endif // ifndef VERILATOR
     end
 `ifndef RTL_SPU
     if (`SPARC_CORE0.sparc0.ifu.ifu.fcl.running_e) begin
 `else
     if (`SPARC_CORE0.sparc0.ifu.fcl.running_e) begin
 `endif
+      `ifndef VERILATOR
       release `SPARC_CORE0.sparc0.exu_lsu_ldst_va_e;
+      `endif // ifndef VERILATOR
     end
   end
 end
@@ -2431,7 +2440,7 @@ pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
-    .local (cpx_spc_data_cx2_local),
+    .local_o (cpx_spc_data_cx2_local),
     .Dinv  (cpx_spc_data_cx2_Dinv),
     .Iinv  (cpx_spc_data_cx2_Iinv)
 );
@@ -2456,7 +2465,7 @@ pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
-    .local (dfq_byp_mx_data_local),
+    .local_o (dfq_byp_mx_data_local),
     .Dinv  (dfq_byp_mx_data_Dinv),
     .Iinv  (dfq_byp_mx_data_Iinv)
 );
@@ -2481,7 +2490,7 @@ pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
-    .local (dfq_cpx_raw_wdata_local),
+    .local_o (dfq_cpx_raw_wdata_local),
     .Dinv  (dfq_cpx_raw_wdata_Dinv),
     .Iinv  (dfq_cpx_raw_wdata_Iinv)
 );
@@ -2518,7 +2527,7 @@ pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
-    .local (dfq_byp_ff_data_local),
+    .local_o (dfq_byp_ff_data_local),
     .Dinv  (dfq_byp_ff_data_Dinv),
     .Iinv  (dfq_byp_ff_data_Iinv)
 );
@@ -2542,7 +2551,7 @@ pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 
-%>local, Dinv, Iinv);
+%>local_o, Dinv, Iinv);
 
 <%
 text = '''
@@ -2553,18 +2562,18 @@ pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
-output [`NUM_TILES-1:0]  local;
+output [`NUM_TILES-1:0]  local_o;
 output [`NUM_TILES-1:0]  Dinv;
 output [`NUM_TILES-1:0]  Iinv;
 
 <%
 text = '''
     `ifdef RTL_SPARC0
-    assign local[0] = (in0[`CPX_CPUID_HI:`CPX_CPUID_LO] == 3'h0);
+    assign local_o[0] = (in0[`CPX_CPUID_HI:`CPX_CPUID_LO] == 3'h0);
     assign Dinv[0]  = in0[0]  | in0[32] | in0[56] | in0[88] ;
     assign Iinv[0]  = in0[1]  | in0[57] ;
     `endif'''
-pattern = ["RTL_SPARC0", "local[0", "Dinv[0", "Iinv[0", "in0"]
+pattern = ["RTL_SPARC0", "local_o[0", "Dinv[0", "Iinv[0", "in0"]
 tt = ReplicatePattern(text, pattern)
 print tt
 %>
@@ -2587,6 +2596,4 @@ wire   [3:0]  count;
     assign out[2] = (count > 4'h2);
 
 endmodule
-
-`endif //ifndef VERILATOR
 

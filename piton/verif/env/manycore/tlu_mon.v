@@ -929,8 +929,11 @@ end
   //============
   // initialize
   initial begin
-    enable = 1'b1;
-    if ($test$plusargs("turn_off_tlu_monitor")) enable = 1'b0;
+    if ($test$plusargs("turn_off_tlu_monitor")) begin
+      enable = 1'b0;
+    end else begin
+      enable = 1'b1;
+    end
     //else if ($test$plusargs("turn_on_tlu_monitor")) enable = 1'b1;
     if (enable) $display("Info: ***** tlu_mon: Enabling the TLU Monitor *****");
     else        $display("Info: ***** tlu_mon: Disabling the TLU Monitor *****");

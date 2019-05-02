@@ -24,58 +24,16 @@
 #ifndef _BW_LIB_H_
 #define _BW_LIB_H_
 #include "b_ary.h"
-#include "list.h"
-#ifndef VERILATOR
+#include <stdlib.h>
+#ifndef PITON_DPI
 #include "veriuser.h"
 #include "acc_user.h"
-#else
+#else // ifndef PITON_DPI
 #include "global.h"
-#endif
+#endif // ifndef PITON_DPI
 #ifdef __ICARUS__
 #include "icarus-compat.h"
-#endif
-//width of jbus signals
-#define J_AD_WIDTH   128
-#define J_ADTYPE_WIDTH 8
-#define J_PACK_WIDTH   3
-//argument list of jbus_model task
-#define J_ID         1
-#define J_REQ_IN_L   J_ID         + 1
-#define J_AD         J_REQ_IN_L   + 1
-#define J_ADTYPE     J_AD         + 1
-#define J_PACK0      J_ADTYPE     + 1
-#define J_PACK1      J_PACK0      + 1
-#define J_PACK2      J_PACK1      + 1
-#define J_PACK3      J_PACK2      + 1
-#define J_PACK4      J_PACK3      + 1
-#define J_PACK5      J_PACK4      + 1
-#define J_PACK6      J_PACK5      + 1
-//output
-#define J_AD_R       J_PACK6      + 1
-#define	J_ADTYPE_R   J_AD_R       + 1
-#define	J_PACK0_R    J_ADTYPE_R   + 1
-#define	J_PACK1_R    J_PACK0_R    + 1
-
-#define	J_PACK2_R    J_PACK1_R    + 1
-#define	J_PACK3_R    J_PACK2_R    + 1
-#define	J_PACK4_R    J_PACK3_R    + 1
-#define	J_PACK5_R    J_PACK4_R    + 1
-#define	J_PACK6_R    J_PACK5_R    + 1
-#define	J_REQ_OUT_R  J_PACK6_R    + 1
-#define PCX_PACKET   1
-#define CPX_PACKET   2
-//Transaction Set
-#define RDS          0x04
-#define RDSA         0x05
-#define WRI          0x0e
-#define WRIS         0x0f
-#define NCRD         0x10
-#define NCBRD        0x11
-#define NCWR         0x12
-#define NCBWR        0x13
-#define INT          0x14
-#define IDLE         0x1f
-
+#endif // ifdef __ICARUS__
 //general
 #define BUFFER 1024
 
