@@ -113,10 +113,13 @@ localparam SD2WB_STATE_WRITE_PENDING = 2'd2;
 
 reg [1:0] sd2wb_state;
 
+/*
 async_fifo #(
     .WIDTH(32)
     ,.DEPTH_LOG2(`FIFO_MEM_ADR_SIZE)
-) sd2wb_fifo (
+)
+*/
+sd_data_fifo sd2wb_fifo (
     .rst(rst)
     ,.wr_clk(sd_clk)
     ,.wr_en(wr_i)
@@ -180,10 +183,13 @@ localparam WB2SD_STATE_WRITE_PENDING = 2'd2;
 
 reg [1:0] wb2sd_state;
 
+/*
 async_fifo #(
     .WIDTH(32)
     ,.DEPTH_LOG2(`FIFO_MEM_ADR_SIZE)
-) wb2sd_fifo (
+)
+*/
+sd_data_fifo wb2sd_fifo (
     .rst(rst)
     ,.wr_clk(wb_clk)
     ,.wr_en(wb2sd_wr_en)

@@ -395,10 +395,12 @@ cdc_pulse data_int_rst_cross(wb_rst_i, wb_clk_i, data_int_rst, sd_clk_o, data_in
 cdc_pulse cmd_int_rst_cross(wb_rst_i, wb_clk_i, cmd_int_rst, sd_clk_o, cmd_int_rst_sd_clk);
 
 // wb -> sd register synchronization
-async_fifo #(
+
+/*async_fifo #(
     .WIDTH(40)
     ,.DEPTH_LOG2(4)
-) wb2sd_fifo (
+)*/
+sd_ctrl_fifo wb2sd_fifo (
     .rst(wb_rst_i)
     ,.wr_clk(wb_clk_i)
     ,.wr_en(wb2sd_fifo_wr_en)
@@ -454,10 +456,13 @@ end
 
 
 // wb -> sd register synchronization
+/*
 async_fifo #(
     .WIDTH(40)
     ,.DEPTH_LOG2(4)
-) sd2wb_fifo (
+)
+*/
+sd_ctrl_fifo sd2wb_fifo (
     .rst(wb_rst_i)
     ,.wr_clk(sd_clk_o)
     ,.wr_en(sd2wb_fifo_wr_en)

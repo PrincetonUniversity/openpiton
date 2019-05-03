@@ -209,16 +209,16 @@ set_output_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 8.000 [get_por
 # data is launched on negative clock edge here
 
 # propdelay fast
-set_input_delay -clock [get_clocks sd_clk_out]   -max -add_delay 14.000 [get_ports {sd_dat[*]}] -clock_fall
-set_input_delay -clock [get_clocks sd_clk_out]   -max -add_delay 14.000 [get_ports sd_cmd]      -clock_fall
+set_input_delay -clock [get_clocks sd_clk_out]   -max -add_delay 13.000 [get_ports {sd_dat[*]}] -clock_fall
+set_input_delay -clock [get_clocks sd_clk_out]   -max -add_delay 13.000 [get_ports sd_cmd]      -clock_fall
 
 # contamination delay fast
 set_input_delay -clock [get_clocks sd_clk_out]   -min -add_delay 0.000 [get_ports {sd_dat[*]}]  -clock_fall
 set_input_delay -clock [get_clocks sd_clk_out]   -min -add_delay 0.000 [get_ports sd_cmd]       -clock_fall
 
 # propdelay slow
-set_input_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 14.000 [get_ports {sd_dat[*]}] -clock_fall
-set_input_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 14.000 [get_ports sd_cmd]      -clock_fall
+set_input_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 13.000 [get_ports {sd_dat[*]}] -clock_fall
+set_input_delay -clock [get_clocks sd_clk_out_1] -max -add_delay 13.000 [get_ports sd_cmd]      -clock_fall
 
 # contamination  slow
 set_input_delay -clock [get_clocks sd_clk_out_1] -min -add_delay 0.000 [get_ports {sd_dat[*]}]  -clock_fall
