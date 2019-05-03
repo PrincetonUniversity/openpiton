@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 ### Added
+- AXI4 memory controller option on vc707
+- Multicore Verilator simulation using DPI alternative to existing PLI
+- Simulation of OpenPiton+Ariane with VCS
 
 ### Changed
 - Remove BUFG and clock gating latches for FPGA targets
@@ -12,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Update storage_addr_trans* to include different board configurations for Ariane
 - Update Ariane version. This includes several bugfixes and improvements
 - Update RISC-V peripherals (new PLIC, updated debug module with support for multi-hart debug)
+- OS stability improvements from LR/SC invalidation fix
 
 ## Release 11
 
