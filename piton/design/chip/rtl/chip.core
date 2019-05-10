@@ -6,7 +6,6 @@ filesets:
     rtl:
         files:
             - OCI.v
-            - reset_synchronizer.v
         depend:
             - openpiton::tile
             - openpiton::jtag
