@@ -56,6 +56,7 @@ generate:
                           [l15_pipeline.v.pyv, l15_pipeline.tmp.v],
                           [l15_priority_encoder.v.pyv, l15_priority_encoder.tmp.v],
                           [noc1buffer.v.pyv, noc1buffer.tmp.v],
+                          [rf_l15_lrsc_flag.v.pyv, rf_l15_lrsc_flag.tmp.v],
                           [rf_l15_lruarray.v.pyv, rf_l15_lruarray.tmp.v],
                           [rf_l15_mesi.v.pyv, rf_l15_mesi.tmp.v],
                           [rf_l15_wmt.v.pyv, rf_l15_wmt.tmp.v]]
