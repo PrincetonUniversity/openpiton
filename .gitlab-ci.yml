@@ -32,6 +32,8 @@ before_script:
   - export C_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
   - export CPLUS_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
   - export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
+  # this is for sims batches
+  - export DRMJOBSCRATCHSPACE=/scratch2/gitlabci/tmp/
   # piton setup
   - "source piton/piton_settings.bash"
 
