@@ -120,7 +120,7 @@ See $DV_ROOT/tools/src/proto/block.list for supported design modules"""
 Available options are:
 {}""".format(network_config_choices)
     parser.add_argument("--network_config", dest="network_config", action="store",
-                        default="2dmesh_config",
+                        default="2dmesh",
                         choices=network_config_choices,
                         help=network_config_help_str)
 
