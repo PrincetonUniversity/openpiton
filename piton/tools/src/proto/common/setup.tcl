@@ -91,11 +91,6 @@ if {[info exists ::env(PITON_ARIANE)]} {
   append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE WT_DCACHE"
 }
 
-
-if {[info exists ::env(L2_CAM_MSHR)]} {
-  append ALL_DEFAULT_VERILOG_MACROS " L2_CAM_MSHR"
-}
-
 for {set k 0} {$k < $::env(PTON_NUM_TILES)} {incr k} {
   if {[info exists "::env(RTL_ARIANE$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_ARIANE$k"

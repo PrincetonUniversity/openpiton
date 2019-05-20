@@ -655,7 +655,6 @@ def main():
     elif options.core == 'ariane':
         os.environ['PITON_ARIANE'] = "1"
         os.environ['WT_DCACHE']    = "1"
-        os.environ['L2_CAM_MSHR']  = "1"
 
         for i in range(int(options.num_tiles)):
             os.environ['RTL_ARIANE' + str(i)] = "1"
