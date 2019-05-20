@@ -1,6 +1,9 @@
 // Cross-domain bit(s) synchronizer
 //  - if WIDTH is greater than 1, the bits are independently synced. do not use
 //      this directly for bus signals.
+`ifdef PITON_FPGA_SYNTH
+`define USE_XILINX_XPM
+`endif
 module cdc_bits (
     rst,
     src_clk, src,
