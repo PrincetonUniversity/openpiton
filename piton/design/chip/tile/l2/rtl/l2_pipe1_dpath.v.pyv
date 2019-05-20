@@ -495,10 +495,8 @@ begin
         mshr_miss_lsid_S2_f <= mshr_miss_lsid_S1;
 `else
         // trin: ambiguous??
-        // mshr_way_S2_f <= cam_mshr_way_S1;
-        // mshr_miss_lsid_S2_f <= cam_mshr_miss_lsid_S1;
-        mshr_way_S2_f <= pending_mshr_way_S1 && mshr_pending_S1;
-        mshr_miss_lsid_S2_f <= pending_mshr_miss_lsid_S1 && mshr_pending_S1;
+        mshr_way_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_way_S1 : cam_mshr_way_S1;
+        mshr_miss_lsid_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_miss_lsid_S1 : cam_mshr_miss_lsid_S1;
 `endif // L2_CAM_MSHR
         atomic_read_data_S2_f <= atomic_read_data_S1_f;
         recycled_S2_f <= recycled_S1;
