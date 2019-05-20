@@ -430,7 +430,7 @@ system system(
     monitor   monitor(
         .clk    (`CHIP_INT_CLK),
         .cmp_gclk  (`CHIP_INT_CLK),
-        .rst_l     (`SPARC_CORE0.reset_l)
+        .rst_l     (`CORE_REF0.reset_l)
         );
 
 `ifndef MINIMAL_MONITORING
