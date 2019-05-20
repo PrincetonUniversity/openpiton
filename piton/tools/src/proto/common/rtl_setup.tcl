@@ -665,7 +665,6 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_master_wishbone_decoder.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/spi_tx_rx_data.v" \
     "${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/status_register_control.v" \
-    "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/async_fifo.v" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/byte_en_reg.v" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/cdc_bits.v" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/rtl/cdc_pulse.v" \
