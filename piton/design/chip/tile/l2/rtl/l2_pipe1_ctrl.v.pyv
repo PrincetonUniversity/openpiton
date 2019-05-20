@@ -71,7 +71,7 @@ module l2_pipe1_ctrl(
 
     //input from the mshr
     input wire mshr_hit_S1,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire [`MSG_TYPE_WIDTH-1:0] mshr_msg_type_S1,
     input wire [`MSG_L2_MISS_BITS-1:0] mshr_l2_miss_S1,
     input wire [`MSG_DATA_SIZE_WIDTH-1:0] mshr_data_size_S1,
@@ -81,12 +81,12 @@ module l2_pipe1_ctrl(
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] mshr_pending_index_S1,
     input wire [`L2_MSHR_INDEX_WIDTH:0] mshr_empty_slots_S1,
     `ifndef NO_RTL_CSM
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire mshr_smc_miss_S1,
 `endif // L2_CAM_MSHR
     `endif
 
-`ifdef L2_CAM_MSHR
+`ifndef NO_L2_CAM_MSHR
     //input from the mshr
     input wire [`MSG_TYPE_WIDTH-1:0] cam_mshr_msg_type_S1,
     input wire [`MSG_L2_MISS_BITS-1:0] cam_mshr_l2_miss_S1,
@@ -394,7 +394,7 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         msg_type_mux_S1 = mshr_msg_type_S1;
 `else
         msg_type_mux_S1 = pending_mshr_msg_type_S1;
@@ -654,7 +654,7 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         data_size_S1 = mshr_data_size_S1;
 `else
         data_size_S1 = pending_mshr_data_size_S1;
@@ -670,7 +670,7 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         cache_type_S1 = mshr_cache_type_S1;
 `else
         cache_type_S1 = pending_mshr_cache_type_S1;
@@ -960,7 +960,7 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         l2_miss_S1 = mshr_l2_miss_S1;
 `else
         l2_miss_S1 = pending_mshr_l2_miss_S1;
@@ -1022,7 +1022,7 @@ begin
         cache_type_S2_f <= cache_type_S1;
         l2_miss_S2_f <= l2_miss_S1;
         `ifndef NO_RTL_CSM
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         mshr_smc_miss_S2_f <= mshr_smc_miss_S1;
 `else
         mshr_smc_miss_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_smc_miss_S1 : (mshr_hit_S1 && cam_mshr_smc_miss_S1);

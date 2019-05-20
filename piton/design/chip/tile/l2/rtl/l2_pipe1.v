@@ -79,7 +79,7 @@ module l2_pipe1(
     input wire global_stall_S4,
 
     input wire mshr_hit,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_out,
 `else
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] cam_mshr_data_out,
@@ -200,7 +200,7 @@ wire [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits;
 wire [`MSG_SDID_WIDTH-1:0] msg_sdid;
 wire [`MSG_LSID_WIDTH-1:0] msg_lsid;
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 wire [`MSG_TYPE_WIDTH-1:0] mshr_msg_type;
 wire [`MSG_MSHRID_WIDTH-1:0] mshr_mshrid;
 wire [`MSG_DATA_SIZE_WIDTH-1:0] mshr_data_size;
@@ -232,13 +232,13 @@ wire [`MSG_LSID_WIDTH-1:0] cam_mshr_lsid;
 wire [`MSG_LSID_WIDTH-1:0] cam_mshr_miss_lsid;
 `endif // L2_CAM_MSHR
 `ifndef NO_RTL_CSM
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 wire mshr_smc_miss;
 `else
 wire cam_mshr_smc_miss;
 `endif // L2_CAM_MSHR
 `endif
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 wire mshr_recycled;
 `else
 wire cam_mshr_recycled;
@@ -423,7 +423,7 @@ l2_decoder decoder(
     .msg_lsid           (msg_lsid)
 );
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 l2_mshr_decoder mshr_decoder(
 
     .data_in            (mshr_data_out),
@@ -539,7 +539,7 @@ l2_pipe1_ctrl ctrl(
     .msg_data_size_S1           (msg_data_size),
     .msg_cache_type_S1          (msg_cache_type),
     .mshr_hit_S1                (mshr_hit),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .mshr_msg_type_S1           (mshr_msg_type),
     .mshr_l2_miss_S1            (mshr_l2_miss),
     .mshr_data_size_S1          (mshr_data_size),
@@ -554,13 +554,13 @@ l2_pipe1_ctrl ctrl(
     .mshr_pending_index_S1      (mshr_pending_index),
     .mshr_empty_slots_S1        (mshr_empty_slots),
     `ifndef NO_RTL_CSM
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .mshr_smc_miss_S1           (mshr_smc_miss),
 `else
     .cam_mshr_smc_miss_S1       (cam_mshr_smc_miss),
 `endif // L2_CAM_MSHR
     `endif
-`ifdef L2_CAM_MSHR
+`ifndef NO_L2_CAM_MSHR
     .pending_mshr_msg_type_S1           (pending_mshr_msg_type),
     .pending_mshr_l2_miss_S1            (pending_mshr_l2_miss),
     .pending_mshr_data_size_S1          (pending_mshr_data_size),
@@ -741,7 +741,7 @@ l2_pipe1_dpath dpath(
     `endif
     .smt_base_addr              (smt_base_addr),
     
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .mshr_addr_S1               (mshr_addr),
     .mshr_mshrid_S1             (mshr_mshrid),
     .mshr_way_S1                (mshr_way),

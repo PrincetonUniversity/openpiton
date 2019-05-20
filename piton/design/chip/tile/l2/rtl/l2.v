@@ -106,7 +106,7 @@ wire [`L2_MSHR_INDEX_WIDTH-1:0] mshr_wr_index_in_p2;
 
 wire mshr_hit;
 wire [`L2_MSHR_INDEX_WIDTH-1:0] mshr_hit_index;
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 wire [`L2_MSHR_STATE_BITS-1:0] mshr_state_out;
 wire [`L2_MSHR_ARRAY_WIDTH-1:0] mshr_data_out;
 `else
@@ -301,12 +301,12 @@ l2_config_regs config_regs(
 l2_mshr_wrap mshr_wrap(
     .clk                    (clk),
     .rst_n                  (rst_n),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .pipe_rd_sel            (active_S1),
 `endif
     .pipe_wr_sel            (active_S3),
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .rd_en1                 (1'b0),
 `endif
     .cam_en1                (mshr_cam_en_p1),
@@ -316,20 +316,20 @@ l2_mshr_wrap mshr_wrap(
     .state_in1              (mshr_state_in_p1),
     .data_in1               (mshr_data_in_p1),
     .data_mask_in1          (mshr_data_mask_in_p1),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .rd_index_in1           ({`L2_MSHR_INDEX_WIDTH{1'b0}}),
 `endif
     .inv_counter_rd_index_in1(mshr_inv_counter_rd_index_in_p1),
     .wr_index_in1           (mshr_wr_index_in_p1),
     .addr_in1               (mshr_addr_in_p1),
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .rd_en2                 (mshr_rd_en_p2),
     .cam_en2                (1'b0),
 `endif
     .wr_state_en2           (mshr_wr_state_en_p2),
     .wr_data_en2            (mshr_wr_data_en_p2),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .pending_ready2         (1'b0), 
 `endif
     .inc_counter_en2        (mshr_inc_counter_en_p2),
@@ -338,13 +338,13 @@ l2_mshr_wrap mshr_wrap(
     .data_mask_in2          (mshr_data_mask_in_p2),
     .rd_index_in2           (mshr_rd_index_in_p2),
     .wr_index_in2           (mshr_wr_index_in_p2),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .addr_in2               ({`L2_MSHR_ADDR_IN_WIDTH{1'b0}}),
 `endif
 
     .hit                    (mshr_hit),
     .hit_index              (mshr_hit_index),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .state_out              (mshr_state_out),
     .data_out               (mshr_data_out),
 `else
@@ -569,7 +569,7 @@ l2_pipe1 pipe1(
     .global_stall_S4        (active_S3),
 
     .mshr_hit               (mshr_hit),
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .mshr_data_out          (mshr_data_out),
 `else
     .cam_mshr_data_out      (cam_mshr_data_out),
@@ -679,7 +679,7 @@ l2_pipe2 pipe2(
     .noc_data_in            (noc3_data_in),
     .noc_ready_in           (noc3_ready_in),
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     .mshr_state_out         (mshr_state_out),
     .mshr_data_out          (mshr_data_out),
 `else
