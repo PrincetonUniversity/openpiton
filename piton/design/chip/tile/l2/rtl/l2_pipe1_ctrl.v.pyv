@@ -1025,8 +1025,7 @@ begin
 `ifndef L2_CAM_MSHR
         mshr_smc_miss_S2_f <= mshr_smc_miss_S1;
 `else
-        // trin: not sure whether it's cam or pending version...
-        mshr_smc_miss_S2_f <= mshr_pending_S1 && pending_mshr_smc_miss_S1;
+        mshr_smc_miss_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_smc_miss_S1 : (mshr_hit_S1 && cam_mshr_smc_miss_S1);
 `endif // L2_CAM_MSHR
         `endif
         msg_from_mshr_S2_f <= msg_from_mshr_S1;
@@ -1904,20 +1903,12 @@ reg [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2_next;
 
 always @ *
 begin
-`ifndef L2_CAM_MSHR
     dir_clk_en_S2 = !stall_S2 && cs_S2[`CS_DIR_CLK_EN_P1S2];
-`else
-    dir_clk_en_S2 = cs_S2[`CS_DIR_CLK_EN_P1S2];
-`endif // L2_CAM_MSHR
 end
 
 always @ *
 begin
-`ifndef L2_CAM_MSHR
     dir_rdw_en_S2 = !stall_S2 && cs_S2[`CS_DIR_RDW_EN_P1S2];
-`else
-    dir_rdw_en_S2 = cs_S2[`CS_DIR_RDW_EN_P1S2];
-`endif // L2_CAM_MSHR
 end
 
 
@@ -1928,20 +1919,12 @@ end
 
 always @ *
 begin
-`ifndef L2_CAM_MSHR
     data_clk_en_S2 = !stall_real_S2 && cs_S2[`CS_DATA_CLK_EN_P1S2];
-`else
-    data_clk_en_S2 = cs_S2[`CS_DATA_CLK_EN_P1S2];
-`endif // L2_CAM_MSHR
 end
 
 always @ *
 begin
-`ifndef L2_CAM_MSHR
     data_rdw_en_S2 = !stall_real_S2 && cs_S2[`CS_DATA_RDW_EN_P1S2];
-`else
-    data_rdw_en_S2 = cs_S2[`CS_DATA_RDW_EN_P1S2];
-`endif // L2_CAM_MSHR
 end
 
 always @ *
