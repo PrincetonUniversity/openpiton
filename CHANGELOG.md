@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Update Ariane version. This includes several bugfixes and improvements
 - Update RISC-V peripherals (new PLIC, updated debug module with support for multi-hart debug)
 - OS stability improvements from LR/SC invalidation fix
+- Rewrite SD controller. Cross-timing-domain hazards fixed
+- Update Xilinx IPs to Vivado 2016.4
 
 ## Release 11
 
