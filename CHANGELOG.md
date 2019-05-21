@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - OS stability improvements from LR/SC invalidation fix
 - Rewrite SD controller. Cross-timing-domain hazards fixed
 - Update Xilinx IPs to Vivado 2016.4
+- Moved to CAM structure for L2 MSHR to improve timing
 
 ## Release 11
 
