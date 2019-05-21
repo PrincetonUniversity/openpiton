@@ -262,7 +262,7 @@ if {$VIVADO_FLOW_PERF_OPT} {
 } else {
   set_property "strategy" "Vivado Synthesis Defaults" $fileset_obj
 }
-set_property "incremental_checkpoint" "" $fileset_obj
+#set_property "incremental_checkpoint" "" $fileset_obj
 set_property "include_in_archive" "1" $fileset_obj
 set_property "steps.synth_design.tcl.pre" "" $fileset_obj
 set_property "steps.synth_design.tcl.post" "" $fileset_obj
@@ -334,7 +334,7 @@ if {$VIVADO_FLOW_PERF_OPT} {
 } else {
   set_property "strategy" "Vivado Implementation Defaults" $fileset_obj
 }
-set_property "incremental_checkpoint" "" $fileset_obj
+#set_property "incremental_checkpoint" "" $fileset_obj
 set_property "include_in_archive" "1" $fileset_obj
 set_property "steps.opt_design.is_enabled" "1" $fileset_obj
 set_property "steps.opt_design.tcl.pre" "" $fileset_obj
