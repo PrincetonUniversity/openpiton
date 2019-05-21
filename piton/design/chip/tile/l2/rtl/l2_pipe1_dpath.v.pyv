@@ -64,7 +64,7 @@ module l2_pipe1_dpath(
 
     //Inputs to Stage 1   
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     //inputs from the mshr
     input wire [`L2_MSHR_ADDR_OUT_WIDTH-1:0] mshr_addr_S1,
     input wire [`MSG_MSHRID_WIDTH-1:0] mshr_mshrid_S1,
@@ -328,7 +328,7 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         addr_S1 = mshr_addr_S1;
         mshrid_S1 = mshr_mshrid_S1;
         src_chipid_S1 = mshr_src_chipid_S1;
@@ -490,15 +490,13 @@ begin
         src_fbits_S2_f <= src_fbits_S1;
         sdid_S2_f <= sdid_S1;
         lsid_S2_f <= lsid_S1;
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
         mshr_way_S2_f <= mshr_way_S1;
         mshr_miss_lsid_S2_f <= mshr_miss_lsid_S1;
 `else
         // trin: ambiguous??
-        // mshr_way_S2_f <= cam_mshr_way_S1;
-        // mshr_miss_lsid_S2_f <= cam_mshr_miss_lsid_S1;
-        mshr_way_S2_f <= pending_mshr_way_S1 && mshr_pending_S1;
-        mshr_miss_lsid_S2_f <= pending_mshr_miss_lsid_S1 && mshr_pending_S1;
+        mshr_way_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_way_S1 : cam_mshr_way_S1;
+        mshr_miss_lsid_S2_f <= (mshr_pending_S1 == 1'b1) ? pending_mshr_miss_lsid_S1 : cam_mshr_miss_lsid_S1;
 `endif // L2_CAM_MSHR
         atomic_read_data_S2_f <= atomic_read_data_S1_f;
         recycled_S2_f <= recycled_S1;
@@ -1483,7 +1481,7 @@ end
 
 
 `ifndef SYNTHESIS
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 // monitor for checking race condition
 always @ (posedge clk) begin
     if (data_stalled_skid_buffer_en_S3_f) begin

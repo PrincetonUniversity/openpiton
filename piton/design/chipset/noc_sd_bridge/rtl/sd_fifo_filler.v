@@ -47,12 +47,14 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
+`include "sd_defines.h"
+
 module sd_fifo_filler(
            input wb_clk,
            input rst,
            //WB Signals
            output reg [31:0] wbm_adr_o,
-           output wbm_we_o,
+           output reg wbm_we_o,
            output [31:0] wbm_dat_o,
            input [31:0] wbm_dat_i,
            output wbm_cyc_o,
@@ -62,6 +64,7 @@ module sd_fifo_filler(
            input en_rx_i,
            input en_tx_i,
            input [31:0] adr_i,
+           input [`BLKSIZE_W+`BLKCNT_W-1:0] xfersize,
            //Data Serial signals
            input sd_clk,
            input [31:0] dat_i,
@@ -69,105 +72,171 @@ module sd_fifo_filler(
            input wr_i,
            input rd_i,
            output sd_full_o,
-           output sd_empty_o,
-           output wb_full_o,
-           output wb_empty_o
+           output sd_empty_o
        );
 
 `define FIFO_MEM_ADR_SIZE 4
 `define MEM_OFFSET 4
 
-wire reset_fifo;
-wire fifo_rd;
-reg fifo_rd_ack;
-reg fifo_rd_reg;
+reg [`BLKSIZE_W+`BLKCNT_W-1:0] xfersize_f;
+reg wb2sd_wr_en;
 
-assign fifo_rd = wbm_cyc_o & wbm_ack_i;
-assign reset_fifo = !en_rx_i & !en_tx_i;
-
-assign wbm_we_o = en_rx_i & !wb_empty_o;
-assign wbm_cyc_o = en_rx_i ? en_rx_i & !wb_empty_o : en_tx_i & !wb_full_o;
-assign wbm_stb_o = en_rx_i ? wbm_cyc_o & fifo_rd_ack : wbm_cyc_o;
-
-    `ifdef PITON_FPGA_SYNTH
-sd_fifo sd2wb (
-      .rst(rst | reset_fifo),        // input wire rst
-      .wr_clk(sd_clk),  // input wire wr_clk
-      .rd_clk(wb_clk),  // input wire rd_clk
-      .din(dat_i),        // input wire [31 : 0] din
-      .wr_en(wr_i),    // input wire wr_en
-      .rd_en(en_rx_i & wbm_cyc_o & wbm_ack_i),    // input wire rd_en
-      .dout(wbm_dat_o),      // output wire [31 : 0] dout
-      .full(sd_full_o),      // output wire full
-      .empty(wb_empty_o)    // output wire empty
-    );
-    `else
-generic_fifo_dc_gray #(
-    .dw(32), 
-    .aw(`FIFO_MEM_ADR_SIZE)
-    ) generic_fifo_dc_gray0 (
-    .rd_clk(wb_clk),
-    .wr_clk(sd_clk), 
-    .rst(!(rst | reset_fifo)), 
-    .clr(1'b0), 
-    .din(dat_i), 
-    .we(wr_i),
-    .dout(wbm_dat_o), 
-    .re(en_rx_i & wbm_cyc_o & wbm_ack_i), 
-    .full(sd_full_o), 
-    .empty(wb_empty_o), 
-    .wr_level(), 
-    .rd_level() 
-    );
-    `endif
- 
-    `ifdef PITON_FPGA_SYNTH
-sd_fifo wb2sd (
-      .rst(rst | reset_fifo),        // input wire rst
-      .wr_clk(wb_clk),  // input wire wr_clk
-      .rd_clk(sd_clk),  // input wire rd_clk
-      .din(wbm_dat_i),        // input wire [31 : 0] din
-      .wr_en(en_tx_i & wbm_cyc_o & wbm_stb_o & wbm_ack_i),    // input wire wr_en
-      .rd_en(rd_i),    // input wire rd_en
-      .dout(dat_o),      // output wire [31 : 0] dout
-      .full(wb_full_o),      // output wire full
-      .empty(sd_empty_o)    // output wire empty
-    );
-    `else
-generic_fifo_dc_gray #(
-    .dw(32), 
-    .aw(`FIFO_MEM_ADR_SIZE)
-    ) generic_fifo_dc_gray1 (
-    .rd_clk(sd_clk),
-    .wr_clk(wb_clk), 
-    .rst(!(rst | reset_fifo)), 
-    .clr(1'b0), 
-    .din(wbm_dat_i), 
-    .we(en_tx_i & wbm_cyc_o & wbm_stb_o & wbm_ack_i),
-    .dout(dat_o), 
-    .re(rd_i), 
-    .full(wb_full_o), 
-    .empty(sd_empty_o), 
-    .wr_level(), 
-    .rd_level() 
-    );
-    `endif
-
-always @(posedge wb_clk or posedge rst)
+always @(posedge wb_clk or posedge rst) begin
     if (rst) begin
-        wbm_adr_o <= 0;
-        fifo_rd_reg <= 0;
-        fifo_rd_ack <= 1;
+        wbm_adr_o       <=  0;
+        wbm_we_o        <=  0;
+        xfersize_f      <=  0;
+    end else begin
+        if (en_rx_i) begin  // RX is reading from SD and writing to wishbone
+            wbm_we_o    <=  1'b1;
+        end else if (en_tx_i) begin
+            wbm_we_o    <=  1'b0;
+        end
+
+        if (en_rx_i || en_tx_i) begin
+            wbm_adr_o   <=  adr_i;
+            xfersize_f  <=  xfersize[`BLKSIZE_W+`BLKCNT_W-1:2] - ((xfersize[1:0] == 2'b0) ? 1 : 0);
+        end else if ((wbm_we_o && wbm_cyc_o && wbm_ack_i) || (~wbm_we_o && wb2sd_wr_en)) begin
+            wbm_adr_o   <=  wbm_adr_o + `MEM_OFFSET;
+            xfersize_f  <=  xfersize_f - 1;
+        end
     end
-    else begin
-        fifo_rd_reg <= fifo_rd;
-        fifo_rd_ack <= fifo_rd_reg | !fifo_rd;
-        if (wbm_cyc_o & wbm_stb_o & wbm_ack_i)
-            wbm_adr_o <= wbm_adr_o + `MEM_OFFSET;
-        else if (reset_fifo)
-            wbm_adr_o <= adr_i;
+end
+
+reg sd2wb_rd_en;
+reg sd2wb_wb_cyc_o;
+wire sd2wb_empty;
+
+localparam SD2WB_STATE_IDLE = 2'd0;
+localparam SD2WB_STATE_READ_PENDING = 2'd1;
+localparam SD2WB_STATE_WRITE_PENDING = 2'd2;
+
+reg [1:0] sd2wb_state;
+
+sd_data_fifo sd2wb_fifo (
+    .rst(rst)
+    ,.wr_clk(sd_clk)
+    ,.wr_en(wr_i)
+    ,.din(dat_i)
+    ,.full(sd_full_o)
+    ,.rd_clk(wb_clk)
+    ,.rd_en(sd2wb_rd_en)
+    ,.dout(wbm_dat_o)
+    ,.empty(sd2wb_empty)
+    );
+
+always @(posedge wb_clk or posedge rst) begin
+    if (rst) begin
+        sd2wb_state     <=  SD2WB_STATE_IDLE;
+    end else begin
+        case (sd2wb_state)
+            SD2WB_STATE_IDLE: begin
+                if (en_rx_i) begin
+                    sd2wb_state     <=  SD2WB_STATE_READ_PENDING;
+                end
+            end
+            SD2WB_STATE_READ_PENDING: begin
+                if (sd2wb_rd_en) begin
+                    sd2wb_state     <=  SD2WB_STATE_WRITE_PENDING;
+                end
+            end
+            SD2WB_STATE_WRITE_PENDING: begin
+                if (wbm_cyc_o & wbm_ack_i) begin
+                    if (xfersize_f == 0) begin
+                        sd2wb_state <=  SD2WB_STATE_IDLE;
+                    end else begin
+                        sd2wb_state <=  SD2WB_STATE_READ_PENDING;
+                    end
+                end
+            end
+        endcase
     end
+end
+
+always @* begin
+    sd2wb_rd_en = 1'b0;
+    sd2wb_wb_cyc_o = 1'b0;
+
+    case (sd2wb_state)
+        SD2WB_STATE_READ_PENDING: begin
+            sd2wb_rd_en = !sd2wb_empty;
+        end
+        SD2WB_STATE_WRITE_PENDING: begin
+            sd2wb_wb_cyc_o = !en_rx_i && !en_tx_i;
+        end
+    endcase
+end
+
+reg wb2sd_wb_cyc_o;
+reg [31:0] wb2sd_din_f;
+wire wb2sd_full;
+
+localparam WB2SD_STATE_IDLE = 2'd0;
+localparam WB2SD_STATE_READ_PENDING = 2'd1;
+localparam WB2SD_STATE_WRITE_PENDING = 2'd2;
+
+reg [1:0] wb2sd_state;
+
+sd_data_fifo wb2sd_fifo (
+    .rst(rst)
+    ,.wr_clk(wb_clk)
+    ,.wr_en(wb2sd_wr_en)
+    ,.din(wb2sd_din_f)
+    ,.full(wb2sd_full)
+    ,.rd_clk(sd_clk)
+    ,.rd_en(rd_i)
+    ,.dout(dat_o)
+    ,.empty(sd_empty_o)
+    );
+
+always @(posedge wb_clk or posedge rst) begin
+    if (rst) begin
+        wb2sd_din_f     <=  0;
+        wb2sd_state     <=  WB2SD_STATE_IDLE;
+    end else begin
+        if (wbm_cyc_o & wbm_ack_i) begin
+            wb2sd_din_f <=  wbm_dat_i;
+        end
+
+        case (wb2sd_state)
+            WB2SD_STATE_IDLE: begin
+                if (en_tx_i) begin
+                    wb2sd_state     <=  WB2SD_STATE_READ_PENDING;
+                end
+            end
+            WB2SD_STATE_READ_PENDING: begin
+                if (wbm_cyc_o & wbm_ack_i) begin
+                    wb2sd_state     <=  WB2SD_STATE_WRITE_PENDING;
+                end
+            end
+            WB2SD_STATE_WRITE_PENDING: begin
+                if (wb2sd_wr_en) begin
+                    if (xfersize_f == 0) begin
+                        wb2sd_state <=  WB2SD_STATE_IDLE;
+                    end else begin
+                        wb2sd_state <=  WB2SD_STATE_READ_PENDING;
+                    end
+                end
+            end
+        endcase
+    end
+end
+
+always @* begin
+    wb2sd_wr_en = 1'b0;
+    wb2sd_wb_cyc_o = 1'b0;
+
+    case (wb2sd_state)
+        WB2SD_STATE_READ_PENDING: begin
+            wb2sd_wb_cyc_o = !en_rx_i && !en_tx_i;
+        end
+        WB2SD_STATE_WRITE_PENDING: begin
+            wb2sd_wr_en = !wb2sd_full;
+        end
+    endcase
+end
+
+assign wbm_cyc_o = wbm_we_o ? sd2wb_wb_cyc_o : wb2sd_wb_cyc_o;
+assign wbm_stb_o = wbm_cyc_o;
 
 endmodule
-
-

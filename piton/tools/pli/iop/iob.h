@@ -24,10 +24,11 @@
 
 #ifndef _IOB_H_
 #define _IOB_H_
+#include <map>
+#include <list>
 #include "global.h"
 #include "pcx.h"
 #include "cpx.h"
-#include "list.h"
 #include "bw_lib.h"
 #include <string.h>
 #ifdef __ICARUS__
@@ -43,35 +44,35 @@ private:
   b_tree_atom_ptr data;
   //pc event variables
   event_record_ptr         one_event; 
-  List<event_record>*      event_list;
-  avl<List<event_record> > inst_event;
+  std::list<event_record*>*      event_list;
+  std::map<KeyType, std::list<event_record*> > inst_event;
   
   //cpx request variable
   //no request zero. One hot
-  int zero_delay;
-  char req, thrid;
+  char grant, req, thrid;
   //flag for cpx packet.
   int pkt_vld, next_req, next_cpx;
   // ccx qsel
   int Qsel[8];
   //index 
   int groups, idx;
-  KeyType addr, mask_addr;
   //low and high byte for tf_getlongp
   int low, high; 
   //event key
   KeyType pc, key;
   //keep pcx packet in the pcx list.
   int pcx_pkt[4];
-  List<pcx> pcx_list;
-  List<pcx> pcx_heap;
-  List<cpx> cpx_list;
-  List<cpx> cpx_heap;
+  std::list<pcx*> pcx_list;
+  std::list<pcx*> pcx_heap;
+  std::list<cpx*> cpx_list;
+  std::list<cpx*> cpx_heap;
   //temporary pcx packet.
   pcx pcx_inst, *p_pkt;
   cpx cpx_inst, *c_pkt;
   //tf variable for cpx packet.
+#ifndef PITON_DPI
   s_tfnodeinfo node_info;
+#endif // ifndef PITON_DPI
   int *ptr;
   //interrupt register
 
@@ -81,9 +82,10 @@ private:
   void handle_pcx();  
   void handle_cpx();  
   void gen_event();
-  void grant_check();
+#ifndef PITON_DPI
   //drive signals, which is less than 32 bits.
   void trig_pc_event();
+#endif // ifndef PITON_DPI
   void replace(char* str);
   void copy(char* buf, int* idx,  char* cbuf);
   KeyType getEight(char *buf);
@@ -93,7 +95,13 @@ public:
   int manual_init(char *ev);
   //iob functions
   void do_iob();
+#ifndef PITON_DPI
   void drive_cpx(int loc);
-  void drive_req(int loc);
+#else // ifndef PITON_DPI
+  int drive_cpx();
+  int get_cpx_word(int index);
+  void trig_pc_event(unsigned long long thread_pc);
+#endif // ifndef PITON_DPI
+  void drive_req();
 };
 #endif

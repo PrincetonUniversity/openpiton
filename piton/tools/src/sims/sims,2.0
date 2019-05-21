@@ -1495,11 +1495,17 @@ sub generic_sim_build
       $build_cmd .= "-exe $dv_root/tools/verilator/my_top.cpp " ;
       $build_cmd .= "$dv_root/tools/pli/iop/b_ary.c " ;
       $build_cmd .= "$dv_root/tools/pli/iop/bw_lib.c " ;
-      $build_cmd .= "$dv_root/tools/pli/iop/list.cc " ;
-      $build_cmd .= "$dv_root/tools/verilator/pli_replacement.cpp " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/iob_main.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/iob.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/cpx.cc " ;
+      $build_cmd .= "$dv_root/tools/pli/iop/pcx.cc " ;
       $build_cmd .= "--top-module cmp_top " ;
       $build_cmd .= "-Wno-fatal " ;
+      $build_cmd .= "-DPITON_DPI " ;
+      $build_cmd .= "--unroll-count 256 " ;
       $build_cmd .= "-CFLAGS -DVERILATOR " ;
+      $build_cmd .= "-CFLAGS -DPITON_DPI " ;
+      $build_cmd .= "-CFLAGS -lstdc++ " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/pli/iop " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/verilator " ;
     }
@@ -1770,7 +1776,7 @@ sub generic_sim_run
       close (NCVCMD) ;
       `chmod +x ncv_cmd`;
 
-      $cmd = "ncv_cmd";
+      $cmd = "./ncv_cmd";
 
       $ENV{LD_LIBRARY_PATH} = $ld_lib_path;
     }
@@ -2631,7 +2637,6 @@ sub parse_args
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
   push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
-  push (@{$opt{config_rtl}}, "L2_CAM_MSHR")    if ($opt{ariane});
 
 
   if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {

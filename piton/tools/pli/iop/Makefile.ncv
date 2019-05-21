@@ -50,7 +50,7 @@ PLI_OBJECTS=     b_ary.$(OBJ_POSTFIX) \
                  iob_main.$(OBJ_POSTFIX) \
                  pcx.$(OBJ_POSTFIX)
 
-ARCH_DYNAMIC_LD= -G -Bdynamic 
+ARCH_DYNAMIC_LD= -g -Bdynamic -shared 
 TEMPLATE_O=	./Templates.DB/*.o 
 USR_INCLUDES=    -I.
 USR_DEFINES=     -DFIFO_METHOD -DUSE_ACC $(NCV_CC_OPTS)
@@ -67,8 +67,8 @@ CLEAN_TARGETS=   $(PLILIBA)
 
 $(PLILIBSO):	$(PLI_OBJECTS)
 	@if [ -d ./Templates.DB ]; then \
-	$(LD) $(ARCH_DYNAMIC_LD) $(TEMPLATE_O) $(LD_OUT_OPT)$(QUOTE)$(PLILIBSO)$(QUOTE) $(PLI_OBJECTS); else \
-	$(LD) $(ARCH_DYNAMIC_LD) $(LD_OUT_OPT)$(QUOTE)$(PLILIBSO)$(QUOTE) $(PLI_OBJECTS); fi
+	$(CC) $(ARCH_DYNAMIC_LD) $(TEMPLATE_O) $(LD_OUT_OPT)$(QUOTE)$(PLILIBSO)$(QUOTE) $(PLI_OBJECTS); else \
+	$(CC) $(ARCH_DYNAMIC_LD) $(LD_OUT_OPT)$(QUOTE)$(PLILIBSO)$(QUOTE) $(PLI_OBJECTS); fi
 	rm -rf $(PLI_OBJECTS) ./Templates.DB
 
 include $(INSTALL_DIR)/tools/inca/files/Makefile.nc.targets

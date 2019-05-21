@@ -26,7 +26,11 @@
 #ifdef __ICARUS__
 #include "icarus-compat.h"
 #endif
-int mra_entry();
+// for strcat
+#include <string.h>
+// for sprintf
+#include <stdio.h>
+void mra_entry();
 /*-------------------------------------------------------------------------------
  dummy = $bw_decoder(30, cpu_id[2:0], rd_idx, 1, dtlb_entry_vld);
 --------------------------------------------------------------------------------*/
@@ -37,12 +41,13 @@ int bw_tlb_reset_vld_call()
    mra_entry();
    break;
  }
+ return 0;
 }
 
 /*-------------------------------------------------------------------------------
 $bw_decoder(40, `DTLBPATH0.tlb_entry_vld, cpu, 1);
 --------------------------------------------------------------------------------*/
-int mra_entry()
+void mra_entry()
 {
    s_tfnodeinfo node_info, node_info4;
    char *avalPtr, *bvalPtr;
@@ -75,7 +80,7 @@ int mra_entry()
    }
 #ifdef USE_ACC
    for(ind = node_info4.node_ngroups-1; ind >= 0; ind--){
-	sprintf(tmpdata,"%0.8lx",aval[ind] & 0xffffffff);
+	sprintf(tmpdata,"%0.8x",aval[ind] & 0xffffffff);
 	strcat(outdata,tmpdata);
    }
     acc_initialize();

@@ -3,7 +3,7 @@
 include ${DV_ROOT}/tools/env/Makefile.system
 
 CPPFLAGS = 
-CFLAGS += -I../ -fpermissive -fpic $(ICARUS_CC_OPTS)
+CFLAGS += -I../ -fpic $(ICARUS_CC_OPTS)
 
 LIB = libsocket_pli_icarus.a
 CSRCS = 

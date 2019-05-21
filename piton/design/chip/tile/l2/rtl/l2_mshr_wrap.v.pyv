@@ -46,12 +46,12 @@ module l2_mshr_wrap(
 
     input wire clk,
     input wire rst_n,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire pipe_rd_sel,
 `endif // L2_CAM_MSHR
     input wire pipe_wr_sel,
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire rd_en1,
 `endif // L2_CAM_MSHR
     input wire cam_en1,
@@ -61,20 +61,20 @@ module l2_mshr_wrap(
     input wire [`L2_MSHR_STATE_BITS-1:0] state_in1,
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_in1,
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in1,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in1,
 `endif // L2_CAM_MSHR
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] inv_counter_rd_index_in1,
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in1,
     input wire [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in1,
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire rd_en2,
     input wire cam_en2,
 `endif // L2_CAM_MSHR
     input wire wr_state_en2,
     input wire wr_data_en2,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire pending_ready2,
 `endif // L2_CAM_MSHR
     input wire inc_counter_en2,
@@ -83,11 +83,11 @@ module l2_mshr_wrap(
     input wire [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in2,
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in2,
     input wire [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in2,
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     input wire [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in2,
 `endif // L2_CAM_MSHR
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
     output wire hit,
     output wire [`L2_MSHR_INDEX_WIDTH-1:0] hit_index,
     output wire [`L2_MSHR_STATE_BITS-1:0] state_out,
@@ -114,28 +114,28 @@ module l2_mshr_wrap(
 `endif // L2_CAM_MSHR
 );
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 reg rd_en;
 reg cam_en;
 `endif // L2_CAM_MSHR
 reg wr_state_en;
 reg wr_data_en;
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 reg pending_ready;
 `endif // L2_CAM_MSHR
 reg [`L2_MSHR_STATE_BITS-1:0] state_in;
 reg [`L2_MSHR_ARRAY_WIDTH-1:0] data_in;
 reg [`L2_MSHR_ARRAY_WIDTH-1:0] data_mask_in;
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 reg [`L2_MSHR_INDEX_WIDTH-1:0] rd_index_in;
 `endif // L2_CAM_MSHR
 reg [`L2_MSHR_INDEX_WIDTH-1:0] wr_index_in;
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 reg [`L2_MSHR_ADDR_IN_WIDTH-1:0] addr_in;
 `endif // L2_CAM_MSHR
 
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 always @ *
 begin
     if (pipe_rd_sel)
@@ -180,7 +180,7 @@ begin
 end
 
 
-`ifndef L2_CAM_MSHR
+`ifdef NO_L2_CAM_MSHR
 l2_mshr l2_mshr(
     .clk                        (clk),
     .rst_n                      (rst_n),

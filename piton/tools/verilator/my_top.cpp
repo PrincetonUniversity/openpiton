@@ -89,7 +89,7 @@ void reset_and_init() {
 
     top->async_mux = 0;
 
-    //@@@ init_jbus_model("mem.image", 0);
+    init_jbus_model_call((char *) "mem.image", 0);
 
     std::cout << "Before first ticks" << std::endl << std::flush;
     tick();

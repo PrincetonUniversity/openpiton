@@ -862,11 +862,9 @@ assign net_interrupt  = 1'b0;
 assign uart_interrupt = 1'b0;
 
 // Fake iobridge
+// Tie noc1 input low because it's unused
+assign intf_chipset_rdy_noc1 = 1'b0;
 ciop_fake_iob ciop_fake_iob(
-    .noc_in_val        ( intf_chipset_val_noc1 ),
-    .noc_in_rdy        ( intf_chipset_rdy_noc1 ),
-    .noc_in_data       ( intf_chipset_data_noc1),
-
     .noc_out_val       ( iob_filter_noc2_valid ),
     .noc_out_rdy       ( filter_iob_noc2_ready ),
     .noc_out_data      ( iob_filter_noc2_data  ),

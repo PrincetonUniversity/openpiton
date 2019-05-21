@@ -635,7 +635,7 @@ module piton_sd_init (
         case (state)
             ST_CI_EN_SW_RST,
             ST_HS_EN_SW_RST:            fsm = {`reset,          32'h1,                                                  y,  y,      n};
-            ST_CI_DAT_TIMEOUT:          fsm = {`data_timeout,   32'd10_000_000,                                         y,  y,      n};
+            ST_CI_DAT_TIMEOUT:          fsm = {`data_timeout,   32'd16_000_000,                                         y,  y,      n};
             ST_CI_BUS_WIDTH:            fsm = {`controller,     32'h1,                                                  y,  y,      n};
             ST_CI_CMD_TIMEOUT:          fsm = {`cmd_timeout,    32'd20_000,                                             y,  y,      n};
             ST_CI_CMD_ISER:             fsm = {`cmd_iser,       32'h1f,                                                 y,  y,      n};

@@ -3,7 +3,7 @@
 include ${DV_ROOT}/tools/env/Makefile.system
 
 CPPFLAGS = 
-CFLAGS += -I../ -fpermissive -fpic -DLINUX -DUSE_ACC -I${MODELSIM_HOME}/include
+CFLAGS += -I../ -fpic -DLINUX -DUSE_ACC -I${MODELSIM_HOME}/include
 
 LIB = libmem_pli_modelsim.a
 CSRCS = 

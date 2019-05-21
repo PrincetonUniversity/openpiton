@@ -28,10 +28,10 @@
 #define KeyType unsigned long long
 #define ATOM_DATA_SIZE  64 //hold 64 bytes
 #include <stdio.h>
-#ifndef VERILATOR
+#ifndef PITON_DPI
 #include "veriuser.h"
 #include "acc_user.h"
-#endif // ifndef VERILATOR
+#endif // ifndef PITON_DPI
 //declare B-tree atom
 typedef struct b_tree_atom{
   unsigned long long key;
@@ -76,17 +76,6 @@ extern "C" {
   // used in update and from user
   b_tree_atom_ptr b_Find(b_tree_node_ptr* p,
 			 KeyType* key);
-
-  // presumably used from user
-  int b_update(b_tree_atom_ptr* atom,
-	       b_tree_node_ptr* p);
-
-  // presumably used by user
-  int b_rmFind(b_tree_node_ptr* p,
-	       b_tree_node_ptr* parent,
-	       b_tree_atom_ptr* atom);
-  int b_delete(b_tree_node_ptr* root,
-	       KeyType key);
 #ifdef __cplusplus
 }
 #endif
