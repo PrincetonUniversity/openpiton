@@ -926,7 +926,10 @@ fake_uart fake_uart (
 
 `ifdef PITON_ARIANE
 
-    wire [1:0] irq_sources;
+    wire [1:0] irq_sources, irq_le;
+    // 0:level 1:edge
+    // Eth is edge, Uart is level
+    assign irq_le      = {1'b1, 1'b0};
     assign irq_sources = {net_interrupt, uart_interrupt};
 
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
@@ -993,6 +996,7 @@ fake_uart fake_uart (
         .timer_irq_o                     ( timer_irq_o                   ),
         .ipi_o                           ( ipi_o                         ),
         // PLIC
+        .irq_le_i                        ( irq_le                        ), // 0:level 1:edge
         .irq_sources_i                   ( irq_sources                   ),
         .irq_o                           ( irq_o                         )
     );

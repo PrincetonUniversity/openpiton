@@ -1,7 +1,7 @@
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2017 Princeton University
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 //     * Neither the name of Princeton University nor the
 //       names of its contributors may be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -32,7 +32,9 @@
 // Created:         1/25/2017
 //--------------------------------------------------
 
-module eth_top (
+module eth_top #(
+  parameter SWAP_ENDIANESS = 0
+) (
     input                                   chipset_clk,
 
     input                                   rst_n,
@@ -53,12 +55,12 @@ module eth_top (
     input                                   net_phy_tx_clk,
     output                                  net_phy_tx_en,
     output  [3 : 0]                         net_phy_tx_data,
-    
+
     input                                   net_phy_rx_clk,
-    input                                   net_phy_dv,    
+    input                                   net_phy_dv,
     input  [3 : 0]                          net_phy_rx_data,
     input                                   net_phy_rx_er,
-    
+
     inout                                   net_phy_mdio_io,
     output                                  net_phy_mdc
 );
@@ -134,11 +136,12 @@ noc_bidir_afifo  net_afifo  (
 );
 
 noc_axilite_bridge #(
-    .SLAVE_RESP_BYTEWIDTH   (4)
+    .SLAVE_RESP_BYTEWIDTH   (4),
+    .SWAP_ENDIANESS         (SWAP_ENDIANESS)
 ) noc_ethernet_bridge (
     .clk                    (net_axi_clk        ),
     .rst                    (~rst_n             ),      // TODO: rewrite to positive ?
-           
+
     .splitter_bridge_val    (afifo_netbridge_val   ),
     .splitter_bridge_data   (afifo_netbridge_data  ),
     .bridge_splitter_rdy    (netbridge_afifo_rdy   ),   // CRAZY NAMING !
@@ -146,8 +149,8 @@ noc_axilite_bridge #(
     .bridge_splitter_val    (netbridge_afifo_val   ),
     .bridge_splitter_data   (netbridge_afifo_data  ),
     .splitter_bridge_rdy    (afifo_netbridge_rdy   ),   // CRAZY NAMING !
-       
-    //axi lite signals             
+
+    //axi lite signals
     //write address channel
     .m_axi_awaddr        (net_s_axi_awaddr),
     .m_axi_awvalid       (net_s_axi_awvalid),
@@ -179,11 +182,11 @@ noc_axilite_bridge #(
 net_int_sync net_int_sync(
   .clk_emac(net_axi_clk),
   .clk_ciop(chipset_clk),
-  .rst_n(rst_n),                          
+  .rst_n(rst_n),
   .net_int(unsync_net_int),
-  .sync_int(net_interrupt)                          
+  .sync_int(net_interrupt)
 );
-   
+
 
 mac_eth_axi_lite mac_eth_axi_lite (
   .s_axi_aclk       (net_axi_clk),       // input wire s_axi_aclk
@@ -212,7 +215,7 @@ mac_eth_axi_lite mac_eth_axi_lite (
   .phy_tx_clk       (net_phy_tx_clk),       // input wire phy_tx_clk
   .phy_tx_en        (net_phy_tx_en),        // output wire phy_tx_en
   .phy_tx_data      (net_phy_tx_data),      // output wire [3 : 0] phy_tx_data
-  
+
   .phy_rx_clk       (net_phy_rx_clk),       // input wire phy_rx_clk
   .phy_dv           (net_phy_dv),           // input wire phy_dv
   .phy_rx_data      (net_phy_rx_data),      // input wire [3 : 0] phy_rx_data
