@@ -680,7 +680,6 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
 ///////////////////////
 generate
 if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
-//for (genvar i = 0;(TILE_TYPE == `SPARC_TILE) && (i == 0);i = i + 1) begin
     ////////////////
     // SPARC Core //
     ////////////////
@@ -824,7 +823,6 @@ end
 endgenerate
 generate
 if (TILE_TYPE == `PICORV32_TILE) begin : g_picorv32_core
-//for (genvar i = 0;(TILE_TYPE == `PICORV32_TILE) && (i == 0);i = i + 1) begin : g_picorv32_core
     ///////////////////
     // PicoRV32 Core //
     ///////////////////
@@ -905,7 +903,6 @@ end
 endgenerate
 generate
 if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
-//for (genvar i = 0;(TILE_TYPE == `ARIANE_RV64_TILE) && (i == 0);i = i + 1) begin : g_ariane_core
     //////////////////////
     // Ariane RV64 Core //
     //////////////////////
