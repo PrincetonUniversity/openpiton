@@ -139,6 +139,8 @@ module piton_sd_transaction_manager(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state   <=  ST_RST;
+            req_addr_sd_f <= 0;
+            req_addr_dma_f <= 0;
         end
         else begin
             state   <=  state_next;

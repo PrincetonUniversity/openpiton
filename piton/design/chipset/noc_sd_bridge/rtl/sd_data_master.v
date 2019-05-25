@@ -83,7 +83,7 @@ parameter DATA_TRANSFER = 3'b100;
 
 reg trans_done;
 
-always @(state or start_tx_i or start_rx_i or xfr_complete_i or trans_done)
+always @*
 begin: FSM_COMBO
     case(state)
         IDLE: begin
