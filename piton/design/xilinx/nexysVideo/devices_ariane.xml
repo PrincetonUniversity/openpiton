@@ -45,11 +45,11 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <noc2in/>
         <stream_accessible/>
     </port>
-<!--     <port>
+    <port>
         <name>net</name>
         <base>0xfff0d00000</base>
         <length>0x100000</length>
-    </port> -->
+    </port>
     <!-- note: the following modules are ariane-specific and are only instantiated in HW when using the ariane core -->
     <port>
         <!-- this is the shared debug module for JTAG access to all cores -->

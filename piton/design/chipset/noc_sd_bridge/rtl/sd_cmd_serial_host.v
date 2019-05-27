@@ -74,8 +74,8 @@ output reg [119:0] response_o;
 output reg finish_o;
 output reg crc_ok_o;
 output reg index_ok_o;
-output reg cmd_oe_o;
-output reg cmd_out_o;
+(* iob="true" *) output reg cmd_oe_o;
+(* iob="true" *) output reg cmd_out_o;
 
 //-------------Internal Constant-------------
 parameter INIT_DELAY = 4;
@@ -84,7 +84,7 @@ parameter CMD_SIZE = 40;
 parameter RESP_SIZE = 128;
 
 //---------------Internal variable-----------
-reg cmd_dat_reg;
+(* iob="true" *) reg cmd_dat_reg;
 reg cmd_out_o_reg;
 reg cmd_oe_o_reg;
 integer resp_len;

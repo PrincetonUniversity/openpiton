@@ -141,7 +141,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
     #size-cells = <2>;
     compatible = "eth,ariane-bare-dev";
     model = "eth,ariane-bare";
-    // interrupt-based UART is currently very slow
+    // TODO: interrupt-based UART is currently very slow
     // with this configuration. this needs to be fixed.
     // chosen {
     //     stdout-path = "/soc/uart@%08x:115200";
@@ -207,6 +207,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
 
 
     # get the remaining periphs
+    ioDeviceNr=1
     for i in range(len(devices)):
         # CLINT
         if devices[i]["name"] == "ariane_clint":
@@ -238,7 +239,6 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
                 tmpStr += "&CPU%d_intc 11 &CPU%d_intc 9 " % (k,k)
             tmpStr += '''>;
             reg = <%s>;
-            reg-names = "control";
             riscv,max-priority = <7>;
             riscv,ndev = <%d>;
         };
@@ -269,30 +269,64 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             clock-frequency = <%d>;
             current-speed = <115200>;
             interrupt-parent = <&PLIC0>;
-            interrupts = <1>;
+            interrupts = <%d>;
             reg-shift = <2>; // regs are spaced on 32 bit boundary
         };
-            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq)
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
+            ioDeviceNr+=1
 
         # Ethernet
         if devices[i]["name"] == "net":
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        eth: lowrisc-eth@%08x {
-            compatible = "lowrisc-eth";
+        eth: ethernet@%08x {
+            compatible = "xlnx,xps-ethernetlite-1.00.a";
             device_type = "network";
-            interrupt-parent = <&PLIC0>;
-            interrupts = <3 0>;
-            local-mac-address = [ee e1 e2 e3 e4 e5];
             reg = <%s>;
+            interrupt-parent = <&PLIC0>;
+            interrupts = <%d>;
+            local-mac-address = [ 00 18 3E 02 E3 E5 ];
+            phy-handle = <&phy0>;
+            xlnx,duplex = <0x1>;
+            xlnx,include-global-buffers = <0x1>;
+            xlnx,include-internal-loopback = <0x0>;
+            xlnx,include-mdio = <0x1>;
+            xlnx,rx-ping-pong = <0x1>;
+            xlnx,s-axi-id-width = <0x1>;
+            xlnx,tx-ping-pong = <0x1>;
+            xlnx,use-internal = <0x0>;
+            axi_ethernetlite_0_mdio: mdio {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                phy0: phy@1 {
+                    compatible = "ethernet-phy-id001C.C915";
+                    device_type = "ethernet-phy";
+                    reg = <1>;
+                };
+            };
         };
-            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), ioDeviceNr)
+            ioDeviceNr+=1
+
+        # eth: lowrisc-eth@%08x {
+        #     compatible = "lowrisc-eth";
+        #     device_type = "network";
+        #     interrupt-parent = <&PLIC0>;
+        #     interrupts = <3 0>;
+        #     local-mac-address = [ee e1 e2 e3 e4 e5];
+        #     reg = <%s>;
+        # };
 
     tmpStr += '''
     };
 };
     '''
 
+    # this needs to match
+    assert ioDeviceNr-1 == numIrqs
+
     with open(dtsPath + '/ariane.dts','w') as file:
         file.write(tmpStr)
+
+

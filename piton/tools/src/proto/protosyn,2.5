@@ -419,6 +419,10 @@ def makeDefList(options):
     #df = options.board.upper() + "_BOARD"
     #defines.append(df)
 
+    # disable CSM in this case
+    if options.core == 'ariane':
+        defines.append("NO_RTL_CSM")
+
     # --no-ddr option
     if (options.no_ddr == True) or (options.board == "piton_board"):
         defines.append("PITONSYS_NO_MC")
@@ -430,11 +434,11 @@ def makeDefList(options):
         if (options.board != "vc707"):
             print_warning("axi4_mem option is ignored without board != vc707")
         else:
-            defines.append("PITONSYS_AXI4_MEM")      
-        
+            defines.append("PITONSYS_AXI4_MEM")
+
     # --zeroer_off option
     if (options.zeroer_off == False):
-        defines.append("PITONSYS_MEM_ZEROER")    
+        defines.append("PITONSYS_MEM_ZEROER")
 
     # do not use SD controller if BRAM is used for boot or a test
     if (options.test_name != None) or (options.board == "piton_board"):
@@ -614,8 +618,7 @@ def main():
     ##################################
     # Set environment vars for pyhp
     ##################################
-
-    print_info("---- RTL configuration ----")
+    print_info("----- System Configuration -----")
 
     # tile config
     if (int(options.x_tiles)*int(options.y_tiles)) > 1:
@@ -659,11 +662,11 @@ def main():
         for i in range(int(options.num_tiles)):
             if i %2:
                 os.environ['RTL_PICO' + str(i)] = "1"
-                print_info('defining RTL_PICO' + str(i))
+                print_info('setenv RTL_PICO' + str(i))
 
             else:
                 os.environ['RTL_SPARC' + str(i)] = "1"
-                print_info('defining RTL_SPARC' + str(i))
+                print_info('setenv RTL_SPARC' + str(i))
 
     elif options.core == 'ariane':
         os.environ['PITON_ARIANE'] = "1"
@@ -671,13 +674,13 @@ def main():
 
         for i in range(int(options.num_tiles)):
             os.environ['RTL_ARIANE' + str(i)] = "1"
-            print_info('defining RTL_ARIANE' + str(i))
+            print_info('setenv RTL_ARIANE' + str(i))
 
     elif options.core == 'sparc':
         # this is the default
         for i in range(int(options.num_tiles)):
             os.environ['RTL_SPARC' + str(i)] = "1"
-            print_info('defining RTL_SPARC' + str(i))
+            print_info('setenv RTL_SPARC' + str(i))
 
     else:
         print_error("invalid core configuration " + str(options.core))
@@ -713,7 +716,12 @@ def main():
     # this is needed to generate the device tree
     os.environ['CONFIG_SYS_FREQ']          = str(int(float(design_data["BOARDS"][options.board]["FREQ"]) * 1e6))
 
-    print_info("---------------------------")
+    print_info("---- Additional RTL Defines ----")
+
+    for d in defines:
+        print_info(d)
+
+    print_info("--------------------------------")
 
     ##################################
     # Get a trace

@@ -58,8 +58,8 @@ module sd_data_serial_host(
            output reg [31:0] data_out,
            output reg we,
            //tristate data
-           output reg DAT_oe_o,
-           output reg[3:0] DAT_dat_o,
+           (* iob="true" *) output reg DAT_oe_o,
+           (* iob="true" *) output reg[3:0] DAT_dat_o,
            input [3:0] DAT_dat_i,
            //Controll signals
            input [`BLKSIZE_W-1:0] blksize,
@@ -72,7 +72,7 @@ module sd_data_serial_host(
            output reg crc_ok
        );
 
-reg [3:0] DAT_dat_reg;
+(* iob="true" *) reg [3:0] DAT_dat_reg;
 reg [3:0] DAT_dat_o_reg;
 reg DAT_oe_o_reg;
 reg [`BLKSIZE_W-1+3:0] data_cycles;
@@ -205,6 +205,7 @@ begin: FSM_OUT
         next_block <= 0;
         blkcnt_reg <= 0;
         byte_alignment_reg <= 0;
+        blksize_reg <= 0;
         data_cycles <= 0;
         bus_4bit_reg <= 0;      
     end
