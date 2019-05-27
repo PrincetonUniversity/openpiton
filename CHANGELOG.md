@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - AXI4 memory controller option on vc707
 - Multicore Verilator simulation using DPI alternative to existing PLI
 - Simulation of OpenPiton+Ariane with VCS
+- Simulation of OpenPiton+Ariane with Verilator
 
 ### Changed
 - Remove BUFG and clock gating latches for FPGA targets
@@ -19,6 +20,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Rewrite SD controller. Cross-timing-domain hazards fixed
 - Update Xilinx IPs to Vivado 2016.4
 - Moved to CAM structure for L2 MSHR to improve timing
+- Changed generate if blocks in tile to reflect restrictions with Verilator. Functionality is unchanged.
 
 ## Release 11
 
