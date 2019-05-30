@@ -200,14 +200,15 @@ vlt-tile1_mini:
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"
 
-vlt-tile2_mini:
-  stage: sparc
-  script:
-    - cd build
-    - sims -group=tile2_mini -sim_type=vlt
-    - "cd 2*"
-    - "regreport . -summary | tee regress.log"
-    - "grep 'REGRESSION PASSED' regress.log"
+# some tests do not correctly run on Verilator yet
+# vlt-tile2_mini:
+#   stage: sparc
+#   script:
+#     - cd build
+#     - sims -group=tile2_mini -sim_type=vlt
+#     - "cd 2*"
+#     - "regreport . -summary | tee regress.log"
+#     - "grep 'REGRESSION PASSED' regress.log"
 
 ###################################
 # run simple ariane tests, needs 64bit RISCV compiler
