@@ -97,7 +97,10 @@ noc_axilite_bridge #(
     //write response channel
     .m_axi_bresp            (2'b0),
     .m_axi_bvalid           (1'b1),
-    .m_axi_bready           ()
+    .m_axi_bready           (),
+    // non-axi-lite signals
+    .w_reqbuf_size          (),
+    .r_reqbuf_size          ()
 );
 
 
