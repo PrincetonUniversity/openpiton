@@ -75,7 +75,7 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <!-- platform level interrupt controller -->
     <port>
         <name>ariane_plic</name>
-        <base>0xfff1030000</base>
+        <base>0xfff1100000</base>
         <length>0x4000000</length>
         <stream_accessible/>
     </port>
