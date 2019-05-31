@@ -456,10 +456,6 @@ module jtag_testbench_top_helper
     );
 
     ciop_fake_iob ciop_fake_iob(
-        .noc_in_val        (iob_noc1_valid_in),
-        .noc_in_rdy        (iob_noc1_ready_in),
-        .noc_in_data       (iob_noc1_data_in),
-
         .noc_out_val       (iob_noc2_valid_out),
         .noc_out_rdy       (iob_noc2_ready_out),
         .noc_out_data      (iob_noc2_data_out),
@@ -666,7 +662,7 @@ module jtag_testbench_top;
         end
 
         if (force_cache)
-            force helper.chip.tile0.g_core.core.sparc0.lsu.lsu.lsu_ifu_icache_en = 4'b1111;
+            force helper.chip.tile0.g_sparc_core.core.sparc0.lsu.lsu.lsu_ifu_icache_en = 4'b1111;
 
         pll_rst_n = 0;           // reset is held low upon boot up
         chip_rst_n = 0;
