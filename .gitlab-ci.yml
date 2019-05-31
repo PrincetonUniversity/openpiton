@@ -25,7 +25,7 @@ before_script:
   - export VIVADO_BIN="vivado-2018.1 vivado"
   - export CXX=g++-7.2.0 CC=gcc-7.2.0
   - export RISCV=/scratch2/gitlabci/riscv_install
-  - export VERILATOR_ROOT=/scratch2/gitlabci/verilator-3.924
+  - export VERILATOR_ROOT=/scratch2/gitlabci/verilator-4.014
   # setup dependent paths
   - export PATH=$PATH:${RISCV}/bin:$VERILATOR_ROOT/bin
   - export LIBRARY_PATH=$RISCV/lib

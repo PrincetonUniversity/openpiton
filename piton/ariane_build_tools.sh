@@ -67,6 +67,7 @@ else
   # ci/install-dtc.sh
   ci/install-spike.sh
   # ci/get-torture.sh
+  ci/install-verilator.sh
 
   # build the RISCV tests if necessary
   VERSION="7cc76ea83b4f827596158c8ba0763e93da65de8f"
