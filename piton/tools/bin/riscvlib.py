@@ -232,7 +232,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
         PLIC0: plic@%08x {
             #address-cells = <0>;
             #interrupt-cells = <1>;
-            compatible = "sifive,plic-1.0.0", "riscv,plic0";
+            compatible = "riscv,plic0";
             interrupt-controller;
             interrupts-extended = <''' % (addrBase)
             for k in range(nCpus):

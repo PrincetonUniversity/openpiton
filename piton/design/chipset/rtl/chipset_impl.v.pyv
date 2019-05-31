@@ -950,12 +950,31 @@ fake_uart fake_uart (
   `endif
 `endif
 
+<%
+DmBase    = 0
+RomBase   = 0
+ClintBase = 0
+PlicBase  = 0
+for i in range(len(devices)):
+    if devices[i]["name"] == "ariane_debug":
+        DmBase = devices[i]["base"]
+    if devices[i]["name"] == "ariane_bootrom":
+        RomBase = devices[i]["base"]
+    if devices[i]["name"] == "ariane_clint":
+        ClintBase = devices[i]["base"]
+    if devices[i]["name"] == "ariane_plic":
+        PlicBase = devices[i]["base"]
+str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
         .NumSources     (               2 ),
-        .SwapEndianess  (               1 )
-    ) i_serpent_peripherals (
+        .SwapEndianess  (               1 ),
+        .DmBase         ( 64'h%016x ),
+        .RomBase        ( 64'h%016x ),
+        .ClintBase      ( 64'h%016x ),
+        .PlicBase       ( 64'h%016x )
+    ) i_riscv_peripherals (
         .clk_i                           ( chipset_clk                   ),
         .rst_ni                          ( chipset_rst_n                 ),
         .testmode_i                      ( 1'b0                          ),
@@ -1006,6 +1025,9 @@ fake_uart fake_uart (
         .irq_sources_i                   ( irq_sources                   ),
         .irq_o                           ( irq_o                         )
     );
+''' % (int(DmBase), int(RomBase), int(ClintBase), int(PlicBase))
+print str
+%>
 
 `else
 

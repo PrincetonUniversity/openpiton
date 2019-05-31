@@ -25,12 +25,13 @@ before_script:
   - export VIVADO_BIN="vivado-2018.1 vivado"
   - export CXX=g++-7.2.0 CC=gcc-7.2.0
   - export RISCV=/scratch2/gitlabci/riscv_install
+  - export VERILATOR_ROOT=/scratch2/gitlabci/verilator-4.014
   # setup dependent paths
-  - export PATH=$PATH:${RISCV}/bin
+  - export PATH=$PATH:${RISCV}/bin:$VERILATOR_ROOT/bin
   - export LIBRARY_PATH=$RISCV/lib
   - export LD_LIBRARY_PATH=$RISCV/lib:/usr/pack/gcc-7.2.0-af/linux-x64/lib64/
-  - export C_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
-  - export CPLUS_INCLUDE_PATH=$RISCV/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
+  - export C_INCLUDE_PATH=$RISCV/include:$VERILATOR_ROOT/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
+  - export CPLUS_INCLUDE_PATH=$RISCV/include:$VERILATOR_ROOT/include:/usr/pack/gcc-7.2.0-af/linux-x64/include
   - export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
   # this is for sims batches
   - export DRMJOBSCRATCHSPACE=/scratch2/gitlabci/tmp/
@@ -99,6 +100,25 @@ msm-sparc:
     - sims -sys=manycore -msm_build -x_tiles=1 -y_tiles=1
     - "grep 'Errors: 0' sims.log"
 
+vlt-pico:
+  stage: build
+  script:
+    - cd build
+    - sims -sys=manycore -vlt_build -x_tiles=1 -y_tiles=1 -pico
+
+vlt-ariane:
+  stage: build
+  script:
+    - cd build
+    - sims -sys=manycore -vlt_build -x_tiles=1 -y_tiles=1 -ariane
+
+vlt-sparc:
+  stage: build
+  script:
+    - cd build
+    - sims -sys=manycore -vlt_build -x_tiles=1 -y_tiles=1
+
+
 ###################################
 # run simple pico tests, needs 32bit RISCV compiler
 
@@ -162,6 +182,33 @@ vcs-tile2_mini:
     - "cd 2*"
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"
+
+vlt-princeton:
+  stage: sparc
+  script:
+    - cd build
+    - sims -sys=manycore -vlt_build -x_tiles=1 -y_tiles=1
+    - sims -sys=manycore -vlt_run -x_tiles=1 -y_tiles=1  princeton-test-test.s
+    - "grep 'Simulation -> PASS (HIT GOOD TRAP)' status.log"
+
+vlt-tile1_mini:
+  stage: sparc
+  script:
+    - cd build
+    - sims -group=tile1_mini -sim_type=vlt
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+
+# some tests do not correctly run on Verilator yet
+# vlt-tile2_mini:
+#   stage: sparc
+#   script:
+#     - cd build
+#     - sims -group=tile2_mini -sim_type=vlt
+#     - "cd 2*"
+#     - "regreport . -summary | tee regress.log"
+#     - "grep 'REGRESSION PASSED' regress.log"
 
 ###################################
 # run simple ariane tests, needs 64bit RISCV compiler
@@ -240,6 +287,16 @@ vcs-tile1_simple:
     - "grep 'REGRESSION PASSED' regress.log"
     - "cat ariane*/fake_uart.log"
 
+vlt-tile1_simple:
+  stage: ariane
+  script:
+    - sims -group=ariane_tile1_simple -sim_type=vlt
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+    - "cat ariane*/fake_uart.log"
+
+
 msm-tile16_simple:
   stage: ariane
   script:
@@ -253,6 +310,15 @@ vcs-tile16_simple:
   stage: ariane
   script:
     - sims -group=ariane_tile16_simple -sim_type=vcs
+    - "cd 2*"
+    - "regreport . -summary | tee regress.log"
+    - "grep 'REGRESSION PASSED' regress.log"
+    - "cat ariane*/fake_uart.log"
+
+vlt-tile16_simple:
+  stage: ariane
+  script:
+    - sims -group=ariane_tile16_simple -sim_type=vlt
     - "cd 2*"
     - "regreport . -summary | tee regress.log"
     - "grep 'REGRESSION PASSED' regress.log"

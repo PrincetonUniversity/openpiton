@@ -363,7 +363,7 @@ pico-amoxor     amoxor_w.S
     </ariane_tile1_benchmarks>
 
     <ariane_tile1_simple>
-        <runargs -x_tiles=1 -y_tiles=1 -ariane>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -rtl_timeout 1000000>
             ariane-hello-world  hello_world.c
             ariane-accu         accu_test.c
             ariane-amo-align    amo_align.c
@@ -376,7 +376,7 @@ pico-amoxor     amoxor_w.S
 <ariane_tile16 sys=manycore -x_tiles=4 -y_tiles=4 -ariane>
     <cmp_default name=default>
     <ariane_tile16_simple>
-        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask 0x1111111111111111 -rtl_timeout 1000000>
+        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask 0x1111111111111111 -rtl_timeout 10000000>
             ariane-hello-world-many hello_world_many.c
         </runargs>
     </ariane_tile16_simple>

@@ -42,10 +42,18 @@
 `define C_M_AXI_LITE_DATA_WIDTH  `NOC_DATA_WIDTH
 `define C_M_AXI_LITE_ADDR_WIDTH  `NOC_DATA_WIDTH
 `define C_M_AXI_LITE_RESP_WIDTH  2
+// this is non-standard
+`define C_M_AXI_LITE_SIZE_WIDTH  3
 
 module noc_axilite_bridge #(
+    // SLAVE_RESP_BYTEWIDTH = 0 enables variable width accesses
+    // note that the accesses are still 64bit, but the
+    // write-enables are generated according to the access size
     parameter SLAVE_RESP_BYTEWIDTH = 4,
-    parameter SWAP_ENDIANESS       = 0
+    // swap endianess, needed when used in conjunction with a little endian core like Ariane
+    parameter SWAP_ENDIANESS       = 0,
+    // shift unaligned read data
+    parameter ALIGN_RDATA          = 1
 ) (
     // Clock + Reset
     input  wire                                   clk,
@@ -86,7 +94,11 @@ module noc_axilite_bridge #(
     // AXI Write Response Channel Signals
     input  wire [`C_M_AXI_LITE_RESP_WIDTH-1:0]    m_axi_bresp,
     input  wire                                   m_axi_bvalid,
-    output reg                                    m_axi_bready
+    output reg                                    m_axi_bready,
+
+    // this does not belong to axi lite and is non-standard
+    output  reg  [`C_M_AXI_LITE_SIZE_WIDTH-1:0]   w_reqbuf_size,
+    output  reg  [`C_M_AXI_LITE_SIZE_WIDTH-1:0]   r_reqbuf_size
 );
 
 //==============================================================================
@@ -360,22 +372,28 @@ localparam STORE_ACK = 1'd1;
     // Calculate data size (which bytes are valid in our word)
     always @ (*) begin
         if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_0B) begin
-            m_axi_wstrb = 8'b00000000;
+            m_axi_wstrb   = 8'b00000000;
+            w_reqbuf_size = 3'b00;
         end
         else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_1B) begin
-            m_axi_wstrb = 8'b00000001;
+            m_axi_wstrb   = 8'b00000001;
+            w_reqbuf_size = 3'b00;
         end
         else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_2B) begin
-            m_axi_wstrb = 8'b00000011;
+            m_axi_wstrb   = 8'b00000011;
+            w_reqbuf_size = 3'b01;
         end
         else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_4B) begin
-            m_axi_wstrb = 8'b00001111;
+            m_axi_wstrb   = 8'b00001111;
+            w_reqbuf_size = 3'b10;
         end
         else if (w_req_buf_header1_f[`MSG_DATA_SIZE_] == `MSG_DATA_SIZE_8B) begin
-            m_axi_wstrb = 8'b11111111;
+            m_axi_wstrb   = 8'b11111111;
+            w_reqbuf_size = 3'b11;
         end
         else begin
-            m_axi_wstrb = 8'b11111111;
+            m_axi_wstrb   = 8'b11111111;
+            w_reqbuf_size = 3'b11;
         end
     end
 
@@ -443,79 +461,94 @@ localparam STORE_ACK = 1'd1;
 
 
     // Shift AXI read data over so that the desired data is at the lowest bits
-    always @( * ) begin
-        a_axi_rdata_shifted = (m_axi_rdata >> {m_axi_araddr[2:0], 3'b000});
-    end
+    generate
+      if (ALIGN_RDATA) begin
+        always @( * ) begin
+            a_axi_rdata_shifted = (m_axi_rdata >> {m_axi_araddr[2:0], 3'b000});
+        end
+      end else begin
+        always @( * ) begin
+            a_axi_rdata_shifted = m_axi_rdata;
+        end
+      end
+    endgenerate
+    //`define PITON_FIXED_REQSIZE 1
+    reg  [`NOC_DATA_WIDTH-1:0]   a_axi_rdata_masked_tmp;
 
-    `define PITON_FIXED_REQSIZE 1
-
-    `ifndef PITON_FIXED_REQSIZE
+    generate
+      if (SLAVE_RESP_BYTEWIDTH <= 0) begin
         // Select and clone the desired bytes
         always @( * ) begin
             case (r_req_buf_header1_f[`MSG_DATA_SIZE_])
                 `MSG_DATA_SIZE_0B: begin
-                    a_axi_rdata_masked = {8{8'd0}};
+                    a_axi_rdata_masked_tmp = {8{8'd0}};
+                    r_reqbuf_size          = 3'b00;
                 end
                 `MSG_DATA_SIZE_1B: begin
-                    a_axi_rdata_masked = {8{a_axi_rdata_shifted[7:0]}};
+                    a_axi_rdata_masked_tmp = {8{a_axi_rdata_shifted[7:0]}};
+                    r_reqbuf_size          = 3'b00;
                 end
                 `MSG_DATA_SIZE_2B: begin
-                    a_axi_rdata_masked = {4{a_axi_rdata_shifted[15:0]}};
+                    a_axi_rdata_masked_tmp = {4{a_axi_rdata_shifted[15:0]}};
+                    r_reqbuf_size          = 3'b01;
                 end
                 `MSG_DATA_SIZE_4B: begin
-                    a_axi_rdata_masked = {2{a_axi_rdata_shifted[31:0]}};
+                    a_axi_rdata_masked_tmp = {2{a_axi_rdata_shifted[31:0]}};
+                    r_reqbuf_size          = 3'b10;
                 end
                 `MSG_DATA_SIZE_8B: begin
-                    a_axi_rdata_masked = a_axi_rdata_shifted;
+                    a_axi_rdata_masked_tmp = a_axi_rdata_shifted;
+                    r_reqbuf_size          = 3'b11;
                 end
                 default: begin
-                    a_axi_rdata_masked = a_axi_rdata_shifted;
+                    a_axi_rdata_masked_tmp = a_axi_rdata_shifted;
+                    r_reqbuf_size          = 3'b11;
                 end
             endcase
         end
-    `else
+      end else if (SLAVE_RESP_BYTEWIDTH == 1) begin
+          always @( * ) begin
+              a_axi_rdata_masked_tmp = {8{m_axi_rdata[7:0]}};
+              r_reqbuf_size          = 3'b00;
 
-        reg  [`NOC_DATA_WIDTH-1:0]   a_axi_rdata_masked_tmp;
+          end
+      end else if (SLAVE_RESP_BYTEWIDTH == 2) begin
+          always @( * ) begin
+              a_axi_rdata_masked_tmp = {4{m_axi_rdata[15:0]}};
+              r_reqbuf_size          = 3'b01;
+          end
+      end else if (SLAVE_RESP_BYTEWIDTH == 4) begin
+          always @( * ) begin
+              a_axi_rdata_masked_tmp = {2{m_axi_rdata[31:0]}};
+              r_reqbuf_size          = 3'b10;
+          end
+      end else if (SLAVE_RESP_BYTEWIDTH == 8) begin
+          always @( * ) begin
+              a_axi_rdata_masked_tmp = m_axi_rdata;
+              r_reqbuf_size          = 3'b11;
+          end
+      end else begin
+          always @( * ) begin
+              a_axi_rdata_masked_tmp = m_axi_rdata;
+              r_reqbuf_size          = 3'b11;
+          end
+      end
+    endgenerate
 
-        generate
-            if (SLAVE_RESP_BYTEWIDTH == 1) begin
-                always @( * ) begin
-                    a_axi_rdata_masked_tmp = {8{m_axi_rdata[7:0]}};
-                end
-            end else if (SLAVE_RESP_BYTEWIDTH == 2) begin
-                always @( * ) begin
-                    a_axi_rdata_masked_tmp = {4{m_axi_rdata[15:0]}};
-                end
-            end else if (SLAVE_RESP_BYTEWIDTH == 4) begin
-                always @( * ) begin
-                    a_axi_rdata_masked_tmp = {2{m_axi_rdata[31:0]}};
-                end
-            end else if (SLAVE_RESP_BYTEWIDTH == 8) begin
-                always @( * ) begin
-                    a_axi_rdata_masked_tmp = m_axi_rdata;
-                end
-            end else begin
-                always @( * ) begin
-                    a_axi_rdata_masked_tmp = m_axi_rdata;
-                end
-            end
-        endgenerate
-
-        generate
-            if (SWAP_ENDIANESS) begin
-                assign a_axi_rdata_masked[56 +: 8] = a_axi_rdata_masked_tmp[ 0 +: 8];
-                assign a_axi_rdata_masked[48 +: 8] = a_axi_rdata_masked_tmp[ 8 +: 8];
-                assign a_axi_rdata_masked[40 +: 8] = a_axi_rdata_masked_tmp[16 +: 8];
-                assign a_axi_rdata_masked[32 +: 8] = a_axi_rdata_masked_tmp[24 +: 8];
-                assign a_axi_rdata_masked[24 +: 8] = a_axi_rdata_masked_tmp[32 +: 8];
-                assign a_axi_rdata_masked[16 +: 8] = a_axi_rdata_masked_tmp[40 +: 8];
-                assign a_axi_rdata_masked[ 8 +: 8] = a_axi_rdata_masked_tmp[48 +: 8];
-                assign a_axi_rdata_masked[ 0 +: 8] = a_axi_rdata_masked_tmp[56 +: 8];
-            end else begin
-                assign a_axi_rdata_masked = a_axi_rdata_masked_tmp;
-            end
-        endgenerate
-    `endif
+    generate
+        if (SWAP_ENDIANESS) begin
+            assign a_axi_rdata_masked[56 +: 8] = a_axi_rdata_masked_tmp[ 0 +: 8];
+            assign a_axi_rdata_masked[48 +: 8] = a_axi_rdata_masked_tmp[ 8 +: 8];
+            assign a_axi_rdata_masked[40 +: 8] = a_axi_rdata_masked_tmp[16 +: 8];
+            assign a_axi_rdata_masked[32 +: 8] = a_axi_rdata_masked_tmp[24 +: 8];
+            assign a_axi_rdata_masked[24 +: 8] = a_axi_rdata_masked_tmp[32 +: 8];
+            assign a_axi_rdata_masked[16 +: 8] = a_axi_rdata_masked_tmp[40 +: 8];
+            assign a_axi_rdata_masked[ 8 +: 8] = a_axi_rdata_masked_tmp[48 +: 8];
+            assign a_axi_rdata_masked[ 0 +: 8] = a_axi_rdata_masked_tmp[56 +: 8];
+        end else begin
+            assign a_axi_rdata_masked = a_axi_rdata_masked_tmp;
+        end
+    endgenerate
 
 
     //--------------------------------------------------------------------------
