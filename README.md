@@ -101,9 +101,7 @@ This L1 cache system is designed to connect directly to the L1.5 cache provided 
 
 Check out the sections below to see how to run the RISC-V tests or simple bare-metal C programs in simulation.
 
-> Note that the system has only been tested with a 1x1 tile configuration. Verification of more advanced features such as cache coherency among multiple tiles is still a work-in-progress, although simple test programs do work in the manycore setting (see below).
-
-> For simulation, Questasim 10.6b is needed (older versions might work, but have not been tested).
+> For simulation, Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed (older versions might work, but have not been tested).
 
 > You will need Vivado 2017.3 or newer to build an FPGA bitstream with Ariane.
 
@@ -111,12 +109,12 @@ Check out the sections below to see how to run the RISC-V tests or simple bare-m
 
 ##### Environment Setup
 
-In addition to the OpenPiton setup described above, you have to adapt the paths in the `ariane_setup.sh` script to match with your installation (note that only Questasim is supported at the moment). Source this script from the OpenPiton root folder and build the RISC-V tools with `ariane_build_tools.sh` if you are running this for the first time:
+In addition to the OpenPiton setup described above, you have to adapt the paths in the `ariane_setup.sh` script to match with your installation (we support Questasim, VCS and Verilator at the moment). Source this script from the OpenPiton root folder and build the RISC-V tools with `ariane_build_tools.sh` if you are running this for the first time:
 1. ```cd $PITON_ROOT/```
 2. ```source piton/ariane_setup.sh```
 3. ```piton/ariane_build_tools.sh```
 
-Step 3. will then download and compile the RISC-V toolchain and assembly tests for you.
+Step 3. will then download and compile the RISC-V toolchain, the assembly tests and Verilator.
 
 > Note that the address map is different from the standard OpenPiton configuration. DRAM is mapped to `0x8000_0000`, hence the assembly tests and C programs are linked with this offset. Have a look at `piton/design/xilinx/genesys2/devices_ariane.xml` for a complete address mapping overview.
 
@@ -287,7 +285,7 @@ Note that the tile configuration needs to correspond to your actual platform con
 
 ##### Booting SMP Linux on Genesys2 and VC707
 
-We currently support single core and SMP Linux on the Genesys2, VC707 and VCU118 FPGA development boards. The single-core configurations are relatively stable, however the SMP versions can sometimes crash during boot. This is a known issue and will be addressed in a future release.
+We currently support single core and SMP Linux on the Genesys2, VC707 and VCU118 FPGA development boards. 
 
 In order to build an FPGA image for these boards, use either of the following commands:
 
@@ -295,39 +293,37 @@ In order to build an FPGA image for these boards, use either of the following co
 
 ```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr```
 
-The default parameters are 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
+The default configuration is 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2```
 
 ```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
 
-Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card (make sure you use the `openpiton` branch in that repository). If you do not want to go through the hassle of building your own image, you can download a pre-built linux image from [here](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.2.0-op).
+Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card. If you do not want to go through the hassle of building your own image, you can download a pre-built linux image from [here](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0).
 
 > Note that the board specific settings are encoded in the device tree that is automatically generated and compiled into the FPGA bitfile, so no specific configuration of the Linux kernel is needed.
 
 Insert the SD card into the corresponding slot of the FPGA board, connect a terminal to the UART using e.g. `screen /dev/ttyUSB0 115200`, and program the FPGA. Once the device comes out of reset, the zero-stage bootloader copies the Linux image (including the first stage bootloader) into DRAM, and executes it. Be patient, copying from SD takes a couple of seconds.
 
+<!-- 
 
-<!-- ##### Booting Linux on Genesys2, VC707 and VCU118
+> There is also preliminary support for the VCU118, but not all features work yet on that board.
+> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
 
 ```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr```
 
-```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr --x_tiles=4 --x_tiles=4```
+```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr --x_tiles=4 --y_tiles=2```
 
-> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
  -->
+
 
 ##### Planned Improvements
 
 The following items are currently under development and will be released soon.
 
-- Floating point support.
-
 - Thorough validation of cache coherence.
 
 - RISC-V FESVR support in simulation.
-
-- Support for simulation with Synopsys VCS.
 
 - Synthesis flow for large FPGAs.
 
