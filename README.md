@@ -305,17 +305,8 @@ Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github
 
 Insert the SD card into the corresponding slot of the FPGA board, connect a terminal to the UART using e.g. `screen /dev/ttyUSB0 115200`, and program the FPGA. Once the device comes out of reset, the zero-stage bootloader copies the Linux image (including the first stage bootloader) into DRAM, and executes it. Be patient, copying from SD takes a couple of seconds.
 
-<!-- 
-
 > There is also preliminary support for the VCU118, but not all features work yet on that board.
 > For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
-
-```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr```
-
-```protosyn -b vcu118 -d system --core=ariane --uart-dmw ddr --x_tiles=4 --y_tiles=2```
-
- -->
-
 
 ##### Planned Improvements
 
