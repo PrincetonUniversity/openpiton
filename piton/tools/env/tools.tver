@@ -10,7 +10,6 @@ bas		/	3.9
 bw_m4		/	1.2
 bw_cpp		/	1.3
 gcat		/	1.0
-gmake		/	1.0
 g_as		/	2.13.5
 g_ld		/	2.13.2
 g_objdump	/	2.13.5

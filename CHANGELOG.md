@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Moved to CAM structure for L2 MSHR to improve timing
 - Changed generate if blocks in tile to reflect restrictions with Verilator. Functionality is unchanged.
 - Rework noc-axilite-plic interface to fix issues with Ethernet IRQs (OpenPiton+Ariane)
+- Removed 32 bit libraries and binaries that are no longer supported
+- Moved to a 64 bit version of m4 that has mpeval support
 
 ## Release 11
 

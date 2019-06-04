@@ -32,16 +32,9 @@ We also host GitHub repositories for other parts of the project, including:
 #### Environment Setup
 - The ```PITON_ROOT``` environment variable should point to the root of the OpenPiton repository
 - The Synopsys environment for simulation should be setup separately by the user.  Besides adding correct paths to your ```PATH``` and ```LD_LIBRARY_PATH``` (usually accomplished by a script provided by Synopsys), the OpenPiton tools specifically reference the ```VCS_HOME``` environment variable which should   point to the root of the Synopsys VCS installation.
-    - **Note**: Depending on your system setup, Synopsys tools may require the ```-full64``` flag.  This can easily be accomplished by adding a bash function as shown in the following example for VCS (also required for URG):
-
-        ```bash
-        function vcs() { command vcs -full64 "$@"; }; export -f vcs
-        ```
 
 - Run ```source $PITON_ROOT/piton/piton_settings.bash``` to setup the environment
     - A CShell version of this script is provided, but OpenPiton has not been tested for and currently does not support CShell
-
-- Note: On many systems, you must run the ```mktools``` command once to rebuild a number of the tools before continuing. If you see issues later with building or running simulations, try running ```mktools``` if you have not already.
 
 - Top level directory structure:
     - piton/
@@ -50,6 +43,21 @@ We also host GitHub repositories for other parts of the project, including:
         - OpenPiton documentation
     - build/
         - Working directory for simulation and simulation models
+
+##### Notes on Environment and Dependencies
+
+- Depending on your system setup, Synopsys tools may require the ```-full64``` flag.  This can easily be accomplished by adding a bash function as shown in the following example for VCS (also required for URG):
+
+    ```bash
+    function vcs() { command vcs -full64 "$@"; }; export -f vcs
+    ```
+
+- On many systems, an error with `goldfinger`, or other errors not described below, may indicate that you should run the `mktools` command once to rebuild a number of the tools before continuing. If you see issues later with building or running simulations, try running `mktools` if you have not already.
+- In some cases, you may need to recompile the PLI libraries we provide. This is done using `mkplilib` with the argument for the simulator you want to rebuild for. You may need to run `mkplilib clean` first, then depending on which simulator, you can build with: `mkplilib vcs`, `mkplilib ncverilog`, `mkplilib icarus`, or `mkplilib modelsim`.
+- If you see an error with `bw_cpp` then you may need to install gcc/g++ (to get `cpp`), or `csh` (`csh` on ubuntu, `tcsh` on centos)
+- If you see an error with `goldfinger` or `g_as` then you may need to install 32-bit glibc (`libc6-i386` on ubuntu, `glibc.i686` on centos)
+- If you see an error with `goldfinger` or `m4` then you may need to install libelf (`libelf-dev` on ubuntu, `elfutils-libelf-devel` on centos)
+- You also need the Perl Bit::Vector package installed on your machine (`libbit-vector-perl` on ubuntu, `perl-Bit-Vector.x86_64` on centos, also installable via CPAN)
 
 ==========================
 

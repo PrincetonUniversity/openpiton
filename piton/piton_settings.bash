@@ -123,14 +123,16 @@ fi
 
 export PATH="$NEWPATH:$PATH"
 
-# Set a couple of paths for MacOS
+# Set a path for MacOS
 OS=`uname -s`
+CPU=`uname -m`
 if [ $OS = "Darwin" ]
 then
-CPU=`uname -m`
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$DV_ROOT/tools/$OS/$CPU/lib
-export M4PATH=$DV_ROOT/tools/$OS/$CPU/lib/m4
 fi
+
+# If we're packaging our m4+gmp then this M4PATH needs set
+export M4PATH=$DV_ROOT/tools/$OS/$CPU/lib/m4
 
 # Set library path for the new goldfinger
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DV_ROOT/tools/src/goldfinger/lib
