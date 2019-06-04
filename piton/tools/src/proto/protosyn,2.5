@@ -59,6 +59,7 @@ def usage():
     print >> sys.stderr, "       -b, --board  <board_type>"
     print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
     print >> sys.stderr, "                  vc707"
+    print >> sys.stderr, "                  vcu118"
     print >> sys.stderr, "                  genesys2"
     print >> sys.stderr, "                  nexysVideo"
     print >> sys.stderr, "\n       -d, --design <design>"
@@ -431,8 +432,8 @@ def makeDefList(options):
 
     # --axi4_mem option
     if (options.axi4_mem == True):
-        if (options.board != "vc707"):
-            print_warning("axi4_mem option is ignored without board != vc707")
+        if (options.board not in {"vc707", "vcu118"}):
+            print_warning("axi4_mem option is ignored without board != {vc707, vcu118}")
         else:
             defines.append("PITONSYS_AXI4_MEM")
 

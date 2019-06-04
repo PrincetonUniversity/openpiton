@@ -112,6 +112,13 @@ module system(
 `else // ifndef PITON_CHIPSET_DIFF_CLK
     input                                       chipset_clk_osc,
 `endif // endif PITON_CHIPSET_DIFF_CLK
+
+// 250MHz diff input ref clock for DDR4 memory controller
+`ifdef VCU118_BOARD
+    input                                       mc_clk_p,
+    input                                       mc_clk_n,
+`endif // VCU118_BOARD
+
 `else // ifndef PITON_CHIPSET_CLKS_GEN
     input                                       chipset_clk,
 `ifndef PITONSYS_NO_MC
@@ -170,7 +177,7 @@ module system(
   input                                         trst_ni,
   input                                         td_i,
   output                                        td_o,
-`endif  
+`endif
 `endif
 `endif
 `endif
@@ -189,22 +196,32 @@ module system(
 `ifdef PITON_FPGA_MC_DDR3
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
+    `ifdef VCU118_BOARD
+    output                                      ddr_act_n,
+    output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
+    `else // VCU118_BOARD
+    output                                      ddr_cas_n,
+    output                                      ddr_ras_n,
+    output                                      ddr_we_n,
+    `endif
+
     output [`DDR3_ADDR_WIDTH-1:0]               ddr_addr,
     output [`DDR3_BA_WIDTH-1:0]                 ddr_ba,
-    output                                      ddr_cas_n,
     output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_n,
     output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_p,
     output [`DDR3_CKE_WIDTH-1:0]                ddr_cke,
-    output                                      ddr_ras_n,
     output                                      ddr_reset_n,
-    output                                      ddr_we_n,
     inout  [`DDR3_DQ_WIDTH-1:0]                 ddr_dq,
     inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_n,
     inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_p,
     `ifndef NEXYSVIDEO_BOARD
-        output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
+        output [`DDR3_CS_WIDTH-1:0]             ddr_cs_n,
     `endif // endif NEXYSVIDEO_BOARD
+    `ifdef VCU118_BOARD
+    inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
+    `else
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
+    `endif
     output                                      ddr_odt,
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
@@ -213,40 +230,48 @@ module system(
 `ifdef PITONSYS_UART
     output                                      uart_tx,
     input                                       uart_rx,
+`ifdef VCU118_BOARD
+		input                                       uart_cts,
+		output                                      uart_rts,
+`endif // VCU118_BOARD
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
     `ifndef VC707_BOARD
     input                                       sd_cd,
+    `ifndef VCU118_BOARD
     output                                      sd_reset,
+    `endif
     `endif
     output                                      sd_clk_out,
     inout                                       sd_cmd,
     inout   [3:0]                               sd_dat,
 `endif // endif PITONSYS_SPI
 
-// Emaclite interface
-`ifdef GENESYS2_BOARD
-    output                                          net_phy_txc,
-    output                                          net_phy_txctl,
-    output      [3:0]                               net_phy_txd,
-    input                                           net_phy_rxc,
-    input                                           net_phy_rxctl,
-    input       [3:0]                               net_phy_rxd,
-    output                                          net_phy_rst_n,
-    inout                                           net_phy_mdio_io,
-    output                                          net_phy_mdc,
-`elsif NEXYSVIDEO_BOARD
-    output                                          net_phy_txc,
-    output                                          net_phy_txctl,
-    output      [3:0]                               net_phy_txd,
-    input                                           net_phy_rxc,
-    input                                           net_phy_rxctl,
-    input       [3:0]                               net_phy_rxd,
-    output                                          net_phy_rst_n,
-    inout                                           net_phy_mdio_io,
-    output                                          net_phy_mdc,
-`endif
+`ifdef PITON_FPGA_ETHERNETLITE
+    // Emaclite interface
+    `ifdef GENESYS2_BOARD
+        output                                          net_phy_txc,
+        output                                          net_phy_txctl,
+        output      [3:0]                               net_phy_txd,
+        input                                           net_phy_rxc,
+        input                                           net_phy_rxctl,
+        input       [3:0]                               net_phy_rxd,
+        output                                          net_phy_rst_n,
+        inout                                           net_phy_mdio_io,
+        output                                          net_phy_mdc,
+    `elsif NEXYSVIDEO_BOARD
+        output                                          net_phy_txc,
+        output                                          net_phy_txctl,
+        output      [3:0]                               net_phy_txd,
+        input                                           net_phy_rxc,
+        input                                           net_phy_rxctl,
+        input       [3:0]                               net_phy_rxd,
+        output                                          net_phy_rst_n,
+        inout                                           net_phy_mdio_io,
+        output                                          net_phy_mdc,
+    `endif
+`endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -273,9 +298,20 @@ module system(
     output                                      oled_vdd_n,
     output                                      oled_vbat_n,
     output                                      oled_rst_n,
+`elsif VCU118_BOARD
+    input                                       btnl,
+    input                                       btnr,
+    input                                       btnu,
+    input                                       btnd,
+    input                                       btnc,
 `endif
 
+`ifdef VCU118_BOARD
+    // we only have 4 gpio dip switches on this board
+    input  [3:0]                                sw,
+`else
     input  [7:0]                                sw,
+`endif
     output [7:0]                                leds
 
 );
@@ -407,8 +443,8 @@ wire  [`NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (as
 
 `ifdef PITON_ARIANE
 
- // no RTC at the moment, have to derive it from the system clock 
- // divide by 128 
+ // no RTC at the moment, have to derive it from the system clock
+ // divide by 128
 reg [5:0] rtc_div;
 
 always @(posedge core_ref_clk or negedge chip_rst_n) begin : p_rtc_div
@@ -427,6 +463,11 @@ assign rtc = rtc_div[5];
 /////////////////////////
 // Combinational Logic //
 /////////////////////////
+
+`ifdef VCU118_BOARD
+// tie off
+assign uart_rts = 1'b0;
+`endif // VCU118_BOARD
 
 // Different reset active levels for different boards
 always @ *
@@ -488,27 +529,27 @@ assign passthru_pll_rst_n = 1'b1;
     assign td_i    = 1'b0;
 `endif
 
-`ifdef VCU118_BOARD
-    wire tck_i, tms_i, trst_ni, td_i, td_o;
+// `ifdef VCU118_BOARD
+//     wire tck_i, tms_i, trst_ni, td_i, td_o;
 
-    // hook the RISC-V JTAG TAP into the FPGA JTAG chain
-    BSCANE2 #(
-    .JTAG_CHAIN(1) // Value for USER command. Possible values: 1-4.
-    ) BSCANE2_inst (
-        .CAPTURE(), // 1-bit output: CAPTURE output from TAP controller.
-        .DRCK(), // 1-bit output: Gated TCK output. When SEL is asserted, DRCK toggles when CAPTURE or
-        // SHIFT are asserted.
-        .RESET(trst_ni), // 1-bit output: Reset output for TAP controller.
-        .RUNTEST(), // 1-bit output: Output asserted when TAP controller is in Run Test/Idle state.
-        .SEL(), // 1-bit output: USER instruction active output.
-        .SHIFT(), // 1-bit output: SHIFT output from TAP controller.
-        .TCK(tck_i), // 1-bit output: Test Clock output. Fabric connection to TAP Clock pin.
-        .TDI(td_i), // 1-bit output: Test Data Input (TDI) output from TAP controller.
-        .TMS(tms_i), // 1-bit output: Test Mode Select output. Fabric connection to TAP.
-        .UPDATE(), // 1-bit output: UPDATE output from TAP controller
-        .TDO(td_o) // 1-bit input: Test Data Output (TDO) input for USER function.
-    );
-`endif
+//     // hook the RISC-V JTAG TAP into the FPGA JTAG chain
+//     BSCANE2 #(
+//     .JTAG_CHAIN(1) // Value for USER command. Possible values: 1-4.
+//     ) BSCANE2_inst (
+//         .CAPTURE(), // 1-bit output: CAPTURE output from TAP controller.
+//         .DRCK(), // 1-bit output: Gated TCK output. When SEL is asserted, DRCK toggles when CAPTURE or
+//         // SHIFT are asserted.
+//         .RESET(trst_ni), // 1-bit output: Reset output for TAP controller.
+//         .RUNTEST(), // 1-bit output: Output asserted when TAP controller is in Run Test/Idle state.
+//         .SEL(), // 1-bit output: USER instruction active output.
+//         .SHIFT(), // 1-bit output: SHIFT output from TAP controller.
+//         .TCK(tck_i), // 1-bit output: Test Clock output. Fabric connection to TAP Clock pin.
+//         .TDI(td_i), // 1-bit output: Test Data Input (TDI) output from TAP controller.
+//         .TMS(tms_i), // 1-bit output: Test Mode Select output. Fabric connection to TAP.
+//         .UPDATE(), // 1-bit output: UPDATE output from TAP controller
+//         .TDO(td_o) // 1-bit input: Test Data Output (TDO) input for USER function.
+//     );
+// `endif
 `ifdef VC707_BOARD
     wire tck_i, tms_i, trst_ni, td_i, td_o;
 
@@ -792,6 +833,13 @@ chipset chipset(
 `else // ifndef PITON_CHIPSET_DIFF_CLK
     .clk_osc(chipset_clk_osc),
 `endif // endif PITON_CHIPSET_DIFF_CLK
+
+// 250MHz diff input ref clock for DDR4 memory controller
+`ifdef VCU118_BOARD
+    .mc_clk_p(mc_clk_p),
+    .mc_clk_n(mc_clk_n),
+`endif // VCU118_BOARD
+
 `else // ifndef PITON_CHIPSET_CLKS_GEN
     .chipset_clk(chipset_clk),
 `ifndef PITONSYS_NO_MC
@@ -891,15 +939,20 @@ chipset chipset(
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
+`ifdef VCU118_BOARD
+    .ddr_act_n(ddr_act_n),
+    .ddr_bg(ddr_bg),
+`else // VCU118_BOARD
+    .ddr_cas_n(ddr_cas_n),
+    .ddr_ras_n(ddr_ras_n),
+    .ddr_we_n(ddr_we_n),
+`endif
     .ddr_addr(ddr_addr),
     .ddr_ba(ddr_ba),
-    .ddr_cas_n(ddr_cas_n),
     .ddr_ck_n(ddr_ck_n),
     .ddr_ck_p(ddr_ck_p),
     .ddr_cke(ddr_cke),
-    .ddr_ras_n(ddr_ras_n),
     .ddr_reset_n(ddr_reset_n),
-    .ddr_we_n(ddr_we_n),
     .ddr_dq(ddr_dq),
     .ddr_dqs_n(ddr_dqs_n),
     .ddr_dqs_p(ddr_dqs_p),
@@ -925,22 +978,25 @@ chipset chipset(
 `ifdef PITONSYS_SPI
     `ifndef VC707_BOARD
     .sd_cd(sd_cd),
+    `ifndef VCU118_BOARD
     .sd_reset(sd_reset),
+    `endif
     `endif
     .sd_clk_out(sd_clk_out),
     .sd_cmd(sd_cmd),
     .sd_dat(sd_dat),
 `endif // endif PITONSYS_SPI
-
-    .net_phy_txc        (net_phy_txc),
-    .net_phy_txctl      (net_phy_txctl),
-    .net_phy_txd        (net_phy_txd),
-    .net_phy_rxc        (net_phy_rxc),
-    .net_phy_rxctl      (net_phy_rxctl),
-    .net_phy_rxd        (net_phy_rxd),
-    .net_phy_rst_n      (net_phy_rst_n),
-    .net_phy_mdio_io    (net_phy_mdio_io),
-    .net_phy_mdc        (net_phy_mdc),
+    `ifdef PITON_FPGA_ETHERNETLITE
+        .net_phy_txc        (net_phy_txc),
+        .net_phy_txctl      (net_phy_txctl),
+        .net_phy_txd        (net_phy_txd),
+        .net_phy_rxc        (net_phy_rxc),
+        .net_phy_rxctl      (net_phy_rxctl),
+        .net_phy_rxd        (net_phy_rxd),
+        .net_phy_rst_n      (net_phy_rst_n),
+        .net_phy_mdio_io    (net_phy_mdio_io),
+        .net_phy_mdc        (net_phy_mdc),
+    `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -967,6 +1023,12 @@ chipset chipset(
     .oled_vdd_n(oled_vdd_n),
     .oled_vbat_n(oled_vbat_n),
     .oled_rst_n(oled_rst_n),
+`elsif VCU118_BOARD
+    .btnl(btnl),
+    .btnr(btnr),
+    .btnu(btnu),
+    .btnd(btnd),
+    .btnc(btnc),
 `endif
 
     .sw(sw),

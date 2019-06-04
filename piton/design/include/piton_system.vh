@@ -127,7 +127,7 @@
 `endif
 // Nexys4ddr and NexysVideo has single ended clock input
 
-// Reset is active high on VC707
+// Reset is active high on VC707 and VCU118
 `ifdef VC707_BOARD
     `define PITON_FPGA_RST_ACT_HIGH
 `elsif VCU118_BOARD

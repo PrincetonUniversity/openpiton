@@ -191,6 +191,7 @@ set_property "used_in" "synthesis implementation" $file_obj
 set_property "used_in_implementation" "1" $file_obj
 set_property "used_in_synthesis" "1" $file_obj
 
+
 # Set 'constrs_1' fileset properties
 set_property "name" "constrs_1" $fileset_obj
 set_property "target_constrs_file" "$constraints_file" $fileset_obj
