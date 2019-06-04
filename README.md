@@ -205,7 +205,7 @@ The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be bu
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
-> It is recommended to use Vivado 2018.2 since other versions might not produce a working bitstream.
+> It is recommended to use Vivado 2018.2 or later since earlier versions might not produce a working bitstream.
 
 Once you have loaded the bitstream onto the FPGA using the Vivado Hardware Manager or a USB drive plugged into the Genesys2, you first need to connect the UART/USB port of the Genesys2 board to your computer and flip switch 7 on the board as described in the [OpenPiton FPGA Prototype Manual](http://parallel.princeton.edu/openpiton/docs/fpga_man.pdf). Then you can use pitonstream to run a list of tests on the FPGA:
 
@@ -293,13 +293,15 @@ Note that the tile configuration needs to correspond to your actual platform con
 
 ##### Booting SMP Linux on Genesys2 and VC707
 
-We currently support single core and SMP Linux on the Genesys2, VC707 and VCU118 FPGA development boards. 
+We currently support single core and SMP Linux on the Genesys2, VC707 and Nexys Video FPGA development boards. 
 
 In order to build an FPGA image for these boards, use either of the following commands:
 
 ```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
 ```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr```
+
+```protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr```
 
 The default configuration is 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
 
