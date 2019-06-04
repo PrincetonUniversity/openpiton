@@ -304,9 +304,9 @@ def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreTyp
 
     # Since we are using an existent synthesized mapping, we have to check
     # that all sections of new tests are mapped
-    rv = isTranslatorOK(addr_data_map, flog)
+    rv = isTranslatorOK(addr_data_map, flog, coreType=="ariane")
     if not rv:
-        print_error("Can't use existent storage_addr_trans.v for %s" % tname)
+        print_error("Can't use existent storage_addr_trans.tmp.v for %s" % tname)
         return 1
 
     # Use available functions in make_mem_map.py to generate sections
