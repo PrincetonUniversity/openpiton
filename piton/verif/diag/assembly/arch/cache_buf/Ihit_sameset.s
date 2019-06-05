@@ -122,12 +122,12 @@ mpeval(MAIN_BASE_TEXT_RA + 0x20000, 16)dnl
 define(TAGS_TEXT_ADDR_PA,          ra2pa(TAGS_TEXT_ADDR_RA, 0))
 				
 changequote([, ])dnl
-SECTION .TAGS TEXT_VA= [0x]mpeval( TAGS_TEXT_ADDR, 16 )
+SECTION .TAGS TEXT_VA= [0x]mpeval(TAGS_TEXT_ADDR, 16)
 attr_text {
 	Name = .TAGS,
-	VA= [0x]mpeval( TAGS_TEXT_ADDR, 16 ),
-	PA= [0x]mpeval( TAGS_TEXT_ADDR_PA, 16 ),
-	RA= [0x]mpeval( TAGS_TEXT_ADDR_RA, 16 ),
+	VA= [0x]mpeval(TAGS_TEXT_ADDR, 16),
+	PA= [0x]mpeval(TAGS_TEXT_ADDR_PA, 16),
+	RA= [0x]mpeval(TAGS_TEXT_ADDR_RA, 16),
 	part_0_i_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
 	part_0_i_ctx_nonzero_ps0_tsb_csm,

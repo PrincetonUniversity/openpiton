@@ -84,12 +84,12 @@ mpeval(MAIN_BASE_TEXT_RA + 0x20000, 16)dnl
 define(PAGE2_TEXT_ADDR_PA, ra2pa(PAGE2_TEXT_ADDR_RA, 0))
 
 changequote([, ])dnl
-SECTION .PAGE2 TEXT_VA= [0x]mpeval( PAGE2_TEXT_ADDR, 16 )
+SECTION .PAGE2 TEXT_VA= [0x]mpeval(PAGE2_TEXT_ADDR, 16)
 attr_text {
 	Name = .PAGE2,
-	VA= [0x]mpeval( PAGE2_TEXT_ADDR, 16 ),
-	PA= [0x]mpeval( PAGE2_TEXT_ADDR_PA, 16 ),
-	RA= [0x]mpeval( PAGE2_TEXT_ADDR_RA, 16 ),
+	VA= [0x]mpeval(PAGE2_TEXT_ADDR, 16),
+	PA= [0x]mpeval(PAGE2_TEXT_ADDR_PA, 16),
+	RA= [0x]mpeval(PAGE2_TEXT_ADDR_RA, 16),
 	part_0_i_ctx_nonzero_ps0_tsb,
 	TTE_G=1, TTE_Context=0x44, TTE_V=1, TTE_Size=0, TTE_NFO=0,
 	TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
@@ -140,12 +140,12 @@ mpeval(MAIN_BASE_TEXT_RA + 0x30000, 16)dnl
 define(PAGE3_TEXT_ADDR_PA, ra2pa(PAGE3_TEXT_ADDR_RA, 0))
 				
 changequote([, ])dnl
-SECTION .PAGE3 TEXT_VA= [0x]mpeval( PAGE3_TEXT_ADDR, 16 )
+SECTION .PAGE3 TEXT_VA= [0x]mpeval(PAGE3_TEXT_ADDR, 16)
 attr_text {
 	Name = .PAGE3,
-	VA= [0x]mpeval( PAGE3_TEXT_ADDR, 16 ),
-	PA= [0x]mpeval( PAGE3_TEXT_ADDR_PA, 16 ),
-	RA= [0x]mpeval( PAGE3_TEXT_ADDR_RA, 16 ),
+	VA= [0x]mpeval(PAGE3_TEXT_ADDR, 16),
+	PA= [0x]mpeval(PAGE3_TEXT_ADDR_PA, 16),
+	RA= [0x]mpeval(PAGE3_TEXT_ADDR_RA, 16),
 	part_0_i_ctx_nonzero_ps0_tsb,
 	TTE_G=1, TTE_Context=0x44, TTE_V=1, TTE_Size=0, TTE_NFO=0,
 	TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,

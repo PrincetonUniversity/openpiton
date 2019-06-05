@@ -130,9 +130,9 @@ changequote([, ])dnl
 SECTION .ISETS TEXT_VA= [0x]mpeval(ISETS_TEXT_ADDR,16)
 attr_text {
 	Name = .ISETS,
-	VA= [0x]mpeval( ISETS_TEXT_ADDR, 16 ),
-	PA= [0x]mpeval( ISETS_TEXT_ADDR_PA, 16 ),
-	RA= [0x]mpeval( ISETS_TEXT_ADDR_RA, 16 ),
+	VA= [0x]mpeval(ISETS_TEXT_ADDR, 16),
+	PA= [0x]mpeval(ISETS_TEXT_ADDR_PA, 16),
+	RA= [0x]mpeval(ISETS_TEXT_ADDR_RA, 16),
 	part_0_i_ctx_nonzero_ps0_tsb,
 
 #ifdef CSM_ENABLE
