@@ -1,0 +1,53 @@
+CAPI=2:
+name: openpiton::noc_sd_bridge:0.1
+description: OpenPiton NoC to SDHC Bridge
+
+filesets:
+    rtl:
+        files:
+            - sd_defines.h: {is_include_file: true}
+            - bistable_domain_cross.v
+            - byte_en_reg.v
+            - edge_detect.v
+            - generic_dpram.v
+            - generic_fifo_dc_gray.v
+            - monostable_domain_cross.v
+            - piton_sd_buffer.v
+            - piton_sd_cache_manager.v
+            - piton_sd_cache_tag.v
+            - piton_sd_core_ctrl.v
+            - piton_sd_define.vh
+            - piton_sd_init.v
+            - piton_sd_top.v
+            - piton_sd_transaction_manager.v
+            - sd_clock_divider.v
+            - sd_cmd_master.v
+            - sd_cmd_serial_host.v
+            - sd_controller_wb.v
+            - sd_crc_16.v
+            - sd_crc_7.v
+            - sd_data_master.v
+            - sd_data_serial_host.v
+            - sd_data_xfer_trig.v
+            - sd_fifo_filler.v
+            - sd_wb_sel_ctrl.v
+            - sdc_controller.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [piton_sd_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [piton_sd_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

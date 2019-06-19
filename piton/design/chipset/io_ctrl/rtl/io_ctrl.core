@@ -1,0 +1,33 @@
+CAPI=2:
+name: openpiton::io_ctrl:0.1
+description: OpenPiton Chipset I/O Control Logic
+
+filesets:
+    rtl:
+        files:
+            - bram_map.v
+            - ciop_iob.v
+            - eth_top.v
+            - fake_boot_ctrl.v
+            - net_int_sync.v
+            - uart_mux.v
+            - uart_reader.v
+            - uart_top.v
+            - uart_writer.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

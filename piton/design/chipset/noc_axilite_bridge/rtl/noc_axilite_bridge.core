@@ -1,0 +1,29 @@
+CAPI=2:
+name: openpiton::noc_axilite_bridge:0.1
+description: OpenPiton P-Mesh NoC to AXI-Lite bridge
+
+filesets:
+    rtl:
+        files:
+            - noc_axilite_bridge.v
+        depend:
+            - openpiton::piton_include
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [noc_axilite_bridge]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [noc_axilite_bridge]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

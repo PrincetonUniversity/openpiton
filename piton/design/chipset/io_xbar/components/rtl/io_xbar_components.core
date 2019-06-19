@@ -1,0 +1,25 @@
+CAPI=2:
+name: openpiton::io_xbar_components:0.1
+description: Dynamic node components
+
+filesets:
+    rtl:
+       files:
+            - io_xbar_bus_compare_equal.v
+            - io_xbar_flip_bus.v
+            - io_xbar_net_dff.v
+       file_type: verilogSource
+       depend:
+            - openpiton::preprocessor
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[io_xbar_one_of_n.v.pyv, io_xbar_one_of_n.tmp.v],
+                          [io_xbar_one_of_n_plus_3.v.pyv, io_xbar_one_of_n_plus_3.tmp.v]]

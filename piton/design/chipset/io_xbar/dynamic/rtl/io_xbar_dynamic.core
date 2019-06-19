@@ -1,0 +1,34 @@
+CAPI=2:
+name: openpiton::io_xbar_dynamic:0.1
+description: Dynamic node dynamic
+
+filesets:
+    rtl:
+        depend:
+            - openpiton::preprocessor
+            - openpiton::dynamic_node_common
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[io_xbar_input_control.v.pyv, io_xbar_input_control.tmp.v],            
+                          [io_xbar_input_route_request_calc.v.pyv, io_xbar_input_route_request_calc.tmp.v], 
+                          [io_xbar_input_top_16.v.pyv, io_xbar_input_top_16.tmp.v],             
+                          [io_xbar_input_top_4.v.pyv, io_xbar_input_top_4.tmp.v],              
+                          [io_xbar_output_control.v.pyv, io_xbar_output_control.tmp.v],           
+                          [io_xbar_output_datapath.v.pyv, io_xbar_output_datapath.tmp.v],          
+                          [io_xbar_output_top.v.pyv, io_xbar_output_top.tmp.v]]               
+     
+
+
+
+
+
+
+

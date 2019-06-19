@@ -676,6 +676,8 @@ mc_top mc_top(
 );
 `else
 
+`include "cross_module.tmp.h"
+
 // Fake Memory Controller
 fake_mem_ctrl fake_mem_ctrl(
     .clk                ( chipset_clk        ),
