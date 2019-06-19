@@ -1,0 +1,59 @@
+CAPI=2:
+name: openpiton::system:0.1
+description: OpenPiton System
+
+filesets:
+    rtl:
+        files:
+            - system.v
+        depend:
+            - openpiton::chip
+            - openpiton::chipset
+        file_type: verilogSource-2001
+
+    vivado_tcl:
+        files:
+            - g2_defines.h: {file_type : verilogSource-2001}
+            - system_defines.tcl: {file_type : tclSource}
+
+    vivado_ip:
+        files:
+            - ../xilinx/genesys2/constraints.xdc: {file_type : xdc}
+            - ../chipset/xilinx/genesys2/ip_cores/clk_mmcm/clk_mmcm.xci: {file_type : xci}
+            - ../chipset/xilinx/genesys2/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite.xci: {file_type : xci}
+            - ../chipset/xilinx/genesys2/ip_cores/afifo_w64_d128_std/afifo_w64_d128_std.xci: {file_type : xci}
+            - ../chipset/mc/xilinx/genesys2/ip_cores/mig_7series_0/mig_7series_0.xci: {file_type : xci}
+            - ../chipset/mc/xilinx/genesys2/ip_cores/mig_7series_0/mig_a.prj: {file_type : user}
+            - ../chipset/io_ctrl/xilinx/genesys2/ip_cores/uart_16550/uart_16550.xci: {file_type : xci}
+            - ../chipset/io_ctrl/xilinx/genesys2/ip_cores/atg_uart_init/atg_uart_init.xci: {file_type : xci}
+            - ../chipset/io_ctrl/xilinx/genesys2/ip_cores/atg_uart_init/uart_addr.coe: {file_type : user}
+            - ../chipset/io_ctrl/xilinx/genesys2/ip_cores/atg_uart_init/uart_data.coe: {file_type : user}
+            - ../chipset/noc_sd_bridge/xilinx/genesys2/ip_cores/sd_cache_bram/sd_cache_bram.xci: {file_type : xci}
+            - ../chipset/noc_sd_bridge/xilinx/genesys2/ip_cores/sd_fifo/sd_fifo.xci: {file_type : xci}
+
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [chip]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [system]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+
+    fpga:
+        default_tool: vivado
+        filesets: [rtl, vivado_tcl, vivado_ip]
+        toplevel: [system]
+        tools:
+            vivado:
+                part: xc7k325tffg900-2

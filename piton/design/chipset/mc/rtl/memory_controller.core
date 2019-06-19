@@ -1,0 +1,29 @@
+CAPI=2:
+name: openpiton::memory_controller:0.1
+description: OpenPiton Chipset Memory Controller
+
+filesets:
+    rtl:
+        files:
+            - mc_top.v
+            - memory_zeroer.v
+            - noc_mig_bridge.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [mc_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [mc_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

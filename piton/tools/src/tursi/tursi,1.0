@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2019 Princeton University
 # All rights reserved.
 #
@@ -70,6 +70,7 @@ def setParserOptions(parser):
         "openpiton::ifu_esl_stsm"       : "** core description **",
         "openpiton::l15"                : "** core description **",
         "openpiton::l2"                 : "** core description **",
+        "openpiton::manycore_tb"        : "** core description **",
         "openpiton::pico"               : "** core description **",
         "openpiton::sparc_core"         : "** core description **",
         "openpiton::sparc_exu"          : "** core description **",
@@ -405,42 +406,53 @@ def main():
     os.environ['PTON_Y_TILES']   = str(args.y_tiles)
     os.environ['PTON_NUM_TILES'] = str(args.num_tiles)
 
+    ##################################
+    # Set defines to pass as backend args
+    ##################################
+    defines = ""
+    defines += '-DNO_SCAN '
+
+    if args.fusesoc_core == "openpiton::manycore_tb":
+        defines += '-DNO_SLAM_RANDOM '
+        defines += '-DNO_MRA_VAL '
+        defines += '-DPITON_DPI '
+
     # core variant
     print_info("core      = " + str(args.core))
     if args.core == 'pico':
 
-        os.environ['PITON_PICO']     = "1"
+        defines += '-DPITON_PICO '
 
         for i in range(int(args.num_tiles)):
-            os.environ['RTL_PICO' + str(i)] = "1"
+            defines += '-DRTL_PICO' + str(i)
             print_info('defining RTL_PICO' + str(i))
 
     elif args.core == 'pico_het':
 
-        os.environ['PITON_PICO']     = "1"
-        os.environ['PITON_PICO_HET'] = "1"
+        defines += '-DPITON_PICO'
+        defines += '-DPITON_PICO_HET'
 
         for i in range(int(args.num_tiles)):
             if i %2:
-                os.environ['RTL_PICO' + str(i)] = "1"
+                defines += '-DRTL_PICO' + str(i)
                 print_info('defining RTL_PICO' + str(i))
 
             else:
-                os.environ['RTL_SPARC' + str(i)] = "1"
+                defines += '-DRTL_SPARC' + str(i)
                 print_info('defining RTL_SPARC' + str(i))
 
     elif args.core == 'ariane':
-        os.environ['PITON_ARIANE'] = "1"
-        os.environ['L2_CAM_MSHR']  = "1"
+        defines += '-DPITON_ARIANE'
+        defines += '-DL2_CAM_MSHR'
 
         for i in range(int(args.num_tiles)):
-            os.environ['RTL_ARIANE' + str(i)] = "1"
+            defines += '-DRTL_ARIANE' + str(i)
             print_info('defining RTL_ARIANE' + str(i))
 
     elif args.core == 'sparc':
         # this is the default
         for i in range(int(args.num_tiles)):
-            os.environ['RTL_SPARC' + str(i)] = "1"
+            defines += '-DRTL_SPARC' + str(i)
             print_info('defining RTL_SPARC' + str(i))
 
     else:
@@ -486,7 +498,7 @@ def main():
 
     if do_pickle:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {}'.format(fusesoc_config_arg, args.fusesoc_core)
+        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, defines)
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:
@@ -500,7 +512,7 @@ def main():
         print_info("Pickling completed succesfully")
     if do_verify:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} run --target=verify --tool=icarus {}'.format(fusesoc_config_arg, args.fusesoc_core)
+        cmd = 'fusesoc --config {} run --target=verify --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, defines)
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:

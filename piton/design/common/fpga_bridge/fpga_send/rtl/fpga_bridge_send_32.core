@@ -1,0 +1,30 @@
+CAPI=2:
+name: openpiton::fpga_bridge_send_32:0.1
+description: fpga_bridge_send_32 core
+
+filesets:
+    rtl:
+        depend:
+            - openpiton::piton_common
+        files:
+            - fpga_bridge_send_32.v
+            - fpga_net_chooser_32.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fpga_bridge_send_32]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fpga_bridge_send_32]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

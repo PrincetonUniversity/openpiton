@@ -1,0 +1,42 @@
+CAPI=2:
+name: openpiton::io_xbar:0.1
+description: Top-level Dynamic Node
+
+filesets:
+    rtl:
+        depend:
+            - openpiton::io_xbar_components
+            - openpiton::io_xbar_dynamic
+            - openpiton::io_xbar_common
+            - openpiton::piton_include
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [io_xbar_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [io_xbar_top]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[io_xbar_top_wrap.v.pyv, io_xbar_top_wrap.tmp.v],
+                          [io_xbar_top.v.pyv, io_xbar_top.tmp.v]]

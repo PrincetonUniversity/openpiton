@@ -1,0 +1,31 @@
+CAPI=2:
+name: openpiton::oled:0.1
+description: OpenPiton OLED
+
+filesets:
+    rtl:
+        files:
+            - oled_delay.v
+            - oled_transform.v
+            - oled_wrapper.v
+            - ssd1306_ctrl.v
+            - ssd1306_init.v
+            - ssd1306_spi.v
+            - ssd1306_top.v
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]

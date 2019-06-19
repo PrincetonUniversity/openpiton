@@ -1,0 +1,13 @@
+CAPI=2:
+name: openpiton::io_xbar_common:0.1
+description: Dynamic Node common files
+
+filesets:
+    rtl:
+        files:
+            - io_xbar_space_avail_top.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]

@@ -1,0 +1,50 @@
+CAPI=2:
+name: openpiton::chipset:0.1
+description: OpenPiton Tile
+
+filesets:
+    rtl:
+        files:
+            - blinker.v
+            - chipset.v
+            - test_end_checker.v
+            - ../common/rtl/noc_bidir_afifo.v
+        depend:
+            - openpiton::piton_chipset_include
+            - openpiton::fpga_bridge
+            - "tool_vivado? (openpiton::memory_controller)"
+            - openpiton::noc_axilite_bridge
+            - "tool_vivado? (openpiton::noc_sd_bridge)"
+            - openpiton::io_ctrl
+            - openpiton::io_xbar
+            - "tool_vivado? (openpiton::oled)"
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [chipset]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        generate: [pyhp_preprocess]
+        toplevel: [chipset]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[chipset_impl.v.pyv, chipset_impl.tmp.v],
+                          [packet_filter.v.pyv, packet_filter.tmp.v],
+                          [storage_addr_trans.v.pyv, storage_addr_trans.tmp.v],
+                          [storage_addr_trans_unified.v.pyv, storage_addr_trans_unified.tmp.v]]
