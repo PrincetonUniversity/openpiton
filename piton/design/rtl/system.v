@@ -445,17 +445,17 @@ wire  [`NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (as
 
  // no RTC at the moment, have to derive it from the system clock
  // divide by 128
-reg [5:0] rtc_div;
+reg [6:0] rtc_div;
 
 always @(posedge core_ref_clk or negedge chip_rst_n) begin : p_rtc_div
   if(~chip_rst_n) begin
-    rtc_div <= 6'h0;
+    rtc_div <= 7'h0;
   end else begin
-    rtc_div <= rtc_div + 6'h1;
+    rtc_div <= rtc_div + 7'h1;
   end
 end
 
-assign rtc = rtc_div[5];
+assign rtc = rtc_div[6];
 
 `endif
 
