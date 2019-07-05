@@ -157,9 +157,10 @@ source is in the list event_list.
 -----------------------------------------------------------------------------*/
 void iob::gen_event()
 {  
-  one_event = event_list->front();
+  std::list<event_record*>::iterator iter;
 
-  while(!(event_list->empty())){//get  events
+  for (iter = event_list->begin(); iter != event_list->end(); iter++) {
+    one_event = *iter;
     if(one_event->wait > 0){
       if (pcx_heap.empty()) {
         p_pkt = new pcx;
@@ -195,8 +196,6 @@ void iob::gen_event()
       else event_list->nextQ();
       */
     }
-    event_list->pop_front();
-    one_event = event_list->front();
   }
 }
 /*-----------------------------------------------------------------------------
