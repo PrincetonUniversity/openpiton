@@ -744,13 +744,13 @@ def main():
                  ' -config_l2_associativity='  + str(options.config_l2_associativity)
 
         if options.core == 'pico':
-            config + ' -pico'
+            config += ' -pico'
 
         if options.core == 'pico_het':
-            config + ' -pico -pico_het'
+            config += ' -pico -pico_het'
 
         if options.core == 'ariane':
-            config + ' -ariane'
+            config += ' -ariane'
 
         print_info("Synthesizing a test: %s" % options.test_name)
         print_info("Compilation started")
@@ -762,7 +762,7 @@ def main():
         print_info("Simulation started")
         print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][options.board]["FREQ"])
         div = calcUARTLatch(design_data, options.board)
-        os.system('sims -sys=manycore ' + config + '-vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, rc_dir.log))
+        os.system('sims -sys=manycore ' + config + ' -vcs_run -midas_args=-DUART_DIV_LATCH=0x%x %s > %s/simulation.log' % (div, options.test_name, rc_dir.log))
 
         f = open('%s/simulation.log' % rc_dir.log, 'r')
         cont = f.read()
