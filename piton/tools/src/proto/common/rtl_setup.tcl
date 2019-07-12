@@ -68,7 +68,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/common/rtl/bram_sdp_wrapper.v" \
     "${DV_ROOT}/design/common/rtl/bram_1rw_wrapper.v" \
     "${DV_ROOT}/design/common/rtl/bram_1r1w_wrapper.v" \
-    "${DV_ROOT}/design/chip/rtl/synchronizer.v" \
+    "${DV_ROOT}/design/common/rtl/synchronizer.v" \
     "${DV_ROOT}/design/chip/rtl/OCI.v" \
     "${DV_ROOT}/design/chip/rtl/chip.v" \
     "${DV_ROOT}/design/chip/pll/rtl/pll_top.v" \
