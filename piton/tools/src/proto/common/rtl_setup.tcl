@@ -515,19 +515,12 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_cast_multi.sv"                            \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_classifier.sv"                            \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_divsqrt_multi.sv"                         \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_f2fcast.sv"                               \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_f2icast.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_fma_multi.sv"                             \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_fma.sv"                                   \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_i2fcast.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_noncomp.sv"                               \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_block.sv"                         \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_fmt_slice.sv"                     \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_multifmt_slice.sv"                \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_in.sv"                               \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_out.sv"                              \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_inside_fma.sv"                       \
-    "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_pipe_inside_cast.sv"                      \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_rounding.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_top.sv"                                   \
 ]
