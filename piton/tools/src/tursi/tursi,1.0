@@ -174,6 +174,10 @@ In case the x/y tile defaults are not overridden, this creates an arrangement as
     parser.add_argument("--config_l2_associativity", dest="config_l2_associativity",   action="store",
                         default=4,
                         help="Cache associativity (default: %(default)s)")
+
+    parser.add_argument("--config_rtl", dest="config_rtl", action="append",
+                        default=[],
+                        help="Additional RTL defines to be processed")
     parser.add_argument("--pickle", dest="pickle", action="store_true", default=False)
     parser.add_argument("--verify", dest="verify", action="store_true", default=False)
 
@@ -409,50 +413,48 @@ def main():
     ##################################
     # Set defines to pass as backend args
     ##################################
-    defines = ""
-    defines += '-DNO_SCAN '
+    args.config_rtl.append('NO_SCAN')
 
     if args.fusesoc_core == "openpiton::manycore_tb":
-        defines += '-DNO_SLAM_RANDOM '
-        defines += '-DNO_MRA_VAL '
-        defines += '-DPITON_DPI '
+        args.config_rtl.append('NO_SLAM_RANDOM')
+        args.config_rtl.append('NO_MRA_VAL')
+        args.config_rtl.append('PITON_DPI')
 
     # core variant
     print_info("core      = " + str(args.core))
     if args.core == 'pico':
 
-        defines += '-DPITON_PICO '
+        args.config_rtl.append('PITON_PICO')
 
         for i in range(int(args.num_tiles)):
-            defines += '-DRTL_PICO' + str(i)
+            args.config_rtl.append('RTL_PICO' + str(i))
             print_info('defining RTL_PICO' + str(i))
 
     elif args.core == 'pico_het':
 
-        defines += '-DPITON_PICO'
-        defines += '-DPITON_PICO_HET'
+        args.config_rtl.append('PITON_PICO')
+        args.config_rtl.append('PITON_PICO_HET')
 
         for i in range(int(args.num_tiles)):
             if i %2:
-                defines += '-DRTL_PICO' + str(i)
+                args.config_rtl.append('RTL_PICO' + str(i))
                 print_info('defining RTL_PICO' + str(i))
 
             else:
-                defines += '-DRTL_SPARC' + str(i)
+                args.config_rtl.append('RTL_SPARC' + str(i))
                 print_info('defining RTL_SPARC' + str(i))
 
     elif args.core == 'ariane':
-        defines += '-DPITON_ARIANE'
-        defines += '-DL2_CAM_MSHR'
+        args.config_rtl.append('PITON_ARIANE')
 
         for i in range(int(args.num_tiles)):
-            defines += '-DRTL_ARIANE' + str(i)
+            args.config_rtl.append('RTL_ARIANE' + str(i))
             print_info('defining RTL_ARIANE' + str(i))
 
     elif args.core == 'sparc':
         # this is the default
         for i in range(int(args.num_tiles)):
-            defines += '-DRTL_SPARC' + str(i)
+            args.config_rtl.append('RTL_SPARC' + str(i))
             print_info('defining RTL_SPARC' + str(i))
 
     else:
@@ -498,7 +500,7 @@ def main():
 
     if do_pickle:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, defines)
+        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:
