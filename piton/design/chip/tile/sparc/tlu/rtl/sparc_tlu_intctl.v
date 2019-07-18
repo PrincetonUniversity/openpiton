@@ -262,7 +262,7 @@ module sparc_tlu_intctl(/*AUTOARG*/
 			    ind_inc_type_i1[1] & ind_inc_type_i1[0] :
 	                    1'b0;
 
-   dffr_s #1  rstint_ff(.din  (rst_int_i1),
+   dffr_s #(1)  rstint_ff(.din  (rst_int_i1),
 		      .q    (tlu_ifu_rstint_i2),
 		      .clk  (clk),
 //
@@ -271,7 +271,7 @@ module sparc_tlu_intctl(/*AUTOARG*/
 		      .rst  (local_rst),
 		      .se   (se), .si(), .so());
    
-   dffr_s #1  nukint_ff(.din  (nuke_int_i1),
+   dffr_s #(1)  nukint_ff(.din  (nuke_int_i1),
 		      .q    (tlu_ifu_nukeint_i2),
 		      .clk  (clk),
 //
@@ -280,7 +280,7 @@ module sparc_tlu_intctl(/*AUTOARG*/
 		      .rst  (local_rst),
 		      .se   (se), .si(), .so());
    
-   dffr_s #1  resint_ff(.din  (resum_int_i1),
+   dffr_s #(1)  resint_ff(.din  (resum_int_i1),
 		      .q    (tlu_ifu_resumint_i2),
 		      .clk  (clk),
 //
@@ -327,19 +327,19 @@ module sparc_tlu_intctl(/*AUTOARG*/
    /*
    assign  int_activate_i2 = ~int_pending_i2_l | tlu_int_sftint_pend;
    // send message to SWL to wake up thread if it is halted
-   dff_s #4 act_signal_reg(.din (int_activate_i2[3:0]),
+   dff_s #(4) act_signal_reg(.din (int_activate_i2[3:0]),
 			 .q   (tlu_ifu_int_activate_i3[3:0]),
 			 .clk (clk),
 			 .se  (se), .si(), .so());
    */
    
    // ask IFU to schedule interrupt
-   dff_s #4 int_signal_reg(.din (int_pending_i2[3:0]),
+   dff_s #(4) int_signal_reg(.din (int_pending_i2[3:0]),
 			 .q   (tlu_ifu_hwint_i3[3:0]),
 			 .clk (clk),
 			 .se  (se), .si(), .so());
 
-   dff_s #4 rst_signal_reg(.din (rstthr_i1[3:0]),
+   dff_s #(4) rst_signal_reg(.din (rstthr_i1[3:0]),
 			 .q   (tlu_ifu_rstthr_i2[3:0]),
 			 .clk (clk),
 			 .se  (se), .si(), .so());
@@ -517,7 +517,7 @@ assign tlu_lsu_int_ld_ill_va_w2 = int_ld_ill_va_w2;
               (asi_indr & asi_write & asi_thr[0]) |
               (indr_vld[0] & ~indr_rst[0]); 
 
-   dff_s #4 indr_vld_reg(.din (indr_vld_next[3:0]),
+   dff_s #(4) indr_vld_reg(.din (indr_vld_next[3:0]),
 		       .q   (indr_vld[3:0]),
 		       .clk (clk),
 		       .se  (se), .si(), .so());

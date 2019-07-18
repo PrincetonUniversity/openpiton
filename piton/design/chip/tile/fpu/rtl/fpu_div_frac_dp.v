@@ -303,7 +303,7 @@ fpu_cnt_lead0_53b i_div_lead0 (
 	.lead0 (div_lead0[5:0])
 );
 
-dff_s #12 i_dstg_xtra_regs (
+dff_s #(12) i_dstg_xtra_regs (
         .din    ({div_lead0[5:0], div_lead0[5:0]}),
         .clk    (clk),
 

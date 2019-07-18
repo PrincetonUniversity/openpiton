@@ -516,7 +516,7 @@ assign inq_rdaddr_del_dec_in[15:0]= ({16{((!inq_div_empty) && d1stg_step
 		| ({16{(!((!inq_div_empty) && d1stg_step && (!inq_diva)))}}
 			    & {8'b0, inq_rdptr_dec_in[7:0]});
 
-dff_s #16 i_inq_rdaddr_del_dec (
+dff_s #(16) i_inq_rdaddr_del_dec (
 	.din	(inq_rdaddr_del_dec_in[15:0]),
 	.clk	(rclk),
 

@@ -49,7 +49,7 @@ module sparc_exu_rndrob(/*AUTOARG*/
    
    assign  next_pv =  advance ? grant_vec : park_vec;
    
-   dffr_s #4  park_reg(.din  (next_pv[3:0]),
+   dffr_s #(4)  park_reg(.din  (next_pv[3:0]),
 		    .clk  (clk),
 		    .q    (pv[3:0]),
 		    .rst  (reset),
