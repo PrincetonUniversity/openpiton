@@ -748,17 +748,17 @@ module sparc_ffu_ctl (/*AUTOARG*/
    assign unimpl_op_all_e = (unimpl_op_e | ifu_ffu_quad_op_e | 
                              illegal_rs1_e | illegal_field_e);
    
-   dff_s #1 qopm_ff(.din (unimpl_op_all_e),
+   dff_s #(1) qopm_ff(.din (unimpl_op_all_e),
 		  .q   (unimpl_op_m),
 		  .clk (clk), .se(se), .si(), .so());
    
-   dff_s #1 qopw_ff(.din (unimpl_op_m),
+   dff_s #(1) qopw_ff(.din (unimpl_op_m),
 		  .q   (unimpl_op_w),
 		  .clk (clk), .se(se), .si(), .so());
    assign unimpl_qual_w = unimpl_op_w & ~kill_unimpl_w;
    assign unimpl_qual_w2 = unimpl_op_w2 & ~flush_w2;
 
-   dff_s #1 qopw2_ff(.din (unimpl_qual_w),
+   dff_s #(1) qopw2_ff(.din (unimpl_qual_w),
 		   .q   (unimpl_op_w2),
 		   .clk (clk), .se(se), .si(), .so());
    
@@ -1185,7 +1185,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
    assign  fpop1_ready_w2_next = (fpu_op_w3_vld | 
 				                         (fpop1_ready_w2 & ~lsu_ffu_ack));
 
-   dffr_s #1 fpop1_w2_dff(.din (fpop1_ready_w2_next), 
+   dffr_s #(1) fpop1_w2_dff(.din (fpop1_ready_w2_next), 
 		                   .q   (fpop1_ready_w2),
 		                   .rst (reset),
 		                   .clk (clk), .se(se), .si(), .so());
@@ -1240,7 +1240,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
                            .clk(clk), .se(se), .si(), .so());
 
 
-   dff_s #1 sfsrw_ff(.din (ctl_dp_output_sel_fsr),
+   dff_s #(1) sfsrw_ff(.din (ctl_dp_output_sel_fsr),
 		               .q   (stfsr_w),
 		               .clk (clk), .se(se), .si(), .so());
    dff_s stfsr_wdff(.din(stfsr_qual_w), .clk(clk), .q(stfsr_w2), .se(se), .si(), .so());
@@ -1284,7 +1284,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
    //   WAS:
    //        assign bst_issue_c2_next = ((bst_issue_c1 & ~(any_op_w2 & flush_w2)) | (bst_issue_c2 & ~can_issue_bst_c2)) & ~reset;
    //   IS:
-   dff_s #1 st_dtlbperr_ff(.din (!lsu_ffu_st_dtlb_perr_g),
+   dff_s #(1) st_dtlbperr_ff(.din (!lsu_ffu_st_dtlb_perr_g),
 		               .q   (st_dtlb_perr_w2_l),
 		               .clk (clk), .se(se), .si(), .so());
    assign bst_issue_c2_next = ((bst_issue_c1 & ~(any_op_w2 & flush_w2) & st_dtlb_perr_w2_l) 
@@ -1403,7 +1403,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
                                 read_bst?  bst_rs[5:1]:
                                            write_addr[5:1];
    assign     st_rd_d[5:1] = {ifu_ffu_frd_d[0] & ~ifu_ffu_ldst_single_d, ifu_ffu_frd_d[4:1]};
-   mux2ds #5 frf_rnum_mux(.dout(frf_rnum[5:1]),
+   mux2ds #(5) frf_rnum_mux(.dout(frf_rnum[5:1]),
                             .in0(early_frf_rnum[5:1]),
                             .in1(st_rd_d[5:1]),
                             .sel0(~read_rd),
@@ -1475,7 +1475,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
    assign ctl_dp_fsr_sel_old[3:0] =  (~ctl_dp_fsr_sel_fpu[3:0] & ~ctl_dp_fsr_sel_ld[3:0]);
    
    // align fcc depending on which fcc_num was used
-   mux4ds #8 fcc_ret_mux(.dout (fpu_fcc[7:0]),
+   mux4ds #(8) fcc_ret_mux(.dout (fpu_fcc[7:0]),
 			 .in0  ({dp_ctl_fsr_fcc[7:2], cpx_fccval_d1[1:0]}),
 			 .in1  ({dp_ctl_fsr_fcc[7:4], cpx_fccval_d1[1:0], dp_ctl_fsr_fcc[1:0]}),
 			 .in2  ({dp_ctl_fsr_fcc[7:6], cpx_fccval_d1[1:0], dp_ctl_fsr_fcc[3:0]}),
@@ -1490,7 +1490,7 @@ module sparc_ffu_ctl (/*AUTOARG*/
    assign fcc_sel_ld = ~is_fpu_result & ldfsr_vld;
    assign fcc_sel_ldx = ~is_fpu_result & ~ldfsr_vld & ldxfsr_vld;
    assign fcc_sel_old = ~fcc_sel_fpu & ~fcc_sel_ld & ~fcc_sel_ldx;
-   mux4ds #8 fcc_set_mux(.dout (ctl_dp_fcc_w2[7:0]),
+   mux4ds #(8) fcc_set_mux(.dout (ctl_dp_fcc_w2[7:0]),
 			                   .in0  (dp_ctl_fsr_fcc[7:0]),
 			                   .in1  (fpu_fcc[7:0]),
 			                   .in2  (dp_ctl_ld_fcc[7:0]),

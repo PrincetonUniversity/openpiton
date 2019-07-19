@@ -360,14 +360,14 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t0_ldfsr_data[27:0]),
                .in2  (t0_fpufsr_data[27:0]),
                .sel0 (ctl_dp_fsr_sel_old[0]),
                .sel1 (ctl_dp_fsr_sel_ld[0]),
                .sel2 (ctl_dp_fsr_sel_fpu[0]));
-   mux3ds #28 fsr1_mux(.dout (t1_fsr_nxt[27:0]),
+   mux3ds #(28) fsr1_mux(.dout (t1_fsr_nxt[27:0]),
                .in0  (t1_fsr[27:0]),
                .in1  (t1_ldfsr_data[27:0]),
                .in2  (t1_fpufsr_data[27:0]),
@@ -377,17 +377,17 @@ module sparc_ffu_dp (/*AUTOARG*/
 
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
                          .q   (t0_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr1_reg(.din (t1_fsr_nxt[27:0]),
+   dffr_s #(28) fsr1_reg(.din (t1_fsr_nxt[27:0]),
                          .q   (t1_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
 
    // Current FSR
-   mux2ds #28 curr_fsr_mux(.dout (current_fsr[27:0]),
+   mux2ds #(28) curr_fsr_mux(.dout (current_fsr[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t1_fsr[27:0]),
                .sel0 (ctl_dp_fp_thr[0]),
@@ -397,7 +397,7 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `ifdef FPGA_SYN_1THREAD
    
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
 		       .in0  (t0_fsr[27:0]),
 		       .in1  (t0_ldfsr_data[27:0]),
 		       .in2  (t0_fpufsr_data[27:0]),
@@ -406,7 +406,7 @@ module sparc_ffu_dp (/*AUTOARG*/
 		       .sel2 (ctl_dp_fsr_sel_fpu[0]));   
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
 		                 .q   (t0_fsr[27:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
@@ -414,7 +414,7 @@ module sparc_ffu_dp (/*AUTOARG*/
   
 `elsif THREADS_1
 
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t0_ldfsr_data[27:0]),
                .in2  (t0_fpufsr_data[27:0]),
@@ -423,7 +423,7 @@ module sparc_ffu_dp (/*AUTOARG*/
                .sel2 (ctl_dp_fsr_sel_fpu[0]));
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
                          .q   (t0_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
@@ -431,14 +431,14 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `elsif THREADS_2
 
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t0_ldfsr_data[27:0]),
                .in2  (t0_fpufsr_data[27:0]),
                .sel0 (ctl_dp_fsr_sel_old[0]),
                .sel1 (ctl_dp_fsr_sel_ld[0]),
                .sel2 (ctl_dp_fsr_sel_fpu[0]));
-   mux3ds #28 fsr1_mux(.dout (t1_fsr_nxt[27:0]),
+   mux3ds #(28) fsr1_mux(.dout (t1_fsr_nxt[27:0]),
                .in0  (t1_fsr[27:0]),
                .in1  (t1_ldfsr_data[27:0]),
                .in2  (t1_fpufsr_data[27:0]),
@@ -448,17 +448,17 @@ module sparc_ffu_dp (/*AUTOARG*/
 
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
                          .q   (t0_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr1_reg(.din (t1_fsr_nxt[27:0]),
+   dffr_s #(28) fsr1_reg(.din (t1_fsr_nxt[27:0]),
                          .q   (t1_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
 
    // Current FSR
-   mux2ds #28 curr_fsr_mux(.dout (current_fsr[27:0]),
+   mux2ds #(28) curr_fsr_mux(.dout (current_fsr[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t1_fsr[27:0]),
                .sel0 (ctl_dp_fp_thr[0]),
@@ -466,21 +466,21 @@ module sparc_ffu_dp (/*AUTOARG*/
    
 `elsif THREADS_3
 
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t0_ldfsr_data[27:0]),
                .in2  (t0_fpufsr_data[27:0]),
                .sel0 (ctl_dp_fsr_sel_old[0]),
                .sel1 (ctl_dp_fsr_sel_ld[0]),
                .sel2 (ctl_dp_fsr_sel_fpu[0]));
-   mux3ds #28 fsr1_mux(.dout (t1_fsr_nxt[27:0]),
+   mux3ds #(28) fsr1_mux(.dout (t1_fsr_nxt[27:0]),
                .in0  (t1_fsr[27:0]),
                .in1  (t1_ldfsr_data[27:0]),
                .in2  (t1_fpufsr_data[27:0]),
                .sel0 (ctl_dp_fsr_sel_old[1]),
                .sel1 (ctl_dp_fsr_sel_ld[1]),
                .sel2 (ctl_dp_fsr_sel_fpu[1]));
-   mux3ds #28 fsr2_mux(.dout (t2_fsr_nxt[27:0]),
+   mux3ds #(28) fsr2_mux(.dout (t2_fsr_nxt[27:0]),
                .in0  (t2_fsr[27:0]),
                .in1  (t2_ldfsr_data[27:0]),
                .in2  (t2_fpufsr_data[27:0]),
@@ -490,21 +490,21 @@ module sparc_ffu_dp (/*AUTOARG*/
 
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
                          .q   (t0_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr1_reg(.din (t1_fsr_nxt[27:0]),
+   dffr_s #(28) fsr1_reg(.din (t1_fsr_nxt[27:0]),
                          .q   (t1_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr2_reg(.din (t2_fsr_nxt[27:0]),
+   dffr_s #(28) fsr2_reg(.din (t2_fsr_nxt[27:0]),
                          .q   (t2_fsr[27:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
 
    // Current FSR
-   mux3ds #28 curr_fsr_mux(.dout (current_fsr[27:0]),
+   mux3ds #(28) curr_fsr_mux(.dout (current_fsr[27:0]),
                .in0  (t0_fsr[27:0]),
                .in1  (t1_fsr[27:0]),
                .in2  (t2_fsr[27:0]),
@@ -514,28 +514,28 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `else
    
-   mux3ds #28 fsr0_mux(.dout (t0_fsr_nxt[27:0]),
+   mux3ds #(28) fsr0_mux(.dout (t0_fsr_nxt[27:0]),
 		       .in0  (t0_fsr[27:0]),
 		       .in1  (t0_ldfsr_data[27:0]),
 		       .in2  (t0_fpufsr_data[27:0]),
 		       .sel0 (ctl_dp_fsr_sel_old[0]),
 		       .sel1 (ctl_dp_fsr_sel_ld[0]),
 		       .sel2 (ctl_dp_fsr_sel_fpu[0]));
-   mux3ds #28 fsr1_mux(.dout (t1_fsr_nxt[27:0]),
+   mux3ds #(28) fsr1_mux(.dout (t1_fsr_nxt[27:0]),
 		       .in0  (t1_fsr[27:0]),
 		       .in1  (t1_ldfsr_data[27:0]),
 		       .in2  (t1_fpufsr_data[27:0]),
 		       .sel0 (ctl_dp_fsr_sel_old[1]),
 		       .sel1 (ctl_dp_fsr_sel_ld[1]),
 		       .sel2 (ctl_dp_fsr_sel_fpu[1]));
-   mux3ds #28 fsr2_mux(.dout (t2_fsr_nxt[27:0]),
+   mux3ds #(28) fsr2_mux(.dout (t2_fsr_nxt[27:0]),
 		       .in0  (t2_fsr[27:0]),
 		       .in1  (t2_ldfsr_data[27:0]),
 		       .in2  (t2_fpufsr_data[27:0]),
 		       .sel0 (ctl_dp_fsr_sel_old[2]),
 		       .sel1 (ctl_dp_fsr_sel_ld[2]),
 		       .sel2 (ctl_dp_fsr_sel_fpu[2]));
-   mux3ds #28 fsr3_mux(.dout (t3_fsr_nxt[27:0]),
+   mux3ds #(28) fsr3_mux(.dout (t3_fsr_nxt[27:0]),
 		       .in0  (t3_fsr[27:0]),
 		       .in1  (t3_ldfsr_data[27:0]),
 		       .in2  (t3_fpufsr_data[27:0]),
@@ -545,25 +545,25 @@ module sparc_ffu_dp (/*AUTOARG*/
    
    // FSR registers
    // need only 28 flops for FSR since rest are always 0
-   dffr_s #28 fsr0_reg(.din (t0_fsr_nxt[27:0]),
+   dffr_s #(28) fsr0_reg(.din (t0_fsr_nxt[27:0]),
 		                 .q   (t0_fsr[27:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr1_reg(.din (t1_fsr_nxt[27:0]),
+   dffr_s #(28) fsr1_reg(.din (t1_fsr_nxt[27:0]),
 		                 .q   (t1_fsr[27:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr2_reg(.din (t2_fsr_nxt[27:0]),
+   dffr_s #(28) fsr2_reg(.din (t2_fsr_nxt[27:0]),
 		                 .q   (t2_fsr[27:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #28 fsr3_reg(.din (t3_fsr_nxt[27:0]),
+   dffr_s #(28) fsr3_reg(.din (t3_fsr_nxt[27:0]),
 		                 .q   (t3_fsr[27:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
 
    // Current FSR
-   mux4ds #28 curr_fsr_mux(.dout (current_fsr[27:0]),
+   mux4ds #(28) curr_fsr_mux(.dout (current_fsr[27:0]),
 			   .in0  (t0_fsr[27:0]),
 			   .in1  (t1_fsr[27:0]),
 			   .in2  (t2_fsr[27:0]),
@@ -618,11 +618,11 @@ module sparc_ffu_dp (/*AUTOARG*/
    // and the align and rnd fields are in the ctl block
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
                          .q   (t0_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr1_reg(.din (t1_gsr_nxt[36:0]),
+   dffr_s #(37) gsr1_reg(.din (t1_gsr_nxt[36:0]),
                          .q   (t1_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
@@ -637,7 +637,7 @@ module sparc_ffu_dp (/*AUTOARG*/
                             .sel(ctl_dp_gsr_wsr_w2[1]));
 
    // GSR_E
-   mux2ds #37 curr_gsr_mux(.dout (gsr_e[36:0]),
+   mux2ds #(37) curr_gsr_mux(.dout (gsr_e[36:0]),
                .in0  (t0_gsr[36:0]),
                .in1  (t1_gsr[36:0]),
                .sel0 (ctl_dp_thr_e[0]),
@@ -646,7 +646,7 @@ module sparc_ffu_dp (/*AUTOARG*/
 `else // `ifndef CONFIG_NUM_THREADS
 
 `ifdef FPGA_SYN_1THREAD
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
 		                 .q   (t0_gsr[36:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
@@ -655,7 +655,7 @@ module sparc_ffu_dp (/*AUTOARG*/
    
 `elsif THREADS_1
 
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
                          .q   (t0_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
@@ -664,11 +664,11 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `elsif THREADS_2
 
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
                          .q   (t0_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr1_reg(.din (t1_gsr_nxt[36:0]),
+   dffr_s #(37) gsr1_reg(.din (t1_gsr_nxt[36:0]),
                          .q   (t1_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
@@ -683,7 +683,7 @@ module sparc_ffu_dp (/*AUTOARG*/
                             .sel(ctl_dp_gsr_wsr_w2[1]));
 
    // GSR_E
-   mux2ds #37 curr_gsr_mux(.dout (gsr_e[36:0]),
+   mux2ds #(37) curr_gsr_mux(.dout (gsr_e[36:0]),
                .in0  (t0_gsr[36:0]),
                .in1  (t1_gsr[36:0]),
                .sel0 (ctl_dp_thr_e[0]),
@@ -691,15 +691,15 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `elsif THREADS_3
 
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
                          .q   (t0_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr1_reg(.din (t1_gsr_nxt[36:0]),
+   dffr_s #(37) gsr1_reg(.din (t1_gsr_nxt[36:0]),
                          .q   (t1_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr2_reg(.din (t2_gsr_nxt[36:0]),
+   dffr_s #(37) gsr2_reg(.din (t2_gsr_nxt[36:0]),
                          .q   (t2_gsr[36:0]),
                      .rst(reset),
                          .clk (clk), .se(se), .si(), .so());
@@ -718,7 +718,7 @@ module sparc_ffu_dp (/*AUTOARG*/
                             .sel(ctl_dp_gsr_wsr_w2[2]));
 
    // GSR_E
-   mux3ds #37 curr_gsr_mux(.dout (gsr_e[36:0]),
+   mux3ds #(37) curr_gsr_mux(.dout (gsr_e[36:0]),
                .in0  (t0_gsr[36:0]),
                .in1  (t1_gsr[36:0]),
                .in2  (t2_gsr[36:0]),
@@ -728,19 +728,19 @@ module sparc_ffu_dp (/*AUTOARG*/
 
 `else
    
-   dffr_s #37 gsr0_reg(.din (t0_gsr_nxt[36:0]),
+   dffr_s #(37) gsr0_reg(.din (t0_gsr_nxt[36:0]),
 		                 .q   (t0_gsr[36:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr1_reg(.din (t1_gsr_nxt[36:0]),
+   dffr_s #(37) gsr1_reg(.din (t1_gsr_nxt[36:0]),
 		                 .q   (t1_gsr[36:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr2_reg(.din (t2_gsr_nxt[36:0]),
+   dffr_s #(37) gsr2_reg(.din (t2_gsr_nxt[36:0]),
 		                 .q   (t2_gsr[36:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
-   dffr_s #37 gsr3_reg(.din (t3_gsr_nxt[36:0]),
+   dffr_s #(37) gsr3_reg(.din (t3_gsr_nxt[36:0]),
 		                 .q   (t3_gsr[36:0]),
                      .rst(reset),
 		                 .clk (clk), .se(se), .si(), .so());
@@ -764,7 +764,7 @@ module sparc_ffu_dp (/*AUTOARG*/
    
    
    // GSR_E
-   mux4ds #37 curr_gsr_mux(.dout (gsr_e[36:0]),
+   mux4ds #(37) curr_gsr_mux(.dout (gsr_e[36:0]),
 			   .in0  (t0_gsr[36:0]),
 			   .in1  (t1_gsr[36:0]),
 			   .in2  (t2_gsr[36:0]),

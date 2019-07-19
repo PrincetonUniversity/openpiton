@@ -59,7 +59,7 @@ module sparc_ifu_rndrob(/*AUTOARG*/
    assign 	next_pv[3:1] = pv[3:1] & {3{~reset}};
    assign 	next_pv[0] = pv[0] | reset;
    
-   dff_s #4  park_reg(.din  (next_pv),
+   dff_s #(4)  park_reg(.din  (next_pv),
 		    .clk  (clk),
 		    .q    (park_vec),
 		    .se   (se), .si(), .so());

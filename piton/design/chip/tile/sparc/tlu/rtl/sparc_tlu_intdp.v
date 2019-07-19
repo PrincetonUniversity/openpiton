@@ -245,29 +245,29 @@ module sparc_tlu_intdp (/*AUTOARG*/
    assign  ind_inc_thrid_i1[4:0] = lsu_ind_intpkt_thr[4:0];
 
    // rstid enable mux
-   dp_mux2es #6 rid_mux0(.dout  (next_t0_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux0(.dout  (next_t0_rstid_i1[5:0]),
 			 .in0   (t0_rstid_i2[5:0]),
 			 .in1   (int_id_i1[5:0]),
 			 .sel   (inc_ind_rstthr_i1[0]));
 
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   dp_mux2es #6 rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
              .in0   (t1_rstid_i2[5:0]),
              .in1   (int_id_i1[5:0]),
              .sel   (inc_ind_rstthr_i1[1]));
 
    // rst id flops
-   dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+   dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
            .q   (t0_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 rid1_reg(.din (next_t1_rstid_i1[5:0]),
+   dff_s #(6) rid1_reg(.din (next_t1_rstid_i1[5:0]),
            .q   (t1_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #6 tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
+   dp_mux2ds #(6) tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
                .in0  (t0_rstid_i2[5:0]),
                .in1  (t1_rstid_i2[5:0]),
                .sel0_l (~inc_ind_thr_m[0]),
@@ -276,7 +276,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 `else // `ifndef CONFIG_NUM_THREADS
 
 `ifdef FPGA_SYN_1THREAD
-     dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+     dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
 		   .q   (t0_rstid_i2[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
@@ -284,7 +284,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_1
 
-   dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+   dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
            .q   (t0_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
@@ -292,22 +292,22 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_2
 
-   dp_mux2es #6 rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
              .in0   (t1_rstid_i2[5:0]),
              .in1   (int_id_i1[5:0]),
              .sel   (inc_ind_rstthr_i1[1]));
 
    // rst id flops
-   dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+   dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
            .q   (t0_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 rid1_reg(.din (next_t1_rstid_i1[5:0]),
+   dff_s #(6) rid1_reg(.din (next_t1_rstid_i1[5:0]),
            .q   (t1_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #6 tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
+   dp_mux2ds #(6) tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
                .in0  (t0_rstid_i2[5:0]),
                .in1  (t1_rstid_i2[5:0]),
                .sel0_l (~inc_ind_thr_m[0]),
@@ -315,31 +315,31 @@ module sparc_tlu_intdp (/*AUTOARG*/
  
 `elsif THREADS_3
 
-   dp_mux2es #6 rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
              .in0   (t1_rstid_i2[5:0]),
              .in1   (int_id_i1[5:0]),
              .sel   (inc_ind_rstthr_i1[1]));
 
-   dp_mux2es #6 rid_mux2(.dout  (next_t2_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux2(.dout  (next_t2_rstid_i1[5:0]),
              .in0   (t2_rstid_i2[5:0]),
              .in1   (int_id_i1[5:0]),
              .sel   (inc_ind_rstthr_i1[2]));
 
    // rst id flops
-   dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+   dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
            .q   (t0_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 rid1_reg(.din (next_t1_rstid_i1[5:0]),
+   dff_s #(6) rid1_reg(.din (next_t1_rstid_i1[5:0]),
            .q   (t1_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 rid2_reg(.din (next_t2_rstid_i1[5:0]),
+   dff_s #(6) rid2_reg(.din (next_t2_rstid_i1[5:0]),
            .q   (t2_rstid_i2[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux3ds #6 tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
+   dp_mux3ds #(6) tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
                .in0  (t0_rstid_i2[5:0]),
                .in1  (t1_rstid_i2[5:0]),
                .in2  (t2_rstid_i2[5:0]),
@@ -349,35 +349,35 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `else
  
-   dp_mux2es #6 rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux1(.dout  (next_t1_rstid_i1[5:0]),
 			 .in0   (t1_rstid_i2[5:0]),
 			 .in1   (int_id_i1[5:0]),
 			 .sel   (inc_ind_rstthr_i1[1]));
    
-   dp_mux2es #6 rid_mux2(.dout  (next_t2_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux2(.dout  (next_t2_rstid_i1[5:0]),
 			 .in0   (t2_rstid_i2[5:0]),
 			 .in1   (int_id_i1[5:0]),
 			 .sel   (inc_ind_rstthr_i1[2]));
    
-   dp_mux2es #6 rid_mux3(.dout  (next_t3_rstid_i1[5:0]),
+   dp_mux2es #(6) rid_mux3(.dout  (next_t3_rstid_i1[5:0]),
 			 .in0   (t3_rstid_i2[5:0]),
 			 .in1   (int_id_i1[5:0]),
 			 .sel   (inc_ind_rstthr_i1[3]));
 
    // rst id flops
-   dff_s #6 rid0_reg(.din (next_t0_rstid_i1[5:0]),
+   dff_s #(6) rid0_reg(.din (next_t0_rstid_i1[5:0]),
 		   .q   (t0_rstid_i2[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 rid1_reg(.din (next_t1_rstid_i1[5:0]),
+   dff_s #(6) rid1_reg(.din (next_t1_rstid_i1[5:0]),
 		   .q   (t1_rstid_i2[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 rid2_reg(.din (next_t2_rstid_i1[5:0]),
+   dff_s #(6) rid2_reg(.din (next_t2_rstid_i1[5:0]),
 		   .q   (t2_rstid_i2[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 rid3_reg(.din (next_t3_rstid_i1[5:0]),
+   dff_s #(6) rid3_reg(.din (next_t3_rstid_i1[5:0]),
 		   .q   (t3_rstid_i2[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
@@ -385,7 +385,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    // rstid to tlu in M stage
    // changing the select from inverting to non-inverting for grape
    /*
-   dp_mux4ds #6 tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
+   dp_mux4ds #(6) tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
 			   .in0  (t0_rstid_i2[5:0]),
 			   .in1  (t1_rstid_i2[5:0]),
 			   .in2  (t2_rstid_i2[5:0]),
@@ -395,7 +395,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 			   .sel2_l (inc_ind_thr_m_l[2]),
 			   .sel3_l (inc_ind_thr_m_l[3]));
    */
-   dp_mux4ds #6 tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
+   dp_mux4ds #(6) tlurid_mux(.dout (int_tlu_rstid_m[5:0]),
 			   .in0  (t0_rstid_i2[5:0]),
 			   .in1  (t1_rstid_i2[5:0]),
 			   .in2  (t2_rstid_i2[5:0]),
@@ -419,20 +419,20 @@ module sparc_tlu_intdp (/*AUTOARG*/
    assign  new_t3_inrr_i1 = inrr_dec_i1 | t3_inrr_arw_i1;
 
    // enable mux to load new interrupt to INRR
-   dp_mux2es #64 inrr_en_mux0(.dout  (next_t0_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux0(.dout  (next_t0_inrr_i1[63:0]),
 			  .in0   (t0_inrr_arw_i1[63:0]),
 			  .in1   (new_t0_inrr_i1[63:0]),
 			  .sel   (inc_ind_ld_int_i1[0]));
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   dp_mux2es #64 inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
               .in0   (t1_inrr_arw_i1[63:0]),
               .in1   (new_t1_inrr_i1[63:0]),
               .sel   (inc_ind_ld_int_i1[1]));
 
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
              .q   (t0_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -440,7 +440,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //            .rst (reset),
              .rst (local_rst),
              .se  (se), .si(), .so());
-   dffr_s #64 t1_inrr (.din (next_t1_inrr_i1[63:0]),
+   dffr_s #(64) t1_inrr (.din (next_t1_inrr_i1[63:0]),
              .q   (t1_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -449,7 +449,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
              .rst (local_rst),
              .se  (se), .si(), .so());
 
-   dp_mux2ds #64 inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
+   dp_mux2ds #(64) inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
              .in0  (t0_inrr_i2[63:0]),
              .in1  (t1_inrr_i2[63:0]),
              .sel0_l (~inc_ind_asi_thr[0]),
@@ -460,7 +460,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 `ifdef FPGA_SYN_1THREAD
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
 		     .q   (t0_inrr_i2[63:0]),
 		     .clk (clk),
    //
@@ -474,7 +474,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
              .q   (t0_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -486,14 +486,14 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_2
 
-   dp_mux2es #64 inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
               .in0   (t1_inrr_arw_i1[63:0]),
               .in1   (new_t1_inrr_i1[63:0]),
               .sel   (inc_ind_ld_int_i1[1]));
 
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
              .q   (t0_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -501,7 +501,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //            .rst (reset),
              .rst (local_rst),
              .se  (se), .si(), .so());
-   dffr_s #64 t1_inrr (.din (next_t1_inrr_i1[63:0]),
+   dffr_s #(64) t1_inrr (.din (next_t1_inrr_i1[63:0]),
              .q   (t1_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -510,7 +510,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
              .rst (local_rst),
              .se  (se), .si(), .so());
 
-   dp_mux2ds #64 inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
+   dp_mux2ds #(64) inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
              .in0  (t0_inrr_i2[63:0]),
              .in1  (t1_inrr_i2[63:0]),
              .sel0_l (~inc_ind_asi_thr[0]),
@@ -518,18 +518,18 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_3
 
-   dp_mux2es #64 inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
               .in0   (t1_inrr_arw_i1[63:0]),
               .in1   (new_t1_inrr_i1[63:0]),
               .sel   (inc_ind_ld_int_i1[1]));
-   dp_mux2es #64 inrr_en_mux2(.dout  (next_t2_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux2(.dout  (next_t2_inrr_i1[63:0]),
               .in0   (t2_inrr_arw_i1[63:0]),
               .in1   (new_t2_inrr_i1[63:0]),
               .sel   (inc_ind_ld_int_i1[2]));
 
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
              .q   (t0_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -537,7 +537,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //            .rst (reset),
              .rst (local_rst),
              .se  (se), .si(), .so());
-   dffr_s #64 t1_inrr (.din (next_t1_inrr_i1[63:0]),
+   dffr_s #(64) t1_inrr (.din (next_t1_inrr_i1[63:0]),
              .q   (t1_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -545,7 +545,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //            .rst (reset),
              .rst (local_rst),
              .se  (se), .si(), .so());
-   dffr_s #64 t2_inrr (.din (next_t2_inrr_i1[63:0]),
+   dffr_s #(64) t2_inrr (.din (next_t2_inrr_i1[63:0]),
              .q   (t2_inrr_i2[63:0]),
              .clk (clk),
    //
@@ -554,7 +554,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
              .rst (local_rst),
              .se  (se), .si(), .so());
 
-   dp_mux3ds #64 inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
+   dp_mux3ds #(64) inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
              .in0  (t0_inrr_i2[63:0]),
              .in1  (t1_inrr_i2[63:0]),
              .in2  (t2_inrr_i2[63:0]),
@@ -564,22 +564,22 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `else
    
-   dp_mux2es #64 inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux1(.dout  (next_t1_inrr_i1[63:0]),
 			  .in0   (t1_inrr_arw_i1[63:0]),
 			  .in1   (new_t1_inrr_i1[63:0]),
 			  .sel   (inc_ind_ld_int_i1[1]));
-   dp_mux2es #64 inrr_en_mux2(.dout  (next_t2_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux2(.dout  (next_t2_inrr_i1[63:0]),
 			  .in0   (t2_inrr_arw_i1[63:0]),
 			  .in1   (new_t2_inrr_i1[63:0]),
 			  .sel   (inc_ind_ld_int_i1[2]));
-   dp_mux2es #64 inrr_en_mux3(.dout  (next_t3_inrr_i1[63:0]),
+   dp_mux2es #(64) inrr_en_mux3(.dout  (next_t3_inrr_i1[63:0]),
 			  .in0   (t3_inrr_arw_i1[63:0]),
 			  .in1   (new_t3_inrr_i1[63:0]),
 			  .sel   (inc_ind_ld_int_i1[3]));
 
    // interrupt receive register (INRR)
    // change to dff -- software will reset before IE turns on
-   dffr_s #64 t0_inrr (.din (next_t0_inrr_i1[63:0]),
+   dffr_s #(64) t0_inrr (.din (next_t0_inrr_i1[63:0]),
 		     .q   (t0_inrr_i2[63:0]),
 		     .clk (clk),
    //
@@ -587,7 +587,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //		     .rst (reset),
    		     .rst (local_rst),
 		     .se  (se), .si(), .so());
-   dffr_s #64 t1_inrr (.din (next_t1_inrr_i1[63:0]),
+   dffr_s #(64) t1_inrr (.din (next_t1_inrr_i1[63:0]),
 		     .q   (t1_inrr_i2[63:0]),
 		     .clk (clk),
    //
@@ -595,7 +595,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //		     .rst (reset),
    		     .rst (local_rst),
 		     .se  (se), .si(), .so());
-   dffr_s #64 t2_inrr (.din (next_t2_inrr_i1[63:0]),
+   dffr_s #(64) t2_inrr (.din (next_t2_inrr_i1[63:0]),
 		     .q   (t2_inrr_i2[63:0]),
 		     .clk (clk),
    //
@@ -603,7 +603,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    //		     .rst (reset),
    		     .rst (local_rst),
 		     .se  (se), .si(), .so());
-   dffr_s #64 t3_inrr (.din (next_t3_inrr_i1[63:0]),
+   dffr_s #(64) t3_inrr (.din (next_t3_inrr_i1[63:0]),
 		     .q   (t3_inrr_i2[63:0]),
 		     .clk (clk),
    //
@@ -616,7 +616,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    // read out INRR to asi
    // changing the select from inverting to non-inverting for grape
    /*
-   dp_mux4ds #64 inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
+   dp_mux4ds #(64) inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
 			 .in0  (t0_inrr_i2[63:0]),
 			 .in1  (t1_inrr_i2[63:0]),
 			 .in2  (t2_inrr_i2[63:0]),
@@ -626,7 +626,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 			 .sel2_l (inc_ind_asi_thr_l[2]),
 			 .sel3_l (inc_ind_asi_thr_l[3]));
     */
-   dp_mux4ds #64 inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
+   dp_mux4ds #(64) inrr_rd_mux(.dout (inrr_rd_data_i2[63:0]),
 			 .in0  (t0_inrr_i2[63:0]),
 			 .in1  (t1_inrr_i2[63:0]),
 			 .in2  (t2_inrr_i2[63:0]),
@@ -669,16 +669,16 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
    // Interrupt Vector Register (INVR)
    // Cannot write to INVR
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
            .q   (t0_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 t1_invr (.din (t1_invr_i2[5:0]),
+   dff_s #(6) t1_invr (.din (t1_invr_i2[5:0]),
            .q   (t1_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #6 invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
+   dp_mux2ds #(6) invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
                 .in0  (t0_invr_i3[5:0]),
                 .in1  (t1_invr_i3[5:0]),
                 .sel0_l (~inc_ind_asi_thr[0]),
@@ -692,7 +692,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    assign t0_inrr_aw_i2 = t0_inrr_i2 & t0_asi_wr_data;
    sparc_tlu_penc64 t0_invr_penc(.in  (t0_inrr_i2[63:0]),
 				 .out (t0_invr_i2[5:0]));
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
 		   .q   (t0_invr_i3[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
@@ -705,7 +705,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    assign t0_inrr_aw_i2 = t0_inrr_i2 & t0_asi_wr_data;
    sparc_tlu_penc64 t0_invr_penc(.in  (t0_inrr_i2[63:0]),
                  .out (t0_invr_i2[5:0]));
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
            .q   (t0_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
@@ -736,16 +736,16 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
    // Interrupt Vector Register (INVR)
    // Cannot write to INVR
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
            .q   (t0_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 t1_invr (.din (t1_invr_i2[5:0]),
+   dff_s #(6) t1_invr (.din (t1_invr_i2[5:0]),
            .q   (t1_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #6 invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
+   dp_mux2ds #(6) invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
                 .in0  (t0_invr_i3[5:0]),
                 .in1  (t1_invr_i3[5:0]),
                 .sel0_l (~inc_ind_asi_thr[0]),
@@ -783,20 +783,20 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
    // Interrupt Vector Register (INVR)
    // Cannot write to INVR
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
            .q   (t0_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 t1_invr (.din (t1_invr_i2[5:0]),
+   dff_s #(6) t1_invr (.din (t1_invr_i2[5:0]),
            .q   (t1_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #6 t2_invr (.din (t2_invr_i2[5:0]),
+   dff_s #(6) t2_invr (.din (t2_invr_i2[5:0]),
            .q   (t2_invr_i3[5:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux3ds #6 invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
+   dp_mux3ds #(6) invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
                 .in0  (t0_invr_i3[5:0]),
                 .in1  (t1_invr_i3[5:0]),
                 .in2  (t2_invr_i3[5:0]),
@@ -843,19 +843,19 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
    // Interrupt Vector Register (INVR)
    // Cannot write to INVR
-   dff_s #6 t0_invr (.din (t0_invr_i2[5:0]),
+   dff_s #(6) t0_invr (.din (t0_invr_i2[5:0]),
 		   .q   (t0_invr_i3[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 t1_invr (.din (t1_invr_i2[5:0]),
+   dff_s #(6) t1_invr (.din (t1_invr_i2[5:0]),
 		   .q   (t1_invr_i3[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 t2_invr (.din (t2_invr_i2[5:0]),
+   dff_s #(6) t2_invr (.din (t2_invr_i2[5:0]),
 		   .q   (t2_invr_i3[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #6 t3_invr (.din (t3_invr_i2[5:0]),
+   dff_s #(6) t3_invr (.din (t3_invr_i2[5:0]),
 		   .q   (t3_invr_i3[5:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
@@ -864,7 +864,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
    // read out to asi data 
    // changing the select from inverting to non-inverting for grape
    /*
-   dp_mux4ds #6 invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
+   dp_mux4ds #(6) invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
 			    .in0  (t0_invr_i3[5:0]),
 			    .in1  (t1_invr_i3[5:0]),
 			    .in2  (t2_invr_i3[5:0]),
@@ -874,7 +874,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 			    .sel2_l (inc_ind_asi_thr_l[2]),
 			    .sel3_l (inc_ind_asi_thr_l[3]));
    */
-   dp_mux4ds #6 invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
+   dp_mux4ds #(6) invr_rd_mux(.dout (invr_rd_data_i3[5:0]),
 			    .in0  (t0_invr_i3[5:0]),
 			    .in1  (t1_invr_i3[5:0]),
 			    .in2  (t2_invr_i3[5:0]),
@@ -936,27 +936,27 @@ module sparc_tlu_intdp (/*AUTOARG*/
    // assign  indr_inc_rst_pkt = lsu_tlu_st_rs3_data_g[`INT_TYPE_HI] |
    // 	                      lsu_tlu_st_rs3_data_g[`INT_TYPE_LO];
    
-   dp_mux2es  #11   t0_indr_mux(.dout (t0_indr_next[10:0]),
+   dp_mux2es  #(11)   t0_indr_mux(.dout (t0_indr_next[10:0]),
 				.in0  (t0_indr[10:0]),
 				.in1  (indr_wr_pkt[10:0]),
 				.sel  (inc_ind_asi_wr_indr[0]));
 `ifndef CONFIG_NUM_THREADS // Use two threads unless this is defined
 
-   dp_mux2es  #11   t1_indr_mux(.dout (t1_indr_next[10:0]),
+   dp_mux2es  #(11)   t1_indr_mux(.dout (t1_indr_next[10:0]),
                 .in0  (t1_indr[10:0]),
                 .in1  (indr_wr_pkt[10:0]),
                 .sel  (inc_ind_asi_wr_indr[1]));
 
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
            .q   (t0_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #11 t1_indr_reg(.din (t1_indr_next[10:0]),
+   dff_s #(11) t1_indr_reg(.din (t1_indr_next[10:0]),
            .q   (t1_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #11 int_dsp_mux(.dout (indr_pcxpkt[10:0]),
+   dp_mux2ds #(11) int_dsp_mux(.dout (indr_pcxpkt[10:0]),
                  .in0  (t0_indr[10:0]),
                  .in1  (t1_indr[10:0]),
                  .sel0_l (~inc_ind_indr_grant[0]),
@@ -965,7 +965,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 `else // `ifndef CONFIG_NUM_THREADS
 
 `ifdef FPGA_SYN_1THREAD
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
 		   .q   (t0_indr[10:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
@@ -973,7 +973,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_1
 
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
            .q   (t0_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
@@ -981,21 +981,21 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_2
 
-   dp_mux2es  #11   t1_indr_mux(.dout (t1_indr_next[10:0]),
+   dp_mux2es  #(11)   t1_indr_mux(.dout (t1_indr_next[10:0]),
                 .in0  (t1_indr[10:0]),
                 .in1  (indr_wr_pkt[10:0]),
                 .sel  (inc_ind_asi_wr_indr[1]));
 
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
            .q   (t0_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #11 t1_indr_reg(.din (t1_indr_next[10:0]),
+   dff_s #(11) t1_indr_reg(.din (t1_indr_next[10:0]),
            .q   (t1_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux2ds #11 int_dsp_mux(.dout (indr_pcxpkt[10:0]),
+   dp_mux2ds #(11) int_dsp_mux(.dout (indr_pcxpkt[10:0]),
                  .in0  (t0_indr[10:0]),
                  .in1  (t1_indr[10:0]),
                  .sel0_l (~inc_ind_indr_grant[0]),
@@ -1003,29 +1003,29 @@ module sparc_tlu_intdp (/*AUTOARG*/
 
 `elsif THREADS_3
 
-   dp_mux2es  #11   t1_indr_mux(.dout (t1_indr_next[10:0]),
+   dp_mux2es  #(11)   t1_indr_mux(.dout (t1_indr_next[10:0]),
                 .in0  (t1_indr[10:0]),
                 .in1  (indr_wr_pkt[10:0]),
                 .sel  (inc_ind_asi_wr_indr[1]));
-   dp_mux2es  #11   t2_indr_mux(.dout (t2_indr_next[10:0]),
+   dp_mux2es  #(11)   t2_indr_mux(.dout (t2_indr_next[10:0]),
                 .in0  (t2_indr[10:0]),
                 .in1  (indr_wr_pkt[10:0]),
                 .sel  (inc_ind_asi_wr_indr[2]));
 
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
            .q   (t0_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #11 t1_indr_reg(.din (t1_indr_next[10:0]),
+   dff_s #(11) t1_indr_reg(.din (t1_indr_next[10:0]),
            .q   (t1_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
-   dff_s #11 t2_indr_reg(.din (t2_indr_next[10:0]),
+   dff_s #(11) t2_indr_reg(.din (t2_indr_next[10:0]),
            .q   (t2_indr[10:0]),
            .clk (clk),
            .se  (se), .si(), .so());
 
-   dp_mux3ds #11 int_dsp_mux(.dout (indr_pcxpkt[10:0]),
+   dp_mux3ds #(11) int_dsp_mux(.dout (indr_pcxpkt[10:0]),
                  .in0  (t0_indr[10:0]),
                  .in1  (t1_indr[10:0]),
                  .in2  (t2_indr[10:0]),
@@ -1035,39 +1035,39 @@ module sparc_tlu_intdp (/*AUTOARG*/
    
 `else
    
-   dp_mux2es  #11   t1_indr_mux(.dout (t1_indr_next[10:0]),
+   dp_mux2es  #(11)   t1_indr_mux(.dout (t1_indr_next[10:0]),
 				.in0  (t1_indr[10:0]),
 				.in1  (indr_wr_pkt[10:0]),
 				.sel  (inc_ind_asi_wr_indr[1]));
-   dp_mux2es  #11   t2_indr_mux(.dout (t2_indr_next[10:0]),
+   dp_mux2es  #(11)   t2_indr_mux(.dout (t2_indr_next[10:0]),
 				.in0  (t2_indr[10:0]),
 				.in1  (indr_wr_pkt[10:0]),
 				.sel  (inc_ind_asi_wr_indr[2]));
-   dp_mux2es  #11   t3_indr_mux(.dout (t3_indr_next[10:0]),
+   dp_mux2es  #(11)   t3_indr_mux(.dout (t3_indr_next[10:0]),
 				.in0  (t3_indr[10:0]),
 				.in1  (indr_wr_pkt[10:0]),
 				.sel  (inc_ind_asi_wr_indr[3]));
    
-   dff_s #11 t0_indr_reg(.din (t0_indr_next[10:0]),
+   dff_s #(11) t0_indr_reg(.din (t0_indr_next[10:0]),
 		   .q   (t0_indr[10:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #11 t1_indr_reg(.din (t1_indr_next[10:0]),
+   dff_s #(11) t1_indr_reg(.din (t1_indr_next[10:0]),
 		   .q   (t1_indr[10:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #11 t2_indr_reg(.din (t2_indr_next[10:0]),
+   dff_s #(11) t2_indr_reg(.din (t2_indr_next[10:0]),
 		   .q   (t2_indr[10:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
-   dff_s #11 t3_indr_reg(.din (t3_indr_next[10:0]),
+   dff_s #(11) t3_indr_reg(.din (t3_indr_next[10:0]),
 		   .q   (t3_indr[10:0]),
 		   .clk (clk),
 		   .se  (se), .si(), .so());
 
    // changing the select from inverting to non-inverting for grape
    /*
-   dp_mux4ds #13 int_dsp_mux(.dout (indr_pcxpkt[12:0]),
+   dp_mux4ds #(13) int_dsp_mux(.dout (indr_pcxpkt[12:0]),
 			     .in0  (t0_indr[12:0]),
 			     .in1  (t1_indr[12:0]),
 			     .in2  (t2_indr[12:0]),
@@ -1077,7 +1077,7 @@ module sparc_tlu_intdp (/*AUTOARG*/
 			     .sel2_l (inc_ind_indr_grant_l[2]),
 			     .sel3_l (inc_ind_indr_grant_l[3]));
     */
-   dp_mux4ds #11 int_dsp_mux(.dout (indr_pcxpkt[10:0]),
+   dp_mux4ds #(11) int_dsp_mux(.dout (indr_pcxpkt[10:0]),
 			     .in0  (t0_indr[10:0]),
 			     .in1  (t1_indr[10:0]),
 			     .in2  (t2_indr[10:0]),
