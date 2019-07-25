@@ -86,6 +86,11 @@ piton/verif/env/dmbr_test/test_cases/simple_sink.vmh
 piton/verif/env/dmbr_test/test_cases/simple_src.vmh
 piton/verif/diag/assembly/princeton/dmbr_assembly.s
 
+# Ignore Vivado
+.Xil/*
+vivado*.log
+vivado*.str
+
 # Ignore sims logs
 flist
 history.sims
