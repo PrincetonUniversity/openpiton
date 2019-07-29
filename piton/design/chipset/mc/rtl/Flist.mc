@@ -26,5 +26,6 @@
 // ========== Copyright Header End ============================================
 
 mc_top.v
+f1_mc_top.v
 noc_mig_bridge.v
 memory_zeroer.v

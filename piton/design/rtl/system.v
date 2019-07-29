@@ -136,9 +136,10 @@ module system(
 `endif // endif PITONSYS_INC_PASSTHRU
 `endif // endif PITON_CHIPSET_CLKS_GEN
 `else //F1_BOARD
-    input clk,
+    input sys_clk,
+    input mc_clk,
+    input eth_clk,
 `endif
-
 
     input                                       sys_rst_n,
 
@@ -333,6 +334,16 @@ module system(
         output                                          net_phy_mdc,
     `elsif NEXYSVIDEO_BOARD
         output                                          net_phy_txc,
+        output                                          net_phy_txctl,
+        output      [3:0]                               net_phy_txd,
+        input                                           net_phy_rxc,
+        input                                           net_phy_rxctl,
+        input       [3:0]                               net_phy_rxd,
+        output                                          net_phy_rst_n,
+        inout                                           net_phy_mdio_io,
+        output                                          net_phy_mdc,
+    `elsif F1_BOARD
+        input                                           net_phy_txc,
         output                                          net_phy_txctl,
         output      [3:0]                               net_phy_txd,
         input                                           net_phy_rxc,
@@ -910,7 +921,9 @@ chipset chipset(
     // Only need oscillator clock if
     // chipset is generating its own clocks
 `ifdef F1_BOARD
-    .clk(clk),
+    .sys_clk(sys_clk),
+    .mc_clk(mc_clk),
+    .eth_clk(eth_clk),
 `else 
 
 `ifdef PITON_CHIPSET_CLKS_GEN

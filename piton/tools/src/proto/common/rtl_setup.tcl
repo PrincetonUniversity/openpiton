@@ -414,6 +414,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/shift_reg.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lfsr_8bit.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lzc.sv"                          \
+    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/exp_backoff.sv"                  \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rr_arb_tree.sv"                  \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rstgen_bypass.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/sync_wedge.sv"                   \
@@ -636,6 +637,7 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/fake_boot_ctrl.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/eth_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mc_top.v" \
+    "${DV_ROOT}/design/chipset/mc/rtl/f1_mc_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/noc_mig_bridge.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/memory_zeroer.v" \
     "${DV_ROOT}/design/chipset/noc_axilite_bridge/rtl/noc_axilite_bridge.v" \
@@ -731,6 +733,7 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/clk_mmcm/clk_mmcm" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_w64_d128_std/afifo_w64_d128_std" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite" \
+    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/axi_crossbar_2_in_1/axi_crossbar_2_in_1" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/mem_uart_timeout/mem_uart_timeout" \
@@ -746,6 +749,7 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_cache_bram/sd_cache_bram" \
     "${DV_ROOT}/design/common/fpga_bridge/common/xilinx/${BOARD}/ip_cores/afifo_w64/afifo_w64" \
     "${DV_ROOT}/design/common/fpga_bridge/fpga_rcv/xilinx/${BOARD}/ip_cores/afifo_w3/afifo_w3" \
+
 ]
 
 set CHIPSET_COE_IP_FILES [list \

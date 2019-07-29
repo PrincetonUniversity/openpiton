@@ -207,7 +207,7 @@ def run_f1_script(log, design_dir, board, slurm, tpn, mem_mb, time_str, jname, d
     os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
     os.environ['PROTOSYN_RUNTIME_BOARD'] = board
 
-    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify"]
+    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify", "-clock_recipe_a", "A1", "-clock_recipe_b", "B1", "-clock_recipe_c", "C2"]
     if slurm:
         return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
     else:
@@ -234,15 +234,19 @@ def runImplF1(board, design_data, src_dir, work_dir, log_dir, def_list, slurm, d
     prev_dir = os.getcwd()
 
     # Copy all sources in ppp/build/... , and set new CL_DIR
-    os.system("rsync -raz --copy-links " + src_dir + "/* " + work_dir)
+    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "build") + " " + work_dir)
+    if not os.path.exists(os.path.join(work_dir, "design", "xilinx")):
+        os.makedirs(os.path.join(work_dir, "design", "xilinx"))
+    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "design", "cl_id_defines.vh") + " " + os.path.join(work_dir, "design"))
     os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "f1") + " " + os.path.join(work_dir, "design", "xilinx"))
     os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "design.tcl") + " " + os.path.join(work_dir, "design", "xilinx", "design.tcl"))
+    os.environ["ORIGINAL_CL_DIR"] = os.environ["CL_DIR"]
     os.environ["CL_DIR"] = work_dir
 
     #hack to fight with aws scripts assuming we have SH_DDR in top module
-    aws_constraints_inpath = os.path.join(os.environ["HDK_SHELL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    aws_constraints_outpath = os.path.join(os.environ["CL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    os.system("sed 's/SH_DDR/piton_aws_mc\/sh_ddr/g' " + aws_constraints_inpath + " > " + aws_constraints_outpath)
+    #aws_constraints_inpath = os.path.join(os.environ["HDK_SHELL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
+    #aws_constraints_outpath = os.path.join(os.environ["CL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
+    #os.system("sed 's/SH_DDR/sh_ddr/g' " + aws_constraints_inpath + " > " + aws_constraints_outpath)
     
     # Ok, lets go build staff finally
     os.chdir(os.path.join(work_dir, "build", "scripts"))
@@ -573,8 +577,8 @@ def makeDefList(options):
 
     # --eth CL options is default for chipset
     if options.eth or options.design == "chipset" or options.design == "system":
-        # Ethernet controller is supported on Genesys2 and nexysVideo only
-        if options.board == "genesys2" or options.board == "nexysVideo":
+        # Ethernet controller is supported on Genesys2 and nexysVideo and F1 only
+        if options.board == "genesys2" or options.board == "nexysVideo":# or options.board == "f1" :
             defines.append("PITON_FPGA_ETHERNETLITE")
         else:
             print_info("--eth option is ignored for %s" % options.board)

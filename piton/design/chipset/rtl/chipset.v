@@ -84,7 +84,9 @@
 module chipset(
 
 `ifdef F1_BOARD
-    input clk,
+    input sys_clk,
+    input mc_clk,
+    input eth_clk,
 `else
     // Oscillator clock
 `ifdef PITON_CHIPSET_CLKS_GEN
@@ -338,7 +340,11 @@ module chipset(
     `endif // endif PITONSYS_SPI
     `ifdef PITON_FPGA_ETHERNETLITE
         // Emaclite interface
-        output                                          net_phy_txc,
+        `ifdef F1_BOARD
+            input                                       net_phy_txc,
+        `else 
+            output                                      net_phy_txc,
+        `endif
         output                                          net_phy_txctl,
         output      [3:0]                               net_phy_txd,
 
@@ -894,9 +900,9 @@ end
         );
         `endif // endif PITON_CHIPSET_CLKS_GEN
     `else // ifndef F1_BOARD
-        assign chipset_clk = clk;
-        assign mc_clk = clk;
         assign clk_locked = 1'b1;
+        assign net_axi_clk = eth_clk;
+        assign chipset_clk = sys_clk;
     `endif //ifndef F1_BOARD
 `endif // PITON_BOARD
 
