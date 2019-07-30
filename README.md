@@ -109,10 +109,6 @@ This L1 cache system is designed to connect directly to the L1.5 cache provided 
 
 Check out the sections below to see how to run the RISC-V tests or simple bare-metal C programs in simulation.
 
-> For simulation, Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed (older versions might work, but have not been tested).
-
-> You will need Vivado 2018.2 or newer to build an FPGA bitstream with Ariane.
-
 ![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
 #### Environment Setup
@@ -127,6 +123,12 @@ Step 3. will then download and compile the RISC-V toolchain, the assembly tests 
 > Note that the address map is different from the standard OpenPiton configuration. DRAM is mapped to `0x8000_0000`, hence the assembly tests and C programs are linked with this offset. Have a look at `piton/design/xilinx/genesys2/devices_ariane.xml` for a complete address mapping overview.
 
 > Also note that we use a slightly adapted version of `syscalls.c`. Instead of using the RISC-V FESVR, we use the OpenPiton testbench monitors to observe whether a test has passed or not. Hence we added the corresponding pass/fail traps to the exit function in `syscalls.c`.
+
+> For simulation Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed
+ (older versions may work, but are untested).
+
+> You will need Vivado 2018.2 or newer to build an FPGA bitstream with Ariane.
+
 
 #### Running RISC-V Tests and Benchmarks
 
@@ -150,7 +152,6 @@ The printf output will be directed to `fake_uart.log` in this case (in the build
 > Note: if you see the `Warning: [l15_adapter] return type 004 is not (yet) supported by l15 adapter.` warning in the simulation output, do not worry. This is only generated since Ariane does currently not support OpenPiton's packet-based interrupt packets arriving over the memory interface.
 
 
-
 #### Running Custom Programs
 
 You can also run test programs written in C. The following example program just prints 32 times "hello_world" to the fake UART (see `fake_uart.log` file).
@@ -168,6 +169,7 @@ And a simple hello world program running on multiple tiles can run as follows:
 In the example above, we have a 4x4 Ariane tile configuration, where each core just prints its own hart ID (hardware thread ID) to the fake UART. Synchronization among the harts is achieved using an atomic ADD operation.
 
 > Note that we have to adjust the finish mask in this case, since we expect all 16 cores to hit the pass/fail trap.
+
 
 #### Regressions
 
@@ -223,7 +225,7 @@ You can also run the precompiled RISCV benchmarks by using the following command
 
 OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD below.
 
-To get started, connect the micro USB port that is labeled with JTAG to your machine. This port is attached to the FTDI 2232 USB-to-serial chip on the Genesys 2 board, and is usually used to access the native JTAG interface of the Kintex-7 FPGA (e.g. to program the device using Vivado). However, the FTDI chip also exposes a second serial link that is routed to GPIO pins on the FPGA, and we leverage this to wire up the JTAG from the RISC-V debug module.
+To get started, connect the micro-USB port that is labeled with JTAG to your machine. This port is attached to the FTDI 2232 USB-to-serial chip on the Genesys 2 board, and is usually used to access the native JTAG interface of the Kintex-7 FPGA (e.g. to program the device using Vivado). However, the FTDI chip also exposes a second serial link that is routed to GPIO pins on the FPGA, and we leverage this to wire up the JTAG from the RISC-V debug module.
 
 >If you are on an Ubuntu based system you need to add the following udev rule to `/etc/udev/rules.d/99-ftdi.rules`
 >```
@@ -300,17 +302,19 @@ and
 [Nexys Video](https://store.digilentinc.com/nexys-video-artix-7-fpga-trainer-board-for-multimedia-applications/)
 FPGA development boards.
 For familiarisation and to ensure your hardware is setup correctly first try
-running with a released bitfile and SD image.
+running with a released bitfile and SD card image.
 
 To prepare the SD card with a Linux image you need to format it with
 [`sgdisk`](https://wiki.archlinux.org/index.php/GPT_fdisk)
 then write the image with
 [`dd`](https://wiki.archlinux.org/index.php/Dd).
 1. Download the Ariane Linux OS image from either
-the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0-op)
-or
-the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/os_images/openpiton_ariane_linux_r12.tar.gz),
-extract and save the `.bin` file as `bbl.bin` in the current directory.
+   the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0-op)
+   or
+   the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/os_images/openpiton_ariane_linux_r12.tar.gz),
+   extract and save the `.bin` file as `bbl.bin` in the current directory.
+   If you want to build your own Linux image please see
+   [ariane-sdk](https://github.com/pulp-platform/ariane-sdk).
 2. `$ sudo fdisk -l`
     Search *carefully* for the corresponding disk label of the SD card,
     e.g. `/dev/sdb`
@@ -325,16 +329,13 @@ extract and save the `.bin` file as `bbl.bin` in the current directory.
 5. Insert the SD card into the FPGA development board.
    You can leave it there until you want to build your own Linux OS image.
 
-If you want to build your own Linux image please see
-[ariane-sdk](https://github.com/pulp-platform/ariane-sdk).
 
 > Note that the board specific settings are encoded in the device tree that is
   automatically generated and compiled into the FPGA bitfile, so no specific
   configuration of the Linux kernel is needed.
 
-Next up is generating the bitfile which assumes you've setup your PATH with
-`source /opt/xilinx/Vivado/2018.2/settings64.sh` and `source
-piton/ariane_setup.sh`.
+Next up is generating the bitfile which assumes you've setup your PATH by
+sourcing /opt/xilinx/Vivado/2018.2/settings64.sh` and `piton/ariane_setup.sh`.
 The default configuration is 1 core for all boards, but you can override this
 with command line arguments.
 In order to build an FPGA image for these boards, use one of the following
@@ -348,8 +349,8 @@ commands representing the maximum configurations:
   may generate an unusable bitfile.
   Please use Vivado 2018.2.
 
-This command will take a while, (hardware dependent, a couple of hours is
-reasonable), to generate a bitfile at
+This command will take a while, (around 2 hours is reasonable), to generate a
+bitfile at
 `build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`
 To get started you can, alternatively, try a released bitfile from
 the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/bitfiles/),
@@ -383,8 +384,8 @@ Be patient, copying from SD takes a couple of seconds.
 
 When the boot process is finished a login prompt is displayed.
 The username is `root` without a password.
-Now you can test things by running standard unix commands, opening vi, or
-playing tetris (`# /tetris`).
+Now you can test things by running standard unix commands (`# cat /proc/cpuinfo`),
+or playing tetris (`# /tetris`).
 
 > There is also preliminary support for the VCU118, but not all features work
   yet on that board.
@@ -401,11 +402,8 @@ playing tetris (`# /tetris`).
 The following items are currently under development and will be released soon.
 
 - Thorough validation of cache coherence.
-
 - RISC-V FESVR support in simulation.
-
 - Synthesis flow for large FPGAs.
-
 - Performance enhancements (cache re-parameterization, write-buffer throughput).
 
 Stay tuned!
