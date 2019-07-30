@@ -111,7 +111,7 @@ Check out the sections below to see how to run the RISC-V tests or simple bare-m
 
 > For simulation, Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed (older versions might work, but have not been tested).
 
-> You will need Vivado 2017.3 or newer to build an FPGA bitstream with Ariane.
+> You will need Vivado 2018.2 or newer to build an FPGA bitstream with Ariane.
 
 ![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
