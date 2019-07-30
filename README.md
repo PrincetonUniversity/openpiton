@@ -349,13 +349,13 @@ commands representing the maximum configurations:
   may generate an unusable bitfile.
   Please use Vivado 2018.2.
 
-This command will take a while, (around 2 hours is reasonable), to generate a
+This command will take a while (around 2 hours is reasonable) to generate a
 bitfile at
-`build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`
+`build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`.
 To get started you can, alternatively, try a released bitfile from
 the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/bitfiles/),
 
-Now that you have a prepare SD card inserted into the dev board, and a bitfile
+Now that you have a prepared SD card inserted into the dev board, and a bitfile
 it's time to boot up.
 The Linux OS provides console access over UART.
 
@@ -381,7 +381,6 @@ When the device comes out of reset, the zero-stage bootloader copies the Linux
 image, including the first stage bootloader, from the SD card into DDR, and
 executes it.
 Be patient, copying from SD takes a couple of seconds.
-
 When the boot process is finished a login prompt is displayed.
 The username is `root` without a password.
 Now you can test things by running standard unix commands (`# cat /proc/cpuinfo`),
