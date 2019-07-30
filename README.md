@@ -101,7 +101,7 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 ==========================
 ![OpenPitonAriane Logo](/docs/openpiton_ariane_logo.png?raw=true)
 
-#### Preliminary Support for Ariane RV64IMAC Core
+# Preliminary Support for Ariane RV64IMAC Core
 
 This version of OpenPiton has preliminary support for the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
 To this end, Ariane has been equipped with a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
@@ -115,7 +115,7 @@ Check out the sections below to see how to run the RISC-V tests or simple bare-m
 
 ![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
-##### Environment Setup
+#### Environment Setup
 
 In addition to the OpenPiton setup described above, you have to adapt the paths in the `ariane_setup.sh` script to match with your installation (we support Questasim, VCS and Verilator at the moment). Source this script from the OpenPiton root folder and build the RISC-V tools with `ariane_build_tools.sh` if you are running this for the first time:
 1. ```cd $PITON_ROOT/```
@@ -128,7 +128,7 @@ Step 3. will then download and compile the RISC-V toolchain, the assembly tests 
 
 > Also note that we use a slightly adapted version of `syscalls.c`. Instead of using the RISC-V FESVR, we use the OpenPiton testbench monitors to observe whether a test has passed or not. Hence we added the corresponding pass/fail traps to the exit function in `syscalls.c`.
 
-##### Running RISC-V Tests and Benchmarks
+#### Running RISC-V Tests and Benchmarks
 
 The RISC-V benchmarks are precompiled in the tool setup step mentioned above. You can run individual benchmarks by first building the simulation model with
 
@@ -151,7 +151,7 @@ The printf output will be directed to `fake_uart.log` in this case (in the build
 
 
 
-##### Running Custom Programs
+#### Running Custom Programs
 
 You can also run test programs written in C. The following example program just prints 32 times "hello_world" to the fake UART (see `fake_uart.log` file).
 
@@ -169,7 +169,7 @@ In the example above, we have a 4x4 Ariane tile configuration, where each core j
 
 > Note that we have to adjust the finish mask in this case, since we expect all 16 cores to hit the pass/fail trap.
 
-##### Regressions
+#### Regressions
 
 The RISC-V ISA tests, benchmarks and some additonal simple example programs have been added to the regression suite of OpenPiton, and can be invoked as described below.
 
@@ -199,7 +199,7 @@ The RISC-V ISA tests, benchmarks and some additonal simple example programs have
 If you would like to get an overview of the exit status of a regression batch, step into the regression subfolder and call `regreport . -summary`.
 
 
-##### FPGA Mapping on Genesys2 Board
+#### FPGA Mapping on Genesys2 Board
 
 The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command:
 
@@ -219,7 +219,7 @@ You can also run the precompiled RISCV benchmarks by using the following command
 
 > Note the `-precompiled` switch here, which has the same effect as when used with the `sims` command.
 
-##### Debugging via JTAG
+#### Debugging via JTAG
 
 OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD below.
 
@@ -291,7 +291,7 @@ In order to compile programs that you can load with GDB, use the following comma
 
 Note that the tile configuration needs to correspond to your actual platform configuration if your program is a multi-hart program. Otherwise you can omit these switches (the additional cores will not execute the program in that case).
 
-##### Booting SMP Linux on Genesys2 or VC707
+#### Booting SMP Linux on Genesys2 or VC707
 
 We currently support single core and SMP Linux on the
 [Genesys2](https://store.digilentinc.com/genesys-2-kintex-7-fpga-development-board/),
@@ -396,7 +396,7 @@ playing tetris (`# /tetris`).
   R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD
   SD adapter to make sure that signal rise times are short enough.
 
-##### Planned Improvements
+#### Planned Improvements
 
 The following items are currently under development and will be released soon.
 
