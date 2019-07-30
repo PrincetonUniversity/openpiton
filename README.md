@@ -307,7 +307,7 @@ To prepare the SD card with a Linux image you need to format it with
 then write the image with
 [`dd`](https://wiki.archlinux.org/index.php/Dd).
 1. Download the Ariane Linux OS image from either
-the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0)
+the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0-op)
 or
 the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/os_images/openpiton_ariane_linux_r12.tar.gz),
 extract and save the `.bin` file as `bbl.bin` in the current directory.
@@ -337,23 +337,25 @@ Next up is generating the bitfile which assumes you've setup your PATH with
 piton/ariane_setup.sh`.
 The default configuration is 1 core for all boards, but you can override this
 with command line arguments.
-In order to build an FPGA image for these boards, one of the following
+In order to build an FPGA image for these boards, use one of the following
 commands representing the maximum configurations:
 
 - `protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2`
 - `protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=3 --y_tiles=1`
 - `protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr`
 
+> Vivado version 2017.3 and previous are known to fail for various reasons but
+  may generate an unusable bitfile.
+  Please use Vivado 2018.2.
+
 This command will take a while, (hardware dependent, a couple of hours is
 reasonable), to generate a bitfile at
 `build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`
+To get started you can, alternatively, try a released bitfile from
+the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/bitfiles/),
 
-> Vivado version 2017.3 and previous are known to fail for various reasons but
-  may generate an unusable bitfile.
-> Please use Vivado 2018.2.
-
-Now that you have a prepare SD card inserted into the dev board, an a bitfile
-generated it's time to boot up.
+Now that you have a prepare SD card inserted into the dev board, and a bitfile
+it's time to boot up.
 The Linux OS provides console access over UART.
 
 1. Connect a mini-USB cable to the port labelled `UART` and power on the board
@@ -386,7 +388,7 @@ playing tetris (`# /tetris`).
 
 > There is also preliminary support for the VCU118, but not all features work
   yet on that board.
-> For the VCU118 board you need the
+  For the VCU118 board you need the
   [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/)
   from Digilent to be able to use an SD card (the slot on the VCU118 board is not
   directly connected to the FPGA).
