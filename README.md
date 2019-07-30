@@ -297,9 +297,9 @@ Note that the tile configuration needs to correspond to your actual platform con
 
 We currently support single core and SMP Linux on the
 [Genesys2](https://store.digilentinc.com/genesys-2-kintex-7-fpga-development-board/),
-[VC707](https://www.xilinx.com/products/boards-and-kits/ek-v7-vc707-g.html),
+[Nexys Video](https://store.digilentinc.com/nexys-video-artix-7-fpga-trainer-board-for-multimedia-applications/),
 and
-[Nexys Video](https://store.digilentinc.com/nexys-video-artix-7-fpga-trainer-board-for-multimedia-applications/)
+[VC707](https://www.xilinx.com/products/boards-and-kits/ek-v7-vc707-g.html)
 FPGA development boards.
 For familiarisation and to ensure your hardware is setup correctly first try
 running with a released bitfile and SD card image.
@@ -341,9 +341,10 @@ with command line arguments.
 In order to build an FPGA image for these boards, use one of the following
 commands representing the maximum configurations:
 
+- `protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr`
 - `protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2`
 - `protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=3 --y_tiles=1`
-- `protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr`
+  (81% LUT utilization)
 
 > Vivado version 2017.3 and previous are known to fail for various reasons but
   may generate an unusable bitfile.
