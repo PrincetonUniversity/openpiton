@@ -291,32 +291,108 @@ In order to compile programs that you can load with GDB, use the following comma
 
 Note that the tile configuration needs to correspond to your actual platform configuration if your program is a multi-hart program. Otherwise you can omit these switches (the additional cores will not execute the program in that case).
 
-##### Booting SMP Linux on Genesys2 and VC707
+##### Booting SMP Linux on Genesys2 or VC707
 
-We currently support single core and SMP Linux on the Genesys2, VC707 and Nexys Video FPGA development boards. 
+We currently support single core and SMP Linux on the
+[Genesys2](https://store.digilentinc.com/genesys-2-kintex-7-fpga-development-board/),
+[VC707](https://www.xilinx.com/products/boards-and-kits/ek-v7-vc707-g.html),
+and
+[Nexys Video](https://store.digilentinc.com/nexys-video-artix-7-fpga-trainer-board-for-multimedia-applications/)
+FPGA development boards.
+For familiarisation and to ensure your hardware is setup correctly first try
+running with a released bitfile and SD image.
 
-In order to build an FPGA image for these boards, use either of the following commands:
+To prepare the SD card with a Linux image you need to format it with
+[`sgdisk`](https://wiki.archlinux.org/index.php/GPT_fdisk)
+then write the image with
+[`dd`](https://wiki.archlinux.org/index.php/Dd).
+1. Download the Ariane Linux OS image from either
+the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0)
+or
+the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/os_images/openpiton_ariane_linux_r12.tar.gz),
+extract and save the `.bin` file as `bbl.bin` in the current directory.
+2. `$ sudo fdisk -l`
+    Search *carefully* for the corresponding disk label of the SD card,
+    e.g. `/dev/sdb`
+3. `$ sudo sgdisk --clear --new=1:2048:67583 --new=2 --typecode=1:3000 --typecode=2:8300 /dev/sdb`
+    Create a new [GPT](https://en.wikipedia.org/wiki/GUID_Partition_Table)
+    partition table and two partitions:
+    1st partition 32MB (ONIE boot),
+    2nd partition rest (Linux root).
+4. `$ sudo dd if=bbl.bin of=/dev/sdb1 oflag=sync bs=1M`
+    Write the `bbl.bin` file to the first partition.
+    E.g. where your disk label is `/dev/sdb` use `/dev/sdb1` (append a `1`).
+5. Insert the SD card into the FPGA development board.
+   You can leave it there until you want to build your own Linux OS image.
 
-```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
+If you want to build your own Linux image please see
+[ariane-sdk](https://github.com/pulp-platform/ariane-sdk).
 
-```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr```
+> Note that the board specific settings are encoded in the device tree that is
+  automatically generated and compiled into the FPGA bitfile, so no specific
+  configuration of the Linux kernel is needed.
 
-```protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr```
+Next up is generating the bitfile which assumes you've setup your PATH with
+`source /opt/xilinx/Vivado/2018.2/settings64.sh` and `source
+piton/ariane_setup.sh`.
+The default configuration is 1 core for all boards, but you can override this
+with command line arguments.
+In order to build an FPGA image for these boards, one of the following
+commands representing the maximum configurations:
 
-The default configuration is 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
+- `protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2`
+- `protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=3 --y_tiles=1`
+- `protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr`
 
-```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2```
+This command will take a while, (hardware dependent, a couple of hours is
+reasonable), to generate a bitfile at
+`build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`
 
-```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
+> Vivado version 2017.3 and previous are known to fail for various reasons but
+  may generate an unusable bitfile.
+> Please use Vivado 2018.2.
 
-Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card. If you do not want to go through the hassle of building your own image, you can download a pre-built linux image from [here](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0).
+Now that you have a prepare SD card inserted into the dev board, an a bitfile
+generated it's time to boot up.
+The Linux OS provides console access over UART.
 
-> Note that the board specific settings are encoded in the device tree that is automatically generated and compiled into the FPGA bitfile, so no specific configuration of the Linux kernel is needed.
+1. Connect a mini-USB cable to the port labelled `UART` and power on the board
+   which allows the interfaces such as `/dev/ttyUSB2` to become available.
+2. Open a console with
+   115200/8N1.
+   E.g. something like
+   `screen /dev/ttyUSB0 115200`
+   or
+   `sudo minicom -D /dev/ttyUSB2`
+   If there are multiple ttyUSB devices just open a console to each of them.
+3. Connect a micro-USB cable to the port labelled `JTAG` and connect from within
+   the Vivado Hardware Manager.
+   This can be done in the GUI by opening the project:
+   `vivado build/vc707/system/vc707_system/vc707_system.xpr &`
+4. Program the device with the generated bitfile, which Vivado should find
+   automatically.
+   Once programming is finished (around 10s) reset will be immediately lifted
+   and you should see the Linux boot process being reported on the UART console.
 
-Insert the SD card into the corresponding slot of the FPGA board, connect a terminal to the UART using e.g. `screen /dev/ttyUSB0 115200`, and program the FPGA. Once the device comes out of reset, the zero-stage bootloader copies the Linux image (including the first stage bootloader) into DRAM, and executes it. Be patient, copying from SD takes a couple of seconds.
+When the device comes out of reset, the zero-stage bootloader copies the Linux
+image, including the first stage bootloader, from the SD card into DDR, and
+executes it.
+Be patient, copying from SD takes a couple of seconds.
 
-> There is also preliminary support for the VCU118, but not all features work yet on that board.
-> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
+When the boot process is finished a login prompt is displayed.
+The username is `root` without a password.
+Now you can test things by running standard unix commands, opening vi, or
+playing tetris (`# /tetris`).
+
+> There is also preliminary support for the VCU118, but not all features work
+  yet on that board.
+> For the VCU118 board you need the
+  [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/)
+  from Digilent to be able to use an SD card (the slot on the VCU118 board is not
+  directly connected to the FPGA).
+  As the PMOD0 port has open-drain level-shifters, you also have to replace the
+  R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD
+  SD adapter to make sure that signal rise times are short enough.
 
 ##### Planned Improvements
 
