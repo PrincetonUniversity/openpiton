@@ -335,7 +335,7 @@ then write the image with
   configuration of the Linux kernel is needed.
 
 Next up is generating the bitfile which assumes you've setup your PATH by
-sourcing /opt/xilinx/Vivado/2018.2/settings64.sh` and `piton/ariane_setup.sh`.
+sourcing `/opt/xilinx/Vivado/2018.2/settings64.sh` and `piton/ariane_setup.sh`.
 The default configuration is 1 core for all boards, but you can override this
 with command line arguments.
 In order to build an FPGA image for these boards, use one of the following
