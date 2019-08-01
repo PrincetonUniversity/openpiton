@@ -85,8 +85,6 @@ module chipset(
 
 `ifdef F1_BOARD
     input sys_clk,
-    input mc_clk,
-    input eth_clk,
 `else
     // Oscillator clock
 `ifdef PITON_CHIPSET_CLKS_GEN
@@ -253,6 +251,7 @@ module chipset(
 `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
 `else // F1_BOARD
+    input                                        mc_clk,
     // AXI Write Address Channel Signals
     output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
     output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
@@ -341,21 +340,30 @@ module chipset(
     `ifdef PITON_FPGA_ETHERNETLITE
         // Emaclite interface
         `ifdef F1_BOARD
-            input                                       net_phy_txc,
+            input                                           eth_clk,
+
+            input                                           net_phy_txc,
+            output                                          net_phy_txctl,
+            output      [3:0]                               net_phy_txd,
+
+            input                                           net_phy_rxc,
+            input                                           net_phy_rxctl,
+            input       [3:0]                               net_phy_rxd,
         `else 
-            output                                      net_phy_txc,
+            output                                          net_phy_txc,
+            output                                          net_phy_txctl,
+            output      [3:0]                               net_phy_txd,
+
+            input                                           net_phy_rxc,
+            input                                           net_phy_rxctl,
+            input       [3:0]                               net_phy_rxd,
+
+            output                                          net_phy_rst_n,
+
+            inout                                           net_phy_mdio_io,
+            output                                          net_phy_mdc,
         `endif
-        output                                          net_phy_txctl,
-        output      [3:0]                               net_phy_txd,
 
-        input                                           net_phy_rxc,
-        input                                           net_phy_rxctl,
-        input       [3:0]                               net_phy_rxd,
-
-        output                                          net_phy_rst_n,
-
-        inout                                           net_phy_mdio_io,
-        output                                          net_phy_mdc,
     `endif // PITON_FPGA_ETHERNETLITE    
 `else // ifndef PITONSYS_IOCTRL
 
@@ -901,7 +909,6 @@ end
         `endif // endif PITON_CHIPSET_CLKS_GEN
     `else // ifndef F1_BOARD
         assign clk_locked = 1'b1;
-        assign net_axi_clk = eth_clk;
         assign chipset_clk = sys_clk;
     `endif //ifndef F1_BOARD
 `endif // PITON_BOARD
@@ -1275,7 +1282,7 @@ chipset_impl_noc_power_test  chipset_impl (
 
     // DRAM and I/O interfaces
     `ifndef PITONSYS_NO_MC
-        `ifdef PITON_FPGA_MC_DDR3
+        `ifdef PITON_FPGA_MC_DDR3 
             ,
             .init_calib_complete(init_calib_complete),
             `ifndef F1_BOARD
@@ -1310,6 +1317,7 @@ chipset_impl_noc_power_test  chipset_impl (
                 .ddr_odt(ddr_odt)
             `else // ifndef F1_BOARD
                 ,
+                .mc_clk(mc_clk),
                 // AXI Write Address Channel Signals
                 .m_axi_awid(m_axi_awid),
                 .m_axi_awaddr(m_axi_awaddr),
@@ -1397,21 +1405,34 @@ chipset_impl_noc_power_test  chipset_impl (
             .sd_dat(sd_dat)
         `endif // endif PITONSYS_SPI
             `ifdef PITON_FPGA_ETHERNETLITE
-                ,
-                .net_axi_clk        (net_axi_clk            ),
-                .net_phy_rst_n      (net_phy_rst_n          ),
+                `ifndef F1_BOARD        
+                    ,
+                    .net_axi_clk        (net_axi_clk            ),
+                    .net_phy_rst_n      (net_phy_rst_n          ),
 
-                .net_phy_tx_clk     (net_phy_clk_inter      ),
-                .net_phy_tx_en      (net_phy_txctl_inter    ),
-                .net_phy_tx_data    (net_phy_txd_inter      ),
+                    .net_phy_tx_clk     (net_phy_clk_inter      ),
+                    .net_phy_tx_en      (net_phy_txctl_inter    ),
+                    .net_phy_tx_data    (net_phy_txd_inter      ),
 
-                .net_phy_rx_clk     (net_phy_rxc_inter      ),
-                .net_phy_dv         (net_phy_rx_dv_inter    ),
-                .net_phy_rx_data    (net_phy_rxd_inter      ),
-                .net_phy_rx_er      (net_phy_rx_err_inter   ),
+                    .net_phy_rx_clk     (net_phy_rxc_inter      ),
+                    .net_phy_dv         (net_phy_rx_dv_inter    ),
+                    .net_phy_rx_data    (net_phy_rxd_inter      ),
+                    .net_phy_rx_er      (net_phy_rx_err_inter   ),
 
-                .net_phy_mdio_io    (net_phy_mdio_io        ),
-                .net_phy_mdc        (net_phy_mdc            )
+                    .net_phy_mdio_io    (net_phy_mdio_io        ),
+                    .net_phy_mdc        (net_phy_mdc            )
+                `else 
+                    ,
+                    .net_axi_clk        (eth_clk          ),
+
+                    .net_phy_txc        (net_phy_txc      ),
+                    .net_phy_txctl      (net_phy_txctl    ),
+                    .net_phy_txd        (net_phy_txd      ),
+
+                    .net_phy_rxc        (net_phy_rxc      ),
+                    .net_phy_rxctl      (net_phy_rxctl    ),
+                    .net_phy_rxd        (net_phy_rxd      )
+                `endif
             `endif // PITON_FPGA_ETHERNETLITE   
     `endif // endif PITONSYS_IOCTRL
 
@@ -1437,132 +1458,134 @@ chipset_impl_noc_power_test  chipset_impl (
 
 `ifdef PITONSYS_IOCTRL
     `ifdef PITON_FPGA_ETHERNETLITE
-        // Simplified RGMII <-> MII converter
-        // TX clk is 25 MHz
+        `ifndef F1_BOARD
+            // Simplified RGMII <-> MII converter
+            // TX clk is 25 MHz
 
-        //------------- TX ------------------------------------
-        ODDR net_phy_txc_oddr (
-          .Q(net_phy_txc),   // 1-bit DDR output
-          .C(net_phy_clk_inter),   // 1-bit clock input
-          .CE(1'b1), // 1-bit clock enable input
-          .D1(1'b0), // 1-bit data input (positive edge)
-          .D2(1'b1), // 1-bit data input (negative edge)
-          .R(1'b0),   // 1-bit reset
-          .S(1'b0)    // 1-bit set
-        );
+            //------------- TX ------------------------------------
+            ODDR net_phy_txc_oddr (
+              .Q(net_phy_txc),   // 1-bit DDR output
+              .C(net_phy_clk_inter),   // 1-bit clock input
+              .CE(1'b1), // 1-bit clock enable input
+              .D1(1'b0), // 1-bit data input (positive edge)
+              .D2(1'b1), // 1-bit data input (negative edge)
+              .R(1'b0),   // 1-bit reset
+              .S(1'b0)    // 1-bit set
+            );
 
-        FD net_ph_txctl_fd (
-            .Q(net_phy_txctl),
-            .D(net_phy_txctl_inter),
-            .C(net_phy_clk_inter)
-        );
+            FD net_ph_txctl_fd (
+                .Q(net_phy_txctl),
+                .D(net_phy_txctl_inter),
+                .C(net_phy_clk_inter)
+            );
 
-        FD net_ph_txd_0_fd (
-            .Q(net_phy_txd[0]),
-            .D(net_phy_txd_inter[0]),
-            .C(net_phy_clk_inter)
-        );
+            FD net_ph_txd_0_fd (
+                .Q(net_phy_txd[0]),
+                .D(net_phy_txd_inter[0]),
+                .C(net_phy_clk_inter)
+            );
 
-        FD net_ph_txd_1_fd (
-            .Q(net_phy_txd[1]),
-            .D(net_phy_txd_inter[1]),
-            .C(net_phy_clk_inter)
-        );
+            FD net_ph_txd_1_fd (
+                .Q(net_phy_txd[1]),
+                .D(net_phy_txd_inter[1]),
+                .C(net_phy_clk_inter)
+            );
 
-        FD net_ph_txd_2_fd (
-            .Q(net_phy_txd[2]),
-            .D(net_phy_txd_inter[2]),
-            .C(net_phy_clk_inter)
-        );
+            FD net_ph_txd_2_fd (
+                .Q(net_phy_txd[2]),
+                .D(net_phy_txd_inter[2]),
+                .C(net_phy_clk_inter)
+            );
 
-        FD net_ph_txd_3_fd (
-            .Q(net_phy_txd[3]),
-            .D(net_phy_txd_inter[3]),
-            .C(net_phy_clk_inter)
-        );
+            FD net_ph_txd_3_fd (
+                .Q(net_phy_txd[3]),
+                .D(net_phy_txd_inter[3]),
+                .C(net_phy_clk_inter)
+            );
 
-        //------------- RX -------------------------------------
+            //------------- RX -------------------------------------
 
-        IBUFG net_phy_rxc_ibufg (
-            .I(net_phy_rxc          ),
-            .O(net_phy_rxc_ibufg_out)
-        );
+            IBUFG net_phy_rxc_ibufg (
+                .I(net_phy_rxc          ),
+                .O(net_phy_rxc_ibufg_out)
+            );
 
-        // Delay by RXC 31*78 (IDELAY_VALUE*tap_delay@200MHz) to put in RXD/RXCTL eye
-        (* IODELAY_GROUP = "NET_PHY_RXC" *)
-        IDELAYE2 #(
-          .CINVCTRL_SEL("FALSE"),          // Enable dynamic clock inversion (FALSE, TRUE)
-          .DELAY_SRC("IDATAIN"),           // Delay input (IDATAIN, DATAIN)
-          .HIGH_PERFORMANCE_MODE("FALSE"), // Reduced jitter ("TRUE"), Reduced power ("FALSE")
-          .IDELAY_TYPE("FIXED"),           // FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
-          .IDELAY_VALUE(31),                // Input delay tap setting (0-31)
-          .PIPE_SEL("FALSE"),              // Select pipelined mode, FALSE, TRUE
-          .REFCLK_FREQUENCY(200.0),        // IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
-          .SIGNAL_PATTERN("DATA")          // DATA, CLOCK input signal
-       )
-       IDELAYE2_inst (
-          .CNTVALUEOUT(), // 5-bit output: Counter value output
-          .DATAOUT(net_phy_rxc_delayed),         // 1-bit output: Delayed data output
-          .C(1'b0),                     // 1-bit input: Clock input
-          .CE(1'b0),                   // 1-bit input: Active high enable increment/decrement input
-          .CINVCTRL(),       // 1-bit input: Dynamic clock inversion input
-          .CNTVALUEIN(5'b0),   // 5-bit input: Counter value input
-          .DATAIN(1'b0),           // 1-bit input: Internal delay data input
-          .IDATAIN(net_phy_rxc_ibufg_out),         // 1-bit input: Data input from the I/O
-          .INC(1'b0),                 // 1-bit input: Increment / Decrement tap delay input
-          .LD(1'b0),                   // 1-bit input: Load IDELAY_VALUE input
-          .LDPIPEEN(1'b0),       // 1-bit input: Enable PIPELINE register to load data input
-          .REGRST(1'b0)            // 1-bit input: Active-high reset tap-delay input
-       );
+            // Delay by RXC 31*78 (IDELAY_VALUE*tap_delay@200MHz) to put in RXD/RXCTL eye
+            (* IODELAY_GROUP = "NET_PHY_RXC" *)
+            IDELAYE2 #(
+              .CINVCTRL_SEL("FALSE"),          // Enable dynamic clock inversion (FALSE, TRUE)
+              .DELAY_SRC("IDATAIN"),           // Delay input (IDATAIN, DATAIN)
+              .HIGH_PERFORMANCE_MODE("FALSE"), // Reduced jitter ("TRUE"), Reduced power ("FALSE")
+              .IDELAY_TYPE("FIXED"),           // FIXED, VARIABLE, VAR_LOAD, VAR_LOAD_PIPE
+              .IDELAY_VALUE(31),                // Input delay tap setting (0-31)
+              .PIPE_SEL("FALSE"),              // Select pipelined mode, FALSE, TRUE
+              .REFCLK_FREQUENCY(200.0),        // IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
+              .SIGNAL_PATTERN("DATA")          // DATA, CLOCK input signal
+           )
+           IDELAYE2_inst (
+              .CNTVALUEOUT(), // 5-bit output: Counter value output
+              .DATAOUT(net_phy_rxc_delayed),         // 1-bit output: Delayed data output
+              .C(1'b0),                     // 1-bit input: Clock input
+              .CE(1'b0),                   // 1-bit input: Active high enable increment/decrement input
+              .CINVCTRL(),       // 1-bit input: Dynamic clock inversion input
+              .CNTVALUEIN(5'b0),   // 5-bit input: Counter value input
+              .DATAIN(1'b0),           // 1-bit input: Internal delay data input
+              .IDATAIN(net_phy_rxc_ibufg_out),         // 1-bit input: Data input from the I/O
+              .INC(1'b0),                 // 1-bit input: Increment / Decrement tap delay input
+              .LD(1'b0),                   // 1-bit input: Load IDELAY_VALUE input
+              .LDPIPEEN(1'b0),       // 1-bit input: Enable PIPELINE register to load data input
+              .REGRST(1'b0)            // 1-bit input: Active-high reset tap-delay input
+           );
 
-       (* IODELAY_GROUP = "NET_PHY_RXC" *)
-       IDELAYCTRL IDELAYCTRL_inst (
-          .RDY(),           // 1-bit output: Ready output
-          // 200-MHz for g2, clk_mmccm drives clocks through BUFG
-          .REFCLK(mc_clk),  // 1-bit input: Reference clock input
-          .RST(1'b0)        // 1-bit input: Active high reset input
-       );
+           (* IODELAY_GROUP = "NET_PHY_RXC" *)
+           IDELAYCTRL IDELAYCTRL_inst (
+              .RDY(),           // 1-bit output: Ready output
+              // 200-MHz for g2, clk_mmccm drives clocks through BUFG
+              .REFCLK(mc_clk),  // 1-bit input: Reference clock input
+              .RST(1'b0)        // 1-bit input: Active high reset input
+           );
 
-        BUFG BUFG_inst (
-          .O(net_phy_rxc_inter      ),
-          .I(net_phy_rxc_delayed    )
-       );
+            BUFG BUFG_inst (
+              .O(net_phy_rxc_inter      ),
+              .I(net_phy_rxc_delayed    )
+           );
 
-        always @(posedge net_phy_rxc_inter) begin
-            if (~net_phy_rst_n)
-                net_phy_rx_dv_f <= 1'b0;
-            else
-                net_phy_rx_dv_f <= net_phy_rxctl;
-        end
-
-        always @(negedge net_phy_rxc_inter) begin
-            if (~net_phy_rst_n)
-                net_phy_rx_err_f <= 1'b0;
-            else
-                net_phy_rx_err_f <= net_phy_rxctl;
-        end
-
-        always @(posedge net_phy_rxc_inter) begin
-            if (~net_phy_rst_n) begin
-                net_phy_rx_dv_ff <= 1'b0;
-                net_phy_rx_err_ff <= 1'b0;
+            always @(posedge net_phy_rxc_inter) begin
+                if (~net_phy_rst_n)
+                    net_phy_rx_dv_f <= 1'b0;
+                else
+                    net_phy_rx_dv_f <= net_phy_rxctl;
             end
-            else begin
-                net_phy_rx_dv_ff <= net_phy_rx_dv_f;
-                net_phy_rx_err_ff <= net_phy_rx_err_f;
+
+            always @(negedge net_phy_rxc_inter) begin
+                if (~net_phy_rst_n)
+                    net_phy_rx_err_f <= 1'b0;
+                else
+                    net_phy_rx_err_f <= net_phy_rxctl;
             end
-        end
 
-        assign net_phy_rx_dv_inter = net_phy_rx_dv_ff;
-        assign net_phy_rx_err_inter = net_phy_rx_dv_ff ^ net_phy_rx_err_ff;
+            always @(posedge net_phy_rxc_inter) begin
+                if (~net_phy_rst_n) begin
+                    net_phy_rx_dv_ff <= 1'b0;
+                    net_phy_rx_err_ff <= 1'b0;
+                end
+                else begin
+                    net_phy_rx_dv_ff <= net_phy_rx_dv_f;
+                    net_phy_rx_err_ff <= net_phy_rx_err_f;
+                end
+            end
 
-        // Make data to be aligned with dv/err
-        always @(posedge net_phy_rxc_inter) begin
-            net_phy_rxd_f <= net_phy_rxd;
-            net_phy_rxd_ff <= net_phy_rxd_f;
-        end
+            assign net_phy_rx_dv_inter = net_phy_rx_dv_ff;
+            assign net_phy_rx_err_inter = net_phy_rx_dv_ff ^ net_phy_rx_err_ff;
 
-        assign net_phy_rxd_inter = net_phy_rxd_ff;
+            // Make data to be aligned with dv/err
+            always @(posedge net_phy_rxc_inter) begin
+                net_phy_rxd_f <= net_phy_rxd;
+                net_phy_rxd_ff <= net_phy_rxd_f;
+            end
+
+            assign net_phy_rxd_inter = net_phy_rxd_ff;                
+        `endif // F1_BOARD
     `endif //PITON_FPGA_ETHERNETLITE
     //-------------------------------------------------------
 

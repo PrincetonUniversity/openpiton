@@ -207,7 +207,7 @@ def run_f1_script(log, design_dir, board, slurm, tpn, mem_mb, time_str, jname, d
     os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
     os.environ['PROTOSYN_RUNTIME_BOARD'] = board
 
-    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify", "-clock_recipe_a", "A1", "-clock_recipe_b", "B1", "-clock_recipe_c", "C2"]
+    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify", "-clock_recipe_a", "A0", "-clock_recipe_b", "B1", "-clock_recipe_c", "C2"]
     if slurm:
         return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
     else:

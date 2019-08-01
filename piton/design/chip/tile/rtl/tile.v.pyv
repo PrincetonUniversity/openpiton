@@ -200,12 +200,16 @@ print s
         .clk_out(clk_gated)
     );
 
+`ifdef PITON_FPGA_SYNTH
+    wire rst_n_f = rst_n;
+`else 
     // flop reset signal
     reg rst_n_f;
     always @ (posedge clk)
     begin
       rst_n_f <= rst_n;
     end
+`endif
 
     // configured X/Y/CHIPID
     wire [`NOC_CHIPID_WIDTH-1:0]        config_chipid;

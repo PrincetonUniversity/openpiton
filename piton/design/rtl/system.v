@@ -137,8 +137,6 @@ module system(
 `endif // endif PITON_CHIPSET_CLKS_GEN
 `else //F1_BOARD
     input sys_clk,
-    input mc_clk,
-    input eth_clk,
 `endif
 
     input                                       sys_rst_n,
@@ -238,6 +236,7 @@ module system(
     `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
 `else //ifndef F1_BOARD 
+    input                                        mc_clk,
     // AXI Write Address Channel Signals
     output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
     output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
@@ -343,15 +342,13 @@ module system(
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
     `elsif F1_BOARD
+        input                                           eth_clk,
         input                                           net_phy_txc,
         output                                          net_phy_txctl,
         output      [3:0]                               net_phy_txd,
         input                                           net_phy_rxc,
         input                                           net_phy_rxctl,
         input       [3:0]                               net_phy_rxd,
-        output                                          net_phy_rst_n,
-        inout                                           net_phy_mdio_io,
-        output                                          net_phy_mdc,
     `endif
 `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL
@@ -922,8 +919,6 @@ chipset chipset(
     // chipset is generating its own clocks
 `ifdef F1_BOARD
     .sys_clk(sys_clk),
-    .mc_clk(mc_clk),
-    .eth_clk(eth_clk),
 `else 
 
 `ifdef PITON_CHIPSET_CLKS_GEN
@@ -1068,6 +1063,7 @@ chipset chipset(
 `endif
     .ddr_odt(ddr_odt),
 `else //ifndef F1_BOARD
+    .mc_clk(mc_clk),
     // AXI Write Address Channel Signals
     .m_axi_awid(m_axi_awid),
     .m_axi_awaddr(m_axi_awaddr),
@@ -1152,15 +1148,26 @@ chipset chipset(
     .sd_dat(sd_dat),
 `endif // endif PITONSYS_SPI
     `ifdef PITON_FPGA_ETHERNETLITE
-        .net_phy_txc        (net_phy_txc),
-        .net_phy_txctl      (net_phy_txctl),
-        .net_phy_txd        (net_phy_txd),
-        .net_phy_rxc        (net_phy_rxc),
-        .net_phy_rxctl      (net_phy_rxctl),
-        .net_phy_rxd        (net_phy_rxd),
-        .net_phy_rst_n      (net_phy_rst_n),
-        .net_phy_mdio_io    (net_phy_mdio_io),
-        .net_phy_mdc        (net_phy_mdc),
+        `ifndef F1_BOARD
+            .net_phy_txc        (net_phy_txc),
+            .net_phy_txctl      (net_phy_txctl),
+            .net_phy_txd        (net_phy_txd),
+            .net_phy_rxc        (net_phy_rxc),
+            .net_phy_rxctl      (net_phy_rxctl),
+            .net_phy_rxd        (net_phy_rxd),
+            .net_phy_rst_n      (net_phy_rst_n),
+            .net_phy_mdio_io    (net_phy_mdio_io),
+            .net_phy_mdc        (net_phy_mdc),
+        `else //F1_BOARD
+            .eth_clk            (eth_clk),
+            .net_phy_txc        (net_phy_txc),
+            .net_phy_txctl      (net_phy_txctl),
+            .net_phy_txd        (net_phy_txd),
+            .net_phy_rxc        (net_phy_rxc),
+            .net_phy_rxctl      (net_phy_rxctl),
+            .net_phy_rxd        (net_phy_rxd),
+        `endif
+
     `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL
 

@@ -221,7 +221,7 @@ noc_axi4_bridge noc_axi4_bridge  (
 
 assign init_calib_complete_out = ddr_ready;
 assign mc_ui_clk_sync_rst = ~mc_rst_n;
-
+/*
 
 ila_1 pitonbus_axi (
     .clk    (mc_clk),
@@ -283,5 +283,5 @@ ila_0 noc_piton_bus (
     .probe5(mc_flit_out_rdy) // input wire [0:0]  probe5
     );
 
-
+*/
 endmodule 

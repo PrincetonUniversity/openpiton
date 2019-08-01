@@ -161,6 +161,7 @@ module chipset_impl(
 `else // ifndef F1_BOARD
     // AXI Write Address Channel Signals
     ,
+    input                                        mc_clk,
     output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
     output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
     output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
@@ -242,6 +243,7 @@ module chipset_impl(
     inout   [3:0]                               sd_dat
 `endif // endif PITONSYS_SPI
 `ifdef PITON_FPGA_ETHERNETLITE
+`ifndef F1_BOARD
     ,
     input                                       net_axi_clk,
     output                                      net_phy_rst_n,
@@ -257,6 +259,18 @@ module chipset_impl(
 
     inout                                       net_phy_mdio_io,
     output                                      net_phy_mdc
+`else 
+    ,
+    input                                       net_axi_clk,
+
+    input                                       net_phy_txc,
+    output                                      net_phy_txctl,
+    output  [3 : 0]                             net_phy_txd,
+
+    input                                       net_phy_rxc,
+    input                                       net_phy_rxctl,
+    input  [3 : 0]                              net_phy_rxd
+`endif
 `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IO_CTRL
 `ifdef PITON_ARIANE
@@ -1009,6 +1023,8 @@ uart_top        uart_top (
 
 
 `ifdef PITON_FPGA_ETHERNETLITE
+`ifndef F1_BOARD
+
     eth_top #(
     `ifdef PITON_ARIANE
       .SWAP_ENDIANESS(1)
@@ -1044,6 +1060,39 @@ uart_top        uart_top (
         .net_phy_mdio_io ( net_phy_mdio_io    ),
         .net_phy_mdc     ( net_phy_mdc        )
     );
+`else //F1_BOARD
+    f1_eth_top #(
+    `ifdef PITON_ARIANE
+      .SWAP_ENDIANESS(1)
+    `else
+      .SWAP_ENDIANESS(0)
+    `endif
+    ) eth_top (
+        .chipset_clk     ( chipset_clk        ),
+        .rst_n           ( chipset_rst_n      ),
+
+        .net_interrupt   ( net_interrupt      ),
+
+        .noc_in_val      ( buf_net_noc2_valid ),
+        .noc_in_data     ( buf_net_noc2_data  ),
+        .noc_in_rdy      ( net_buf_noc2_ready ),
+
+        .noc_out_val     ( net_buf_noc3_valid ),
+        .noc_out_data    ( net_buf_noc3_data  ),
+        .noc_out_rdy     ( buf_net_noc3_ready ),
+
+        .net_axi_clk     ( net_axi_clk        ),
+
+        .net_phy_txc     ( net_phy_txc        ),
+        .net_phy_txctl   ( net_phy_txctl      ),
+        .net_phy_txd     ( net_phy_txd        ),
+
+        .net_phy_rxc     ( net_phy_rxc        ),
+        .net_phy_rxctl   ( net_phy_rxctl      ),
+        .net_phy_rxd     ( net_phy_rxd        )
+    );
+
+`endif // F1_BOARD
 `endif // PITON_FPGA_ETHERNETLITE
 
 `else // PITONSYS_IOCTRL
