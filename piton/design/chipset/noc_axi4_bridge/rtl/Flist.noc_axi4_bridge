@@ -26,3 +26,9 @@
 // ========== Copyright Header End ============================================
 
 noc_axi4_bridge.v
+noc_axi4_bridge_buffer.v
+noc_axi4_bridge_ser.v
+noc_axi4_bridge_deser.v
+noc_axi4_bridge_read.v
+noc_axi4_bridge_write.v
+
