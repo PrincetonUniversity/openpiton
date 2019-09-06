@@ -134,7 +134,7 @@ generate
 				if ((i == fifo_in) & deser_go) begin
 					pkt_state_buf[i] <= WAITING;
 					pkt_header[i] <= deser_header;
-					pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM) || (deser_header[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
+					pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM);
 				end
 				else if ((i == fifo_out) & req_go) begin
 		  			pkt_state_buf[i] <= INVALID;

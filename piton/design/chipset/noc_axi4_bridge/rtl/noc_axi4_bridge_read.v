@@ -159,8 +159,8 @@ reg [6:0] size[IN_FLIGHT_LIMIT-1:0];
 reg [5:0] offset[IN_FLIGHT_LIMIT-1:0];
 reg [BUFFER_ADDR_SIZE-1:0] resp_id_f;
 wire resp_go;
+wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
 
-wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ);
 generate begin
     genvar i;
     for (i = 0; i < IN_FLIGHT_LIMIT; i = i + 1) begin

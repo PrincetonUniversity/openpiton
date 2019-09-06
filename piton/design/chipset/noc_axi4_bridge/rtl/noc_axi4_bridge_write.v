@@ -174,9 +174,9 @@ assign m_axi_awid = req_id_f;
 assign m_axi_wid = req_id_f;
 
 
-wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`C_M_AXI4_ADDR_WIDTH-1:0] phys_addr;
+wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
 
 // If running uart tests - we need to do address translation
 `ifdef PITONSYS_UART_BOOT

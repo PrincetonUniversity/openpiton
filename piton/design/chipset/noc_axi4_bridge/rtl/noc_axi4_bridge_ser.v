@@ -139,16 +139,8 @@ always @(posedge clk) begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_LOAD_MEM_ACK;
               resp_header[`MSG_LENGTH  ]     <= MAX_PKT_LEN - 3; 
             end
-            `MSG_TYPE_NC_LOAD_REQ: begin
-              resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_LOAD_MEM_ACK;
-              resp_header[`MSG_LENGTH  ]     <= MAX_PKT_LEN - 3; 
-            end
             `MSG_TYPE_STORE_MEM: begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_STORE_MEM_ACK;
-              resp_header[`MSG_LENGTH  ]     <= 0;
-            end
-            `MSG_TYPE_NC_STORE_REQ: begin
-              resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_STORE_MEM_ACK;
               resp_header[`MSG_LENGTH  ]     <= 0;
             end
             default: begin
