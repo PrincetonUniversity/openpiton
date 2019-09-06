@@ -252,7 +252,7 @@ always @(posedge clk) begin
     end
 end
 
-assign m_axi_awaddr = {addr_paddings[`C_M_AXI4_ADDR_WIDTH-1:`PHY_ADDR_WIDTH], addr[`PHY_ADDR_WIDTH-1:6], 6'b0};
+assign m_axi_awaddr = {addr[`C_M_AXI4_ADDR_WIDTH-1:6], 6'b0};
 assign m_axi_wstrb = strb_before_offset << offset;
 assign m_axi_wdata = req_data_f << offset;
 

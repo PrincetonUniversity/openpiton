@@ -159,7 +159,7 @@ storage_addr_trans_unified   #(
 storage_addr_trans #(
 `endif
 .STORAGE_ADDR_WIDTH(`C_M_AXI4_ADDR_WIDTH)
-) cpu_mig_raddr_translastor (
+) cpu_mig_waddr_translastor (
     .va_byte_addr       (virt_addr  ),
     .storage_addr_out   (phys_addr  )
 );
@@ -235,7 +235,7 @@ end
 endgenerate
 
 wire [`C_M_AXI4_ADDR_WIDTH-1:0] addr = uart_boot_en ? {phys_addr[`C_M_AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
-assign m_axi_araddr = {addr_paddings[`C_M_AXI4_ADDR_WIDTH-1:`PHY_ADDR_WIDTH], addr[`PHY_ADDR_WIDTH-1:6], 6'b0};
+assign m_axi_araddr = {addr[`C_M_AXI4_ADDR_WIDTH-1:6], 6'b0};
 
 
 

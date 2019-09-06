@@ -584,7 +584,7 @@ mig_7series_0   mig_7series_0 (
 
         // Slave Interface Write Address Ports
         .s_axi_awid                     (m_axi_awid),  // input [15:0]          s_axi_awid
-        .s_axi_awaddr                   (m_axi_awaddr[29:0]),  // input [29:0]            s_axi_awaddr
+        .s_axi_awaddr                   (m_axi_awaddr),  // input [29:0]            s_axi_awaddr
         .s_axi_awlen                    (m_axi_awlen),  // input [7:0]          s_axi_awlen
         .s_axi_awsize                   (m_axi_awsize),  // input [2:0]         s_axi_awsize
         .s_axi_awburst                  (m_axi_awburst),  // input [1:0]            s_axi_awburst
@@ -607,7 +607,7 @@ mig_7series_0   mig_7series_0 (
         .s_axi_bready                   (m_axi_bready),  // input           s_axi_bready
         // Slave Interface Read Address Ports
         .s_axi_arid                     (m_axi_arid),  // input [15:0]          s_axi_arid
-        .s_axi_araddr                   (m_axi_araddr[29:0]),  // input [29:0]            s_axi_araddr
+        .s_axi_araddr                   (m_axi_araddr),  // input [29:0]            s_axi_araddr
         .s_axi_arlen                    (m_axi_arlen),  // input [7:0]          s_axi_arlen
         .s_axi_arsize                   (m_axi_arsize),  // input [2:0]         s_axi_arsize
         .s_axi_arburst                  (m_axi_arburst),  // input [1:0]            s_axi_arburst
