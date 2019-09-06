@@ -25,17 +25,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-//==================================================================================================
-//  Filename      : noc_axi4_bridge.v
-//  Author        : Grigory Chirkov
-//  Company       : Princeton University
-//  Email         : gchirkov@princeton.edu
-//
-//  Description   : Translate the incoming message (in the Piton Messaging
-//                  Protocol, via a val/rdy interface) to a AXI4
-//                  request.
-//==================================================================================================
-
 `include "mc_define.h"
 `include "define.tmp.h"
 
@@ -45,16 +34,16 @@ module noc_axi4_bridge_deser # (
   parameter PAYLOAD_SIZE                = 512
 )(
   input clk, 
-  (* mark_debug = "true" *) input rst_n, 
+  input rst_n, 
 
-  (* mark_debug = "true" *) input [`NOC_DATA_WIDTH-1:0] flit_in, 
-  (* mark_debug = "true" *) input  flit_in_val, 
-  (* mark_debug = "true" *) output flit_in_rdy, 
+  input [`NOC_DATA_WIDTH-1:0] flit_in, 
+  input  flit_in_val, 
+  output flit_in_rdy, 
 
-  (* mark_debug = "true" *) output [`MSG_HEADER_WIDTH-1:0] header_out, 
-  (* mark_debug = "true" *) output [PAYLOAD_SIZE-1:0] data_out, 
-  (* mark_debug = "true" *) output out_val, 
-  (* mark_debug = "true" *) input  out_rdy
+  output [`MSG_HEADER_WIDTH-1:0] header_out, 
+  output [PAYLOAD_SIZE-1:0] data_out, 
+  output out_val, 
+  input  out_rdy
 );
 
 localparam ACCEPT_W1   = 3'd0;
@@ -63,12 +52,12 @@ localparam ACCEPT_W3   = 3'd2;
 localparam ACCEPT_DATA = 3'd3;
 localparam SEND        = 3'd4;
 
-(* mark_debug = "true" *) reg [`NOC_DATA_WIDTH-1:0]           pkt_w1;
-(* mark_debug = "true" *) reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
-(* mark_debug = "true" *) reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
-(* mark_debug = "true" *) reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[MAX_PKT_LEN-4:0]; //buffer for incomming packets
-(* mark_debug = "true" *) reg [MAX_PKT_LEN_LOG-1:0]           remaining_flits; //flits remaining in current packet
-(* mark_debug = "true" *) reg [2:0]                           state;
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w1;
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
+reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[MAX_PKT_LEN-4:0]; //buffer for incomming packets
+reg [MAX_PKT_LEN_LOG-1:0]           remaining_flits; //flits remaining in current packet
+reg [2:0]                           state;
 
 assign flit_in_rdy = (state != SEND);
 assign out_val = (state == SEND);

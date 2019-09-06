@@ -25,17 +25,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-//==================================================================================================
-//  Filename      : noc_axi4_bridge.v
-//  Author        : Grigory Chirkov
-//  Company       : Princeton University
-//  Email         : gchirkov@princeton.edu
-//
-//  Description   : Translate the incoming message (in the Piton Messaging
-//                  Protocol, via a val/rdy interface) to a AXI4
-//                  request.
-//==================================================================================================
-
 `include "mc_define.h"
 `include "define.tmp.h"
 
@@ -47,48 +36,48 @@ module noc_axi4_bridge_write # (
 )(
     // Clock + Reset
     input  wire                                   clk,
-    (* mark_debug = "true" *) input  wire                                   rst_n,
-    (* mark_debug = "true" *) input  wire                                   uart_boot_en, 
+    input  wire                                   rst_n,
+    input  wire                                   uart_boot_en, 
 
     // NOC interface
-    (* mark_debug = "true" *) input  wire                                   req_val,
-    (* mark_debug = "true" *) input  wire [`MSG_HEADER_WIDTH-1:0]           req_header,
-    (* mark_debug = "true" *) input  wire [BUFFER_ADDR_SIZE-1:0]            req_id,
-    (* mark_debug = "true" *) input  wire [PAYLOAD_SIZE-1:0]                req_data,
-    (* mark_debug = "true" *) output wire                                   req_rdy,
+    input  wire                                   req_val,
+    input  wire [`MSG_HEADER_WIDTH-1:0]           req_header,
+    input  wire [BUFFER_ADDR_SIZE-1:0]            req_id,
+    input  wire [PAYLOAD_SIZE-1:0]                req_data,
+    output wire                                   req_rdy,
 
-    (* mark_debug = "true" *) output wire                                   resp_val,
-    (* mark_debug = "true" *) output wire [BUFFER_ADDR_SIZE-1:0]            resp_id,
-    (* mark_debug = "true" *) input  wire                                   resp_rdy,
+    output wire                                   resp_val,
+    output wire [BUFFER_ADDR_SIZE-1:0]            resp_id,
+    input  wire                                   resp_rdy,
 
     // AXI write interface
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_ID_WIDTH     -1:0]     m_axi_awid,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_LEN_WIDTH    -1:0]     m_axi_awlen,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_BURST_WIDTH  -1:0]     m_axi_awburst,
-    (* mark_debug = "true" *) output wire                                   m_axi_awlock,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]     m_axi_awcache,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_PROT_WIDTH   -1:0]     m_axi_awprot,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_QOS_WIDTH    -1:0]     m_axi_awqos,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_REGION_WIDTH -1:0]     m_axi_awregion,
-    (* mark_debug = "true" *) output wire [`C_M_AXI4_USER_WIDTH   -1:0]     m_axi_awuser,
-    (* mark_debug = "true" *) output wire                                   m_axi_awvalid,
-    (* mark_debug = "true" *) input  wire                                   m_axi_awready,
+    output wire [`C_M_AXI4_ID_WIDTH     -1:0]     m_axi_awid,
+    output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr,
+    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]     m_axi_awlen,
+    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize,
+    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]     m_axi_awburst,
+    output wire                                   m_axi_awlock,
+    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]     m_axi_awcache,
+    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]     m_axi_awprot,
+    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]     m_axi_awqos,
+    output wire [`C_M_AXI4_REGION_WIDTH -1:0]     m_axi_awregion,
+    output wire [`C_M_AXI4_USER_WIDTH   -1:0]     m_axi_awuser,
+    output wire                                   m_axi_awvalid,
+    input  wire                                   m_axi_awready,
 
-    (* mark_debug = "true" *) output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    (* mark_debug = "true" *) output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    (* mark_debug = "true" *) output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
-    (* mark_debug = "true" *) output wire                                   m_axi_wlast,
-    (* mark_debug = "true" *) output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
-    (* mark_debug = "true" *) output wire                                   m_axi_wvalid,
-    (* mark_debug = "true" *) input  wire                                   m_axi_wready,
+    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire                                   m_axi_wlast,
+    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    output wire                                   m_axi_wvalid,
+    input  wire                                   m_axi_wready,
 
-    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
-    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
-    (* mark_debug = "true" *) input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
-    (* mark_debug = "true" *) input  wire                                   m_axi_bvalid,
-    (* mark_debug = "true" *) output wire                                   m_axi_bready
+    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    input  wire                                   m_axi_bvalid,
+    output wire                                   m_axi_bready
 );
 
 
@@ -122,10 +111,10 @@ wire m_axi_wgo = m_axi_wvalid & m_axi_wready;
 wire req_go = req_val & req_rdy;
 assign m_axi_wlast = m_axi_wgo;
 
-(* mark_debug = "true" *) reg [2:0] req_state;
-(* mark_debug = "true" *) reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
-(* mark_debug = "true" *) reg [BUFFER_ADDR_SIZE-1:0] req_id_f;
-(* mark_debug = "true" *) reg [PAYLOAD_SIZE-1:0] req_data_f;
+reg [2:0] req_state;
+reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
+reg [BUFFER_ADDR_SIZE-1:0] req_id_f;
+reg [PAYLOAD_SIZE-1:0] req_data_f;
 
 assign req_rdy = (req_state == IDLE);
 assign m_axi_awvalid = (req_state == PREP_REQ);
@@ -201,9 +190,9 @@ storage_addr_trans #(
     .storage_addr_out   (phys_addr  )
 );
 
-(* mark_debug = "true" *) reg [`C_M_AXI4_STRB_WIDTH-1:0] strb_before_offset;
-(* mark_debug = "true" *) reg [5:0] offset;
-(* mark_debug = "true" *) reg [`C_M_AXI4_ADDR_WIDTH-1:0] addr;
+reg [`C_M_AXI4_STRB_WIDTH-1:0] strb_before_offset;
+reg [5:0] offset;
+reg [`C_M_AXI4_ADDR_WIDTH-1:0] addr;
 always @(posedge clk) begin
     if (~rst_n) begin
         offset <= 6'b0;
@@ -260,8 +249,8 @@ assign m_axi_wdata = req_data_f << offset;
 wire m_axi_bgo = m_axi_bvalid & m_axi_bready;
 wire resp_go = resp_val & resp_rdy;
 
-(* mark_debug = "true" *) reg [2:0] resp_state;
-(* mark_debug = "true" *) reg [BUFFER_ADDR_SIZE-1:0]resp_id_f;
+reg [2:0] resp_state;
+reg [BUFFER_ADDR_SIZE-1:0]resp_id_f;
 
 assign resp_val = (resp_state == GOT_RESP);
 assign m_axi_bready = (resp_state == IDLE);

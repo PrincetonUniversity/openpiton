@@ -25,17 +25,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-//==================================================================================================
-//  Filename      : noc_axi4_bridge.v
-//  Author        : Grigory Chirkov
-//  Company       : Princeton University
-//  Email         : gchirkov@princeton.edu
-//
-//  Description   : Translate the incoming message (in the Piton Messaging
-//                  Protocol, via a val/rdy interface) to a AXI4
-//                  request.
-//==================================================================================================
-
 `include "mc_define.h"
 `include "define.tmp.h"
 

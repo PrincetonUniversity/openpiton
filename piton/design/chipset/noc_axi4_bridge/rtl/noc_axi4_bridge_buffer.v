@@ -25,17 +25,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-//==================================================================================================
-//  Filename      : noc_axi4_bridge.v
-//  Author        : Grigory Chirkov
-//  Company       : Princeton University
-//  Email         : gchirkov@princeton.edu
-//
-//  Description   : Translate the incoming message (in the Piton Messaging
-//                  Protocol, via a val/rdy interface) to a AXI4
-//                  request.
-//==================================================================================================
-
 `include "mc_define.h"
 `include "define.tmp.h"
 
@@ -92,20 +81,20 @@ localparam READ  = 1'd0;
 localparam WRITE = 1'd1;
 
 
-(* mark_debug = "true" *) reg                           pkt_state_buf [IN_FLIGHT_LIMIT-1:0];
-(* mark_debug = "true" *) reg [`MSG_HEADER_WIDTH-1:0]   pkt_header[IN_FLIGHT_LIMIT-1:0];
-(* mark_debug = "true" *) reg                           pkt_command[IN_FLIGHT_LIMIT-1:0];
+reg                           pkt_state_buf [IN_FLIGHT_LIMIT-1:0];
+reg [`MSG_HEADER_WIDTH-1:0]   pkt_header[IN_FLIGHT_LIMIT-1:0];
+reg                           pkt_command[IN_FLIGHT_LIMIT-1:0];
 
-(* mark_debug = "true" *) reg [BUFFER_ADDR_SIZE-1:0]    fifo_in;
-(* mark_debug = "true" *) reg [BUFFER_ADDR_SIZE-1:0]    fifo_out;
-(* mark_debug = "true" *) reg preser_arb;
-(* mark_debug = "true" *) reg [IN_FLIGHT_LIMIT-1:0] bram_rdy;
-(* mark_debug = "true" *) reg [PAYLOAD_SIZE-1:0] ser_data_f;
+reg [BUFFER_ADDR_SIZE-1:0]    fifo_in;
+reg [BUFFER_ADDR_SIZE-1:0]    fifo_out;
+reg preser_arb;
+reg [IN_FLIGHT_LIMIT-1:0] bram_rdy;
+reg [PAYLOAD_SIZE-1:0] ser_data_f;
 wire [`MSG_HEADER_WIDTH-1:0] ser_header_f;
-(* mark_debug = "true" *) reg ser_val_f;
-(* mark_debug = "true" *) reg [PAYLOAD_SIZE-1:0] ser_data_ff;
-(* mark_debug = "true" *) reg [`MSG_HEADER_WIDTH-1:0] ser_header_ff;
-(* mark_debug = "true" *) reg ser_val_ff;
+reg ser_val_f;
+reg [PAYLOAD_SIZE-1:0] ser_data_ff;
+reg [`MSG_HEADER_WIDTH-1:0] ser_header_ff;
+reg ser_val_ff;
 
 
 wire deser_go = (deser_rdy & deser_val);

@@ -25,43 +25,32 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ========== Copyright Header End ============================================
 
-//==================================================================================================
-//  Filename      : noc_axi4_bridge.v
-//  Author        : Grigory Chirkov
-//  Company       : Princeton University
-//  Email         : gchirkov@princeton.edu
-//
-//  Description   : Translate the incoming message (in the Piton Messaging
-//                  Protocol, via a val/rdy interface) to a AXI4
-//                  request.
-//==================================================================================================
-
 `include "mc_define.h"
 `include "define.tmp.h"
-
-// states
-localparam ACCEPT = 2'd0;
-localparam SEND_HEADER = 2'd1;
-localparam SEND_DATA = 2'd2;
 
 module noc_axi4_bridge_ser# (
   parameter PAYLOAD_SIZE                = 512, 
   parameter MAX_PKT_LEN                 = 11
 )(
   input clk, 
-  (* mark_debug = "true" *) input rst_n, 
+  input rst_n, 
 
-  (* mark_debug = "true" *) input [`MSG_HEADER_WIDTH-1:0] header_in, 
-  (* mark_debug = "true" *) input [PAYLOAD_SIZE-1:0] data_in, 
-  (* mark_debug = "true" *) input in_val, 
-  (* mark_debug = "true" *) output in_rdy, 
+  input [`MSG_HEADER_WIDTH-1:0] header_in, 
+  input [PAYLOAD_SIZE-1:0] data_in, 
+  input in_val, 
+  output in_rdy, 
 
-  (* mark_debug = "true" *) output reg [`NOC_DATA_WIDTH-1:0] flit_out, 
-  (* mark_debug = "true" *) output  flit_out_val, 
-  (* mark_debug = "true" *) input flit_out_rdy 
+  output reg [`NOC_DATA_WIDTH-1:0] flit_out, 
+  output  flit_out_val, 
+  input flit_out_rdy 
 );
 
-(* mark_debug = "true" *) reg [PAYLOAD_SIZE-1:0] data_in_f;
+// states
+localparam ACCEPT = 2'd0;
+localparam SEND_HEADER = 2'd1;
+localparam SEND_DATA = 2'd2;
+
+reg [PAYLOAD_SIZE-1:0] data_in_f;
 
 wire in_go = in_val & in_rdy;
 wire flit_out_go = flit_out_val & flit_out_rdy;
@@ -78,8 +67,8 @@ always @(posedge clk) begin
   end
 end
 
-(* mark_debug = "true" *) reg [1:0] state;
-(* mark_debug = "true" *) reg [`MSG_LENGTH_WIDTH-1:0] remaining_flits;
+reg [1:0] state;
+reg [`MSG_LENGTH_WIDTH-1:0] remaining_flits;
 assign flit_out_val = (state == SEND_HEADER) || (state == SEND_DATA);
 assign in_rdy = (state == ACCEPT);
 
@@ -130,7 +119,7 @@ always @(posedge clk) begin
   end
 end
 
-(* mark_debug = "true" *) reg [`NOC_DATA_WIDTH-1:0] resp_header;
+reg [`NOC_DATA_WIDTH-1:0] resp_header;
 always @(posedge clk) begin
   if (~rst_n) begin
     resp_header <= `NOC_DATA_WIDTH'b0;
