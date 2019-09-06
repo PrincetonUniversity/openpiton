@@ -489,13 +489,13 @@ mig_7series_0   mig_7series_0 (
         .rst_n              (~noc_mig_bridge_rst  ), 
         .uart_boot_en       (uart_boot_en         ),
 
-        .flit_in_val(fifo_trans_val),
-        .flit_in(fifo_trans_data),
-        .flit_in_rdy(fifo_trans_rdy),
+        .src_bridge_vr_noc2_val(fifo_trans_val),
+        .src_bridge_vr_noc2_data(fifo_trans_data),
+        .src_bridge_vr_noc2_rdy(fifo_trans_rdy),
 
-        .flit_out_val(trans_fifo_val),
-        .flit_out(trans_fifo_data),
-        .flit_out_rdy(trans_fifo_rdy),
+        .bridge_dst_vr_noc3_val(trans_fifo_val),
+        .bridge_dst_vr_noc3_data(trans_fifo_data),
+        .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
 
         .m_axi_awid(m_axi_awid),
         .m_axi_awaddr(m_axi_awaddr),

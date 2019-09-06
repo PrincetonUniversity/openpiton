@@ -41,12 +41,12 @@ module noc_axi4_bridge # (
     input  wire                                   uart_boot_en, 
 
     // Noc interface
-    input  wire                                   flit_in_val,
-    input  wire [`NOC_DATA_WIDTH-1:0]             flit_in,
-    output wire                                   flit_in_rdy,
-    output wire                                   flit_out_val,
-    output wire  [`NOC_DATA_WIDTH-1:0]            flit_out,
-    input  wire                                   flit_out_rdy,
+    input  wire                                   src_bridge_vr_noc2_val,
+    input  wire [`NOC_DATA_WIDTH-1:0]             src_bridge_vr_noc2_data,
+    output wire                                   src_bridge_vr_noc2_rdy,
+    output wire                                   bridge_dst_vr_noc3_val,
+    output wire  [`NOC_DATA_WIDTH-1:0]            bridge_dst_vr_noc3_data,
+    input  wire                                   bridge_dst_vr_noc3_rdy,
 
     // AXI interface
     output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
@@ -176,9 +176,9 @@ noc_axi4_bridge_deser #  (
 	.clk(clk), 
 	.rst_n(rst_n), 
 
-	.flit_in(flit_in), 
-	.flit_in_val(flit_in_val), 
-	.flit_in_rdy(flit_in_rdy), 
+	.flit_in(src_bridge_vr_noc2_data), 
+	.flit_in_val(src_bridge_vr_noc2_val), 
+	.flit_in_rdy(src_bridge_vr_noc2_rdy), 
 
 	.header_out(deser_header), 
 	.data_out(deser_data), 
@@ -293,9 +293,9 @@ noc_axi4_bridge_ser #  (
 	.in_val(ser_val), 
 	.in_rdy(ser_rdy), 
 
-	.flit_out(flit_out), 
-	.flit_out_val(flit_out_val), 
-	.flit_out_rdy(flit_out_rdy)
+	.flit_out(bridge_dst_vr_noc3_data), 
+	.flit_out_val(bridge_dst_vr_noc3_val), 
+	.flit_out_rdy(bridge_dst_vr_noc3_rdy)
 );
 
 endmodule
