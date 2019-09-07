@@ -107,58 +107,60 @@ wire preser_rdy = ~ser_val_ff || ser_rdy;
 //
 
 always @(posedge clk) begin
-	if(~rst_n) begin
-		fifo_in <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
-		fifo_out <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
-	end 
-	else begin
-		fifo_in <= deser_go ? fifo_in + 1 : fifo_in;
-		fifo_out <= req_go ? fifo_out + 1 : fifo_out;
-	end
+    if(~rst_n) begin
+        fifo_in <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
+        fifo_out <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
+    end 
+    else begin
+        fifo_in <= deser_go ? fifo_in + 1 : fifo_in;
+        fifo_out <= req_go ? fifo_out + 1 : fifo_out;
+    end
 end
 
 
 genvar i;
 generate 
-	for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
-		always @(posedge clk) begin
-			if(~rst_n) begin
-				pkt_state_buf[i] <= INVALID;
-				pkt_header[i] <= `MSG_HEADER_WIDTH'b0;
-				pkt_command[i] <= 1'b0;
-			end 
-			else begin
-				if ((i == fifo_in) & deser_go) begin
-					pkt_state_buf[i] <= WAITING;
-					pkt_header[i] <= deser_header;
-					pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM);
-				end
-				else if ((i == fifo_out) & req_go) begin
-		  			pkt_state_buf[i] <= INVALID;
-		  			pkt_header[i] <= `MSG_HEADER_WIDTH'b0;
-		  			pkt_command[i] <= 1'b0;
-				end
-				else begin
-					pkt_state_buf[i] <= pkt_state_buf[i];
-  					pkt_header[i] <= pkt_header[i];
-					pkt_command[i] <= pkt_command[i];
-				end
-			end
-		end
-	end
+    for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
+        always @(posedge clk) begin
+            if(~rst_n) begin
+                pkt_state_buf[i] <= INVALID;
+                pkt_header[i] <= `MSG_HEADER_WIDTH'b0;
+                pkt_command[i] <= 1'b0;
+            end 
+            else begin
+                if ((i == fifo_in) & deser_go) begin
+                    pkt_state_buf[i] <= WAITING;
+                    pkt_header[i] <= deser_header;
+                    pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM);
+                end
+                else if ((i == fifo_out) & req_go) begin
+                      pkt_state_buf[i] <= INVALID;
+                      pkt_header[i] <= `MSG_HEADER_WIDTH'b0;
+                      pkt_command[i] <= 1'b0;
+                end
+                else begin
+                    pkt_state_buf[i] <= pkt_state_buf[i];
+                      pkt_header[i] <= pkt_header[i];
+                    pkt_command[i] <= pkt_command[i];
+                end
+            end
+        end
+    end
 endgenerate
 
-bram_16x512 write_data(
-	.clka(clk), 
-	.clkb(clk),
-	.rstb(~rst_n),
-
-	.addra(fifo_in),
-	.dina(deser_data), 
-	.wea(deser_go), 
-
-	.addrb(write_req_id), 
-	.doutb(write_req_data)
+noc_axi4_bridge_sram_data noc_axi4_bridge_sram_data
+(
+    .MEMCLK(clk), 
+    .RESET_N(rst_n),
+    .CEA(1),
+    .AA(write_req_id),
+    .RDWENA(1'b1),
+    .CEB(deser_go),
+    .AB(fifo_in),
+    .RDWENB(1'b0),
+    .DOUTA(write_req_data),
+    .BWB(`AXI4_DATA_WIDTH'b1),
+    .DINB(deser_data),
 );
 
 assign read_req_val = (pkt_state_buf[fifo_out] == WAITING) && (pkt_command[fifo_out] == READ) && bram_rdy[fifo_out];
@@ -177,40 +179,42 @@ assign deser_rdy = (pkt_state_buf[fifo_in] == INVALID);
 //
 
 always @(posedge clk) begin
-	if(~rst_n) begin
-		preser_arb <= 1'b0;
-	end 
-	else begin
-		preser_arb <= preser_arb + 1'b1;
-	end
+    if(~rst_n) begin
+        preser_arb <= 1'b0;
+    end 
+    else begin
+        preser_arb <= preser_arb + 1'b1;
+    end
 end
 
-bram_16x192 sent_requests(
-	.clka(clk), 
-	.clkb(clk),
-	.rstb(~rst_n),
-
-	.addra(fifo_out),
-	.dina(pkt_header[fifo_out]), 
-	.wea(req_go), 
-
-	.addrb(preser_arb ? write_resp_id : read_resp_id), 
-	.doutb(ser_header_f)
+noc_axi4_bridge_sram_req noc_axi4_bridge_sram_req
+(
+    .MEMCLK(clk), 
+    .RESET_N(rst_n),
+    .CEA(1),
+    .AA(preser_arb ? write_resp_id : read_resp_id),
+    .RDWENA(1'b1),
+    .CEB(req_go),
+    .AB(fifo_out),
+    .RDWENB(1'b0),
+    .DOUTA(ser_header_f),
+    .BWB(`MSG_HEADER_WIDTH'b1),
+    .DINB(pkt_header[fifo_out]),
 );
 
 generate 
     for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
-		always @(posedge clk) begin
-			if(~rst_n) begin
-				bram_rdy[i] <= 1;
-			end 
-			else begin
-				bram_rdy[i] <= (req_go & (i == fifo_out)) 			  ? 0 
-							 : (write_resp_go & (i == write_resp_id)) ? 1
-							 : (read_resp_go & (i == read_resp_id))   ? 1
-							 :  									    bram_rdy[i];
-			end
-		end
+        always @(posedge clk) begin
+            if(~rst_n) begin
+                bram_rdy[i] <= 1;
+            end 
+            else begin
+                bram_rdy[i] <= (req_go & (i == fifo_out))               ? 0 
+                             : (write_resp_go & (i == write_resp_id)) ? 1
+                             : (read_resp_go & (i == read_resp_id))   ? 1
+                             :                                          bram_rdy[i];
+            end
+        end
     end
 endgenerate
 
@@ -219,35 +223,35 @@ assign write_resp_rdy = preser_arb & preser_rdy;
 
 
 always @(posedge clk) begin
-	if(~rst_n) begin
-		ser_data_f <= 0;
-		ser_val_f <= 0;
-		ser_header_ff <= 0;
-		ser_val_ff <= 0;
-		ser_data_ff <= 0;
-	end 
-	else begin
-		if (preser_rdy) begin
-			if (preser_arb) begin
-				ser_val_f <= write_resp_val;
-				ser_data_f <= 0;
-			end
-			else begin
-				ser_val_f <= read_resp_val;
-				ser_data_f <= read_resp_data;
-			end
-			ser_val_ff <= ser_val_f;
-			ser_data_ff <= ser_data_f;
-			ser_header_ff <= ser_header_f;
-		end
-		else begin
-			ser_val_f <= ser_val_f;
-			ser_data_f <= ser_data_f;
-			ser_val_ff <= ser_val_ff;
-			ser_data_ff <= ser_data_ff;
-			ser_header_ff <= ser_header_ff;
-		end
-	end
+    if(~rst_n) begin
+        ser_data_f <= 0;
+        ser_val_f <= 0;
+        ser_header_ff <= 0;
+        ser_val_ff <= 0;
+        ser_data_ff <= 0;
+    end 
+    else begin
+        if (preser_rdy) begin
+            if (preser_arb) begin
+                ser_val_f <= write_resp_val;
+                ser_data_f <= 0;
+            end
+            else begin
+                ser_val_f <= read_resp_val;
+                ser_data_f <= read_resp_data;
+            end
+            ser_val_ff <= ser_val_f;
+            ser_data_ff <= ser_data_f;
+            ser_header_ff <= ser_header_f;
+        end
+        else begin
+            ser_val_f <= ser_val_f;
+            ser_data_f <= ser_data_f;
+            ser_val_ff <= ser_val_ff;
+            ser_data_ff <= ser_data_ff;
+            ser_header_ff <= ser_header_ff;
+        end
+    end
 end
 
 assign ser_data = ser_data_ff;

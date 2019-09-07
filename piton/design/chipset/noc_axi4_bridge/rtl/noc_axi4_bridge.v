@@ -30,7 +30,7 @@
 `include "noc_axi4_bridge_define.vh"
 
 module noc_axi4_bridge (
-	// Clock + Reset
+    // Clock + Reset
     input  wire                                   clk,
     input  wire                                   rst_n,
     input  wire                                   uart_boot_en, 
@@ -125,60 +125,60 @@ wire ser_rdy;
 
 
 noc_axi4_bridge_buffer noc_axi4_bridge_buffer(
-	.clk(clk),
-	.rst_n(rst_n), 
+    .clk(clk),
+    .rst_n(rst_n), 
 
-	.deser_header(deser_header),
-	.deser_data(deser_data),
-	.deser_val(deser_val),
-	.deser_rdy(deser_rdy),
+    .deser_header(deser_header),
+    .deser_data(deser_data),
+    .deser_val(deser_val),
+    .deser_rdy(deser_rdy),
 
-	.read_req_header(read_req_header),
-	.read_req_id(read_req_id),
-	.read_req_val(read_req_val),
-	.read_req_rdy(read_req_rdy),
+    .read_req_header(read_req_header),
+    .read_req_id(read_req_id),
+    .read_req_val(read_req_val),
+    .read_req_rdy(read_req_rdy),
 
-	.read_resp_data(read_resp_data),
-	.read_resp_id(read_resp_id),
-	.read_resp_val(read_resp_val),
-	.read_resp_rdy(read_resp_rdy),
+    .read_resp_data(read_resp_data),
+    .read_resp_id(read_resp_id),
+    .read_resp_val(read_resp_val),
+    .read_resp_rdy(read_resp_rdy),
 
-	.write_req_header(write_req_header),
-	.write_req_id(write_req_id),
-	.write_req_data(write_req_data),
-	.write_req_val(write_req_val), 
-	.write_req_rdy(write_req_rdy),
+    .write_req_header(write_req_header),
+    .write_req_id(write_req_id),
+    .write_req_data(write_req_data),
+    .write_req_val(write_req_val), 
+    .write_req_rdy(write_req_rdy),
 
-	.write_resp_id(write_resp_id), 
-	.write_resp_val(write_resp_val), 
-	.write_resp_rdy(write_resp_rdy), 
+    .write_resp_id(write_resp_id), 
+    .write_resp_val(write_resp_val), 
+    .write_resp_rdy(write_resp_rdy), 
 
-	.ser_header(ser_header), 
-	.ser_data(ser_data), 
-	.ser_val(ser_val), 
-	.ser_rdy(ser_rdy)
+    .ser_header(ser_header), 
+    .ser_data(ser_data), 
+    .ser_val(ser_val), 
+    .ser_rdy(ser_rdy)
 );
 
 noc_axi4_bridge_deser noc_axi4_bridge_deser(
-	.clk(clk), 
-	.rst_n(rst_n), 
+    .clk(clk), 
+    .rst_n(rst_n), 
 
-	.flit_in(src_bridge_vr_noc2_data), 
-	.flit_in_val(src_bridge_vr_noc2_val), 
-	.flit_in_rdy(src_bridge_vr_noc2_rdy), 
+    .flit_in(src_bridge_vr_noc2_data), 
+    .flit_in_val(src_bridge_vr_noc2_val), 
+    .flit_in_rdy(src_bridge_vr_noc2_rdy), 
 
-	.header_out(deser_header), 
-	.data_out(deser_data), 
-	.out_val(deser_val), 
-	.out_rdy(deser_rdy)
+    .header_out(deser_header), 
+    .data_out(deser_data), 
+    .out_val(deser_val), 
+    .out_rdy(deser_rdy)
 );
 
 noc_axi4_bridge_read noc_axi4_bridge_read (
-	.clk(clk), 
-	.rst_n(rst_n), 
-	.uart_boot_en(uart_boot_en), 
+    .clk(clk), 
+    .rst_n(rst_n), 
+    .uart_boot_en(uart_boot_en), 
 
-	// NOC interface
+    // NOC interface
     .req_val(read_req_val),
     .req_header(read_req_header),
     .req_id(read_req_id),
@@ -190,27 +190,27 @@ noc_axi4_bridge_read noc_axi4_bridge_read (
     .resp_rdy(read_resp_rdy),
 
     // axi read interface
-	.m_axi_arid(m_axi_arid),
-	.m_axi_araddr(m_axi_araddr),
-	.m_axi_arlen(m_axi_arlen),
-	.m_axi_arsize(m_axi_arsize),
-	.m_axi_arburst(m_axi_arburst),
-	.m_axi_arlock(m_axi_arlock),
-	.m_axi_arcache(m_axi_arcache),
-	.m_axi_arprot(m_axi_arprot), 
-	.m_axi_arqos(m_axi_arqos),
-	.m_axi_arregion(m_axi_arregion),
-	.m_axi_aruser(m_axi_aruser),
-	.m_axi_arvalid(m_axi_arvalid),
-	.m_axi_arready(m_axi_arready),
+    .m_axi_arid(m_axi_arid),
+    .m_axi_araddr(m_axi_araddr),
+    .m_axi_arlen(m_axi_arlen),
+    .m_axi_arsize(m_axi_arsize),
+    .m_axi_arburst(m_axi_arburst),
+    .m_axi_arlock(m_axi_arlock),
+    .m_axi_arcache(m_axi_arcache),
+    .m_axi_arprot(m_axi_arprot), 
+    .m_axi_arqos(m_axi_arqos),
+    .m_axi_arregion(m_axi_arregion),
+    .m_axi_aruser(m_axi_aruser),
+    .m_axi_arvalid(m_axi_arvalid),
+    .m_axi_arready(m_axi_arready),
 
-	.m_axi_rid(m_axi_rid),
-	.m_axi_rdata(m_axi_rdata),
-	.m_axi_rresp(m_axi_rresp),
-	.m_axi_rlast(m_axi_rlast), 
-	.m_axi_ruser(m_axi_ruser),
-	.m_axi_rvalid(m_axi_rvalid),
-	.m_axi_rready(m_axi_rready)
+    .m_axi_rid(m_axi_rid),
+    .m_axi_rdata(m_axi_rdata),
+    .m_axi_rresp(m_axi_rresp),
+    .m_axi_rlast(m_axi_rlast), 
+    .m_axi_ruser(m_axi_ruser),
+    .m_axi_rvalid(m_axi_rvalid),
+    .m_axi_rready(m_axi_rready)
 );
 
 noc_axi4_bridge_write noc_axi4_bridge_write (
@@ -261,17 +261,17 @@ noc_axi4_bridge_write noc_axi4_bridge_write (
 );
 
 noc_axi4_bridge_ser noc_axi4_bridge_ser(
-	.clk(clk), 
-	.rst_n(rst_n), 
+    .clk(clk), 
+    .rst_n(rst_n), 
 
-	.header_in(ser_header), 
-	.data_in(ser_data), 
-	.in_val(ser_val), 
-	.in_rdy(ser_rdy), 
+    .header_in(ser_header), 
+    .data_in(ser_data), 
+    .in_val(ser_val), 
+    .in_rdy(ser_rdy), 
 
-	.flit_out(bridge_dst_vr_noc3_data), 
-	.flit_out_val(bridge_dst_vr_noc3_val), 
-	.flit_out_rdy(bridge_dst_vr_noc3_rdy)
+    .flit_out(bridge_dst_vr_noc3_data), 
+    .flit_out_val(bridge_dst_vr_noc3_val), 
+    .flit_out_rdy(bridge_dst_vr_noc3_rdy)
 );
 
 endmodule
