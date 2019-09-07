@@ -27,16 +27,15 @@
 
 `include "mc_define.h"
 `include "define.tmp.h"
+`include "noc_axi4_bridge_define.vh"
 
-module noc_axi4_bridge_ser# (
-  parameter PAYLOAD_SIZE                = 512, 
-  parameter MAX_PKT_LEN                 = 11
-)(
+
+module noc_axi4_bridge_ser(
   input clk, 
   input rst_n, 
 
   input [`MSG_HEADER_WIDTH-1:0] header_in, 
-  input [PAYLOAD_SIZE-1:0] data_in, 
+  input [`AXI4_DATA_WIDTH-1:0] data_in, 
   input in_val, 
   output in_rdy, 
 
@@ -50,14 +49,14 @@ localparam ACCEPT = 2'd0;
 localparam SEND_HEADER = 2'd1;
 localparam SEND_DATA = 2'd2;
 
-reg [PAYLOAD_SIZE-1:0] data_in_f;
+reg [`AXI4_DATA_WIDTH-1:0] data_in_f;
 
 wire in_go = in_val & in_rdy;
 wire flit_out_go = flit_out_val & flit_out_rdy;
 
 always @(posedge clk) begin 
   if(~rst_n) begin
-    data_in_f <= {PAYLOAD_SIZE{1'b0}};
+    data_in_f <= {`AXI4_DATA_WIDTH{1'b0}};
   end 
   else if (in_go) begin
     data_in_f <= data_in;
@@ -137,7 +136,7 @@ always @(posedge clk) begin
           case (header_in[`MSG_TYPE])
             `MSG_TYPE_LOAD_MEM: begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_LOAD_MEM_ACK;
-              resp_header[`MSG_LENGTH  ]     <= MAX_PKT_LEN - 3; 
+              resp_header[`MSG_LENGTH  ]     <= `PAYLOAD_LEN; 
             end
             `MSG_TYPE_STORE_MEM: begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_STORE_MEM_ACK;
@@ -182,7 +181,7 @@ always @(*) begin
       flit_out = resp_header;
     end
     SEND_DATA: begin
-      flit_out = data_in_f >> (64 * (MAX_PKT_LEN - 3 - remaining_flits));
+      flit_out = data_in_f >> (64 * (`PAYLOAD_LEN - remaining_flits));
     end
     default: begin
       flit_out = `NOC_DATA_WIDTH'b0;

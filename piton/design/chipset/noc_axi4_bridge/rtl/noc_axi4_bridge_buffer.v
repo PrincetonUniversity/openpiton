@@ -27,49 +27,46 @@
 
 `include "mc_define.h"
 `include "define.tmp.h"
+`include "noc_axi4_bridge_define.vh"
 
 
-module noc_axi4_bridge_buffer# (
-  parameter IN_FLIGHT_LIMIT             = 16, //number of commands the MC can have in flight
-  parameter BUFFER_ADDR_SIZE            = 4, //(log_2(IN_FLIGHT_LIMIT)+1)
-  parameter PAYLOAD_SIZE                = 512
-)(
+module noc_axi4_bridge_buffer (
   input clk, 
   input rst_n, 
 
   // from deserializer
   input [`MSG_HEADER_WIDTH-1:0] deser_header, 
-  input [PAYLOAD_SIZE-1:0] deser_data, 
+  input [`AXI4_DATA_WIDTH-1:0] deser_data, 
   input deser_val, 
   output  deser_rdy,
 
   // read request out
   output [`MSG_HEADER_WIDTH-1:0] read_req_header, 
-  output [BUFFER_ADDR_SIZE-1:0] read_req_id,
+  output [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] read_req_id,
   output read_req_val, 
   input  read_req_rdy,
 
   // read response in
-  input [PAYLOAD_SIZE-1:0] read_resp_data, 
-  input [BUFFER_ADDR_SIZE-1:0] read_resp_id,
+  input [`AXI4_DATA_WIDTH-1:0] read_resp_data, 
+  input [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] read_resp_id,
   input read_resp_val, 
   output  read_resp_rdy,
 
   // read request out
   output [`MSG_HEADER_WIDTH-1:0] write_req_header, 
-  output [BUFFER_ADDR_SIZE-1:0] write_req_id,
-  output [PAYLOAD_SIZE-1:0] write_req_data, 
+  output [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] write_req_id,
+  output [`AXI4_DATA_WIDTH-1:0] write_req_data, 
   output write_req_val, 
   input  write_req_rdy,
 
   // read response in
-  input [BUFFER_ADDR_SIZE-1:0] write_resp_id,
+  input [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] write_resp_id,
   input write_resp_val, 
   output  write_resp_rdy,
 
   // in serializer
   output [`MSG_HEADER_WIDTH-1:0] ser_header, 
-  output [PAYLOAD_SIZE-1:0] ser_data, 
+  output [`AXI4_DATA_WIDTH-1:0] ser_data, 
   output ser_val, 
   input  ser_rdy
 );
@@ -81,18 +78,18 @@ localparam READ  = 1'd0;
 localparam WRITE = 1'd1;
 
 
-reg                           pkt_state_buf [IN_FLIGHT_LIMIT-1:0];
-reg [`MSG_HEADER_WIDTH-1:0]   pkt_header[IN_FLIGHT_LIMIT-1:0];
-reg                           pkt_command[IN_FLIGHT_LIMIT-1:0];
+reg                           pkt_state_buf [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg [`MSG_HEADER_WIDTH-1:0]   pkt_header[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg                           pkt_command[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 
-reg [BUFFER_ADDR_SIZE-1:0]    fifo_in;
-reg [BUFFER_ADDR_SIZE-1:0]    fifo_out;
+reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_in;
+reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_out;
 reg preser_arb;
-reg [IN_FLIGHT_LIMIT-1:0] bram_rdy;
-reg [PAYLOAD_SIZE-1:0] ser_data_f;
+reg [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0] bram_rdy;
+reg [`AXI4_DATA_WIDTH-1:0] ser_data_f;
 wire [`MSG_HEADER_WIDTH-1:0] ser_header_f;
 reg ser_val_f;
-reg [PAYLOAD_SIZE-1:0] ser_data_ff;
+reg [`AXI4_DATA_WIDTH-1:0] ser_data_ff;
 reg [`MSG_HEADER_WIDTH-1:0] ser_header_ff;
 reg ser_val_ff;
 
@@ -111,8 +108,8 @@ wire preser_rdy = ~ser_val_ff || ser_rdy;
 
 always @(posedge clk) begin
 	if(~rst_n) begin
-		fifo_in <= {BUFFER_ADDR_SIZE{1'b0}};
-		fifo_out <= {BUFFER_ADDR_SIZE{1'b0}};
+		fifo_in <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
+		fifo_out <= {`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}};
 	end 
 	else begin
 		fifo_in <= deser_go ? fifo_in + 1 : fifo_in;
@@ -123,7 +120,7 @@ end
 
 genvar i;
 generate 
-	for (i = 0; i < IN_FLIGHT_LIMIT; i = i + 1) begin
+	for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
 		always @(posedge clk) begin
 			if(~rst_n) begin
 				pkt_state_buf[i] <= INVALID;
@@ -202,7 +199,7 @@ bram_16x192 sent_requests(
 );
 
 generate 
-    for (i = 0; i < IN_FLIGHT_LIMIT; i = i + 1) begin
+    for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
 		always @(posedge clk) begin
 			if(~rst_n) begin
 				bram_rdy[i] <= 1;

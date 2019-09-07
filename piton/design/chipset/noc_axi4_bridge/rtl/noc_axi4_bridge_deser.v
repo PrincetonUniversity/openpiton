@@ -27,12 +27,10 @@
 
 `include "mc_define.h"
 `include "define.tmp.h"
+`include "noc_axi4_bridge_define.vh"
 
-module noc_axi4_bridge_deser # (
-  parameter MAX_PKT_LEN                 = 11, // measured in flits
-  parameter MAX_PKT_LEN_LOG             = 4,
-  parameter PAYLOAD_SIZE                = 512
-)(
+
+module noc_axi4_bridge_deser (
   input clk, 
   input rst_n, 
 
@@ -41,10 +39,12 @@ module noc_axi4_bridge_deser # (
   output flit_in_rdy, 
 
   output [`MSG_HEADER_WIDTH-1:0] header_out, 
-  output [PAYLOAD_SIZE-1:0] data_out, 
+  output [`AXI4_DATA_WIDTH-1:0] data_out, 
   output out_val, 
   input  out_rdy
 );
+
+localparam MAX_PKT_LEN_LOG = 4; // log(11)
 
 localparam ACCEPT_W1   = 3'd0;
 localparam ACCEPT_W2   = 3'd1;
@@ -55,7 +55,7 @@ localparam SEND        = 3'd4;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w1;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
-reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[MAX_PKT_LEN-4:0]; //buffer for incomming packets
+reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN:0]; //buffer for incomming packets
 reg [MAX_PKT_LEN_LOG-1:0]           remaining_flits; //flits remaining in current packet
 reg [2:0]                           state;
 
@@ -161,7 +161,7 @@ end
 
 genvar i;
 generate
-  for (i = 0; i < MAX_PKT_LEN-3; i = i + 1) begin
+  for (i = 0; i < `PAYLOAD_LEN; i = i + 1) begin
     always @(posedge clk) begin
       if(~rst_n) begin
         in_data_buf[i] <= 0;

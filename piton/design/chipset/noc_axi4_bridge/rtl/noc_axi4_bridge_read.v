@@ -27,51 +27,48 @@
 
 `include "mc_define.h"
 `include "define.tmp.h"
+`include "noc_axi4_bridge_define.vh"
 
 
-module noc_axi4_bridge_read # (
-  parameter IN_FLIGHT_LIMIT             = 16, //number of commands the MC can have in flight
-  parameter BUFFER_ADDR_SIZE            = 4, //(log_2(IN_FLIGHT_LIMIT)+1)
-  parameter PAYLOAD_SIZE                = 512
-)(
+module noc_axi4_bridge_read (
     // Clock + Reset
-    input  wire                                   clk,
-    input  wire                                   rst_n,
-    input  wire                                   uart_boot_en, 
+    input  wire                                          clk,
+    input  wire                                          rst_n,
+    input  wire                                          uart_boot_en, 
 
     // NOC interface
-    input  wire                                   req_val,
-    input  wire [`MSG_HEADER_WIDTH-1:0]           req_header,
-    input  wire [BUFFER_ADDR_SIZE-1:0]            req_id,
-    output wire                                   req_rdy,
+    input  wire                                          req_val,
+    input  wire [`MSG_HEADER_WIDTH-1:0]                  req_header,
+    input  wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]  req_id,
+    output wire                                          req_rdy,
 
-    output wire                                   resp_val,
-    output wire [BUFFER_ADDR_SIZE-1:0]            resp_id,
-    output  reg [PAYLOAD_SIZE-1:0]                resp_data,
-    input  wire                                   resp_rdy,
+    output wire                                          resp_val,
+    output wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]  resp_id,
+    output  reg [`AXI4_DATA_WIDTH-1:0]                   resp_data,
+    input  wire                                          resp_rdy,
 
     // AXI Read Interface
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
-    output wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
-    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
-    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
-    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
-    output wire                                   m_axi_arlock,
-    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
-    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
-    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
-    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
-    output wire                                   m_axi_arvalid,
-    input  wire                                   m_axi_arready,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    output wire  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    output wire  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    output wire  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    output wire  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    output wire                               m_axi_arlock,
+    output wire  [`AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    output wire  [`AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    output wire  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    output wire  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    output wire                               m_axi_arvalid,
+    input  wire                               m_axi_arready,
 
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
-    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
-    input  wire                                   m_axi_rlast,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
-    input  wire                                   m_axi_rvalid,
-    output wire                                   m_axi_rready
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    input  wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    input  wire                               m_axi_rlast,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    input  wire                               m_axi_rvalid,
+    output wire                               m_axi_rready
 );
 
 
@@ -80,21 +77,21 @@ localparam GOT_REQ = 2'd1;
 localparam GOT_RESP = 2'd2;
 localparam SEND_RESP = 2'd3;
 
-wire [`C_M_AXI4_ADDR_WIDTH-1:0]addr_paddings = `C_M_AXI4_ADDR_WIDTH'b0;
+wire [`AXI4_ADDR_WIDTH-1:0]addr_paddings = `AXI4_ADDR_WIDTH'b0;
 
 //==============================================================================
 // Tie constant outputs in axi4
 //==============================================================================
 
-    assign m_axi_arlen    = `C_M_AXI4_LEN_WIDTH'b0; // Use only length-1 bursts
-    assign m_axi_arsize   = `C_M_AXI4_SIZE_WIDTH'b110; // Always transfer 64 bytes
-    assign m_axi_arburst  = `C_M_AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
+    assign m_axi_arlen    = `AXI4_LEN_WIDTH'b0; // Use only length-1 bursts
+    assign m_axi_arsize   = `AXI4_SIZE_WIDTH'b110; // Always transfer 64 bytes
+    assign m_axi_arburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
     assign m_axi_arlock   = 1'b0; // Do not use locks
-    assign m_axi_arcache  = `C_M_AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
-    assign m_axi_arprot   = `C_M_AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
-    assign m_axi_arqos    = `C_M_AXI4_QOS_WIDTH'b0; // Do not use qos
-    assign m_axi_arregion = `C_M_AXI4_REGION_WIDTH'b0; // Do not use regions
-    assign m_axi_aruser   = `C_M_AXI4_USER_WIDTH'b0; // Do not use user field
+    assign m_axi_arcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
+    assign m_axi_arprot   = `AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
+    assign m_axi_arqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
+    assign m_axi_arregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
+    assign m_axi_aruser   = `AXI4_USER_WIDTH'b0; // Do not use user field
 
 // outbound requests
 wire m_axi_argo = m_axi_arvalid & m_axi_arready;
@@ -102,7 +99,7 @@ wire req_go = req_val & req_rdy;
 
 reg req_state;
 reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
-reg [BUFFER_ADDR_SIZE-1:0] req_id_f;
+reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] req_id_f;
 
 assign req_rdy = (req_state == IDLE);
 assign m_axi_arvalid = (req_state == GOT_REQ);
@@ -139,7 +136,7 @@ end
 assign m_axi_arid = req_id_f;
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
-wire [`C_M_AXI4_ADDR_WIDTH-1:0] phys_addr;
+wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
 
 // If running uart tests - we need to do address translation
 `ifdef PITONSYS_UART_BOOT
@@ -147,7 +144,7 @@ storage_addr_trans_unified   #(
 `else
 storage_addr_trans #(
 `endif
-.STORAGE_ADDR_WIDTH(`C_M_AXI4_ADDR_WIDTH)
+.STORAGE_ADDR_WIDTH(`AXI4_ADDR_WIDTH)
 ) cpu_mig_waddr_translastor (
     .va_byte_addr       (virt_addr  ),
     .storage_addr_out   (phys_addr  )
@@ -155,15 +152,15 @@ storage_addr_trans #(
 
 
 // Have to save request size and offset to process data later
-reg [6:0] size[IN_FLIGHT_LIMIT-1:0];
-reg [5:0] offset[IN_FLIGHT_LIMIT-1:0];
-reg [BUFFER_ADDR_SIZE-1:0] resp_id_f;
+reg [6:0] size[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg [5:0] offset[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] resp_id_f;
 wire resp_go;
 wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
 
 generate begin
     genvar i;
-    for (i = 0; i < IN_FLIGHT_LIMIT; i = i + 1) begin
+    for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin
         always @(posedge clk) begin
             if(~rst_n) begin
                 size[i] <= 7'b0;
@@ -223,8 +220,8 @@ generate begin
 end
 endgenerate
 
-wire [`C_M_AXI4_ADDR_WIDTH-1:0] addr = uart_boot_en ? {phys_addr[`C_M_AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
-assign m_axi_araddr = {addr[`C_M_AXI4_ADDR_WIDTH-1:6], 6'b0};
+wire [`AXI4_ADDR_WIDTH-1:0] addr = uart_boot_en ? {phys_addr[`AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
+assign m_axi_araddr = {addr[`AXI4_ADDR_WIDTH-1:6], 6'b0};
 
 
 
@@ -269,7 +266,7 @@ end
 assign resp_id = resp_id_f;
 
 
-reg [`C_M_AXI4_DATA_WIDTH-1:0] data_offseted;
+reg [`AXI4_DATA_WIDTH-1:0] data_offseted;
 
 always @(posedge clk) begin
     if(~rst_n) begin
@@ -282,43 +279,43 @@ end
 
 always @(posedge clk) begin
     if (~rst_n) begin
-        resp_data <= {PAYLOAD_SIZE{1'b0}};
+        resp_data <= {`AXI4_DATA_WIDTH{1'b0}};
     end 
     else begin
         case (resp_state)
             GOT_RESP: begin
                 case (size[resp_id_f]) 
                     7'd0: begin 
-                        resp_data <= {PAYLOAD_SIZE{1'b0}};
+                        resp_data <= {`AXI4_DATA_WIDTH{1'b0}};
                     end
                     7'd1: begin
-                        resp_data <= {PAYLOAD_SIZE/8{data_offseted[7:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/8{data_offseted[7:0]}};
                     end
                     7'd2: begin
-                        resp_data <= {PAYLOAD_SIZE/16{data_offseted[15:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/16{data_offseted[15:0]}};
                     end
                     7'd4: begin
-                        resp_data <= {PAYLOAD_SIZE/32{data_offseted[31:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/32{data_offseted[31:0]}};
                     end
                     7'd8: begin
-                        resp_data <= {PAYLOAD_SIZE/64{data_offseted[63:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/64{data_offseted[63:0]}};
                     end
                     7'd16: begin
-                        resp_data <= {PAYLOAD_SIZE/128{data_offseted[127:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/128{data_offseted[127:0]}};
                     end
                     7'd32: begin
-                        resp_data <= {PAYLOAD_SIZE/256{data_offseted[255:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/256{data_offseted[255:0]}};
                     end
                     default: begin
-                        resp_data <= {PAYLOAD_SIZE/512{data_offseted[511:0]}};
+                        resp_data <= {`AXI4_DATA_WIDTH/512{data_offseted[511:0]}};
                     end
                 endcase
             end
             SEND_RESP: begin
-                resp_data <= resp_go ? {PAYLOAD_SIZE{1'b0}} : resp_data;
+                resp_data <= resp_go ? {`AXI4_DATA_WIDTH{1'b0}} : resp_data;
             end
             default: begin
-                resp_data <= {PAYLOAD_SIZE{1'b0}};
+                resp_data <= {`AXI4_DATA_WIDTH{1'b0}};
             end
         endcase // resp_state
     end 
