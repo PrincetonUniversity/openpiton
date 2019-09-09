@@ -44,6 +44,11 @@ module uart_top (
     output                                  test_start,
     input                                   test_good_end,
     input                                   test_bad_end,
+`ifndef PITONSYS_NO_MC
+`ifdef PITON_FPGA_MC_DDR3
+    input                                   init_calib_complete,
+`endif
+`endif
 
     input [`NOC_CHIPID_WIDTH-1:0]          chip_id,
     input [`NOC_X_WIDTH-1:0]                x_id,
@@ -131,6 +136,7 @@ wire              s_axi_rvalid;
 wire              s_axi_rready;
 
 wire              init_done;
+wire              atg_init_done;
 wire              writer_start;
 wire              writer_finish;
 wire  [2:0]       writer_str_sel;
@@ -235,9 +241,10 @@ assign uart16550_rx   = uart_rx;
         .m_axi_lite_ch1_bvalid    (init_axi_bvalid  ),  // input wire m_axi_lite_ch1_bvalid
         .m_axi_lite_ch1_bready    (init_axi_bready  ),  // output wire m_axi_lite_ch1_bready
         
-        .done                     (init_done        ),  // output wire done
+        .done                     (atg_init_done    ),  // output wire done
         .status                   ()   // output wire [31 : 0] status
       );
+      assign init_done = atg_init_done & init_calib_complete;
     `else   // PITONSYS_UART_BOOT
       assign init_done = 1'b1;
     `endif  // PITONSYS_UART_BOOT
