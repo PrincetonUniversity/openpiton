@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // This file is auto-generated
 
 `include "noc_axi4_bridge_define.vh"
-`inclide "define.tmp.h"
+`include "define.tmp.h"
 <%
   import pyhplib
   from pyhplib import * 

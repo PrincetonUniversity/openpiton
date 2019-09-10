@@ -159,8 +159,8 @@ noc_axi4_bridge_sram_data noc_axi4_bridge_sram_data
     .AB(fifo_in),
     .RDWENB(1'b0),
     .DOUTA(write_req_data),
-    .BWB(`AXI4_DATA_WIDTH'b1),
-    .DINB(deser_data),
+    .BWB({`AXI4_DATA_WIDTH{1'b1}}),
+    .DINB(deser_data)
 );
 
 assign read_req_val = (pkt_state_buf[fifo_out] == WAITING) && (pkt_command[fifo_out] == READ) && bram_rdy[fifo_out];
@@ -198,9 +198,10 @@ noc_axi4_bridge_sram_req noc_axi4_bridge_sram_req
     .AB(fifo_out),
     .RDWENB(1'b0),
     .DOUTA(ser_header_f),
-    .BWB(`MSG_HEADER_WIDTH'b1),
-    .DINB(pkt_header[fifo_out]),
+    .BWB({`MSG_HEADER_WIDTH{1'b1}}),
+    .DINB(pkt_header[fifo_out])
 );
+
 
 generate 
     for (i = 0; i < `NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT; i = i + 1) begin

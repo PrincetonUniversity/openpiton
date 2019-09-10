@@ -27,6 +27,7 @@
 
 `include "define.tmp.h"
 `include "mc_define.h"
+`include "noc_axi4_bridge_define.vh"
 
 module mc_top (
     output                          mc_ui_clk_sync_rst,
@@ -85,6 +86,7 @@ wire                                init_calib_complete;
 wire                                afifo_rst_1;
 wire                                afifo_rst_2;
 
+`ifndef PITONSYS_AXI4_MEM
  wire                               app_en;
  wire    [`MIG_APP_CMD_WIDTH-1 :0]  app_cmd;
  wire    [`MIG_APP_ADDR_WIDTH-1:0]  app_addr;
@@ -122,6 +124,171 @@ wire                                zero_app_wdf_end;
 wire                                init_calib_complete_zero;
 `endif
 
+wire                                noc_mig_bridge_rst;
+wire                                noc_mig_bridge_init_done;
+
+`else // PITONSYS_AXI4_MEM
+
+// AXI4 interface
+wire [`AXI4_ID_WIDTH     -1:0]     m_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     m_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     m_axi_awburst;
+wire                               m_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     m_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     m_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     m_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     m_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     m_axi_awuser;
+wire                               m_axi_awvalid;
+wire                               m_axi_awready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb;
+wire                               m_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser;
+wire                               m_axi_wvalid;
+wire                               m_axi_wready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst;
+wire                               m_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    m_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser;
+wire                               m_axi_arvalid;
+wire                               m_axi_arready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp;
+wire                               m_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser;
+wire                               m_axi_rvalid;
+wire                               m_axi_rready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_buser;
+wire                               m_axi_bvalid;
+wire                               m_axi_bready;
+
+wire [`AXI4_ID_WIDTH     -1:0]     core_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     core_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     core_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     core_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     core_axi_awburst;
+wire                               core_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     core_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     core_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     core_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     core_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     core_axi_awuser;
+wire                               core_axi_awvalid;
+wire                               core_axi_awready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    core_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    core_axi_wstrb;
+wire                               core_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_wuser;
+wire                               core_axi_wvalid;
+wire                               core_axi_wready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    core_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    core_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    core_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    core_axi_arburst;
+wire                               core_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    core_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    core_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    core_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    core_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_aruser;
+wire                               core_axi_arvalid;
+wire                               core_axi_arready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    core_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    core_axi_rresp;
+wire                               core_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_ruser;
+wire                               core_axi_rvalid;
+wire                               core_axi_rready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    core_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_buser;
+wire                               core_axi_bvalid;
+wire                               core_axi_bready;
+
+`ifdef PITONSYS_MEM_ZEROER
+wire [`AXI4_ID_WIDTH     -1:0]     zeroer_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     zeroer_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     zeroer_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     zeroer_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     zeroer_axi_awburst;
+wire                               zeroer_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     zeroer_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     zeroer_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     zeroer_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     zeroer_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     zeroer_axi_awuser;
+wire                               zeroer_axi_awvalid;
+wire                               zeroer_axi_awready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    zeroer_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    zeroer_axi_wstrb;
+wire                               zeroer_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_wuser;
+wire                               zeroer_axi_wvalid;
+wire                               zeroer_axi_wready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    zeroer_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    zeroer_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    zeroer_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    zeroer_axi_arburst;
+wire                               zeroer_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    zeroer_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    zeroer_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    zeroer_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    zeroer_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_aruser;
+wire                               zeroer_axi_arvalid;
+wire                               zeroer_axi_arready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    zeroer_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    zeroer_axi_rresp;
+wire                               zeroer_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_ruser;
+wire                               zeroer_axi_rvalid;
+wire                               zeroer_axi_rready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    zeroer_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_buser;
+wire                               zeroer_axi_bvalid;
+wire                               zeroer_axi_bready;
+
+wire                               init_calib_complete_zero;
+`endif
+
+wire                               noc_axi4_bridge_rst;
+wire                               noc_axi4_bridge_init_done;
+
+`endif // PITONSYS_AXI4_MEM
+
 wire                                app_sr_req;
 wire                                app_ref_req;
 wire                                app_zq_req;
@@ -130,8 +297,7 @@ wire                                app_ref_ack;
 wire                                app_zq_ack;
 wire                                ui_clk;
 wire                                ui_clk_sync_rst;
-wire                                noc_mig_bridge_rst;
-wire                                noc_mig_bridge_init_done;
+
 
 wire                                trans_fifo_val;
 wire    [`NOC_DATA_WIDTH-1:0]       trans_fifo_data;
@@ -188,34 +354,7 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
-`ifdef PITONSYS_MEM_ZEROER
-assign app_en                   = zero_app_en;
-assign app_cmd                  = zero_app_cmd;
-assign app_addr                 = zero_app_addr;
-assign app_wdf_wren             = zero_app_wdf_wren;
-assign app_wdf_data             = zero_app_wdf_data;
-assign app_wdf_mask             = zero_app_wdf_mask;
-assign app_wdf_end              = zero_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
-assign noc_mig_bridge_init_done = init_calib_complete_zero;
-assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
-`else
-assign app_en                   = core_app_en;
-assign app_cmd                  = core_app_cmd;
-assign app_addr                 = core_app_addr;
-assign app_wdf_wren             = core_app_wdf_wren;
-assign app_wdf_data             = core_app_wdf_data;
-assign app_wdf_mask             = core_app_wdf_mask;
-assign app_wdf_end              = core_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst;
-assign noc_mig_bridge_init_done = init_calib_complete;
-assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
-`endif
-assign core_app_rdy             = app_rdy;
-assign core_app_wdf_rdy         = app_wdf_rdy;
-assign core_app_rd_data_valid   = app_rd_data_valid;
-assign core_app_rd_data_end     = app_rd_data_end;
-assign core_app_rd_data         = app_rd_data;
+
 
 noc_bidir_afifo  mig_afifo  (
     .clk_1           (core_ref_clk      ),
@@ -245,6 +384,36 @@ noc_bidir_afifo  mig_afifo  (
 
 
 `ifndef PITONSYS_AXI4_MEM
+
+`ifdef PITONSYS_MEM_ZEROER
+assign app_en                   = zero_app_en;
+assign app_cmd                  = zero_app_cmd;
+assign app_addr                 = zero_app_addr;
+assign app_wdf_wren             = zero_app_wdf_wren;
+assign app_wdf_data             = zero_app_wdf_data;
+assign app_wdf_mask             = zero_app_wdf_mask;
+assign app_wdf_end              = zero_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
+assign noc_mig_bridge_init_done = init_calib_complete_zero;
+assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+`else
+assign app_en                   = core_app_en;
+assign app_cmd                  = core_app_cmd;
+assign app_addr                 = core_app_addr;
+assign app_wdf_wren             = core_app_wdf_wren;
+assign app_wdf_data             = core_app_wdf_data;
+assign app_wdf_mask             = core_app_wdf_mask;
+assign app_wdf_end              = core_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst;
+assign noc_mig_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
+assign core_app_rdy             = app_rdy;
+assign core_app_wdf_rdy         = app_wdf_rdy;
+assign core_app_rd_data_valid   = app_rd_data_valid;
+assign core_app_rd_data_end     = app_rd_data_end;
+assign core_app_rd_data         = app_rd_data;
+
 noc_mig_bridge    #  (
     .MIG_APP_ADDR_WIDTH (`MIG_APP_ADDR_WIDTH        ),
     .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
@@ -428,207 +597,374 @@ mig_7series_0   mig_7series_0 (
 
 `else // ifdef AXI4_MEM, use AXI, works only with VC707
 
-    // AXI Write Address Channel Signals
-    wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid;
-    wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr;
-    wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen;
-    wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize;
-    wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst;
-    wire                                  m_axi_awlock;
-    wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache;
-    wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot;
-    wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos;
-    wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion;
-    wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser;
-    wire                                  m_axi_awvalid;
-    wire                                  m_axi_awready;
+`ifdef PITONSYS_MEM_ZEROER
+assign m_axi_awid = zeroer_axi_awid;
+assign m_axi_awaddr = zeroer_axi_awaddr;
+assign m_axi_awlen = zeroer_axi_awlen;
+assign m_axi_awsize = zeroer_axi_awsize;
+assign m_axi_awburst = zeroer_axi_awburst;
+assign m_axi_awlock = zeroer_axi_awlock;
+assign m_axi_awcache = zeroer_axi_awcache;
+assign m_axi_awprot = zeroer_axi_awprot;
+assign m_axi_awqos = zeroer_axi_awqos;
+assign m_axi_awregion = zeroer_axi_awregion;
+assign m_axi_awuser = zeroer_axi_awuser;
+assign m_axi_awvalid = zeroer_axi_awvalid;
+assign m_axi_awready = zeroer_axi_awready;
 
-    // AXI Write Data Channel Signals
-    wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid;
-    wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata;
-    wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb;
-    wire                                   m_axi_wlast;
-    wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser;
-    wire                                   m_axi_wvalid;
-    wire                                   m_axi_wready;
+assign m_axi_wid = zeroer_axi_wid;
+assign m_axi_wdata = zeroer_axi_wdata;
+assign m_axi_wstrb = zeroer_axi_wstrb;
+assign m_axi_wlast = zeroer_axi_wlast;
+assign m_axi_wuser = zeroer_axi_wuser;
+assign m_axi_wvalid = zeroer_axi_wvalid;
+assign m_axi_wready = zeroer_axi_wready;
 
-    // AXI Read Address Channel Signals
-    wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid;
-    wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr;
-    wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen;
-    wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize;
-    wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst;
-    wire                                   m_axi_arlock;
-    wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache;
-    wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot;
-    wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos;
-    wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion;
-    wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser;
-    wire                                   m_axi_arvalid;
-    wire                                   m_axi_arready;
+assign m_axi_arid = zeroer_axi_arid;
+assign m_axi_araddr = zeroer_axi_araddr;
+assign m_axi_arlen = zeroer_axi_arlen;
+assign m_axi_arsize = zeroer_axi_arsize;
+assign m_axi_arburst = zeroer_axi_arburst;
+assign m_axi_arlock = zeroer_axi_arlock;
+assign m_axi_arcache = zeroer_axi_arcache;
+assign m_axi_arprot = zeroer_axi_arprot;
+assign m_axi_arqos = zeroer_axi_arqos;
+assign m_axi_arregion = zeroer_axi_arregion;
+assign m_axi_aruser = zeroer_axi_aruser;
+assign m_axi_arvalid = zeroer_axi_arvalid;
+assign m_axi_arready = zeroer_axi_arready;
 
-    // AXI Read Data Channel Signals
-    wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid;
-    wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata;
-    wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp;
-    wire                                   m_axi_rlast;
-    wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser;
-    wire                                   m_axi_rvalid;
-    wire                                   m_axi_rready;
+assign m_axi_rid = zeroer_axi_rid;
+assign m_axi_rdata = zeroer_axi_rdata;
+assign m_axi_rresp = zeroer_axi_rresp;
+assign m_axi_rlast = zeroer_axi_rlast;
+assign m_axi_ruser = zeroer_axi_ruser;
+assign m_axi_rvalid = zeroer_axi_rvalid;
+assign m_axi_rready = zeroer_axi_rready;
 
-    // AXI Write Response Channel Signals
-    wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid;
-    wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp;
-    wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser;
-    wire                                   m_axi_bvalid;
-    wire                                   m_axi_bready;
+assign m_axi_bid = zeroer_axi_bid;
+assign m_axi_bresp = zeroer_axi_bresp;
+assign m_axi_buser = zeroer_axi_buser;
+assign m_axi_bvalid = zeroer_axi_bvalid;
+assign m_axi_bready = zeroer_axi_bready;
+
+assign noc_axi4_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
+assign noc_axi4_bridge_init_done = init_calib_complete_zero;
+assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+`else
+
+assign m_axi_awid = core_axi_awid;
+assign m_axi_awaddr = core_axi_awaddr;
+assign m_axi_awlen = core_axi_awlen;
+assign m_axi_awsize = core_axi_awsize;
+assign m_axi_awburst = core_axi_awburst;
+assign m_axi_awlock = core_axi_awlock;
+assign m_axi_awcache = core_axi_awcache;
+assign m_axi_awprot = core_axi_awprot;
+assign m_axi_awqos = core_axi_awqos;
+assign m_axi_awregion = core_axi_awregion;
+assign m_axi_awuser = core_axi_awuser;
+assign m_axi_awvalid = core_axi_awvalid;
+assign m_axi_awready = core_axi_awready;
+
+assign m_axi_wid = core_axi_wid;
+assign m_axi_wdata = core_axi_wdata;
+assign m_axi_wstrb = core_axi_wstrb;
+assign m_axi_wlast = core_axi_wlast;
+assign m_axi_wuser = core_axi_wuser;
+assign m_axi_wvalid = core_axi_wvalid;
+assign m_axi_wready = core_axi_wready;
+
+assign m_axi_arid = core_axi_arid;
+assign m_axi_araddr = core_axi_araddr;
+assign m_axi_arlen = core_axi_arlen;
+assign m_axi_arsize = core_axi_arsize;
+assign m_axi_arburst = core_axi_arburst;
+assign m_axi_arlock = core_axi_arlock;
+assign m_axi_arcache = core_axi_arcache;
+assign m_axi_arprot = core_axi_arprot;
+assign m_axi_arqos = core_axi_arqos;
+assign m_axi_arregion = core_axi_arregion;
+assign m_axi_aruser = core_axi_aruser;
+assign m_axi_arvalid = core_axi_arvalid;
+assign m_axi_arready = core_axi_arready;
+
+assign m_axi_rid = core_axi_rid;
+assign m_axi_rdata = core_axi_rdata;
+assign m_axi_rresp = core_axi_rresp;
+assign m_axi_rlast = core_axi_rlast;
+assign m_axi_ruser = core_axi_ruser;
+assign m_axi_rvalid = core_axi_rvalid;
+assign m_axi_rready = core_axi_rready;
+
+assign m_axi_bid = core_axi_bid;
+assign m_axi_bresp = core_axi_bresp;
+assign m_axi_buser = core_axi_buser;
+assign m_axi_bvalid = core_axi_bvalid;
+assign m_axi_bready = core_axi_bready;
+
+assign noc_axi4_bridge_rst       = ui_clk_sync_rst;
+assign noc_axi4_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
 
 
-    noc_axi4_bridge noc_axi4_bridge  (
-        .clk                (ui_clk               ),  
-        .rst_n              (~noc_mig_bridge_rst  ), 
-        .uart_boot_en       (uart_boot_en         ),
+noc_axi4_bridge noc_axi4_bridge  (
+    .clk                (ui_clk                    ),  
+    .rst_n              (~noc_axi4_bridge_rst      ), 
+    .uart_boot_en       (uart_boot_en              ),
+    .phy_init_done      (noc_axi4_bridge_init_done ),
 
-        .src_bridge_vr_noc2_val(fifo_trans_val),
-        .src_bridge_vr_noc2_data(fifo_trans_data),
-        .src_bridge_vr_noc2_rdy(fifo_trans_rdy),
+    .src_bridge_vr_noc2_val(fifo_trans_val),
+    .src_bridge_vr_noc2_data(fifo_trans_data),
+    .src_bridge_vr_noc2_rdy(fifo_trans_rdy),
 
-        .bridge_dst_vr_noc3_val(trans_fifo_val),
-        .bridge_dst_vr_noc3_data(trans_fifo_data),
-        .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
+    .bridge_dst_vr_noc3_val(trans_fifo_val),
+    .bridge_dst_vr_noc3_data(trans_fifo_data),
+    .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
 
-        .m_axi_awid(m_axi_awid),
-        .m_axi_awaddr(m_axi_awaddr),
-        .m_axi_awlen(m_axi_awlen),
-        .m_axi_awsize(m_axi_awsize),
-        .m_axi_awburst(m_axi_awburst),
-        .m_axi_awlock(m_axi_awlock),
-        .m_axi_awcache(m_axi_awcache),
-        .m_axi_awprot(m_axi_awprot),
-        .m_axi_awqos(m_axi_awqos),
-        .m_axi_awregion(m_axi_awregion),
-        .m_axi_awuser(m_axi_awuser),
-        .m_axi_awvalid(m_axi_awvalid),
-        .m_axi_awready(m_axi_awready),
+    .m_axi_awid(core_axi_awid),
+    .m_axi_awaddr(core_axi_awaddr),
+    .m_axi_awlen(core_axi_awlen),
+    .m_axi_awsize(core_axi_awsize),
+    .m_axi_awburst(core_axi_awburst),
+    .m_axi_awlock(core_axi_awlock),
+    .m_axi_awcache(core_axi_awcache),
+    .m_axi_awprot(core_axi_awprot),
+    .m_axi_awqos(core_axi_awqos),
+    .m_axi_awregion(core_axi_awregion),
+    .m_axi_awuser(core_axi_awuser),
+    .m_axi_awvalid(core_axi_awvalid),
+    .m_axi_awready(core_axi_awready),
 
-        .m_axi_wid(m_axi_wid),
-        .m_axi_wdata(m_axi_wdata),
-        .m_axi_wstrb(m_axi_wstrb),
-        .m_axi_wlast(m_axi_wlast),
-        .m_axi_wuser(m_axi_wuser),
-        .m_axi_wvalid(m_axi_wvalid),
-        .m_axi_wready(m_axi_wready),
+    .m_axi_wid(core_axi_wid),
+    .m_axi_wdata(core_axi_wdata),
+    .m_axi_wstrb(core_axi_wstrb),
+    .m_axi_wlast(core_axi_wlast),
+    .m_axi_wuser(core_axi_wuser),
+    .m_axi_wvalid(core_axi_wvalid),
+    .m_axi_wready(core_axi_wready),
 
-        .m_axi_bid(m_axi_bid),
-        .m_axi_bresp(m_axi_bresp),
-        .m_axi_buser(m_axi_buser),
-        .m_axi_bvalid(m_axi_bvalid),
-        .m_axi_bready(m_axi_bready),
+    .m_axi_bid(core_axi_bid),
+    .m_axi_bresp(core_axi_bresp),
+    .m_axi_buser(core_axi_buser),
+    .m_axi_bvalid(core_axi_bvalid),
+    .m_axi_bready(core_axi_bready),
 
-        .m_axi_arid(m_axi_arid),
-        .m_axi_araddr(m_axi_araddr),
-        .m_axi_arlen(m_axi_arlen),
-        .m_axi_arsize(m_axi_arsize),
-        .m_axi_arburst(m_axi_arburst),
-        .m_axi_arlock(m_axi_arlock),
-        .m_axi_arcache(m_axi_arcache),
-        .m_axi_arprot(m_axi_arprot),
-        .m_axi_arqos(m_axi_arqos),
-        .m_axi_arregion(m_axi_arregion),
-        .m_axi_aruser(m_axi_aruser),
-        .m_axi_arvalid(m_axi_arvalid),
-        .m_axi_arready(m_axi_arready),
+    .m_axi_arid(core_axi_arid),
+    .m_axi_araddr(core_axi_araddr),
+    .m_axi_arlen(core_axi_arlen),
+    .m_axi_arsize(core_axi_arsize),
+    .m_axi_arburst(core_axi_arburst),
+    .m_axi_arlock(core_axi_arlock),
+    .m_axi_arcache(core_axi_arcache),
+    .m_axi_arprot(core_axi_arprot),
+    .m_axi_arqos(core_axi_arqos),
+    .m_axi_arregion(core_axi_arregion),
+    .m_axi_aruser(core_axi_aruser),
+    .m_axi_arvalid(core_axi_arvalid),
+    .m_axi_arready(core_axi_arready),
 
-        .m_axi_rid(m_axi_rid),
-        .m_axi_rdata(m_axi_rdata),
-        .m_axi_rresp(m_axi_rresp),
-        .m_axi_rlast(m_axi_rlast),
-        .m_axi_ruser(m_axi_ruser),
-        .m_axi_rvalid(m_axi_rvalid),
-        .m_axi_rready(m_axi_rready)
+    .m_axi_rid(core_axi_rid),
+    .m_axi_rdata(core_axi_rdata),
+    .m_axi_rresp(core_axi_rresp),
+    .m_axi_rlast(core_axi_rlast),
+    .m_axi_ruser(core_axi_ruser),
+    .m_axi_rvalid(core_axi_rvalid),
+    .m_axi_rready(core_axi_rready)
 
-    );
+);
 
-    mig_7series_axi4 u_mig_7series_axi4 (
+`ifdef PITONSYS_MEM_ZEROER
+axi4_zeroer axi4_zeroer(
+  .clk                    (ui_clk),
+  .rst_n                  (~ui_clk_sync_rst),
+  .init_calib_complete_in (init_calib_complete),
+  .init_calib_complete_out(init_calib_complete_zero),
 
-        // Memory interface ports
-        .ddr3_addr                      (ddr_addr),  // output [13:0]      ddr3_addr
-        .ddr3_ba                        (ddr_ba),  // output [2:0]     ddr3_ba
-        .ddr3_cas_n                     (ddr_cas_n),  // output            ddr3_cas_n
-        .ddr3_ck_n                      (ddr_ck_n),  // output [0:0]       ddr3_ck_n
-        .ddr3_ck_p                      (ddr_ck_p),  // output [0:0]       ddr3_ck_p
-        .ddr3_cke                       (ddr_cke),  // output [0:0]        ddr3_cke
-        .ddr3_ras_n                     (ddr_ras_n),  // output            ddr3_ras_n
-        .ddr3_reset_n                   (ddr_reset_n),  // output          ddr3_reset_n
-        .ddr3_we_n                      (ddr_we_n),  // output         ddr3_we_n
-        .ddr3_dq                        (ddr_dq),  // inout [63:0]     ddr3_dq
-        .ddr3_dqs_n                     (ddr_dqs_n),  // inout [7:0]       ddr3_dqs_n
-        .ddr3_dqs_p                     (ddr_dqs_p),  // inout [7:0]       ddr3_dqs_p
-        .init_calib_complete            (init_calib_complete),  // output           init_calib_complete
-          
-        .ddr3_cs_n                      (ddr_cs_n),  // output [0:0]       ddr3_cs_n
-        .ddr3_dm                        (ddr_dm),  // output [7:0]     ddr3_dm
-        .ddr3_odt                       (ddr_odt),  // output [0:0]        ddr3_odt
+  .s_axi_awid             (core_axi_awid),
+  .s_axi_awaddr           (core_axi_awaddr),
+  .s_axi_awlen            (core_axi_awlen),
+  .s_axi_awsize           (core_axi_awsize),
+  .s_axi_awburst          (core_axi_awburst),
+  .s_axi_awlock           (core_axi_awlock),
+  .s_axi_awcache          (core_axi_awcache),
+  .s_axi_awprot           (core_axi_awprot),
+  .s_axi_awqos            (core_axi_awqos),
+  .s_axi_awregion         (core_axi_awregion),
+  .s_axi_awuser           (core_axi_awuser),
+  .s_axi_awvalid          (core_axi_awvalid),
+  .s_axi_awready          (core_axi_awready),
 
-        // Application interface ports
-        .ui_clk                         (ui_clk),  // output            ui_clk
-        .ui_clk_sync_rst                (ui_clk_sync_rst),  // output           ui_clk_sync_rst
-        .mmcm_locked                    (),  // output           mmcm_locked
-        .aresetn                        (sys_rst_n),  // input            aresetn
-        .app_sr_req                     (app_sr_req),  // input         app_sr_req
-        .app_ref_req                    (app_ref_req),  // input            app_ref_req
-        .app_zq_req                     (app_zq_req),  // input         app_zq_req
-        .app_sr_active                  (),  // output         app_sr_active
-        .app_ref_ack                    (),  // output           app_ref_ack
-        .app_zq_ack                     (),  // output            app_zq_ack
+  .s_axi_wid              (core_axi_wid),
+  .s_axi_wdata            (core_axi_wdata),
+  .s_axi_wstrb            (core_axi_wstrb),
+  .s_axi_wlast            (core_axi_wlast),
+  .s_axi_wuser            (core_axi_wuser),
+  .s_axi_wvalid           (core_axi_wvalid),
+  .s_axi_wready           (core_axi_wready),
 
-        // Slave Interface Write Address Ports
-        .s_axi_awid                     (m_axi_awid),  // input [15:0]          s_axi_awid
-        .s_axi_awaddr                   (m_axi_awaddr),  // input [29:0]            s_axi_awaddr
-        .s_axi_awlen                    (m_axi_awlen),  // input [7:0]          s_axi_awlen
-        .s_axi_awsize                   (m_axi_awsize),  // input [2:0]         s_axi_awsize
-        .s_axi_awburst                  (m_axi_awburst),  // input [1:0]            s_axi_awburst
-        .s_axi_awlock                   (m_axi_awlock),  // input [0:0]         s_axi_awlock
-        .s_axi_awcache                  (m_axi_awcache),  // input [3:0]            s_axi_awcache
-        .s_axi_awprot                   (m_axi_awprot),  // input [2:0]         s_axi_awprot
-        .s_axi_awqos                    (m_axi_awqos),  // input [3:0]          s_axi_awqos
-        .s_axi_awvalid                  (m_axi_awvalid),  // input          s_axi_awvalid
-        .s_axi_awready                  (m_axi_awready),  // output         s_axi_awready
-        // Slave Interface Write Data Ports
-        .s_axi_wdata                    (m_axi_wdata),  // input [511:0]            s_axi_wdata
-        .s_axi_wstrb                    (m_axi_wstrb),  // input [63:0]         s_axi_wstrb
-        .s_axi_wlast                    (m_axi_wlast),  // input            s_axi_wlast
-        .s_axi_wvalid                   (m_axi_wvalid),  // input           s_axi_wvalid
-        .s_axi_wready                   (m_axi_wready),  // output          s_axi_wready
-        // Slave Interface Write Response Ports
-        .s_axi_bid                      (m_axi_bid),  // output [15:0]          s_axi_bid
-        .s_axi_bresp                    (m_axi_bresp),  // output [1:0]         s_axi_bresp
-        .s_axi_bvalid                   (m_axi_bvalid),  // output          s_axi_bvalid
-        .s_axi_bready                   (m_axi_bready),  // input           s_axi_bready
-        // Slave Interface Read Address Ports
-        .s_axi_arid                     (m_axi_arid),  // input [15:0]          s_axi_arid
-        .s_axi_araddr                   (m_axi_araddr),  // input [29:0]            s_axi_araddr
-        .s_axi_arlen                    (m_axi_arlen),  // input [7:0]          s_axi_arlen
-        .s_axi_arsize                   (m_axi_arsize),  // input [2:0]         s_axi_arsize
-        .s_axi_arburst                  (m_axi_arburst),  // input [1:0]            s_axi_arburst
-        .s_axi_arlock                   (m_axi_arlock),  // input [0:0]         s_axi_arlock
-        .s_axi_arcache                  (m_axi_arcache),  // input [3:0]            s_axi_arcache
-        .s_axi_arprot                   (m_axi_arprot),  // input [2:0]         s_axi_arprot
-        .s_axi_arqos                    (m_axi_arqos),  // input [3:0]          s_axi_arqos
-        .s_axi_arvalid                  (m_axi_arvalid),  // input          s_axi_arvalid
-        .s_axi_arready                  (m_axi_arready),  // output         s_axi_arready
-        // Slave Interface Read Data Ports
-        .s_axi_rid                      (m_axi_rid),  // output [15:0]          s_axi_rid
-        .s_axi_rdata                    (m_axi_rdata),  // output [511:0]           s_axi_rdata
-        .s_axi_rresp                    (m_axi_rresp),  // output [1:0]         s_axi_rresp
-        .s_axi_rlast                    (m_axi_rlast),  // output           s_axi_rlast
-        .s_axi_rvalid                   (m_axi_rvalid),  // output          s_axi_rvalid
-        .s_axi_rready                   (m_axi_rready),  // input           s_axi_rready
+  .s_axi_arid             (core_axi_arid),
+  .s_axi_araddr           (core_axi_araddr),
+  .s_axi_arlen            (core_axi_arlen),
+  .s_axi_arsize           (core_axi_arsize),
+  .s_axi_arburst          (core_axi_arburst),
+  .s_axi_arlock           (core_axi_arlock),
+  .s_axi_arcache          (core_axi_arcache),
+  .s_axi_arprot           (core_axi_arprot),
+  .s_axi_arqos            (core_axi_arqos),
+  .s_axi_arregion         (core_axi_arregion),
+  .s_axi_aruser           (core_axi_aruser),
+  .s_axi_arvalid          (core_axi_arvalid),
+  .s_axi_arready          (core_axi_arready),
 
-        // System Clock Ports
-        .sys_clk_i                      (sys_clk),
-        .sys_rst                        (sys_rst_n) // input sys_rst
-    );
+  .s_axi_rid              (core_axi_rid),
+  .s_axi_rdata            (core_axi_rdata),
+  .s_axi_rresp            (core_axi_rresp),
+  .s_axi_rlast            (core_axi_rlast),
+  .s_axi_ruser            (core_axi_ruser),
+  .s_axi_rvalid           (core_axi_rvalid),
+  .s_axi_rready           (core_axi_rready),
+
+  .s_axi_bid              (core_axi_bid),
+  .s_axi_bresp            (core_axi_bresp),
+  .s_axi_buser            (core_axi_buser),
+  .s_axi_bvalid           (core_axi_bvalid),
+  .s_axi_bready           (core_axi_bready),
+
+
+  .m_axi_awid             (zeroer_axi_awid),
+  .m_axi_awaddr           (zeroer_axi_awaddr),
+  .m_axi_awlen            (zeroer_axi_awlen),
+  .m_axi_awsize           (zeroer_axi_awsize),
+  .m_axi_awburst          (zeroer_axi_awburst),
+  .m_axi_awlock           (zeroer_axi_awlock),
+  .m_axi_awcache          (zeroer_axi_awcache),
+  .m_axi_awprot           (zeroer_axi_awprot),
+  .m_axi_awqos            (zeroer_axi_awqos),
+  .m_axi_awregion         (zeroer_axi_awregion),
+  .m_axi_awuser           (zeroer_axi_awuser),
+  .m_axi_awvalid          (zeroer_axi_awvalid),
+  .m_axi_awready          (zeroer_axi_awready),
+
+  .m_axi_wid              (zeroer_axi_wid),
+  .m_axi_wdata            (zeroer_axi_wdata),
+  .m_axi_wstrb            (zeroer_axi_wstrb),
+  .m_axi_wlast            (zeroer_axi_wlast),
+  .m_axi_wuser            (zeroer_axi_wuser),
+  .m_axi_wvalid           (zeroer_axi_wvalid),
+  .m_axi_wready           (zeroer_axi_wready),
+
+  .m_axi_arid             (zeroer_axi_arid),
+  .m_axi_araddr           (zeroer_axi_araddr),
+  .m_axi_arlen            (zeroer_axi_arlen),
+  .m_axi_arsize           (zeroer_axi_arsize),
+  .m_axi_arburst          (zeroer_axi_arburst),
+  .m_axi_arlock           (zeroer_axi_arlock),
+  .m_axi_arcache          (zeroer_axi_arcache),
+  .m_axi_arprot           (zeroer_axi_arprot),
+  .m_axi_arqos            (zeroer_axi_arqos),
+  .m_axi_arregion         (zeroer_axi_arregion),
+  .m_axi_aruser           (zeroer_axi_aruser),
+  .m_axi_arvalid          (zeroer_axi_arvalid),
+  .m_axi_arready          (zeroer_axi_arready),
+
+  .m_axi_rid              (zeroer_axi_rid),
+  .m_axi_rdata            (zeroer_axi_rdata),
+  .m_axi_rresp            (zeroer_axi_rresp),
+  .m_axi_rlast            (zeroer_axi_rlast),
+  .m_axi_ruser            (zeroer_axi_ruser),
+  .m_axi_rvalid           (zeroer_axi_rvalid),
+  .m_axi_rready           (zeroer_axi_rready),
+
+  .m_axi_bid              (zeroer_axi_bid),
+  .m_axi_bresp            (zeroer_axi_bresp),
+  .m_axi_buser            (zeroer_axi_buser),
+  .m_axi_bvalid           (zeroer_axi_bvalid),
+  .m_axi_bready           (zeroer_axi_bready)
+);
+`endif // PITONSYS_MEM_ZEROER
+
+mig_7series_axi4 u_mig_7series_axi4 (
+
+    // Memory interface ports
+    .ddr3_addr                      (ddr_addr),  // output [13:0]      ddr3_addr
+    .ddr3_ba                        (ddr_ba),  // output [2:0]     ddr3_ba
+    .ddr3_cas_n                     (ddr_cas_n),  // output            ddr3_cas_n
+    .ddr3_ck_n                      (ddr_ck_n),  // output [0:0]       ddr3_ck_n
+    .ddr3_ck_p                      (ddr_ck_p),  // output [0:0]       ddr3_ck_p
+    .ddr3_cke                       (ddr_cke),  // output [0:0]        ddr3_cke
+    .ddr3_ras_n                     (ddr_ras_n),  // output            ddr3_ras_n
+    .ddr3_reset_n                   (ddr_reset_n),  // output          ddr3_reset_n
+    .ddr3_we_n                      (ddr_we_n),  // output         ddr3_we_n
+    .ddr3_dq                        (ddr_dq),  // inout [63:0]     ddr3_dq
+    .ddr3_dqs_n                     (ddr_dqs_n),  // inout [7:0]       ddr3_dqs_n
+    .ddr3_dqs_p                     (ddr_dqs_p),  // inout [7:0]       ddr3_dqs_p
+    .init_calib_complete            (init_calib_complete),  // output           init_calib_complete
+      
+    .ddr3_cs_n                      (ddr_cs_n),  // output [0:0]       ddr3_cs_n
+    .ddr3_dm                        (ddr_dm),  // output [7:0]     ddr3_dm
+    .ddr3_odt                       (ddr_odt),  // output [0:0]        ddr3_odt
+
+    // Application interface ports
+    .ui_clk                         (ui_clk),  // output            ui_clk
+    .ui_clk_sync_rst                (ui_clk_sync_rst),  // output           ui_clk_sync_rst
+    .mmcm_locked                    (),  // output           mmcm_locked
+    .aresetn                        (sys_rst_n),  // input            aresetn
+    .app_sr_req                     (app_sr_req),  // input         app_sr_req
+    .app_ref_req                    (app_ref_req),  // input            app_ref_req
+    .app_zq_req                     (app_zq_req),  // input         app_zq_req
+    .app_sr_active                  (app_sr_active),  // output         app_sr_active
+    .app_ref_ack                    (app_ref_ack),  // output           app_ref_ack
+    .app_zq_ack                     (app_zq_ack),  // output            app_zq_ack
+
+    // Slave Interface Write Address Ports
+    .s_axi_awid                     (m_axi_awid),  // input [15:0]          s_axi_awid
+    .s_axi_awaddr                   (m_axi_awaddr),  // input [29:0]            s_axi_awaddr
+    .s_axi_awlen                    (m_axi_awlen),  // input [7:0]          s_axi_awlen
+    .s_axi_awsize                   (m_axi_awsize),  // input [2:0]         s_axi_awsize
+    .s_axi_awburst                  (m_axi_awburst),  // input [1:0]            s_axi_awburst
+    .s_axi_awlock                   (m_axi_awlock),  // input [0:0]         s_axi_awlock
+    .s_axi_awcache                  (m_axi_awcache),  // input [3:0]            s_axi_awcache
+    .s_axi_awprot                   (m_axi_awprot),  // input [2:0]         s_axi_awprot
+    .s_axi_awqos                    (m_axi_awqos),  // input [3:0]          s_axi_awqos
+    .s_axi_awvalid                  (m_axi_awvalid),  // input          s_axi_awvalid
+    .s_axi_awready                  (m_axi_awready),  // output         s_axi_awready
+    // Slave Interface Write Data Ports
+    .s_axi_wdata                    (m_axi_wdata),  // input [511:0]            s_axi_wdata
+    .s_axi_wstrb                    (m_axi_wstrb),  // input [63:0]         s_axi_wstrb
+    .s_axi_wlast                    (m_axi_wlast),  // input            s_axi_wlast
+    .s_axi_wvalid                   (m_axi_wvalid),  // input           s_axi_wvalid
+    .s_axi_wready                   (m_axi_wready),  // output          s_axi_wready
+    // Slave Interface Write Response Ports
+    .s_axi_bid                      (m_axi_bid),  // output [15:0]          s_axi_bid
+    .s_axi_bresp                    (m_axi_bresp),  // output [1:0]         s_axi_bresp
+    .s_axi_bvalid                   (m_axi_bvalid),  // output          s_axi_bvalid
+    .s_axi_bready                   (m_axi_bready),  // input           s_axi_bready
+    // Slave Interface Read Address Ports
+    .s_axi_arid                     (m_axi_arid),  // input [15:0]          s_axi_arid
+    .s_axi_araddr                   (m_axi_araddr),  // input [29:0]            s_axi_araddr
+    .s_axi_arlen                    (m_axi_arlen),  // input [7:0]          s_axi_arlen
+    .s_axi_arsize                   (m_axi_arsize),  // input [2:0]         s_axi_arsize
+    .s_axi_arburst                  (m_axi_arburst),  // input [1:0]            s_axi_arburst
+    .s_axi_arlock                   (m_axi_arlock),  // input [0:0]         s_axi_arlock
+    .s_axi_arcache                  (m_axi_arcache),  // input [3:0]            s_axi_arcache
+    .s_axi_arprot                   (m_axi_arprot),  // input [2:0]         s_axi_arprot
+    .s_axi_arqos                    (m_axi_arqos),  // input [3:0]          s_axi_arqos
+    .s_axi_arvalid                  (m_axi_arvalid),  // input          s_axi_arvalid
+    .s_axi_arready                  (m_axi_arready),  // output         s_axi_arready
+    // Slave Interface Read Data Ports
+    .s_axi_rid                      (m_axi_rid),  // output [15:0]          s_axi_rid
+    .s_axi_rdata                    (m_axi_rdata),  // output [511:0]           s_axi_rdata
+    .s_axi_rresp                    (m_axi_rresp),  // output [1:0]         s_axi_rresp
+    .s_axi_rlast                    (m_axi_rlast),  // output           s_axi_rlast
+    .s_axi_rvalid                   (m_axi_rvalid),  // output          s_axi_rvalid
+    .s_axi_rready                   (m_axi_rready),  // input           s_axi_rready
+
+    // System Clock Ports
+    .sys_clk_i                      (sys_clk),
+    .sys_rst                        (sys_rst_n) // input sys_rst
+);
 
 
 
@@ -637,6 +973,7 @@ mig_7series_0   mig_7series_0 (
 
 `ifdef PITON_PROTO
 `ifndef PITON_PROTO_NO_MON
+`ifndef PITONSYS_AXI4_MEM
 
     always @(posedge ui_clk) begin
         if (app_en) begin
@@ -652,6 +989,7 @@ mig_7series_0   mig_7series_0 (
         end
     end
 
+`endif  // PITONSYS_AXI4_MEM
 `endif  // PITON_PROTO_NO_MON
 `endif  // PITON_PROTO
 

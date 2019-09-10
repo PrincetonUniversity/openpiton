@@ -37,14 +37,13 @@ module noc_axi4_bridge_deser (
   input [`NOC_DATA_WIDTH-1:0] flit_in, 
   input  flit_in_val, 
   output flit_in_rdy, 
+  input phy_init_done,
 
   output [`MSG_HEADER_WIDTH-1:0] header_out, 
   output [`AXI4_DATA_WIDTH-1:0] data_out, 
   output out_val, 
   input  out_rdy
 );
-
-localparam MAX_PKT_LEN_LOG = 4; // log(11)
 
 localparam ACCEPT_W1   = 3'd0;
 localparam ACCEPT_W2   = 3'd1;
@@ -55,11 +54,12 @@ localparam SEND        = 3'd4;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w1;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
-reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN:0]; //buffer for incomming packets
-reg [MAX_PKT_LEN_LOG-1:0]           remaining_flits; //flits remaining in current packet
+reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN-1:0]; //buffer for incomming packets
+reg [`MSG_LENGTH_WIDTH-1:0]         remaining_flits; //flits remaining in current packet
 reg [2:0]                           state;
 
-assign flit_in_rdy = (state != SEND);
+assign flit_in_rdy = (state != SEND) & phy_init_done;
+wire flit_in_go = flit_in_val & flit_in_rdy;
 assign out_val = (state == SEND);
 
 always @(posedge clk) begin
@@ -73,7 +73,7 @@ always @(posedge clk) begin
   else begin
     case (state)
       ACCEPT_W1: begin
-        if (flit_in_val) begin
+        if (flit_in_go) begin
           state <= ACCEPT_W2;
           remaining_flits <= flit_in[`MSG_LENGTH]-1;
           pkt_w1 <= flit_in;  
@@ -87,7 +87,7 @@ always @(posedge clk) begin
         pkt_w3 <= pkt_w3;  
       end
       ACCEPT_W2: begin
-        if (flit_in_val) begin
+        if (flit_in_go) begin
           state <= ACCEPT_W3;
           remaining_flits <= remaining_flits - 1;
           pkt_w2 <= flit_in;
@@ -101,7 +101,7 @@ always @(posedge clk) begin
         pkt_w3 <= pkt_w3;  
       end
       ACCEPT_W3: begin
-        if (flit_in_val) begin
+        if (flit_in_go) begin
           if (remaining_flits == 0) begin
             state <= SEND;
             remaining_flits <= 0;
@@ -121,7 +121,7 @@ always @(posedge clk) begin
         pkt_w2 <= pkt_w2;
       end
       ACCEPT_DATA: begin
-        if (flit_in_val) begin
+        if (flit_in_go) begin
           if (remaining_flits == 0) begin
             state <= SEND;
             remaining_flits <= 0;
