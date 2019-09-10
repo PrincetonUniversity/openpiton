@@ -716,11 +716,11 @@ noc_axi4_bridge noc_axi4_bridge  (
     .phy_init_done      (noc_axi4_bridge_init_done ),
 
     .src_bridge_vr_noc2_val(fifo_trans_val),
-    .src_bridge_vr_noc2_data(fifo_trans_data),
+    .src_bridge_vr_noc2_dat(fifo_trans_data),
     .src_bridge_vr_noc2_rdy(fifo_trans_rdy),
 
     .bridge_dst_vr_noc3_val(trans_fifo_val),
-    .bridge_dst_vr_noc3_data(trans_fifo_data),
+    .bridge_dst_vr_noc3_dat(trans_fifo_data),
     .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
 
     .m_axi_awid(core_axi_awid),

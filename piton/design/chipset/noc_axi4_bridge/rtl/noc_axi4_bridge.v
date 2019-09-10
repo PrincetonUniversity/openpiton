@@ -38,10 +38,10 @@ module noc_axi4_bridge (
 
     // Noc interface
     input  wire                                   src_bridge_vr_noc2_val,
-    input  wire [`NOC_DATA_WIDTH-1:0]             src_bridge_vr_noc2_data,
+    input  wire [`NOC_DATA_WIDTH-1:0]             src_bridge_vr_noc2_dat,
     output wire                                   src_bridge_vr_noc2_rdy,
     output wire                                   bridge_dst_vr_noc3_val,
-    output wire [`NOC_DATA_WIDTH-1:0]             bridge_dst_vr_noc3_data,
+    output wire [`NOC_DATA_WIDTH-1:0]             bridge_dst_vr_noc3_dat,
     input  wire                                   bridge_dst_vr_noc3_rdy,
 
     // AXI interface
@@ -164,7 +164,7 @@ noc_axi4_bridge_deser noc_axi4_bridge_deser(
     .clk(clk), 
     .rst_n(rst_n), 
 
-    .flit_in(src_bridge_vr_noc2_data), 
+    .flit_in(src_bridge_vr_noc2_dat), 
     .flit_in_val(src_bridge_vr_noc2_val), 
     .flit_in_rdy(src_bridge_vr_noc2_rdy), 
     .phy_init_done(phy_init_done),
@@ -271,7 +271,7 @@ noc_axi4_bridge_ser noc_axi4_bridge_ser(
     .in_val(ser_val), 
     .in_rdy(ser_rdy), 
 
-    .flit_out(bridge_dst_vr_noc3_data), 
+    .flit_out(bridge_dst_vr_noc3_dat), 
     .flit_out_val(bridge_dst_vr_noc3_val), 
     .flit_out_rdy(bridge_dst_vr_noc3_rdy)
 );
