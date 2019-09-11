@@ -54,7 +54,7 @@ output reg [SIZE-1:0] syncdata;
 
 `ifdef PITON_ARIANE
 // this prevents SV assertion failures in Ariane
-// pragma_translate_off
+// pragma translate_off
 `define SIM_RST_INIT
 // pragma translate_on
 `ifdef SIM_RST_INIT
