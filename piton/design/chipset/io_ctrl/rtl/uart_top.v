@@ -44,11 +44,7 @@ module uart_top (
     output                                  test_start,
     input                                   test_good_end,
     input                                   test_bad_end,
-`ifndef PITONSYS_NO_MC
-`ifdef PITON_FPGA_MC_DDR3
     input                                   init_calib_complete,
-`endif
-`endif
 
     input [`NOC_CHIPID_WIDTH-1:0]          chip_id,
     input [`NOC_X_WIDTH-1:0]                x_id,
@@ -162,12 +158,6 @@ wire [1:0]                         core_axi_rresp;
 wire                               core_axi_rvalid;
 wire                               core_axi_rready;
 
-
-`ifndef PITON_FPGA_MC_DDR3
-    wire init_calib_complete = 1'b1;
-`elsif PITONSYS_NO_MC
-    wire init_calib_complete = 1'b1;
-`endif
 
 // put don't touch back on these
 (* DONT_TOUCH = "yes" *)wire    [`NOC_DATA_WIDTH-1:0]  core_axi_awaddr_unmasked;
