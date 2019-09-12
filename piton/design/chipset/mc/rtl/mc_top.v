@@ -42,20 +42,20 @@ module mc_top (
 
     input                           uart_boot_en,
     
-`ifdef VCU118_BOARD
+`ifdef PITONSYS_DDR4
     // directly feed in 250MHz ref clock
     input                           sys_clk_p,
     input                           sys_clk_n,
 
     output                          ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
-`else // VCU118_BOARD
+`else // PITONSYS_DDR4
     input                           sys_clk,
 
     output                          ddr_cas_n,
     output                          ddr_ras_n,
     output                          ddr_we_n,
-`endif
+`endif // PITONSYS_DDR4
 
     output [`DDR3_ADDR_WIDTH-1:0]   ddr_addr,
     output [`DDR3_BA_WIDTH-1:0]     ddr_ba,
@@ -69,16 +69,21 @@ module mc_top (
 `ifndef NEXYSVIDEO_BOARD
     output [`DDR3_CS_WIDTH-1:0]     ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
-`ifdef VCU118_BOARD
+`ifdef PITONSYS_DDR4
+`ifdef XUPP3R_BOARD
+    output                          ddr_parity,
+`else
     inout [`DDR3_DM_WIDTH-1:0]      ddr_dm,
-`else 
+`endif // XUPP3R_BOARD
+`else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
-`endif
-    output                          ddr_odt,
+`endif // PITONSYS_DDR4
+    output [`DDR3_ODT_WIDTH-1:0]    ddr_odt,
 
     output                          init_calib_complete_out,
     input                           sys_rst_n
 );
+
 reg     [31:0]                      delay_cnt;
 reg                                 ui_clk_syn_rst_delayed;
 wire                                init_calib_complete;
@@ -309,7 +314,7 @@ memory_zeroer #(
 );
 `endif
 
-`ifdef VCU118_BOARD
+`ifdef PITONSYS_DDR4
 
 // reserved, tie to 0
 wire app_hi_pri;
@@ -334,7 +339,9 @@ ddr4_0 i_ddr4_0 (
   .c0_ddr4_ck_t              ( ddr_ck_p                  ),
   .c0_ddr4_ck_c              ( ddr_ck_n                  ),
   .c0_ddr4_reset_n           ( ddr_reset_n               ),
+`ifndef XUPP3R_BOARD
   .c0_ddr4_dm_dbi_n          ( ddr_dm                    ), // dbi_n is a data bus inversion feature that cannot be used simultaneously with dm
+`endif
   .c0_ddr4_dq                ( ddr_dq                    ), 
   .c0_ddr4_dqs_c             ( ddr_dqs_n                 ), 
   .c0_ddr4_dqs_t             ( ddr_dqs_p                 ), 
@@ -355,10 +362,17 @@ ddr4_0 i_ddr4_0 (
   .c0_ddr4_app_rd_data_valid ( app_rd_data_valid         ),
   .c0_ddr4_app_rdy           ( app_rdy                   ),
   .c0_ddr4_app_wdf_rdy       ( app_wdf_rdy               )
+`ifdef XUPP3R_BOARD
+,
+  .c0_ddr4_ecc_err_addr      (                           ),            // output wire [51 : 0] c0_ddr4_ecc_err_addr
+  .c0_ddr4_ecc_single        (                           ),                // output wire [7 : 0] c0_ddr4_ecc_single
+  .c0_ddr4_ecc_multiple      (                           ),            // output wire [7 : 0] c0_ddr4_ecc_multiple
+  .c0_ddr4_parity            ( ddr_parity                ),                        // output wire c0_ddr4_parity
+  .c0_ddr4_app_correct_en_i  ( 1'b1                      )     // input wire c0_ddr4_app_correct_en_i
+`endif
 );
 
-
-`else // VCU118_BOARD
+`else // PITONSYS_DDR4
 mig_7series_0   mig_7series_0 (
     // Memory interface ports
 `ifndef NEXYS4DDR_BOARD
@@ -424,7 +438,7 @@ mig_7series_0   mig_7series_0 (
     .sys_clk_i                      (sys_clk),
     .sys_rst                        (sys_rst_n)
 );
-`endif // VCU118_BOARD
+`endif // PITONSYS_DDR4
 
 `else // ifdef AXI4_MEM, use AXI, works only with VC707
 

@@ -98,7 +98,7 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
 
 STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "vcu118":2*8*2**30,
-                                                    "xupp3r":2*8*2**30,
+                                                    "xupp3r":32*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20
@@ -113,7 +113,7 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                 },
                                         "dmw":  {   "vc707":8*2**30,
                                                     "vcu118":2*8*2**30,
-                                                    "xupp3r":2*8*2**30,
+                                                    "xupp3r":32*8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20

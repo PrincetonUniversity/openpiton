@@ -44,6 +44,7 @@ module uart_top (
     output                                  test_start,
     input                                   test_good_end,
     input                                   test_bad_end,
+    output                                  uart_rst_out_n,
 
     input [`NOC_CHIPID_WIDTH-1:0]          chip_id,
     input [`NOC_X_WIDTH-1:0]                x_id,
@@ -304,6 +305,24 @@ assign uart16550_rx   = uart_rx;
 `else   // PITONSYS_UART_BOOT
   assign reader_stop = 1'b1;
 `endif  // PITONSYS_UART_BOOT
+
+`ifdef PITONSYS_UART_RESET
+  uart_reseter uart_reseter(
+    .axi_clk(axi_clk),
+    .axi_rst_n(rst_n),
+
+    .axi_rdata(s_axi_rdata),
+    .axi_rvalid(s_axi_rvalid),
+    .axi_rready(s_axi_rready),
+    .axi_araddr    (s_axi_araddr),
+    .axi_arvalid   (s_axi_arvalid),
+    .axi_arready   (s_axi_arready),
+    
+    .uart_rst_out_n(uart_rst_out_n)
+  );
+`else 
+  assign uart_rst_out_n = 1'b1;
+`endif
 
 uart_mux   uart_mux (
   .axi_clk              (axi_clk            ),

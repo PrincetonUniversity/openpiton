@@ -32,16 +32,15 @@ set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
 set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 set_property BITSTREAM.CONFIG.CONFIGRATE 85.0 [current_design]
 set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
-set_property BITSTREAM.CONFIG.UNUSEDPIN Pulldown [current_design]
 
 # Clock signals
-set_property -dict {PACKAGE_PIN BA23 IOSTANDARD LVDS} [get_ports chipset_clk_osc_n]
-set_property -dict {PACKAGE_PIN AY23 IOSTANDARD LVDS} [get_ports chipset_clk_osc_p]
+set_property -dict {PACKAGE_PIN BA23 IOSTANDARD LVDS} [get_ports clk_osc_n]
+set_property -dict {PACKAGE_PIN AY23 IOSTANDARD LVDS} [get_ports clk_osc_p]
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets chipset/clk_mmcm/inst/clkin1_ibufds/O]
 
 # Reset, note that this is active low on this board!!
-set_property -dict {PACKAGE_PIN AT23 IOSTANDARD LVCMOS18} [get_ports sys_rst_n]
+set_property -dict {PACKAGE_PIN AT23 IOSTANDARD LVCMOS18} [get_ports rst_n]
 
 # False paths
 set_false_path -to [get_cells -hierarchical *afifo_ui_rst_r*]
@@ -83,14 +82,14 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets tck_i_IBUF_inst/O]
 
 #### UART
 #IO_L11N_T1_SRCC_35 Sch=uart_rxd_out
-set_property -dict {PACKAGE_PIN AM24 IOSTANDARD LVCMOS18} [get_ports uart_tx]
-set_property -dict {PACKAGE_PIN AL24 IOSTANDARD LVCMOS18} [get_ports uart_rx]
+set_property -dict {PACKAGE_PIN AM24 IOSTANDARD LVCMOS18} [get_ports uart_rx]
+set_property -dict {PACKAGE_PIN AL24 IOSTANDARD LVCMOS18} [get_ports uart_tx]
 
 ## LEDs
-set_property -dict {PACKAGE_PIN AT32 IOSTANDARD LVCMOS12} [get_ports {leds[0]}]
-set_property -dict {PACKAGE_PIN AV34 IOSTANDARD LVCMOS12} [get_ports {leds[1]}]
-set_property -dict {PACKAGE_PIN AY30 IOSTANDARD LVCMOS12} [get_ports {leds[2]}]
-set_property -dict {PACKAGE_PIN BB32 IOSTANDARD LVCMOS12} [get_ports {leds[3]}]
+set_property -dict {PACKAGE_PIN AT32 IOSTANDARD LVCMOS12} [get_ports {led[0]}]
+set_property -dict {PACKAGE_PIN AV34 IOSTANDARD LVCMOS12} [get_ports {led[1]}]
+set_property -dict {PACKAGE_PIN AY30 IOSTANDARD LVCMOS12} [get_ports {led[2]}]
+set_property -dict {PACKAGE_PIN BB32 IOSTANDARD LVCMOS12} [get_ports {led[3]}]
 
 ## DDR4
 
@@ -209,7 +208,7 @@ set_property -dict {PACKAGE_PIN BB32 IOSTANDARD LVCMOS12} [get_ports {leds[3]}]
 # set_property PACKAGE_PIN       BF29            [get_ports "ddr_dqs_n[7]"] ;# Dimm 1 Data Strobe 7
 # set_property IOSTANDARD        DIFF_POD12_DCI  [get_ports "ddr_dqs_n[8]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_dqs_n[8]"]
-# set_property PACKAGE_PIN       AR13            [get_ports "ddr_dqs_n[8]"] ;# Dimm 1 Data Strobe
+# set_property PACKAGE_PIN       AR13            [get_ports "ddr_dqs_n[8]"] ;# Dimm 1 Data Strobe 
 # set_property IOSTANDARD        DIFF_POD12_DCI  [get_ports "ddr_dqs_n[9]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_dqs_n[9]"]
 # set_property PACKAGE_PIN       AR15            [get_ports "ddr_dqs_n[9]"] ;# Dimm 1 Data Strobe 9
@@ -600,10 +599,10 @@ set_property -dict {PACKAGE_PIN BB32 IOSTANDARD LVCMOS12} [get_ports {leds[3]}]
 # set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cke[1]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_cke[1]"]
 # set_property PACKAGE_PIN       BB37            [get_ports "ddr_cke[1]"] ;# Dimm 2 Clock Enable 1
-# set_property PACKAGE_PIN       AW36            [get_ports "ddr_ck_n[0]"]
+# set_property PACKAGE_PIN       AW36            [get_ports "ddr_ck_n[0]"] 
 # set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_n[0]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_n[0]"] ;# Dimm 2 Clock
-# set_property PACKAGE_PIN       AW35            [get_ports "ddr_ck_p[0]"]
+# set_property PACKAGE_PIN       AW35            [get_ports "ddr_ck_p[0]"] 
 # set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_p[0]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_p[0]"] ;# Dimm 2 Clock
 # set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cs_n[0]"]
@@ -1030,13 +1029,13 @@ set_property PACKAGE_PIN       A40             [get_ports "ddr_cke[0]"] ;# Dimm 
 set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cke[1]"]
 set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_cke[1]"]
 set_property PACKAGE_PIN       B39             [get_ports "ddr_cke[1]"] ;# Dimm 3 Clock Enable 1
-set_property PACKAGE_PIN       B37             [get_ports "ddr_ck_n[0]"]
+set_property PACKAGE_PIN       B37             [get_ports "ddr_ck_n[0]"] 
 set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_n[0]"]
 set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_n[0]"] ;# Dimm 3 Clock
-set_property PACKAGE_PIN       B36             [get_ports "ddr_ck_p[0]"]
+set_property PACKAGE_PIN       B36             [get_ports "ddr_ck_p[0]"] 
 set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_p[0]"]
 set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_p[0]"] ;# Dimm 3 Clock
-set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cs_n[0]"]
+set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cs_n[0]"] 
 set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_cs_n[0]"]
 set_property PACKAGE_PIN       D39             [get_ports "ddr_cs_n[0]"] ;# Dimm 3 Active Low Chip Select 0
 set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cs_n[1]"]
@@ -1377,8 +1376,8 @@ set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_parity"]
 set_property PACKAGE_PIN       C39             [get_ports "ddr_parity"] ;# Dimm 3 Parity
 set_property IOSTANDARD        LVCMOS12        [get_ports "ddr_reset_n"]
 set_property PACKAGE_PIN       E40             [get_ports "ddr_reset_n"] ;# Dimm 3 Active Low Reset
-set_property PACKAGE_PIN E38 [get_ports mc_clk_p]
-set_property PACKAGE_PIN D38 [get_ports mc_clk_n]
+set_property PACKAGE_PIN E38  [get_ports mc_clk_p] ;# Dimm 3 Reference Clock
+set_property PACKAGE_PIN D38  [get_ports mc_clk_n]
 set_property IOSTANDARD DIFF_SSTL12_DCI [get_ports mc_clk_p]
 set_property IOSTANDARD DIFF_SSTL12_DCI [get_ports mc_clk_n]
 set_property ODT RTT_48 [get_ports mc_clk_p]
@@ -1460,10 +1459,10 @@ set_property ODT RTT_48 [get_ports mc_clk_p]
 # set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cke[1]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_cke[1]"]
 # set_property PACKAGE_PIN       J21             [get_ports "ddr_cke[1]"] ;# Dimm 4 Clock Enable 1
-# set_property PACKAGE_PIN       E17             [get_ports "ddr_ck_n[0]"]
+# set_property PACKAGE_PIN       E17             [get_ports "ddr_ck_n[0]"] 
 # set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_n[0]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_n[0]"] ;# Dimm 4 Clock
-# set_property PACKAGE_PIN       E18             [get_ports "ddr_ck_p[0]"]
+# set_property PACKAGE_PIN       E18             [get_ports "ddr_ck_p[0]"] 
 # set_property IOSTANDARD        DIFF_SSTL12_DCI [get_ports "ddr_ck_p[0]"]
 # set_property OUTPUT_IMPEDANCE  RDRV_40_40      [get_ports "ddr_ck_p[0]"] ;# Dimm 4 Clock
 # set_property IOSTANDARD        SSTL12_DCI      [get_ports "ddr_cs_n[0]"]
@@ -1822,4 +1821,3 @@ set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
 connect_debug_port dbg_hub/clk [get_nets clk]
-
