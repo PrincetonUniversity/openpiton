@@ -152,16 +152,3 @@
     `define DDR3_ODT_WIDTH          1
 `endif
 
-    `define C_M_AXI4_DATA_WIDTH  512
-    `define C_M_AXI4_ID_WIDTH    16
-    `define C_M_AXI4_ADDR_WIDTH  64
-    `define C_M_AXI4_LEN_WIDTH   8
-    `define C_M_AXI4_SIZE_WIDTH  3
-    `define C_M_AXI4_STRB_WIDTH  64
-    `define C_M_AXI4_BURST_WIDTH 2
-    `define C_M_AXI4_RESP_WIDTH  2
-    `define C_M_AXI4_CACHE_WIDTH 4
-    `define C_M_AXI4_PROT_WIDTH 3
-    `define C_M_AXI4_QOS_WIDTH 4
-    `define C_M_AXI4_REGION_WIDTH 4
-    `define C_M_AXI4_USER_WIDTH 11

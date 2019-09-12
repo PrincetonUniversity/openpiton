@@ -795,6 +795,16 @@ uart_top        uart_top (
 `endif // endif PITONSYS_UART_LOOBACK
 
     .uart_boot_en               ( uart_boot_en                          ),
+`ifndef PITONSYS_NO_MC
+`ifdef PITON_FPGA_MC_DDR3
+    .init_calib_complete        (init_calib_complete_ff                 ),
+`else // PITON_FPGA_MC_DDR3
+    .init_calib_complete        (1'b1                                   ),
+`endif //PITON_FPGA_MC_DDR3
+`else // PITONSYS_NO_MC
+    .init_calib_complete        (1'b1                                   ),
+`endif // PITONSYS_NO_MC
+
     // Uncomment to connect to the switch
     // .uart_timeout_en(uart_timeout_en),
     .uart_timeout_en            ( 1'b1                                  ),
