@@ -162,6 +162,13 @@ wire [1:0]                         core_axi_rresp;
 wire                               core_axi_rvalid;
 wire                               core_axi_rready;
 
+
+`ifndef PITON_FPGA_MC_DDR3
+    wire init_calib_complete = 1'b1;
+`elsif PITONSYS_NO_MC
+    wire init_calib_complete = 1'b1;
+`endif
+
 // put don't touch back on these
 (* DONT_TOUCH = "yes" *)wire    [`NOC_DATA_WIDTH-1:0]  core_axi_awaddr_unmasked;
 (* DONT_TOUCH = "yes" *)wire    [`NOC_DATA_WIDTH-1:0]  core_axi_araddr_unmasked;

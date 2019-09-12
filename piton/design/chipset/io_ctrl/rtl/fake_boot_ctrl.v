@@ -46,32 +46,32 @@
 module fake_boot_ctrl(
 
     input wire clk,
-    input wire rst_n,
+(* mark_debug = "true" *)    input wire rst_n,
 
-    input wire noc_valid_in,
-    input wire [`NOC_DATA_WIDTH-1:0] noc_data_in,
-    output reg noc_ready_in,
+(* mark_debug = "true" *)    input wire noc_valid_in,
+(* mark_debug = "true" *)    input wire [`NOC_DATA_WIDTH-1:0] noc_data_in,
+(* mark_debug = "true" *)    output reg noc_ready_in,
 
 
-    output reg noc_valid_out,
-    output reg [`NOC_DATA_WIDTH-1:0] noc_data_out,
-    input wire noc_ready_out
+(* mark_debug = "true" *)    output reg noc_valid_out,
+(* mark_debug = "true" *)    output reg [`NOC_DATA_WIDTH-1:0] noc_data_out,
+(* mark_debug = "true" *)    input wire noc_ready_out
 
 );
 
-reg mem_valid_in;
-reg [3*`NOC_DATA_WIDTH-1:0] mem_header_in;
-reg mem_ready_in;
+(* mark_debug = "true" *)reg mem_valid_in;
+(* mark_debug = "true" *)reg [3*`NOC_DATA_WIDTH-1:0] mem_header_in;
+(* mark_debug = "true" *)reg mem_ready_in;
 
 
 //Input buffer
 
-reg [`NOC_DATA_WIDTH-1:0] buf_in_mem_f [10:0];
-reg [`NOC_DATA_WIDTH-1:0] buf_in_mem_next;
-reg [`MSG_LENGTH_WIDTH-1:0] buf_in_counter_f;
-reg [`MSG_LENGTH_WIDTH-1:0] buf_in_counter_next;
-reg [3:0] buf_in_wr_ptr_f;
-reg [3:0] buf_in_wr_ptr_next;
+(* mark_debug = "true" *)reg [`NOC_DATA_WIDTH-1:0] buf_in_mem_f [10:0];
+(* mark_debug = "true" *)reg [`NOC_DATA_WIDTH-1:0] buf_in_mem_next;
+(* mark_debug = "true" *)reg [`MSG_LENGTH_WIDTH-1:0] buf_in_counter_f;
+(* mark_debug = "true" *)reg [`MSG_LENGTH_WIDTH-1:0] buf_in_counter_next;
+(* mark_debug = "true" *)reg [3:0] buf_in_wr_ptr_f;
+(* mark_debug = "true" *)reg [3:0] buf_in_wr_ptr_next;
 
 always @ *
 begin
@@ -183,8 +183,8 @@ wire [`MSG_SRC_X_WIDTH-1:0] msg_src_x;
 wire [`MSG_SRC_Y_WIDTH-1:0] msg_src_y;
 wire [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits;
 
-reg [`NOC_DATA_WIDTH-1:0] msg_send_data [7:0];
-reg [`NOC_DATA_WIDTH-1:0] mem_temp;
+(* mark_debug = "true" *)reg [`NOC_DATA_WIDTH-1:0] msg_send_data [7:0];
+(* mark_debug = "true" *)reg [`NOC_DATA_WIDTH-1:0] mem_temp;
 wire [`NOC_DATA_WIDTH*3-1:0] msg_send_header;
 
 wire    bram_ce;
@@ -214,7 +214,7 @@ l2_decoder decoder(
     .msg_lsid           ()
 );
 
-reg [63:0] write_mask;
+(* mark_debug = "true" *)reg [63:0] write_mask;
 
 always @ *
 begin
@@ -254,24 +254,23 @@ wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_data_out;
 wire                            bram_w_val;
 wire                            bram_w_val_hit;
 wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_w_mask;
-reg  [`PITON_BRAM_TEST_WIDTH-1:0]      bram_w_mask_r;
 wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_data_in;
 
 wire [BRAM_ADDR_WIDTH-1:0]      bram_addr;    //TODO: mapping !
-reg [BRAM_ADDR_WIDTH-1:0]      bram_addr_r;
+wire [BRAM_ADDR_WIDTH-1+3:0]    translated_addr; // translator adds 3 extra zeroes in the beginning of address
 
 wire [`NOC_DATA_WIDTH-1:0]      buf_out_mem [8:0];
-reg  [`NOC_DATA_WIDTH*3-1:0]    msg_send_header_r;
+(* mark_debug = "true" *)reg  [`NOC_DATA_WIDTH*3-1:0]    msg_send_header_r;
 wire [`MSG_TYPE_WIDTH-1:0]      msg_send_type;
 wire [`MSG_LENGTH_WIDTH-1:0]    msg_send_length;
 
-reg  [`L2_DATA_SUBLINE_WIDTH-1:0] addr_subline_r;
+(* mark_debug = "true" *)reg  [`L2_DATA_SUBLINE_WIDTH-1:0] addr_subline_r;
 wire                            hit_bram;
-reg                             hit_bram_r;
+(* mark_debug = "true" *)reg                             hit_bram_r;
 wire [`PITON_BRAM_TEST_WIDTH-1:0]      read_data;
-reg  [`NOC_DATA_WIDTH-1:0]      buf_out_mem_r [8:0];
+(* mark_debug = "true" *)reg  [`NOC_DATA_WIDTH-1:0]      buf_out_mem_r [8:0];
 wire                            mem_process_next_val;
-reg                             mem_process_next_val_r;
+(* mark_debug = "true" *)reg                             mem_process_next_val_r;
 
 
 `ifdef PITONSYS_UART_BOOT
@@ -282,9 +281,10 @@ reg                             mem_process_next_val_r;
         .STORAGE_ADDR_WIDTH (BRAM_ADDR_WIDTH)
     ) storage_addr_trans (
         .va_byte_addr       (msg_addr       ),
-        .storage_addr_out   (bram_addr      ),
+        .storage_addr_out   (translated_addr),
         .hit_any_section    (hit_bram       )
     );
+assign bram_addr = translated_addr[BRAM_ADDR_WIDTH-1+3:3];
 
 // READ
 assign mem_process_next_val = mem_valid_in & mem_ready_in;
@@ -348,11 +348,6 @@ always @(posedge clk) begin
     buf_out_mem_r[0] <= buf_out_mem[0];
 end
 
-always @(posedge clk) begin
-    bram_addr_r     <= bram_addr;
-    bram_w_mask_r   <= bram_w_mask;
-end
-
 assign bram_r_val_hit = bram_r_val & hit_bram_r;
 assign bram_w_val_hit = bram_w_val & hit_bram_r;
 
@@ -374,6 +369,22 @@ bram_sdp_wrapper #(
     .DIN            (bram_data_in   ),
     .DOUT           (bram_data_out  )
 );
+
+(* mark_debug = "true" *)reg [BRAM_ADDR_WIDTH-1:0] bram_addr_r;
+(* mark_debug = "true" *)reg bram_ce_r;
+(* mark_debug = "true" *)reg bram_rdwen_r;
+(* mark_debug = "true" *)reg [`PITON_BRAM_TEST_WIDTH-1:0] bram_w_mask_r;
+(* mark_debug = "true" *)reg [`PITON_BRAM_TEST_WIDTH-1:0]bram_data_in_r;
+(* mark_debug = "true" *)reg [`PITON_BRAM_TEST_WIDTH-1:0]bram_data_out_r;
+
+always @(posedge clk) begin
+    bram_addr_r <= bram_addr;
+    bram_ce_r <= bram_ce;
+    bram_rdwen_r <= bram_rdwen;
+    bram_w_mask_r <= bram_w_mask;
+    bram_data_in_r <= bram_data_in;
+    bram_data_out_r <= bram_data_out;
+end
 
 
 l2_encoder encoder(
@@ -405,11 +416,10 @@ l2_encoder encoder(
 
 //Output buffer
 
-reg [`NOC_DATA_WIDTH-1:0] buf_out_mem_next [8:0];
-reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_f;
-reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_next;
-reg [3:0] buf_out_rd_ptr_f;
-reg [3:0] buf_out_rd_ptr_next;
+(* mark_debug = "true" *)reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_f;
+(* mark_debug = "true" *)reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_next;
+(* mark_debug = "true" *)reg [3:0] buf_out_rd_ptr_f;
+(* mark_debug = "true" *)reg [3:0] buf_out_rd_ptr_next;
 
 always @ *
 begin
@@ -478,66 +488,6 @@ begin
         buf_out_rd_ptr_f <= buf_out_rd_ptr_next;
     end
 end
-
-
-
-always @ *
-begin
-    if (mem_valid_in && mem_ready_in)
-    begin
-        buf_out_mem_next[0] = msg_send_header[`NOC_DATA_WIDTH-1:0];
-        buf_out_mem_next[1] = msg_send_data[0];
-        buf_out_mem_next[2] = msg_send_data[1];
-        buf_out_mem_next[3] = msg_send_data[2];
-        buf_out_mem_next[4] = msg_send_data[3];
-        buf_out_mem_next[5] = msg_send_data[4];
-        buf_out_mem_next[6] = msg_send_data[5];
-        buf_out_mem_next[7] = msg_send_data[6];
-        buf_out_mem_next[8] = msg_send_data[7];
-    end
-    else
-    begin
-        buf_out_mem_next[0] = buf_out_mem[0];
-        buf_out_mem_next[1] = buf_out_mem[1];
-        buf_out_mem_next[2] = buf_out_mem[2];
-        buf_out_mem_next[3] = buf_out_mem[3];
-        buf_out_mem_next[4] = buf_out_mem[4];
-        buf_out_mem_next[5] = buf_out_mem[5];
-        buf_out_mem_next[6] = buf_out_mem[6];
-        buf_out_mem_next[7] = buf_out_mem[7];
-        buf_out_mem_next[8] = buf_out_mem[8];
-    end
-end
-
-/*
-always @ (posedge clk)
-begin
-    if (!rst_n)
-    begin
-        buf_out_mem[0] <= 0;
-        buf_out_mem[1] <= 0;
-        buf_out_mem[2] <= 0;
-        buf_out_mem[3] <= 0;
-        buf_out_mem[4] <= 0;
-        buf_out_mem[5] <= 0;
-        buf_out_mem[6] <= 0;
-        buf_out_mem[7] <= 0;
-        buf_out_mem[8] <= 0;
-    end
-    else
-    begin
-        buf_out_mem[0] <= buf_out_mem_next[0];
-        buf_out_mem[1] <= buf_out_mem_next[1];
-        buf_out_mem[2] <= buf_out_mem_next[2];
-        buf_out_mem[3] <= buf_out_mem_next[3];
-        buf_out_mem[4] <= buf_out_mem_next[4];
-        buf_out_mem[5] <= buf_out_mem_next[5];
-        buf_out_mem[6] <= buf_out_mem_next[6];
-        buf_out_mem[7] <= buf_out_mem_next[7];
-        buf_out_mem[8] <= buf_out_mem_next[8];
-    end
-end
-*/
 
 always @ *
 begin
