@@ -254,11 +254,10 @@ wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_data_out;
 wire                            bram_w_val;
 wire                            bram_w_val_hit;
 wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_w_mask;
-reg  [`PITON_BRAM_TEST_WIDTH-1:0]      bram_w_mask_r;
 wire [`PITON_BRAM_TEST_WIDTH-1:0]      bram_data_in;
 
 wire [BRAM_ADDR_WIDTH-1:0]      bram_addr;    //TODO: mapping !
-reg [BRAM_ADDR_WIDTH-1:0]      bram_addr_r;
+wire [BRAM_ADDR_WIDTH-1+3:0]    translated_addr; // translator adds 3 extra zeroes in the beginning of address
 
 wire [`NOC_DATA_WIDTH-1:0]      buf_out_mem [8:0];
 reg  [`NOC_DATA_WIDTH*3-1:0]    msg_send_header_r;
@@ -282,9 +281,10 @@ reg                             mem_process_next_val_r;
         .STORAGE_ADDR_WIDTH (BRAM_ADDR_WIDTH)
     ) storage_addr_trans (
         .va_byte_addr       (msg_addr       ),
-        .storage_addr_out   (bram_addr      ),
+        .storage_addr_out   (translated_addr),
         .hit_any_section    (hit_bram       )
     );
+assign bram_addr = translated_addr[BRAM_ADDR_WIDTH-1+3:3];
 
 // READ
 assign mem_process_next_val = mem_valid_in & mem_ready_in;
@@ -348,11 +348,6 @@ always @(posedge clk) begin
     buf_out_mem_r[0] <= buf_out_mem[0];
 end
 
-always @(posedge clk) begin
-    bram_addr_r     <= bram_addr;
-    bram_w_mask_r   <= bram_w_mask;
-end
-
 assign bram_r_val_hit = bram_r_val & hit_bram_r;
 assign bram_w_val_hit = bram_w_val & hit_bram_r;
 
@@ -374,7 +369,6 @@ bram_sdp_wrapper #(
     .DIN            (bram_data_in   ),
     .DOUT           (bram_data_out  )
 );
-
 
 l2_encoder encoder(
     .msg_dst_chipid             (msg_src_chipid),
@@ -405,7 +399,6 @@ l2_encoder encoder(
 
 //Output buffer
 
-reg [`NOC_DATA_WIDTH-1:0] buf_out_mem_next [8:0];
 reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_f;
 reg [`MSG_LENGTH_WIDTH-1:0] buf_out_counter_next;
 reg [3:0] buf_out_rd_ptr_f;
@@ -478,66 +471,6 @@ begin
         buf_out_rd_ptr_f <= buf_out_rd_ptr_next;
     end
 end
-
-
-
-always @ *
-begin
-    if (mem_valid_in && mem_ready_in)
-    begin
-        buf_out_mem_next[0] = msg_send_header[`NOC_DATA_WIDTH-1:0];
-        buf_out_mem_next[1] = msg_send_data[0];
-        buf_out_mem_next[2] = msg_send_data[1];
-        buf_out_mem_next[3] = msg_send_data[2];
-        buf_out_mem_next[4] = msg_send_data[3];
-        buf_out_mem_next[5] = msg_send_data[4];
-        buf_out_mem_next[6] = msg_send_data[5];
-        buf_out_mem_next[7] = msg_send_data[6];
-        buf_out_mem_next[8] = msg_send_data[7];
-    end
-    else
-    begin
-        buf_out_mem_next[0] = buf_out_mem[0];
-        buf_out_mem_next[1] = buf_out_mem[1];
-        buf_out_mem_next[2] = buf_out_mem[2];
-        buf_out_mem_next[3] = buf_out_mem[3];
-        buf_out_mem_next[4] = buf_out_mem[4];
-        buf_out_mem_next[5] = buf_out_mem[5];
-        buf_out_mem_next[6] = buf_out_mem[6];
-        buf_out_mem_next[7] = buf_out_mem[7];
-        buf_out_mem_next[8] = buf_out_mem[8];
-    end
-end
-
-/*
-always @ (posedge clk)
-begin
-    if (!rst_n)
-    begin
-        buf_out_mem[0] <= 0;
-        buf_out_mem[1] <= 0;
-        buf_out_mem[2] <= 0;
-        buf_out_mem[3] <= 0;
-        buf_out_mem[4] <= 0;
-        buf_out_mem[5] <= 0;
-        buf_out_mem[6] <= 0;
-        buf_out_mem[7] <= 0;
-        buf_out_mem[8] <= 0;
-    end
-    else
-    begin
-        buf_out_mem[0] <= buf_out_mem_next[0];
-        buf_out_mem[1] <= buf_out_mem_next[1];
-        buf_out_mem[2] <= buf_out_mem_next[2];
-        buf_out_mem[3] <= buf_out_mem_next[3];
-        buf_out_mem[4] <= buf_out_mem_next[4];
-        buf_out_mem[5] <= buf_out_mem_next[5];
-        buf_out_mem[6] <= buf_out_mem_next[6];
-        buf_out_mem[7] <= buf_out_mem_next[7];
-        buf_out_mem[8] <= buf_out_mem_next[8];
-    end
-end
-*/
 
 always @ *
 begin
