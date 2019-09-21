@@ -133,6 +133,7 @@ print "`define Y_TILES %d"   % Y_TILES;
 `define MSG_SUBLINE_VECTOR_      15:12
 `define MSG_OPTIONS_2_           15:0
 `define MSG_ADDR_HI_             55
+`define MSG_ADDR_LO_             16
 `define MSG_ADDR_                55:16
 
 // HEADER 3

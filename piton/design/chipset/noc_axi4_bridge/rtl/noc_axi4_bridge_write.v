@@ -240,7 +240,7 @@ end
 
 assign m_axi_awaddr = {addr[`AXI4_ADDR_WIDTH-1:6], 6'b0};
 assign m_axi_wstrb = strb_before_offset << offset;
-assign m_axi_wdata = req_data_f << offset;
+assign m_axi_wdata = req_data_f << (8*offset);
 
 // inbound responses
 wire m_axi_bgo = m_axi_bvalid & m_axi_bready;

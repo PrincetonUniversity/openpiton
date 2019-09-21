@@ -44,11 +44,8 @@ module uart_top (
     output                                  test_start,
     input                                   test_good_end,
     input                                   test_bad_end,
-<<<<<<< HEAD
     output                                  uart_rst_out_n,
-=======
     input                                   init_calib_complete,
->>>>>>> 590ef563c4b75c262615e1e8b0db2e5d73604fcd
 
     input [`NOC_CHIPID_WIDTH-1:0]          chip_id,
     input [`NOC_X_WIDTH-1:0]                x_id,

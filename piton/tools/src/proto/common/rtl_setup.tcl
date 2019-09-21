@@ -739,6 +739,7 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_8192x512/bram_8192x512" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_0/mig_7series_0" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/ddr4_0/ddr4_0" \
+    "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/ddr4_axi4/ddr4_axi4" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_axi4/mig_7series_axi4" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_data_fifo/sd_data_fifo" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_ctrl_fifo/sd_ctrl_fifo" \
