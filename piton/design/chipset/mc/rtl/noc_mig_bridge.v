@@ -51,24 +51,10 @@
 `define ADDR_ONE {{BUFFER_ADDR_SIZE-1{1'b0}}, {1'b1}}
 
 module noc_mig_bridge # (
-  parameter MAX_PKT_LEN                 = 11, // measured in flits
-  parameter MAX_PKT_LEN_LOG             = 4,
-  parameter ADDR_WIDTH                  = 29, // size of addr to MC
-  parameter CL_ADDR_WIDTH               = 24, // 1G, addressed by 64 byte cache lines
   parameter MIG_APP_ADDR_WIDTH          = 28,
-  parameter MEMORY_WIDTH                = 8,  // not used
-  parameter DATA_WIDTH                  = 64,
-  parameter MIG_RATIO                   = 4,
-  parameter APP_DATA_WIDTH              = 512, // local value DATA_WIDTH * MIG_RATIO * 2,
-  parameter APP_MASK_WIDTH              = APP_DATA_WIDTH / 8,   // byte mask
   parameter MIG_APP_DATA_WIDTH          = 128, // value for a generated MIG, which varies for different FPGAs
   parameter MIG_APP_MASK_WIDTH          = MIG_APP_DATA_WIDTH / 8,
-  parameter LOC_ADDR_HI                 = 45,
-  parameter LOC_ADDR_LO                 = 22,
-  parameter LOC_ADDR_SIZE               = 24, //512 MB, addressed by 64 byte cache lines 
-  
-  parameter FLIT_SIZE                   = 64, //Size of one flit
-  
+
   parameter IN_FLIGHT_LIMIT             = 16, //number of commands the MC can have in flight
   parameter BUFFER_ADDR_SIZE            = 4 //(log_2(IN_FLIGHT_LIMIT)+1)
 )
@@ -80,11 +66,11 @@ module noc_mig_bridge # (
    input                                uart_boot_en,
 
   // System Network Interface
-   input       [FLIT_SIZE-1:0]           flit_in,
+   input       [`NOC_DATA_WIDTH-1:0]           flit_in,
    input                                 flit_in_val,
    output                                flit_in_rdy,
 
-   output      [FLIT_SIZE-1:0]           flit_out,
+   output      [`NOC_DATA_WIDTH-1:0]           flit_out,
    output                                flit_out_val,
    input                                 flit_out_rdy,
 
@@ -105,17 +91,26 @@ module noc_mig_bridge # (
    output reg  [2:0]                     app_cmd_reg
 
 );
+
+localparam CL_ADDR_WIDTH = `PHY_ADDR_WIDTH - 6;
+localparam APP_DATA_WIDTH              = 512; // data width in noc
+localparam APP_MASK_WIDTH              = APP_DATA_WIDTH / 8;   // byte mask
+localparam MAX_PKT_LEN                 = 11; // measured in flits
+localparam MAX_PKT_LEN_LOG             = clogb2(MAX_PKT_LEN);
+localparam LOC_ADDR_HI                 = `MSG_ADDR_HI_;
+localparam LOC_ADDR_LO                 = `MSG_ADDR_LO_ + 6;
 localparam RATIO        = APP_DATA_WIDTH / MIG_APP_DATA_WIDTH;  // must be a power of 2!
 localparam RATIO_WIDTH  = clogb2(RATIO);
-localparam DDR3_DQ_BYTE_WIDTH     = `DDR3_DQ_WIDTH / 8;
-localparam DDR3_DQ_BYTE_WIDTH_LOG = clogb2(DDR3_DQ_BYTE_WIDTH);
+localparam WORD_SIZE_LOG = clogb2(`WORD_SIZE);
+
+
 
 integer i;
 
 // global buffers
-reg [FLIT_SIZE-1:0]           pkt_w1        [IN_FLIGHT_LIMIT-1:0];
-reg [FLIT_SIZE-1:0]           pkt_w2        [IN_FLIGHT_LIMIT-1:0];
-reg [FLIT_SIZE-1:0]           pkt_w3        [IN_FLIGHT_LIMIT-1:0]; 
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w1        [IN_FLIGHT_LIMIT-1:0];
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w2        [IN_FLIGHT_LIMIT-1:0];
+reg [`NOC_DATA_WIDTH-1:0]           pkt_w3        [IN_FLIGHT_LIMIT-1:0]; 
 reg [APP_DATA_WIDTH-1:0]  pkt_data_buf  [IN_FLIGHT_LIMIT-1:0];
  reg [2:0]                     pkt_state_buf [IN_FLIGHT_LIMIT-1:0];
  reg [`MSG_TYPE_WIDTH-1:0]   pkt_cmd_buf   [IN_FLIGHT_LIMIT-1:0];
@@ -123,7 +118,7 @@ reg [APP_DATA_WIDTH-1:0]  pkt_data_buf  [IN_FLIGHT_LIMIT-1:0];
 //*******************************************************
 // ACCEPT PACKETS
 //*******************************************************
-reg [FLIT_SIZE-1:0]           in_data_buf[MAX_PKT_LEN-4:0]; //buffer for incomming packets
+reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[MAX_PKT_LEN-4:0]; //buffer for incomming packets
 reg [BUFFER_ADDR_SIZE-1:0]    buf_current_in;  //address of buffer slot being filled
 reg [BUFFER_ADDR_SIZE-1:0]    buf_current_out; //address of buffer slot being sent
 reg [MAX_PKT_LEN_LOG-1:0]     remaining_flits; //flits remaining in current packet
@@ -136,7 +131,7 @@ reg                           r_app_en;         //command enable
 reg [BUFFER_ADDR_SIZE-1:0]    buf_current_data_rcv;
 
 reg [MAX_PKT_LEN_LOG-1:0]     remaining_flt_out;
-reg [FLIT_SIZE-1:0]           flit_out_buffer[MAX_PKT_LEN-1:0];
+reg [`NOC_DATA_WIDTH-1:0]           flit_out_buffer[MAX_PKT_LEN-1:0];
 
 reg [BUFFER_ADDR_SIZE-1:0]    buf_current_wdf; //tracks the current data sender to MC
 reg                           buf_wdf_data_half;  //which half of the data we are writing;
@@ -561,7 +556,7 @@ assign app_addr_virt = pkt_w2[buf_current_cmd][`MSG_ADDR_];
 
   // make byte address from DDR3_DQ_WIDTH address
   // get cache line addres from above address
-  assign cl_addr_uart_boot   = {storage_addr_out, {DDR3_DQ_BYTE_WIDTH_LOG{1'b0}}} >> 6;
+  assign cl_addr_uart_boot   = {storage_addr_out, {WORD_SIZE_LOG{1'b0}}} >> 6;
   assign cl_addr      = uart_boot_en ? cl_addr_uart_boot : 
                                       pkt_w2[buf_current_cmd][LOC_ADDR_HI: LOC_ADDR_LO];  // Alexey: bug fix. 512 = 64 * 8 = 64 * ( 1 << 3)
 
@@ -686,14 +681,14 @@ always @(posedge clk) begin
                 
                 //initialize return data
                 //TODO: this should be done genericly
-                flit_out_buffer[0]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((8)*FLIT_SIZE)-1:(7)*FLIT_SIZE];
-                flit_out_buffer[1]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((7)*FLIT_SIZE)-1:(6)*FLIT_SIZE];
-                flit_out_buffer[2]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((6)*FLIT_SIZE)-1:(5)*FLIT_SIZE];
-                flit_out_buffer[3]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((5)*FLIT_SIZE)-1:(4)*FLIT_SIZE];
-                flit_out_buffer[4]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((4)*FLIT_SIZE)-1:(3)*FLIT_SIZE];
-                flit_out_buffer[5]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((3)*FLIT_SIZE)-1:(2)*FLIT_SIZE];
-                flit_out_buffer[6]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((2)*FLIT_SIZE)-1:(1)*FLIT_SIZE];
-                flit_out_buffer[7]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((1)*FLIT_SIZE)-1:(0)*FLIT_SIZE];
+                flit_out_buffer[0]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((8)*`NOC_DATA_WIDTH)-1:(7)*`NOC_DATA_WIDTH];
+                flit_out_buffer[1]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((7)*`NOC_DATA_WIDTH)-1:(6)*`NOC_DATA_WIDTH];
+                flit_out_buffer[2]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((6)*`NOC_DATA_WIDTH)-1:(5)*`NOC_DATA_WIDTH];
+                flit_out_buffer[3]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((5)*`NOC_DATA_WIDTH)-1:(4)*`NOC_DATA_WIDTH];
+                flit_out_buffer[4]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((4)*`NOC_DATA_WIDTH)-1:(3)*`NOC_DATA_WIDTH];
+                flit_out_buffer[5]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((3)*`NOC_DATA_WIDTH)-1:(2)*`NOC_DATA_WIDTH];
+                flit_out_buffer[6]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((2)*`NOC_DATA_WIDTH)-1:(1)*`NOC_DATA_WIDTH];
+                flit_out_buffer[7]  <= pkt_data_buf[buf_current_out+`ADDR_ONE][((1)*`NOC_DATA_WIDTH)-1:(0)*`NOC_DATA_WIDTH];
             end
             else begin //store command
                 flit_out_buffer[0][`MSG_LENGTH] <= 0; //no data to return

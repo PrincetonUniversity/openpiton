@@ -27,11 +27,13 @@
 
 `define MIG_WR_CMD  3'b000
 `define MIG_RD_CMD  3'b001
+`define MIG_RMW_CMD  3'b011
 
 `ifdef VC707_BOARD
     // specify mem size in MByte here
     `define BOARD_MEM_SIZE_MB       1024
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512
@@ -45,9 +47,11 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
 `elsif VCU118_BOARD
     `define BOARD_MEM_SIZE_MB       2048
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512
@@ -62,9 +66,30 @@
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
     `define DDR3_BG_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
+`elsif XUPP3R_BOARD
+    `define BOARD_MEM_SIZE_MB       32768
+    `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
+    `define MIG_APP_ADDR_WIDTH      32
+    `define MIG_APP_CMD_WIDTH       3
+    `define MIG_APP_DATA_WIDTH      512
+    `define MIG_APP_MASK_WIDTH      64
+
+    `define DDR3_DQ_WIDTH           72
+    `define DDR3_DQS_WIDTH          18
+    `define DDR3_ADDR_WIDTH         18
+    `define DDR3_BA_WIDTH           2
+    `define DDR3_DM_WIDTH           0
+    `define DDR3_CK_WIDTH           1
+    `define DDR3_CKE_WIDTH          2
+    `define DDR3_CS_WIDTH           2
+    `define DDR3_BG_WIDTH           2
+    `define DDR3_ODT_WIDTH          2
 `elsif NEXYS4DDR_BOARD
     `define BOARD_MEM_SIZE_MB       256
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               2 // in bytes
     `define MIG_APP_ADDR_WIDTH      27
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      128
@@ -78,9 +103,11 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
 `elsif GENESYS2_BOARD
     `define BOARD_MEM_SIZE_MB       1024
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               4
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      256
@@ -94,9 +121,11 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
 `elsif NEXYSVIDEO_BOARD
     `define BOARD_MEM_SIZE_MB       512
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               2 // in bytes
     `define MIG_APP_ADDR_WIDTH      29
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      128
@@ -110,10 +139,12 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
 `else
     `define BOARD_MEM_SIZE_MB       1024
     `define MIG_APP_ADDR_WIDTH      29
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512
     `define MIG_APP_MASK_WIDTH      64
@@ -126,5 +157,6 @@
     `define DDR3_CK_WIDTH           1
     `define DDR3_CKE_WIDTH          1
     `define DDR3_CS_WIDTH           1
+    `define DDR3_ODT_WIDTH          1
 `endif
 

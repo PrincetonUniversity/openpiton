@@ -95,10 +95,10 @@ module chipset(
     `endif // endif PITON_CHIPSET_DIFF_CLK
 
     // 250MHz diff input ref clock for DDR4 memory controller
-    `ifdef VCU118_BOARD
+    `ifdef PITONSYS_DDR4
         input                                       mc_clk_p,
         input                                       mc_clk_n,
-    `endif // VCU118_BOARD
+    `endif // PITONSYS_DDR4
 
 `else // ifndef PITON_CHIPSET_CLKS_GEN
     input                                       chipset_clk,
@@ -217,14 +217,14 @@ module chipset(
 `ifdef PITON_FPGA_MC_DDR3
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
-`ifdef VCU118_BOARD
+`ifdef PITONSYS_DDR4
     output                                      ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
-`else // VCU118_BOARD            
+`else // PITONSYS_DDR4           
     output                                      ddr_cas_n,
     output                                      ddr_ras_n,
     output                                      ddr_we_n,
-`endif
+`endif // PITONSYS_DDR4
     output [`DDR3_ADDR_WIDTH-1:0]               ddr_addr,
     output [`DDR3_BA_WIDTH-1:0]                 ddr_ba,
     output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_n,
@@ -237,12 +237,16 @@ module chipset(
 `ifndef NEXYSVIDEO_BOARD
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
-`ifdef VCU118_BOARD
+`ifdef PITONSYS_DDR4
+`ifdef XUPP3R_BOARD
+    output                                      ddr_parity,
+`else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-`else 
+`endif // XUPP3R_BOARD
+`else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
-`endif
-    output                                      ddr_odt,
+`endif // PITONSYS_DDR4
+    output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -252,12 +256,13 @@ module chipset(
         output                                      uart_tx,
         input                                       uart_rx,
         `ifdef PITONSYS_UART_BOOT
-        `ifdef PITONSYS_NON_UART_BOOT
             `ifndef PITONSYS_CHIPSET_TOP
                 output                                      test_start,
             `endif
-        `endif // endif PITONSYS_NON_UART_BOOT
         `endif // endif PITONSYS_UART_BOOT
+        `ifdef PITONSYS_UART_RESET
+            output uart_rst_out_n,
+        `endif
     `endif // endif PITONSYS_UART
 
 
@@ -391,11 +396,17 @@ module chipset(
     `ifdef VCU118_BOARD
         // we only have 4 gpio dip switches on this board
         input  [3:0]                                        sw,
+    `elsif XUPP3R_BOARD
+        // no switches :(
     `else         
         input  [7:0]                                        sw,
     `endif
 
+    `ifdef XUPP3R_BOARD
+     output [3:0]                                           leds
+    `else 
      output [7:0]                                           leds
+     `endif
 
 `endif  // PITON_BOARD
 
@@ -641,7 +652,11 @@ begin
 `ifdef PITON_BOARD
     chipset_rst_n = rst_n_rect & clk_locked & (~chip_rst_seq_complete_n);
 `else
+`ifdef PITONSYS_UART_RESET
+    chipset_rst_n = rst_n_rect & clk_locked & (~piton_prsnt_n) & uart_rst_out_n;
+`else
     chipset_rst_n = rst_n_rect & clk_locked & (~piton_prsnt_n);
+`endif // PITONSYS_UART_RESET
 `endif  // PITON_BOARD
 
 end
@@ -668,6 +683,9 @@ end
                 `ifdef VCU118_BOARD
                     assign uart_boot_en    = sw[0];
                     assign uart_timeout_en = sw[1];
+                `elsif XUPP3R_BOARD
+                    assign uart_boot_en    = 1'b1;
+                    assign uart_timeout_en = 1'b0;
                 `else 
                     assign uart_boot_en    = sw[7];
                     assign uart_timeout_en = sw[6];
@@ -681,6 +699,9 @@ end
     `ifdef VCU118_BOARD
         // only two switches available...
         assign noc_power_test_hop_count = {2'b0, sw[3:2]};
+    `elsif XUPP3R_BOARD
+        // no switches :(
+        assign noc_power_test_hop_count = 4'b0;
     `else 
         assign noc_power_test_hop_count = sw[3:0];
     `endif    
@@ -716,6 +737,11 @@ end
 
     // Test points
     assign tp[7:0] = 8'd0;
+`elsif XUPP3R_BOARD
+    assign leds[0] = ~piton_ready_n;
+    assign leds[1] = init_calib_complete;
+    assign leds[2] = processor_offchip_noc2_valid;
+    assign leds[3] = offchip_processor_noc3_valid;
 `else   // PITON_BOARD
     assign leds[0] = clk_locked;
     assign leds[1] = ~piton_ready_n;
@@ -1139,6 +1165,7 @@ chipset_impl_noc_power_test  chipset_impl (
     .piton_ready_n      (piton_ready_n      ),
 
     .test_start         (test_start         ),
+    .uart_rst_out_n     (uart_rst_out_n     ),
     .invalid_access_o   (invalid_access     ),
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
@@ -1148,12 +1175,12 @@ chipset_impl_noc_power_test  chipset_impl (
     `ifndef PITONSYS_NO_MC
     `ifdef PITON_FPGA_MC_DDR3
         // Memory controller clock
-        `ifdef VCU118_BOARD
+        `ifdef PITONSYS_DDR4
             .mc_clk_p(mc_clk_p),
             .mc_clk_n(mc_clk_n),
-        `else  // VCU118_BOARD                               
+        `else  // PITONSYS_DDR4                               
             .mc_clk(mc_clk),
-        `endif  // VCU118_BOARD                               
+        `endif  // PITONSYS_DDR4                               
     `endif // endif PITON_FPGA_MC_DDR3
     `endif // endif PITONSYS_NO_MC
 
@@ -1183,14 +1210,14 @@ chipset_impl_noc_power_test  chipset_impl (
             ,
             .init_calib_complete(init_calib_complete),
             
-            `ifdef VCU118_BOARD
+            `ifdef PITONSYS_DDR4
             .ddr_act_n(ddr_act_n),                    
             .ddr_bg(ddr_bg), 
-            `else // VCU118_BOARD
+            `else // PITONSYS_DDR4
             .ddr_cas_n(ddr_cas_n),
             .ddr_ras_n(ddr_ras_n),
             .ddr_we_n(ddr_we_n),
-            `endif
+            `endif // PITONSYS_DDR4
 
             .ddr_addr(ddr_addr),
             .ddr_ba(ddr_ba),
@@ -1205,8 +1232,12 @@ chipset_impl_noc_power_test  chipset_impl (
             `ifndef NEXYSVIDEO_BOARD
                 .ddr_cs_n(ddr_cs_n),
             `endif // endif NEXYSVIDEO_BOARD
-
+            
+            `ifdef XUPP3R_BOARD
+            .ddr_parity(ddr_parity),
+            `else
             .ddr_dm(ddr_dm),
+            `endif // XUPP3R_BOARD
             .ddr_odt(ddr_odt)
         `endif // endif PITON_FPGA_MC_DDR3
     `endif // endif PITONSYS_NO_MC

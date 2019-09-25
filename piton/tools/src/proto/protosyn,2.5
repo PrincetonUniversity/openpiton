@@ -60,6 +60,7 @@ def usage():
     print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
     print >> sys.stderr, "                  vc707"
     print >> sys.stderr, "                  vcu118"
+    print >> sys.stderr, "                  xupp3r"
     print >> sys.stderr, "                  genesys2"
     print >> sys.stderr, "                  nexysVideo"
     print >> sys.stderr, "\n       -d, --design <design>"
@@ -101,6 +102,9 @@ def usage():
     print >> sys.stderr, "\n       --uart-dmw <storage type>"
     print >> sys.stderr, "              Implement design with Direct Memory Write (DMW) from UART module turned on."
     print >> sys.stderr, "              Storage type: \"ddr\""
+    print >> sys.stderr, "\n       --uart-reset"
+    print >> sys.stderr, "              Attach UART traffic sniffer to the uart port. This sniffer will send"
+    print >> sys.stderr, "              the reset signal to the whole system if it sees magic sequence 0x9a337213af278f34"
     print >> sys.stderr, "\n       --asic-rtl"
     print >> sys.stderr, "              Implement design with ASIC RTL."
     print >> sys.stderr, "\n       --chip-bridge"
@@ -396,6 +400,7 @@ def setParserOptions(parser):
     parser.add_option("--no-ddr", dest="no_ddr", action="store_true", default=False)
     parser.add_option("--eth", dest="eth", action="store_true", default=False)
     parser.add_option("--uart-dmw", dest="uart_dmw", action="store", default=None)
+    parser.add_option("--uart-reset", dest="uart_reset", action="store_true", default=False)
     parser.add_option("--asic-rtl", dest="asic_rtl", action="store_true", default=False)
     parser.add_option("--chip-bridge", dest="chip_bridge", action="store_true", default=False)
     parser.add_option("--inc-passthru", dest="inc_passthru", action="store_true", default=False)
@@ -432,8 +437,8 @@ def makeDefList(options):
 
     # --axi4_mem option
     if (options.axi4_mem == True):
-        if (options.board not in {"vc707"}):
-            print_warning("axi4_mem option is ignored without board != vc707")
+        if (options.board not in {"vc707", "xupp3r"}):
+            print_warning("axi4_mem option is ignored without board != vc707 or board != xupp3r" )
         else:
             defines.append("PITONSYS_AXI4_MEM")
 
@@ -441,8 +446,8 @@ def makeDefList(options):
     if (options.zeroer_off == False):
         defines.append("PITONSYS_MEM_ZEROER")
 
-    # do not use SD controller if BRAM is used for boot or a test
-    if (options.test_name != None) or (options.board == "piton_board"):
+    # do not use SD controller if BRAM is used for boot or a test or if board doesn't have sd
+    if (options.test_name != None) or (options.board == "piton_board") or (options.board == 'xupp3r'):
         pass
     else:   # default option
         defines.append("PITON_FPGA_SD_BOOT")
@@ -458,6 +463,9 @@ def makeDefList(options):
     elif options.uart_dmw == "bram":
         defines.append("PITONSYS_UART_BOOT")
         defines.append("PITON_FPGA_BRAM_TEST")
+
+    if options.uart_reset == True:
+        defines.append("PITONSYS_UART_RESET")
 
     # --asic-rtl option
     if options.asic_rtl == True:

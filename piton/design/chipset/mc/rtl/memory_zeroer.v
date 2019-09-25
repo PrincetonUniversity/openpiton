@@ -61,7 +61,7 @@ module memory_zeroer
 // need extended range here as board mem size may be above 2GB which is out 
 // of range for int datatype
 localparam reg [63:0] BOARD_MEM_SIZE_MB = `BOARD_MEM_SIZE_MB;
-localparam reg [63:0] MAX_MEM_ADDR      = (BOARD_MEM_SIZE_MB * 2**20) / (`DDR3_DQ_WIDTH / 8);
+localparam reg [63:0] MAX_MEM_ADDR      = (BOARD_MEM_SIZE_MB * 2**20) / `WORD_SIZE;
 localparam reg [63:0] WORDS_PER_WR      = `WORDS_PER_BURST;
 
 wire                          app_wdf_wren;

@@ -273,7 +273,7 @@ always @(posedge clk) begin
         data_offseted <= 0;
     end 
     else begin
-        data_offseted <= m_axi_rgo ? (m_axi_rdata << offset[m_axi_rid]) : 0;
+        data_offseted <= m_axi_rgo ? (m_axi_rdata >> (8*offset[m_axi_rid])) : 0;
     end
 end
 
