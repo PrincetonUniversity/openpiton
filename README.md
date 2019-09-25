@@ -101,9 +101,9 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 ==========================
 ![OpenPitonAriane Logo](/docs/openpiton_ariane_logo.png?raw=true)
 
-# Preliminary Support for Ariane RV64IMAC Core
+# Support for the Ariane RV64IMAC Core
 
-This version of OpenPiton has preliminary support for the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
+This version of OpenPiton supports the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
 To this end, Ariane has been equipped with a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
 This L1 cache system is designed to connect directly to the L1.5 cache provided by OpenPiton's P-Mesh.
 
@@ -311,7 +311,7 @@ then write the image with
 1. Download the Ariane Linux OS image from either
    the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0-op)
    or
-   the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/os_images/openpiton_ariane_linux_r12.tar.gz),
+   the Princeton [archive](http://openpiton.org/download.php),
    extract and save the `.bin` file as `bbl.bin` in the current directory.
    If you want to build your own Linux image please see
    [ariane-sdk](https://github.com/pulp-platform/ariane-sdk).
@@ -350,11 +350,11 @@ commands representing the maximum configurations:
   may generate an unusable bitfile.
   Please use Vivado 2018.2.
 
-This command will take a while (around 2 hours is reasonable) to generate a
+This command will take a while (1-2 hours is typical for the first run before IP has been generated) to generate a
 bitfile at
 `build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`.
 To get started you can, alternatively, try a released bitfile from
-the Princeton [archive](http://www.princeton.edu/~cloud/openpiton/bitfiles/),
+the Princeton [archive](http://openpiton.org/download.php),
 
 Now that you have a prepared SD card inserted into the dev board, and a bitfile
 it's time to boot up.
