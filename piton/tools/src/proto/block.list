@@ -31,7 +31,7 @@ passthru_loopback           fpga_tests/passthru_loopback                        
 chip                        chip                                                    genesys2,66.667,1024
 chip_bridge_test_fpga       fpga_tests/chip_bridge_test/chip_bridge_test_fpga       genesys2,66.667,1024;piton_board,50,0
 chip_bridge_test_chip       fpga_tests/chip_bridge_test/chip_bridge_test_chip       genesys2,66.667,1024;piton_board,50,0
-memctrl_test                fpga_tests/memio_unit_tests/memctrl_test                genesys2,100,1024;xupp3r,100,32768
+memctrl_test                fpga_tests/memio_unit_tests/memctrl_test                genesys2,100,1024
 sdctrl_test                 fpga_tests/memio_unit_tests/sdctrl_test                 genesys2,100,1024
 piton_static_power          piton_tests/power/piton_static_power                    piton_board,100,0
 piton_reset_power           piton_tests/power/piton_reset_power                     piton_board,100,0
