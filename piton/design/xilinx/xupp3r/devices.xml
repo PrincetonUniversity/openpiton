@@ -49,9 +49,9 @@
         <length>0xd4000</length>
         <noc2in/>
     </port>
-    <port>
+    <!-- <port>
         <name>net</name>
         <base>0xfff0d00000</base>
         <length>0x100000</length>
-    </port>
+    </port> -->
 </devices>

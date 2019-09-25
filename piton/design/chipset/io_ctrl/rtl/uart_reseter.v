@@ -14,6 +14,8 @@ module uart_reseter(
     output uart_rst_out_n
 );
 
+// This module sniffs uart bytes and compares them with this
+// magic sequence. If comparison is successful - sends reset to the whole system
 localparam reset_sequence = 64'h9a337213af278f34;
 
 wire axi_rgo = axi_rvalid & axi_rready;

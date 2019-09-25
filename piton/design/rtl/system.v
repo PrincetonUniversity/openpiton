@@ -499,20 +499,27 @@ end
 // reset synchronization
 always @ *
 begin
-`ifdef PITONSYS_UART_BOOT
-    `ifdef PITONSYS_UART_RESET
-        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & test_start & uart_rst_out_n;
-    `else //PITONSYS_UART_RESET
-        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & test_start;
-    `endif //PITONSYS_UART_RESET
-`else // PITONSYS_UART_BOOT
-    `ifdef PITONSYS_UART_RESET
-        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & uart_rst_out_n;
-    `else 
-        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n;
-    `endif//PITONSYS_UART_RESET
-`endif  // PITONSYS_UART_BOOT
+//`ifdef PITONSYS_UART_BOOT
+//    `ifdef PITONSYS_UART_RESET
+//        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & test_start & uart_rst_out_n;
+//    `else //PITONSYS_UART_RESET
+//        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & test_start;
+//    `endif //PITONSYS_UART_RESET
+//`else // PITONSYS_UART_BOOT
+//    `ifdef PITONSYS_UART_RESET
+//        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n & uart_rst_out_n;
+//    `else 
+//        chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n;
+//    `endif//PITONSYS_UART_RESET
+//`endif  // PITONSYS_UART_BOOT
 
+    chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n;
+`ifdef PITONSYS_UART_BOOT
+    chip_rst_n = chip_rst_n & test_start;
+`endif
+`ifdef PITONSYS_UART_RESET
+    chip_rst_n = chip_rst_n & uart_rst_out_n;
+`endif
 
 `ifdef PITON_NO_JTAG
     jtag_rst_n_full = passthru_jtag_rst_n;
