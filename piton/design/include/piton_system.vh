@@ -151,15 +151,6 @@
     `define PITONSYS_UART
 `endif // endif PITONSYS_UART_BOOT
 
-// Set Non-UART boot if a non-UART boot is specified
-`ifdef PITON_FPGA_BRAM_TEST
-    `define PITONSYS_NON_UART_BOOT
-`endif // endif PITON_FPGA_BRAM_TEST
-
-`ifdef PITON_FPGA_SD_BOOT
-    `define PITONSYS_NON_UART_BOOT
-`endif // endif PITON_FPGA_SD_BOOT
-
 `ifdef VCU118_BOARD
     `define PITONSYS_DDR4
 `elsif XUPP3R_BOARD

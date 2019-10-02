@@ -73,9 +73,6 @@
 //  PITONSYS_UART_BOOT          Set for UART boot hardware to be included.  If this is the
 //                              only boot option set, it is always used.  If there is another
 //                              boot option, a switch can be used to enable UART boot
-//  PITONSYS_NON_UART_BOOT      This is set whenever another boot method is specified besides UART.
-//                              This is important so UART knows if it needs to be enabled or not.
-//                              This is only used if PITONSYS_UART_BOOT is set
 //  PITONSYS_SPI                Set to include a SPI in the Piton system chipset.  SPI is generally
 //                              used for SD card boot, but could potentially be used for other
 //                              purposes
@@ -247,6 +244,15 @@ module chipset(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
+`ifdef PITONSYS_DMA
+    input pcie_clk_n, 
+    input pcie_clk_p, 
+    input pcie_rst_n,
+    output [15:0] pcie_txp,
+    output [15:0] pcie_txn,
+    input [15:0] pcie_rxp,
+    input [15:0] pcie_rxn,
+`endif
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -679,18 +685,16 @@ end
 `ifdef PITONSYS_IOCTRL
     `ifdef PITONSYS_UART
         `ifdef PITONSYS_UART_BOOT
-            `ifdef PITONSYS_NON_UART_BOOT
-                `ifdef VCU118_BOARD
-                    assign uart_boot_en    = sw[0];
-                    assign uart_timeout_en = sw[1];
-                `elsif XUPP3R_BOARD
-                    assign uart_boot_en    = 1'b1;
-                    assign uart_timeout_en = 1'b0;
-                `else 
-                    assign uart_boot_en    = sw[7];
-                    assign uart_timeout_en = sw[6];
-                `endif    
-            `endif // endif PITONSYS_NON_UART_BOOT
+            `ifdef VCU118_BOARD
+                assign uart_boot_en    = sw[0];
+                assign uart_timeout_en = sw[1];
+            `elsif XUPP3R_BOARD
+                assign uart_boot_en    = 1'b0;
+                assign uart_timeout_en = 1'b0;
+            `else 
+                assign uart_boot_en    = sw[7];
+                assign uart_timeout_en = sw[6];
+            `endif    
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -753,11 +757,7 @@ end
     `ifdef PITONSYS_IOCTRL
         `ifdef PITONSYS_UART
             `ifdef PITONSYS_UART_BOOT
-                `ifdef PITONSYS_NON_UART_BOOT
-                    assign leds[7] = uart_boot_en;
-                `else // ifndef PITONSYS_NON_UART_BOOT
-                    assign leds[7] = 1'b1;
-                `endif // endif PITONSYS_NON_UART_BOOT
+                assign leds[7] = uart_boot_en;
             `else // ifndef PITONSYS_UART_BOOT
                 assign leds[7] = 1'b0;
             `endif // endif PITONSYS_UART_BOOT
@@ -1209,6 +1209,15 @@ chipset_impl_noc_power_test  chipset_impl (
         `ifdef PITON_FPGA_MC_DDR3
             ,
             .init_calib_complete(init_calib_complete),
+            `ifdef PITONSYS_DMA
+                .pcie_clk_n(pcie_clk_n),
+                .pcie_clk_p(pcie_clk_p), 
+                .pcie_rst_n(pcie_rst_n),
+                .pcie_txp(pcie_txp),
+                .pcie_txn(pcie_txn),
+                .pcie_rxp(pcie_rxp),
+                .pcie_rxn(pcie_rxn),
+            `endif // PITONSYS_DMA
             
             `ifdef PITONSYS_DDR4
             .ddr_act_n(ddr_act_n),                    
@@ -1248,11 +1257,9 @@ chipset_impl_noc_power_test  chipset_impl (
             .uart_tx(uart_tx),
             .uart_rx(uart_rx)
             `ifdef PITONSYS_UART_BOOT
-            `ifdef PITONSYS_NON_UART_BOOT
                 ,
                 .uart_boot_en(uart_boot_en),
                 .uart_timeout_en(uart_timeout_en)
-            `endif // endif PITONSYS_NON_UART_BOOT
             `endif // endif PITONSYS_UART_BOOT
         `endif // endif PITONSYS_UART
 

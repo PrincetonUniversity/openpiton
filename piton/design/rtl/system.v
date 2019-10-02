@@ -229,6 +229,15 @@ module system(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
+`ifdef PITONSYS_DMA
+    input pcie_clk_n, 
+    input pcie_clk_p, 
+    input pcie_rst_n,
+    output [15:0] pcie_txp,
+    output [15:0] pcie_txn,
+    input [15:0] pcie_rxp,
+    input [15:0] pcie_rxn,
+`endif // PITONSYS_DMA
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -983,6 +992,15 @@ chipset chipset(
     .ddr_dm(ddr_dm),
 `endif
     .ddr_odt(ddr_odt),
+`ifdef PITONSYS_DMA
+    .pcie_clk_n(pcie_clk_n),
+    .pcie_clk_p(pcie_clk_p), 
+    .pcie_rst_n(pcie_rst_n),
+    .pcie_txp(pcie_txp),
+    .pcie_txn(pcie_txn),
+    .pcie_rxp(pcie_rxp),
+    .pcie_rxn(pcie_rxn),
+`endif // PITONSYS_DMA
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 

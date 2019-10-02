@@ -54,9 +54,6 @@
 //  PITONSYS_UART_BOOT                  Set for UART boot hardware to be included.  If this is the
 //                                      only boot option set, it is always used.  If there is another
 //                                      boot option, a switch can be used to enable UART boot
-//  PITONSYS_NON_UART_BOOT              This is set whenever another boot method is specified besides UART.
-//                                      This is important so UART knows if it needs to be enabled or not.
-//                                      This is only used if PITONSYS_UART_BOOT is set
 //  PITONSYS_SPI                        Set to include a SPI in the Piton system chipset.  SPI is generally
 //                                      used for SD card boot, but could potentially be used for other
 //                                      purposes
@@ -126,6 +123,15 @@ module chipset_impl(
     output                                      init_calib_complete,
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
+`ifdef PITONSYS_DMA
+    input pcie_clk_n,
+    input pcie_clk_p, 
+    input pcie_rst_n,
+    output [15:0] pcie_txp,
+    output [15:0] pcie_txn,
+    input [15:0] pcie_rxp,
+    input [15:0] pcie_rxn,
+`endif // PITONSYS_DMA
 `ifdef PITONSYS_DDR4
     output                                      ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
@@ -165,11 +171,9 @@ module chipset_impl(
     output                                      uart_tx,
     input                                       uart_rx
 `ifdef PITONSYS_UART_BOOT
-`ifdef PITONSYS_NON_UART_BOOT
     ,
     input                                       uart_boot_en,
     input                                       uart_timeout_en
-`endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 
@@ -245,10 +249,6 @@ wire                                            uart_timeout_en;
 wire                                            uart_boot_en;
 wire                                            uart_timeout_en;
 `else // ifdef PITONSYS_UART_BOOT
-`ifndef PITONSYS_NON_UART_BOOT
-wire                                            uart_boot_en;
-wire                                            uart_timeout_en;
-`endif // endif PITONSYS_NON_UART_BOOT
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -399,10 +399,6 @@ assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
         `ifndef PITONSYS_UART_BOOT
             assign uart_boot_en = 1'b0;
             assign uart_timeout_en = 1'b0;
-        `else // ifdef PITONSYS_UART_BOOT
-            `ifndef PITONSYS_NON_UART_BOOT
-                assign uart_boot_en = 1'b1;
-            `endif // endif PITONSYS_NON_UART_BOOT
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -649,6 +645,15 @@ mc_top mc_top(
     .mc_flit_out_rdy(buf_mem_noc3_ready),
 
     .uart_boot_en(uart_boot_en),
+`ifdef PITONSYS_DMA
+    .pcie_clk_n(pcie_clk_n),
+    .pcie_clk_p(pcie_clk_p),
+    .pcie_rst_n(pcie_rst_n),
+    .pcie_txp(pcie_txp),
+    .pcie_txn(pcie_txn),
+    .pcie_rxp(pcie_rxp),
+    .pcie_rxn(pcie_rxn),
+`endif
 
 `ifdef PITONSYS_DDR4
     .sys_clk_p(mc_clk_p),
