@@ -267,6 +267,8 @@ wire                                            test_bad_end;
 
 <%
 for i in range(len(devices)):
+    if devices[i]["virtual"]:
+            continue
 # wires for the noc2 crossbar
     print """
 wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc2_data;
@@ -516,12 +518,14 @@ io_xbar_top_wrap io_xbar_noc2 (
 '''
 
 for i in range(len(devices)):
-            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc2_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc2_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc2_yummy),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc2_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc2_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc2_yummy),\n\n" % (i, devices[i]["name"])
+            if devices[i]["virtual"]:
+                        continue
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc2_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc2_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc2_yummy),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc2_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc2_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc2_yummy),\n\n" % (devices[i]["portnum"], devices[i]["name"])
 
 xbartemplate = xbartemplate[:-3] + r'''
 );'''
@@ -540,12 +544,15 @@ io_xbar_top_wrap io_xbar_noc3 (
 '''
 
 for i in range(len(devices)):
-            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc3_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc3_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc3_yummy),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc3_data),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc3_valid),\n"  % (i, devices[i]["name"])
-            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc3_yummy),\n\n" % (i, devices[i]["name"])
+            if devices[i]["virtual"]:
+                        continue
+
+            xbartemplate += "    .dataIn_%d(%s_buf_xbar_noc3_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validIn_%d(%s_buf_xbar_noc3_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyIn_%d(%s_buf_xbar_noc3_yummy),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .dataOut_%d(xbar_buf_%s_noc3_data),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .validOut_%d(xbar_buf_%s_noc3_valid),\n"  % (devices[i]["portnum"], devices[i]["name"])
+            xbartemplate += "    .yummyOut_%d(xbar_buf_%s_noc3_yummy),\n\n" % (devices[i]["portnum"], devices[i]["name"])
 
 xbartemplate = xbartemplate[:-3] + r'''
     ,
@@ -556,6 +563,9 @@ xbartemplate = xbartemplate[:-3] + r'''
 print xbartemplate
 
 for i in range(len(devices)):
+    if devices[i]["virtual"]:  
+        continue
+
     valrdy_credit_template = r'''
 valrdy_to_credit noc2_%s_to_xbar (
       .clk(chipset_clk),
@@ -803,12 +813,8 @@ uart_top        uart_top (
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     .init_calib_complete        (init_calib_complete_ff                 ),
-`else // PITON_FPGA_MC_DDR3
-    .init_calib_complete        (1'b1                                   ),
-`endif //PITON_FPGA_MC_DDR3
-`else // PITONSYS_NO_MC
-    .init_calib_complete        (1'b1                                   ),
 `endif // PITONSYS_NO_MC
+`endif //PITON_FPGA_MC_DDR3
 
     // Uncomment to connect to the switch
     // .uart_timeout_en(uart_timeout_en),
@@ -817,7 +823,6 @@ uart_top        uart_top (
     .test_start                 ( test_start                            ),
     .test_good_end              ( test_good_end                         ),
     .test_bad_end               ( test_bad_end                          ),
-    .uart_rst_out_n             ( uart_rst_out_n                        ),
 
     .chip_id                    ( {1'b1, {(`NOC_CHIPID_WIDTH-1){1'b0}}} ),
     .x_id                       ( `NOC_X_WIDTH'd%s                      ),
@@ -841,7 +846,7 @@ uart_top        uart_top (
     .xbar_uart_noc3_valid       ( filter_uart_noc3_valid                ),
     .xbar_uart_noc3_data        ( filter_uart_noc3_data                 ),
     .uart_xbar_noc3_ready       ( uart_filter_noc3_ready                )
-);''' % (i)
+);''' % (devices[i]["portnum"])
 %>
 `else // ifndef PITONSYS_UART
     assign uart_interrupt = 1'b0;
