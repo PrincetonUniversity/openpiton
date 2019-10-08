@@ -477,7 +477,6 @@ def setParserOptions(parser):
     parser.add_option("--swait", dest="swait", action="store_true", default=False)
     parser.add_option("--axi4_mem", dest="axi4_mem", action="store_true", default=False)
     parser.add_option("--zeroer_off", dest="zeroer_off", action="store_true", default=False)
-    parser.add_option("--f1", dest="f1", action="store_true", default=False)
 
     return parser
 
@@ -491,10 +490,10 @@ def makeDefList(options):
     if options.core == 'ariane':
         defines.append("NO_RTL_CSM")
 
-    # --no-ddr option
     if (options.board == "f1"):
         print_info("design option is ignored for f1")
 
+    # --no-ddr option
     if (options.no_ddr == True) or (options.board == "piton_board"):
         defines.append("PITONSYS_NO_MC")
     else:   # default option
@@ -504,6 +503,8 @@ def makeDefList(options):
     if (options.axi4_mem == True):
         if (options.board not in {"vc707", "xupp3r"}):
             print_warning("axi4_mem option is ignored without board != vc707 or board != xupp3r" )
+        else:
+            defines.append("PITONSYS_AXI4_MEM")      
         
     # --zeroer_off option
     if (options.zeroer_off == False):
@@ -577,8 +578,8 @@ def makeDefList(options):
 
     # --eth CL options is default for chipset
     if options.eth or options.design == "chipset" or options.design == "system":
-        # Ethernet controller is supported on Genesys2 and nexysVideo and F1 only
-        if options.board == "genesys2" or options.board == "nexysVideo":# or options.board == "f1" :
+        # Ethernet controller is supported on Genesys2 and nexysVideo
+        if options.board == "genesys2" or options.board == "nexysVideo":
             defines.append("PITON_FPGA_ETHERNETLITE")
         else:
             print_info("--eth option is ignored for %s" % options.board)

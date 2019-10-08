@@ -732,7 +732,6 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/clk_mmcm/clk_mmcm" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_w64_d128_std/afifo_w64_d128_std" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite" \
-    "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/axi_crossbar_2_in_1/axi_crossbar_2_in_1" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/mem_uart_timeout/mem_uart_timeout" \
@@ -742,6 +741,7 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_0/mig_7series_0" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/ddr4_0/ddr4_0" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/ddr4_axi4/ddr4_axi4" \
+    "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/axi_interconnect/axi_interconnect" \
     "${DV_ROOT}/design/chipset/mc/xilinx/${BOARD}/ip_cores/mig_7series_axi4/mig_7series_axi4" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_data_fifo/sd_data_fifo" \
     "${DV_ROOT}/design/chipset/noc_sd_bridge/xilinx/${BOARD}/ip_cores/sd_ctrl_fifo/sd_ctrl_fifo" \

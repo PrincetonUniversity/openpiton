@@ -94,7 +94,7 @@ localparam GOT_RESP = 3'd1;
     assign m_axi_awburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
     assign m_axi_awlock   = 1'b0; // Do not use locks
     assign m_axi_awcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
-    assign m_axi_awprot   = `AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
+    assign m_axi_awprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
     assign m_axi_awqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
     assign m_axi_awregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
     assign m_axi_awuser   = `AXI4_USER_WIDTH'b0; // Do not use user field
@@ -106,7 +106,7 @@ wire [`AXI4_ADDR_WIDTH-1:0] addr_paddings = `AXI4_ADDR_WIDTH'b0;
 wire m_axi_awgo = m_axi_awvalid & m_axi_awready;
 wire m_axi_wgo = m_axi_wvalid & m_axi_wready;
 wire req_go = req_val & req_rdy;
-assign m_axi_wlast = m_axi_wgo;
+assign m_axi_wlast = m_axi_wvalid;
 
 reg [2:0] req_state;
 reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
@@ -114,8 +114,8 @@ reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] req_id_f;
 reg [`AXI4_DATA_WIDTH-1:0] req_data_f;
 
 assign req_rdy = (req_state == IDLE);
-assign m_axi_awvalid = (req_state == PREP_REQ);
-assign m_axi_wvalid = (req_state == PREP_REQ);
+assign m_axi_awvalid = (req_state == PREP_REQ) || (req_state == SENT_W);
+assign m_axi_wvalid = (req_state == PREP_REQ) || (req_state == SENT_AW);
 
 always  @(posedge clk) begin
     if(~rst_n) begin
@@ -151,8 +151,8 @@ always  @(posedge clk) begin
             end
             SENT_W: begin
                 req_state <= m_axi_awgo ? IDLE : req_state;
-                req_header_f <= m_axi_awgo ? IDLE : req_header_f;
-                req_id_f <= m_axi_awgo ? IDLE : req_id_f;
+                req_header_f <= m_axi_awgo ? 0 : req_header_f;
+                req_id_f <= m_axi_awgo ? 0 : req_id_f;
                 req_data_f <= m_axi_awgo ? 0 : req_data_f;
             end
             default : begin
@@ -167,13 +167,14 @@ end
 
 
 // Process information here
-assign m_axi_awid = req_id_f;
-assign m_axi_wid = req_id_f;
+assign m_axi_awid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
+assign m_axi_wid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
 
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
-wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1])
+                || (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);;
 
 // If running uart tests - we need to do address translation
 `ifdef PITONSYS_UART_BOOT
@@ -277,5 +278,44 @@ end
 
 // process data here
 assign resp_id = resp_id_f;
+
+/*
+ila_write ila_write (
+    .clk(clk), // input wire clk
+
+
+    .probe0(rst_n), // input wire [0:0]  probe0  
+    .probe1(uart_boot_en), // input wire [0:0]  probe1 
+    .probe2(req_val), // input wire [0:0]  probe2 
+    .probe3(req_header), // input wire [191:0]  probe3 
+    .probe4(req_id), // input wire [1:0]  probe4 
+    .probe5(req_data), // input wire [511:0]  probe5 
+    .probe6(req_rdy), // input wire [0:0]  probe6 
+    .probe7(resp_val), // input wire [0:0]  probe7 
+    .probe8(resp_id), // input wire [1:0]  probe8 
+    .probe9(resp_rdy), // input wire [0:0]  probe9 
+    .probe10(m_axi_awid), // input wire [15:0]  probe10 
+    .probe11(m_axi_awaddr), // input wire [63:0]  probe11 
+    .probe12(m_axi_awvalid), // input wire [0:0]  probe12 
+    .probe13(m_axi_awready), // input wire [0:0]  probe13 
+    .probe14(m_axi_wid), // input wire [15:0]  probe14 
+    .probe15(m_axi_wdata), // input wire [511:0]  probe15 
+    .probe16(m_axi_wstrb), // input wire [63:0]  probe16 
+    .probe17(m_axi_wlast), // input wire [0:0]  probe17 
+    .probe18(m_axi_wvalid), // input wire [0:0]  probe18 
+    .probe19(m_axi_wready), // input wire [0:0]  probe19 
+    .probe20(m_axi_bid), // input wire [15:0]  probe20 
+    .probe21(m_axi_bvalid), // input wire [0:0]  probe21 
+    .probe22(m_axi_bready), // input wire [0:0]  probe22 
+    .probe23(req_state), // input wire [2:0]  probe23 
+    .probe24(req_header_f), // input wire [191:0]  probe24 
+    .probe25(req_id_f), // input wire [1:0]  probe25 
+    .probe26(req_data_f), // input wire [511:0]  probe26 
+    .probe27(strb_before_offset), // input wire [63:0]  probe27 
+    .probe28(offset), // input wire [5:0]  probe28 
+    .probe29(addr), // input wire [63:0]  probe29 
+    .probe30(resp_state), // input wire [2:0]  probe30 
+    .probe31(resp_id_f) // input wire [1:0]  probe31
+);*/
 
 endmodule

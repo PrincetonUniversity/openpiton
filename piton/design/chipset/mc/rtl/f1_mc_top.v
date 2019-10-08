@@ -27,6 +27,7 @@
 
 `include "define.tmp.h"
 `include "mc_define.h"
+`include "noc_axi4_bridge_define.vh"
 
 module f1_mc_top (
     input                           sys_clk,       
@@ -46,57 +47,57 @@ module f1_mc_top (
     output                          mc_ui_clk_sync_rst,
 
     // AXI Write Address Channel Signals
-    output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
-    output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
-    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
-    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
-    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
+    output wire [`AXI4_ID_WIDTH     -1:0]    m_axi_awid,
+    output wire [`AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
+    output wire [`AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
+    output wire [`AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
+    output wire [`AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
     output wire                                  m_axi_awlock,
-    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
-    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
-    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
-    output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
-    output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
+    output wire [`AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
+    output wire [`AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
+    output wire [`AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
+    output wire [`AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
+    output wire [`AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
     output wire                                  m_axi_awvalid,
     input  wire                                  m_axi_awready,
 
     // AXI Write Data Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    output wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    output wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
     output wire                                   m_axi_wlast,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
     output wire                                   m_axi_wvalid,
     input  wire                                   m_axi_wready,
 
     // AXI Read Address Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
-    output wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
-    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
-    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
-    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    output wire  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    output wire  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    output wire  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    output wire  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
     output wire                                   m_axi_arlock,
-    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
-    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
-    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
-    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    output wire  [`AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    output wire  [`AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    output wire  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    output wire  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
     output wire                                   m_axi_arvalid,
     input  wire                                   m_axi_arready,
 
     // AXI Read Data Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
-    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    input  wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
     input  wire                                   m_axi_rlast,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
     input  wire                                   m_axi_rvalid,
     output wire                                   m_axi_rready,
 
     // AXI Write Response Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_buser,
     input  wire                                   m_axi_bvalid,
     output wire                                   m_axi_bready, 
 
@@ -127,6 +128,115 @@ wire                                fifo_trans_val;
 wire    [`NOC_DATA_WIDTH-1:0]       fifo_trans_data;
 wire                                fifo_trans_rdy;
 
+wire [`AXI4_ID_WIDTH     -1:0]     core_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     core_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     core_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     core_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     core_axi_awburst;
+wire                               core_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     core_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     core_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     core_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     core_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     core_axi_awuser;
+wire                               core_axi_awvalid;
+wire                               core_axi_awready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    core_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    core_axi_wstrb;
+wire                               core_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_wuser;
+wire                               core_axi_wvalid;
+wire                               core_axi_wready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    core_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    core_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    core_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    core_axi_arburst;
+wire                               core_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    core_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    core_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    core_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    core_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_aruser;
+wire                               core_axi_arvalid;
+wire                               core_axi_arready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    core_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    core_axi_rresp;
+wire                               core_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_ruser;
+wire                               core_axi_rvalid;
+wire                               core_axi_rready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    core_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    core_axi_buser;
+wire                               core_axi_bvalid;
+wire                               core_axi_bready;
+
+`ifdef PITONSYS_MEM_ZEROER
+wire [`AXI4_ID_WIDTH     -1:0]     zeroer_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     zeroer_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     zeroer_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     zeroer_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     zeroer_axi_awburst;
+wire                               zeroer_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     zeroer_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     zeroer_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     zeroer_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     zeroer_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     zeroer_axi_awuser;
+wire                               zeroer_axi_awvalid;
+wire                               zeroer_axi_awready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    zeroer_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    zeroer_axi_wstrb;
+wire                               zeroer_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_wuser;
+wire                               zeroer_axi_wvalid;
+wire                               zeroer_axi_wready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    zeroer_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    zeroer_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    zeroer_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    zeroer_axi_arburst;
+wire                               zeroer_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    zeroer_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    zeroer_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    zeroer_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    zeroer_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_aruser;
+wire                               zeroer_axi_arvalid;
+wire                               zeroer_axi_arready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    zeroer_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    zeroer_axi_rresp;
+wire                               zeroer_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_ruser;
+wire                               zeroer_axi_rvalid;
+wire                               zeroer_axi_rready;
+
+wire  [`AXI4_ID_WIDTH     -1:0]    zeroer_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    zeroer_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    zeroer_axi_buser;
+wire                               zeroer_axi_bvalid;
+wire                               zeroer_axi_bready;
+
+wire                               init_calib_complete_zero;
+`endif
+
+wire                               init_calib_complete;
+wire                               noc_axi4_bridge_rst;
+wire                               noc_axi4_bridge_init_done;
+
+
 noc_bidir_afifo  f1_mig_afifo  (
     .clk_1           (sys_clk      ),
     .rst_1           (~sys_rst_n   ),
@@ -154,127 +264,300 @@ noc_bidir_afifo  f1_mig_afifo  (
 );
 
 
+`ifdef PITONSYS_MEM_ZEROER
+assign m_axi_awid = zeroer_axi_awid;
+assign m_axi_awaddr = zeroer_axi_awaddr;
+assign m_axi_awlen = zeroer_axi_awlen;
+assign m_axi_awsize = zeroer_axi_awsize;
+assign m_axi_awburst = zeroer_axi_awburst;
+assign m_axi_awlock = zeroer_axi_awlock;
+assign m_axi_awcache = zeroer_axi_awcache;
+assign m_axi_awprot = zeroer_axi_awprot;
+assign m_axi_awqos = zeroer_axi_awqos;
+assign m_axi_awregion = zeroer_axi_awregion;
+assign m_axi_awuser = zeroer_axi_awuser;
+assign m_axi_awvalid = zeroer_axi_awvalid;
+assign zeroer_axi_awready = m_axi_awready;
+
+assign m_axi_wid = zeroer_axi_wid;
+assign m_axi_wdata = zeroer_axi_wdata;
+assign m_axi_wstrb = zeroer_axi_wstrb;
+assign m_axi_wlast = zeroer_axi_wlast;
+assign m_axi_wuser = zeroer_axi_wuser;
+assign m_axi_wvalid = zeroer_axi_wvalid;
+assign zeroer_axi_wready = m_axi_wready;
+
+assign m_axi_arid = zeroer_axi_arid;
+assign m_axi_araddr = zeroer_axi_araddr;
+assign m_axi_arlen = zeroer_axi_arlen;
+assign m_axi_arsize = zeroer_axi_arsize;
+assign m_axi_arburst = zeroer_axi_arburst;
+assign m_axi_arlock = zeroer_axi_arlock;
+assign m_axi_arcache = zeroer_axi_arcache;
+assign m_axi_arprot = zeroer_axi_arprot;
+assign m_axi_arqos = zeroer_axi_arqos;
+assign m_axi_arregion = zeroer_axi_arregion;
+assign m_axi_aruser = zeroer_axi_aruser;
+assign m_axi_arvalid = zeroer_axi_arvalid;
+assign zeroer_axi_arready = m_axi_arready;
+
+assign zeroer_axi_rid = m_axi_rid;
+assign zeroer_axi_rdata = m_axi_rdata;
+assign zeroer_axi_rresp = m_axi_rresp;
+assign zeroer_axi_rlast = m_axi_rlast;
+assign zeroer_axi_ruser = m_axi_ruser;
+assign zeroer_axi_rvalid = m_axi_rvalid;
+assign m_axi_rready = zeroer_axi_rready;
+
+assign zeroer_axi_bid = m_axi_bid;
+assign zeroer_axi_bresp = m_axi_bresp;
+assign zeroer_axi_buser = m_axi_buser;
+assign zeroer_axi_bvalid = m_axi_bvalid;
+assign m_axi_bready = zeroer_axi_bready;
+
+assign noc_axi4_bridge_rst       = ~mc_rst_n & ~init_calib_complete_zero;
+assign noc_axi4_bridge_init_done = init_calib_complete_zero;
+assign init_calib_complete_out  = init_calib_complete_zero;
+`else
+
+assign m_axi_awid = core_axi_awid;
+assign m_axi_awaddr = core_axi_awaddr;
+assign m_axi_awlen = core_axi_awlen;
+assign m_axi_awsize = core_axi_awsize;
+assign m_axi_awburst = core_axi_awburst;
+assign m_axi_awlock = core_axi_awlock;
+assign m_axi_awcache = core_axi_awcache;
+assign m_axi_awprot = core_axi_awprot;
+assign m_axi_awqos = core_axi_awqos;
+assign m_axi_awregion = core_axi_awregion;
+assign m_axi_awuser = core_axi_awuser;
+assign m_axi_awvalid = core_axi_awvalid;
+assign core_axi_awready = m_axi_awready;
+
+assign m_axi_wid = core_axi_wid;
+assign m_axi_wdata = core_axi_wdata;
+assign m_axi_wstrb = core_axi_wstrb;
+assign m_axi_wlast = core_axi_wlast;
+assign m_axi_wuser = core_axi_wuser;
+assign m_axi_wvalid = core_axi_wvalid;
+assign core_axi_wready = m_axi_wready;
+
+assign m_axi_arid = core_axi_arid;
+assign m_axi_araddr = core_axi_araddr;
+assign m_axi_arlen = core_axi_arlen;
+assign m_axi_arsize = core_axi_arsize;
+assign m_axi_arburst = core_axi_arburst;
+assign m_axi_arlock = core_axi_arlock;
+assign m_axi_arcache = core_axi_arcache;
+assign m_axi_arprot = core_axi_arprot;
+assign m_axi_arqos = core_axi_arqos;
+assign m_axi_arregion = core_axi_arregion;
+assign m_axi_aruser = core_axi_aruser;
+assign m_axi_arvalid = core_axi_arvalid;
+assign core_axi_arready = m_axi_arready;
+
+assign core_axi_rid = m_axi_rid;
+assign core_axi_rdata = m_axi_rdata;
+assign core_axi_rresp = m_axi_rresp;
+assign core_axi_rlast = m_axi_rlast;
+assign core_axi_ruser = m_axi_ruser;
+assign core_axi_rvalid = m_axi_rvalid;
+assign m_axi_rready = core_axi_rready;
+
+assign core_axi_bid = m_axi_bid;
+assign core_axi_bresp = m_axi_bresp;
+assign core_axi_buser = m_axi_buser;
+assign core_axi_bvalid = m_axi_bvalid;
+assign m_axi_bready = core_axi_bready;
+
+assign noc_axi4_bridge_rst       = ~mc_rst_n;
+assign noc_axi4_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete;
+`endif
+
+
 noc_axi4_bridge noc_axi4_bridge  (
-    .clk                (mc_clk                     ),  
-    .rst_n              (mc_rst_n                   ), 
-    .uart_boot_en       (uart_boot_en               ),
+    .clk                (mc_clk                    ),  
+    .rst_n              (~noc_axi4_bridge_rst      ), 
+    .uart_boot_en       (uart_boot_en              ),
+    .phy_init_done      (noc_axi4_bridge_init_done ),
 
-    .splitter_bridge_val(fifo_trans_val),
-    .splitter_bridge_data(fifo_trans_data),
-    .splitter_bridge_rdy(fifo_trans_rdy),
+    .src_bridge_vr_noc2_val(fifo_trans_val),
+    .src_bridge_vr_noc2_dat(fifo_trans_data),
+    .src_bridge_vr_noc2_rdy(fifo_trans_rdy),
 
-    .bridge_splitter_val(trans_fifo_val),
-    .bridge_splitter_data(trans_fifo_data),
-    .bridge_splitter_rdy(trans_fifo_rdy),
+    .bridge_dst_vr_noc3_val(trans_fifo_val),
+    .bridge_dst_vr_noc3_dat(trans_fifo_data),
+    .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
 
-    .m_axi_awid(m_axi_awid),
-    .m_axi_awaddr(m_axi_awaddr),
-    .m_axi_awlen(m_axi_awlen),
-    .m_axi_awsize(m_axi_awsize),
-    .m_axi_awburst(m_axi_awburst),
-    .m_axi_awlock(m_axi_awlock),
-    .m_axi_awcache(m_axi_awcache),
-    .m_axi_awprot(m_axi_awprot),
-    .m_axi_awqos(m_axi_awqos),
-    .m_axi_awregion(m_axi_awregion),
-    .m_axi_awuser(m_axi_awuser),
-    .m_axi_awvalid(m_axi_awvalid),
-    .m_axi_awready(m_axi_awready),
+    .m_axi_awid(core_axi_awid),
+    .m_axi_awaddr(core_axi_awaddr),
+    .m_axi_awlen(core_axi_awlen),
+    .m_axi_awsize(core_axi_awsize),
+    .m_axi_awburst(core_axi_awburst),
+    .m_axi_awlock(core_axi_awlock),
+    .m_axi_awcache(core_axi_awcache),
+    .m_axi_awprot(core_axi_awprot),
+    .m_axi_awqos(core_axi_awqos),
+    .m_axi_awregion(core_axi_awregion),
+    .m_axi_awuser(core_axi_awuser),
+    .m_axi_awvalid(core_axi_awvalid),
+    .m_axi_awready(core_axi_awready),
 
-    .m_axi_wid(m_axi_wid),
-    .m_axi_wdata(m_axi_wdata),
-    .m_axi_wstrb(m_axi_wstrb),
-    .m_axi_wlast(m_axi_wlast),
-    .m_axi_wuser(m_axi_wuser),
-    .m_axi_wvalid(m_axi_wvalid),
-    .m_axi_wready(m_axi_wready),
+    .m_axi_wid(core_axi_wid),
+    .m_axi_wdata(core_axi_wdata),
+    .m_axi_wstrb(core_axi_wstrb),
+    .m_axi_wlast(core_axi_wlast),
+    .m_axi_wuser(core_axi_wuser),
+    .m_axi_wvalid(core_axi_wvalid),
+    .m_axi_wready(core_axi_wready),
 
-    .m_axi_bid(m_axi_bid),
-    .m_axi_bresp(m_axi_bresp),
-    .m_axi_buser(m_axi_buser),
-    .m_axi_bvalid(m_axi_bvalid),
-    .m_axi_bready(m_axi_bready),
+    .m_axi_bid(core_axi_bid),
+    .m_axi_bresp(core_axi_bresp),
+    .m_axi_buser(core_axi_buser),
+    .m_axi_bvalid(core_axi_bvalid),
+    .m_axi_bready(core_axi_bready),
 
-    .m_axi_arid(m_axi_arid),
-    .m_axi_araddr(m_axi_araddr),
-    .m_axi_arlen(m_axi_arlen),
-    .m_axi_arsize(m_axi_arsize),
-    .m_axi_arburst(m_axi_arburst),
-    .m_axi_arlock(m_axi_arlock),
-    .m_axi_arcache(m_axi_arcache),
-    .m_axi_arprot(m_axi_arprot),
-    .m_axi_arqos(m_axi_arqos),
-    .m_axi_arregion(m_axi_arregion),
-    .m_axi_aruser(m_axi_aruser),
-    .m_axi_arvalid(m_axi_arvalid),
-    .m_axi_arready(m_axi_arready),
+    .m_axi_arid(core_axi_arid),
+    .m_axi_araddr(core_axi_araddr),
+    .m_axi_arlen(core_axi_arlen),
+    .m_axi_arsize(core_axi_arsize),
+    .m_axi_arburst(core_axi_arburst),
+    .m_axi_arlock(core_axi_arlock),
+    .m_axi_arcache(core_axi_arcache),
+    .m_axi_arprot(core_axi_arprot),
+    .m_axi_arqos(core_axi_arqos),
+    .m_axi_arregion(core_axi_arregion),
+    .m_axi_aruser(core_axi_aruser),
+    .m_axi_arvalid(core_axi_arvalid),
+    .m_axi_arready(core_axi_arready),
 
-    .m_axi_rid(m_axi_rid),
-    .m_axi_rdata(m_axi_rdata),
-    .m_axi_rresp(m_axi_rresp),
-    .m_axi_rlast(m_axi_rlast),
-    .m_axi_ruser(m_axi_ruser),
-    .m_axi_rvalid(m_axi_rvalid),
-    .m_axi_rready(m_axi_rready)
+    .m_axi_rid(core_axi_rid),
+    .m_axi_rdata(core_axi_rdata),
+    .m_axi_rresp(core_axi_rresp),
+    .m_axi_rlast(core_axi_rlast),
+    .m_axi_ruser(core_axi_ruser),
+    .m_axi_rvalid(core_axi_rvalid),
+    .m_axi_rready(core_axi_rready)
 
 );
 
-assign init_calib_complete_out = ddr_ready;
+`ifdef PITONSYS_MEM_ZEROER
+axi4_zeroer axi4_zeroer(
+  .clk                    (mc_clk),
+  .rst_n                  (mc_rst_n),
+  .init_calib_complete_in (init_calib_complete),
+  .init_calib_complete_out(init_calib_complete_zero),
+
+  .s_axi_awid             (core_axi_awid),
+  .s_axi_awaddr           (core_axi_awaddr),
+  .s_axi_awlen            (core_axi_awlen),
+  .s_axi_awsize           (core_axi_awsize),
+  .s_axi_awburst          (core_axi_awburst),
+  .s_axi_awlock           (core_axi_awlock),
+  .s_axi_awcache          (core_axi_awcache),
+  .s_axi_awprot           (core_axi_awprot),
+  .s_axi_awqos            (core_axi_awqos),
+  .s_axi_awregion         (core_axi_awregion),
+  .s_axi_awuser           (core_axi_awuser),
+  .s_axi_awvalid          (core_axi_awvalid),
+  .s_axi_awready          (core_axi_awready),
+
+  .s_axi_wid              (core_axi_wid),
+  .s_axi_wdata            (core_axi_wdata),
+  .s_axi_wstrb            (core_axi_wstrb),
+  .s_axi_wlast            (core_axi_wlast),
+  .s_axi_wuser            (core_axi_wuser),
+  .s_axi_wvalid           (core_axi_wvalid),
+  .s_axi_wready           (core_axi_wready),
+
+  .s_axi_arid             (core_axi_arid),
+  .s_axi_araddr           (core_axi_araddr),
+  .s_axi_arlen            (core_axi_arlen),
+  .s_axi_arsize           (core_axi_arsize),
+  .s_axi_arburst          (core_axi_arburst),
+  .s_axi_arlock           (core_axi_arlock),
+  .s_axi_arcache          (core_axi_arcache),
+  .s_axi_arprot           (core_axi_arprot),
+  .s_axi_arqos            (core_axi_arqos),
+  .s_axi_arregion         (core_axi_arregion),
+  .s_axi_aruser           (core_axi_aruser),
+  .s_axi_arvalid          (core_axi_arvalid),
+  .s_axi_arready          (core_axi_arready),
+
+  .s_axi_rid              (core_axi_rid),
+  .s_axi_rdata            (core_axi_rdata),
+  .s_axi_rresp            (core_axi_rresp),
+  .s_axi_rlast            (core_axi_rlast),
+  .s_axi_ruser            (core_axi_ruser),
+  .s_axi_rvalid           (core_axi_rvalid),
+  .s_axi_rready           (core_axi_rready),
+
+  .s_axi_bid              (core_axi_bid),
+  .s_axi_bresp            (core_axi_bresp),
+  .s_axi_buser            (core_axi_buser),
+  .s_axi_bvalid           (core_axi_bvalid),
+  .s_axi_bready           (core_axi_bready),
+
+
+  .m_axi_awid             (zeroer_axi_awid),
+  .m_axi_awaddr           (zeroer_axi_awaddr),
+  .m_axi_awlen            (zeroer_axi_awlen),
+  .m_axi_awsize           (zeroer_axi_awsize),
+  .m_axi_awburst          (zeroer_axi_awburst),
+  .m_axi_awlock           (zeroer_axi_awlock),
+  .m_axi_awcache          (zeroer_axi_awcache),
+  .m_axi_awprot           (zeroer_axi_awprot),
+  .m_axi_awqos            (zeroer_axi_awqos),
+  .m_axi_awregion         (zeroer_axi_awregion),
+  .m_axi_awuser           (zeroer_axi_awuser),
+  .m_axi_awvalid          (zeroer_axi_awvalid),
+  .m_axi_awready          (zeroer_axi_awready),
+
+  .m_axi_wid              (zeroer_axi_wid),
+  .m_axi_wdata            (zeroer_axi_wdata),
+  .m_axi_wstrb            (zeroer_axi_wstrb),
+  .m_axi_wlast            (zeroer_axi_wlast),
+  .m_axi_wuser            (zeroer_axi_wuser),
+  .m_axi_wvalid           (zeroer_axi_wvalid),
+  .m_axi_wready           (zeroer_axi_wready),
+
+  .m_axi_arid             (zeroer_axi_arid),
+  .m_axi_araddr           (zeroer_axi_araddr),
+  .m_axi_arlen            (zeroer_axi_arlen),
+  .m_axi_arsize           (zeroer_axi_arsize),
+  .m_axi_arburst          (zeroer_axi_arburst),
+  .m_axi_arlock           (zeroer_axi_arlock),
+  .m_axi_arcache          (zeroer_axi_arcache),
+  .m_axi_arprot           (zeroer_axi_arprot),
+  .m_axi_arqos            (zeroer_axi_arqos),
+  .m_axi_arregion         (zeroer_axi_arregion),
+  .m_axi_aruser           (zeroer_axi_aruser),
+  .m_axi_arvalid          (zeroer_axi_arvalid),
+  .m_axi_arready          (zeroer_axi_arready),
+
+  .m_axi_rid              (zeroer_axi_rid),
+  .m_axi_rdata            (zeroer_axi_rdata),
+  .m_axi_rresp            (zeroer_axi_rresp),
+  .m_axi_rlast            (zeroer_axi_rlast),
+  .m_axi_ruser            (zeroer_axi_ruser),
+  .m_axi_rvalid           (zeroer_axi_rvalid),
+  .m_axi_rready           (zeroer_axi_rready),
+
+  .m_axi_bid              (zeroer_axi_bid),
+  .m_axi_bresp            (zeroer_axi_bresp),
+  .m_axi_buser            (zeroer_axi_buser),
+  .m_axi_bvalid           (zeroer_axi_bvalid),
+  .m_axi_bready           (zeroer_axi_bready)
+);
+`endif // PITONSYS_MEM_ZEROER
+
+assign init_calib_complete = ddr_ready;
 assign mc_ui_clk_sync_rst = ~mc_rst_n;
-/*
 
-ila_1 pitonbus_axi (
-    .clk    (mc_clk),
-    .probe0 (m_axi_awvalid),
-    .probe1 (m_axi_awaddr),
-    .probe2 (2'b0),
-    .probe3 (m_axi_awready),
-    .probe4 (m_axi_wvalid),
-    .probe5 (m_axi_wstrb),
-    .probe6 (m_axi_wlast),
-    .probe7 (m_axi_wready),
-    .probe8 (1'b0),
-    .probe9 (1'b0),
-    .probe10 (m_axi_wdata),
-    .probe11 (1'b0),
-    .probe12 (m_axi_arready),
-    .probe13 (2'b0),
-    .probe14 (m_axi_rdata),
-    .probe15 (m_axi_araddr),
-    .probe16 (m_axi_arvalid),
-    .probe17 (3'b0),
-    .probe18 (3'b0),
-    .probe19 (m_axi_awid),
-    .probe20 (m_axi_arid),
-    .probe21 (m_axi_awlen),
-    .probe22 (m_axi_rlast),
-    .probe23 (3'b0), 
-    .probe24 (m_axi_rresp),
-    .probe25 (m_axi_rid),
-    .probe26 (m_axi_rvalid),
-    .probe27 (m_axi_arlen),
-    .probe28 (3'b0),
-    .probe29 (m_axi_bresp),
-    .probe30 (m_axi_rready),
-    .probe31 (4'b0),
-    .probe32 (4'b0),
-    .probe33 (4'b0),
-    .probe34 (4'b0),
-    .probe35 (m_axi_bvalid),
-    .probe36 (4'b0),
-    .probe37 (4'b0),
-    .probe38 (m_axi_bid),
-    .probe39 (m_axi_bready),
-    .probe40 (1'b0),
-    .probe41 (1'b0),
-    .probe42 (1'b0),
-    .probe43 (1'b0)
-);
 
 ila_0 noc_piton_bus (
-    .clk(core_ref_clk), // input wire clk
-
-
+    .clk(sys_clk), // input wire clk
     .probe0(mc_flit_in_val), // input wire [0:0]  probe0  
     .probe1(mc_flit_in_data), // input wire [63:0]  probe1 
     .probe2(mc_flit_in_rdy), // input wire [0:0]  probe2 
@@ -283,5 +566,5 @@ ila_0 noc_piton_bus (
     .probe5(mc_flit_out_rdy) // input wire [0:0]  probe5
     );
 
-*/
+
 endmodule 

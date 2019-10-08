@@ -32,6 +32,7 @@
 
 `include "define.tmp.h"
 `include "piton_system.vh"
+`include "noc_axi4_bridge_define.vh"
 
 // Macros used in this file:
 //  PITON_FPGA_SYNTH            set to remove any RTL that is ASIC specific,
@@ -238,57 +239,57 @@ module system(
 `else //ifndef F1_BOARD 
     input                                        mc_clk,
     // AXI Write Address Channel Signals
-    output wire [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_awid,
-    output wire [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
-    output wire [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
-    output wire [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
-    output wire [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
+    output wire [`AXI4_ID_WIDTH     -1:0]    m_axi_awid,
+    output wire [`AXI4_ADDR_WIDTH   -1:0]    m_axi_awaddr,
+    output wire [`AXI4_LEN_WIDTH    -1:0]    m_axi_awlen,
+    output wire [`AXI4_SIZE_WIDTH   -1:0]    m_axi_awsize,
+    output wire [`AXI4_BURST_WIDTH  -1:0]    m_axi_awburst,
     output wire                                  m_axi_awlock,
-    output wire [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
-    output wire [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
-    output wire [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
-    output wire [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
-    output wire [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
+    output wire [`AXI4_CACHE_WIDTH  -1:0]    m_axi_awcache,
+    output wire [`AXI4_PROT_WIDTH   -1:0]    m_axi_awprot,
+    output wire [`AXI4_QOS_WIDTH    -1:0]    m_axi_awqos,
+    output wire [`AXI4_REGION_WIDTH -1:0]    m_axi_awregion,
+    output wire [`AXI4_USER_WIDTH   -1:0]    m_axi_awuser,
     output wire                                  m_axi_awvalid,
     input  wire                                  m_axi_awready,
 
     // AXI Write Data Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    output wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    output wire  [`C_M_AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid,
+    output wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
+    output wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
     output wire                                   m_axi_wlast,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
     output wire                                   m_axi_wvalid,
     input  wire                                   m_axi_wready,
 
     // AXI Read Address Channel Signals
-    output wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_arid,
-    output wire  [`C_M_AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
-    output wire  [`C_M_AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
-    output wire  [`C_M_AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
-    output wire  [`C_M_AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid,
+    output wire  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr,
+    output wire  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen,
+    output wire  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize,
+    output wire  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst,
     output wire                                   m_axi_arlock,
-    output wire  [`C_M_AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
-    output wire  [`C_M_AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
-    output wire  [`C_M_AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
-    output wire  [`C_M_AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
-    output wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
+    output wire  [`AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache,
+    output wire  [`AXI4_PROT_WIDTH   -1:0]    m_axi_arprot,
+    output wire  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos,
+    output wire  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser,
     output wire                                   m_axi_arvalid,
     input  wire                                   m_axi_arready,
 
     // AXI Read Data Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_rid,
-    input  wire  [`C_M_AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid,
+    input  wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
     input  wire                                   m_axi_rlast,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
     input  wire                                   m_axi_rvalid,
     output wire                                   m_axi_rready,
 
     // AXI Write Response Channel Signals
-    input  wire  [`C_M_AXI4_ID_WIDTH     -1:0]    m_axi_bid,
-    input  wire  [`C_M_AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
-    input  wire  [`C_M_AXI4_USER_WIDTH   -1:0]    m_axi_buser,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_bid,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_bresp,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_buser,
     input  wire                                   m_axi_bvalid,
     output wire                                   m_axi_bready,
 
@@ -341,14 +342,6 @@ module system(
         output                                          net_phy_rst_n,
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
-    `elsif F1_BOARD
-        input                                           eth_clk,
-        input                                           net_phy_txc,
-        output                                          net_phy_txctl,
-        output      [3:0]                               net_phy_txd,
-        input                                           net_phy_rxc,
-        input                                           net_phy_rxctl,
-        input       [3:0]                               net_phy_rxd,
     `endif
 `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL
@@ -1148,25 +1141,15 @@ chipset chipset(
     .sd_dat(sd_dat),
 `endif // endif PITONSYS_SPI
     `ifdef PITON_FPGA_ETHERNETLITE
-        `ifndef F1_BOARD
-            .net_phy_txc        (net_phy_txc),
-            .net_phy_txctl      (net_phy_txctl),
-            .net_phy_txd        (net_phy_txd),
-            .net_phy_rxc        (net_phy_rxc),
-            .net_phy_rxctl      (net_phy_rxctl),
-            .net_phy_rxd        (net_phy_rxd),
-            .net_phy_rst_n      (net_phy_rst_n),
-            .net_phy_mdio_io    (net_phy_mdio_io),
-            .net_phy_mdc        (net_phy_mdc),
-        `else //F1_BOARD
-            .eth_clk            (eth_clk),
-            .net_phy_txc        (net_phy_txc),
-            .net_phy_txctl      (net_phy_txctl),
-            .net_phy_txd        (net_phy_txd),
-            .net_phy_rxc        (net_phy_rxc),
-            .net_phy_rxctl      (net_phy_rxctl),
-            .net_phy_rxd        (net_phy_rxd),
-        `endif
+        .net_phy_txc        (net_phy_txc),
+        .net_phy_txctl      (net_phy_txctl),
+        .net_phy_txd        (net_phy_txd),
+        .net_phy_rxc        (net_phy_rxc),
+        .net_phy_rxctl      (net_phy_rxctl),
+        .net_phy_rxd        (net_phy_rxd),
+        .net_phy_rst_n      (net_phy_rst_n),
+        .net_phy_mdio_io    (net_phy_mdio_io),
+        .net_phy_mdc        (net_phy_mdc),
 
     `endif // PITON_FPGA_ETHERNETLITE
 `endif // endif PITONSYS_IOCTRL

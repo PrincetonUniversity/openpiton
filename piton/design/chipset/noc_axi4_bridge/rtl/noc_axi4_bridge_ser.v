@@ -142,6 +142,14 @@ always @(posedge clk) begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_STORE_MEM_ACK;
               resp_header[`MSG_LENGTH  ]     <= 0;
             end
+            `MSG_TYPE_NC_LOAD_REQ: begin
+              resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_LOAD_MEM_ACK;
+              resp_header[`MSG_LENGTH  ]     <= `PAYLOAD_LEN; 
+            end
+            `MSG_TYPE_NC_STORE_REQ: begin
+              resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_STORE_MEM_ACK;
+              resp_header[`MSG_LENGTH  ]     <= 0;
+            end
             default: begin
               // shouldn't end up herere
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_WIDTH'b0;

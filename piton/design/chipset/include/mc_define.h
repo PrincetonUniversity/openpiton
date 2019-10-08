@@ -30,7 +30,7 @@
 `define MIG_RMW_CMD  3'b011
 
 `ifdef F1_BOARD
-    `define BOARD_MEM_SIZE_MB       4096
+    `define BOARD_MEM_SIZE_MB       8192
     `define WORDS_PER_BURST         8
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
