@@ -1305,7 +1305,6 @@ chipset_impl_noc_power_test  chipset_impl (
                 `endif // XUPP3R_BOARD
                 .ddr_odt(ddr_odt)
             `else // ifndef F1_BOARD
-                ,
                 .mc_clk(mc_clk),
                 // AXI Write Address Channel Signals
                 .m_axi_awid(m_axi_awid),

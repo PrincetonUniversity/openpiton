@@ -32,6 +32,7 @@
 `ifdef F1_BOARD
     `define BOARD_MEM_SIZE_MB       8192
     `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
     `define MIG_APP_ADDR_WIDTH      28
     `define MIG_APP_CMD_WIDTH       3
     `define MIG_APP_DATA_WIDTH      512

@@ -33,8 +33,8 @@
     <port>
         <name>mem</name>
         <base>0x0</base>
-        <!-- 16GB -->
-        <length>0x400000000</length>
+        <!-- 4GB -->
+        <length>0x100000000</length>
     </port>
     <port>
         <name>sd</name>

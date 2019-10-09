@@ -184,12 +184,13 @@ module system(
   input                                         trst_ni,
   input                                         td_i,
   output                                        td_o,
-`endif
-`endif
-`endif
-`endif
-`endif
-`endif
+`endif//F1_BOARD
+`endif//XUPP3R_BOARD
+`endif //NEXYSVIDEO_BOARD
+`endif //VCU118_BOARD
+`endif  //VC707_BOARD
+`endif //PITON_ARIANE
+`endif //PITON_FPGA_SYNTH
 
     // Asynchronous FIFOs enable
     // for off-chip link (core<->io_clk)
