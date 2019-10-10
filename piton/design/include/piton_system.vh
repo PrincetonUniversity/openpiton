@@ -142,6 +142,7 @@
 `elsif F1_BOARD
     `undef PITON_FPGA_SD_BOOT
     `undef PITONSYS_SPI
+    `define PITONSYS_AXI4_MEM
 `endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
