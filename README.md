@@ -397,6 +397,81 @@ or playing tetris (`# /tetris`).
   R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD
   SD adapter to make sure that signal rise times are short enough.
 
+
+#### Running OpenPiton simulations on F1 instances in AWS: step guide
+
+Here is the generic flow to run OpenPiton on F1 instance. We created a public image (agfi-0d87a634f93fe7c83), which you can use to try OpenPiton on F1 without synthesizing it. 
+
+1. We assume that you already have F1 instance up and running. If not - steps 1,2,4,5 from this (https://github.com/vegaluisjose/aws-fpga-notes) guide will help you. 
+2. ssh into your instance, clone OpenPiton repo (https://github.com/PrincetonUniversity/openpiton). 
+3. cd into repo, run these bash commands:
+```
+    export PITON_ROOT=`pwd`
+    export AWS_FPGA_REPO_DIR="$PITON_ROOT/piton/design/aws"
+    export CL_DIR="$AWS_FPGA_REPO_DIR/hdk/cl/developer_designs/piton_aws"
+    source piton/piton_settings.bash
+    source piton/ariane_setup.sh
+```
+4. Load the fpga image into board:
+``` fpga-load-local-image -S 0 -I agfi-0d87a634f93fe7c83 ```
+After this step the fpga is programmed, but the reset signal is high, so the system is still not working. 
+5. Compile software 
+``` 
+cd $CL_DIR/software/src 
+make
+```
+This will compile programs "uart" and "dma_os". You should have xdma driver preinstalled (https://github.com/Xilinx/dma_ip_drivers/tree/master/XDMA/linux-kernel).
+6. Run "uart" program
+``` ./uart & ```
+This will create a pseudo-terminal and tell you the location of the corresponding file (e.g. /dev/pts/3)
+7. Write OS image in memory: 
+``` ./dma_os $FILE_LOCATION ```
+This will put the os image from FILE_LOCATION in the appropriate place in memory. Note, before writing the image you should revert each 8 bytes of it (consequences of strange behavior of xdma driver). You can do this with 
+``` objcopy -I binary -O binary --reverse-bytes=8 $FILE_LOCATION ```
+8. Reset fpga:
+``` ./fpga-reset ```
+After this the processor will start working and printing UART data in your pseudo-terminal. You can connect to the terminal using your favourite terminal program (e.g. screen, tio). 
+
+9. Managing the fpga:
+In the software directory we provide you with some useful programs: 
+ - uart : starts pseudo-terminal, connected to the OpenPiton's uart
+ - dma_os : copies file from argument into the SD part of the memory
+ - fpga-reset : resets the fpga
+ - fpga-poweroff : sets the reset in the fpga to high, basically powering off OpenPiton so that you could write the data into memory without memory corruptions. 
+Besides, you might find useful some utilities, provided by AWS themselves:
+ - fpga-clear-local-image : clears the image from FPGA
+ - fpga-set-virtual-dip-switch : sets the value of 16 virtual dip switches. Note that the last switch (15th) is connected to OpenPiton's reset
+ - fpga-get-virtual-led : reads the value of 16 virtual leds
+
+#### Synthesizing OpenPiton image for F1
+The flow is very simillar to synthesizing image for any other FPGA we support, but has own nuances. Good news: you can run the flow on your own machine if you have Vivado 2018.2 or higher.
+
+
+1. Create the S3 credentials and configure your S3 bucket. You can find step guides here (https://github.com/vegaluisjose/aws-fpga-notes). 
+2. Clone OpenPiton repo (https://github.com/PrincetonUniversity/openpiton). 
+3. cd into repo, run these bash commands:
+```
+    export PITON_ROOT=`pwd`
+    export AWS_FPGA_REPO_DIR="$PITON_ROOT/piton/design/aws"
+    export CL_DIR="$AWS_FPGA_REPO_DIR/hdk/cl/developer_designs/piton_aws"
+    source piton/piton_settings.bash
+    source piton/ariane_setup.sh
+    source "$AWS_FPGA_REPO_DIR/hdk_setup.sh"
+```
+The last command will try to ask for root password to apply patch for Vivado, but you don't have to do it - the flow still works even without patch. 
+4. Run the synthesis:
+``` protosyn -b f1 -c ariane ... ```
+This will create the custom logic tar archive, which we'll later upload on AWS servers. The synthesis itself is run in nohup, but protosyn will tell you the location of the log files, so that you can follow the progress.
+5. After the synthesis is complete (takes about 2-3 hours on fast PC), go to results folder:
+``` cd $PITON_ROOT/build/f1/piton_aws/build/checkpoints/to_aws ```
+This is the folder, where all the result tars are located. 
+6. Copy the resulting tar archive in the S3 bucket you created before
+7. Send the command for final synthesis: 
+``` aws ec2 create-fpga-image --name NAME_OF_IMAGE --input-storage-location Bucket=YOUR_S3_BUCKET,Key=NAME_OF_YOUR_TAR_ARCHIVE ```
+The command will tell print the afi and agfi of your image. You can track the synthesis progress with
+``` aws ec2 describe-fpga-images --fpga-image-ids AFI_OF_YOUR_IMAGE ```
+8. After the synthesis is done - you can go load it in your F1 instance!
+
 #### Planned Improvements
 
 The following items are currently under development and will be released soon.
