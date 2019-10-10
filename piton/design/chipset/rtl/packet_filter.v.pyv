@@ -294,11 +294,15 @@ devices = pyhplib.ReadDevicesXMLFile()
             flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ ||
             flit_buffer_0_reg[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ) begin
 <%
-elseStr = ""
 
+elseStr = ""
+mem_addr_range = ""
+mem_port = -1
+
+# If not memory and not virtual device -- just output filtering info. Else -- collect the address range data, write memory filtering info in the end
 for i in range(1, len(devices)):
     info = devices[i]
-    if info["name"] != "mem":
+    if info["name"] != "mem" and not info["virtual"]:
         outputStr = """
                 %sif ((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x)""" \
                 % (elseStr, info["base"], info["base"], info["length"])
@@ -310,28 +314,28 @@ for i in range(1, len(devices)):
         outputStr = """
                 begin
                     readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
-                end""" % (i)
+                end""" % (info["portnum"])
         print outputStr
         elseStr = "else "
+    else:
+        mem_addr_range += ("(noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x) || " % 
+            (info["base"], info["base"], info["length"]))
+        if info["name"] == "mem":
+            mem_port = info["portnum"]
 
-for i in range(1, len(devices)):
-    info = devices[i]
-    if info["name"] == "mem":
-        outputstr = """
+outputstr = """
                 else begin
 `ifdef PITON_FPGA_SYNTH
                     // route everything else to the memory when uart_boot_en is asserted
-                    if ((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x) ||
-                        (uart_boot_en)) begin
+                    if (%s (uart_boot_en)) begin
                         readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
                     end else begin
-						            invalid_access = 1'b1;
+                        invalid_access = 1'b1;
                     end
 `else // PITON_FPGA_SYNTH
 `ifdef MONITOR_INVALID_ACCESSES
                     // route everything else to the memory when uart_boot_en is asserted
-                    if ((noc2_filter_data[`MSG_ADDR_] >= `PHY_ADDR_WIDTH'h%x && noc2_filter_data[`MSG_ADDR_] < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x) ||
-                        (uart_boot_en)) begin
+                    if (%s (uart_boot_en)) begin
                         readdressed_flit0[`MSG_DST_X] = `NOC_X_WIDTH'h%x;
                     end else begin
                         invalid_access = 1'b1;
@@ -342,8 +346,8 @@ for i in range(1, len(devices)):
 `endif // MONITOR_INVALID_ACCESSES
 `endif // PITON_FPGA_SYNTH
                 end
-""" % (info["base"], info["base"], info["length"], i, info["base"], info["base"], info["length"], i, i)
-        print outputstr
+""" % (mem_addr_range, mem_port, mem_addr_range, mem_port, mem_port)
+print outputstr
 %>
         end
     end

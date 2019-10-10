@@ -262,13 +262,14 @@ def ReadDevicesXMLFile():
   tree = ET.parse(DEVICES_XML_FILENAME)
   devices = tree.getroot()
 
-
+  cur_portnum = 0
   for i in range(0, len(devices)):
     # go through each field of device
     base = 0
     length = 0
     name = ""
     noc2_in = False
+    virtual = False
     stream_accessible = False
     for j in range(0, len(devices[i])):
       tag = devices[i][j].tag
@@ -281,13 +282,21 @@ def ReadDevicesXMLFile():
         name = text
       elif tag == "noc2in":
         noc2_in = True
+      elif tag == "virtual":
+        virtual = True
       elif tag == "stream_accessible":
         stream_accessible = True
 
-    if name == "chip":
-        devicesInfo.insert(0, {"name": name, "base": base, "length": length, "noc2_in": noc2_in, "stream_accessible":stream_accessible})
+    if not virtual:
+      portnum = cur_portnum
+      cur_portnum += 1
     else:
-        devicesInfo.append({"name": name, "base": base, "length": length, "noc2_in": noc2_in, "stream_accessible":stream_accessible})
+      portnum = -1
+
+    if name == "chip":
+        devicesInfo.insert(0, {"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
+    else:
+        devicesInfo.append({"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
 
   return devicesInfo
 

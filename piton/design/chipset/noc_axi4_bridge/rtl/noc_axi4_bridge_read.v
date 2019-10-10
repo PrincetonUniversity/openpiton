@@ -88,7 +88,7 @@ wire [`AXI4_ADDR_WIDTH-1:0]addr_paddings = `AXI4_ADDR_WIDTH'b0;
     assign m_axi_arburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
     assign m_axi_arlock   = 1'b0; // Do not use locks
     assign m_axi_arcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
-    assign m_axi_arprot   = `AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
+    assign m_axi_arprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
     assign m_axi_arqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
     assign m_axi_arregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
     assign m_axi_aruser   = `AXI4_USER_WIDTH'b0; // Do not use user field
@@ -133,7 +133,7 @@ end
 
 
 // Process information here
-assign m_axi_arid = req_id_f;
+assign m_axi_arid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
@@ -156,7 +156,8 @@ reg [6:0] size[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [5:0] offset[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] resp_id_f;
 wire resp_go;
-wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]) 
+                || (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ);
 
 generate begin
     genvar i;
@@ -320,5 +321,34 @@ always @(posedge clk) begin
         endcase // resp_state
     end 
 end
+/*
+ila_read ila_read(
+    .clk(clk), // input wire clk
 
+
+    .probe0(rst_n), // input wire [0:0]  probe0  
+    .probe1(uart_boot_en), // input wire [0:0]  probe1 
+    .probe2(req_val), // input wire [0:0]  probe2 
+    .probe3(req_header), // input wire [191:0]  probe3 
+    .probe4(req_id), // input wire [1:0]  probe4 
+    .probe5(req_rdy), // input wire [0:0]  probe5 
+    .probe6(resp_val), // input wire [0:0]  probe6 
+    .probe7(resp_id), // input wire [1:0]  probe7 
+    .probe8(resp_data), // input wire [511:0]  probe8 
+    .probe9(resp_rdy), // input wire [0:0]  probe9 
+    .probe10(m_axi_arid), // input wire [15:0]  probe10 
+    .probe11(m_axi_araddr), // input wire [63:0]  probe11 
+    .probe12(m_axi_arvalid), // input wire [0:0]  probe12 
+    .probe13(m_axi_arready), // input wire [0:0]  probe13 
+    .probe14(m_axi_rid), // input wire [15:0]  probe14 
+    .probe15(m_axi_rdata), // input wire [511:0]  probe15 
+    .probe16(m_axi_rvalid), // input wire [0:0]  probe16 
+    .probe17(m_axi_rready), // input wire [0:0]  probe17 
+    .probe18(req_state), // input wire [0:0]  probe18 
+    .probe19(req_header_f), // input wire [191:0]  probe19 
+    .probe20(req_id_f), // input wire [1:0]  probe20 
+    .probe21(resp_id_f), // input wire [1:0]  probe21 
+    .probe22(resp_state), // input wire [1:0]  probe22 
+    .probe23(data_offseted) // input wire [511:0]  probe23
+);*/
 endmodule

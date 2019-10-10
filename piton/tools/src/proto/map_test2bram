@@ -26,9 +26,10 @@
 
 
 from optparse import OptionParser
+from fpga_lib import StorageBoard
 
 import make_mem_map
-import os, sys
+import os, sys, re
 
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
