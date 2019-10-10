@@ -276,5 +276,4 @@ noc_axi4_bridge_ser noc_axi4_bridge_ser(
     .flit_out_rdy(bridge_dst_vr_noc3_rdy)
 );
 
-
 endmodule

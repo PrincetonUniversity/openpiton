@@ -311,7 +311,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_INIT_CTRL_MIF">atg_uart_init_ctrl.mem</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_INIT_DATA_MIF">atg_uart_init_data.mem</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_INIT_MASK_MIF">atg_uart_init_mask.mem</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_MAX_CHANNELS">&quot;00000000000000000000000000000001&quot;</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_MAX_CHANNELS">00000000000000000000000000000001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_TEST">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ATG_SYSTEM_TEST_MAX_CLKS">5000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_AXIS1_HAS_TKEEP">1</spirit:configurableElementValue>
