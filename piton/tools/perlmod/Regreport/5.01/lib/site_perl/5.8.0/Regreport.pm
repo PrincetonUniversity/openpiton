@@ -324,13 +324,13 @@ sub	chk_single_diag {
       $status = 'maxc';
       last;
     }elsif(($curr_line =~ /Simulation -> PASS/)||(!$vcslog_exists && ($curr_line =~ /all threads are done:\s+\d+\s+passed/i))){
-      system("tso_analyze > /dev/null");
-      if(-r 'tsotool.log' || -r 'tsotool.log.gz') {
-        if(-r    "tsotool.log")       { open (FUT, "tsotool.log");}
-        elsif(-r "tsotool.log.gz")    { open (FUT, "$GUNZIP tsotool.log.gz |");}
-        $tsotoolerr = &tsotoolgrep;
-        close(FUT);
-      }  ### of if -r tsotool.log...
+      #system("tso_analyze > /dev/null");
+      #if(-r 'tsotool.log' || -r 'tsotool.log.gz') {
+      #  if(-r    "tsotool.log")       { open (FUT, "tsotool.log");}
+      #  elsif(-r "tsotool.log.gz")    { open (FUT, "$GUNZIP tsotool.log.gz |");}
+      #  $tsotoolerr = &tsotoolgrep;
+      #  close(FUT);
+      #}  ### of if -r tsotool.log...
 
       if(-r 'diag_pl.log' || -r 'diag_pl.log.gz') {
         if(-r    "diag_pl.log")       { open (FUT, "diag_pl.log");}
