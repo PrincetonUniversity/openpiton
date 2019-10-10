@@ -27,7 +27,9 @@
 `include "piton_system.vh"
 `include "mc_define.h"
 `include "chipset_define.vh"
+`ifdef PITONSYS_AXI4_MEM
 `include "noc_axi4_bridge_define.vh"
+`endif
 
 // Filename: chipset.v
 // Author: mmckeown

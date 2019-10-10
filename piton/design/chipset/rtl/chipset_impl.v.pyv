@@ -26,7 +26,9 @@
 `include "define.tmp.h"
 `include "piton_system.vh"
 `include "mc_define.h"
+`ifdef PITONSYS_AXI4_MEM
 `include "noc_axi4_bridge_define.vh"
+`endif
 `include "uart16550_define.vh"
 `include "chipset_define.vh"
 

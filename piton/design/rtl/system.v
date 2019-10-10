@@ -32,7 +32,9 @@
 
 `include "define.tmp.h"
 `include "piton_system.vh"
+`ifdef PITONSYS_AXI4_MEM
 `include "noc_axi4_bridge_define.vh"
+`endif
 
 // Macros used in this file:
 //  PITON_FPGA_SYNTH            set to remove any RTL that is ASIC specific,
