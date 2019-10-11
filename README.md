@@ -455,6 +455,7 @@ In the software directory we provide you with some useful programs:
  - dma_os : copies file from argument into the SD part of the memory
  - fpga-reset : resets the fpga
  - fpga-poweroff : sets the reset in the fpga to high, basically powering off OpenPiton so that you could write the data into memory without memory corruptions. 
+
 Besides, you might find useful some utilities, provided by AWS themselves:
  - fpga-clear-local-image : clears the image from FPGA
  - fpga-set-virtual-dip-switch : sets the value of 16 virtual dip switches. Note that the last switch (15th) is connected to OpenPiton's reset
