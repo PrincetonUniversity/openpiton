@@ -8,19 +8,23 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 //
-// Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
-// Date: 26.11.2018
-// Description: Simple hello world program that prints the core id.
-// Also runs correctly on manycore configs.
+// Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich, 
+//         Fei Gao  <feig@princeton.edu>, Princeton University
+// Date: 01.18.2019
+// Description: Test the stability of LR/SC. Supposed to work among multiple cores
+// 
 //
 
 #include <stdint.h>
 #include <stdio.h>
 #include "util.h"
+#define ITERATION 10
 
 int main(int argc, char** argv) {
 
   // synchronization variable
+  // only use the [0] item in our test. 
+  // declare an array to make them stored in different L2 cache line
   volatile static uint32_t amo_cnt[20];
   volatile static uint32_t amo_lrsc[20];
 
@@ -55,74 +59,19 @@ int main(int argc, char** argv) {
 
 
   printf("Core %d entered cal section\n",id);
-  uint32_t tmp = 1;
+  uint32_t tmp = 1, result;
 
-  /*if (id == 0)
+
+  for (i=0; i<ITERATION; i++)
   {
-        while(tmp != 0)
-        {
-                LR_OP(tmp, amo_lrsc[0], w);
-                SC_OP(tmp, amo_lrsc[0], 1234, w);
-                printf("tried \n");
-        }
-        printf("Suc:%d, Val:%d\n", tmp, amo_lrsc[0]);
-        amo_cnt[0] = 2;
-  }
-  else
-  {
-        printf("Core 1 does the SC: ");
-        SC_OP(tmp, amo_lrsc[0], 0, w);
-        printf("Suc:%d, Val:%d\n", tmp, amo_lrsc[0]);
-  }
-
-  printf("Hello world, this is hart %d of %d harts!\n", id, core_num);
-  ATOMIC_OP(amo_cnt[0], 1, add, w);*/
-
-
-  //while(amo_cnt != 2*core_num);
-
-  if (id == 0)
-  {
-    for (i=1; i<10; i++)
+    tmp = 1;
+    while(tmp != 0)
     {
-        tmp = 1;
-        while(tmp != 0)
-        {
-                LR_OP(tmp, amo_lrsc[0], w);
-                if (tmp%2 == 0)
-                {
-                    SC_OP(tmp, amo_lrsc[0], (2*i-1), w);
-                }
-                else
-                {
-                    tmp = 1;
-                    printf("#\n");
-                }
-        }
-        //printf("finish %d\n", (2*i-1));
+            LR_OP(tmp, amo_lrsc[0], w);
+            result = tmp + 1;
+            SC_OP(tmp, amo_lrsc[0], result, w);
     }
-  }
-  else
-  {
-    for (i=1; i<10; i++)
-    {
-        tmp = 1;
-        while(tmp != 0)
-        {
-                LR_OP(tmp, amo_lrsc[0], w);
-                if (tmp%2 == 1)
-                {
-                    SC_OP(tmp, amo_lrsc[0], (2*i), w);
-                }
-                else
-                {
-                    tmp = 1;
-                    printf("@\n");
-                }
-        }
-        //printf("finish %d\n", (2*i));
-    }
-
+    //printf("finish %d\n", (2*i-1));
   }
   
   ATOMIC_OP(amo_cnt[0], 1, add, w);
@@ -130,7 +79,8 @@ int main(int argc, char** argv) {
 
   if (id == 0)
   {
-    printf("At last, lrsc variable is %d\n", amo_lrsc[0]);
+    printf("At last... lrsc variable is %d\n", amo_lrsc[0]);
+    // Printed result should be core_num * ITERATION
   }
   
   return 0;
