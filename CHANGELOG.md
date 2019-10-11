@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+## Release 13
+### Added
+- Support for Amazon AWS F1
+- Support for [BittWare XUP-P3R](https://www.bittware.com/fpga/xup-p3r) FPGA board
+- Tursi pickling tool based on FuseSoC
+- New, higher performance AXI4 memory controller (and AXI4 memory zeroing)
+- Exponential back-off for Ariane LR/SC
+
+### Changed
+- Fixed Ariane RTC bug that showed 2x real time
+- Better instructions and other readme fixes (thanks to Dave McEwan)
+- Fixed parameter syntax in SPARC core (thanks to Scott Temple)
+- Pitonstream can reset the FPGA from the host
+
 ## Release 12
 ### Added
 - AXI4 memory controller option on vc707
