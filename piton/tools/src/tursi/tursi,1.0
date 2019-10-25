@@ -302,7 +302,7 @@ fusesoc2toplevel = {
     "openpiton::ifu_esl_rtsm"       : "sparc_ifu_esl_rtsm",
     "openpiton::ifu_esl_shiftreg"   : "sparc_ifu_esl_shiftreg",
     "openpiton::ifu_esl_stsm"       : "sparc_ifu_esl_stsm",
-    "openpiton::l15"                : "l15",
+    "openpiton::l15"                : "l15_wrap",
     "openpiton::l2"                 : "l2",
     "openpiton::pico"               : "picorv32",
     "openpiton::sparc_core"         : "sparc_core",
@@ -514,7 +514,7 @@ def main():
         print_info("Pickling completed succesfully")
     if do_verify:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} run --target=verify --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, defines)
+        cmd = 'fusesoc --config {} run --target=verify --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:

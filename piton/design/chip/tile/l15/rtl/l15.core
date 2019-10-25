@@ -32,7 +32,7 @@ targets:
         default_tool: icarus
         filesets: [rtl]
         generate: [pyhp_preprocess]
-        toplevel: [l15]
+        toplevel: [l15_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
@@ -40,7 +40,7 @@ targets:
         default_tool: icarus
         filesets: [rtl]
         generate: [pyhp_preprocess]
-        toplevel: [l15]
+        toplevel: [l15_wrap]
         tools:
             icarus:
                 iverilog_options: [-g 2001]
