@@ -229,11 +229,11 @@ print "`define L2_DIR_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS,
 `define L2_SUBLINE_BITS         4
 
 `define L2_OWNER_BITS           6
-`define L2_OWNER_X_WIDTH        3
-`define L2_OWNER_Y_WIDTH        3
-`define L2_OWNER_XY             2:0
-`define L2_OWNER_X              2:0
-`define L2_OWNER_Y              5:3
+//`define L2_OWNER_X_WIDTH        3
+//`define L2_OWNER_Y_WIDTH        3
+//`define L2_OWNER_XY             2:0
+//`define L2_OWNER_X              2:0
+//`define L2_OWNER_Y              5:3
 
 
 
