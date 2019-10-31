@@ -489,10 +489,10 @@ print "`define Y_TILES %d"   % Y_TILES;
 `define HOME_ID_ADDR_POS_LOW        `HOME_ID_WIDTH+5 : 6
 `define HOME_ID_ADDR_POS_MIDDLE     `HOME_ID_WIDTH+13 : 14
 `define HOME_ID_ADDR_POS_HIGH       `HOME_ID_WIDTH+23 : 24
-`define HOME_ID_X_POS_WIDTH         3
-`define HOME_ID_X_POS               2:0
-`define HOME_ID_Y_POS_WIDTH         3
-`define HOME_ID_Y_POS               5:3
+//`define HOME_ID_X_POS_WIDTH         3
+//`define HOME_ID_X_POS               2:0
+//`define HOME_ID_Y_POS_WIDTH         3
+//`define HOME_ID_Y_POS               5:3
 
 // Packet format for home id
 `define PACKET_HOME_ID_WIDTH        (`NOC_CHIPID_WIDTH+`NOC_X_WIDTH+`NOC_Y_WIDTH)

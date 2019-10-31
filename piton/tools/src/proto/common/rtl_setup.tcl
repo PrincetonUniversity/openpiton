@@ -231,6 +231,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/common/rtl/valrdy_to_credit.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/credit_to_valrdy.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/flat_id_to_xy.v" \
+    "${DV_ROOT}/design/chip/tile/common/rtl/xy_to_flat_id.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/clk_gating_latch.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/test_stub_scan.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/synchronizer_asr.v" \

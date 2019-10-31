@@ -33,34 +33,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %>
 
 
-module flat_id_to_xy(
-    input  [(`HOME_ID_WIDTH-1):0] flat_id,
-    output reg [(`NOC_X_WIDTH-1):0] x_coord,
-    output reg [(`NOC_Y_WIDTH-1):0] y_coord
+module xy_to_flat_id(
+    input  [(`NOC_X_WIDTH-1):0] x_coord,
+    input  [(`NOC_Y_WIDTH-1):0] y_coord,
+    output reg [(`HOME_ID_WIDTH-1):0] flat_id
 );
-
+    
+    
     always @*
     begin
-        case (flat_id)
+        case (x_coord)
         <%
         text = '''
-        //(`NOC_Y_WIDTH+`NOC_X_WIDTH)'difield: 
-        `HOME_ID_WIDTH'difield: 
-        begin
-            x_coord = `NOC_X_WIDTH'dxfield;
-            y_coord = `NOC_Y_WIDTH'dyfield;
-        end'''
-        for i in range(NUM_TILES):
-            tt = text.replace("ifield", str(i))
-            tt = tt.replace("xfield", str(i%X_TILES))
-            tt = tt.replace("yfield", str(i/X_TILES))
-            print tt
+            // (x,y) = (xfield, yfield)
+            `NOC_Y_WIDTH'dyfield:
+            begin
+                flat_id = `HOME_ID_WIDTH'difield;
+            end'''
+        for i in range(X_TILES):
+            print ""
+            print "`NOC_X_WIDTH'd%d:" % (i)
+            print "begin"
+            print "     case (y_coord)"
+
+            for j in range(Y_TILES):
+                tt = text.replace("yfield", str(j))   
+                tt = tt.replace("xfield", str(i))   
+                tt = tt.replace("ifield", str(j*X_TILES + i))
+                print tt
+            print "     default:"
+            print "     begin"
+            print "         flat_id = `HOME_ID_WIDTH'dX;"
+            print "     end"
+            print "     endcase"
+            print "end"
         %>
         default:
         begin
-            x_coord = `NOC_X_WIDTH'dX;
-            y_coord = `NOC_X_WIDTH'dX;
+            flat_id = `HOME_ID_WIDTH'dX;
         end
         endcase
     end
 endmodule
+
