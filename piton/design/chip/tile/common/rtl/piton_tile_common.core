@@ -29,4 +29,5 @@ generate:
     pyhp_preprocess:
         generator: pyhp_preprocess_gen
         parameters:
-            process_me : [[flat_id_to_xy.v.pyv, flat_id_to_xy.tmp.v]]
+            process_me : [[flat_id_to_xy.v.pyv, flat_id_to_xy.tmp.v],
+                          [xy_to_flat_id.v.pyv, xy_to_flat_id.tmp.v]]
