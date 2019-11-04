@@ -325,5 +325,34 @@ always @(posedge clk) begin
         endcase // resp_state
     end 
 end
+/*
+ila_read ila_read(
+    .clk(clk), // input wire clk
 
+
+    .probe0(rst_n), // input wire [0:0]  probe0  
+    .probe1(uart_boot_en), // input wire [0:0]  probe1 
+    .probe2(req_val), // input wire [0:0]  probe2 
+    .probe3(req_header), // input wire [191:0]  probe3 
+    .probe4(req_id), // input wire [1:0]  probe4 
+    .probe5(req_rdy), // input wire [0:0]  probe5 
+    .probe6(resp_val), // input wire [0:0]  probe6 
+    .probe7(resp_id), // input wire [1:0]  probe7 
+    .probe8(resp_data), // input wire [511:0]  probe8 
+    .probe9(resp_rdy), // input wire [0:0]  probe9 
+    .probe10(m_axi_arid), // input wire [15:0]  probe10 
+    .probe11(m_axi_araddr), // input wire [63:0]  probe11 
+    .probe12(m_axi_arvalid), // input wire [0:0]  probe12 
+    .probe13(m_axi_arready), // input wire [0:0]  probe13 
+    .probe14(m_axi_rid), // input wire [15:0]  probe14 
+    .probe15(m_axi_rdata), // input wire [511:0]  probe15 
+    .probe16(m_axi_rvalid), // input wire [0:0]  probe16 
+    .probe17(m_axi_rready), // input wire [0:0]  probe17 
+    .probe18(req_state), // input wire [0:0]  probe18 
+    .probe19(req_header_f), // input wire [191:0]  probe19 
+    .probe20(req_id_f), // input wire [1:0]  probe20 
+    .probe21(resp_id_f), // input wire [1:0]  probe21 
+    .probe22(resp_state), // input wire [1:0]  probe22 
+    .probe23(data_offseted) // input wire [511:0]  probe23
+);*/
 endmodule

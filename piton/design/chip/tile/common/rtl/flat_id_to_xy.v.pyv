@@ -47,8 +47,8 @@ module flat_id_to_xy(
         //(`NOC_Y_WIDTH+`NOC_X_WIDTH)'difield: 
         `HOME_ID_WIDTH'difield: 
         begin
-            x_coord = `HOME_ID_X_POS_WIDTH'dxfield;
-            y_coord = `HOME_ID_Y_POS_WIDTH'dyfield;
+            x_coord = `NOC_X_WIDTH'dxfield;
+            y_coord = `NOC_Y_WIDTH'dyfield;
         end'''
         for i in range(NUM_TILES):
             tt = text.replace("ifield", str(i))
@@ -58,8 +58,8 @@ module flat_id_to_xy(
         %>
         default:
         begin
-            x_coord = `HOME_ID_X_POS_WIDTH'dX;
-            y_coord = `HOME_ID_Y_POS_WIDTH'dX;
+            x_coord = `NOC_X_WIDTH'dX;
+            y_coord = `NOC_X_WIDTH'dX;
         end
         endcase
     end

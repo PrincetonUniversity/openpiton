@@ -40,6 +40,7 @@ set_false_path -to [get_cells -hierarchical *afifo_ui_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_sync_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_syn_rst_delayed*]
 set_false_path -to [get_cells -hierarchical *init_calib_complete_f*]
+set_false_path -to [get_cells -hierarchical *chipset_rst_n*]
 set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_clk_clk_mmcm]
 set_false_path -from [get_clocks net_axi_clk_clk_mmcm] -to [get_clocks chipset_clk_clk_mmcm]
 

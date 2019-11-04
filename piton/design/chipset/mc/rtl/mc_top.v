@@ -136,7 +136,6 @@ module mc_top (
     output                          init_calib_complete_out,
     input                           sys_rst_n
 );
-
 reg     [31:0]                      delay_cnt;
 reg                                 ui_clk_syn_rst_delayed;
 wire                                init_calib_complete;
@@ -451,7 +450,41 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
+`ifndef PITONSYS_AXI4_MEM
+`ifdef PITONSYS_MEM_ZEROER
+assign app_en                   = zero_app_en;
+assign app_cmd                  = zero_app_cmd;
+assign app_addr                 = zero_app_addr;
+assign app_wdf_wren             = zero_app_wdf_wren;
+assign app_wdf_data             = zero_app_wdf_data;
+assign app_wdf_mask             = zero_app_wdf_mask;
+assign app_wdf_end              = zero_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
+assign noc_mig_bridge_init_done = init_calib_complete_zero;
+assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+`else
+assign app_en                   = core_app_en;
+assign app_cmd                  = core_app_cmd;
+assign app_addr                 = core_app_addr;
+assign app_wdf_wren             = core_app_wdf_wren;
+assign app_wdf_data             = core_app_wdf_data;
+assign app_wdf_mask             = core_app_wdf_mask;
+assign app_wdf_end              = core_app_wdf_end;
+assign noc_mig_bridge_rst       = ui_clk_sync_rst;
+assign noc_mig_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
+assign core_app_rdy             = app_rdy;
+assign core_app_wdf_rdy         = app_wdf_rdy;
+assign core_app_rd_data_valid   = app_rd_data_valid;
+assign core_app_rd_data_end     = app_rd_data_end;
+assign core_app_rd_data         = app_rd_data;
 
+`else //ifndef PITONSYS_AXI4_MEM
+assign noc_mig_bridge_rst       = ui_clk_sync_rst;
+assign noc_mig_bridge_init_done = init_calib_complete;
+assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+`endif
 
 noc_bidir_afifo  mig_afifo  (
     .clk_1           (core_ref_clk      ),
@@ -701,7 +734,7 @@ mig_7series_0   mig_7series_0 (
 );
 `endif // PITONSYS_DDR4
 
-`else // AXI4_MEM
+`else // PITONSYS_AXI4_MEM
 
 `ifdef PITONSYS_MEM_ZEROER
 assign sys_axi_awid = zeroer_axi_awid;
@@ -1352,10 +1385,7 @@ mig_7series_axi4 u_mig_7series_axi4 (
 );
 
 `endif // PITONSYS_DDR4
-
-
-`endif // AXI4_MEM
-
+`endif // PITONSYS_AXI4_MEM
 
 `ifdef PITON_PROTO
 `ifndef PITON_PROTO_NO_MON

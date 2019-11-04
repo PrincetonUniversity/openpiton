@@ -261,4 +261,69 @@ assign ser_data = ser_data_ff;
 assign ser_val = ser_val_ff;
 assign ser_header = ser_header_ff;
 
+
+/*
+ila_buffer ila_buffer (
+  .clk(clk), // input wire clk
+
+
+  .probe0(deser_header), // input wire [191:0]  probe0  
+  .probe1(deser_data), // input wire [511:0]  probe1 
+  .probe2(deser_val), // input wire [0:0]  probe2 
+  .probe3(deser_rdy), // input wire [0:0]  probe3 
+  .probe4(ser_header), // input wire [191:0]  probe4 
+  .probe5(ser_data), // input wire [511:0]  probe5 
+  .probe6(ser_val), // input wire [0:0]  probe6 
+  .probe7(ser_rdy), // input wire [0:0]  probe7 
+  .probe8(read_req_header), // input wire [191:0]  probe8 
+  .probe9(read_req_id), // input wire [1:0]  probe9 
+  .probe10(read_req_val), // input wire [0:0]  probe10 
+  .probe11(read_req_rdy), // input wire [0:0]  probe11 
+  .probe12(read_resp_data), // input wire [511:0]  probe12 
+  .probe13(read_resp_id), // input wire [1:0]  probe13 
+  .probe14(read_resp_val), // input wire [0:0]  probe14 
+  .probe15(read_resp_rdy), // input wire [0:0]  probe15 
+  .probe16(write_req_header), // input wire [191:0]  probe16 
+  .probe17(write_req_id), // input wire [1:0]  probe17 
+  .probe18(write_req_data), // input wire [511:0]  probe18 
+  .probe19(write_req_val), // input wire [0:0]  probe19 
+  .probe20(write_req_rdy), // input wire [0:0]  probe20 
+  .probe21(write_resp_id), // input wire [1:0]  probe21 
+  .probe22(write_resp_val), // input wire [0:0]  probe22 
+  .probe23(write_resp_rdy), // input wire [0:0]  probe23 
+  .probe24(fifo_in), // input wire [1:0]  probe24 
+  .probe25(fifo_out), // input wire [1:0]  probe25 
+  .probe26(preser_arb), // input wire [0:0]  probe26 
+  .probe27(bram_rdy), // input wire [3:0]  probe27 
+  .probe28(ser_data_f), // input wire [511:0]  probe28 
+  .probe29(ser_header_f), // input wire [191:0]  probe29 
+  .probe30(ser_val_f), // input wire [0:0]  probe30 
+  .probe31(ser_data_ff), // input wire [511:0]  probe31 
+  .probe32(ser_header_ff), // input wire [191:0]  probe32 
+  .probe33(ser_val_ff), // input wire [0:0]  probe33 
+  .probe34(rst_n) // input wire [0:0]  probe34
+);
+
+reg [159:0] reqresp_count;
+always @(posedge clk) begin
+    if (~rst_n) begin
+        reqresp_count <= 0;
+    end
+    else begin
+        reqresp_count <= ser_go & deser_go ? reqresp_count     : 
+                                   deser_go ? reqresp_count + 1 :
+                                   ser_go ? reqresp_count - 1 : 
+                                             reqresp_count;
+
+    end
+end
+
+ila_axi_protocol_checker ila_axi_protocol_checker (
+    .clk(clk), // input wire clk
+
+    .probe0(rst_n), // input wire [0:0]  probe0  
+    .probe1(reqresp_count) // input wire [159:0]  probe1
+);
+*/
+
 endmodule

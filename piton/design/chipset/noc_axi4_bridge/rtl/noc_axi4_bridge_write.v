@@ -284,4 +284,43 @@ end
 // process data here
 assign resp_id = resp_id_f;
 
+/*
+ila_write ila_write (
+    .clk(clk), // input wire clk
+
+
+    .probe0(rst_n), // input wire [0:0]  probe0  
+    .probe1(uart_boot_en), // input wire [0:0]  probe1 
+    .probe2(req_val), // input wire [0:0]  probe2 
+    .probe3(req_header), // input wire [191:0]  probe3 
+    .probe4(req_id), // input wire [1:0]  probe4 
+    .probe5(req_data), // input wire [511:0]  probe5 
+    .probe6(req_rdy), // input wire [0:0]  probe6 
+    .probe7(resp_val), // input wire [0:0]  probe7 
+    .probe8(resp_id), // input wire [1:0]  probe8 
+    .probe9(resp_rdy), // input wire [0:0]  probe9 
+    .probe10(m_axi_awid), // input wire [15:0]  probe10 
+    .probe11(m_axi_awaddr), // input wire [63:0]  probe11 
+    .probe12(m_axi_awvalid), // input wire [0:0]  probe12 
+    .probe13(m_axi_awready), // input wire [0:0]  probe13 
+    .probe14(m_axi_wid), // input wire [15:0]  probe14 
+    .probe15(m_axi_wdata), // input wire [511:0]  probe15 
+    .probe16(m_axi_wstrb), // input wire [63:0]  probe16 
+    .probe17(m_axi_wlast), // input wire [0:0]  probe17 
+    .probe18(m_axi_wvalid), // input wire [0:0]  probe18 
+    .probe19(m_axi_wready), // input wire [0:0]  probe19 
+    .probe20(m_axi_bid), // input wire [15:0]  probe20 
+    .probe21(m_axi_bvalid), // input wire [0:0]  probe21 
+    .probe22(m_axi_bready), // input wire [0:0]  probe22 
+    .probe23(req_state), // input wire [2:0]  probe23 
+    .probe24(req_header_f), // input wire [191:0]  probe24 
+    .probe25(req_id_f), // input wire [1:0]  probe25 
+    .probe26(req_data_f), // input wire [511:0]  probe26 
+    .probe27(strb_before_offset), // input wire [63:0]  probe27 
+    .probe28(offset), // input wire [5:0]  probe28 
+    .probe29(addr), // input wire [63:0]  probe29 
+    .probe30(resp_state), // input wire [2:0]  probe30 
+    .probe31(resp_id_f) // input wire [1:0]  probe31
+);*/
+
 endmodule

@@ -156,15 +156,14 @@ Verilated::debug(1);
 #endif
 
 reset_and_init();
+
+while (!Verilated::gotFinish()) { tick(); }
+
 #ifdef VERILATOR_VCD
-for (int i = 0; i < 15000; i++) {
-    tick();
-}
 std::cout << "Trace done" << std::endl;
 tfp->close();
-#else
-while (!Verilated::gotFinish()) { tick(); }
 #endif
+
 delete top;
 exit(0);
 }

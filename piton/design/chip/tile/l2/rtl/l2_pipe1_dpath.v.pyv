@@ -561,6 +561,14 @@ begin
     end
 end
 
+wire [`L2_OWNER_BITS-1:0] flat_id_S2;
+
+xy_to_flat_id flat_id_gen(
+    .flat_id    (flat_id_S2),
+    .x_coord    (src_x_S2_f),
+    .y_coord    (src_y_S2_f)
+);
+
 
 reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_buf_S2_f;
 reg [`L2_STATE_ARRAY_WIDTH-1:0] state_data_buf_S2_next;
@@ -844,7 +852,7 @@ begin
     else
     `endif
     begin
-        req_from_owner_S2 = (l2_way_state_owner_S2 == {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]});
+        req_from_owner_S2 = (l2_way_state_owner_S2 == flat_id_S2);
     end
 end
 
@@ -968,10 +976,12 @@ begin
         else    
         `endif
         begin
-            dir_data_mask_in_S2 = {{(`L2_DIR_ARRAY_WIDTH-1){1'b0}},1'b1} << {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]};
+            dir_data_mask_in_S2 = {{(`L2_DIR_ARRAY_WIDTH-1){1'b0}},1'b1} << flat_id_S2;
         end
     end 
 end
+
+
 
 reg [`L2_DATA_DATA_WIDTH-1:0] msg_data_mask_in_S2;
 reg [`L2_DATA_DATA_WIDTH-1:0] data_data_merge_S2;
@@ -1104,7 +1114,7 @@ begin
         else
         `endif
         begin
-            state_owner_S2 = {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]}; 
+            state_owner_S2 = flat_id_S2; // {src_y_S2_f[`L2_OWNER_XY], src_x_S2_f[`L2_OWNER_XY]}; 
         end
     end
     else if (state_owner_op_S2 == `OP_ADD)
@@ -1887,6 +1897,20 @@ begin
     end
 end
 
+wire [(`NOC_X_WIDTH-1) : 0] owner_x_S4; 
+wire [(`NOC_Y_WIDTH-1) : 0] owner_y_S4; 
+wire [(`NOC_X_WIDTH-1) : 0] sharer_x_S4; 
+wire [(`NOC_Y_WIDTH-1) : 0] sharer_y_S4; 
+flat_id_to_xy owner_xy_gen(
+    .flat_id            (l2_way_state_owner_S4_f),
+    .x_coord            (owner_x_S4),
+    .y_coord            (owner_y_S4)
+);
+flat_id_to_xy sharer_xy_gen(
+    .flat_id            (dir_sharer_S4),
+    .x_coord            (sharer_x_S4),
+    .y_coord            (sharer_y_S4)
+);
 
 always @ *
 begin
@@ -1908,10 +1932,8 @@ begin
 `else      
             msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
 `endif      
-            msg_send_dst_x_S4 = {{(`MSG_SRC_X_WIDTH - `L2_OWNER_X_WIDTH){1'b0}}, 
-                                 l2_way_state_owner_S4_f[`L2_OWNER_X]}; 
-            msg_send_dst_y_S4 = {{(`MSG_SRC_Y_WIDTH - `L2_OWNER_Y_WIDTH){1'b0}},
-                                 l2_way_state_owner_S4_f[`L2_OWNER_Y]};
+            msg_send_dst_x_S4 = owner_x_S4; 
+            msg_send_dst_y_S4 = owner_y_S4;
         end
         msg_send_dst_fbits_S4 = `NOC_FBITS_L1;
     end
@@ -1937,8 +1959,8 @@ begin
         `endif
         begin
             msg_send_dst_chipid_S4 = my_nodeid_chipid_S4;
-            msg_send_dst_x_S4 = {{(`MSG_SRC_X_WIDTH - `L2_OWNER_X_WIDTH){1'b0}}, dir_sharer_S4[`L2_OWNER_X]}; 
-            msg_send_dst_y_S4 = {{(`MSG_SRC_Y_WIDTH - `L2_OWNER_Y_WIDTH){1'b0}}, dir_sharer_S4[`L2_OWNER_Y]};
+            msg_send_dst_x_S4 = sharer_x_S4; 
+            msg_send_dst_y_S4 = sharer_y_S4;
         end
         msg_send_dst_fbits_S4 = `NOC_FBITS_L1;
     end

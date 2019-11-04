@@ -101,21 +101,17 @@ Continuous integration bundles are sets of simulations, regression groups, and/o
 ==========================
 ![OpenPitonAriane Logo](/docs/openpiton_ariane_logo.png?raw=true)
 
-#### Preliminary Support for Ariane RV64IMAC Core
+# Support for the Ariane RV64IMAC Core
 
-This version of OpenPiton has preliminary support for the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
+This version of OpenPiton supports the [64bit Ariane RISC-V processor](https://github.com/pulp-platform/ariane) from ETH Zurich.
 To this end, Ariane has been equipped with a different L1 cache subsystem that follows a write-through protocol and that has support for cache invalidations and atomics.
 This L1 cache system is designed to connect directly to the L1.5 cache provided by OpenPiton's P-Mesh.
 
 Check out the sections below to see how to run the RISC-V tests or simple bare-metal C programs in simulation.
 
-> For simulation, Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed (older versions might work, but have not been tested).
-
-> You will need Vivado 2017.3 or newer to build an FPGA bitstream with Ariane.
-
 ![blockdiag](/docs/openpiton_ariane_blockdiag.png?raw=true)
 
-##### Environment Setup
+#### Environment Setup
 
 In addition to the OpenPiton setup described above, you have to adapt the paths in the `ariane_setup.sh` script to match with your installation (we support Questasim, VCS and Verilator at the moment). Source this script from the OpenPiton root folder and build the RISC-V tools with `ariane_build_tools.sh` if you are running this for the first time:
 1. ```cd $PITON_ROOT/```
@@ -128,7 +124,13 @@ Step 3. will then download and compile the RISC-V toolchain, the assembly tests 
 
 > Also note that we use a slightly adapted version of `syscalls.c`. Instead of using the RISC-V FESVR, we use the OpenPiton testbench monitors to observe whether a test has passed or not. Hence we added the corresponding pass/fail traps to the exit function in `syscalls.c`.
 
-##### Running RISC-V Tests and Benchmarks
+> For simulation Questasim 10.6b, VCS 2017.03 or Verilator 4.014 is needed
+ (older versions may work, but are untested).
+
+> You will need Vivado 2018.2 or newer to build an FPGA bitstream with Ariane.
+
+
+#### Running RISC-V Tests and Benchmarks
 
 The RISC-V benchmarks are precompiled in the tool setup step mentioned above. You can run individual benchmarks by first building the simulation model with
 
@@ -150,8 +152,7 @@ The printf output will be directed to `fake_uart.log` in this case (in the build
 > Note: if you see the `Warning: [l15_adapter] return type 004 is not (yet) supported by l15 adapter.` warning in the simulation output, do not worry. This is only generated since Ariane does currently not support OpenPiton's packet-based interrupt packets arriving over the memory interface.
 
 
-
-##### Running Custom Programs
+#### Running Custom Programs
 
 You can also run test programs written in C. The following example program just prints 32 times "hello_world" to the fake UART (see `fake_uart.log` file).
 
@@ -169,7 +170,8 @@ In the example above, we have a 4x4 Ariane tile configuration, where each core j
 
 > Note that we have to adjust the finish mask in this case, since we expect all 16 cores to hit the pass/fail trap.
 
-##### Regressions
+
+#### Regressions
 
 The RISC-V ISA tests, benchmarks and some additonal simple example programs have been added to the regression suite of OpenPiton, and can be invoked as described below.
 
@@ -199,7 +201,7 @@ The RISC-V ISA tests, benchmarks and some additonal simple example programs have
 If you would like to get an overview of the exit status of a regression batch, step into the regression subfolder and call `regreport . -summary`.
 
 
-##### FPGA Mapping on Genesys2 Board
+#### FPGA Mapping on Genesys2 Board
 
 The bitfile for a 1x1 tile Ariane configuration for the Genesys2 board can be built using the follong command:
 
@@ -219,11 +221,11 @@ You can also run the precompiled RISCV benchmarks by using the following command
 
 > Note the `-precompiled` switch here, which has the same effect as when used with the `sims` command.
 
-##### Debugging via JTAG
+#### Debugging via JTAG
 
 OpenPiton+Ariane supports the [RISC-V External Debug Draft Spec](https://github.com/riscv/riscv-debug-spec/blob/master/riscv-debug-draft.pdf) and hence you can debug (and program) the FPGA using [OpenOCD](http://openocd.org/doc/html/Architecture-and-Core-Commands.html). We provide two example scripts for OpenOCD below.
 
-To get started, connect the micro USB port that is labeled with JTAG to your machine. This port is attached to the FTDI 2232 USB-to-serial chip on the Genesys 2 board, and is usually used to access the native JTAG interface of the Kintex-7 FPGA (e.g. to program the device using Vivado). However, the FTDI chip also exposes a second serial link that is routed to GPIO pins on the FPGA, and we leverage this to wire up the JTAG from the RISC-V debug module.
+To get started, connect the micro-USB port that is labeled with JTAG to your machine. This port is attached to the FTDI 2232 USB-to-serial chip on the Genesys 2 board, and is usually used to access the native JTAG interface of the Kintex-7 FPGA (e.g. to program the device using Vivado). However, the FTDI chip also exposes a second serial link that is routed to GPIO pins on the FPGA, and we leverage this to wire up the JTAG from the RISC-V debug module.
 
 >If you are on an Ubuntu based system you need to add the following udev rule to `/etc/udev/rules.d/99-ftdi.rules`
 >```
@@ -291,43 +293,225 @@ In order to compile programs that you can load with GDB, use the following comma
 
 Note that the tile configuration needs to correspond to your actual platform configuration if your program is a multi-hart program. Otherwise you can omit these switches (the additional cores will not execute the program in that case).
 
-##### Booting SMP Linux on Genesys2 and VC707
+#### Booting SMP Linux on Genesys2 or VC707
 
-We currently support single core and SMP Linux on the Genesys2, VC707 and Nexys Video FPGA development boards. 
+We currently support single core and SMP Linux on the
+[Genesys2](https://store.digilentinc.com/genesys-2-kintex-7-fpga-development-board/),
+[Nexys Video](https://store.digilentinc.com/nexys-video-artix-7-fpga-trainer-board-for-multimedia-applications/),
+and
+[VC707](https://www.xilinx.com/products/boards-and-kits/ek-v7-vc707-g.html)
+FPGA development boards.
+For familiarisation and to ensure your hardware is setup correctly first try
+running with a released bitfile and SD card image.
 
-In order to build an FPGA image for these boards, use either of the following commands:
+To prepare the SD card with a Linux image you need to format it with
+[`sgdisk`](https://wiki.archlinux.org/index.php/GPT_fdisk)
+then write the image with
+[`dd`](https://wiki.archlinux.org/index.php/Dd).
+1. Download the Ariane Linux OS image from either
+   the ariane-sdk [release](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0-op)
+   or
+   the Princeton [archive](http://openpiton.org/download.php),
+   extract and save the `.bin` file as `bbl.bin` in the current directory.
+   If you want to build your own Linux image please see
+   [ariane-sdk](https://github.com/pulp-platform/ariane-sdk).
+2. `$ sudo fdisk -l`
+    Search *carefully* for the corresponding disk label of the SD card,
+    e.g. `/dev/sdb`
+3. `$ sudo sgdisk --clear --new=1:2048:67583 --new=2 --typecode=1:3000 --typecode=2:8300 /dev/sdb`
+    Create a new [GPT](https://en.wikipedia.org/wiki/GUID_Partition_Table)
+    partition table and two partitions:
+    1st partition 32MB (ONIE boot),
+    2nd partition rest (Linux root).
+4. `$ sudo dd if=bbl.bin of=/dev/sdb1 oflag=sync bs=1M`
+    Write the `bbl.bin` file to the first partition.
+    E.g. where your disk label is `/dev/sdb` use `/dev/sdb1` (append a `1`).
+5. Insert the SD card into the FPGA development board.
+   You can leave it there until you want to build your own Linux OS image.
 
-```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr```
 
-```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr```
+> Note that the board specific settings are encoded in the device tree that is
+  automatically generated and compiled into the FPGA bitfile, so no specific
+  configuration of the Linux kernel is needed.
 
-```protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr```
+Next up is generating the bitfile which assumes you've setup your PATH by
+sourcing `/opt/xilinx/Vivado/2018.2/settings64.sh` and `piton/ariane_setup.sh`.
+The default configuration is 1 core for all boards, but you can override this
+with command line arguments.
+In order to build an FPGA image for these boards, use one of the following
+commands representing the maximum configurations:
 
-The default configuration is 1 core for all boards, but you can override this with command line arguments. The commands below represent the maximum configurations that can be mapped onto the corresponding board:
+- `protosyn -b nexysVideo -d system --core=ariane --uart-dmw ddr`
+- `protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2`
+- `protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=3 --y_tiles=1`
+  (81% LUT utilization)
 
-```protosyn -b genesys2 -d system --core=ariane --uart-dmw ddr --x_tiles=2```
+> Vivado version 2017.3 and previous are known to fail for various reasons but
+  may generate an unusable bitfile.
+  Please use Vivado 2018.2.
 
-```protosyn -b vc707 -d system --core=ariane --uart-dmw ddr --x_tiles=2 --y_tiles=2```
+This command will take a while (1-2 hours is typical for the first run before IP has been generated) to generate a
+bitfile at
+`build/vc707/system/vc707_system/vc707_system.runs/impl_1/system.bit`.
+To get started you can, alternatively, try a released bitfile from
+the Princeton [archive](http://openpiton.org/download.php),
 
-Once you generated the FPGA bitfile, go and grab the [ariane-sdk](https://github.com/pulp-platform/ariane-sdk) and follow the steps in that readme to build the Linux image and prepare the SD card. If you do not want to go through the hassle of building your own image, you can download a pre-built linux image from [here](https://github.com/pulp-platform/ariane-sdk/releases/tag/v0.3.0).
+Now that you have a prepared SD card inserted into the dev board, and a bitfile
+it's time to boot up.
+The Linux OS provides console access over UART.
 
-> Note that the board specific settings are encoded in the device tree that is automatically generated and compiled into the FPGA bitfile, so no specific configuration of the Linux kernel is needed.
+1. Connect a mini-USB cable to the port labelled `UART` and power on the board
+   which allows the interfaces such as `/dev/ttyUSB2` to become available.
+2. Open a console with
+   115200/8N1.
+   E.g. something like
+   `screen /dev/ttyUSB0 115200`
+   or
+   `sudo minicom -D /dev/ttyUSB2`
+   If there are multiple ttyUSB devices just open a console to each of them.
+3. Connect a micro-USB cable to the port labelled `JTAG` and connect from within
+   the Vivado Hardware Manager.
+   This can be done in the GUI by opening the project:
+   `vivado build/vc707/system/vc707_system/vc707_system.xpr &`
+4. Program the device with the generated bitfile, which Vivado should find
+   automatically.
+   Once programming is finished (around 10s) reset will be immediately lifted
+   and you should see the Linux boot process being reported on the UART console.
 
-Insert the SD card into the corresponding slot of the FPGA board, connect a terminal to the UART using e.g. `screen /dev/ttyUSB0 115200`, and program the FPGA. Once the device comes out of reset, the zero-stage bootloader copies the Linux image (including the first stage bootloader) into DRAM, and executes it. Be patient, copying from SD takes a couple of seconds.
+When the device comes out of reset, the zero-stage bootloader copies the Linux
+image, including the first stage bootloader, from the SD card into DDR, and
+executes it.
+Be patient, copying from SD takes a couple of seconds.
+When the boot process is finished a login prompt is displayed.
+The username is `root` without a password.
+Now you can test things by running standard unix commands (`# cat /proc/cpuinfo`),
+or playing tetris (`# /tetris`).
 
-> There is also preliminary support for the VCU118, but not all features work yet on that board.
-> For the VCU118 board you need the [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/) from Digilent to be able to use an SD card (the slot on the VCU118 board is not directly connected to the FPGA). As the PMOD0 port has open-drain level-shifters, you also have to replace the R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD SD adapter to make sure that signal rise times are short enough. 
+> There is also preliminary support for the VCU118, but not all features work
+  yet on that board.
+  For the VCU118 board you need the
+  [PMOD SD adapter](https://store.digilentinc.com/pmod-sd-full-sized-sd-card-slot/)
+  from Digilent to be able to use an SD card (the slot on the VCU118 board is not
+  directly connected to the FPGA).
+  As the PMOD0 port has open-drain level-shifters, you also have to replace the
+  R1-R4 and R7-8 resistors with 470 Ohm 0201 SMD resistors on the Digilent PMOD
+  SD adapter to make sure that signal rise times are short enough.
 
-##### Planned Improvements
+
+#### Running OpenPiton simulations on F1 instances in AWS: step guide
+
+Here is the generic flow to run OpenPiton on F1 instance. We created a public image (agfi-0d87a634f93fe7c83), which you can use to try OpenPiton on F1 without synthesizing it. 
+
+1. We assume that you already have F1 instance up and running. If not - steps 1,2,4,5 from this (https://github.com/vegaluisjose/aws-fpga-notes) guide will help you. 
+
+2. ssh into your instance, clone OpenPiton repo (https://github.com/PrincetonUniversity/openpiton). 
+
+3. cd into repo, run these bash commands:
+```
+    export PITON_ROOT=`pwd`
+    export AWS_FPGA_REPO_DIR="$PITON_ROOT/piton/design/aws"
+    export CL_DIR="$AWS_FPGA_REPO_DIR/hdk/cl/developer_designs/piton_aws"
+    source piton/piton_settings.bash
+    source piton/ariane_setup.sh
+```
+
+4. Load the fpga image into board:
+``` 
+    fpga-load-local-image -S 0 -I agfi-0d87a634f93fe7c83 
+```
+After this step the fpga is programmed, but the reset signal is high, so the system is still not working. 
+
+5. Compile software 
+``` 
+    cd $CL_DIR/software/src 
+    make
+```
+This will compile programs "uart" and "dma_os". You should have xdma driver preinstalled (https://github.com/Xilinx/dma_ip_drivers/tree/master/XDMA/linux-kernel).
+
+6. Run "uart" program
+``` 
+    ./uart & 
+```
+This will create a pseudo-terminal and tell you the location of the corresponding file (e.g. /dev/pts/3)
+
+7. Write OS image in memory: 
+``` 
+    ./dma_os $FILE_LOCATION 
+```
+This will put the os image from FILE_LOCATION in the appropriate place in memory. Note, before writing the image you should revert each 8 bytes of it (consequences of strange behavior of xdma driver). You can do this with 
+``` 
+    objcopy -I binary -O binary --reverse-bytes=8 $FILE_LOCATION 
+```
+
+8. Reset fpga:
+``` 
+    ./fpga-reset 
+```
+After this the processor will start working and printing UART data in your pseudo-terminal. You can connect to the terminal using your favourite terminal program (e.g. screen, tio). 
+
+9. Managing the fpga:
+In the software directory we provide you with some useful programs: 
+ - uart : starts pseudo-terminal, connected to the OpenPiton's uart
+ - dma_os : copies file from argument into the SD part of the memory
+ - fpga-reset : resets the fpga
+ - fpga-poweroff : sets the reset in the fpga to high, basically powering off OpenPiton so that you could write the data into memory without memory corruptions. 
+
+Besides, you might find useful some utilities, provided by AWS themselves:
+ - fpga-clear-local-image : clears the image from FPGA
+ - fpga-set-virtual-dip-switch : sets the value of 16 virtual dip switches. Note that the last switch (15th) is connected to OpenPiton's reset
+ - fpga-get-virtual-led : reads the value of 16 virtual leds
+
+#### Synthesizing OpenPiton image for F1
+The flow is very simillar to synthesizing image for any other FPGA we support, but has own nuances. Good news: you can run the flow on your own machine if you have Vivado 2018.2 or higher.
+
+
+1. Create the S3 credentials and configure your S3 bucket. You can find step guides here (https://github.com/vegaluisjose/aws-fpga-notes). 
+
+2. Clone OpenPiton repo (https://github.com/PrincetonUniversity/openpiton). 
+
+3. cd into repo, run these bash commands:
+```
+    export PITON_ROOT=`pwd`
+    export AWS_FPGA_REPO_DIR="$PITON_ROOT/piton/design/aws"
+    export CL_DIR="$AWS_FPGA_REPO_DIR/hdk/cl/developer_designs/piton_aws"
+    source piton/piton_settings.bash
+    source piton/ariane_setup.sh
+    source "$AWS_FPGA_REPO_DIR/hdk_setup.sh"
+```
+The last command will try to ask for root password to apply patch for Vivado, but you don't have to do it - the flow still works even without patch. 
+
+4. Run the synthesis:
+``` 
+    protosyn -b f1 -c ariane ... 
+```
+This will create the custom logic tar archive, which we'll later upload on AWS servers. The synthesis itself is run in nohup, but protosyn will tell you the location of the log files, so that you can follow the progress.
+
+5. After the synthesis is complete (takes about 2-3 hours on fast PC), go to results folder:
+``` 
+    cd $PITON_ROOT/build/f1/piton_aws/build/checkpoints/to_aws 
+```
+This is the folder, where all the result tars are located. 
+
+6. Copy the resulting tar archive in the S3 bucket you created before
+
+7. Send the command for final synthesis: 
+``` 
+    aws ec2 create-fpga-image --name NAME_OF_IMAGE --input-storage-location Bucket=YOUR_S3_BUCKET,Key=NAME_OF_YOUR_TAR_ARCHIVE 
+```
+The command will tell print the afi and agfi of your image. You can track the synthesis progress with
+``` 
+    aws ec2 describe-fpga-images --fpga-image-ids AFI_OF_YOUR_IMAGE 
+```
+
+8. After the synthesis is done - you can go load it in your F1 instance!
+
+#### Planned Improvements
 
 The following items are currently under development and will be released soon.
 
 - Thorough validation of cache coherence.
-
 - RISC-V FESVR support in simulation.
-
 - Synthesis flow for large FPGAs.
-
 - Performance enhancements (cache re-parameterization, write-buffer throughput).
 
 Stay tuned!
