@@ -43,14 +43,56 @@ module mc_top (
 
     input                           uart_boot_en,
 
-`ifdef PITONSYS_DMA
-    input pcie_clk_p,
-    input pcie_clk_n,
-    input pcie_rst_n,
-    output [15:0] pcie_txp,
-    output [15:0] pcie_txn,
-    input [15:0] pcie_rxp,
-    input [15:0] pcie_rxn,
+
+`ifdef PITONSYS_PCIE_DMA
+    // axi interface from dma engine
+    input  pcie_dma_axi_aclk,
+    input  pcie_dma_axi_aresetn,
+    input  [`AXI4_ID_WIDTH     -1:0]     pcie_dma_axi_awid,
+    input  [`AXI4_ADDR_WIDTH   -1:0]     pcie_dma_axi_awaddr,
+    input  [`AXI4_LEN_WIDTH    -1:0]     pcie_dma_axi_awlen,
+    input  [`AXI4_SIZE_WIDTH   -1:0]     pcie_dma_axi_awsize,
+    input  [`AXI4_BURST_WIDTH  -1:0]     pcie_dma_axi_awburst,
+    input                                pcie_dma_axi_awlock,
+    input  [`AXI4_CACHE_WIDTH  -1:0]     pcie_dma_axi_awcache,
+    input  [`AXI4_PROT_WIDTH   -1:0]     pcie_dma_axi_awprot,
+    input  [`AXI4_QOS_WIDTH    -1:0]     pcie_dma_axi_awqos,
+    input  [`AXI4_REGION_WIDTH -1:0]     pcie_dma_axi_awregion,
+    input  [`AXI4_USER_WIDTH   -1:0]     pcie_dma_axi_awuser,
+    input                                pcie_dma_axi_awvalid,
+    output                               pcie_dma_axi_awready,
+    input   [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_wid,
+    input   [`AXI4_DATA_WIDTH   -1:0]    pcie_dma_axi_wdata,
+    input   [`AXI4_STRB_WIDTH   -1:0]    pcie_dma_axi_wstrb,
+    input                                pcie_dma_axi_wlast,
+    input   [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_wuser,
+    input                                pcie_dma_axi_wvalid,
+    output                               pcie_dma_axi_wready,
+    input   [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_arid,
+    input   [`AXI4_ADDR_WIDTH   -1:0]    pcie_dma_axi_araddr,
+    input   [`AXI4_LEN_WIDTH    -1:0]    pcie_dma_axi_arlen,
+    input   [`AXI4_SIZE_WIDTH   -1:0]    pcie_dma_axi_arsize,
+    input   [`AXI4_BURST_WIDTH  -1:0]    pcie_dma_axi_arburst,
+    input                                pcie_dma_axi_arlock,
+    input   [`AXI4_CACHE_WIDTH  -1:0]    pcie_dma_axi_arcache,
+    input   [`AXI4_PROT_WIDTH   -1:0]    pcie_dma_axi_arprot,
+    input   [`AXI4_QOS_WIDTH    -1:0]    pcie_dma_axi_arqos,
+    input   [`AXI4_REGION_WIDTH -1:0]    pcie_dma_axi_arregion,
+    input   [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_aruser,
+    input                                pcie_dma_axi_arvalid,
+    output                               pcie_dma_axi_arready,
+    output  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_rid,
+    output  [`AXI4_DATA_WIDTH   -1:0]    pcie_dma_axi_rdata,
+    output  [`AXI4_RESP_WIDTH   -1:0]    pcie_dma_axi_rresp,
+    output                               pcie_dma_axi_rlast,
+    output  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_ruser,
+    output                               pcie_dma_axi_rvalid,
+    input                                pcie_dma_axi_rready,
+    output  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_bid,
+    output  [`AXI4_RESP_WIDTH   -1:0]    pcie_dma_axi_bresp,
+    output  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_buser,
+    output                               pcie_dma_axi_bvalid,
+    input                                pcie_dma_axi_bready,
 `endif
     
 `ifdef PITONSYS_DDR4
@@ -241,6 +283,7 @@ wire                               sys_axi_bready;
 // axi4 interface from core
 wire [`AXI4_ID_WIDTH     -1:0]     core_axi_awid;
 wire [`AXI4_ADDR_WIDTH   -1:0]     core_axi_awaddr;
+wire [`AXI4_ADDR_WIDTH   -1:0]     core_axi_awaddr_not_translated;
 wire [`AXI4_LEN_WIDTH    -1:0]     core_axi_awlen;
 wire [`AXI4_SIZE_WIDTH   -1:0]     core_axi_awsize;
 wire [`AXI4_BURST_WIDTH  -1:0]     core_axi_awburst;
@@ -261,6 +304,7 @@ wire                               core_axi_wvalid;
 wire                               core_axi_wready;
 wire  [`AXI4_ID_WIDTH     -1:0]    core_axi_arid;
 wire  [`AXI4_ADDR_WIDTH   -1:0]    core_axi_araddr;
+wire [`AXI4_ADDR_WIDTH   -1:0]     core_axi_araddr_not_translated;
 wire  [`AXI4_LEN_WIDTH    -1:0]    core_axi_arlen;
 wire  [`AXI4_SIZE_WIDTH   -1:0]    core_axi_arsize;
 wire  [`AXI4_BURST_WIDTH  -1:0]    core_axi_arburst;
@@ -336,61 +380,6 @@ wire                               zeroer_axi_bready;
 wire                               init_calib_complete_zero;
 `endif
 
-`ifdef PITONSYS_DMA
-
-wire pcie_sys_clk_gt;
-wire pcie_sys_clk;
-
-
-// axi interface from dma engine
-wire dma_axi_aclk;
-wire dma_axi_aresetn;
-wire [`AXI4_ID_WIDTH     -1:0]     dma_axi_awid;
-wire [`AXI4_ADDR_WIDTH   -1:0]     dma_axi_awaddr;
-wire [`AXI4_LEN_WIDTH    -1:0]     dma_axi_awlen;
-wire [`AXI4_SIZE_WIDTH   -1:0]     dma_axi_awsize;
-wire [`AXI4_BURST_WIDTH  -1:0]     dma_axi_awburst;
-wire                               dma_axi_awlock;
-wire [`AXI4_CACHE_WIDTH  -1:0]     dma_axi_awcache;
-wire [`AXI4_PROT_WIDTH   -1:0]     dma_axi_awprot;
-wire [`AXI4_QOS_WIDTH    -1:0]     dma_axi_awqos;
-wire [`AXI4_REGION_WIDTH -1:0]     dma_axi_awregion;
-wire [`AXI4_USER_WIDTH   -1:0]     dma_axi_awuser;
-wire                               dma_axi_awvalid;
-wire                               dma_axi_awready;
-wire  [`AXI4_ID_WIDTH     -1:0]    dma_axi_wid;
-wire  [`AXI4_DATA_WIDTH   -1:0]    dma_axi_wdata;
-wire  [`AXI4_STRB_WIDTH   -1:0]    dma_axi_wstrb;
-wire                               dma_axi_wlast;
-wire  [`AXI4_USER_WIDTH   -1:0]    dma_axi_wuser;
-wire                               dma_axi_wvalid;
-wire                               dma_axi_wready;
-wire  [`AXI4_ID_WIDTH     -1:0]    dma_axi_arid;
-wire  [`AXI4_ADDR_WIDTH   -1:0]    dma_axi_araddr;
-wire  [`AXI4_LEN_WIDTH    -1:0]    dma_axi_arlen;
-wire  [`AXI4_SIZE_WIDTH   -1:0]    dma_axi_arsize;
-wire  [`AXI4_BURST_WIDTH  -1:0]    dma_axi_arburst;
-wire                               dma_axi_arlock;
-wire  [`AXI4_CACHE_WIDTH  -1:0]    dma_axi_arcache;
-wire  [`AXI4_PROT_WIDTH   -1:0]    dma_axi_arprot;
-wire  [`AXI4_QOS_WIDTH    -1:0]    dma_axi_arqos;
-wire  [`AXI4_REGION_WIDTH -1:0]    dma_axi_arregion;
-wire  [`AXI4_USER_WIDTH   -1:0]    dma_axi_aruser;
-wire                               dma_axi_arvalid;
-wire                               dma_axi_arready;
-wire  [`AXI4_ID_WIDTH     -1:0]    dma_axi_rid;
-wire  [`AXI4_DATA_WIDTH   -1:0]    dma_axi_rdata;
-wire  [`AXI4_RESP_WIDTH   -1:0]    dma_axi_rresp;
-wire                               dma_axi_rlast;
-wire  [`AXI4_USER_WIDTH   -1:0]    dma_axi_ruser;
-wire                               dma_axi_rvalid;
-wire                               dma_axi_rready;
-wire  [`AXI4_ID_WIDTH     -1:0]    dma_axi_bid;
-wire  [`AXI4_RESP_WIDTH   -1:0]    dma_axi_bresp;
-wire  [`AXI4_USER_WIDTH   -1:0]    dma_axi_buser;
-wire                               dma_axi_bvalid;
-wire                               dma_axi_bready;
-`endif
 
 wire                               noc_axi4_bridge_rst;
 wire                               noc_axi4_bridge_init_done;
@@ -840,7 +829,7 @@ noc_axi4_bridge noc_axi4_bridge  (
     .bridge_dst_vr_noc3_rdy(trans_fifo_rdy),
 
     .m_axi_awid(core_axi_awid),
-    .m_axi_awaddr(core_axi_awaddr),
+    .m_axi_awaddr(core_axi_awaddr_not_translated),
     .m_axi_awlen(core_axi_awlen),
     .m_axi_awsize(core_axi_awsize),
     .m_axi_awburst(core_axi_awburst),
@@ -868,7 +857,7 @@ noc_axi4_bridge noc_axi4_bridge  (
     .m_axi_bready(core_axi_bready),
 
     .m_axi_arid(core_axi_arid),
-    .m_axi_araddr(core_axi_araddr),
+    .m_axi_araddr(core_axi_araddr_not_translated),
     .m_axi_arlen(core_axi_arlen),
     .m_axi_arsize(core_axi_arsize),
     .m_axi_arburst(core_axi_arburst),
@@ -890,6 +879,14 @@ noc_axi4_bridge noc_axi4_bridge  (
     .m_axi_rready(core_axi_rready)
 
 );
+
+assign core_axi_araddr = (core_axi_araddr_not_translated >= 64'hfff0000000) ? core_axi_araddr_not_translated - 64'hfff0000000 + 64'h400000000 
+                                                       : (core_axi_araddr_not_translated >= 64'hf000000000) ? core_axi_araddr_not_translated - 64'hf000000000 + 64'h400000000 
+                                                       : core_axi_araddr_not_translated;
+
+assign core_axi_awaddr = (core_axi_awaddr_not_translated >= 64'hfff0000000) ? core_axi_awaddr_not_translated - 64'hfff0000000 + 64'h400000000 
+                                                       : (core_axi_awaddr_not_translated >= 64'hf000000000) ? core_axi_awaddr_not_translated - 64'hf000000000 + 64'h400000000 
+                                                       : core_axi_awaddr_not_translated;
 
 `ifdef PITONSYS_MEM_ZEROER
 axi4_zeroer axi4_zeroer(
@@ -1001,62 +998,9 @@ axi4_zeroer axi4_zeroer(
 );
 `endif // PITONSYS_MEM_ZEROER
 
-`ifdef PITONSYS_DMA
+`ifdef PITONSYS_PCIE_DMA
 
-// Ref clock buffer
-IBUFDS_GTE4 # (.REFCLK_HROW_CK_SEL(2'b00)) pcieclk_ibuf (.O(pcie_clk_gt), .ODIV2(pcie_clk), .I(pcie_clk_p), .CEB(1'b0), .IB(pcie_clk_n));
 
-xdma_0 xdma (
-  .sys_clk(pcie_clk),              // input wire sys_clk
-  .sys_clk_gt(pcie_clk_gt),        // input wire sys_clk_gt
-  .sys_rst_n(pcie_rst_n),          // input wire sys_rst_n
-
-  .user_lnk_up(),      // output wire user_lnk_up
-  .pci_exp_txp(pcie_txp),      // output wire [15 : 0] pci_exp_txp
-  .pci_exp_txn(pcie_txn),      // output wire [15 : 0] pci_exp_txn
-  .pci_exp_rxp(pcie_rxp),      // input wire [15 : 0] pci_exp_rxp
-  .pci_exp_rxn(pcie_rxn),      // input wire [15 : 0] pci_exp_rxn
-
-  .axi_aclk(dma_axi_aclk),            // output wire axi_aclk
-  .axi_aresetn(dma_axi_aresetn),      // output wire axi_aresetn
-  .usr_irq_req(1'b0),      // input wire [0 : 0] usr_irq_req
-  .usr_irq_ack(),      // output wire [0 : 0] usr_irq_ack
-  .m_axi_awready(dma_axi_awready),  // input wire m_axi_awready
-  .m_axi_wready(dma_axi_wready),    // input wire m_axi_wready
-  .m_axi_bid(dma_axi_bid),          // input wire [3 : 0] m_axi_bid
-  .m_axi_bresp(dma_axi_bresp),      // input wire [1 : 0] m_axi_bresp
-  .m_axi_bvalid(dma_axi_bvalid),    // input wire m_axi_bvalid
-  .m_axi_arready(dma_axi_arready),  // input wire m_axi_arready
-  .m_axi_rid(dma_axi_rid),          // input wire [3 : 0] m_axi_rid
-  .m_axi_rdata(dma_axi_rdata),      // input wire [511 : 0] m_axi_rdata
-  .m_axi_rresp(dma_axi_rresp),      // input wire [1 : 0] m_axi_rresp
-  .m_axi_rlast(dma_axi_rlast),      // input wire m_axi_rlast
-  .m_axi_rvalid(dma_axi_rvalid),    // input wire m_axi_rvalid
-  .m_axi_awid(dma_axi_awid),        // output wire [3 : 0] m_axi_awid
-  .m_axi_awaddr(dma_axi_awaddr),    // output wire [63 : 0] m_axi_awaddr
-  .m_axi_awlen(dma_axi_awlen),      // output wire [7 : 0] m_axi_awlen
-  .m_axi_awsize(dma_axi_awsize),    // output wire [2 : 0] m_axi_awsize
-  .m_axi_awburst(dma_axi_awburst),  // output wire [1 : 0] m_axi_awburst
-  .m_axi_awprot(dma_axi_awprot),    // output wire [2 : 0] m_axi_awprot
-  .m_axi_awvalid(dma_axi_awvalid),  // output wire m_axi_awvalid
-  .m_axi_awlock(dma_axi_awlock),    // output wire m_axi_awlock
-  .m_axi_awcache(dma_axi_awcache),  // output wire [3 : 0] m_axi_awcache
-  .m_axi_wdata(dma_axi_wdata),      // output wire [511 : 0] m_axi_wdata
-  .m_axi_wstrb(dma_axi_wstrb),      // output wire [63 : 0] m_axi_wstrb
-  .m_axi_wlast(dma_axi_wlast),      // output wire m_axi_wlast
-  .m_axi_wvalid(dma_axi_wvalid),    // output wire m_axi_wvalid
-  .m_axi_bready(dma_axi_bready),    // output wire m_axi_bready
-  .m_axi_arid(dma_axi_arid),        // output wire [3 : 0] m_axi_arid
-  .m_axi_araddr(dma_axi_araddr),    // output wire [63 : 0] m_axi_araddr
-  .m_axi_arlen(dma_axi_arlen),      // output wire [7 : 0] m_axi_arlen
-  .m_axi_arsize(dma_axi_arsize),    // output wire [2 : 0] m_axi_arsize
-  .m_axi_arburst(dma_axi_arburst),  // output wire [1 : 0] m_axi_arburst
-  .m_axi_arprot(dma_axi_arprot),    // output wire [2 : 0] m_axi_arprot
-  .m_axi_arvalid(dma_axi_arvalid),  // output wire m_axi_arvalid
-  .m_axi_arlock(dma_axi_arlock),    // output wire m_axi_arlock
-  .m_axi_arcache(dma_axi_arcache),  // output wire [3 : 0] m_axi_arcache
-  .m_axi_rready(dma_axi_rready)    // output wire m_axi_rready
-);
 
 axi_interconnect axi_interconnect (
   .INTERCONNECT_ACLK(ui_clk),        // input wire INTERCONNECT_ACLK
@@ -1103,44 +1047,44 @@ axi_interconnect axi_interconnect (
   .S00_AXI_RREADY(sys_axi_rready),              // input wire S00_AXI_RREADY
 
   .S01_AXI_ARESET_OUT_N(),  // output wire S01_AXI_ARESET_OUT_N
-  .S01_AXI_ACLK(dma_axi_aclk),                  // input wire S01_AXI_ACLK
-  .S01_AXI_AWID(dma_axi_awid),                  // input wire [7 : 0] S01_AXI_AWID
-  .S01_AXI_AWADDR(dma_axi_awaddr),              // input wire [63 : 0] S01_AXI_AWADDR
-  .S01_AXI_AWLEN(dma_axi_awlen),                // input wire [7 : 0] S01_AXI_AWLEN
-  .S01_AXI_AWSIZE(dma_axi_awsize),              // input wire [2 : 0] S01_AXI_AWSIZE
-  .S01_AXI_AWBURST(dma_axi_awburst),            // input wire [1 : 0] S01_AXI_AWBURST
-  .S01_AXI_AWLOCK(dma_axi_awlock),              // input wire S01_AXI_AWLOCK
-  .S01_AXI_AWCACHE(dma_axi_awcache),            // input wire [3 : 0] S01_AXI_AWCACHE
-  .S01_AXI_AWPROT(dma_axi_awprot),              // input wire [2 : 0] S01_AXI_AWPROT
-  .S01_AXI_AWQOS(dma_axi_awqos),                // input wire [3 : 0] S01_AXI_AWQOS
-  .S01_AXI_AWVALID(dma_axi_awvalid),            // input wire S01_AXI_AWVALID
-  .S01_AXI_AWREADY(dma_axi_awready),            // output wire S01_AXI_AWREADY
-  .S01_AXI_WDATA(dma_axi_wdata),                // input wire [511 : 0] S01_AXI_WDATA
-  .S01_AXI_WSTRB(dma_axi_wstrb),                // input wire [63 : 0] S01_AXI_WSTRB
-  .S01_AXI_WLAST(dma_axi_wlast),                // input wire S01_AXI_WLAST
-  .S01_AXI_WVALID(dma_axi_wvalid),              // input wire S01_AXI_WVALID
-  .S01_AXI_WREADY(dma_axi_wready),              // output wire S01_AXI_WREADY
-  .S01_AXI_BID(dma_axi_bid),                    // output wire [7 : 0] S01_AXI_BID
-  .S01_AXI_BRESP(dma_axi_bresp),                // output wire [1 : 0] S01_AXI_BRESP
-  .S01_AXI_BVALID(dma_axi_bvalid),              // output wire S01_AXI_BVALID
-  .S01_AXI_BREADY(dma_axi_bready),              // input wire S01_AXI_BREADY
-  .S01_AXI_ARID(dma_axi_arid),                  // input wire [7 : 0] S01_AXI_ARID
-  .S01_AXI_ARADDR(dma_axi_araddr),              // input wire [63 : 0] S01_AXI_ARADDR
-  .S01_AXI_ARLEN(dma_axi_arlen),                // input wire [7 : 0] S01_AXI_ARLEN
-  .S01_AXI_ARSIZE(dma_axi_arsize),              // input wire [2 : 0] S01_AXI_ARSIZE
-  .S01_AXI_ARBURST(dma_axi_arburst),            // input wire [1 : 0] S01_AXI_ARBURST
-  .S01_AXI_ARLOCK(dma_axi_arlock),              // input wire S01_AXI_ARLOCK
-  .S01_AXI_ARCACHE(dma_axi_arcache),            // input wire [3 : 0] S01_AXI_ARCACHE
-  .S01_AXI_ARPROT(dma_axi_arprot),              // input wire [2 : 0] S01_AXI_ARPROT
-  .S01_AXI_ARQOS(dma_axi_arqos),                // input wire [3 : 0] S01_AXI_ARQOS
-  .S01_AXI_ARVALID(dma_axi_arvalid),            // input wire S01_AXI_ARVALID
-  .S01_AXI_ARREADY(dma_axi_arready),            // output wire S01_AXI_ARREADY
-  .S01_AXI_RID(dma_axi_rid),                    // output wire [7 : 0] S01_AXI_RID
-  .S01_AXI_RDATA(dma_axi_rdata),                // output wire [511 : 0] S01_AXI_RDATA
-  .S01_AXI_RRESP(dma_axi_rresp),                // output wire [1 : 0] S01_AXI_RRESP
-  .S01_AXI_RLAST(dma_axi_rlast),                // output wire S01_AXI_RLAST
-  .S01_AXI_RVALID(dma_axi_rvalid),              // output wire S01_AXI_RVALID
-  .S01_AXI_RREADY(dma_axi_rready),              // input wire S01_AXI_RREADY
+  .S01_AXI_ACLK(pcie_dma_axi_aclk),                  // input wire S01_AXI_ACLK
+  .S01_AXI_AWID(pcie_dma_axi_awid),                  // input wire [7 : 0] S01_AXI_AWID
+  .S01_AXI_AWADDR(pcie_dma_axi_awaddr),              // input wire [63 : 0] S01_AXI_AWADDR
+  .S01_AXI_AWLEN(pcie_dma_axi_awlen),                // input wire [7 : 0] S01_AXI_AWLEN
+  .S01_AXI_AWSIZE(pcie_dma_axi_awsize),              // input wire [2 : 0] S01_AXI_AWSIZE
+  .S01_AXI_AWBURST(pcie_dma_axi_awburst),            // input wire [1 : 0] S01_AXI_AWBURST
+  .S01_AXI_AWLOCK(pcie_dma_axi_awlock),              // input wire S01_AXI_AWLOCK
+  .S01_AXI_AWCACHE(pcie_dma_axi_awcache),            // input wire [3 : 0] S01_AXI_AWCACHE
+  .S01_AXI_AWPROT(pcie_dma_axi_awprot),              // input wire [2 : 0] S01_AXI_AWPROT
+  .S01_AXI_AWQOS(pcie_dma_axi_awqos),                // input wire [3 : 0] S01_AXI_AWQOS
+  .S01_AXI_AWVALID(pcie_dma_axi_awvalid),            // input wire S01_AXI_AWVALID
+  .S01_AXI_AWREADY(pcie_dma_axi_awready),            // output wire S01_AXI_AWREADY
+  .S01_AXI_WDATA(pcie_dma_axi_wdata),                // input wire [511 : 0] S01_AXI_WDATA
+  .S01_AXI_WSTRB(pcie_dma_axi_wstrb),                // input wire [63 : 0] S01_AXI_WSTRB
+  .S01_AXI_WLAST(pcie_dma_axi_wlast),                // input wire S01_AXI_WLAST
+  .S01_AXI_WVALID(pcie_dma_axi_wvalid),              // input wire S01_AXI_WVALID
+  .S01_AXI_WREADY(pcie_dma_axi_wready),              // output wire S01_AXI_WREADY
+  .S01_AXI_BID(pcie_dma_axi_bid),                    // output wire [7 : 0] S01_AXI_BID
+  .S01_AXI_BRESP(pcie_dma_axi_bresp),                // output wire [1 : 0] S01_AXI_BRESP
+  .S01_AXI_BVALID(pcie_dma_axi_bvalid),              // output wire S01_AXI_BVALID
+  .S01_AXI_BREADY(pcie_dma_axi_bready),              // input wire S01_AXI_BREADY
+  .S01_AXI_ARID(pcie_dma_axi_arid),                  // input wire [7 : 0] S01_AXI_ARID
+  .S01_AXI_ARADDR(pcie_dma_axi_araddr),              // input wire [63 : 0] S01_AXI_ARADDR
+  .S01_AXI_ARLEN(pcie_dma_axi_arlen),                // input wire [7 : 0] S01_AXI_ARLEN
+  .S01_AXI_ARSIZE(pcie_dma_axi_arsize),              // input wire [2 : 0] S01_AXI_ARSIZE
+  .S01_AXI_ARBURST(pcie_dma_axi_arburst),            // input wire [1 : 0] S01_AXI_ARBURST
+  .S01_AXI_ARLOCK(pcie_dma_axi_arlock),              // input wire S01_AXI_ARLOCK
+  .S01_AXI_ARCACHE(pcie_dma_axi_arcache),            // input wire [3 : 0] S01_AXI_ARCACHE
+  .S01_AXI_ARPROT(pcie_dma_axi_arprot),              // input wire [2 : 0] S01_AXI_ARPROT
+  .S01_AXI_ARQOS(pcie_dma_axi_arqos),                // input wire [3 : 0] S01_AXI_ARQOS
+  .S01_AXI_ARVALID(pcie_dma_axi_arvalid),            // input wire S01_AXI_ARVALID
+  .S01_AXI_ARREADY(pcie_dma_axi_arready),            // output wire S01_AXI_ARREADY
+  .S01_AXI_RID(pcie_dma_axi_rid),                    // output wire [7 : 0] S01_AXI_RID
+  .S01_AXI_RDATA(pcie_dma_axi_rdata),                // output wire [511 : 0] S01_AXI_RDATA
+  .S01_AXI_RRESP(pcie_dma_axi_rresp),                // output wire [1 : 0] S01_AXI_RRESP
+  .S01_AXI_RLAST(pcie_dma_axi_rlast),                // output wire S01_AXI_RLAST
+  .S01_AXI_RVALID(pcie_dma_axi_rvalid),              // output wire S01_AXI_RVALID
+  .S01_AXI_RREADY(pcie_dma_axi_rready),              // input wire S01_AXI_RREADY
 
   .M00_AXI_ARESET_OUT_N(),  // output wire M00_AXI_ARESET_OUT_N
   .M00_AXI_ACLK(ui_clk),                        // input wire M00_AXI_ACLK
@@ -1183,7 +1127,7 @@ axi_interconnect axi_interconnect (
   .M00_AXI_RREADY(m_axi_rready)               // input wire M00_AXI_RREADY
 );
 
-`else // PITONSYS_DMA
+`else // PITONSYS_PCIE_DMA
 
 assign m_axi_awid = sys_axi_awid;
 assign m_axi_awaddr = sys_axi_awaddr;
@@ -1231,7 +1175,7 @@ assign sys_axi_buser = m_axi_buser;
 assign sys_axi_bvalid = m_axi_bvalid;
 assign m_axi_bready = sys_axi_bready;
 
-`endif // PITONSYS_DMA
+`endif // PITONSYS_PCIE_DMA
 
 `ifdef PITONSYS_DDR4
 

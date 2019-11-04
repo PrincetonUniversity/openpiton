@@ -416,7 +416,8 @@ def setParserOptions(parser):
     parser.add_option("--swait", dest="swait", action="store_true", default=False)
     parser.add_option("--axi4_mem", dest="axi4_mem", action="store_true", default=False)
     parser.add_option("--zeroer_off", dest="zeroer_off", action="store_true", default=False)
-    parser.add_option("--dma_enable", dest="dma_enable", action="store_true", default=False)
+    parser.add_option("--pcie_dma_enable", dest="pcie_dma_enable", action="store_true", default=False)
+    parser.add_option("--pcie_cfg_enable", dest="pcie_cfg_enable", action="store_true", default=False)
 
     return parser
 
@@ -447,9 +448,13 @@ def makeDefList(options):
     if (options.zeroer_off == False):
         defines.append("PITONSYS_MEM_ZEROER")
 
-    # --dma_enable option
-    if (options.dma_enable == True):
-        defines.append("PITONSYS_DMA")
+    # --pcie_dma_enable option
+    if (options.pcie_dma_enable == True):
+        defines.append("PITONSYS_PCIE_DMA")
+
+    # --pcie_cfg_enable option
+    if (options.pcie_cfg_enable == True):
+        defines.append("PITONSYS_PCIE_CFG")
 
     # do not use SD controller if BRAM is used for boot or a test or if board doesn't have sd
     if (options.test_name != None) or (options.board == "piton_board") or (options.board == 'xupp3r'):

@@ -244,7 +244,10 @@ module chipset(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
-`ifdef PITONSYS_DMA
+`endif // endif PITON_FPGA_MC_DDR3
+`endif // endif PITONSYS_NO_MC
+
+`ifdef PITONSYS_PCIE
     input pcie_clk_n, 
     input pcie_clk_p, 
     input pcie_rst_n,
@@ -253,9 +256,10 @@ module chipset(
     input [15:0] pcie_rxp,
     input [15:0] pcie_rxn,
 `endif
-`endif // endif PITON_FPGA_MC_DDR3
-`endif // endif PITONSYS_NO_MC
 
+`ifdef PITONSYS_PCIE_CFG
+    output pcie_cfg_rst_out_n,
+`endif
 
 `ifdef PITONSYS_IOCTRL
     `ifdef PITONSYS_UART
@@ -399,14 +403,12 @@ module chipset(
     `endif
 
     // Switches
-    `ifdef VCU118_BOARD
-        // we only have 4 gpio dip switches on this board
-        input  [3:0]                                        sw,
-    `elsif XUPP3R_BOARD
-        // no switches :(
-    `else         
-        input  [7:0]                                        sw,
-    `endif
+    // if pcie cfg is set up - switches are taken from pcie bridge
+    `ifndef PITONSYS_PCIE_CFG 
+    `ifdef PITONSYS_SW_EXIST
+        input  [`PITONSYS_SW_WIDTH-1:0]                     sw,
+    `endif // PITONSYS_SW_EXIST
+    `endif // PITONSYS_PCIE_CFG
 
     `ifdef XUPP3R_BOARD
      output [3:0]                                           leds
@@ -576,6 +578,10 @@ wire                                            init_calib_complete;
 
 wire                                        test_start;
 
+`ifdef PITONSYS_PCIE_CFG
+wire [`PITONSYS_SW_WIDTH-1:0] sw;
+`endif
+
 // Ethernet
 wire            net_phy_clk_inter;
 wire            net_axi_clk;
@@ -658,11 +664,13 @@ begin
 `ifdef PITON_BOARD
     chipset_rst_n = rst_n_rect & clk_locked & (~chip_rst_seq_complete_n);
 `else
-`ifdef PITONSYS_UART_RESET
-    chipset_rst_n = rst_n_rect & clk_locked & (~piton_prsnt_n) & uart_rst_out_n;
-`else
     chipset_rst_n = rst_n_rect & clk_locked & (~piton_prsnt_n);
+`ifdef PITONSYS_UART_RESET
+    chipset_rst_n = chipset_rst_n & uart_rst_out_n;
 `endif // PITONSYS_UART_RESET
+`ifdef PITONSYS_PCIE_CFG
+    chipset_rst_n = chipset_rst_n & pcie_cfg_rst_out_n;
+`endif // PITONSYS_PCIE_CFG
 `endif  // PITON_BOARD
 
 end
@@ -685,16 +693,16 @@ end
 `ifdef PITONSYS_IOCTRL
     `ifdef PITONSYS_UART
         `ifdef PITONSYS_UART_BOOT
-            `ifdef VCU118_BOARD
-                assign uart_boot_en    = sw[0];
-                assign uart_timeout_en = sw[1];
-            `elsif XUPP3R_BOARD
+            `ifdef PITONSYS_PCIE_CFG
+                assign uart_boot_en    = sw[`PITONSYS_UART_BOOT_EN_SW];
+                assign uart_timeout_en = sw[`PITONSYS_TIMEOUT_SW];
+            `elsif PITONSYS_SW_EXIST
+                assign uart_boot_en    = sw[`PITONSYS_UART_BOOT_EN_SW];
+                assign uart_timeout_en = sw[`PITONSYS_TIMEOUT_SW];
+            `else 
                 assign uart_boot_en    = 1'b0;
                 assign uart_timeout_en = 1'b0;
-            `else 
-                assign uart_boot_en    = sw[7];
-                assign uart_timeout_en = sw[6];
-            `endif    
+            `endif
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -1204,20 +1212,28 @@ chipset_impl_noc_power_test  chipset_impl (
     .intf_chipset_rdy_noc2(intf_chipset_rdy_noc2),
     .intf_chipset_rdy_noc3(intf_chipset_rdy_noc3)
 
+    `ifdef PITONSYS_PCIE
+        ,
+        .pcie_clk_n(pcie_clk_n),
+        .pcie_clk_p(pcie_clk_p), 
+        .pcie_rst_n(pcie_rst_n),
+        .pcie_txp(pcie_txp),
+        .pcie_txn(pcie_txn),
+        .pcie_rxp(pcie_rxp),
+        .pcie_rxn(pcie_rxn)
+    `endif // PITONSYS_PCIE
+
+    `ifdef PITONSYS_PCIE_CFG
+        ,
+        .pcie_cfg_sw_out(sw),
+        .pcie_cfg_rst_out_n(pcie_cfg_rst_out_n)
+    `endif
+
     // DRAM and I/O interfaces
     `ifndef PITONSYS_NO_MC
         `ifdef PITON_FPGA_MC_DDR3
             ,
             .init_calib_complete(init_calib_complete),
-            `ifdef PITONSYS_DMA
-                .pcie_clk_n(pcie_clk_n),
-                .pcie_clk_p(pcie_clk_p), 
-                .pcie_rst_n(pcie_rst_n),
-                .pcie_txp(pcie_txp),
-                .pcie_txn(pcie_txn),
-                .pcie_rxp(pcie_rxp),
-                .pcie_rxn(pcie_rxn),
-            `endif // PITONSYS_DMA
             
             `ifdef PITONSYS_DDR4
             .ddr_act_n(ddr_act_n),                    

@@ -88,7 +88,7 @@ wire [`AXI4_ADDR_WIDTH-1:0]addr_paddings = `AXI4_ADDR_WIDTH'b0;
     assign m_axi_arburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
     assign m_axi_arlock   = 1'b0; // Do not use locks
     assign m_axi_arcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
-    assign m_axi_arprot   = `AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
+    assign m_axi_arprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
     assign m_axi_arqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
     assign m_axi_arregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
     assign m_axi_aruser   = `AXI4_USER_WIDTH'b0; // Do not use user field
@@ -133,7 +133,7 @@ end
 
 
 // Process information here
-assign m_axi_arid = req_id_f;
+assign m_axi_arid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
@@ -156,7 +156,8 @@ reg [6:0] size[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [5:0] offset[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] resp_id_f;
 wire resp_go;
-wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire sd_card = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ);
 
 generate begin
     genvar i;
@@ -168,7 +169,11 @@ generate begin
             end 
             else begin
                 if ((i == req_id_f) && m_axi_argo) begin
-                    if (uncacheable) begin
+                    if (sd_card) begin
+                        offset[i] <= {virt_addr[5:3], 3'b0};
+                        size[i] <= 7'd8;
+                    end
+                    else if (uncacheable) begin
                         offset[i] <= virt_addr[5:0];
                         case (req_header_f[`MSG_DATA_SIZE])
                             `MSG_DATA_SIZE_0B: begin

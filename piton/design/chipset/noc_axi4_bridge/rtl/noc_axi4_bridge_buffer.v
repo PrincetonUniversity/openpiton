@@ -78,9 +78,9 @@ localparam READ  = 1'd0;
 localparam WRITE = 1'd1;
 
 
-reg                           pkt_state_buf [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0]                          pkt_state_buf ;
 reg [`MSG_HEADER_WIDTH-1:0]   pkt_header[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
-reg                           pkt_command[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
+reg [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0]                          pkt_command;
 
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_in;
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_out;
@@ -101,6 +101,7 @@ wire write_req_go = (write_req_val & write_req_rdy);
 wire write_resp_go = (write_resp_val & write_resp_rdy);
 wire req_go = read_req_go || write_req_go;
 wire preser_rdy = ~ser_val_ff || ser_rdy;
+wire ser_go = ser_val & ser_rdy;
 
 //
 //  SEND REQUESTS 
@@ -131,7 +132,8 @@ generate
                 if ((i == fifo_in) & deser_go) begin
                     pkt_state_buf[i] <= WAITING;
                     pkt_header[i] <= deser_header;
-                    pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM);
+                    pkt_command[i] <= (deser_header[`MSG_TYPE] == `MSG_TYPE_STORE_MEM) 
+                                   || (deser_header[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
                 end
                 else if ((i == fifo_out) & req_go) begin
                       pkt_state_buf[i] <= INVALID;
@@ -140,7 +142,7 @@ generate
                 end
                 else begin
                     pkt_state_buf[i] <= pkt_state_buf[i];
-                      pkt_header[i] <= pkt_header[i];
+                    pkt_header[i] <= pkt_header[i];
                     pkt_command[i] <= pkt_command[i];
                 end
             end

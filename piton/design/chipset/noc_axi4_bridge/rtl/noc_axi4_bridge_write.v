@@ -94,7 +94,7 @@ localparam GOT_RESP = 3'd1;
     assign m_axi_awburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
     assign m_axi_awlock   = 1'b0; // Do not use locks
     assign m_axi_awcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
-    assign m_axi_awprot   = `AXI4_PROT_WIDTH'b10; // Data access, non-secure access, unpriveleged access
+    assign m_axi_awprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
     assign m_axi_awqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
     assign m_axi_awregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
     assign m_axi_awuser   = `AXI4_USER_WIDTH'b0; // Do not use user field
@@ -106,7 +106,7 @@ wire [`AXI4_ADDR_WIDTH-1:0] addr_paddings = `AXI4_ADDR_WIDTH'b0;
 wire m_axi_awgo = m_axi_awvalid & m_axi_awready;
 wire m_axi_wgo = m_axi_wvalid & m_axi_wready;
 wire req_go = req_val & req_rdy;
-assign m_axi_wlast = m_axi_wgo;
+assign m_axi_wlast = m_axi_wvalid;
 
 reg [2:0] req_state;
 reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
@@ -114,8 +114,8 @@ reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] req_id_f;
 reg [`AXI4_DATA_WIDTH-1:0] req_data_f;
 
 assign req_rdy = (req_state == IDLE);
-assign m_axi_awvalid = (req_state == PREP_REQ);
-assign m_axi_wvalid = (req_state == PREP_REQ);
+assign m_axi_awvalid = (req_state == PREP_REQ) || (req_state == SENT_W);
+assign m_axi_wvalid = (req_state == PREP_REQ) || (req_state == SENT_AW);
 
 always  @(posedge clk) begin
     if(~rst_n) begin
@@ -151,8 +151,8 @@ always  @(posedge clk) begin
             end
             SENT_W: begin
                 req_state <= m_axi_awgo ? IDLE : req_state;
-                req_header_f <= m_axi_awgo ? IDLE : req_header_f;
-                req_id_f <= m_axi_awgo ? IDLE : req_id_f;
+                req_header_f <= m_axi_awgo ? 0 : req_header_f;
+                req_id_f <= m_axi_awgo ? 0 : req_id_f;
                 req_data_f <= m_axi_awgo ? 0 : req_data_f;
             end
             default : begin
@@ -167,13 +167,14 @@ end
 
 
 // Process information here
-assign m_axi_awid = req_id_f;
-assign m_axi_wid = req_id_f;
+assign m_axi_awid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
+assign m_axi_wid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
 
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
-wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire sd_card = (virt_addr[`PHY_ADDR_WIDTH-1]);
+wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
 
 // If running uart tests - we need to do address translation
 `ifdef PITONSYS_UART_BOOT
@@ -197,7 +198,10 @@ always @(posedge clk) begin
         addr <= `AXI4_ADDR_WIDTH'b0;
     end
     else begin
-        if (uncacheable) begin
+        if (sd_card) begin
+            strb_before_offset <= `AXI4_STRB_WIDTH'hff;
+        end
+        else if (uncacheable) begin
             case (req_header_f[`MSG_DATA_SIZE])
                 `MSG_DATA_SIZE_0B: begin
                     strb_before_offset <= `AXI4_STRB_WIDTH'b0;
@@ -233,7 +237,9 @@ always @(posedge clk) begin
             strb_before_offset <= `AXI4_STRB_WIDTH'hffffffffffffffff;
         end
 
-        offset <= uncacheable ? virt_addr[5:0] : 6'b0;
+        offset <= uncacheable ? virt_addr[5:0] 
+                : sd_card     ? {virt_addr[5:3], 3'b0} 
+                :               6'b0;
         addr <= uart_boot_en ? {phys_addr[`AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
     end
 end

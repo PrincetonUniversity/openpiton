@@ -28,6 +28,7 @@
 `include "mc_define.h"
 `include "uart16550_define.vh"
 `include "chipset_define.vh"
+`include "axi_defines.vh"
 
 // Filename: chipset_impl.v
 // Author: mmckeown
@@ -80,6 +81,10 @@ module chipset_impl(
 
     output                                      test_start,
     output                                      uart_rst_out_n,
+`ifdef PITONSYS_PCIE_CFG
+    output                                      pcie_cfg_rst_out_n,
+    output [`PITONSYS_SW_WIDTH-1:0]             pcie_cfg_sw_out,
+`endif
 
     // invalid access inside packet filter
     output                                      invalid_access_o,
@@ -116,6 +121,17 @@ module chipset_impl(
     output                                      intf_chipset_rdy_noc2,
     output                                      intf_chipset_rdy_noc3
 
+`ifdef PITONSYS_PCIE
+    ,
+    input pcie_clk_n,
+    input pcie_clk_p, 
+    input pcie_rst_n,
+    output [15:0] pcie_txp,
+    output [15:0] pcie_txn,
+    input [15:0] pcie_rxp,
+    input [15:0] pcie_rxn
+`endif // PITONSYS_PCIE
+
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
@@ -123,15 +139,6 @@ module chipset_impl(
     output                                      init_calib_complete,
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
-`ifdef PITONSYS_DMA
-    input pcie_clk_n,
-    input pcie_clk_p, 
-    input pcie_rst_n,
-    output [15:0] pcie_txp,
-    output [15:0] pcie_txn,
-    input [15:0] pcie_rxp,
-    input [15:0] pcie_rxn,
-`endif // PITONSYS_DMA
 `ifdef PITONSYS_DDR4
     output                                      ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
@@ -252,6 +259,77 @@ wire                                            uart_timeout_en;
 `endif // endif PITONSYS_UART_BOOT
 `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
+
+`ifdef PITONSYS_PCIE_DMA
+wire [`AXI4_ID_WIDTH     -1:0]     pcie_dma_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     pcie_dma_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     pcie_dma_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     pcie_dma_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     pcie_dma_axi_awburst;
+wire                               pcie_dma_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     pcie_dma_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     pcie_dma_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     pcie_dma_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     pcie_dma_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     pcie_dma_axi_awuser;
+wire                               pcie_dma_axi_awvalid;
+wire                               pcie_dma_axi_awready;
+wire  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    pcie_dma_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    pcie_dma_axi_wstrb;
+wire                               pcie_dma_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_wuser;
+wire                               pcie_dma_axi_wvalid;
+wire                               pcie_dma_axi_wready;
+wire  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    pcie_dma_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    pcie_dma_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    pcie_dma_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    pcie_dma_axi_arburst;
+wire                               pcie_dma_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    pcie_dma_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    pcie_dma_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    pcie_dma_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    pcie_dma_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_aruser;
+wire                               pcie_dma_axi_arvalid;
+wire                               pcie_dma_axi_arready;
+wire  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    pcie_dma_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    pcie_dma_axi_rresp;
+wire                               pcie_dma_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_ruser;
+wire                               pcie_dma_axi_rvalid;
+wire                               pcie_dma_axi_rready;
+wire  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    pcie_dma_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    pcie_dma_axi_buser;
+wire                               pcie_dma_axi_bvalid;
+wire                               pcie_dma_axi_bready;
+`endif
+
+`ifdef PITONSYS_PCIE_CFG
+wire [`AXIL_ADDR_WIDTH   -1:0]     pcie_cfg_axi_awaddr;
+wire [`AXIL_PROT_WIDTH   -1:0]     pcie_cfg_axi_awprot;
+wire                               pcie_cfg_axi_awvalid;
+wire                               pcie_cfg_axi_awready;
+wire  [`AXIL_DATA_WIDTH   -1:0]    pcie_cfg_axi_wdata;
+wire  [`AXIL_STRB_WIDTH   -1:0]    pcie_cfg_axi_wstrb;
+wire                               pcie_cfg_axi_wvalid;
+wire                               pcie_cfg_axi_wready;
+wire                               pcie_cfg_axi_bvalid;
+wire  [`AXIL_RESP_WIDTH   -1:0]    pcie_cfg_axi_bresp;
+wire                               pcie_cfg_axi_bready;
+wire  [`AXIL_ADDR_WIDTH   -1:0]    pcie_cfg_axi_araddr;
+wire  [`AXIL_PROT_WIDTH   -1:0]    pcie_cfg_axi_arprot;
+wire                               pcie_cfg_axi_arvalid;
+wire                               pcie_cfg_axi_arready;
+wire  [`AXIL_DATA_WIDTH   -1:0]    pcie_cfg_axi_rdata;
+wire  [`AXIL_RESP_WIDTH   -1:0]    pcie_cfg_axi_rresp;
+wire                               pcie_cfg_axi_rvalid;
+wire                               pcie_cfg_axi_rready;
+
+`endif // PITONSYS_PCIE_CFG
 
 wire                                            cpu_mem_traffic;
 wire                                            chip_filter_noc2_valid;
@@ -633,6 +711,122 @@ credit_to_valrdy noc3_xbar_to_%s(
     print credit_valrdy_template
 %>
 
+`ifdef PITONSYS_PCIE
+pcie_controller pcie_controller(
+    .pcie_clk_p(pcie_clk_p), 
+    .pcie_clk_n(pcie_clk_n), 
+    .pcie_rst_n(pcie_rst_n),
+    .pcie_txp(pcie_txp), 
+    .pcie_txn(pcie_txn), 
+    .pcie_rxp(pcie_rxp), 
+    .pcie_rxn(pcie_rxn),
+
+    .pcie_axi_aclk, 
+    .pcie_axi_aresetn, 
+
+`ifdef PITONSYS_PCIE_DMA
+    .pcie_dma_axi_awid(pcie_dma_axi_awid),
+    .pcie_dma_axi_awaddr(pcie_dma_axi_awaddr),
+    .pcie_dma_axi_awlen(pcie_dma_axi_awlen),
+    .pcie_dma_axi_awsize(pcie_dma_axi_awsize),
+    .pcie_dma_axi_awburst(pcie_dma_axi_awburst),
+    .pcie_dma_axi_awlock(pcie_dma_axi_awlock),
+    .pcie_dma_axi_awcache(pcie_dma_axi_awcache),
+    .pcie_dma_axi_awprot(pcie_dma_axi_awprot),
+    .pcie_dma_axi_awqos(pcie_dma_axi_awqos),
+    .pcie_dma_axi_awregion(pcie_dma_axi_awregion),
+    .pcie_dma_axi_awuser(pcie_dma_axi_awuser),
+    .pcie_dma_axi_awvalid(pcie_dma_axi_awvalid),
+    .pcie_dma_axi_awready(pcie_dma_axi_awready),
+    .pcie_dma_axi_wid(pcie_dma_axi_wid),
+    .pcie_dma_axi_wdata(pcie_dma_axi_wdata),
+    .pcie_dma_axi_wstrb(pcie_dma_axi_wstrb),
+    .pcie_dma_axi_wlast(pcie_dma_axi_wlast),
+    .pcie_dma_axi_wuser(pcie_dma_axi_wuser),
+    .pcie_dma_axi_wvalid(pcie_dma_axi_wvalid),
+    .pcie_dma_axi_wready(pcie_dma_axi_wready),
+    .pcie_dma_axi_arid(pcie_dma_axi_arid),
+    .pcie_dma_axi_araddr(pcie_dma_axi_araddr),
+    .pcie_dma_axi_arlen(pcie_dma_axi_arlen),
+    .pcie_dma_axi_arsize(pcie_dma_axi_arsize),
+    .pcie_dma_axi_arburst(pcie_dma_axi_arburst),
+    .pcie_dma_axi_arlock(pcie_dma_axi_arlock),
+    .pcie_dma_axi_arcache(pcie_dma_axi_arcache),
+    .pcie_dma_axi_arprot(pcie_dma_axi_arprot),
+    .pcie_dma_axi_arqos(pcie_dma_axi_arqos),
+    .pcie_dma_axi_arregion(pcie_dma_axi_arregion),
+    .pcie_dma_axi_aruser(pcie_dma_axi_aruser),
+    .pcie_dma_axi_arvalid(pcie_dma_axi_arvalid),
+    .pcie_dma_axi_arready(pcie_dma_axi_arready),
+    .pcie_dma_axi_rid(pcie_dma_axi_rid),
+    .pcie_dma_axi_rdata(pcie_dma_axi_rdata),
+    .pcie_dma_axi_rresp(pcie_dma_axi_rresp),
+    .pcie_dma_axi_rlast(pcie_dma_axi_rlast),
+    .pcie_dma_axi_ruser(pcie_dma_axi_ruser),
+    .pcie_dma_axi_rvalid(pcie_dma_axi_rvalid),
+    .pcie_dma_axi_rready(pcie_dma_axi_rready),
+    .pcie_dma_axi_bid(pcie_dma_axi_bid),
+    .pcie_dma_axi_bresp(pcie_dma_axi_bresp),
+    .pcie_dma_axi_buser(pcie_dma_axi_buser),
+    .pcie_dma_axi_bvalid(pcie_dma_axi_bvalid),
+    .pcie_dma_axi_bready(pcie_dma_axi_bready),
+`endif // PITONSYS_PCIE_DMA
+`ifdef PITONSYS_PCIE_CFG
+    .pcie_cfg_axi_awaddr(pcie_cfg_axi_awaddr), 
+    .pcie_cfg_axi_awprot(pcie_cfg_axi_awprot), 
+    .pcie_cfg_axi_awvalid(pcie_cfg_axi_awvalid),
+    .pcie_cfg_axi_awready(pcie_cfg_axi_awready), 
+    .pcie_cfg_axi_wdata(pcie_cfg_axi_wdata),
+    .pcie_cfg_axi_wstrb(pcie_cfg_axi_wstrb),
+    .pcie_cfg_axi_wvalid(pcie_cfg_axi_wvalid),
+    .pcie_cfg_axi_wready(pcie_cfg_axi_wready),
+    .pcie_cfg_axi_bvalid(pcie_cfg_axi_bvalid),
+    .pcie_cfg_axi_bresp(pcie_cfg_axi_bresp),
+    .pcie_cfg_axi_bready(pcie_cfg_axi_bready),
+    .pcie_cfg_axi_araddr(pcie_cfg_axi_araddr),
+    .pcie_cfg_axi_arprot(pcie_cfg_axi_arprot),
+    .pcie_cfg_axi_arvalid(pcie_cfg_axi_arvalid),
+    .pcie_cfg_axi_arready(pcie_cfg_axi_arready),
+    .pcie_cfg_axi_rdata(pcie_cfg_axi_rdata),
+    .pcie_cfg_axi_rresp(pcie_cfg_axi_rresp),
+    .pcie_cfg_axi_rvalid(pcie_cfg_axi_rvalid),
+    .pcie_cfg_axi_rready(pcie_cfg_axi_rready)
+`endif // PITONSYS_PCIE_CFG
+);
+`endif // PITONSYS_PCIE
+
+`ifdef PITONSYS_PCIE_CFG
+pcie_cfg pcie_cfg(
+    .sys_clk(chipset_clk),
+
+    .pcie_cfg_axi_aclk(pcie_axi_aclk),
+    .pcie_cfg_axi_aresetn(pcie_axi_aresetn),
+
+    .pcie_cfg_axi_awaddr(pcie_cfg_axi_awaddr), 
+    .pcie_cfg_axi_awprot(pcie_cfg_axi_awprot), 
+    .pcie_cfg_axi_awvalid(pcie_cfg_axi_awvalid),
+    .pcie_cfg_axi_awready(pcie_cfg_axi_awready), 
+    .pcie_cfg_axi_wdata(pcie_cfg_axi_wdata),
+    .pcie_cfg_axi_wstrb(pcie_cfg_axi_wstrb),
+    .pcie_cfg_axi_wvalid(pcie_cfg_axi_wvalid),
+    .pcie_cfg_axi_wready(pcie_cfg_axi_wready),
+    .pcie_cfg_axi_bvalid(pcie_cfg_axi_bvalid),
+    .pcie_cfg_axi_bresp(pcie_cfg_axi_bresp),
+    .pcie_cfg_axi_bready(pcie_cfg_axi_bready),
+    .pcie_cfg_axi_araddr(pcie_cfg_axi_araddr),
+    .pcie_cfg_axi_arprot(pcie_cfg_axi_arprot),
+    .pcie_cfg_axi_arvalid(pcie_cfg_axi_arvalid),
+    .pcie_cfg_axi_arready(pcie_cfg_axi_arready),
+    .pcie_cfg_axi_rdata(pcie_cfg_axi_rdata),
+    .pcie_cfg_axi_rresp(pcie_cfg_axi_rresp),
+    .pcie_cfg_axi_rvalid(pcie_cfg_axi_rvalid),
+    .pcie_cfg_axi_rready(pcie_cfg_axi_rready),
+
+    .pcie_cfg_rst_out_n(pcie_cfg_rst_out_n),
+    .pcie_cfg_sw_out(pcie_cfg_sw_out)
+);
+
+`endif // PITONSYS_PCIE_CFG
 
 
 `ifndef PITONSYS_NO_MC
@@ -655,15 +849,56 @@ mc_top mc_top(
     .mc_flit_out_rdy(buf_mem_noc3_ready),
 
     .uart_boot_en(uart_boot_en),
-`ifdef PITONSYS_DMA
-    .pcie_clk_n(pcie_clk_n),
-    .pcie_clk_p(pcie_clk_p),
-    .pcie_rst_n(pcie_rst_n),
-    .pcie_txp(pcie_txp),
-    .pcie_txn(pcie_txn),
-    .pcie_rxp(pcie_rxp),
-    .pcie_rxn(pcie_rxn),
-`endif
+
+`ifdef PITONSYS_PCIE_DMA
+    .pcie_dma_axi_aclk(pcie_axi_aclk),
+    .pcie_dma_axi_aresetn(pcie_axi_aresetn),
+    .pcie_dma_axi_awid(pcie_dma_axi_awid),
+    .pcie_dma_axi_awaddr(pcie_dma_axi_awaddr),
+    .pcie_dma_axi_awlen(pcie_dma_axi_awlen),
+    .pcie_dma_axi_awsize(pcie_dma_axi_awsize),
+    .pcie_dma_axi_awburst(pcie_dma_axi_awburst),
+    .pcie_dma_axi_awlock(pcie_dma_axi_awlock),
+    .pcie_dma_axi_awcache(pcie_dma_axi_awcache),
+    .pcie_dma_axi_awprot(pcie_dma_axi_awprot),
+    .pcie_dma_axi_awqos(pcie_dma_axi_awqos),
+    .pcie_dma_axi_awregion(pcie_dma_axi_awregion),
+    .pcie_dma_axi_awuser(pcie_dma_axi_awuser),
+    .pcie_dma_axi_awvalid(pcie_dma_axi_awvalid),
+    .pcie_dma_axi_awready(pcie_dma_axi_awready),
+    .pcie_dma_axi_wid(pcie_dma_axi_wid),
+    .pcie_dma_axi_wdata(pcie_dma_axi_wdata),
+    .pcie_dma_axi_wstrb(pcie_dma_axi_wstrb),
+    .pcie_dma_axi_wlast(pcie_dma_axi_wlast),
+    .pcie_dma_axi_wuser(pcie_dma_axi_wuser),
+    .pcie_dma_axi_wvalid(pcie_dma_axi_wvalid),
+    .pcie_dma_axi_wready(pcie_dma_axi_wready),
+    .pcie_dma_axi_arid(pcie_dma_axi_arid),
+    .pcie_dma_axi_araddr(pcie_dma_axi_araddr),
+    .pcie_dma_axi_arlen(pcie_dma_axi_arlen),
+    .pcie_dma_axi_arsize(pcie_dma_axi_arsize),
+    .pcie_dma_axi_arburst(pcie_dma_axi_arburst),
+    .pcie_dma_axi_arlock(pcie_dma_axi_arlock),
+    .pcie_dma_axi_arcache(pcie_dma_axi_arcache),
+    .pcie_dma_axi_arprot(pcie_dma_axi_arprot),
+    .pcie_dma_axi_arqos(pcie_dma_axi_arqos),
+    .pcie_dma_axi_arregion(pcie_dma_axi_arregion),
+    .pcie_dma_axi_aruser(pcie_dma_axi_aruser),
+    .pcie_dma_axi_arvalid(pcie_dma_axi_arvalid),
+    .pcie_dma_axi_arready(pcie_dma_axi_arready),
+    .pcie_dma_axi_rid(pcie_dma_axi_rid),
+    .pcie_dma_axi_rdata(pcie_dma_axi_rdata),
+    .pcie_dma_axi_rresp(pcie_dma_axi_rresp),
+    .pcie_dma_axi_rlast(pcie_dma_axi_rlast),
+    .pcie_dma_axi_ruser(pcie_dma_axi_ruser),
+    .pcie_dma_axi_rvalid(pcie_dma_axi_rvalid),
+    .pcie_dma_axi_rready(pcie_dma_axi_rready),
+    .pcie_dma_axi_bid(pcie_dma_axi_bid),
+    .pcie_dma_axi_bresp(pcie_dma_axi_bresp),
+    .pcie_dma_axi_buser(pcie_dma_axi_buser),
+    .pcie_dma_axi_bvalid(pcie_dma_axi_bvalid),
+    .pcie_dma_axi_bready(pcie_dma_axi_bready),
+`endif // PITONSYS_PCIE_DMA
 
 `ifdef PITONSYS_DDR4
     .sys_clk_p(mc_clk_p),
@@ -813,8 +1048,12 @@ uart_top        uart_top (
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     .init_calib_complete        (init_calib_complete_ff                 ),
-`endif // PITONSYS_NO_MC
+`else // PITON_FPGA_MC_DDR3
+    .init_calib_complete        (1'b1                                   ),
 `endif //PITON_FPGA_MC_DDR3
+`else // PITONSYS_NO_MC
+    .init_calib_complete        (1'b1                                   ),
+`endif // PITONSYS_NO_MC
 
     // Uncomment to connect to the switch
     // .uart_timeout_en(uart_timeout_en),
@@ -823,6 +1062,7 @@ uart_top        uart_top (
     .test_start                 ( test_start                            ),
     .test_good_end              ( test_good_end                         ),
     .test_bad_end               ( test_bad_end                          ),
+    .uart_rst_out_n             ( uart_rst_out_n                        ),
 
     .chip_id                    ( {1'b1, {(`NOC_CHIPID_WIDTH-1){1'b0}}} ),
     .x_id                       ( `NOC_X_WIDTH'd%s                      ),

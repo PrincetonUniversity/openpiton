@@ -229,7 +229,7 @@ module system(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
-`ifdef PITONSYS_DMA
+`ifdef PITONSYS_PCIE
     input pcie_clk_n, 
     input pcie_clk_p, 
     input pcie_rst_n,
@@ -237,7 +237,7 @@ module system(
     output [15:0] pcie_txn,
     input [15:0] pcie_rxp,
     input [15:0] pcie_rxn,
-`endif // PITONSYS_DMA
+`endif // PITONSYS_PCIE
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -445,6 +445,9 @@ wire                test_start;
 `ifdef PITONSYS_UART_RESET
 wire                uart_rst_out_n;
 `endif
+`ifdef PITONSYS_PCIE_CFG
+wire                pcie_cfg_rst_out_n;
+`endif // PITONSYS_PCIE_CFG
 
 `ifdef PITON_ARIANE
 // Debug
@@ -514,6 +517,9 @@ begin
 `endif
 `ifdef PITONSYS_UART_RESET
     chip_rst_n = chip_rst_n & uart_rst_out_n;
+`endif
+`ifdef PITONSYS_PCIE_CFG
+    chip_rst_n = chip_rst_n & pcie_cfg_rst_out_n;
 `endif
 
 `ifdef PITON_NO_JTAG
@@ -963,6 +969,20 @@ chipset chipset(
     .chip_intf_credit_back(chip_intf_credit_back),
 `endif // endif PITON_NO_CHIP_BRIDGE PITON_SYS_INC_PASSTHRU
 
+`ifdef PITONSYS_PCIE
+    .pcie_clk_n(pcie_clk_n),
+    .pcie_clk_p(pcie_clk_p), 
+    .pcie_rst_n(pcie_rst_n),
+    .pcie_txp(pcie_txp),
+    .pcie_txn(pcie_txn),
+    .pcie_rxp(pcie_rxp),
+    .pcie_rxn(pcie_rxn),
+`endif // PITONSYS_PCIE
+
+`ifdef PITONSYS_PCIE_CFG
+    .pcie_cfg_rst_out_n(pcie_cfg_rst_out_n),
+`endif
+
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
@@ -992,15 +1012,6 @@ chipset chipset(
     .ddr_dm(ddr_dm),
 `endif
     .ddr_odt(ddr_odt),
-`ifdef PITONSYS_DMA
-    .pcie_clk_n(pcie_clk_n),
-    .pcie_clk_p(pcie_clk_p), 
-    .pcie_rst_n(pcie_rst_n),
-    .pcie_txp(pcie_txp),
-    .pcie_txn(pcie_txn),
-    .pcie_rxp(pcie_rxp),
-    .pcie_rxn(pcie_rxn),
-`endif // PITONSYS_DMA
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 
@@ -1072,8 +1083,10 @@ chipset chipset(
     .btnc(btnc),
 `endif
 
-`ifndef XUPP3R_BOARD
+`ifndef PITONSYS_PCIE_CFG
+`ifdef PITONSYS_SW_EXIST
     .sw(sw),
+`endif
 `endif
     .leds(leds)
 

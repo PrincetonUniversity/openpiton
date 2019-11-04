@@ -156,3 +156,38 @@
 `elsif XUPP3R_BOARD
     `define PITONSYS_DDR4
 `endif
+
+`ifdef XUPP3R_BOARD
+    // no switches
+`else 
+    `define PITONSYS_SW_EXIST 
+`endif
+
+`ifdef PITONSYS_PCIE_CFG
+    `define PITONSYS_SW_WIDTH 8
+`elsif XUPP3R_BOARD
+    `define PITONSYS_SW_WIDTH 0
+`elsif VCU118_BOARD
+    `define PITONSYS_SW_WIDTH 4
+`else 
+    `define PITONSYS_SW_WIDTH 8
+`endif
+
+`ifdef PITONSYS_PCIE_CFG
+    `define PITONSYS_TIMEOUT_SW 6
+    `define PITONSYS_UART_BOOT_EN_SW 7
+`elsif VCU118_BOARD
+    `define PITONSYS_TIMEOUT_SW 1
+    `define PITONSYS_UART_BOOT_EN_SW 0
+`elsif XUPP3R_BOARD
+    // no switches
+`else 
+    `define PITONSYS_TIMEOUT_SW 6
+    `define PITONSYS_UART_BOOT_EN_SW 7
+`endif
+
+`ifdef PITONSYS_PCIE_CFG
+    `define PITONSYS_PCIE
+`elsif PITONSYS_PCIE_DMA
+    `define PITONSYS_PCIE
+`endif

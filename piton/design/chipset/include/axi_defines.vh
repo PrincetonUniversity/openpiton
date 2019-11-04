@@ -1,5 +1,5 @@
-<!--
-// Copyright (c) 2018 Princeton University
+// ========== Copyright Header Begin ============================================
+// Copyright (c) 2019 Princeton University
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,42 +23,30 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
--->
-<devices>
-    <!--The first entry should always be the filter/chip to xbar connection-->
-    <port>
-        <name>chip</name>
-        <noc2in/>
-    </port>
-    <port>
-        <name>mem</name>
-        <base>0x0</base>
-        <!-- 1 GB -->
-        <length>0x40000000</length>
-    </port>
-    <port>
-        <name>iob</name>
-        <base>0x9f00000000</base>
-        <length>0x10</length>
-        <noc2in/>
-    </port>
-    <port>
-        <name>sd</name>
-        <base>0xf000000000</base>
-        <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0300000</length>
-        <virtual/>
-    </port>
-    <port>
-        <name>uart</name>
-        <base>0xfff0c2c000</base>
-        <!-- Just give it all the space up to the network device? -->
-        <length>0xd4000</length>
-        <noc2in/>
-    </port>
-    <!-- <port>
-        <name>net</name>
-        <base>0xfff0d00000</base>
-        <length>0x100000</length>
-    </port> -->
-</devices>
+// ========== Copyright Header End ============================================
+
+`ifndef AXI_DEFINES_VH
+`define AXI_DEFINES_VH
+
+
+`define AXI4_DATA_WIDTH  512
+`define AXI4_ID_WIDTH    16
+`define AXI4_ADDR_WIDTH  64
+`define AXI4_LEN_WIDTH   8
+`define AXI4_SIZE_WIDTH  3
+`define AXI4_STRB_WIDTH  64
+`define AXI4_BURST_WIDTH 2
+`define AXI4_RESP_WIDTH  2
+`define AXI4_CACHE_WIDTH 4
+`define AXI4_PROT_WIDTH 3
+`define AXI4_QOS_WIDTH 4
+`define AXI4_REGION_WIDTH 4
+`define AXI4_USER_WIDTH 11
+
+`define AXIL_ADDR_WIDTH 32
+`define AXIL_PROT_WIDTH 3
+`define AXIL_DATA_WIDTH 32
+`define AXIL_STRB_WIDTH 4
+`define AXIL_RESP_WIDTH 2
+
+`endif
