@@ -52,7 +52,7 @@ then
     echo "Please source ariane_setup.sh first, while being in the root folder."
 else
 
-  git submodule update --init --recursive
+  git submodule update --init --recursive piton/design/chip/tile/ariane
 
   # parallel compilation
   export NUM_JOBS=4
