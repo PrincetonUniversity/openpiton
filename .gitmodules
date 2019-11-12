@@ -3,4 +3,4 @@
 	url = https://github.com/pulp-platform/ariane.git
 [submodule "aws"]
 	path = piton/design/aws
-	url = git@github.com:PrincetonUniversity/openpiton-aws.git
+	url = https://github.com/PrincetonUniversity/openpiton-aws.git
