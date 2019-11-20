@@ -1,6 +1,6 @@
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -70,7 +70,7 @@ set DC_BLOCK_ABSTRACTION_DESIGNS_TIO_DIRS ""
 set ICC_ILM_HIER_DESIGNS                ""
 # List of IC Compiler block abstraction hierarchical design names (Milkyway will be read)
 set ICC_BLOCK_ABSTRACTION_DESIGNS       $HIERARCHICAL_DESIGNS
-# List of IC Compiler block abstraction hierarchical design directory names, needs to be in 
+# List of IC Compiler block abstraction hierarchical design directory names, needs to be in
 # same order as above variable
 set ICC_BLOCK_ABSTRACTION_DIRS          $HIERARCHICAL_DESIGNS_DIRS
 
@@ -114,7 +114,7 @@ set ADDITIONAL_SPICE_MERGE_FILES  "FFU_SRAM_LVS_SPICE_HERE (.cdl/.sp) L1I_DATA_S
 
 # Chip top-level
 set RTL_SOURCE_FILES           "${DV_ROOT}/design/chip/rtl/chip.v "
-append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/rtl/synchronizer.v "
+append RTL_SOURCE_FILES        "${DV_ROOT}/design/common/rtl/synchronizer.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/rtl/OCI.v "
 
 # PLL
