@@ -46,18 +46,18 @@ def getFuncLine():
 def print_debug(msg, fstream=sys.stderr):
     if DEBUG:
         msg_print = clr.CYAN + "[DEBUG] " + getFuncLine() + clr.RST_CLR + ": " + msg
-        print >> fstream, msg_print
+        print(msg_print, file=fstream)
     else:
         pass
 
 def print_info(msg, fstream=sys.stderr):
     msg_print = clr.BLUE + "[INFO]  " + getFuncLine() + clr.RST_CLR + ": " + msg
-    print >> fstream, msg_print
+    print(msg_print, file=fstream)
 
 def print_warning(msg, fstream=sys.stderr):
     msg_print = clr.YELLOW + "[WARN]  " + getFuncLine() + clr.RST_CLR + ": " + msg
-    print >> fstream, msg_print
+    print(msg_print, file=fstream)
 
 def print_error(msg, fstream=sys.stderr):
     msg_print = clr.RED + "[ERROR] " + getFuncLine() + clr.RST_CLR + ": " + msg
-    print >> fstream, msg_print
+    print(msg_print, file=fstream)

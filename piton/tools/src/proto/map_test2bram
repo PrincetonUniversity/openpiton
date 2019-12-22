@@ -35,19 +35,19 @@ DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
 
 def usage():
-    print "Usage: map_test2bram -t <test_name> \n       or -h for help"
+    print("Usage: map_test2bram -t <test_name> \n       or -h for help")
 
 def getLogs(tname, log_stream=None):
     if log_stream == None:
         log_stream = sys.stderr
 
-    print >> log_stream, "Synthesizing a test: %s" % tname
+    print("Synthesizing a test: %s" % tname, file=log_stream)
     os.chdir(MODEL_DIR)
     os.system('mkdir -p test2bram_logs')
-    print >> log_stream, "Compilation started"
+    print("Compilation started", file=log_stream)
     # can't we build withoug -debug_all ?
     # os.system('sims -sys=manycore -x_tiles=1 -y_tiles=1 -vcs_build -debug_all > test2bram_logs/compilation.log')
-    print >> log_stream, "Simulation started"
+    print("Simulation started", file=log_stream)
     # os.system('sims -sys=manycore -vcs_run %s > test2bram_logs/simulation.log' % tname)
 
     f = open('test2bram_logs/simulation.log', 'r')
@@ -55,10 +55,10 @@ def getLogs(tname, log_stream=None):
     f.close()
     match = re.search(r'(HIT GOOD TRAP)', cont)
     if match == None:
-        print >> log_stream, "Test failed!"
-        print >> log_stream, "Warning: this test will not pass on FPGA either!"
+        print("Test failed!", file=log_stream)
+        print("Warning: this test will not pass on FPGA either!", file=log_stream)
     else:
-        print >> log_stream, "Test Passed!"
+        print("Test Passed!", file=log_stream)
 
 
 def main():
@@ -67,7 +67,7 @@ def main():
 
     (options, args) = parser.parse_args()
     if options.tname == None:
-        print "Error: No test name"
+        print("Error: No test name")
         usage()
         exit(2)
 

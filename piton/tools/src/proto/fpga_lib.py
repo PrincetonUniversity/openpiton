@@ -220,7 +220,7 @@ def isTranslatorOK(addr_data_map, flog, ariane):
     f.close()
 
     uart_base = 0xfff0c2c000
-    for addr in addr_data_map.keys():
+    for addr in list(addr_data_map.keys()):
         # Skip UART address mapped in hboot.s
         if uart_base <= addr < (uart_base + 2**12):
             continue
@@ -230,8 +230,8 @@ def isTranslatorOK(addr_data_map, flog, ariane):
                 addr_mapped = True
                 break
         if not addr_mapped:
-            print >> flog, "ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc)
-            print >> sys.stderr, "ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc)
+            print("ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc), file=flog)
+            print("ERROR: Address %s is not mapped in %s" % (hex(addr), map_loc), file=sys.stderr)
             return False
 
     return True
@@ -248,7 +248,7 @@ def getTestList(fname, flog, ustr_files=False):
         if m != None:
             tname = m.group(1)
             test_list.append(tname)
-            print tname
+            print(tname)
     f.close()
     return test_list
 
@@ -284,7 +284,7 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", pre
         cmd += " -precompiled"
 
     rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
-    print cmd
+    print(cmd)
     return rv
 
 

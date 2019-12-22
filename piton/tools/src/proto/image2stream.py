@@ -39,7 +39,7 @@ DWORD_HEX_WIDTH = DWORD_BIT_WIDTH / 4
 
 def flushGroup(fptr, addr_str, gr_blocks):
     if int(addr_str, 16) > 2**ADDR_BIT_WIDTH - 1:
-        print "ERROR: address %s exceeds maximum possible addres" % addr_str
+        print("ERROR: address %s exceeds maximum possible addres" % addr_str)
         exit(2)
 
     # print >> fptr, addr_str
@@ -47,10 +47,10 @@ def flushGroup(fptr, addr_str, gr_blocks):
     # for b in gr_blocks:
     #   print >> fptr, b
 
-    print >> fptr, addr_str
-    print >> fptr, "%02x" % len(gr_blocks)
+    print(addr_str, file=fptr)
+    print("%02x" % len(gr_blocks), file=fptr)
     for block in gr_blocks:
-        print >> fptr, block
+        print(block, file=fptr)
 
 def strFromAddr(addr, width):
     s = str(hex(addr))
@@ -66,7 +66,7 @@ def makeStreamFile(fname_bram):
     gr_blocks = list()
     gr_addr = 0
 
-    print >> fout, strFromAddr(START_TRIGGER,ADDR_HEX_WIDTH)
+    print(strFromAddr(START_TRIGGER,ADDR_HEX_WIDTH), file=fout)
 
     blk_bit_width   = NOC_PAYLOAD_WIDTH
     blk_hex_width   = blk_bit_width / 4
@@ -103,9 +103,9 @@ def makeStreamFile(fname_bram):
         gr_total += 1
         flushGroup(fout, strFromAddr(gr_addr,ADDR_HEX_WIDTH), gr_blocks)
 
-    print >> fout, strFromAddr(STOP_ADDR,ADDR_HEX_WIDTH)
-    print >> fout, '00'
-    print >> fout, '00'
+    print(strFromAddr(STOP_ADDR,ADDR_HEX_WIDTH), file=fout)
+    print('00', file=fout)
+    print('00', file=fout)
 
     # print "DEBUG: # groups %d" % gr_total
     # print "DEBUG: total # of blocks: %d" % block_total
