@@ -126,15 +126,6 @@ module l15_pipeline(
     output reg [`L15_UNPARAM_7_0] l15_mesi_write_mask_s2,
     output reg [`L15_UNPARAM_7_0] l15_mesi_write_data_s2,
 
-    // lrsc_flag
-    output reg l15_lrsc_flag_read_val_s1,
-    output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_read_index_s1,
-    input wire [`L15_UNPARAM_3_0] lrsc_flag_l15_dout_s2,
-    output reg l15_lrsc_flag_write_val_s2,
-    output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_write_index_s2,
-    output reg [`L15_UNPARAM_3_0] l15_lrsc_flag_write_mask_s2,
-    output reg [`L15_UNPARAM_3_0] l15_lrsc_flag_write_data_s2,
-
     // lruarray
     output reg l15_lruarray_read_val_s1,
     output reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lruarray_read_index_s1,
@@ -2044,8 +2035,20 @@ end
 ////////////////////////////
 // LRSC FLAG read control logics
 ////////////////////////////
+
+// LRSC flag: read in stage 1; write in the end of stage 2
+reg [`L15_CACHE_INDEX_WIDTH-1:0] l15_lrsc_flag_index;
+reg l15_lrsc_flag;
+reg [`L15_UNPARAM_1_0] l15_lrsc_flag_way;
+
+
+// Remove decoder_lrsc_flag_read_op_s1
 reg lrsc_flag_read_val_s1;
 reg [`L15_CACHE_INDEX_WIDTH-1:0] lrsc_flag_read_index_s1;
+reg l15_lrsc_flag_read_val_s1;
+reg l15_lrsc_flag_read_match_s1;
+reg l15_lrsc_flag_readout_s2;
+reg [`L15_UNPARAM_1_0] l15_lrsc_flag_stored_way_s2;
 always @ *
 begin
     lrsc_flag_read_val_s1 = 0;
@@ -2059,7 +2062,27 @@ begin
     endcase
 
     l15_lrsc_flag_read_val_s1 = lrsc_flag_read_val_s1 && val_s1 && !stall_s1;
-    l15_lrsc_flag_read_index_s1[`L15_CACHE_INDEX_WIDTH-1:0] = lrsc_flag_read_index_s1;
+    l15_lrsc_flag_read_match_s1 = (lrsc_flag_read_index_s1 == l15_lrsc_flag_index);
+end
+
+always @(posedge clk)
+begin
+    if (!rst_n)
+    begin
+        l15_lrsc_flag_readout_s2    <= 1'b0;
+    end
+    else
+    begin
+        if (l15_lrsc_flag_read_val_s1 && l15_lrsc_flag_read_match_s1)
+        begin
+            l15_lrsc_flag_readout_s2    <= l15_lrsc_flag;
+            l15_lrsc_flag_stored_way_s2 <= l15_lrsc_flag_way;
+        end
+        else
+        begin
+            l15_lrsc_flag_readout_s2    <= 1'b0;
+        end
+    end
 end
 
 ////////////////////////////
@@ -2525,11 +2548,7 @@ begin
     //                                                               2'd2 ? 4'b0100 :
     //                                                                         4'b1000 ;
 
-    tagcheck_lrsc_flag_s2 = (tagcheck_val_s2 == 1'b0) ? 1'b0 :
-                                (tagcheck_way_s2 == 2'd0) ? lrsc_flag_l15_dout_s2[0] :
-                                (tagcheck_way_s2 == 2'd1) ? lrsc_flag_l15_dout_s2[1] :
-                                (tagcheck_way_s2 == 2'd2) ? lrsc_flag_l15_dout_s2[2] :
-                                                            lrsc_flag_l15_dout_s2[3] ;
+    tagcheck_lrsc_flag_s2 = (tagcheck_way_s2 == l15_lrsc_flag_stored_way_s2) ? l15_lrsc_flag_readout_s2 : 1'b0;
 
     tagcheck_state_s2 = (tagcheck_val_s2 == 1'b0) ? `L15_MESI_STATE_I :
                                 (tagcheck_way_s2 == 2'd0) ? mesi_state_way0_s2 :
@@ -2925,6 +2944,8 @@ reg lrsc_flag_write_val_s2;
 reg [`L15_CACHE_INDEX_MASK] lrsc_flag_write_index_s2;
 reg [`L15_UNPARAM_1_0] lrsc_flag_write_way_s2;
 reg lrsc_flag_write_state_s2;
+reg l15_lrsc_flag_write_val_s2;
+reg l15_lrsc_flag_write_match_s2;
 always @ *
 begin
     lrsc_flag_write_val_s2 = 0;
@@ -2961,15 +2982,32 @@ begin
             lrsc_flag_write_state_s2 = 1'b0;
         end
     endcase
-    // bugfix (stall signal needs to be here)
     // trin todo: why stall_s2 is needed
     l15_lrsc_flag_write_val_s2 = lrsc_flag_write_val_s2 && val_s2 && !stall_s2;
-    l15_lrsc_flag_write_index_s2[`L15_CACHE_INDEX_MASK] = lrsc_flag_write_index_s2;
-    l15_lrsc_flag_write_mask_s2[`L15_UNPARAM_3_0] =  (lrsc_flag_write_way_s2 == 0) ? 4'b0001 :
-                            (lrsc_flag_write_way_s2 == 1) ? 4'b0010 :
-                            (lrsc_flag_write_way_s2 == 2) ? 4'b0100 :
-                                                    4'b1000 ;
-    l15_lrsc_flag_write_data_s2[`L15_UNPARAM_3_0] = {4{lrsc_flag_write_state_s2}};
+    l15_lrsc_flag_write_match_s2 = (lrsc_flag_write_index_s2 == l15_lrsc_flag_index) &&
+                                (lrsc_flag_write_way_s2 == l15_lrsc_flag_way);
+end
+
+
+always @(posedge clk)
+begin
+    if (!rst_n)
+    begin
+        l15_lrsc_flag <= 1'b0; 
+    end
+    else 
+    begin
+        if (l15_lrsc_flag_write_val_s2 && lrsc_flag_write_state_s2)  
+        begin
+            l15_lrsc_flag_index <= lrsc_flag_write_index_s2; // TODO check width
+            l15_lrsc_flag_way   <= lrsc_flag_write_way_s2;
+            l15_lrsc_flag       <= 1'b1;
+        end
+        else if (l15_lrsc_flag_write_val_s2 && !lrsc_flag_write_state_s2 && l15_lrsc_flag_write_match_s2)
+        begin
+            l15_lrsc_flag       <= 1'b0;
+        end
+    end
 end
 
 ////////////////////////////
