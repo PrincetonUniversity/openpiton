@@ -79,13 +79,13 @@ input reset_in;
 
 <%
 for a in range (DYNAMIC_NODE_PORT):
-  print "input [`DATA_WIDTH-1:0] dataIn_%d;" % a
-print ""
+  print("input [`DATA_WIDTH-1:0] dataIn_%d;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "input validIn_%d;" % a
-print ""
+  print("input validIn_%d;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "input yummyIn_%d;" % a
+  print("input yummyIn_%d;" % a)
 %>
 /*
 //original 
@@ -118,13 +118,13 @@ input [<%= DYNAMIC_NODE_PORT * DYNAMIC_NODE_PORT_P_3_LOG2 - 1%>:0] ec_cfg;      
 
 <%
 for a in range (DYNAMIC_NODE_PORT):
-  print "output [`DATA_WIDTH-1:0] dataOut_%d;" % a
-print ""
+  print("output [`DATA_WIDTH-1:0] dataOut_%d;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "output validOut_%d;" % a
-print ""
+  print("output validOut_%d;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "output yummyOut_%d;" % a
+  print("output yummyOut_%d;" % a)
 %>
 /*
 //original
@@ -176,14 +176,14 @@ dynamic_node_para_define.print_ports_nl ("wire node_%d_input_valid;")
 for a in range (DYNAMIC_NODE_PORT):
   for b in range (DYNAMIC_NODE_PORT):
     print ("wire thanks_%d_to_%d;" % (a, b))
-  print ""
+  print("")
 for a in range (DYNAMIC_NODE_PORT):
   for b in range (DYNAMIC_NODE_PORT):
     print ("wire route_req_%d_to_%d;" % (a, b))
-  print ""
+  print("")
 for a in range (DYNAMIC_NODE_PORT):
   print ("wire default_ready_%d_to_%d;" % (dynamic_node_para_define.gen_default_dir(a), a))
-print ""
+print("")
 dynamic_node_para_define.print_ports_nl ("wire yummyOut_%d_internal;")
 dynamic_node_para_define.print_ports_nl ("wire validOut_%d_internal;")
 dynamic_node_para_define.print_ports_nl ("wire [`DATA_WIDTH-1:0] dataOut_%d_internal;")
@@ -310,7 +310,7 @@ reg ec_north_input_valid_reg, ec_east_input_valid_reg, ec_south_input_valid_reg,
 always @(posedge clk)
   begin
     <%
-    print ""
+    print("")
     s1 = "   "
     for a in range (DYNAMIC_NODE_PORT):
       s2 = " ec_thanks_%d_to_%%d_reg <= thanks_%d_to_%%d;" % (a, a)
@@ -362,7 +362,7 @@ for a in range (DYNAMIC_NODE_PORT):
   s = s + indent + ".in%d(ec_%d_input_valid_reg & ~ec_thanks_to_%d),\n" % (DYNAMIC_NODE_PORT + 2, a, a)
   s = s + indent + ".sel(ec_cfg[%d:%d]),\n" % ((DYNAMIC_NODE_PORT - a) * DYNAMIC_NODE_PORT_P_3_LOG2 - 1, (DYNAMIC_NODE_PORT - a - 1) * DYNAMIC_NODE_PORT_P_3_LOG2)
   s = s + indent + ".out(ec_out[%d]));" % (DYNAMIC_NODE_PORT - a - 1)
-  print s
+  print(s)
 
 %>
 /*
@@ -666,13 +666,13 @@ dynamic_input_top_16 proc_input(.route_req_n_out(route_req_p_to_n), .route_req_e
 //dynamic outputs
 <%
 for a in range (DYNAMIC_NODE_PORT):
-  default_dir = ""
+  default_dir = 0
   if (a == DYNAMIC_NODE_PORT - 1):
-    default_dir = (0 + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1)
+    default_dir = int((0 + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1))
     s_init = "dynamic_output_top_para #(1'b0) node_%d_output(" % a
     s_1 = ".popped_interrupt_mesg_out(external_interrupt), .popped_memory_ack_mesg_out(store_ack_received), .popped_memory_ack_mesg_out_sender(store_ack_addr), "
   else:
-    default_dir = (a + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1)
+    default_dir = int((a + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1))
     s_init = "dynamic_output_top_para node_%d_output(" % a
     s_1 = ".popped_interrupt_mesg_out(), .popped_memory_ack_mesg_out(), .popped_memory_ack_mesg_out_sender(), "
   # sequence for input output mapping

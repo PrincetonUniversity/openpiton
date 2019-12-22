@@ -34,10 +34,10 @@ DYNAMIC_NODE_PORT_P_3_LOG2 = dynamic_node_para_define.DYNAMIC_NODE_PORT_P_3_LOG2
 %>
 module one_of_n_plus_3(
   <%
-  print ""
+  print("")
   for a in range (DYNAMIC_NODE_PORT_P_3):
     s = "  in%d," % a
-    print s
+    print(s)
   %>
   sel,
   out);
@@ -56,10 +56,10 @@ module one_of_n_plus_3(
         out={WIDTH{1'b0}};
         case(sel)
         <%
-        print ""
+        print("")
         for a in range (DYNAMIC_NODE_PORT_P_3):
           s = "            %d'd%d:out=in%d;" % (DYNAMIC_NODE_PORT_P_3_LOG2, a, a)
-          print s
+          print(s)
         %>
             default:; // indicates null
         endcase

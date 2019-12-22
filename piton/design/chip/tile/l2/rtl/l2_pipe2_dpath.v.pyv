@@ -411,12 +411,12 @@ end
 
 
 <%
-print "reg [`L2_TAG_WAY_WIDTH - 1:0] tag_data_way_S2 [%d:0];" % (L2_WAYS-1) 
-print "\n"
-print "reg [%d:0] tag_hit_way_S2;" % (L2_WAYS-1);
-print "\n"
-print "reg [`L2_STATE_WAY_WIDTH - 1:0] state_way_S2 [%d:0];" % (L2_WAYS-1) 
-print "\n"
+print("reg [`L2_TAG_WAY_WIDTH - 1:0] tag_data_way_S2 [%d:0];" % (L2_WAYS-1) )
+print("\n")
+print("reg [%d:0] tag_hit_way_S2;" % (L2_WAYS-1))
+print("\n")
+print("reg [`L2_STATE_WAY_WIDTH - 1:0] state_way_S2 [%d:0];" % (L2_WAYS-1) )
+print("\n")
 %>
 
 
@@ -424,7 +424,7 @@ always @ *
 begin
 <%
 for i in range(L2_WAYS):
-    print "    tag_data_way_S2[%d] = tag_data_trans_S2[`L2_TAG_WAY_WIDTH * %d - 1: `L2_TAG_WAY_WIDTH * %d];" % (i, i+1, i)
+    print("    tag_data_way_S2[%d] = tag_data_trans_S2[`L2_TAG_WAY_WIDTH * %d - 1: `L2_TAG_WAY_WIDTH * %d];" % (i, i+1, i))
 %>
 end
 
@@ -432,25 +432,25 @@ always @ *
 begin
 <%
 for i in range(L2_WAYS):
-    print '''    state_way_S2[%d] = state_data_trans_S2[`L2_STATE_WAY_WIDTH * %d - 1: 
-`L2_STATE_WAY_WIDTH * %d];''' % (i, i+1, i)
+    print('''    state_way_S2[%d] = state_data_trans_S2[`L2_STATE_WAY_WIDTH * %d - 1: 
+`L2_STATE_WAY_WIDTH * %d];''' % (i, i+1, i))
 %>
 end
 
 <%
 for i in range(L2_WAYS):
-    print "always @ *"
-    print "begin"   
-    print '''    if ((addr_S2_f[`L2_TAG] == tag_data_way_S2[%d]) && 
-(state_way_S2[%d][`L2_STATE_VD] == `L2_VD_CLEAN || state_way_S2[%d][`L2_STATE_VD] == `L2_VD_DIRTY ))''' % (i, i, i)
-    print "    begin"   
-    print "        tag_hit_way_S2[%d] = 1'b1;" % (i)
-    print "    end"
-    print "    else"
-    print "    begin"
-    print "        tag_hit_way_S2[%d] = 1'b0;" % (i)
-    print "    end"
-    print "end"
+    print("always @ *")
+    print("begin")
+    print('''    if ((addr_S2_f[`L2_TAG] == tag_data_way_S2[%d]) && 
+(state_way_S2[%d][`L2_STATE_VD] == `L2_VD_CLEAN || state_way_S2[%d][`L2_STATE_VD] == `L2_VD_DIRTY ))''' % (i, i, i))
+    print("    begin")
+    print("        tag_hit_way_S2[%d] = 1'b1;" % (i))
+    print("    end")
+    print("    else")
+    print("    begin")
+    print("        tag_hit_way_S2[%d] = 1'b0;" % (i))
+    print("    end")
+    print("end")
 %>
 
 
@@ -462,24 +462,24 @@ begin
     end
     else
 <%  
-print "        l2_tag_hit_S2 =",
+print("        l2_tag_hit_S2 = ",end="")
 for i in range(L2_WAYS):
     if i != L2_WAYS-1:
-        print "tag_hit_way_S2[%d] ||" % (i),
+        print("tag_hit_way_S2[%d] || " % (i),end="")
     else:
-        print "tag_hit_way_S2[%d];" % (i)
+        print("tag_hit_way_S2[%d];" % (i))
 %>
 end
 
 always @ *
 begin
 <% 
-print "    l2_hit_way_sel_S2 = {`L2_WAYS_WIDTH{1'bx}};"
+print("    l2_hit_way_sel_S2 = {`L2_WAYS_WIDTH{1'bx}};")
 for i in range(L2_WAYS):
-    print "    if (tag_hit_way_S2[%d])" % (i)
-    print "    begin" 
-    print "        l2_hit_way_sel_S2 = `L2_WAY_%d;" % (i)
-    print "    end" 
+    print("    if (tag_hit_way_S2[%d])" % (i))
+    print("    begin")
+    print("        l2_hit_way_sel_S2 = `L2_WAY_%d;" % (i))
+    print("    end")
 %>
 end
 

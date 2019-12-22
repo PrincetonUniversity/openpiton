@@ -2325,8 +2325,8 @@ reg val_s2_next;
 for e in s2floplist:
     name = e[0] + '_s2'
     width = e[1]
-    print "reg [%s-1:0] %s;" % (width, name)
-    print "reg [%s-1:0] %s_next;" % (width, name)
+    print("reg [%s-1:0] %s;" % (width, name))
+    print("reg [%s-1:0] %s_next;" % (width, name))
 %>
 
 always @ (posedge clk)
@@ -2337,7 +2337,7 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s <= 0;" % (name)
+            print("%s <= 0;" % (name))
         %>
     end
     else
@@ -2346,7 +2346,7 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s <= %s_next;" % (name,name)
+            print("%s <= %s_next;" % (name,name))
         %>
     end
 end
@@ -2369,13 +2369,13 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
         `else
         <%
         for e in s2floplist_no_rtl_csm:
             name = e[0] + '_s2'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
         `endif
     end
@@ -3211,8 +3211,8 @@ s3floplist = [
 for e in s3floplist:
     name = e[0] + '_s3'
     width = e[1]
-    print "reg [%s-1:0] %s;" % (width, name)
-    print "reg [%s-1:0] %s_next;" % (width, name)
+    print("reg [%s-1:0] %s;" % (width, name))
+    print("reg [%s-1:0] %s_next;" % (width, name))
 %>
 reg val_s3_next;
 reg [`L15_LRUARRAY_MASK] lru_data_s3;
@@ -3253,7 +3253,7 @@ begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s <= 0;" % (name)
+            print("%s <= 0;" % (name))
         %>
     end
     else
@@ -3266,7 +3266,7 @@ begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s <= %s_next;" % (name,name)
+            print("%s <= %s_next;" % (name,name))
         %>
     end
 end
@@ -3377,7 +3377,7 @@ always @* begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
     end
     else
@@ -3387,7 +3387,7 @@ always @* begin
         for e in s3floplist:
             name = e[0] + '_s3'
             names2 = e[0] + '_s2'
-            print "%s_next = %s;" % (name,names2)
+            print("%s_next = %s;" % (name,names2))
         %>
     end
 end

@@ -3805,8 +3805,8 @@ wire nonzero_sharer_S4;
 
 <%
 
-print '''
-l2_priority_encoder_%d priority_encoder_%dbits( ''' % (L2_OWNER_BITS, L2_OWNER_BITS)
+print('''
+l2_priority_encoder_%d priority_encoder_%dbits( ''' % (L2_OWNER_BITS, L2_OWNER_BITS))
 %>
     .data_in        (dir_data_sel_S4),
     .data_out       (dir_sharer_S4),
@@ -3833,17 +3833,17 @@ def toBinary(n, w):
 
 for i in range(L2_DIR_ARRAY_WIDTH):
     if i == 0:
-        print "    if (dir_data_sel_S4[%d])" % (i)
-        print "    begin"
-        print "        dir_sharer_S4 = %d\'d%d;" % (L2_OWNER_BITS, i)
-        print "        dir_sharer_mask_S4 = %d\'b%s;" % (L2_DIR_ARRAY_WIDTH, toBinary(2**i, L2_DIR_ARRAY_WIDTH))
-        print "    end"
+        print("    if (dir_data_sel_S4[%d])" % (i))
+        print("    begin")
+        print("        dir_sharer_S4 = %d\'d%d;" % (L2_OWNER_BITS, i))
+        print("        dir_sharer_mask_S4 = %d\'b%s;" % (L2_DIR_ARRAY_WIDTH, toBinary(2**i, L2_DIR_ARRAY_WIDTH)))
+        print("    end")
     else:
-        print "    else if (dir_data_sel_S4[%d])" % (i)
-        print "    begin"
-        print "        dir_sharer_S4 = %d\'d%d;" % (L2_OWNER_BITS, i)
-        print "        dir_sharer_mask_S4 = %d\'b%s;" % (L2_DIR_ARRAY_WIDTH, toBinary(2**i, L2_DIR_ARRAY_WIDTH))
-        print "    end"
+        print("    else if (dir_data_sel_S4[%d])" % (i))
+        print("    begin")
+        print("        dir_sharer_S4 = %d\'d%d;" % (L2_OWNER_BITS, i))
+        print("        dir_sharer_mask_S4 = %d\'b%s;" % (L2_DIR_ARRAY_WIDTH, toBinary(2**i, L2_DIR_ARRAY_WIDTH)))
+        print("    end")
 %>
 end
 */

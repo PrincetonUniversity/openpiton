@@ -49,43 +49,43 @@ L2_DIR_ARRAY_WIDTH = 64
 
 <%
 def gen_priority_encoder(num_bits):
-    print '''
+    print('''
 module l2_priority_encoder_%d(
     input wire [%d:0] data_in,
     output wire [%d:0] data_out,
     output wire [%d:0] data_out_mask,
     output wire nonzero_out
-);''' % (num_bits, 2**num_bits-1, num_bits-1, 2**num_bits-1)
+);''' % (num_bits, 2**num_bits-1, num_bits-1, 2**num_bits-1))
     if num_bits == 1:
-        print '''
+        print('''
 assign data_out = data_in[0] ? 1'b0 : 1'b1;
 assign data_out_mask = data_in[0] ? 2'b10 : 2'b01;
-assign nonzero_out = | (data_in[%d:0]);''' %(2**num_bits-1)
+assign nonzero_out = | (data_in[%d:0]);''' %(2**num_bits-1))
     else:
-        print '''
-wire [%d:0] data_low;''' % (num_bits-2)
-        print '''
-wire [%d:0] data_high;''' % (num_bits-2)
-        print '''
-wire [%d:0] data_low_mask;''' % (2**(num_bits-1)-1)
-        print '''
-wire [%d:0] data_high_mask;''' % (2**(num_bits-1)-1)
-        print '''
-wire nonzero_low;'''
-        print '''
-wire nonzero_high;'''
-        print '''
-l2_priority_encoder_%d encoder_high_%d (.data_in(data_in[%d:%d]), .data_out(data_high), .data_out_mask(data_high_mask), .nonzero_out(nonzero_high));''' % (num_bits-1,num_bits-1, 2**num_bits-1, 2**(num_bits-1))
-        print '''
-l2_priority_encoder_%d encoder_low_%d(.data_in(data_in[%d:%d]), .data_out(data_low), .data_out_mask(data_low_mask), .nonzero_out(nonzero_low));''' % (num_bits-1, num_bits-1, 2**(num_bits-1)-1, 0)
-        print '''
-assign data_out = nonzero_low ? {1'b0, data_low} : {1'b1, data_high};'''
-        print '''
-assign data_out_mask = nonzero_low ? {{%d{1'b1}}, data_low_mask} : {data_high_mask,{%d{1'b1}}};''' % (2**(num_bits-1), 2**(num_bits-1))
-        print '''
-assign nonzero_out = nonzero_low | nonzero_high;'''
+        print('''
+wire [%d:0] data_low;''' % (num_bits-2))
+        print('''
+wire [%d:0] data_high;''' % (num_bits-2))
+        print('''
+wire [%d:0] data_low_mask;''' % (2**(num_bits-1)-1))
+        print('''
+wire [%d:0] data_high_mask;''' % (2**(num_bits-1)-1))
+        print('''
+wire nonzero_low;''')
+        print('''
+wire nonzero_high;''')
+        print('''
+l2_priority_encoder_%d encoder_high_%d (.data_in(data_in[%d:%d]), .data_out(data_high), .data_out_mask(data_high_mask), .nonzero_out(nonzero_high));''' % (num_bits-1,num_bits-1, 2**num_bits-1, 2**(num_bits-1)))
+        print('''
+l2_priority_encoder_%d encoder_low_%d(.data_in(data_in[%d:%d]), .data_out(data_low), .data_out_mask(data_low_mask), .nonzero_out(nonzero_low));''' % (num_bits-1, num_bits-1, 2**(num_bits-1)-1, 0))
+        print('''
+assign data_out = nonzero_low ? {1'b0, data_low} : {1'b1, data_high};''')
+        print('''
+assign data_out_mask = nonzero_low ? {{%d{1'b1}}, data_low_mask} : {data_high_mask,{%d{1'b1}}};''' % (2**(num_bits-1), 2**(num_bits-1)))
+        print('''
+assign nonzero_out = nonzero_low | nonzero_high;''')
 
-    print '''endmodule'''
+    print('''endmodule''')
 
 
 for i in range(L2_OWNER_BITS):

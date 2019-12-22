@@ -420,7 +420,7 @@ text = '''
 '''
 pattern = ["RTL_SPARC1", "CORE1", "spc1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
    
 

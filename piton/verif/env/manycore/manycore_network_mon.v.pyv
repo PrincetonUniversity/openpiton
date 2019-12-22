@@ -32,9 +32,9 @@
     sys.path.insert(0, os.path.join(os.environ["DV_ROOT"], 'tools/bin/'));
     from pyhplib import *
 
-    print "`define NUM_TILES " + `NUM_TILES`;
+    print("`define NUM_TILES " + repr(NUM_TILES))
     if (NETWORK_CONFIG == "xbar_config"):
-        print "`define XBAR_CONFIG"
+        print("`define XBAR_CONFIG")
 %>
 
 `ifndef USE_TEST_TOP // useless for older TOPs
@@ -71,15 +71,15 @@ begin
     for y in range (Y_TILES):
         for x in range (X_TILES):
             flatid = x + (y * X_TILES);
-            print "`ifdef RTL_SPARC%d" % flatid
+            print("`ifdef RTL_SPARC%d" % flatid)
             for nocid in [1,2,3]:
                 for dir in ['N', 'S', 'E', 'W']:
                     for way in ['out']:
-                        print "    if (`CHIP.tile_%d_%d_%s_%s_noc%d_valid)" % (y,x,way,dir,nocid)
-                        print "    begin"
-                        print '        $display("%%d: TILE%d noc%d router %s %s data: 0x%%x ", $time,`CHIP.tile_%d_%d_%s_%s_noc%d_data);' % (flatid, nocid, way, dir,  y, x, way, dir, nocid)
-                        print "    end"
-            print "`endif"
+                        print("    if (`CHIP.tile_%d_%d_%s_%s_noc%d_valid)" % (y,x,way,dir,nocid))
+                        print("    begin")
+                        print('        $display("%%d: TILE%d noc%d router %s %s data: 0x%%x ", $time,`CHIP.tile_%d_%d_%s_%s_noc%d_data);' % (flatid, nocid, way, dir,  y, x, way, dir, nocid))
+                        print("    end")
+            print("`endif")
 %>
     end
 end
@@ -110,96 +110,96 @@ begin
                 check_right = True;
                 check_up = True;
                 check_down = True;
-                print "`ifdef RTL_SPARC%d" % flatid
+                print("`ifdef RTL_SPARC%d" % flatid)
                 for nocid in [1,2,3]:
                     if (y == 0):
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "N";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "N";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
                         check_up = False;
                     if (y == Y_TILES-1):
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "S";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "S";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
                         check_down = False;
                     if (x == X_TILES-1):
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "E";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "E";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
                         check_right = False
                     if (x == 0):
                         if (y != 0):
                             # it's okay for tile 0_0 to send messages to off-chip
-                            print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
-                            print 'if (boundary_err == 1)'
-                            print 'begin'
-                            print 'error_dir = "W";'
-                            print 'error_noc = %d;' % nocid
-                            print 'error_x = %d;' % x
-                            print 'error_y = %d;' % y
-                            print 'end'
+                            print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid))
+                            print('if (boundary_err == 1)')
+                            print('begin')
+                            print('error_dir = "W";')
+                            print('error_noc = %d;' % nocid)
+                            print('error_x = %d;' % x)
+                            print('error_y = %d;' % y)
+                            print('end')
                         check_left = False;
 
                     if (check_up):
-                        print "`ifndef RTL_SPARC%d" % flatid_up
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "N";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifndef RTL_SPARC%d" % flatid_up)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "N";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_down):
-                        print "`ifndef RTL_SPARC%d" % flatid_down
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "S";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifndef RTL_SPARC%d" % flatid_down)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "S";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_left):
-                        print "`ifndef RTL_SPARC%d" % flatid_left
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "W";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifndef RTL_SPARC%d" % flatid_left)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "W";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_right):
-                        print "`ifndef RTL_SPARC%d" % flatid_right
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "E";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
-                print "`endif"
+                        print("`ifndef RTL_SPARC%d" % flatid_right)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "E";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
+                print("`endif")
 
                 error_check_code = '''
                     if (boundary_err == 1)
@@ -211,7 +211,7 @@ begin
                         `MONITOR_PATH.fail("network_mon: network_mon: packet going out of valid bound");
                     end
                     '''
-                print error_check_code
+                print(error_check_code)
 
 
                 check_left = False;
@@ -220,8 +220,8 @@ begin
                 check_down = False;
                 # Check for valid signal from non-existent tiles to any other tiles.
                 # For example, if there is only tile 0_0 and 0_1, then
-                print 'boundary_err = 0;'
-                print "`ifndef RTL_SPARC%d" % flatid
+                print('boundary_err = 0;')
+                print("`ifndef RTL_SPARC%d" % flatid)
                 for nocid in [1,2,3]:
                     if (x != X_TILES-1):
                         check_right = True
@@ -233,49 +233,49 @@ begin
                         check_up = True
 
                     if (check_up):
-                        print "`ifdef RTL_SPARC%d" % flatid_up
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "N";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifdef RTL_SPARC%d" % flatid_up)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "N";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_down):
-                        print "`ifdef RTL_SPARC%d" % flatid_down
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "S";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifdef RTL_SPARC%d" % flatid_down)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "S";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_left):
-                        print "`ifdef RTL_SPARC%d" % flatid_left
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "W";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifdef RTL_SPARC%d" % flatid_left)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "W";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
                     if (check_right):
-                        print "`ifdef RTL_SPARC%d" % flatid_right
-                        print "boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid)
-                        print 'if (boundary_err == 1)'
-                        print 'begin'
-                        print 'error_dir = "E";'
-                        print 'error_noc = %d;' % nocid
-                        print 'error_x = %d;' % x
-                        print 'error_y = %d;' % y
-                        print 'end'
-                        print '`endif'
+                        print("`ifdef RTL_SPARC%d" % flatid_right)
+                        print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
+                        print('if (boundary_err == 1)')
+                        print('begin')
+                        print('error_dir = "E";')
+                        print('error_noc = %d;' % nocid)
+                        print('error_x = %d;' % x)
+                        print('error_y = %d;' % y)
+                        print('end')
+                        print('`endif')
 
 
                 error_check_code = '''
@@ -288,8 +288,8 @@ begin
                         `MONITOR_PATH.fail("network_mon: network_mon: packet from invalid tile");
                     end
                     '''
-                print error_check_code
-                print "`endif"
+                print(error_check_code)
+                print("`endif")
 
     %>
 

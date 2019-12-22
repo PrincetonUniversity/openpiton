@@ -292,8 +292,8 @@ begin
    begin
       <%
          for i in range (L15_CSM_NUM_TICKETS):
-            print "ghid_ticketed_cache_val[%d] <= 0;" % (i)
-            print "ghid_ticketed_cache[%d] <= 0;" % (i)
+            print("ghid_ticketed_cache_val[%d] <= 0;" % (i))
+            print("ghid_ticketed_cache[%d] <= 0;" % (i))
       %>
    end
    else
@@ -517,7 +517,7 @@ begin
    begin
       <%
          for i in range (L15_CSM_NUM_TICKETS):
-            print "ghid_ticketed_cache_addr[%d] <= 0;" % (i)
+            print("ghid_ticketed_cache_addr[%d] <= 0;" % (i))
       %>
    end
    else
@@ -626,9 +626,9 @@ begin
    begin
       <%
          for i in range (L15_CSM_NUM_TICKETS):
-            print "refill_req_addr_buf[%d] <= 0;" % (i)
-            print "refill_req_ticket_buf[%d] <= 0;" % (i)
-            print "refill_req_val_buf[%d] <= 0;" % (i)
+            print("refill_req_addr_buf[%d] <= 0;" % (i))
+            print("refill_req_ticket_buf[%d] <= 0;" % (i))
+            print("refill_req_val_buf[%d] <= 0;" % (i))
       %>
    end
    else
@@ -690,8 +690,8 @@ begin
    begin
       <%
          for i in range (L15_CSM_NUM_TICKETS):
-            print "ghid_ticketed_cache_val[%d] <= 0;" % (i)
-            print "ghid_ticketed_cache[%d] <= 0;" % (i)
+            print("ghid_ticketed_cache_val[%d] <= 0;" % (i))
+            print("ghid_ticketed_cache[%d] <= 0;" % (i))
       %>
    end
    else
@@ -717,7 +717,7 @@ begin
                else if (l15_csm_clear_ticket_val && l15_csm_clear_ticket == %d)
                   ghid_ticketed_cache_val[%d] <= 1'b0;
                ''' % (i,i,i,i)
-            print text
+            print(text)
       %>
    end
 end

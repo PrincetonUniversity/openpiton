@@ -1211,7 +1211,7 @@ module monitor(/*AUTOARG*/
     '''
     patterns = ["RTL_SPARC0", "mon0", "PATH0", "SPARC_CORE0", "chk0", "10'd0"];
     tt = ReplicatePattern(t, patterns);
-    print tt;
+    print(tt)
 %>
 
 
@@ -1318,7 +1318,7 @@ module monitor(/*AUTOARG*/
                 `endif'''
             tt = ReplicatePattern(t, ["SPARC_CORE0", "cmp_pcxandcpx0", "RTL_SPARC0",
                     ".cpu    (0"]);
-            print tt;
+            print(tt)
         %>
 
 	`endif  // ifdef DRAM_SAT

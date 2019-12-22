@@ -1323,13 +1323,13 @@ end
 
 for i in range (NUM_TILES):
     text2 = text;
-    text2 = text2.replace("L15_PIPE0", "L15_PIPE" + `i`);
-    text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + `i`);
-    text2 = text2.replace("TILE0", "TILE" + `i`);
-    text2 = text2.replace("TOP0", "TOP" + `i`);
-    text2 = text2.replace("CORE0", "CORE" + `i`);
-    text2 = text2.replace("TRANSDUCER0", "TRANSDUCER" + `i`);
-    print text2;
+    text2 = text2.replace("L15_PIPE0", "L15_PIPE" + repr(i));
+    text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + repr(i));
+    text2 = text2.replace("TILE0", "TILE" + repr(i));
+    text2 = text2.replace("TOP0", "TOP" + repr(i));
+    text2 = text2.replace("CORE0", "CORE" + repr(i));
+    text2 = text2.replace("TRANSDUCER0", "TRANSDUCER" + repr(i));
+    print(text2)
 %>
 
 // // add temporary monitor for jtag

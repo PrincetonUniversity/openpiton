@@ -174,8 +174,8 @@ begin
         '''
 
         for i in range (2):
-            tt = t.replace('THREADID', `i`)
-            print tt
+            tt = t.replace('THREADID', repr(i))
+            print(tt)
     %>
     mshr_pipe_vals_s1 = {tmp_vals[1], tmp_vals[0]};
     mshr_pipe_ld_address = {tmp_ld_address[1], tmp_ld_address[0]};
@@ -221,7 +221,7 @@ always @ *
 begin
     <%
     for i in range(128):
-        print "bit_write_mask_s1[%d] = pipe_mshr_writereq_write_buffer_byte_mask_s1[%d];" % (i, i/8)
+        print("bit_write_mask_s1[%d] = pipe_mshr_writereq_write_buffer_byte_mask_s1[%d];" % (i, i/8))
     %>
 end
 

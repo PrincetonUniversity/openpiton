@@ -40,10 +40,10 @@
         for i in range(NUM_TILES):
             t = text
             for p in patterns:
-                replacement = p[:-1] + `i`;
+                replacement = p[:-1] + repr(i);
                 t = t.replace(p, replacement);
-            t = t.replace("PYHP_CURRENT_ID", `i`)
-            t = t.replace("PYHP_NEXT_ID", `i+1`)
+            t = t.replace("PYHP_CURRENT_ID", repr(i))
+            t = t.replace("PYHP_NEXT_ID", repr(i+1))
             newtext += t + '\n';
         return newtext;
 %>
@@ -709,7 +709,7 @@ end // initial begin
     '''
 
     tt = ReplicatePatternSpecial(t, ["SPARC0", "PATH0", "task0", "spc0"]);
-    print tt;
+    print(tt)
 %>
 
 `endif // SAS_DISABLE
@@ -871,7 +871,7 @@ task mra_val;
                     `endif
                 '''
                 tt = ReplicatePatternSpecial(t, ["SPARC0", "10'd0", "PATH0"]);
-                print tt;
+                print(tt)
             %>
             default: begin
             end
@@ -904,7 +904,7 @@ always @(posedge clk)begin
                   `endif
             '''
             tt = ReplicatePatternSpecial(t, ["RTL_SPARC0", "task0"])
-            print tt;
+            print(tt)
         %>
         `endif // SAS_DISABLE
 

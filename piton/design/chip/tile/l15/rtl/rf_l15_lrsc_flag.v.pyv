@@ -66,7 +66,7 @@ module rf_l15_lrsc_flag(
 
 <%
    linesize = 16
-   numset = int(CONFIG_L15_SIZE)/int(CONFIG_L15_ASSOCIATIVITY)/linesize
+   numset = int(int(CONFIG_L15_SIZE)/int(CONFIG_L15_ASSOCIATIVITY)/linesize)
 %>
 
 // reg read_valid_f;
@@ -112,7 +112,7 @@ begin
    begin
       <%
          for i in range (numset):
-            print "regfile[%d] <= 4'b0;" % (i)
+            print("regfile[%d] <= 4'b0;" % (i))
       %>
       // regfile <= 1024'b0;
    end

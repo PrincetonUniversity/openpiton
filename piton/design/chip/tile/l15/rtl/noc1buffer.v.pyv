@@ -134,10 +134,10 @@ begin
    begin
       <%
       for i in range (NOC1_BUFFER_NUM_SLOTS):
-         print "command_buffer[%d] <= 0;" % i;
-         print "command_buffer_val[%d] <= 0;" % i;
+         print("command_buffer[%d] <= 0;" % i)
+         print("command_buffer_val[%d] <= 0;" % i)
       for i in range (NOC1_BUFFER_NUM_DATA_SLOTS):
-         print "data_buffer[%d] <= 0;" % i;
+         print("data_buffer[%d] <= 0;" % i)
       %>
       data_wrindex <= 0;
       command_wrindex <= 0;
@@ -156,10 +156,10 @@ begin
       // end
       <%
       for i in range (NOC1_BUFFER_NUM_SLOTS):
-         print "command_buffer[%d] <= command_buffer_next[%d];" % (i,i);
-         print "command_buffer_val[%d] <= command_buffer_val_next[%d];" % (i,i);
+         print("command_buffer[%d] <= command_buffer_next[%d];" % (i,i))
+         print("command_buffer_val[%d] <= command_buffer_val_next[%d];" % (i,i))
       for i in range (NOC1_BUFFER_NUM_DATA_SLOTS):
-         print "data_buffer[%d] <= data_buffer_next[%d];" % (i,i);
+         print("data_buffer[%d] <= data_buffer_next[%d];" % (i,i))
       %>
       data_wrindex <= data_wrindex_next;
       command_wrindex <= command_wrindex_next;
@@ -172,10 +172,10 @@ always @ *
 begin
    <%
    for i in range (NOC1_BUFFER_NUM_SLOTS):
-      print "command_buffer_next[%d] = command_buffer[%d];" % (i,i);
+      print("command_buffer_next[%d] = command_buffer[%d];" % (i,i))
       #print "command_buffer_val_next[%d] = command_buffer_val[%d];" % (i,i);
    for i in range (NOC1_BUFFER_NUM_DATA_SLOTS):
-      print "data_buffer_next[%d] = data_buffer[%d];" % (i,i);
+      print("data_buffer_next[%d] = data_buffer[%d];" % (i,i))
    %>
 
    command_wrindex_next = command_wrindex;
@@ -297,14 +297,14 @@ always @ *
 begin
    <%
    for i in range(NOC1_BUFFER_NUM_SLOTS):
-      print '''
+      print('''
       if (l15_noc1buffer_req_val && (command_wrindex == ii))
          command_buffer_val_next[ii] = 1'b1;
       else if (noc1encoder_noc1buffer_req_ack && (command_rdindex == ii))
          command_buffer_val_next[ii] = 1'b0;
       else
          command_buffer_val_next[ii] = command_buffer_val[ii];
-      '''.replace("ii", `i`)
+      '''.replace("ii", repr(i)))
    %>
 end
 

@@ -54,9 +54,9 @@
 import pyhplib
 from pyhplib import *
 
-print "`define NUM_TILES %d" % NUM_TILES;
-print "`define X_TILES %d"   % X_TILES;
-print "`define Y_TILES %d"   % Y_TILES;
+print("`define NUM_TILES %d" % NUM_TILES)
+print("`define X_TILES %d"   % X_TILES)
+print("`define Y_TILES %d"   % Y_TILES)
 %>
 
 // NoC interface

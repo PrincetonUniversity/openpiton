@@ -20,7 +20,7 @@
 """Parses PyHP documents
 """
 
-from UserString import UserString
+from collections import UserString
 import code
 import sys
 import re
@@ -100,11 +100,11 @@ class PageData:
             if data[0] == '#': # detect shell script syntax
                 data = data.split('\n', 1)[1]
         except IOError:
-            raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+            raise apache.SERVER_RETURN(apache.HTTP_INTERNAL_SERVER_ERROR)
 
         # split file into sections
         fields = reg.split(data)
-        fields = filter(lambda x: len(x)!=0, fields)
+        fields = [x for x in fields if len(x)!=0]
 
         # setup data and parse code
         lineCnt = 1
@@ -158,8 +158,8 @@ class PyHPInterp(code.InteractiveInterpreter):
             c = code.compile_command(codeobj, '<string>', 'exec')
             self.runcode(c)
 
-        except Exception, err:
-            raise type(err), str(err) + " in code segment starting on line " + str(lineCnt) + ' in pyv file ' + filename
+        except Exception as err:
+            raise type(err)(str(err) + " in code segment starting on line " + str(lineCnt) + ' in pyv file ' + filename)
 
     def pushvar(self, var):
         cmd = 'sys.stdout.write(str(%s))' % var

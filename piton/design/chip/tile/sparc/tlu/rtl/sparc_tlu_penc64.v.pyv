@@ -54,10 +54,10 @@ begin
 //	    begin
 <%
 for i in range(64) :
-    print '''
+    print('''
 	       if (in[%d])
 		   out[5:0] = 6\'d%d;
-    ''' % (i, i)
+    ''' % (i, i))
 %>
 //	    end
 end

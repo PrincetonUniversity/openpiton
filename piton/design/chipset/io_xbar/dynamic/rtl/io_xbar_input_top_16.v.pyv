@@ -56,10 +56,10 @@ module io_xbar_input_top_16(<%= route_req_outs%><%= default_readys%>tail_out, yu
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "output route_req_%d_out;" % a
-  print s
+  print(s)
 for a in range (DYNAMIC_NODE_PORT):
   s = "output default_ready_%d_out;" % a
-  print s
+  print(s)
 %>
 output tail_out;
 output yummy_out;
@@ -78,7 +78,7 @@ input [`DATA_WIDTH-1:0] data_in;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "input thanks_%d;" % a
-  print s
+  print(s)
 %>
 // end port declarations
    

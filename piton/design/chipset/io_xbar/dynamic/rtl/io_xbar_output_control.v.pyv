@@ -61,7 +61,7 @@ module io_xbar_output_control(<%= thanks%>
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "output thanks_%d;" % a
-  print s
+  print(s)
 %>
 output valid_out;
 
@@ -74,11 +74,11 @@ input reset;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "input route_req_%d_in;" % a
-  print s
-print ""
+  print(s)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
   s = "input tail_%d_in;" % a
-  print s
+  print(s)
 %>
 input valid_out_temp;
 
@@ -92,7 +92,7 @@ input space_avail;
 for a in range (DYNAMIC_NODE_PORT):
   s = "`define IO_XBAR_ROUTE_%d %d'b" % (a, DYNAMIC_NODE_PORT_LOG2)
   s = s + ("{0:0%db}" % DYNAMIC_NODE_PORT_LOG2).format(a)
-  print s
+  print(s)
 %>
 //This is the state
 reg [<%= DYNAMIC_NODE_PORT_LOG2 - 1%>:0]current_route_f;
@@ -117,14 +117,14 @@ reg tail_current_route;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "reg route_req_%d_mask;" % a
-  print s
+  print(s)
 %>
 
 //more wire regs for the thanks lines
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "reg thanks_%d;" % a
-  print s
+  print(s)
 %>
 reg    ec_wants_to_send_but_cannot;
 
@@ -172,7 +172,7 @@ always @ (current_route_f or <%= tail_in_cal%>)
 begin
 	case(current_route_f) //synopsys parallel_case
 	<%
-	print ""
+	print("")
 	indent = "	"
 	for a in range (DYNAMIC_NODE_PORT):
 	  print (indent + ("`IO_XBAR_ROUTE_%d:" % a))
@@ -206,7 +206,7 @@ begin
 	end
 	*/
 	<%
-	print ""
+	print("")
 	indent = "	"
 	for a in range (DYNAMIC_NODE_PORT):
 	  print (indent + ("`IO_XBAR_ROUTE_%d:" % a))
@@ -217,13 +217,13 @@ begin
 	      s = s + indent + ("thanks_%d <= valid_out_internal;" % b)
 	    else:
 	      s = s + indent + ("thanks_%d <= 1'b0;" % b)
-	    print s
+	    print(s)
 	  print (indent + "end")	  
 	%>
 	default:
 	begin
 	<%
-	print ""
+	print("")
 	for a in range (DYNAMIC_NODE_PORT):
 	  print ("\t\tthanks_%d <= 1'bx;" % a)
 	%>
@@ -289,7 +289,7 @@ begin
 	end
 	*/
 	<%
-	print ""
+	print("")
 	indent = "	"
 	for a in range (DYNAMIC_NODE_PORT):
 	  term_str = "`IO_XBAR_ROUTE_%d" % 0
@@ -319,21 +319,21 @@ begin
 	begin
 		case(current_route_f)
 		<%
-		print ""
+		print("")
 		for a in range (DYNAMIC_NODE_PORT):
-		  print "\t\t`IO_XBAR_ROUTE_%d:" % a
-		  print "\t\t\tbegin"
+		  print("\t\t`IO_XBAR_ROUTE_%d:" % a)
+		  print("\t\t\tbegin")
 		  for b in range (DYNAMIC_NODE_PORT):
 		    if a == b:
 		      print ("\t\t\t\troute_req_%d_mask <= 1'b0;" % b)
 		    else:
 		      print ("\t\t\t\troute_req_%d_mask <= 1'b1;" % b)
-		  print "\t\t\tend"
-		print "\t\tdefault:"
-		print "\t\t\tbegin"
+		  print("\t\t\tend")
+		print("\t\tdefault:")
+		print("\t\t\tbegin")
 		for a in range (DYNAMIC_NODE_PORT):
 		  print ("\t\t\t\troute_req_%d_mask <= 1'b1;" % a)
-		print "\t\t\tend"
+		print("\t\t\tend")
 		%>
 		/*
 		original
@@ -359,7 +359,7 @@ begin
 	else
 	begin
 	<%
-	print ""
+	print("")
 	for a in range (DYNAMIC_NODE_PORT):
 	  print ("\t\troute_req_%d_mask <= 1'b1;" % a)
 	%>

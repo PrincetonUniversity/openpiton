@@ -56,10 +56,10 @@ output valid_out_temp;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "input [`DATA_WIDTH-1:0] data_%d_in;" % a
-  print s
+  print(s)
 for a in range (DYNAMIC_NODE_PORT):
   s = "input valid_%d_in;" % a
-  print s
+  print(s)
 %>
 input [<%= DYNAMIC_NODE_PORT_LOG2 - 1%>:0] current_route_in;
 

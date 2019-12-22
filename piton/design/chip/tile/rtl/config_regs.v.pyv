@@ -63,7 +63,7 @@ module config_regs(
 
 <%
 for i in range(DMBR_BIN_NUM):
-   print "input wire [`CREDIT_WIDTH-1:0] from_dmbr_cred_bin_%d," % i
+   print("input wire [`CREDIT_WIDTH-1:0] from_dmbr_cred_bin_%d," % i)
 %>
 
    output wire [63:0] config_l15_read_res_data_s3,
@@ -77,7 +77,7 @@ for i in range(DMBR_BIN_NUM):
    output wire [`SCALE_WIDTH-1:0]      config_dmbr_bin_scale,
 <%
 for i in range(DMBR_BIN_NUM):
-   print "output wire [`CREDIT_WIDTH-1:0] config_dmbr_cred_bin_%d," % i
+   print("output wire [`CREDIT_WIDTH-1:0] config_dmbr_cred_bin_%d," % i)
 %>
 
 
@@ -108,7 +108,7 @@ reg [`REPLENISH_WIDTH-1:0] dmbr_replenish_cycles   , dmbr_replenish_cycles_next;
 reg [`SCALE_WIDTH-1:0]     dmbr_bin_scale          , dmbr_bin_scale_next;
 <%
 for i in range(DMBR_BIN_NUM):
-   print "reg [`CREDIT_WIDTH-1:0] dmbr_cred_bin_%d, dmbr_cred_bin_%d_next;" % (i,i)
+   print("reg [`CREDIT_WIDTH-1:0] dmbr_cred_bin_%d, dmbr_cred_bin_%d_next;" % (i,i))
 %>
 
 reg csm_en;
@@ -138,7 +138,7 @@ assign config_dmbr_replenish_cycles = dmbr_replenish_cycles;
 assign config_dmbr_bin_scale = dmbr_bin_scale;
 <%
 for i in range(DMBR_BIN_NUM):
-   print "assign config_dmbr_cred_bin_%d = dmbr_cred_bin_%d;" % (i, i)
+   print("assign config_dmbr_cred_bin_%d = dmbr_cred_bin_%d;" % (i, i))
 %>
 
 assign config_hmt_base = hmt_base;
@@ -174,7 +174,7 @@ begin
       dmbr_bin_scale          <= {`SCALE_WIDTH{1'b0}};
       <%
       for i in range(DMBR_BIN_NUM):
-         print "dmbr_cred_bin_%d <= {`CREDIT_WIDTH{1'b0}};" % i
+         print("dmbr_cred_bin_%d <= {`CREDIT_WIDTH{1'b0}};" % i)
       %>
 
       dmbr_rd_cur_val <= 1'b0;
@@ -197,7 +197,7 @@ begin
       dmbr_bin_scale <= dmbr_bin_scale_next;
       <%
       for i in range(DMBR_BIN_NUM):
-         print "dmbr_cred_bin_%d <= dmbr_cred_bin_%d_next;" % (i, i)
+         print("dmbr_cred_bin_%d <= dmbr_cred_bin_%d_next;" % (i, i))
       %>
       dmbr_rd_cur_val <= dmbr_rd_cur_val_next;
       hmt_base <= hmt_base_next;
@@ -240,7 +240,7 @@ begin
    dmbr_bin_scale_next = dmbr_bin_scale;
    <%
    for i in range(DMBR_BIN_NUM):
-      print "dmbr_cred_bin_%d_next = dmbr_cred_bin_%d;" % (i, i)
+      print("dmbr_cred_bin_%d_next = dmbr_cred_bin_%d;" % (i, i))
    %>
 
    dmbr_rd_cur_val_next = dmbr_rd_cur_val;
@@ -271,7 +271,7 @@ begin
             dmbr_rd_cur_val_next = req_data[`CFG_DMBR_RD_CUR_VAL_BIT];
             <%
                for i in range(DMBR_BIN_NUM):
-                  print "dmbr_cred_bin_%d_next = req_data[`CFG_DMBR_CRED_BIN_%d_BITS];" % (i, i)
+                  print("dmbr_cred_bin_%d_next = req_data[`CFG_DMBR_CRED_BIN_%d_BITS];" % (i, i))
             %>
          end
          `CONFIG_REG_DMBR_REG2_ADDRESS:
@@ -318,14 +318,14 @@ begin
             begin
             <%
                for i in range(DMBR_BIN_NUM):
-                  print "read_data_s3_next[`CFG_DMBR_CRED_BIN_%d_BITS] = from_dmbr_cred_bin_%d;" % (i, i)
+                  print("read_data_s3_next[`CFG_DMBR_CRED_BIN_%d_BITS] = from_dmbr_cred_bin_%d;" % (i, i))
             %>
             end
             else
             begin
             <%
                for i in range(DMBR_BIN_NUM):
-                  print "read_data_s3_next[`CFG_DMBR_CRED_BIN_%d_BITS] = dmbr_cred_bin_%d;" % (i, i)
+                  print("read_data_s3_next[`CFG_DMBR_CRED_BIN_%d_BITS] = dmbr_cred_bin_%d;" % (i, i))
             %>
             end
          end
