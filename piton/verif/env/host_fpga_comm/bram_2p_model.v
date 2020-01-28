@@ -46,7 +46,11 @@ genvar i;
 reg [DATA_WIDTH-1:0] mem [DEPTH-1:0];
 
 generate
+`ifdef _VCP //BUG in openpiton: VCP2505 Duplicate identifier: mem
+    for (i = 0; i < DEPTH; i = i+1) begin: mem_gen
+`else
     for (i = 0; i < DEPTH; i = i+1) begin: mem
+`endif
         always @(posedge clka)
             mem[i] <= ena & (i == addra) ? dina : mem[i];
     end    

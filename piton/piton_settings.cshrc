@@ -67,6 +67,10 @@ endif
 #setenv MODELSIM_VERSION "-10.6b -64"
 #setenv MODELSIM_HOME ""
 
+# Please define RIVIERA_HOME only if you have Riviera-PRO, otherwise comment it out.
+
+#export RIVIERA_HOME=
+
 # New variables (fixed or based on $DV_ROOT)
 
 setenv TRE_ENTRY /

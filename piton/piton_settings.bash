@@ -67,6 +67,9 @@ fi
 #export MODELSIM_VERSION="-10.6b -64"
 #export MODELSIM_HOME=
 
+# Please define RIVIERA_HOME only if you have Riviera-PRO, otherwise comment it out.
+
+#export RIVIERA_HOME=
 
 # New variables (fixed or based on $DV_ROOT)
 
@@ -109,6 +112,11 @@ fi
 if [ ! -z $MODELSIM_HOME ]
 then
 NEWPATH=$NEWPATH:$MODELSIM_HOME/bin
+fi
+
+if [ ! -z $RIVIERA_HOME ]
+then
+NEWPATH=$NEWPATH:$RIVIERA_HOME/bin
 fi
 
 if [ ! -z $SYN_BIN ]

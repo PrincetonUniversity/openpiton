@@ -135,7 +135,7 @@ def usage (prog) :
     print prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory"
     print prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass"
     print prog + ":      --inverse               Inverts the exit code to return 0 if all tests failed and 1 otherwise, whereas the default is to return 0 if all tests pass and 1 otherwise."
-    print prog + ":      --sim_type=<sim>        Specify the simulator to invoke (vcs, ncv, icv, msm)"
+    print prog + ":      --sim_type=<sim>        Specify the simulator to invoke (vcs, ncv, icv, msm, riv)"
 
 def parse_cmd_args (prog) :
     try :
@@ -189,8 +189,8 @@ def parse_cmd_args (prog) :
         print prog + ": Cannot specify both check_results and dryrun"
         sys.exit(1)
 
-    if sim_type not in ["vcs", "ncv", "icv", "msm"]:
-        print prog + ": sim_type must be one of vcs, ncv, icv, or msm"
+    if sim_type not in ["vcs", "ncv", "icv", "msm", "riv"]:
+        print prog + ": sim_type must be one of vcs, ncv, icv, msm or riv"
         sys.exit(1)
 
     return bundle, dryrun, check_results, contint_dir, cleanup, inverse, sim_type
@@ -241,7 +241,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             sys_val = ""
             for args in child :
                 # if args.tag == "sys" or args.tag == "vcs_build_args" or args.tag == "num_tile" or args.tag == "x_tiles" or args.tag == "y_tiles":
-                if args.tag in ["network_config", "sys", "vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "sim_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
+                if args.tag in ["network_config", "sys", "vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "riv_build_args", "sim_build_args", "num_tile", "x_tiles", "y_tiles", "config_rtl", "rtl_timeout"]:
                     build_command += " -" + args.tag + "=" + args.text
                     if args.tag == "sys" :
                         sys_val = args.text
@@ -268,7 +268,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                     print "This is the largest regression, not adding this tag to run_command"
                 elif args.text == None :
                     run_command += " -" + args.tag
-                elif args.tag not in ["vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "sim_build_args"] :
+                elif args.tag not in ["vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "riv_build_args", "sim_build_args"] :
                     run_command += " -" + args.tag + "=" + args.text
 
             # Add flags to commands to wait for license
@@ -677,7 +677,7 @@ def check_status_log (prog, diag, sim_type) :
                     if len(templist) > 0 :
                         templist[0] = tmp
                     templist.append(line)
-                elif re.search("Will build in directory|midas: mkdir|Found diag under|redefines previous macro|-max_error|exit_on_error|stop_on_error|-no-warn-mismatch|vcs_run|ncv_run|icv_run|msm_run|ERROR_EN_REG", line) :
+                elif re.search("Will build in directory|midas: mkdir|Found diag under|redefines previous macro|-max_error|exit_on_error|stop_on_error|-no-warn-mismatch|vcs_run|ncv_run|icv_run|msm_run|riv_run|ERROR_EN_REG", line) :
                     continue
                 elif re.search("mismatch|error|fail|wrong_trigger|undefined reference to", line, re.IGNORECASE) :
                     templist.append(line)

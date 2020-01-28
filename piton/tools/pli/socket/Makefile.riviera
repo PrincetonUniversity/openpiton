@@ -1,0 +1,26 @@
+# Derived from piton/tools/pli/iop/Makefile
+
+include ${DV_ROOT}/tools/env/Makefile.system
+
+CPPFLAGS = 
+CFLAGS += -I../ -fpic -DLINUX -DUSE_ACC -I${RIVIERA_HOME}/interfaces/include
+
+LIB = libsocket_pli_riviera.a
+CSRCS = 
+CSRCC = decoder.c
+LIB_OBJS = ${CSRCS:%.cc=%.o}
+LIB_OBJC = ${CSRCC:%.c=%.o}
+
+all: $(LIB)
+	rm -rf *.o
+
+$(LIB_OBJS):
+	$(CCC) $(CPPFLAGS) -c  $(CFLAGS)  -o $*.o $*.cc
+$(LIB_OBJC):
+	$(CC) $(CPPFLAGS) -c  $(CFLAGS) -o $*.o $*.c
+
+$(LIB): $(LIB_OBJS) $(LIB_OBJC)
+	ar rv $(LIB) $(LIB_OBJS) $(LIB_OBJC)
+
+clean:
+	rm -rf *.o ${LIB}

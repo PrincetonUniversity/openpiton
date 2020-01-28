@@ -163,7 +163,9 @@ module jtag_testbench_top_helper
         .rst_n(chip_rst_n),
         .pll_rst_n(pll_rst_n),
         .clk_en(clk_en),
+    `ifndef _VCP
         .pll_bypass (pll_bypass),
+    `endif
         .async_mux (async_mux),
 
         .pll_lock (pll_lock),
