@@ -97,11 +97,7 @@ end
 
 generate
     genvar i;
-`ifdef RIVIERA //bug in openpiton VCP2505 Duplicate identifier: rcv_chars
     for (i = 0; i < MAX_RCV_CHAR; i = i + 1) begin: rcv_chars_gen
-`else
-    for (i = 0; i < MAX_RCV_CHAR; i = i + 1) begin: rcv_chars
-`endif
         always @(posedge clk) begin
             if (~rst_n)
                 rcv_chars[i] <= 8'h0;
