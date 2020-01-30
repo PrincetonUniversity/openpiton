@@ -32,28 +32,7 @@
 #endif
 
 #ifdef RIVIERA
-#define usertask                  1
-
-typedef struct t_tfcell
-{
-	short		type;
-	int			data;
-	int			(*checktf)();
-	int			(*sizetf)();
-	int			(*calltf)();
-	int			(*misctf)();
-	const char*	tfname;
-
-	/* The following fields are ignored */
-	int			forwref;
-	char*		tfveritool;
-	const char*	tferrmessage;
-	int			hash;
-	struct t_tfcell* left_p;
-	struct t_tfcell* right_p;
-	const char*	namecell_p;
-	int			warning_printed;
-} s_tfcell, *p_tfcell;
+#include "aldecpli.h"
 #endif
 
 char *veriuser_version_str = 
