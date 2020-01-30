@@ -97,7 +97,7 @@ end
 
 generate
     genvar i;
-    for (i = 0; i < MAX_RCV_CHAR; i = i + 1) begin: rcv_chars
+    for (i = 0; i < MAX_RCV_CHAR; i = i + 1) begin: rcv_chars_gen
         always @(posedge clk) begin
             if (~rst_n)
                 rcv_chars[i] <= 8'h0;

@@ -31,6 +31,10 @@
 #include <vpi_user.h>
 #endif
 
+#ifdef RIVIERA
+#include "aldecpli.h"
+#endif
+
 char *veriuser_version_str = 
 "=== OpenSPARC T1 PLI Version 1.0 ===\nCopyright (c) 2001-2006 Sun Microsystems, Inc. All rights reserved.\n";
 

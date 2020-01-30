@@ -46,7 +46,7 @@ genvar i;
 reg [DATA_WIDTH-1:0] mem [DEPTH-1:0];
 
 generate
-    for (i = 0; i < DEPTH; i = i+1) begin: mem
+    for (i = 0; i < DEPTH; i = i+1) begin: mem_gen
         always @(posedge clka)
             mem[i] <= ena & (i == addra) ? dina : mem[i];
     end    
