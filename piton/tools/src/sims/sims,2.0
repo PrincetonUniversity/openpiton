@@ -2798,7 +2798,7 @@ sub parse_args
   push (@{$opt{config_rtl}}, "ORAM_ON") if ($opt{oram}) ;
   push (@{$opt{sim_run_args}}, "+oram") if ($opt{oram}) ;
 
-  if ($opt{msm_build} or $opt{icv_build} or $opt{vlt_build} ) {
+  if ($opt{msm_build} or $opt{icv_build} or $opt{vlt_build}) {
       push(@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
       push(@{$opt{config_rtl}}, "NO_MRA_VAL") ;
   }
