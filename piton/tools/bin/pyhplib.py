@@ -271,6 +271,7 @@ def ReadDevicesXMLFile():
     noc2_in = False
     virtual = False
     stream_accessible = False
+    map_to = 0
     for j in range(0, len(devices[i])):
       tag = devices[i][j].tag
       text = devices[i][j].text
@@ -284,6 +285,8 @@ def ReadDevicesXMLFile():
         noc2_in = True
       elif tag == "virtual":
         virtual = True
+      elif tag == "map_to":
+        map_to = int(text, 0)
       elif tag == "stream_accessible":
         stream_accessible = True
 
@@ -294,9 +297,9 @@ def ReadDevicesXMLFile():
       portnum = -1
 
     if name == "chip":
-        devicesInfo.insert(0, {"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
+        devicesInfo.insert(0, {"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "map_to":map_to, "stream_accessible":stream_accessible})
     else:
-        devicesInfo.append({"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
+        devicesInfo.append({"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "map_to":map_to, "stream_accessible":stream_accessible})
 
   return devicesInfo
 

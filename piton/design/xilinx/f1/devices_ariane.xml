@@ -22,8 +22,8 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <port>
         <name>mem</name>
         <base>0x80000000</base>
-        <!-- 4 GB -->
-        <length>0x100000000</length>
+        <!-- 6 GB -->
+        <length>0x180000000</length>
     </port>
     <port>
         <name>iob</name>
@@ -35,8 +35,9 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <name>sd</name>
         <base>0xf000000000</base>
         <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0300000</length>
+        <length>0x200000000</length>
         <virtual/>
+        <map_to>0x200000000</map_to>
     </port>
     <port>
         <name>uart</name>

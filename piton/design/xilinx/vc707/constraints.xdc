@@ -11,7 +11,7 @@
 #     * Neither the name of Princeton University nor the
 #       names of its contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -38,9 +38,7 @@ set_property PACKAGE_PIN AV40 [get_ports sys_rst_n]
 # False paths
 set_false_path -to [get_cells -hierarchical *afifo_ui_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_sync_rst_r*]
-set_false_path -to [get_cells -hierarchical *ui_clk_syn_rst_delayed*]
 set_false_path -to [get_cells -hierarchical *init_calib_complete_f*]
-set_false_path -to [get_cells -hierarchical *chipset_rst_n*]
 set_false_path -from [get_clocks chipset_clk_clk_mmcm] -to [get_clocks net_axi_clk_clk_mmcm]
 
 set_clock_groups -name sync_gr1 -logically_exclusive -group chipset_clk_clk_mmcm -group [get_clocks -include_generated_clocks mc_sys_clk_clk_mmcm]
@@ -53,22 +51,22 @@ set_property IOSTANDARD LVCMOS18 [get_ports uart_rx]
 set_property PACKAGE_PIN AU33 [get_ports uart_rx]
 
 # Switches
-set_property PACKAGE_PIN AV30 [get_ports sw[0]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[0]]
-set_property PACKAGE_PIN AY33 [get_ports sw[1]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[1]]
-set_property PACKAGE_PIN BA31 [get_ports sw[2]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[2]]
-set_property PACKAGE_PIN BA32 [get_ports sw[3]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[3]]
-set_property PACKAGE_PIN AW30 [get_ports sw[4]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[4]]
-set_property PACKAGE_PIN AY30 [get_ports sw[5]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[5]]
-set_property PACKAGE_PIN BA30 [get_ports sw[6]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[6]]
-set_property PACKAGE_PIN BB31 [get_ports sw[7]]
-set_property IOSTANDARD LVCMOS18 [get_ports sw[7]]
+set_property PACKAGE_PIN AV30 [get_ports {sw[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[0]}]
+set_property PACKAGE_PIN AY33 [get_ports {sw[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[1]}]
+set_property PACKAGE_PIN BA31 [get_ports {sw[2]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[2]}]
+set_property PACKAGE_PIN BA32 [get_ports {sw[3]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[3]}]
+set_property PACKAGE_PIN AW30 [get_ports {sw[4]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[4]}]
+set_property PACKAGE_PIN AY30 [get_ports {sw[5]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[5]}]
+set_property PACKAGE_PIN BA30 [get_ports {sw[6]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[6]}]
+set_property PACKAGE_PIN BB31 [get_ports {sw[7]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {sw[7]}]
 
 # SD
 set_property -dict {IOSTANDARD LVCMOS18 PACKAGE_PIN AN30 DRIVE 16 SLEW FAST} [get_ports sd_clk_out]
@@ -85,29 +83,29 @@ set_property -dict {IOSTANDARD LVCMOS18 PACKAGE_PIN AT30} [get_ports {sd_dat[3]}
 
 ## LEDs
 
-set_property PACKAGE_PIN AM39 [get_ports leds[0]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[0]]
-set_property PACKAGE_PIN AN39 [get_ports leds[1]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[1]]
-set_property PACKAGE_PIN AR37 [get_ports leds[2]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[2]]
-set_property PACKAGE_PIN AT37 [get_ports leds[3]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[3]]
-set_property PACKAGE_PIN AR35 [get_ports leds[4]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[4]]
-set_property PACKAGE_PIN AP41 [get_ports leds[5]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[5]]
-set_property PACKAGE_PIN AP42 [get_ports leds[6]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[6]]
-set_property PACKAGE_PIN AU39 [get_ports leds[7]]
-set_property IOSTANDARD LVCMOS18 [get_ports leds[7]]
+set_property PACKAGE_PIN AM39 [get_ports {leds[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[0]}]
+set_property PACKAGE_PIN AN39 [get_ports {leds[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[1]}]
+set_property PACKAGE_PIN AR37 [get_ports {leds[2]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[2]}]
+set_property PACKAGE_PIN AT37 [get_ports {leds[3]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[3]}]
+set_property PACKAGE_PIN AR35 [get_ports {leds[4]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[4]}]
+set_property PACKAGE_PIN AP41 [get_ports {leds[5]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[5]}]
+set_property PACKAGE_PIN AP42 [get_ports {leds[6]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[6]}]
+set_property PACKAGE_PIN AU39 [get_ports {leds[7]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {leds[7]}]
 
 #############################################
 # SD Card Constraints for 25MHz
 #############################################
 create_generated_clock -name sd_fast_clk -source [get_pins chipset/clk_mmcm/sd_sys_clk] -divide_by 2 [get_pins chipset/chipset_impl/piton_sd_top/sdc_controller/clock_divider0/fast_clk_reg/Q]
 create_generated_clock -name sd_slow_clk -source [get_pins chipset/clk_mmcm/sd_sys_clk] -divide_by 200 [get_pins chipset/chipset_impl/piton_sd_top/sdc_controller/clock_divider0/slow_clk_reg/Q]
-create_generated_clock -name sd_clk_out   -source [get_pins chipset/sd_clk_oddr/C] -divide_by 1 -add -master_clock sd_fast_clk [get_ports sd_clk_out]
+create_generated_clock -name sd_clk_out -source [get_pins chipset/sd_clk_oddr/C] -divide_by 1 -add -master_clock sd_fast_clk [get_ports sd_clk_out]
 create_generated_clock -name sd_clk_out_1 -source [get_pins chipset/sd_clk_oddr/C] -divide_by 1 -add -master_clock sd_slow_clk [get_ports sd_clk_out]
 
 # compensate for board trace uncertainty
@@ -160,3 +158,19 @@ set_input_delay -clock [get_clocks sd_clk_out_1] -clock_fall -min -add_delay -14
 set_clock_groups -physically_exclusive -group [get_clocks -include_generated_clocks sd_clk_out] -group [get_clocks -include_generated_clocks sd_clk_out_1]
 set_clock_groups -logically_exclusive -group [get_clocks -include_generated_clocks sd_fast_clk] -group [get_clocks -include_generated_clocks sd_slow_clk]
 set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks chipset_clk_clk_mmcm] -group [get_clocks -filter { NAME =~  "*sd*" }]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

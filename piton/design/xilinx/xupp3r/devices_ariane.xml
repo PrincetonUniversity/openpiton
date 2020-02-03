@@ -37,6 +37,7 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <!-- Give it up to reset PC + 1 MB-->
         <length>0x400000000</length>
         <virtual/>
+        <map_to>0x400000000</map_to>
     </port>
     <port>
         <name>uart</name>

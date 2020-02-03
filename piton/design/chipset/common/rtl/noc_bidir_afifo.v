@@ -71,14 +71,46 @@ module noc_bidir_afifo (
 
 wire fifo_recv_full;
 wire fifo_recv_empty;
+wire fifo_recv_rd_en;
+wire fifo_recv_wr_en;
 reg  fifo_recv_empty_reg;
+
+
 wire fifo_send_full;
 wire fifo_send_empty;
-reg  fifo_send_empty_reg;
-wire    [63:0]  fifo_data_to_splitter;
-wire            fifo_recv_rd_en;
-reg             outreg_empty;
+wire fifo_send_rd_en;
+wire fifo_send_wr_en;
+reg  fifo_send_empty_reg; 
 
+
+afifo_w64_d128_std async_fifo_send(
+    .rst(rst_2),
+    .wr_clk(clk_1),
+    .rd_clk(clk_2),
+    .rd_en(fifo_send_rd_en),
+    .wr_en(fifo_send_wr_en),
+    .din(flit_in_data_1),
+    .dout(flit_out_data_2),     // data: 1 cycle delay after rd_en
+    .full(fifo_send_full),
+    .empty(fifo_send_empty),
+    .wr_rst_busy(send_wr_rst_busy),  // output wire wr_rst_busy
+    .rd_rst_busy(send_rd_rst_busy)  // output wire rd_rst_busy
+);
+
+
+always @ (posedge clk_2) begin
+    if (rst_2)
+        fifo_send_empty_reg <= 1'b1;
+    else
+        fifo_send_empty_reg <= fifo_send_rd_en ? 1'b0 
+                             : flit_out_rdy_2  ? 1'b1 
+                             :                   fifo_send_empty_reg;
+end
+
+assign fifo_send_wr_en = flit_in_val_1 & ~send_wr_rst_busy;
+assign fifo_send_rd_en = ~fifo_send_empty & (fifo_send_empty_reg | flit_out_rdy_2) & ~send_rd_rst_busy;
+assign flit_out_val_2 = ~fifo_send_empty_reg;
+assign flit_in_rdy_1 = ~fifo_send_full & ~send_wr_rst_busy;
 
 
 afifo_w64_d128_std async_fifo_recv(
@@ -86,65 +118,28 @@ afifo_w64_d128_std async_fifo_recv(
     .wr_clk(clk_2),
     .rd_clk(clk_1),
     .rd_en(fifo_recv_rd_en),
-    .wr_en(flit_in_val_2),
+    .wr_en(fifo_recv_wr_en),
     .din(flit_in_data_2),
-    .dout(fifo_data_to_splitter),   // data: 1 cycle delay after rd_en
+    .dout(flit_out_data_1),   // data: 1 cycle delay after rd_en
     .full(fifo_recv_full),
-    .empty(fifo_recv_empty)
+    .empty(fifo_recv_empty), 
+    .wr_rst_busy(recv_wr_rst_busy),  // output wire wr_rst_busy
+    .rd_rst_busy(recv_rd_rst_busy)  // output wire rd_rst_busy
 );
-
-afifo_w64_d128_std async_fifo_send(
-    .rst(rst_2),
-    .wr_clk(clk_1),
-    .rd_clk(clk_2),
-    .rd_en(flit_out_rdy_2),
-    .wr_en(flit_in_val_1),
-    .din(flit_in_data_1),
-    .dout(flit_out_data_2),     // data: 1 cycle delay after rd_en
-    .full(fifo_send_full),
-    .empty(fifo_send_empty)
-);
-
-assign flit_in_rdy_1 = ~fifo_send_full;
-assign flit_in_rdy_2 = ~fifo_recv_full;
-
-always @ (posedge clk_1)
-    fifo_recv_empty_reg <= fifo_recv_empty;
-
-always @ (posedge clk_2)
-begin
-    if (rst_2)
-    begin
-        fifo_send_empty_reg <= 1'b1;
-    end
-    else
-    begin
-        if (flit_out_rdy_2)
-        begin
-            fifo_send_empty_reg <= fifo_send_empty;  
-        end
-        else
-        begin
-            fifo_send_empty_reg <= fifo_send_empty_reg;  
-        end
-    end
-end
-
-// New stuff
 
 always @(posedge clk_1) begin
     if (rst_1)
-        outreg_empty <= 1'b1;
+        fifo_recv_empty_reg <= 1'b1;
     else
-        outreg_empty <= fifo_recv_rd_en                                     ? 1'b0 :
-                        ~outreg_empty & flit_out_rdy_1 & ~fifo_recv_rd_en   ? 1'b1 : outreg_empty;
+        fifo_recv_empty_reg <= fifo_recv_rd_en ? 1'b0 
+                             : flit_out_rdy_1  ? 1'b1 
+                             :                   fifo_recv_empty_reg;
 end
 
-assign fifo_recv_rd_en = ~fifo_recv_empty & (outreg_empty | (~outreg_empty & flit_out_rdy_1));
-assign flit_out_val_1 = ~outreg_empty;
-assign flit_out_data_1 = fifo_data_to_splitter;
+assign fifo_recv_wr_en = flit_in_val_2 & ~recv_wr_rst_busy;
+assign fifo_recv_rd_en = ~fifo_recv_empty & (fifo_recv_empty_reg | flit_out_rdy_1) & ~recv_rd_rst_busy;
+assign flit_out_val_1 = ~fifo_recv_empty_reg;
+assign flit_in_rdy_2 = ~fifo_recv_full & ~recv_wr_rst_busy;
 
-
-assign flit_out_val_2 = ~fifo_send_empty_reg;
 
 endmodule

@@ -139,10 +139,15 @@
 `ifdef XUPP3R_BOARD
     `undef PITON_FPGA_SD_BOOT
     `undef PITONSYS_SPI
+    `define PITONSYS_AXI4_MEM
+    `define PITONSYS_PCIE_CFG
+    `define PITONSYS_PCIE_DMA
+    `define PITONSYS_PCIE
 `elsif F1_BOARD
     `undef PITON_FPGA_SD_BOOT
     `undef PITONSYS_SPI
     `define PITONSYS_AXI4_MEM
+    `define PITONSYS_PCIE_DMA
 `endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
@@ -188,10 +193,4 @@
 `else 
     `define PITONSYS_TIMEOUT_SW 6
     `define PITONSYS_UART_BOOT_EN_SW 7
-`endif
-
-`ifdef PITONSYS_PCIE_CFG
-    `define PITONSYS_PCIE
-`elsif PITONSYS_PCIE_DMA
-    `define PITONSYS_PCIE
 `endif

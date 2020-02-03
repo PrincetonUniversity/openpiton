@@ -594,6 +594,7 @@ set PASSTHRU_PRJ_IP_FILES [list \
 ]
 
 set CHIPSET_RTL_IMPL_FILES [list \
+    "${DV_ROOT}/design/common/rtl/async_fifo.v" \
     "${DV_ROOT}/design/common/rtl/bram_sdp_wrapper.v" \
     "${DV_ROOT}/design/chipset/rtl/chipset.v" \
     "${DV_ROOT}/design/chipset/rtl/chipset_impl.v" \
@@ -637,7 +638,7 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/fake_boot_ctrl.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/eth_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mc_top.v" \
-    "${DV_ROOT}/design/chipset/mc/rtl/f1_mc_top.v" \
+    "${DV_ROOT}/design/chipset/mc/rtl/virtual_dev_translator.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/noc_mig_bridge.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/memory_zeroer.v" \
     "${DV_ROOT}/design/chipset/pcie/rtl/pcie_controller.v" \

@@ -37,7 +37,6 @@ module noc_axi4_bridge_deser (
   input [`NOC_DATA_WIDTH-1:0] flit_in, 
   input  flit_in_val, 
   output flit_in_rdy, 
-  input phy_init_done,
 
   output [`MSG_HEADER_WIDTH-1:0] header_out, 
   output [`AXI4_DATA_WIDTH-1:0] data_out, 
@@ -58,7 +57,7 @@ reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN-1:0]; //buffer for 
 reg [`MSG_LENGTH_WIDTH-1:0]         remaining_flits; //flits remaining in current packet
 reg [2:0]                           state;
 
-assign flit_in_rdy = (state != SEND) & phy_init_done;
+assign flit_in_rdy = (state != SEND) & rst_n;
 wire flit_in_go = flit_in_val & flit_in_rdy;
 assign out_val = (state == SEND);
 

@@ -27,11 +27,12 @@
 
 `include "define.tmp.h"
 `include "mc_define.h"
-`include "noc_axi4_bridge_define.vh"
+`include "axi_defines.vh"
 
 module mc_top (
-    output                          mc_ui_clk_sync_rst,
-    input                           core_ref_clk,
+    input                           sys_clk,
+    input                           sys_rst_n,
+
 
     input   [`NOC_DATA_WIDTH-1:0]   mc_flit_in_data,
     input                           mc_flit_in_val,
@@ -42,12 +43,13 @@ module mc_top (
     input                           mc_flit_out_rdy,
 
     input                           uart_boot_en,
+    output                          init_calib_complete_out,
 
 
 `ifdef PITONSYS_PCIE_DMA
     // axi interface from dma engine
-    input  pcie_dma_axi_aclk,
-    input  pcie_dma_axi_aresetn,
+    input                                pcie_dma_axi_clk,
+    input                                pcie_dma_axi_resetn,
     input  [`AXI4_ID_WIDTH     -1:0]     pcie_dma_axi_awid,
     input  [`AXI4_ADDR_WIDTH   -1:0]     pcie_dma_axi_awaddr,
     input  [`AXI4_LEN_WIDTH    -1:0]     pcie_dma_axi_awlen,
@@ -95,79 +97,133 @@ module mc_top (
     input                                pcie_dma_axi_bready,
 `endif
     
-`ifdef PITONSYS_DDR4
-    // directly feed in 250MHz ref clock
-    input                           sys_clk_p,
-    input                           sys_clk_n,
+`ifndef F1_BOARD
+    `ifdef PITONSYS_DDR4
+        // directly feed in 250MHz ref clock
+        input                           mc_clk_p,
+        input                           mc_clk_n,
 
-    output                          ddr_act_n,
-    output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
-`else // PITONSYS_DDR4
-    input                           sys_clk,
+        output                          ddr_act_n,
+        output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
+    `else // PITONSYS_DDR4
+        input                           mc_clk,
 
-    output                          ddr_cas_n,
-    output                          ddr_ras_n,
-    output                          ddr_we_n,
-`endif // PITONSYS_DDR4
+        output                          ddr_cas_n,
+        output                          ddr_ras_n,
+        output                          ddr_we_n,
+    `endif // PITONSYS_DDR4
 
-    output [`DDR3_ADDR_WIDTH-1:0]   ddr_addr,
-    output [`DDR3_BA_WIDTH-1:0]     ddr_ba,
-    output [`DDR3_CK_WIDTH-1:0]     ddr_ck_n,
-    output [`DDR3_CK_WIDTH-1:0]     ddr_ck_p,
-    output [`DDR3_CKE_WIDTH-1:0]    ddr_cke,
-    output                          ddr_reset_n,
-    inout  [`DDR3_DQ_WIDTH-1:0]     ddr_dq,
-    inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_n,
-    inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_p,
-`ifndef NEXYSVIDEO_BOARD
-    output [`DDR3_CS_WIDTH-1:0]     ddr_cs_n,
-`endif // endif NEXYSVIDEO_BOARD
-`ifdef PITONSYS_DDR4
-`ifdef XUPP3R_BOARD
-    output                          ddr_parity,
-`else
-    inout [`DDR3_DM_WIDTH-1:0]      ddr_dm,
-`endif // XUPP3R_BOARD
-`else // PITONSYS_DDR4
-    output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
-`endif // PITONSYS_DDR4
-    output [`DDR3_ODT_WIDTH-1:0]    ddr_odt,
+        output [`DDR3_ADDR_WIDTH-1:0]   ddr_addr,
+        output [`DDR3_BA_WIDTH-1:0]     ddr_ba,
+        output [`DDR3_CK_WIDTH-1:0]     ddr_ck_n,
+        output [`DDR3_CK_WIDTH-1:0]     ddr_ck_p,
+        output [`DDR3_CKE_WIDTH-1:0]    ddr_cke,
+        output                          ddr_reset_n,
+        inout  [`DDR3_DQ_WIDTH-1:0]     ddr_dq,
+        inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_n,
+        inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_p,
+    `ifndef NEXYSVIDEO_BOARD
+        output [`DDR3_CS_WIDTH-1:0]     ddr_cs_n,
+    `endif // endif NEXYSVIDEO_BOARD
+    `ifdef PITONSYS_DDR4
+    `ifdef XUPP3R_BOARD
+        output                          ddr_parity,
+    `else
+        inout [`DDR3_DM_WIDTH-1:0]      ddr_dm,
+    `endif // XUPP3R_BOARD
+    `else // PITONSYS_DDR4
+        output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
+    `endif // PITONSYS_DDR4
+        output [`DDR3_ODT_WIDTH-1:0]    ddr_odt
 
-    output                          init_calib_complete_out,
-    input                           sys_rst_n
+`else // F1_BOARD
+    input                                    ddr_axi_clk,
+    input                                    ddr_axi_resetn,
+    output wire [`AXI4_ID_WIDTH     -1:0]    ddr_axi_awid,
+    output wire [`AXI4_ADDR_WIDTH   -1:0]    ddr_axi_awaddr,
+    output wire [`AXI4_LEN_WIDTH    -1:0]    ddr_axi_awlen,
+    output wire [`AXI4_SIZE_WIDTH   -1:0]    ddr_axi_awsize,
+    output wire [`AXI4_BURST_WIDTH  -1:0]    ddr_axi_awburst,
+    output wire                              ddr_axi_awlock,
+    output wire [`AXI4_CACHE_WIDTH  -1:0]    ddr_axi_awcache,
+    output wire [`AXI4_PROT_WIDTH   -1:0]    ddr_axi_awprot,
+    output wire [`AXI4_QOS_WIDTH    -1:0]    ddr_axi_awqos,
+    output wire [`AXI4_REGION_WIDTH -1:0]    ddr_axi_awregion,
+    output wire [`AXI4_USER_WIDTH   -1:0]    ddr_axi_awuser,
+    output wire                              ddr_axi_awvalid,
+    input  wire                              ddr_axi_awready,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_wid,
+    output wire  [`AXI4_DATA_WIDTH   -1:0]    ddr_axi_wdata,
+    output wire  [`AXI4_STRB_WIDTH   -1:0]    ddr_axi_wstrb,
+    output wire                               ddr_axi_wlast,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_wuser,
+    output wire                               ddr_axi_wvalid,
+    input  wire                               ddr_axi_wready,
+    output wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_arid,
+    output wire  [`AXI4_ADDR_WIDTH   -1:0]    ddr_axi_araddr,
+    output wire  [`AXI4_LEN_WIDTH    -1:0]    ddr_axi_arlen,
+    output wire  [`AXI4_SIZE_WIDTH   -1:0]    ddr_axi_arsize,
+    output wire  [`AXI4_BURST_WIDTH  -1:0]    ddr_axi_arburst,
+    output wire                               ddr_axi_arlock,
+    output wire  [`AXI4_CACHE_WIDTH  -1:0]    ddr_axi_arcache,
+    output wire  [`AXI4_PROT_WIDTH   -1:0]    ddr_axi_arprot,
+    output wire  [`AXI4_QOS_WIDTH    -1:0]    ddr_axi_arqos,
+    output wire  [`AXI4_REGION_WIDTH -1:0]    ddr_axi_arregion,
+    output wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_aruser,
+    output wire                               ddr_axi_arvalid,
+    input  wire                               ddr_axi_arready,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_rid,
+    input  wire  [`AXI4_DATA_WIDTH   -1:0]    ddr_axi_rdata,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    ddr_axi_rresp,
+    input  wire                               ddr_axi_rlast,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_ruser,
+    input  wire                               ddr_axi_rvalid,
+    output wire                               ddr_axi_rready,
+    input  wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_bid,
+    input  wire  [`AXI4_RESP_WIDTH   -1:0]    ddr_axi_bresp,
+    input  wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_buser,
+    input  wire                               ddr_axi_bvalid,
+    output wire                               ddr_axi_bready, 
+    input wire                                init_calib_complete
+`endif // F1_BOARD
+
 );
-reg     [31:0]                      delay_cnt;
-reg                                 ui_clk_syn_rst_delayed;
+
+reg init_calib_complete_f;
+reg init_calib_complete_ff;
+
+`ifndef F1_BOARD
 wire                                init_calib_complete;
-wire                                afifo_rst_1;
-wire                                afifo_rst_2;
+`endif // F1_BOARD
 
 `ifndef PITONSYS_AXI4_MEM
- wire                               app_en;
- wire    [`MIG_APP_CMD_WIDTH-1 :0]  app_cmd;
- wire    [`MIG_APP_ADDR_WIDTH-1:0]  app_addr;
- wire                               app_rdy;
- wire                               app_wdf_wren;
- wire    [`MIG_APP_DATA_WIDTH-1:0]  app_wdf_data;
- wire    [`MIG_APP_MASK_WIDTH-1:0]  app_wdf_mask;
- wire                               app_wdf_rdy;
- wire                               app_wdf_end;
- wire    [`MIG_APP_DATA_WIDTH-1:0]  app_rd_data;
- wire                               app_rd_data_end;
- wire                               app_rd_data_valid;
+wire                                noc_mig_bridge_rst_n;
 
- wire                               core_app_en;
- wire    [`MIG_APP_CMD_WIDTH-1 :0]  core_app_cmd;
- wire    [`MIG_APP_ADDR_WIDTH-1:0]  core_app_addr;
- wire                               core_app_rdy;
- wire                               core_app_wdf_wren;
- wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_wdf_data;
- wire    [`MIG_APP_MASK_WIDTH-1:0]  core_app_wdf_mask;
- wire                               core_app_wdf_rdy;
- wire                               core_app_wdf_end;
- wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_rd_data;
- wire                               core_app_rd_data_end;
- wire                               core_app_rd_data_valid;
+wire                               app_en;
+wire    [`MIG_APP_CMD_WIDTH-1 :0]  app_cmd;
+wire    [`MIG_APP_ADDR_WIDTH-1:0]  app_addr;
+wire                               app_rdy;
+wire                               app_wdf_wren;
+wire    [`MIG_APP_DATA_WIDTH-1:0]  app_wdf_data;
+wire    [`MIG_APP_MASK_WIDTH-1:0]  app_wdf_mask;
+wire                               app_wdf_rdy;
+wire                               app_wdf_end;
+wire    [`MIG_APP_DATA_WIDTH-1:0]  app_rd_data;
+wire                               app_rd_data_end;
+wire                               app_rd_data_valid;
+
+wire                               core_app_en;
+wire    [`MIG_APP_CMD_WIDTH-1 :0]  core_app_cmd;
+wire    [`MIG_APP_ADDR_WIDTH-1:0]  core_app_addr;
+wire                               core_app_rdy;
+wire                               core_app_wdf_wren;
+wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_wdf_data;
+wire    [`MIG_APP_MASK_WIDTH-1:0]  core_app_wdf_mask;
+wire                               core_app_wdf_rdy;
+wire                               core_app_wdf_end;
+wire    [`MIG_APP_DATA_WIDTH-1:0]  core_app_rd_data;
+wire                               core_app_rd_data_end;
+wire                               core_app_rd_data_valid;
 
 `ifdef PITONSYS_MEM_ZEROER
 wire                                zero_app_en;
@@ -178,59 +234,61 @@ wire    [`MIG_APP_DATA_WIDTH-1:0]   zero_app_wdf_data;
 wire    [`MIG_APP_MASK_WIDTH-1:0]   zero_app_wdf_mask;
 wire                                zero_app_wdf_end;
 wire                                init_calib_complete_zero;
-`endif
+`endif // PITONSYS_MEM_ZEROER
 
-wire                                noc_mig_bridge_rst;
-wire                                noc_mig_bridge_init_done;
 
 `else // PITONSYS_AXI4_MEM
 
+wire                               noc_axi4_bridge_rst_n;
+
+`ifndef F1_BOARD
 // AXI4 interface to memory
-wire [`AXI4_ID_WIDTH     -1:0]     m_axi_awid;
-wire [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr;
-wire [`AXI4_LEN_WIDTH    -1:0]     m_axi_awlen;
-wire [`AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize;
-wire [`AXI4_BURST_WIDTH  -1:0]     m_axi_awburst;
-wire                               m_axi_awlock;
-wire [`AXI4_CACHE_WIDTH  -1:0]     m_axi_awcache;
-wire [`AXI4_PROT_WIDTH   -1:0]     m_axi_awprot;
-wire [`AXI4_QOS_WIDTH    -1:0]     m_axi_awqos;
-wire [`AXI4_REGION_WIDTH -1:0]     m_axi_awregion;
-wire [`AXI4_USER_WIDTH   -1:0]     m_axi_awuser;
-wire                               m_axi_awvalid;
-wire                               m_axi_awready;
-wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid;
-wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata;
-wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb;
-wire                               m_axi_wlast;
-wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser;
-wire                               m_axi_wvalid;
-wire                               m_axi_wready;
-wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid;
-wire  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr;
-wire  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen;
-wire  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize;
-wire  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst;
-wire                               m_axi_arlock;
-wire  [`AXI4_CACHE_WIDTH  -1:0]    m_axi_arcache;
-wire  [`AXI4_PROT_WIDTH   -1:0]    m_axi_arprot;
-wire  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos;
-wire  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion;
-wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser;
-wire                               m_axi_arvalid;
-wire                               m_axi_arready;
-wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid;
-wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata;
-wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp;
-wire                               m_axi_rlast;
-wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser;
-wire                               m_axi_rvalid;
-wire                               m_axi_rready;
-wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_bid;
-wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_bresp;
-wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_buser;
-wire                               m_axi_bvalid;
-wire                               m_axi_bready;
+wire [`AXI4_ID_WIDTH     -1:0]     ddr_axi_awid;
+wire [`AXI4_ADDR_WIDTH   -1:0]     ddr_axi_awaddr;
+wire [`AXI4_LEN_WIDTH    -1:0]     ddr_axi_awlen;
+wire [`AXI4_SIZE_WIDTH   -1:0]     ddr_axi_awsize;
+wire [`AXI4_BURST_WIDTH  -1:0]     ddr_axi_awburst;
+wire                               ddr_axi_awlock;
+wire [`AXI4_CACHE_WIDTH  -1:0]     ddr_axi_awcache;
+wire [`AXI4_PROT_WIDTH   -1:0]     ddr_axi_awprot;
+wire [`AXI4_QOS_WIDTH    -1:0]     ddr_axi_awqos;
+wire [`AXI4_REGION_WIDTH -1:0]     ddr_axi_awregion;
+wire [`AXI4_USER_WIDTH   -1:0]     ddr_axi_awuser;
+wire                               ddr_axi_awvalid;
+wire                               ddr_axi_awready;
+wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_wid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    ddr_axi_wdata;
+wire  [`AXI4_STRB_WIDTH   -1:0]    ddr_axi_wstrb;
+wire                               ddr_axi_wlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_wuser;
+wire                               ddr_axi_wvalid;
+wire                               ddr_axi_wready;
+wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_arid;
+wire  [`AXI4_ADDR_WIDTH   -1:0]    ddr_axi_araddr;
+wire  [`AXI4_LEN_WIDTH    -1:0]    ddr_axi_arlen;
+wire  [`AXI4_SIZE_WIDTH   -1:0]    ddr_axi_arsize;
+wire  [`AXI4_BURST_WIDTH  -1:0]    ddr_axi_arburst;
+wire                               ddr_axi_arlock;
+wire  [`AXI4_CACHE_WIDTH  -1:0]    ddr_axi_arcache;
+wire  [`AXI4_PROT_WIDTH   -1:0]    ddr_axi_arprot;
+wire  [`AXI4_QOS_WIDTH    -1:0]    ddr_axi_arqos;
+wire  [`AXI4_REGION_WIDTH -1:0]    ddr_axi_arregion;
+wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_aruser;
+wire                               ddr_axi_arvalid;
+wire                               ddr_axi_arready;
+wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_rid;
+wire  [`AXI4_DATA_WIDTH   -1:0]    ddr_axi_rdata;
+wire  [`AXI4_RESP_WIDTH   -1:0]    ddr_axi_rresp;
+wire                               ddr_axi_rlast;
+wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_ruser;
+wire                               ddr_axi_rvalid;
+wire                               ddr_axi_rready;
+wire  [`AXI4_ID_WIDTH     -1:0]    ddr_axi_bid;
+wire  [`AXI4_RESP_WIDTH   -1:0]    ddr_axi_bresp;
+wire  [`AXI4_USER_WIDTH   -1:0]    ddr_axi_buser;
+wire                               ddr_axi_bvalid;
+wire                               ddr_axi_bready;
+`endif // F1_BOARD
 
 // axi4 interface from core + zeroer
 wire [`AXI4_ID_WIDTH     -1:0]     sys_axi_awid;
@@ -377,11 +435,7 @@ wire                               zeroer_axi_bvalid;
 wire                               zeroer_axi_bready;
 
 wire                               init_calib_complete_zero;
-`endif
-
-
-wire                               noc_axi4_bridge_rst;
-wire                               noc_axi4_bridge_init_done;
+`endif //PITONSYS_MEM_ZEROER
 
 `endif // PITONSYS_AXI4_MEM
 
@@ -403,46 +457,6 @@ wire                                fifo_trans_val;
 wire    [`NOC_DATA_WIDTH-1:0]       fifo_trans_data;
 wire                                fifo_trans_rdy;
 
-reg                                 afifo_ui_rst_r;
-reg                                 afifo_ui_rst_r_r;
-
-reg                                 ui_clk_sync_rst_r;
-reg                                 ui_clk_sync_rst_r_r;
-
-// needed for correct rst of async fifo
-always @(posedge core_ref_clk) begin
-    if (~sys_rst_n)
-        delay_cnt <= 32'h1ff;
-    else begin
-        delay_cnt <= (delay_cnt != 0) & ~ui_clk_sync_rst_r_r ? delay_cnt - 1 : delay_cnt;
-    end
-end
-
-always @(posedge core_ref_clk) begin
-    if (ui_clk_sync_rst)
-        ui_clk_syn_rst_delayed <= 1'b1;
-    else begin
-        ui_clk_syn_rst_delayed <= delay_cnt != 0;
-    end
-end
-
-assign mc_ui_clk_sync_rst   = ui_clk_syn_rst_delayed;
-
-assign afifo_rst_1 = ui_clk_syn_rst_delayed;
-
-
-always @(posedge ui_clk) begin
-    afifo_ui_rst_r <= afifo_rst_1;
-    afifo_ui_rst_r_r <= afifo_ui_rst_r;
-end
-
-
-always @(posedge core_ref_clk) begin
-    ui_clk_sync_rst_r   <= ui_clk_sync_rst;
-    ui_clk_sync_rst_r_r <= ui_clk_sync_rst_r;
-end
-
-assign afifo_rst_2 = afifo_ui_rst_r_r | ui_clk_sync_rst;
 
 // TODO: zeroed based on example simulation of MIG7
 // not used for DDR4 MIG
@@ -450,48 +464,14 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
-`ifndef PITONSYS_AXI4_MEM
-`ifdef PITONSYS_MEM_ZEROER
-assign app_en                   = zero_app_en;
-assign app_cmd                  = zero_app_cmd;
-assign app_addr                 = zero_app_addr;
-assign app_wdf_wren             = zero_app_wdf_wren;
-assign app_wdf_data             = zero_app_wdf_data;
-assign app_wdf_mask             = zero_app_wdf_mask;
-assign app_wdf_end              = zero_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
-assign noc_mig_bridge_init_done = init_calib_complete_zero;
-assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
-`else
-assign app_en                   = core_app_en;
-assign app_cmd                  = core_app_cmd;
-assign app_addr                 = core_app_addr;
-assign app_wdf_wren             = core_app_wdf_wren;
-assign app_wdf_data             = core_app_wdf_data;
-assign app_wdf_mask             = core_app_wdf_mask;
-assign app_wdf_end              = core_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst;
-assign noc_mig_bridge_init_done = init_calib_complete;
-assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
-`endif
-assign core_app_rdy             = app_rdy;
-assign core_app_wdf_rdy         = app_wdf_rdy;
-assign core_app_rd_data_valid   = app_rd_data_valid;
-assign core_app_rd_data_end     = app_rd_data_end;
-assign core_app_rd_data         = app_rd_data;
 
-`else //ifndef PITONSYS_AXI4_MEM
-assign noc_mig_bridge_rst       = ui_clk_sync_rst;
-assign noc_mig_bridge_init_done = init_calib_complete;
-assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
-`endif
 
 noc_bidir_afifo  mig_afifo  (
-    .clk_1           (core_ref_clk      ),
-    .rst_1           (afifo_rst_1       ),
+    .clk_1           (sys_clk           ),
+    .rst_1           (~init_calib_complete_ff        ),
 
-    .clk_2           (ui_clk            ),
-    .rst_2           (afifo_rst_2       ),
+    .clk_2           (ui_clk                ),
+    .rst_2           (~init_calib_complete   ),
 
     // CPU --> MIG
     .flit_in_val_1   (mc_flit_in_val    ),
@@ -523,9 +503,7 @@ assign app_wdf_wren             = zero_app_wdf_wren;
 assign app_wdf_data             = zero_app_wdf_data;
 assign app_wdf_mask             = zero_app_wdf_mask;
 assign app_wdf_end              = zero_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
-assign noc_mig_bridge_init_done = init_calib_complete_zero;
-assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+assign noc_mig_bridge_rst_n     = init_calib_complete_zero & ~ui_clk_sync_rst;
 `else
 assign app_en                   = core_app_en;
 assign app_cmd                  = core_app_cmd;
@@ -534,9 +512,7 @@ assign app_wdf_wren             = core_app_wdf_wren;
 assign app_wdf_data             = core_app_wdf_data;
 assign app_wdf_mask             = core_app_wdf_mask;
 assign app_wdf_end              = core_app_wdf_end;
-assign noc_mig_bridge_rst       = ui_clk_sync_rst;
-assign noc_mig_bridge_init_done = init_calib_complete;
-assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+assign noc_mig_bridge_rst_n     = init_calib_complete;
 `endif
 assign core_app_rdy             = app_rdy;
 assign core_app_wdf_rdy         = app_wdf_rdy;
@@ -549,7 +525,7 @@ noc_mig_bridge    #  (
     .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
 )   noc_mig_bridge   (
     .clk                (ui_clk                     ),  // from MC
-    .rst                (noc_mig_bridge_rst         ),  // from MC
+    .rst_n              (noc_mig_bridge_rst_n       ),  // from MC
 
     .uart_boot_en       (uart_boot_en               ),
 
@@ -565,7 +541,6 @@ noc_mig_bridge    #  (
     .app_rd_data        (core_app_rd_data           ),
     .app_rd_data_end    (core_app_rd_data_end       ),
     .app_rd_data_valid  (core_app_rd_data_valid     ),
-    .phy_init_done      (noc_mig_bridge_init_done   ),
 
     .app_wdf_wren_reg   (core_app_wdf_wren          ),
     .app_wdf_data_out   (core_app_wdf_data          ),
@@ -616,8 +591,8 @@ assign app_hi_pri = 1'b0;
   
 ddr4_0 i_ddr4_0 (
   .sys_rst                   ( ~sys_rst_n                ),
-  .c0_sys_clk_p              ( sys_clk_p                 ),
-  .c0_sys_clk_n              ( sys_clk_n                 ),
+  .c0_sys_clk_p              ( mc_clk_p                  ),
+  .c0_sys_clk_n              ( mc_clk_n                  ),
   .dbg_clk                   (                           ), // not used 
   .dbg_bus                   (                           ), // not used
   .c0_ddr4_ui_clk            ( ui_clk                    ),
@@ -729,7 +704,7 @@ mig_7series_0   mig_7series_0 (
     .app_wdf_mask                   (app_wdf_mask),
 
     // System Clock Ports
-    .sys_clk_i                      (sys_clk),
+    .sys_clk_i                      (mc_clk),
     .sys_rst                        (sys_rst_n)
 );
 `endif // PITONSYS_DDR4
@@ -787,9 +762,7 @@ assign zeroer_axi_buser = sys_axi_buser;
 assign zeroer_axi_bvalid = sys_axi_bvalid;
 assign sys_axi_bready = zeroer_axi_bready;
 
-assign noc_axi4_bridge_rst       = ui_clk_sync_rst & ~init_calib_complete_zero;
-assign noc_axi4_bridge_init_done = init_calib_complete_zero;
-assign init_calib_complete_out  = init_calib_complete_zero & ~ui_clk_syn_rst_delayed;
+assign noc_axi4_bridge_rst_n       = ~ui_clk_sync_rst & init_calib_complete_zero;
 `else // PITONSYS_MEM_ZEROER
 
 assign sys_axi_awid = core_axi_awid;
@@ -842,16 +815,13 @@ assign core_axi_buser = sys_axi_buser;
 assign core_axi_bvalid = sys_axi_bvalid;
 assign sys_axi_bready = core_axi_bready;
 
-assign noc_axi4_bridge_rst       = ui_clk_sync_rst;
-assign noc_axi4_bridge_init_done = init_calib_complete;
-assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
+assign noc_axi4_bridge_rst_n    = ~ui_clk_sync_rst & init_calib_complete;
 `endif // PITONSYS_MEM_ZEROER
 
 noc_axi4_bridge noc_axi4_bridge  (
     .clk                (ui_clk                    ),  
-    .rst_n              (~noc_axi4_bridge_rst      ), 
+    .rst_n              (noc_axi4_bridge_rst_n     ), 
     .uart_boot_en       (uart_boot_en              ),
-    .phy_init_done      (noc_axi4_bridge_init_done ),
 
     .src_bridge_vr_noc2_val(fifo_trans_val),
     .src_bridge_vr_noc2_dat(fifo_trans_data),
@@ -913,13 +883,25 @@ noc_axi4_bridge noc_axi4_bridge  (
 
 );
 
-assign core_axi_araddr = (core_axi_araddr_not_translated >= 64'hfff0000000) ? core_axi_araddr_not_translated - 64'hfff0000000 + 64'h400000000 
-                                                       : (core_axi_araddr_not_translated >= 64'hf000000000) ? core_axi_araddr_not_translated - 64'hf000000000 + 64'h400000000 
+virt_dev_translator read_translation(
+    .in_address(core_axi_araddr_not_translated),
+    .out_address(core_axi_araddr)
+);
+
+virt_dev_translator write_translation(
+    .in_address(core_axi_awaddr_not_translated),
+    .out_address(core_axi_awaddr)
+);
+
+/*
+assign core_axi_araddr = (core_axi_araddr_not_translated >= 64'hfff0000000) ? core_axi_araddr_not_translated - 64'hfff0000000 + 64'h200000000 
+                                                       : (core_axi_araddr_not_translated >= 64'hf000000000) ? core_axi_araddr_not_translated - 64'hf000000000 + 64'h200000000 
                                                        : core_axi_araddr_not_translated;
 
-assign core_axi_awaddr = (core_axi_awaddr_not_translated >= 64'hfff0000000) ? core_axi_awaddr_not_translated - 64'hfff0000000 + 64'h400000000 
-                                                       : (core_axi_awaddr_not_translated >= 64'hf000000000) ? core_axi_awaddr_not_translated - 64'hf000000000 + 64'h400000000 
+assign core_axi_awaddr = (core_axi_awaddr_not_translated >= 64'hfff0000000) ? core_axi_awaddr_not_translated - 64'hfff0000000 + 64'h200000000 
+                                                       : (core_axi_awaddr_not_translated >= 64'hf000000000) ? core_axi_awaddr_not_translated - 64'hf000000000 + 64'h200000000 
                                                        : core_axi_awaddr_not_translated;
+*/
 
 `ifdef PITONSYS_MEM_ZEROER
 axi4_zeroer axi4_zeroer(
@@ -1033,8 +1015,6 @@ axi4_zeroer axi4_zeroer(
 
 `ifdef PITONSYS_PCIE_DMA
 
-
-
 axi_interconnect axi_interconnect (
   .INTERCONNECT_ACLK(ui_clk),        // input wire INTERCONNECT_ACLK
   .INTERCONNECT_ARESETN(~ui_clk_sync_rst),  // input wire INTERCONNECT_ARESETN
@@ -1080,7 +1060,7 @@ axi_interconnect axi_interconnect (
   .S00_AXI_RREADY(sys_axi_rready),              // input wire S00_AXI_RREADY
 
   .S01_AXI_ARESET_OUT_N(),  // output wire S01_AXI_ARESET_OUT_N
-  .S01_AXI_ACLK(pcie_dma_axi_aclk),                  // input wire S01_AXI_ACLK
+  .S01_AXI_ACLK(pcie_dma_axi_clk),                  // input wire S01_AXI_ACLK
   .S01_AXI_AWID(pcie_dma_axi_awid),                  // input wire [7 : 0] S01_AXI_AWID
   .S01_AXI_AWADDR(pcie_dma_axi_awaddr),              // input wire [63 : 0] S01_AXI_AWADDR
   .S01_AXI_AWLEN(pcie_dma_axi_awlen),                // input wire [7 : 0] S01_AXI_AWLEN
@@ -1121,101 +1101,107 @@ axi_interconnect axi_interconnect (
 
   .M00_AXI_ARESET_OUT_N(),  // output wire M00_AXI_ARESET_OUT_N
   .M00_AXI_ACLK(ui_clk),                        // input wire M00_AXI_ACLK
-  .M00_AXI_AWID(m_axi_awid),                  // input wire [7 : 0] M00_AXI_AWID
-  .M00_AXI_AWADDR(m_axi_awaddr),              // input wire [63 : 0] M00_AXI_AWADDR
-  .M00_AXI_AWLEN(m_axi_awlen),                // input wire [7 : 0] M00_AXI_AWLEN
-  .M00_AXI_AWSIZE(m_axi_awsize),              // input wire [2 : 0] M00_AXI_AWSIZE
-  .M00_AXI_AWBURST(m_axi_awburst),            // input wire [1 : 0] M00_AXI_AWBURST
-  .M00_AXI_AWLOCK(m_axi_awlock),              // input wire M00_AXI_AWLOCK
-  .M00_AXI_AWCACHE(m_axi_awcache),            // input wire [3 : 0] M00_AXI_AWCACHE
-  .M00_AXI_AWPROT(m_axi_awprot),              // input wire [2 : 0] M00_AXI_AWPROT
-  .M00_AXI_AWQOS(m_axi_awqos),                // input wire [3 : 0] M00_AXI_AWQOS
-  .M00_AXI_AWVALID(m_axi_awvalid),            // input wire M00_AXI_AWVALID
-  .M00_AXI_AWREADY(m_axi_awready),            // output wire M00_AXI_AWREADY
-  .M00_AXI_WDATA(m_axi_wdata),                // input wire [511 : 0] M00_AXI_WDATA
-  .M00_AXI_WSTRB(m_axi_wstrb),                // input wire [63 : 0] M00_AXI_WSTRB
-  .M00_AXI_WLAST(m_axi_wlast),                // input wire M00_AXI_WLAST
-  .M00_AXI_WVALID(m_axi_wvalid),              // input wire M00_AXI_WVALID
-  .M00_AXI_WREADY(m_axi_wready),              // output wire M00_AXI_WREADY
-  .M00_AXI_BID(m_axi_bid),                    // output wire [7 : 0] M00_AXI_BID
-  .M00_AXI_BRESP(m_axi_bresp),                // output wire [1 : 0] M00_AXI_BRESP
-  .M00_AXI_BVALID(m_axi_bvalid),              // output wire M00_AXI_BVALID
-  .M00_AXI_BREADY(m_axi_bready),              // input wire M00_AXI_BREADY
-  .M00_AXI_ARID(m_axi_arid),                  // input wire [7 : 0] M00_AXI_ARID
-  .M00_AXI_ARADDR(m_axi_araddr),              // input wire [63 : 0] M00_AXI_ARADDR
-  .M00_AXI_ARLEN(m_axi_arlen),                // input wire [7 : 0] M00_AXI_ARLEN
-  .M00_AXI_ARSIZE(m_axi_arsize),              // input wire [2 : 0] M00_AXI_ARSIZE
-  .M00_AXI_ARBURST(m_axi_arburst),            // input wire [1 : 0] M00_AXI_ARBURST
-  .M00_AXI_ARLOCK(m_axi_arlock),              // input wire M00_AXI_ARLOCK
-  .M00_AXI_ARCACHE(m_axi_arcache),            // input wire [3 : 0] M00_AXI_ARCACHE
-  .M00_AXI_ARPROT(m_axi_arprot),              // input wire [2 : 0] M00_AXI_ARPROT
-  .M00_AXI_ARQOS(m_axi_arqos),                // input wire [3 : 0] M00_AXI_ARQOS
-  .M00_AXI_ARVALID(m_axi_arvalid),            // input wire M00_AXI_ARVALID
-  .M00_AXI_ARREADY(m_axi_arready),            // output wire M00_AXI_ARREADY
-  .M00_AXI_RID(m_axi_rid),                    // output wire [7 : 0] M00_AXI_RID
-  .M00_AXI_RDATA(m_axi_rdata),                // output wire [511 : 0] M00_AXI_RDATA
-  .M00_AXI_RRESP(m_axi_rresp),                // output wire [1 : 0] M00_AXI_RRESP
-  .M00_AXI_RLAST(m_axi_rlast),                // output wire M00_AXI_RLAST
-  .M00_AXI_RVALID(m_axi_rvalid),              // output wire M00_AXI_RVALID
-  .M00_AXI_RREADY(m_axi_rready)               // input wire M00_AXI_RREADY
+  .M00_AXI_AWID(ddr_axi_awid),                  // input wire [7 : 0] M00_AXI_AWID
+  .M00_AXI_AWADDR(ddr_axi_awaddr),              // input wire [63 : 0] M00_AXI_AWADDR
+  .M00_AXI_AWLEN(ddr_axi_awlen),                // input wire [7 : 0] M00_AXI_AWLEN
+  .M00_AXI_AWSIZE(ddr_axi_awsize),              // input wire [2 : 0] M00_AXI_AWSIZE
+  .M00_AXI_AWBURST(ddr_axi_awburst),            // input wire [1 : 0] M00_AXI_AWBURST
+  .M00_AXI_AWLOCK(ddr_axi_awlock),              // input wire M00_AXI_AWLOCK
+  .M00_AXI_AWCACHE(ddr_axi_awcache),            // input wire [3 : 0] M00_AXI_AWCACHE
+  .M00_AXI_AWPROT(ddr_axi_awprot),              // input wire [2 : 0] M00_AXI_AWPROT
+  .M00_AXI_AWQOS(ddr_axi_awqos),                // input wire [3 : 0] M00_AXI_AWQOS
+  .M00_AXI_AWVALID(ddr_axi_awvalid),            // input wire M00_AXI_AWVALID
+  .M00_AXI_AWREADY(ddr_axi_awready),            // output wire M00_AXI_AWREADY
+  .M00_AXI_WDATA(ddr_axi_wdata),                // input wire [511 : 0] M00_AXI_WDATA
+  .M00_AXI_WSTRB(ddr_axi_wstrb),                // input wire [63 : 0] M00_AXI_WSTRB
+  .M00_AXI_WLAST(ddr_axi_wlast),                // input wire M00_AXI_WLAST
+  .M00_AXI_WVALID(ddr_axi_wvalid),              // input wire M00_AXI_WVALID
+  .M00_AXI_WREADY(ddr_axi_wready),              // output wire M00_AXI_WREADY
+  .M00_AXI_BID(ddr_axi_bid),                    // output wire [7 : 0] M00_AXI_BID
+  .M00_AXI_BRESP(ddr_axi_bresp),                // output wire [1 : 0] M00_AXI_BRESP
+  .M00_AXI_BVALID(ddr_axi_bvalid),              // output wire M00_AXI_BVALID
+  .M00_AXI_BREADY(ddr_axi_bready),              // input wire M00_AXI_BREADY
+  .M00_AXI_ARID(ddr_axi_arid),                  // input wire [7 : 0] M00_AXI_ARID
+  .M00_AXI_ARADDR(ddr_axi_araddr),              // input wire [63 : 0] M00_AXI_ARADDR
+  .M00_AXI_ARLEN(ddr_axi_arlen),                // input wire [7 : 0] M00_AXI_ARLEN
+  .M00_AXI_ARSIZE(ddr_axi_arsize),              // input wire [2 : 0] M00_AXI_ARSIZE
+  .M00_AXI_ARBURST(ddr_axi_arburst),            // input wire [1 : 0] M00_AXI_ARBURST
+  .M00_AXI_ARLOCK(ddr_axi_arlock),              // input wire M00_AXI_ARLOCK
+  .M00_AXI_ARCACHE(ddr_axi_arcache),            // input wire [3 : 0] M00_AXI_ARCACHE
+  .M00_AXI_ARPROT(ddr_axi_arprot),              // input wire [2 : 0] M00_AXI_ARPROT
+  .M00_AXI_ARQOS(ddr_axi_arqos),                // input wire [3 : 0] M00_AXI_ARQOS
+  .M00_AXI_ARVALID(ddr_axi_arvalid),            // input wire M00_AXI_ARVALID
+  .M00_AXI_ARREADY(ddr_axi_arready),            // output wire M00_AXI_ARREADY
+  .M00_AXI_RID(ddr_axi_rid),                    // output wire [7 : 0] M00_AXI_RID
+  .M00_AXI_RDATA(ddr_axi_rdata),                // output wire [511 : 0] M00_AXI_RDATA
+  .M00_AXI_RRESP(ddr_axi_rresp),                // output wire [1 : 0] M00_AXI_RRESP
+  .M00_AXI_RLAST(ddr_axi_rlast),                // output wire M00_AXI_RLAST
+  .M00_AXI_RVALID(ddr_axi_rvalid),              // output wire M00_AXI_RVALID
+  .M00_AXI_RREADY(ddr_axi_rready)               // input wire M00_AXI_RREADY
 );
 
 `else // PITONSYS_PCIE_DMA
 
-assign m_axi_awid = sys_axi_awid;
-assign m_axi_awaddr = sys_axi_awaddr;
-assign m_axi_awlen = sys_axi_awlen;
-assign m_axi_awsize = sys_axi_awsize;
-assign m_axi_awburst = sys_axi_awburst;
-assign m_axi_awlock = sys_axi_awlock;
-assign m_axi_awcache = sys_axi_awcache;
-assign m_axi_awprot = sys_axi_awprot;
-assign m_axi_awqos = sys_axi_awqos;
-assign m_axi_awregion = sys_axi_awregion;
-assign m_axi_awuser = sys_axi_awuser;
-assign m_axi_awvalid = sys_axi_awvalid;
-assign sys_axi_awready = m_axi_awready;
-assign m_axi_wid = sys_axi_wid;
-assign m_axi_wdata = sys_axi_wdata;
-assign m_axi_wstrb = sys_axi_wstrb;
-assign m_axi_wlast = sys_axi_wlast;
-assign m_axi_wuser = sys_axi_wuser;
-assign m_axi_wvalid = sys_axi_wvalid;
-assign sys_axi_wready = m_axi_wready;
-assign m_axi_arid = sys_axi_arid;
-assign m_axi_araddr = sys_axi_araddr;
-assign m_axi_arlen = sys_axi_arlen;
-assign m_axi_arsize = sys_axi_arsize;
-assign m_axi_arburst = sys_axi_arburst;
-assign m_axi_arlock = sys_axi_arlock;
-assign m_axi_arcache = sys_axi_arcache;
-assign m_axi_arprot = sys_axi_arprot;
-assign m_axi_arqos = sys_axi_arqos;
-assign m_axi_arregion = sys_axi_arregion;
-assign m_axi_aruser = sys_axi_aruser;
-assign m_axi_arvalid = sys_axi_arvalid;
-assign sys_axi_arready = m_axi_arready;
-assign sys_axi_rid = m_axi_rid;
-assign sys_axi_rdata = m_axi_rdata;
-assign sys_axi_rresp = m_axi_rresp;
-assign sys_axi_rlast = m_axi_rlast;
-assign sys_axi_ruser = m_axi_ruser;
-assign sys_axi_rvalid = m_axi_rvalid;
-assign m_axi_rready = sys_axi_rready;
-assign sys_axi_bid = m_axi_bid;
-assign sys_axi_bresp = m_axi_bresp;
-assign sys_axi_buser = m_axi_buser;
-assign sys_axi_bvalid = m_axi_bvalid;
-assign m_axi_bready = sys_axi_bready;
+assign ddr_axi_awid = sys_axi_awid;
+assign ddr_axi_awaddr = sys_axi_awaddr;
+assign ddr_axi_awlen = sys_axi_awlen;
+assign ddr_axi_awsize = sys_axi_awsize;
+assign ddr_axi_awburst = sys_axi_awburst;
+assign ddr_axi_awlock = sys_axi_awlock;
+assign ddr_axi_awcache = sys_axi_awcache;
+assign ddr_axi_awprot = sys_axi_awprot;
+assign ddr_axi_awqos = sys_axi_awqos;
+assign ddr_axi_awregion = sys_axi_awregion;
+assign ddr_axi_awuser = sys_axi_awuser;
+assign ddr_axi_awvalid = sys_axi_awvalid;
+assign sys_axi_awready = ddr_axi_awready;
+assign ddr_axi_wid = sys_axi_wid;
+assign ddr_axi_wdata = sys_axi_wdata;
+assign ddr_axi_wstrb = sys_axi_wstrb;
+assign ddr_axi_wlast = sys_axi_wlast;
+assign ddr_axi_wuser = sys_axi_wuser;
+assign ddr_axi_wvalid = sys_axi_wvalid;
+assign sys_axi_wready = ddr_axi_wready;
+assign ddr_axi_arid = sys_axi_arid;
+assign ddr_axi_araddr = sys_axi_araddr;
+assign ddr_axi_arlen = sys_axi_arlen;
+assign ddr_axi_arsize = sys_axi_arsize;
+assign ddr_axi_arburst = sys_axi_arburst;
+assign ddr_axi_arlock = sys_axi_arlock;
+assign ddr_axi_arcache = sys_axi_arcache;
+assign ddr_axi_arprot = sys_axi_arprot;
+assign ddr_axi_arqos = sys_axi_arqos;
+assign ddr_axi_arregion = sys_axi_arregion;
+assign ddr_axi_aruser = sys_axi_aruser;
+assign ddr_axi_arvalid = sys_axi_arvalid;
+assign sys_axi_arready = ddr_axi_arready;
+assign sys_axi_rid = ddr_axi_rid;
+assign sys_axi_rdata = ddr_axi_rdata;
+assign sys_axi_rresp = ddr_axi_rresp;
+assign sys_axi_rlast = ddr_axi_rlast;
+assign sys_axi_ruser = ddr_axi_ruser;
+assign sys_axi_rvalid = ddr_axi_rvalid;
+assign ddr_axi_rready = sys_axi_rready;
+assign sys_axi_bid = ddr_axi_bid;
+assign sys_axi_bresp = ddr_axi_bresp;
+assign sys_axi_buser = ddr_axi_buser;
+assign sys_axi_bvalid = ddr_axi_bvalid;
+assign ddr_axi_bready = sys_axi_bready;
 
 `endif // PITONSYS_PCIE_DMA
+
+`ifdef F1_BOARD
+assign ui_clk = ddr_axi_clk;
+assign ui_clk_sync_rst = ~ddr_axi_resetn;
+
+`else // F1_BOARD
 
 `ifdef PITONSYS_DDR4
 
 ddr4_axi4 ddr_axi4 (
   .sys_rst                   ( ~sys_rst_n                ),
-  .c0_sys_clk_p              ( sys_clk_p                 ),
-  .c0_sys_clk_n              ( sys_clk_n                 ),
+  .c0_sys_clk_p              ( mc_clk_p                  ),
+  .c0_sys_clk_n              ( mc_clk_n                  ),
   .dbg_clk                   (                           ), // not used 
   .dbg_bus                   (                           ), // not used
   .c0_ddr4_ui_clk            ( ui_clk                    ),
@@ -1261,43 +1247,43 @@ ddr4_axi4 ddr_axi4 (
   .c0_ddr4_s_axi_ctrl_rdata  (                      ),      // output wire [31 : 0] c0_ddr4_s_axi_ctrl_rdata
   .c0_ddr4_s_axi_ctrl_rresp  (                      ),      // output wire [1 : 0] c0_ddr4_s_axi_ctrl_rresp
   
-  .c0_ddr4_s_axi_awid(m_axi_awid),                  // input wire [15 : 0] c0_ddr4_s_axi_awid
-  .c0_ddr4_s_axi_awaddr(m_axi_awaddr),              // input wire [34 : 0] c0_ddr4_s_axi_awaddr
-  .c0_ddr4_s_axi_awlen(m_axi_awlen),                // input wire [7 : 0] c0_ddr4_s_axi_awlen
-  .c0_ddr4_s_axi_awsize(m_axi_awsize),              // input wire [2 : 0] c0_ddr4_s_axi_awsize
-  .c0_ddr4_s_axi_awburst(m_axi_awburst),            // input wire [1 : 0] c0_ddr4_s_axi_awburst
-  .c0_ddr4_s_axi_awlock(m_axi_awlock),              // input wire [0 : 0] c0_ddr4_s_axi_awlock
-  .c0_ddr4_s_axi_awcache(m_axi_awcache),            // input wire [3 : 0] c0_ddr4_s_axi_awcache
-  .c0_ddr4_s_axi_awprot(m_axi_awprot),              // input wire [2 : 0] c0_ddr4_s_axi_awprot
-  .c0_ddr4_s_axi_awqos(m_axi_awqos),                // input wire [3 : 0] c0_ddr4_s_axi_awqos
-  .c0_ddr4_s_axi_awvalid(m_axi_awvalid),            // input wire c0_ddr4_s_axi_awvalid
-  .c0_ddr4_s_axi_awready(m_axi_awready),            // output wire c0_ddr4_s_axi_awready
-  .c0_ddr4_s_axi_wdata(m_axi_wdata),                // input wire [511 : 0] c0_ddr4_s_axi_wdata
-  .c0_ddr4_s_axi_wstrb(m_axi_wstrb),                // input wire [63 : 0] c0_ddr4_s_axi_wstrb
-  .c0_ddr4_s_axi_wlast(m_axi_wlast),                // input wire c0_ddr4_s_axi_wlast
-  .c0_ddr4_s_axi_wvalid(m_axi_wvalid),              // input wire c0_ddr4_s_axi_wvalid
-  .c0_ddr4_s_axi_wready(m_axi_wready),              // output wire c0_ddr4_s_axi_wready
-  .c0_ddr4_s_axi_bready(m_axi_bready),              // input wire c0_ddr4_s_axi_bready
-  .c0_ddr4_s_axi_bid(m_axi_bid),                    // output wire [15 : 0] c0_ddr4_s_axi_bid
-  .c0_ddr4_s_axi_bresp(m_axi_bresp),                // output wire [1 : 0] c0_ddr4_s_axi_bresp
-  .c0_ddr4_s_axi_bvalid(m_axi_bvalid),              // output wire c0_ddr4_s_axi_bvalid
-  .c0_ddr4_s_axi_arid(m_axi_arid),                  // input wire [15 : 0] c0_ddr4_s_axi_arid
-  .c0_ddr4_s_axi_araddr(m_axi_araddr),              // input wire [34 : 0] c0_ddr4_s_axi_araddr
-  .c0_ddr4_s_axi_arlen(m_axi_arlen),                // input wire [7 : 0] c0_ddr4_s_axi_arlen
-  .c0_ddr4_s_axi_arsize(m_axi_arsize),              // input wire [2 : 0] c0_ddr4_s_axi_arsize
-  .c0_ddr4_s_axi_arburst(m_axi_arburst),            // input wire [1 : 0] c0_ddr4_s_axi_arburst
-  .c0_ddr4_s_axi_arlock(m_axi_arlock),              // input wire [0 : 0] c0_ddr4_s_axi_arlock
-  .c0_ddr4_s_axi_arcache(m_axi_arcache),            // input wire [3 : 0] c0_ddr4_s_axi_arcache
-  .c0_ddr4_s_axi_arprot(m_axi_arprot),              // input wire [2 : 0] c0_ddr4_s_axi_arprot
-  .c0_ddr4_s_axi_arqos(m_axi_arqos),                // input wire [3 : 0] c0_ddr4_s_axi_arqos
-  .c0_ddr4_s_axi_arvalid(m_axi_arvalid),            // input wire c0_ddr4_s_axi_arvalid
-  .c0_ddr4_s_axi_arready(m_axi_arready),            // output wire c0_ddr4_s_axi_arready
-  .c0_ddr4_s_axi_rready(m_axi_rready),              // input wire c0_ddr4_s_axi_rready
-  .c0_ddr4_s_axi_rlast(m_axi_rlast),                // output wire c0_ddr4_s_axi_rlast
-  .c0_ddr4_s_axi_rvalid(m_axi_rvalid),              // output wire c0_ddr4_s_axi_rvalid
-  .c0_ddr4_s_axi_rresp(m_axi_rresp),                // output wire [1 : 0] c0_ddr4_s_axi_rresp
-  .c0_ddr4_s_axi_rid(m_axi_rid),                    // output wire [15 : 0] c0_ddr4_s_axi_rid
-  .c0_ddr4_s_axi_rdata(m_axi_rdata)                 // output wire [511 : 0] c0_ddr4_s_axi_rdata
+  .c0_ddr4_s_axi_awid(ddr_axi_awid),                  // input wire [15 : 0] c0_ddr4_s_axi_awid
+  .c0_ddr4_s_axi_awaddr(ddr_axi_awaddr),              // input wire [34 : 0] c0_ddr4_s_axi_awaddr
+  .c0_ddr4_s_axi_awlen(ddr_axi_awlen),                // input wire [7 : 0] c0_ddr4_s_axi_awlen
+  .c0_ddr4_s_axi_awsize(ddr_axi_awsize),              // input wire [2 : 0] c0_ddr4_s_axi_awsize
+  .c0_ddr4_s_axi_awburst(ddr_axi_awburst),            // input wire [1 : 0] c0_ddr4_s_axi_awburst
+  .c0_ddr4_s_axi_awlock(ddr_axi_awlock),              // input wire [0 : 0] c0_ddr4_s_axi_awlock
+  .c0_ddr4_s_axi_awcache(ddr_axi_awcache),            // input wire [3 : 0] c0_ddr4_s_axi_awcache
+  .c0_ddr4_s_axi_awprot(ddr_axi_awprot),              // input wire [2 : 0] c0_ddr4_s_axi_awprot
+  .c0_ddr4_s_axi_awqos(ddr_axi_awqos),                // input wire [3 : 0] c0_ddr4_s_axi_awqos
+  .c0_ddr4_s_axi_awvalid(ddr_axi_awvalid),            // input wire c0_ddr4_s_axi_awvalid
+  .c0_ddr4_s_axi_awready(ddr_axi_awready),            // output wire c0_ddr4_s_axi_awready
+  .c0_ddr4_s_axi_wdata(ddr_axi_wdata),                // input wire [511 : 0] c0_ddr4_s_axi_wdata
+  .c0_ddr4_s_axi_wstrb(ddr_axi_wstrb),                // input wire [63 : 0] c0_ddr4_s_axi_wstrb
+  .c0_ddr4_s_axi_wlast(ddr_axi_wlast),                // input wire c0_ddr4_s_axi_wlast
+  .c0_ddr4_s_axi_wvalid(ddr_axi_wvalid),              // input wire c0_ddr4_s_axi_wvalid
+  .c0_ddr4_s_axi_wready(ddr_axi_wready),              // output wire c0_ddr4_s_axi_wready
+  .c0_ddr4_s_axi_bready(ddr_axi_bready),              // input wire c0_ddr4_s_axi_bready
+  .c0_ddr4_s_axi_bid(ddr_axi_bid),                    // output wire [15 : 0] c0_ddr4_s_axi_bid
+  .c0_ddr4_s_axi_bresp(ddr_axi_bresp),                // output wire [1 : 0] c0_ddr4_s_axi_bresp
+  .c0_ddr4_s_axi_bvalid(ddr_axi_bvalid),              // output wire c0_ddr4_s_axi_bvalid
+  .c0_ddr4_s_axi_arid(ddr_axi_arid),                  // input wire [15 : 0] c0_ddr4_s_axi_arid
+  .c0_ddr4_s_axi_araddr(ddr_axi_araddr),              // input wire [34 : 0] c0_ddr4_s_axi_araddr
+  .c0_ddr4_s_axi_arlen(ddr_axi_arlen),                // input wire [7 : 0] c0_ddr4_s_axi_arlen
+  .c0_ddr4_s_axi_arsize(ddr_axi_arsize),              // input wire [2 : 0] c0_ddr4_s_axi_arsize
+  .c0_ddr4_s_axi_arburst(ddr_axi_arburst),            // input wire [1 : 0] c0_ddr4_s_axi_arburst
+  .c0_ddr4_s_axi_arlock(ddr_axi_arlock),              // input wire [0 : 0] c0_ddr4_s_axi_arlock
+  .c0_ddr4_s_axi_arcache(ddr_axi_arcache),            // input wire [3 : 0] c0_ddr4_s_axi_arcache
+  .c0_ddr4_s_axi_arprot(ddr_axi_arprot),              // input wire [2 : 0] c0_ddr4_s_axi_arprot
+  .c0_ddr4_s_axi_arqos(ddr_axi_arqos),                // input wire [3 : 0] c0_ddr4_s_axi_arqos
+  .c0_ddr4_s_axi_arvalid(ddr_axi_arvalid),            // input wire c0_ddr4_s_axi_arvalid
+  .c0_ddr4_s_axi_arready(ddr_axi_arready),            // output wire c0_ddr4_s_axi_arready
+  .c0_ddr4_s_axi_rready(ddr_axi_rready),              // input wire c0_ddr4_s_axi_rready
+  .c0_ddr4_s_axi_rlast(ddr_axi_rlast),                // output wire c0_ddr4_s_axi_rlast
+  .c0_ddr4_s_axi_rvalid(ddr_axi_rvalid),              // output wire c0_ddr4_s_axi_rvalid
+  .c0_ddr4_s_axi_rresp(ddr_axi_rresp),                // output wire [1 : 0] c0_ddr4_s_axi_rresp
+  .c0_ddr4_s_axi_rid(ddr_axi_rid),                    // output wire [15 : 0] c0_ddr4_s_axi_rid
+  .c0_ddr4_s_axi_rdata(ddr_axi_rdata)                 // output wire [511 : 0] c0_ddr4_s_axi_rdata
 );
 
 `else // PITONSYS_DDR4
@@ -1337,55 +1323,74 @@ mig_7series_axi4 u_mig_7series_axi4 (
     .app_zq_ack                     (app_zq_ack),  // output            app_zq_ack
 
     // Slave Interface Write Address Ports
-    .s_axi_awid                     (m_axi_awid),  // input [15:0]          s_axi_awid
-    .s_axi_awaddr                   (m_axi_awaddr),  // input [29:0]            s_axi_awaddr
-    .s_axi_awlen                    (m_axi_awlen),  // input [7:0]          s_axi_awlen
-    .s_axi_awsize                   (m_axi_awsize),  // input [2:0]         s_axi_awsize
-    .s_axi_awburst                  (m_axi_awburst),  // input [1:0]            s_axi_awburst
-    .s_axi_awlock                   (m_axi_awlock),  // input [0:0]         s_axi_awlock
-    .s_axi_awcache                  (m_axi_awcache),  // input [3:0]            s_axi_awcache
-    .s_axi_awprot                   (m_axi_awprot),  // input [2:0]         s_axi_awprot
-    .s_axi_awqos                    (m_axi_awqos),  // input [3:0]          s_axi_awqos
-    .s_axi_awvalid                  (m_axi_awvalid),  // input          s_axi_awvalid
-    .s_axi_awready                  (m_axi_awready),  // output         s_axi_awready
+    .s_axi_awid                     (ddr_axi_awid),  // input [15:0]          s_axi_awid
+    .s_axi_awaddr                   (ddr_axi_awaddr),  // input [29:0]            s_axi_awaddr
+    .s_axi_awlen                    (ddr_axi_awlen),  // input [7:0]          s_axi_awlen
+    .s_axi_awsize                   (ddr_axi_awsize),  // input [2:0]         s_axi_awsize
+    .s_axi_awburst                  (ddr_axi_awburst),  // input [1:0]            s_axi_awburst
+    .s_axi_awlock                   (ddr_axi_awlock),  // input [0:0]         s_axi_awlock
+    .s_axi_awcache                  (ddr_axi_awcache),  // input [3:0]            s_axi_awcache
+    .s_axi_awprot                   (ddr_axi_awprot),  // input [2:0]         s_axi_awprot
+    .s_axi_awqos                    (ddr_axi_awqos),  // input [3:0]          s_axi_awqos
+    .s_axi_awvalid                  (ddr_axi_awvalid),  // input          s_axi_awvalid
+    .s_axi_awready                  (ddr_axi_awready),  // output         s_axi_awready
     // Slave Interface Write Data Ports
-    .s_axi_wdata                    (m_axi_wdata),  // input [511:0]            s_axi_wdata
-    .s_axi_wstrb                    (m_axi_wstrb),  // input [63:0]         s_axi_wstrb
-    .s_axi_wlast                    (m_axi_wlast),  // input            s_axi_wlast
-    .s_axi_wvalid                   (m_axi_wvalid),  // input           s_axi_wvalid
-    .s_axi_wready                   (m_axi_wready),  // output          s_axi_wready
+    .s_axi_wdata                    (ddr_axi_wdata),  // input [511:0]            s_axi_wdata
+    .s_axi_wstrb                    (ddr_axi_wstrb),  // input [63:0]         s_axi_wstrb
+    .s_axi_wlast                    (ddr_axi_wlast),  // input            s_axi_wlast
+    .s_axi_wvalid                   (ddr_axi_wvalid),  // input           s_axi_wvalid
+    .s_axi_wready                   (ddr_axi_wready),  // output          s_axi_wready
     // Slave Interface Write Response Ports
-    .s_axi_bid                      (m_axi_bid),  // output [15:0]          s_axi_bid
-    .s_axi_bresp                    (m_axi_bresp),  // output [1:0]         s_axi_bresp
-    .s_axi_bvalid                   (m_axi_bvalid),  // output          s_axi_bvalid
-    .s_axi_bready                   (m_axi_bready),  // input           s_axi_bready
+    .s_axi_bid                      (ddr_axi_bid),  // output [15:0]          s_axi_bid
+    .s_axi_bresp                    (ddr_axi_bresp),  // output [1:0]         s_axi_bresp
+    .s_axi_bvalid                   (ddr_axi_bvalid),  // output          s_axi_bvalid
+    .s_axi_bready                   (ddr_axi_bready),  // input           s_axi_bready
     // Slave Interface Read Address Ports
-    .s_axi_arid                     (m_axi_arid),  // input [15:0]          s_axi_arid
-    .s_axi_araddr                   (m_axi_araddr),  // input [29:0]            s_axi_araddr
-    .s_axi_arlen                    (m_axi_arlen),  // input [7:0]          s_axi_arlen
-    .s_axi_arsize                   (m_axi_arsize),  // input [2:0]         s_axi_arsize
-    .s_axi_arburst                  (m_axi_arburst),  // input [1:0]            s_axi_arburst
-    .s_axi_arlock                   (m_axi_arlock),  // input [0:0]         s_axi_arlock
-    .s_axi_arcache                  (m_axi_arcache),  // input [3:0]            s_axi_arcache
-    .s_axi_arprot                   (m_axi_arprot),  // input [2:0]         s_axi_arprot
-    .s_axi_arqos                    (m_axi_arqos),  // input [3:0]          s_axi_arqos
-    .s_axi_arvalid                  (m_axi_arvalid),  // input          s_axi_arvalid
-    .s_axi_arready                  (m_axi_arready),  // output         s_axi_arready
+    .s_axi_arid                     (ddr_axi_arid),  // input [15:0]          s_axi_arid
+    .s_axi_araddr                   (ddr_axi_araddr),  // input [29:0]            s_axi_araddr
+    .s_axi_arlen                    (ddr_axi_arlen),  // input [7:0]          s_axi_arlen
+    .s_axi_arsize                   (ddr_axi_arsize),  // input [2:0]         s_axi_arsize
+    .s_axi_arburst                  (ddr_axi_arburst),  // input [1:0]            s_axi_arburst
+    .s_axi_arlock                   (ddr_axi_arlock),  // input [0:0]         s_axi_arlock
+    .s_axi_arcache                  (ddr_axi_arcache),  // input [3:0]            s_axi_arcache
+    .s_axi_arprot                   (ddr_axi_arprot),  // input [2:0]         s_axi_arprot
+    .s_axi_arqos                    (ddr_axi_arqos),  // input [3:0]          s_axi_arqos
+    .s_axi_arvalid                  (ddr_axi_arvalid),  // input          s_axi_arvalid
+    .s_axi_arready                  (ddr_axi_arready),  // output         s_axi_arready
     // Slave Interface Read Data Ports
-    .s_axi_rid                      (m_axi_rid),  // output [15:0]          s_axi_rid
-    .s_axi_rdata                    (m_axi_rdata),  // output [511:0]           s_axi_rdata
-    .s_axi_rresp                    (m_axi_rresp),  // output [1:0]         s_axi_rresp
-    .s_axi_rlast                    (m_axi_rlast),  // output           s_axi_rlast
-    .s_axi_rvalid                   (m_axi_rvalid),  // output          s_axi_rvalid
-    .s_axi_rready                   (m_axi_rready),  // input           s_axi_rready
+    .s_axi_rid                      (ddr_axi_rid),  // output [15:0]          s_axi_rid
+    .s_axi_rdata                    (ddr_axi_rdata),  // output [511:0]           s_axi_rdata
+    .s_axi_rresp                    (ddr_axi_rresp),  // output [1:0]         s_axi_rresp
+    .s_axi_rlast                    (ddr_axi_rlast),  // output           s_axi_rlast
+    .s_axi_rvalid                   (ddr_axi_rvalid),  // output          s_axi_rvalid
+    .s_axi_rready                   (ddr_axi_rready),  // input           s_axi_rready
 
     // System Clock Ports
-    .sys_clk_i                      (sys_clk),
+    .sys_clk_i                      (mc_clk),
     .sys_rst                        (sys_rst_n) // input sys_rst
 );
 
 `endif // PITONSYS_DDR4
+`endif // F1_BOARD
 `endif // PITONSYS_AXI4_MEM
+
+
+always @(posedge sys_clk) begin
+    if(~sys_rst_n) begin
+        init_calib_complete_f <= 0;
+        init_calib_complete_ff <= 0;
+    end 
+    else begin
+        `ifdef PITONSYS_MEM_ZEROER
+            init_calib_complete_f <= init_calib_complete_zero;
+        `else 
+            init_calib_complete_f <= init_calib_complete;
+        `endif
+        init_calib_complete_ff <= init_calib_complete_f;
+    end
+end
+
+assign init_calib_complete_out = init_calib_complete_ff; 
 
 `ifdef PITON_PROTO
 `ifndef PITON_PROTO_NO_MON

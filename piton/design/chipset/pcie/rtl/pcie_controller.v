@@ -30,17 +30,18 @@
 module pcie_controller(
     input pcie_clk_p, 
     input pcie_clk_n, 
-    input pcie_rst_n,
+(* mark_debug = "true" *)    input pcie_rst_n,
     output [15:0] pcie_txp, 
     output [15:0] pcie_txn, 
     input  [15:0] pcie_rxp, 
-    input  [15:0] pcie_rxn, 
+    input  [15:0] pcie_rxn 
 
-    output pcie_axi_aclk, 
-    output pcie_axi_aresetn
+
 
 `ifdef PITONSYS_PCIE_DMA
     ,
+    output                               pcie_dma_axi_clk, 
+    output                               pcie_dma_axi_resetn,
     output  [`AXI4_ID_WIDTH     -1:0]    pcie_dma_axi_awid,
     output  [`AXI4_ADDR_WIDTH   -1:0]    pcie_dma_axi_awaddr,
     output  [`AXI4_LEN_WIDTH    -1:0]    pcie_dma_axi_awlen,
@@ -90,6 +91,8 @@ module pcie_controller(
 
 `ifdef PITONSYS_PCIE_CFG
     ,
+    output                               pcie_cfg_axi_clk, 
+    output                               pcie_cfg_axi_resetn,
     output [`AXIL_ADDR_WIDTH-1:0]        pcie_cfg_axi_awaddr, 
     output [`AXIL_PROT_WIDTH-1:0]        pcie_cfg_axi_awprot, 
     output                               pcie_cfg_axi_awvalid,
@@ -112,6 +115,10 @@ module pcie_controller(
 `endif
 );
 
+wire pcie_axi_aclk;
+wire pcie_axi_aresetn;
+
+(* mark_debug = "true" *) wire user_lnk_up;
 
 // Ref clock buffer
 IBUFDS_GTE4 # (.REFCLK_HROW_CK_SEL(2'b00)) pcieclk_ibuf (.O(pcie_clk_gt), .ODIV2(pcie_clk), .I(pcie_clk_p), .CEB(1'b0), .IB(pcie_clk_n));
@@ -121,7 +128,7 @@ xdma_0 xdma (
   .sys_clk_gt(pcie_clk_gt),        // input output sys_clk_gt
   .sys_rst_n(pcie_rst_n),          // input output sys_rst_n
 
-  .user_lnk_up(),      // output output user_lnk_up
+  .user_lnk_up(user_lnk_up),      // output output user_lnk_up
   .pci_exp_txp(pcie_txp),      // output output [15 : 0] pci_exp_txp
   .pci_exp_txn(pcie_txn),      // output output [15 : 0] pci_exp_txn
   .pci_exp_rxp(pcie_rxp),      // input output [15 : 0] pci_exp_rxp
@@ -130,9 +137,10 @@ xdma_0 xdma (
   .usr_irq_ack(),      // output output [0 : 0] usr_irq_ack
 
   .axi_aclk(pcie_axi_aclk),            // output output axi_aclk
-  .axi_aresetn(pcie_axi_aresetn),      // output output axi_aresetn
+  .axi_aresetn(pcie_axi_aresetn)      // output output axi_aresetn
 
 `ifdef PITONSYS_PCIE_DMA
+    ,
   .m_axi_awready(pcie_dma_axi_awready),  // input output m_axi_awready
   .m_axi_wready(pcie_dma_axi_wready),    // input output m_axi_wready
   .m_axi_bid(pcie_dma_axi_bid),          // input output [3 : 0] m_axi_bid
@@ -167,16 +175,18 @@ xdma_0 xdma (
   .m_axi_arvalid(pcie_dma_axi_arvalid),  // output output m_axi_arvalid
   .m_axi_arlock(pcie_dma_axi_arlock),    // output output m_axi_arlock
   .m_axi_arcache(pcie_dma_axi_arcache),  // output output [3 : 0] m_axi_arcache
-  .m_axi_rready(pcie_dma_axi_rready),    // output output m_axi_rready
+  .m_axi_rready(pcie_dma_axi_rready)    // output output m_axi_rready
 `else // PITONSYS_PCIE_DMA
+  ,
   .m_axi_awready(1'b0),
   .m_axi_wready(1'b0),
   .m_axi_arready(1'b0),
   .m_axi_rvalid(1'b0),
-  .m_axi_bvalid(1'b0),
+  .m_axi_bvalid(1'b0)
 `endif // PITONSYS_PCIE_DMA
 
 `ifdef PITONSYS_PCIE_CFG
+  ,
   .m_axil_awaddr(pcie_cfg_axi_awaddr),    // output wire [31 : 0] m_axil_awaddr
   .m_axil_awprot(pcie_cfg_axi_awprot),    // output wire [2 : 0] m_axil_awprot
   .m_axil_awvalid(pcie_cfg_axi_awvalid),  // output wire m_axil_awvalid
@@ -197,13 +207,18 @@ xdma_0 xdma (
   .m_axil_rvalid(pcie_cfg_axi_rvalid),    // input wire m_axil_rvalid
   .m_axil_rready(pcie_cfg_axi_rready)     // output wire m_axil_rready
 `else // PITONSYS_PCIE_CFG
+  ,
   .m_axil_awready(1'b0),
   .m_axil_wready(1'b0),
   .m_axil_arready(1'b0),
   .m_axil_rvalid(1'b0),
-  .m_axil_bvalid(1'b0),
+  .m_axil_bvalid(1'b0)
 `endif // PITONSYS_PCIE_CFG
 );
 
+assign pcie_dma_axi_clk = pcie_axi_aclk;
+assign pcie_dma_axi_resetn = pcie_axi_aresetn;
+assign pcie_cfg_axi_clk = pcie_axi_aclk;
+assign pcie_cfg_axi_resetn = pcie_axi_aresetn;
 
 endmodule

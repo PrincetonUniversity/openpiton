@@ -60,17 +60,17 @@ module noc_mig_bridge # (
 )
 (
   input                             clk,
-  input                             rst,
+  input                             rst_n,
 
    // Need to do some translation if uart boot is enabled
    input                                uart_boot_en,
 
   // System Network Interface
-   input       [`NOC_DATA_WIDTH-1:0]           flit_in,
+   input       [`NOC_DATA_WIDTH-1:0]     flit_in,
    input                                 flit_in_val,
    output                                flit_in_rdy,
 
-   output      [`NOC_DATA_WIDTH-1:0]           flit_out,
+   output      [`NOC_DATA_WIDTH-1:0]     flit_out,
    output                                flit_out_val,
    input                                 flit_out_rdy,
 
@@ -80,7 +80,6 @@ module noc_mig_bridge # (
    input       [MIG_APP_DATA_WIDTH-1:0]  app_rd_data,
    input                                 app_rd_data_end,
    input                                 app_rd_data_valid,
-   input                                 phy_init_done,
 
    output reg                            app_wdf_wren_reg,
    output      [MIG_APP_DATA_WIDTH-1:0]  app_wdf_data_out,
@@ -199,10 +198,10 @@ always @(posedge clk) begin
 end
 
 //assignments
-assign flit_in_rdy  = (acc_state != `STALLED && !rst && phy_init_done);
+assign flit_in_rdy  = (acc_state != `STALLED && rst_n);
 
 always @(posedge clk) begin
-  if(rst) begin
+  if(~rst_n) begin
     //initialize buffer pointers
     buf_current_in <= 0;
     remaining_flits <= 0;
@@ -300,7 +299,7 @@ generate begin
   genvar ii;
   for (ii = 0; ii < IN_FLIGHT_LIMIT; ii = ii + 1) begin: IN_STATE
     always @(posedge clk) begin
-      if(rst) begin
+      if(~rst_n) begin
         pkt_data_buf[ii]  <= {APP_DATA_WIDTH{1'b0}};
         pkt_state_buf[ii] <= `INACTIVE;
       end
@@ -374,7 +373,7 @@ end
 
 // Alexey: made app_* interface to be output from registers because of timing
 always @(posedge clk) begin
-  if (rst) begin
+  if (~rst_n) begin
     app_wdf_wren_reg  <= 1'b0;
     app_wdf_data_reg  <= {APP_DATA_WIDTH{1'b0}};
     app_wdf_mask_reg  <= {APP_MASK_WIDTH{1'b0}};
@@ -444,7 +443,7 @@ assign app_rdy_trans      = (~cmd_pending | cmd_send_end) & ~(app_en_reg & ~cmd_
 
 // Splitting one command to multiple
 always @(posedge clk) begin
-  if (rst)
+  if (~rst_n)
     cmd_pending <= 1'b0;
   else
     cmd_pending <=  app_en_reg & ~cmd_send_end ? 1'b1  :
@@ -452,7 +451,7 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-  if (rst)
+  if (~rst_n)
     cmd_part <= 5'b0;
   else
     cmd_part <= app_en_reg & app_rdy ? cmd_part_next : cmd_part;
@@ -464,7 +463,7 @@ assign wdf_part_next    = wdf_part == (RATIO - 1) ? 6'b0 : wdf_part + 1;
 assign app_wdf_rdy_trans    = (~wdf_pending | wdf_send_end) & ~(app_wdf_wren_reg & ~wdf_send_end);
 
 always @(posedge clk) begin
-  if (rst)
+  if (~rst_n)
     wdf_pending <= 1'b0;
   else
     wdf_pending <=  app_wdf_wren_reg & ~wdf_send_end  ? 1'b1 :
@@ -472,7 +471,7 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-  if (rst)
+  if (~rst_n)
     wdf_part  <= 5'b0;
   else
     wdf_part  <= app_wdf_wren_reg & app_wdf_rdy ? wdf_part_next : wdf_part; 
@@ -506,7 +505,7 @@ assign rd_part_next = rd_part == (RATIO - 1) ? 6'b0 : rd_part + 1;
 assign rd_last      = (rd_part == (RATIO-1)) & app_rd_data_valid; 
 
 always @(posedge clk) begin
-  if (rst)
+  if (~rst_n)
     rd_part   <= 5'b0;
   else
     rd_part   <= app_rd_data_valid ? rd_part_next : rd_part;
@@ -564,7 +563,7 @@ assign app_cmd       = (pkt_cmd_buf[buf_current_cmd] == `MSG_TYPE_NC_STORE_REQ |
                         pkt_cmd_buf[buf_current_cmd] == `MSG_TYPE_STORE_MEM) ? `MIG_WR_CMD : `MIG_RD_CMD;
 
 always@(posedge clk) begin
-  if(rst) begin
+  if(~rst_n) begin
     buf_current_wdf <= 0;
     buf_wdf_data_half <= `FIRST;
     r_app_wdf_wren <= 0;
@@ -588,7 +587,7 @@ end
 //*******************************************************
 
 always @(posedge clk) begin
-  if(rst) begin
+  if(~rst_n) begin
     buf_current_cmd <= 0;
     r_app_en <= 0;
   end
@@ -611,7 +610,7 @@ end
 // MC DATA RCV
 //*******************************************************
 always @(posedge clk) begin
-  if(rst) begin
+  if(~rst_n) begin
     buf_current_data_rcv <= 0;
   end
 	else begin
@@ -639,7 +638,7 @@ assign flit_out_val = (pkt_state_buf[buf_current_out] == `READY) & (remaining_fl
 
 
 always @(posedge clk) begin
-  if(rst) begin
+  if(~rst_n) begin
     buf_current_out <= IN_FLIGHT_LIMIT-1; //initialize current out
     remaining_flt_out <= 0;
     for(i=0; i < MAX_PKT_LEN; i=i+1) begin
