@@ -44,9 +44,11 @@ extern "C" {
 //global define
 #ifndef __ICARUS__
 #ifndef PITON_DPI
+#ifndef RIVIERA
 extern "C" void io_printf(char*, ...);
 #else // ifndef PITON_DPI
 #define io_printf printf
+#endif  // ifndef RIVIERA
 #endif // ifndef PITON_DPI
 #endif // ifndef __ICARUS__
 #define KeyType unsigned long long
