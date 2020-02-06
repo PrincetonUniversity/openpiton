@@ -42,10 +42,14 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <port>
         <name>uart</name>
         <base>0xfff0c2c000</base>
-        <!-- Just give it all the space up to the network device? -->
-        <length>0xd4000</length>
+        <length>0x1000</length>
         <noc2in/>
         <stream_accessible/>
+    </port>
+    <port>
+        <name>uart2</name>
+        <base>0xfff0c2d000</base>
+        <length>0x1000</length>
     </port>
     <!--    <port>
         <name>net</name>

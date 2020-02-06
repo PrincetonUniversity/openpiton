@@ -201,7 +201,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
     # TODO: this needs to be extended
     # get the number of interrupt sources
     numIrqs = 0
-    devWithIrq = ["uart", "net"];
+    devWithIrq = ["uart", "net", "uart2"];
     for i in range(len(devices)):
         if devices[i]["name"] in devWithIrq:
             numIrqs += 1
@@ -265,6 +265,23 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             addrLen  = devices[i]["length"]
             tmpStr += '''
         uart@%08x {
+            compatible = "ns16550";
+            reg = <%s>;
+            clock-frequency = <%d>;
+            current-speed = <115200>;
+            interrupt-parent = <&PLIC0>;
+            interrupts = <%d>;
+            reg-shift = <2>; // regs are spaced on 32 bit boundary
+        };
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
+            ioDeviceNr+=1
+
+        # UART2
+        if devices[i]["name"] == "uart2":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        uart2@%08x {
             compatible = "ns16550";
             reg = <%s>;
             clock-frequency = <%d>;

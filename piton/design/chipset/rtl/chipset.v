@@ -373,6 +373,10 @@ module chipset(
     `ifdef PITONSYS_UART
         output                                      uart_tx,
         input                                       uart_rx,
+        `ifdef PITONSYS_UART2
+            output                                      uart_tx2,
+            input                                       uart_rx2,
+        `endif // ifdef PITONSYS_UART2
         `ifdef PITONSYS_UART_BOOT
             `ifndef PITONSYS_CHIPSET_TOP
                 output                                      test_start,
@@ -1487,6 +1491,11 @@ chipset_impl_noc_power_test  chipset_impl (
             ,
             .uart_tx(uart_tx),
             .uart_rx(uart_rx)
+        `ifdef PITONSYS_UART2
+            ,
+            .uart2_tx(uart2_tx),
+            .uart2_rx(uart2_rx)
+        `endif // ifdef PITONSYS_UART2
             `ifdef PITONSYS_UART_BOOT
                 ,
                 .uart_boot_en(uart_boot_en),

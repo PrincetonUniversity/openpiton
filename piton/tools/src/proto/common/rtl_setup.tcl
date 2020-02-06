@@ -632,13 +632,14 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_net_dff.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_bus_compare_equal.v" \
     "${DV_ROOT}/design/chipset/io_xbar/components/rtl/io_xbar_flip_bus.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_top.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_writer.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_reader.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_mux.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_reseter.v" \
+    "${DV_ROOT}/design/chipset/uart/rtl/uart_lite.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/ciop_iob.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/net_int_sync.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_top.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_writer.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_reader.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_mux.v" \
-    "${DV_ROOT}/design/chipset/io_ctrl/rtl/uart_reseter.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/fake_boot_ctrl.v" \
     "${DV_ROOT}/design/chipset/io_ctrl/rtl/eth_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/mc_top.v" \
@@ -741,8 +742,8 @@ set CHIPSET_IP_FILE_PREFIXES [list \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/clk_mmcm/clk_mmcm" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/afifo_w64_d128_std/afifo_w64_d128_std" \
     "${DV_ROOT}/design/chipset/xilinx/${BOARD}/ip_cores/mac_eth_axi_lite/mac_eth_axi_lite" \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
+    "${DV_ROOT}/design/chipset/uart/xilinx/${BOARD}/ip_cores/uart_16550/uart_16550" \
+    "${DV_ROOT}/design/chipset/uart/xilinx/${BOARD}/ip_cores/atg_uart_init/atg_uart_init" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/mem_uart_timeout/mem_uart_timeout" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_256x512/bram_256x512" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_16384x512/bram_16384x512" \
@@ -763,8 +764,8 @@ set CHIPSET_IP_FILE_PREFIXES [list \
 ]
 
 set CHIPSET_COE_IP_FILES [list \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/uart_data.coe" \
-    "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/atg_uart_init/uart_addr.coe" \
+    "${DV_ROOT}/design/chipset/uart/xilinx/${BOARD}/ip_cores/atg_uart_init/uart_data.coe" \
+    "${DV_ROOT}/design/chipset/uart/xilinx/${BOARD}/ip_cores/atg_uart_init/uart_addr.coe" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/common/ip_cores/bram_256x512/test_proto.coe" \
     "${DV_ROOT}/design/chipset/io_ctrl/xilinx/${BOARD}/ip_cores/bram_16384x512/obp.coe" \
 ]

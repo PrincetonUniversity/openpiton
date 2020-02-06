@@ -356,6 +356,10 @@ module system(
 `ifdef PITONSYS_UART
     output                                      uart_tx,
     input                                       uart_rx,
+`ifdef PITONSYS_UART2
+    output                                      uart2_tx,
+    input                                       uart2_rx,
+`endif // ifdef PITONSYS_UART2
 `ifdef VCU118_BOARD
 		input                                       uart_cts,
 		output                                      uart_rts,
@@ -1236,6 +1240,10 @@ chipset chipset(
 `ifdef PITONSYS_UART
     .uart_tx(uart_tx),
     .uart_rx(uart_rx),
+`ifdef PITONSYS_UART2
+    .uart2_tx(uart2_tx),
+    .uart2_rx(uart2_rx),
+`endif // ifdef PITONSYS_UART2
 `ifdef PITONSYS_UART_BOOT
     .test_start(test_start),
 `endif // endif PITONSYS_UART_BOOT

@@ -286,6 +286,11 @@ module chipset_impl(
     ,
     output                                      uart_tx,
     input                                       uart_rx
+`ifdef PITONSYS_UART2
+    ,
+    output                                      uart2_tx,
+    input                                       uart2_rx
+`endif //ifdef PITONSYS_UART2
 `ifdef PITONSYS_UART_BOOT
     ,
     input                                       uart_boot_en,
@@ -1129,6 +1134,7 @@ fake_mem_ctrl fake_mem_ctrl(
 
 wire net_interrupt;
 wire uart_interrupt;
+wire uart2_interrupt;
 
 `ifdef PITONSYS_IOCTRL
 
@@ -1233,6 +1239,36 @@ uart_top        uart_top (
     assign test_start = 1'b1;
 `endif // endif PITONSYS_UART
 
+`ifdef PITONSYS_UART2
+<%
+for i in range(1, len(devices)):
+    if devices[i]["name"] == "uart2":
+        print '''
+
+uart_lite uart2(
+    .axi_clk                    ( chipset_clk                           ),
+    .rst_n                      ( chipset_rst_n                         ),
+
+    .uart_rx                    ( uart2_rx                               ),
+    .uart_tx                    ( uart2_tx                               ),
+    .uart_interrupt             ( uart2_interrupt                        ),
+
+    .xbar_uart_noc2_valid       ( buf_uart2_noc2_valid                   ),
+    .xbar_uart_noc2_data        ( buf_uart2_noc2_data                    ),
+    .uart_xbar_noc2_ready       ( uart2_buf_noc2_ready                   ),
+
+    //output to noc3
+    .uart_xbar_noc3_valid       ( uart2_buf_noc3_valid                   ),
+    .uart_xbar_noc3_data        ( uart2_buf_noc3_data                    ),
+    .xbar_uart_noc3_ready       ( buf_uart2_noc3_ready                   )
+);
+
+'''
+%>
+`else // PITONSYS_UART2
+assign uart2_interrupt = 1'b0;
+`endif // endif PITONSYS_UART2
+
 // SPI interface
 `ifdef PITONSYS_SPI
 `ifdef PITON_FPGA_SD_BOOT
@@ -1305,6 +1341,7 @@ uart_top        uart_top (
 
 assign net_interrupt  = 1'b0;
 assign uart_interrupt = 1'b0;
+assign uart2_interrupt = 1'b0;
 
 // Fake iobridge
 // Tie noc1 input low because it's unused
@@ -1371,11 +1408,11 @@ fake_uart fake_uart (
 
 `ifdef PITON_ARIANE
 
-    wire [1:0] irq_sources, irq_le;
+    wire [2:0] irq_sources, irq_le;
     // 0:level 1:edge
     // Eth is edge, Uart is level
-    assign irq_le      = {1'b1, 1'b0};
-    assign irq_sources = {net_interrupt, uart_interrupt};
+    assign irq_le      = {1'b0, 1'b1, 1'b0};
+    assign irq_sources = {uart2_interrupt, net_interrupt, uart_interrupt};
 
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
     wire ariane_boot_sel;
@@ -1407,7 +1444,7 @@ str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
-        .NumSources     (               2 ),
+        .NumSources     (               3 ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),
         .RomBase        ( 64'h%016x ),
