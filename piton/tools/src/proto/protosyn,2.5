@@ -221,6 +221,7 @@ def runImplF1(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
     prev_dir = os.getcwd()
     os.chdir(work_dir)
     os.environ['CL_BUILD_DIR'] = work_dir 
+    os.environ['CL_DIR'] = work_dir 
 
     # Generate additional defines file that will be sourced in tcl script
     f = open("additional_defines.tcl", "w")
