@@ -62,12 +62,11 @@ foreach FILE $ALL_XCI_IP_FILES {
     set IPNAME [file tail [file rootname $FILE]]
     read_ip $FILE
 #    upgrade_ip [get_ips $IPNAME]
-#    generate_target all [get_ips $IPNAME]
-#    synth_ip [get_ips $IPNAME]
   }
 }
 
 upgrade_ip [get_ips -all]
+synth_ip [get_ips -all]
 
 #---- End of section replaced by User ----
 
