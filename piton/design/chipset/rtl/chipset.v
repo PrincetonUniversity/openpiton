@@ -685,8 +685,6 @@ wire  [2:0]                                     chip_intf_credit_back;
 // Chipset DRAM initialization/calibration complete
 wire                                            init_calib_complete;
 
-wire                                        test_start;
-
 `ifdef PITONSYS_PCIE_CFG
 wire [`PITONSYS_SW_WIDTH-1:0] sw;
 `endif

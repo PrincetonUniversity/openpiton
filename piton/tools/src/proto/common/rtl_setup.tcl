@@ -28,7 +28,7 @@
 # Not intended to be run standalone
 #
 
-set GLOBAL_INCLUDE_DIRS "${DV_ROOT}/design/include ${DV_ROOT}/design/chipset/include ${DV_ROOT}/design/chip/tile/ariane/src/common_cells/include/"
+set GLOBAL_INCLUDE_DIRS "${DV_ROOT}/design/include ${DV_ROOT}/design/chipset/include ${DV_ROOT}/design/chip/tile/ariane/src/common_cells/include/ "
 
 # RTL include files
 set GLOBAL_INCLUDE_FILES [list \
@@ -47,6 +47,10 @@ set GLOBAL_INCLUDE_FILES [list \
 set GLOBAL_DEFAULT_VERILOG_MACROS "NO_SCAN FPGA_SYN PITON_FPGA_SYNTH PITON_PROTO"
 
 # RTL implementation files
+
+set PITON_AWS_RTL_IMPL_FILES [list \
+    "${DV_ROOT}/design/piton_aws/rtl/piton_aws.sv" \
+]
 
 set SYSTEM_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/rtl/system.v" \

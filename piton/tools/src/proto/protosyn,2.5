@@ -41,6 +41,7 @@ import image2stream as i2s
 from optparse import OptionParser
 from fpga_lib import *
 from dbg import *
+from datetime import datetime
 
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
@@ -182,7 +183,7 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
         print_error("Error submitting batch job")
         return None
 
-def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
+def run_vivado(log, script, args, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
     # Variables passed to TCL scripts
     os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
     os.environ['PROTOSYN_RUNTIME_BOARD'] = board
@@ -190,29 +191,15 @@ def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jna
 
     # use custom vivado version if provided
     if(os.environ.get('VIVADO_BIN')) is not None:
-        cmd = os.environ['VIVADO_BIN'].split(" ") + ["-mode", "batch", "-source", script]
+        cmd = os.environ['VIVADO_BIN'].split(" ") + ["-mode", "batch", "-source", script] + args
     else:
-        cmd = ["vivado", "-mode", "batch", "-source", script]
+        cmd = ["vivado", "-mode", "batch", "-source", script, "-tclargs"] + args
 
     if slurm:
         return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
     else:
         flog = open(log, "w")
-        subprocess.call(cmd, stdout=flog)
-        flog.close()
-        return None
-
-def run_f1_script(log, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
-    # Variables passed to TCL scripts
-    os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
-    os.environ['PROTOSYN_RUNTIME_BOARD'] = board
-
-    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify", "-clock_recipe_a", "A0", "-clock_recipe_b", "B1", "-clock_recipe_c", "C2"]
-    if slurm:
-        return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
-    else:
-        flog = open(log, "w")
-        subprocess.call(cmd, stdout=flog)
+        subprocess.call(cmd, stdout=flog, stderr=flog)
         flog.close()
         return None
 
@@ -230,44 +217,41 @@ def run_ise(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname,
         flog.close()
         return None
 
-def runImplF1(board, design_data, src_dir, work_dir, log_dir, def_list, slurm, dep_list):
+def runImplF1(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
     prev_dir = os.getcwd()
-
-    # Copy all sources in ppp/build/... , and set new CL_DIR
-    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "build") + " " + work_dir)
-    if not os.path.exists(os.path.join(work_dir, "design", "xilinx")):
-        os.makedirs(os.path.join(work_dir, "design", "xilinx"))
-    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "design", "cl_id_defines.vh") + " " + os.path.join(work_dir, "design"))
-    os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "f1") + " " + os.path.join(work_dir, "design", "xilinx"))
-    os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "design.tcl") + " " + os.path.join(work_dir, "design", "xilinx", "design.tcl"))
-    os.environ["ORIGINAL_CL_DIR"] = os.environ["CL_DIR"]
-    os.environ["CL_DIR"] = work_dir
-
-    #hack to fight with aws scripts assuming we have SH_DDR in top module
-    #aws_constraints_inpath = os.path.join(os.environ["HDK_SHELL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    #aws_constraints_outpath = os.path.join(os.environ["CL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    #os.system("sed 's/SH_DDR/sh_ddr/g' " + aws_constraints_inpath + " > " + aws_constraints_outpath)
-    
-    # Ok, lets go build staff finally
-    os.chdir(os.path.join(work_dir, "build", "scripts"))
+    os.chdir(work_dir)
+    os.environ['CL_BUILD_DIR'] = work_dir 
 
     # Generate additional defines file that will be sourced in tcl script
     f = open("additional_defines.tcl", "w")
     print >> f, "set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list)
     f.close()
 
-    tool = find_board_tool(board)
-
-    #dname = board + "_piton"
-    #os.chdir(dname)
-    print_info("Generating DCP for AWS F1 in nohup")
+    print_info("Generating DCP for AWS F1")
     design_board_dir = os.path.join(design_data["PATH"], board)
     impl_log = os.path.join(log_dir, PROJECT_IMPL_LOG)
+    impl_flow = os.path.join(DV_ROOT, "tools/src/proto/vivado/f1", "create_dcp_from_cl.tcl")
     jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
-    jid = run_f1_script(impl_log, design_data["PATH"], board, \
-                     slurm, 8, 64000, "6:00:00", jname, dep_list)
-    print_info("Log available at %s" % os.path.join(os.getcwd(), "last_log"))
+    
+    timestamp = datetime.now().strftime("%m_%d_%Y-%H%M%S")
+    strategy = "DEFAULT"
+    hdk_version = re.search(r"[\d.]+", str(subprocess.check_output(["grep", "HDK_VERSION" , os.path.join(os.environ["HDK_DIR"],"hdk_version.txt")]))).group()
+    shell_version = re.search(r"0x\d+", str(subprocess.check_output(["grep", "SHELL_VERSION" , os.path.join(os.environ["HDK_SHELL_DIR"],"shell_version.txt")]))).group()
+    # Next 4 fields must stay consistent with CL_SH_ID0(1) defines in piton_aws.sv
+    device_id = "0xF001"
+    vendor_id = "0x1D0F"
+    subsystem_id = "0x1D51"
+    subsystem_vendor_id = "0xFEDC"
+    clock_recipe_a = "A0"
+    clock_recipe_b = "B1"
+    clock_recipe_c = "C2"
+    uram_option = "2" 
+    notify = "0" 
+    opt_vdefine = " "
+    args = [timestamp, strategy, hdk_version, shell_version, device_id, vendor_id, subsystem_id, subsystem_vendor_id, clock_recipe_a, clock_recipe_b, clock_recipe_c, uram_option, notify, opt_vdefine]
 
+    jid = run_vivado(impl_log, impl_flow, args, design_data["PATH"], board, \
+                     slurm, 8, 64000, "6:00:00", jname, dep_list)
     os.chdir(prev_dir)
 
     return jid
@@ -286,9 +270,10 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     proj_script = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/gen_project.tcl")
     proj_log = os.path.join(log_dir, PROJECT_BUILD_LOG)
     jname = "protosyn_mkproj_%s_%s" % (board, design_data["ID"])
+    args = []
     jid = None
     if (tool == "vivado"):
-        jid = run_vivado(proj_log, proj_script, design_data["PATH"], board, \
+        jid = run_vivado(proj_log, proj_script, args, design_data["PATH"], board, \
                          slurm, 1, 4096, "1:00:00", jname, dep_list)
     elif (tool == "ise") :
         jid = run_ise(proj_log, proj_script, design_data["PATH"], board, \
@@ -332,9 +317,10 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
     impl_log = os.path.join(log_dir, PROJECT_IMPL_LOG)
     impl_flow = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/impl_flow.tcl")
     jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
+    args = []
     jid = None
     if (tool == "vivado"):
-        jid = run_vivado(impl_log, impl_flow, design_data["PATH"], board, \
+        jid = run_vivado(impl_log, impl_flow, args, design_data["PATH"], board, \
                          slurm, 8, 64000, "6:00:00", jname, dep_list)
     elif (tool == "ise"):
         jid = run_ise(impl_log, impl_flow, design_data["PATH"], board, \
@@ -918,11 +904,13 @@ def main():
 
     # f1
     if run_f1_impl:
-        src = os.path.join(os.environ["HDK_DIR"], "cl", "developer_designs", "piton_aws")
-        jid = runImplF1(options.board, design_data, src, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
+        if int(options.jobs)>1:
+            print_info("Using %d jobs in Vivado" % int(options.jobs))
+        os.environ['NUM_VIVADO_JOBS']   = str(int(options.jobs))
+        jid = runImplF1(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
         if jid != None:
             dep_list.append(jid)
-
+        
 
     ####################################################################################
     # Waiting for all previous jobs to finish before checking results
@@ -948,6 +936,13 @@ def main():
             if exit_code == 0:
                 print_info("Checking Project Implementation results")
                 if not implFlowSuccess(rc_dir.log, rc_dir.run):
+                    exit_code = 1
+
+        if run_f1_impl:
+            # check implementation only if project build was successfull
+            if exit_code == 0:
+                print_info("Checking DCP generation results")
+                if not implF1FlowSuccess(rc_dir.log, rc_dir.work):
                     exit_code = 1
 
     os.chdir(prev_dir)
