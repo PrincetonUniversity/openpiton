@@ -374,8 +374,8 @@ module chipset(
         output                                      uart_tx,
         input                                       uart_rx,
         `ifdef PITONSYS_UART2
-            output                                      uart_tx2,
-            input                                       uart_rx2,
+            output                                      uart2_tx,
+            input                                       uart2_rx,
         `endif // ifdef PITONSYS_UART2
         `ifdef PITONSYS_UART_BOOT
             `ifndef PITONSYS_CHIPSET_TOP

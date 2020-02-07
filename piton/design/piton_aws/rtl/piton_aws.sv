@@ -200,8 +200,8 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
         logic piton_uart_tx;
         logic piton_uart_rx;
         `ifdef PITONSYS_UART2
-            logic piton_uart_tx2;
-            logic piton_uart_rx2;
+            logic piton_uart2_tx;
+            logic piton_uart2_rx;
         `endif
     `endif
 
@@ -296,7 +296,7 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
             .pcie_dma_axi_arregion(),
             .pcie_dma_axi_aruser(),
             .pcie_dma_axi_arvalid(sh_cl_dma_pcis_arvalid),
-            .pcie_dma_axi_arready(sh_cl_dma_pcis_arready),
+            .pcie_dma_axi_arready(cl_sh_dma_pcis_arready),
             .pcie_dma_axi_rid(cl_sh_dma_pcis_rid),
             .pcie_dma_axi_rdata(cl_sh_dma_pcis_rdata),
             .pcie_dma_axi_rresp(cl_sh_dma_pcis_rresp),
@@ -317,8 +317,8 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
         .uart_tx(piton_uart_tx),
         .uart_rx(piton_uart_rx),
         `ifdef PITONSYS_UART2
-            .uart_tx2(piton_uart_tx2),
-            .uart_rx2(piton_uart_rx2),
+            .uart2_tx(piton_uart2_tx),
+            .uart2_rx(piton_uart2_rx),
         `endif
     `endif
 
@@ -386,11 +386,11 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
     `endif
 
     `ifdef PITONSYS_UART2
-        logic shell_uart_tx2;
-        logic shell_uart_rx2;
+        logic shell_uart2_tx;
+        logic shell_uart2_rx;
 
-        assign shell_uart_rx2 = piton_uart_tx2;
-        assign piton_uart_rx2 = shell_uart_tx2;
+        assign shell_uart2_rx = piton_uart2_tx;
+        assign piton_uart2_rx = shell_uart2_tx;
 
 
         uart_16550 aws_uart2 (
@@ -428,8 +428,8 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
             .rin              (1'b0),  
             .rtsn             (),   
             .rxrdyn           (),   
-            .sin              (shell_uart_rx2),  
-            .sout             (shell_uart_tx2),  
+            .sin              (shell_uart2_rx),  
+            .sout             (shell_uart2_tx),  
             .txrdyn           ()    
         );
     `endif
