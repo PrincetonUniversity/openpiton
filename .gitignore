@@ -102,6 +102,9 @@ ucli.key
 *.tmp.v
 *.tmp.h
 
+#ignore aws file with generated clocks 
+piton/design/piton_aws/xilinx/f1/cl_clocks_aws.xdc
+
 # Ignore generated .pyc files (specifically for pyhplib)
 *.pyc
 
