@@ -89,9 +89,9 @@ def main():
         exitProgram(1)
 
     if options.board == "xupp3r":
-        subprocess.call(os.path.join(script_folder, "./piton_reset_pci.py"))
+        subprocess.call(["sudo", os.path.join(script_folder, "./piton_reset_pci.py")])
     elif options.board == "f1":
-        subprocess.call(os.path.join(script_folder, "./piton_reset_f1.py"))
+        subprocess.call(["sudo", os.path.join(script_folder, "./piton_reset_f1.py")])
 
 
 if __name__ == '__main__':
