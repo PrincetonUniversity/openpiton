@@ -638,7 +638,7 @@ def makeMemMapping(st_brd, work_dir, log_dir):
 def genUARTInit(board, design_data):
     print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][board]["FREQ"])
     div = calcUARTLatch(design_data, board)
-    path = os.path.join(DV_ROOT, "design/chipset/io_ctrl/xilinx/")
+    path = os.path.join(DV_ROOT, "design/chipset/uart/xilinx/")
     path = os.path.join(path, board, "ip_cores/atg_uart_init/uart_data.coe")
     f = open(path, 'w')
     print >> f, "memory_initialization_radix=16;"
