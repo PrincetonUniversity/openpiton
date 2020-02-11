@@ -104,7 +104,7 @@ module mc_top (
         input                           mc_clk_n,
 
         output                          ddr_act_n,
-        output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
+        output [`DDR_BG_WIDTH-1:0]     ddr_bg,
     `else // PITONSYS_DDR4
         input                           mc_clk,
 
@@ -113,28 +113,28 @@ module mc_top (
         output                          ddr_we_n,
     `endif // PITONSYS_DDR4
 
-        output [`DDR3_ADDR_WIDTH-1:0]   ddr_addr,
-        output [`DDR3_BA_WIDTH-1:0]     ddr_ba,
-        output [`DDR3_CK_WIDTH-1:0]     ddr_ck_n,
-        output [`DDR3_CK_WIDTH-1:0]     ddr_ck_p,
-        output [`DDR3_CKE_WIDTH-1:0]    ddr_cke,
+        output [`DDR_ADDR_WIDTH-1:0]   ddr_addr,
+        output [`DDR_BA_WIDTH-1:0]     ddr_ba,
+        output [`DDR_CK_WIDTH-1:0]     ddr_ck_n,
+        output [`DDR_CK_WIDTH-1:0]     ddr_ck_p,
+        output [`DDR_CKE_WIDTH-1:0]    ddr_cke,
         output                          ddr_reset_n,
-        inout  [`DDR3_DQ_WIDTH-1:0]     ddr_dq,
-        inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_n,
-        inout  [`DDR3_DQS_WIDTH-1:0]    ddr_dqs_p,
+        inout  [`DDR_DQ_WIDTH-1:0]     ddr_dq,
+        inout  [`DDR_DQS_WIDTH-1:0]    ddr_dqs_n,
+        inout  [`DDR_DQS_WIDTH-1:0]    ddr_dqs_p,
     `ifndef NEXYSVIDEO_BOARD
-        output [`DDR3_CS_WIDTH-1:0]     ddr_cs_n,
+        output [`DDR_CS_WIDTH-1:0]     ddr_cs_n,
     `endif // endif NEXYSVIDEO_BOARD
     `ifdef PITONSYS_DDR4
     `ifdef XUPP3R_BOARD
         output                          ddr_parity,
     `else
-        inout [`DDR3_DM_WIDTH-1:0]      ddr_dm,
+        inout [`DDR_DM_WIDTH-1:0]      ddr_dm,
     `endif // XUPP3R_BOARD
     `else // PITONSYS_DDR4
-        output [`DDR3_DM_WIDTH-1:0]     ddr_dm,
+        output [`DDR_DM_WIDTH-1:0]     ddr_dm,
     `endif // PITONSYS_DDR4
-        output [`DDR3_ODT_WIDTH-1:0]    ddr_odt
+        output [`DDR_ODT_WIDTH-1:0]    ddr_odt
 
 `else // F1_BOARD
     input                                    ddr_axi_clk,
@@ -645,23 +645,23 @@ ddr4_0 i_ddr4_0 (
 mig_7series_0   mig_7series_0 (
     // Memory interface ports
 `ifndef NEXYS4DDR_BOARD
-    .ddr3_addr                      (ddr_addr),
-    .ddr3_ba                        (ddr_ba),
-    .ddr3_cas_n                     (ddr_cas_n),
-    .ddr3_ck_n                      (ddr_ck_n),
-    .ddr3_ck_p                      (ddr_ck_p),
-    .ddr3_cke                       (ddr_cke),
-    .ddr3_ras_n                     (ddr_ras_n),
-    .ddr3_reset_n                   (ddr_reset_n),
-    .ddr3_we_n                      (ddr_we_n),
-    .ddr3_dq                        (ddr_dq),
-    .ddr3_dqs_n                     (ddr_dqs_n),
-    .ddr3_dqs_p                     (ddr_dqs_p),
+    .DDR_addr                      (ddr_addr),
+    .DDR_ba                        (ddr_ba),
+    .DDR_cas_n                     (ddr_cas_n),
+    .DDR_ck_n                      (ddr_ck_n),
+    .DDR_ck_p                      (ddr_ck_p),
+    .DDR_cke                       (ddr_cke),
+    .DDR_ras_n                     (ddr_ras_n),
+    .DDR_reset_n                   (ddr_reset_n),
+    .DDR_we_n                      (ddr_we_n),
+    .DDR_dq                        (ddr_dq),
+    .DDR_dqs_n                     (ddr_dqs_n),
+    .DDR_dqs_p                     (ddr_dqs_p),
 `ifndef NEXYSVIDEO_BOARD
-    .ddr3_cs_n                      (ddr_cs_n),
+    .DDR_cs_n                      (ddr_cs_n),
 `endif // endif NEXYSVIDEO_BOARD
-    .ddr3_dm                        (ddr_dm),
-    .ddr3_odt                       (ddr_odt),
+    .DDR_dm                        (ddr_dm),
+    .DDR_odt                       (ddr_odt),
 `else // ifdef NEXYS4DDR_BOARD
     .ddr2_addr                      (ddr_addr),
     .ddr2_ba                        (ddr_ba),
@@ -1292,23 +1292,23 @@ ddr4_axi4 ddr_axi4 (
 mig_7series_axi4 u_mig_7series_axi4 (
 
     // Memory interface ports
-    .ddr3_addr                      (ddr_addr),  // output [13:0]      ddr3_addr
-    .ddr3_ba                        (ddr_ba),  // output [2:0]     ddr3_ba
-    .ddr3_cas_n                     (ddr_cas_n),  // output            ddr3_cas_n
-    .ddr3_ck_n                      (ddr_ck_n),  // output [0:0]       ddr3_ck_n
-    .ddr3_ck_p                      (ddr_ck_p),  // output [0:0]       ddr3_ck_p
-    .ddr3_cke                       (ddr_cke),  // output [0:0]        ddr3_cke
-    .ddr3_ras_n                     (ddr_ras_n),  // output            ddr3_ras_n
-    .ddr3_reset_n                   (ddr_reset_n),  // output          ddr3_reset_n
-    .ddr3_we_n                      (ddr_we_n),  // output         ddr3_we_n
-    .ddr3_dq                        (ddr_dq),  // inout [63:0]     ddr3_dq
-    .ddr3_dqs_n                     (ddr_dqs_n),  // inout [7:0]       ddr3_dqs_n
-    .ddr3_dqs_p                     (ddr_dqs_p),  // inout [7:0]       ddr3_dqs_p
+    .DDR_addr                      (ddr_addr),  // output [13:0]      DDR_addr
+    .DDR_ba                        (ddr_ba),  // output [2:0]     DDR_ba
+    .DDR_cas_n                     (ddr_cas_n),  // output            DDR_cas_n
+    .DDR_ck_n                      (ddr_ck_n),  // output [0:0]       DDR_ck_n
+    .DDR_ck_p                      (ddr_ck_p),  // output [0:0]       DDR_ck_p
+    .DDR_cke                       (ddr_cke),  // output [0:0]        DDR_cke
+    .DDR_ras_n                     (ddr_ras_n),  // output            DDR_ras_n
+    .DDR_reset_n                   (ddr_reset_n),  // output          DDR_reset_n
+    .DDR_we_n                      (ddr_we_n),  // output         DDR_we_n
+    .DDR_dq                        (ddr_dq),  // inout [63:0]     DDR_dq
+    .DDR_dqs_n                     (ddr_dqs_n),  // inout [7:0]       DDR_dqs_n
+    .DDR_dqs_p                     (ddr_dqs_p),  // inout [7:0]       DDR_dqs_p
     .init_calib_complete            (init_calib_complete),  // output           init_calib_complete
       
-    .ddr3_cs_n                      (ddr_cs_n),  // output [0:0]       ddr3_cs_n
-    .ddr3_dm                        (ddr_dm),  // output [7:0]     ddr3_dm
-    .ddr3_odt                       (ddr_odt),  // output [0:0]        ddr3_odt
+    .DDR_cs_n                      (ddr_cs_n),  // output [0:0]       DDR_cs_n
+    .DDR_dm                        (ddr_dm),  // output [7:0]     DDR_dm
+    .DDR_odt                       (ddr_odt),  // output [0:0]        DDR_odt
 
     // Application interface ports
     .ui_clk                         (ui_clk),  // output            ui_clk

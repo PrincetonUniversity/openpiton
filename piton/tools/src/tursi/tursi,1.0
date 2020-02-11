@@ -193,7 +193,7 @@ def makeDefList(options):
     if (options.no_ddr == True) or (options.board == "piton_board"):
         defines.append("PITONSYS_NO_MC")
     else:   # default option
-        defines.append("PITON_FPGA_MC_DDR3")
+        defines.append("PITON_FPGA_MC_DDR")
 
     # do not use SD controller if BRAM is used for boot or a test
     if (options.test_name != None) or (options.board == "piton_board"):

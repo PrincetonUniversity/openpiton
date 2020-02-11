@@ -539,7 +539,7 @@ assign app_en        = r_app_en;
 
 wire  [CL_ADDR_WIDTH-1:0]   cl_addr_uart_boot;
 wire  [`MSG_ADDR_WIDTH-1:0]   app_addr_virt;
-wire  [`MIG_APP_ADDR_WIDTH-1:0] storage_addr_out;   // addressable in DDR3_DQ_WIDTH
+wire  [`MIG_APP_ADDR_WIDTH-1:0] storage_addr_out;   // addressable in DDR_DQ_WIDTH
 assign app_addr_virt = pkt_w2[buf_current_cmd][`MSG_ADDR_];
 
 `ifdef PITONSYS_UART_BOOT
@@ -553,7 +553,7 @@ assign app_addr_virt = pkt_w2[buf_current_cmd][`MSG_ADDR_];
     .storage_addr_out   (storage_addr_out     )
   );
 
-  // make byte address from DDR3_DQ_WIDTH address
+  // make byte address from DDR_DQ_WIDTH address
   // get cache line addres from above address
   assign cl_addr_uart_boot   = {storage_addr_out, {WORD_SIZE_LOG{1'b0}}} >> 6;
   assign cl_addr      = uart_boot_en ? cl_addr_uart_boot : 

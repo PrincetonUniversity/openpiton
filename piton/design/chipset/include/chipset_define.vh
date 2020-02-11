@@ -50,14 +50,14 @@
 `define RD_START_ADDR       40'haaaaaaaaaa
 `define RD_STOP_ADDR        40'hffffffffff
 
-`define DDR3_MAX_ADDR       40'h8000000   // 2**27 of 8 bytes (1 GB)
+`define DDR_MAX_ADDR        40'h8000000   // 2**27 of 8 bytes (1 GB)
 `define BOOT_SIZE           40'h20000     // 2**17 of 8 bytes (1 MB)
 `define DISK_SIZE           40'h800000    // 2**23 of 8 bytes (64 MB)
 
 `define VA_BOOT_BASE        40'hfff0000000
-`define MIG_BOOT_BASE       `DDR3_MAX_ADDR - `BOOT_SIZE
+`define MIG_BOOT_BASE       `DDR_MAX_ADDR - `BOOT_SIZE
 `define VA_DISK_BASE        40'hfff1000000
-`define MIG_DISK_BASE       `DDR3_MAX_ADDR - `BOOT_SIZE - `DISK_SIZE
+`define MIG_DISK_BASE       `DDR_MAX_ADDR - `BOOT_SIZE - `DISK_SIZE
 
 `define PC_FLIT_WIDTH       8
 `define PC_ADDR_WIDTH       40

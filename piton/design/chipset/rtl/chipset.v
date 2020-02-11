@@ -63,7 +63,7 @@
 //                              in the testing of the Piton system, where a small test
 //                              can be run on the chip with DRAM
 //                              emulated in BRAMs
-//  PITON_FPGA_MC_DDR3          Set to indicate an FPGA implementation will
+//  PITON_FPGA_MC_DDR           Set to indicate an FPGA implementation will
 //                              use a DDR2/3 memory controller.  If
 //                              this is not set, a default "fake"
 //                              simulated DRAM is used.
@@ -108,9 +108,9 @@ module chipset(
     input                                       chipset_clk,
 
     `ifndef PITONSYS_NO_MC
-    `ifdef PITON_FPGA_MC_DDR3
+    `ifdef PITON_FPGA_MC_DDR
         input                                       mc_clk,
-    `endif // endif PITON_FPGA_MC_DDR3
+    `endif // endif PITON_FPGA_MC_DDR
     `endif // endif PITONSYS_NO_MC
 
     `ifdef PITONSYS_SPI
@@ -219,40 +219,40 @@ module chipset(
 
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
-`ifdef PITON_FPGA_MC_DDR3
+`ifdef PITON_FPGA_MC_DDR
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
 `ifndef F1_BOARD
 `ifdef PITONSYS_DDR4
     output                                      ddr_act_n,
-    output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
+    output [`DDR_BG_WIDTH-1:0]                 ddr_bg,
 `else // PITONSYS_DDR4           
     output                                      ddr_cas_n,
     output                                      ddr_ras_n,
     output                                      ddr_we_n,
 `endif // PITONSYS_DDR4
-    output [`DDR3_ADDR_WIDTH-1:0]               ddr_addr,
-    output [`DDR3_BA_WIDTH-1:0]                 ddr_ba,
-    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_n,
-    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_p,
-    output [`DDR3_CKE_WIDTH-1:0]                ddr_cke,
+    output [`DDR_ADDR_WIDTH-1:0]               ddr_addr,
+    output [`DDR_BA_WIDTH-1:0]                 ddr_ba,
+    output [`DDR_CK_WIDTH-1:0]                 ddr_ck_n,
+    output [`DDR_CK_WIDTH-1:0]                 ddr_ck_p,
+    output [`DDR_CKE_WIDTH-1:0]                ddr_cke,
     output                                      ddr_reset_n,
-    inout  [`DDR3_DQ_WIDTH-1:0]                 ddr_dq,
-    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_n,
-    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_p,
+    inout  [`DDR_DQ_WIDTH-1:0]                 ddr_dq,
+    inout  [`DDR_DQS_WIDTH-1:0]                ddr_dqs_n,
+    inout  [`DDR_DQS_WIDTH-1:0]                ddr_dqs_p,
 `ifndef NEXYSVIDEO_BOARD
-    output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
+    output [`DDR_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
 `ifdef XUPP3R_BOARD
     output                                      ddr_parity,
 `else
-    inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
+    inout [`DDR_DM_WIDTH-1:0]                  ddr_dm,
 `endif // XUPP3R_BOARD
 `else // PITONSYS_DDR4
-    output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
+    output [`DDR_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
-    output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
+    output [`DDR_ODT_WIDTH-1:0]                ddr_odt,
 `else // F1_BOARD
     input                                    ddr_axi_clk,
     input                                    ddr_axi_resetn,
@@ -352,7 +352,7 @@ module chipset(
     input                                pcie_dma_axi_bready,
 `endif // PITONSYS_PCIE_DMA
 `endif // ifndef F1_BOARD
-`endif //`ifdef PITON_FPGA_MC_DDR3
+`endif //`ifdef PITON_FPGA_MC_DDR
 `endif // endif PITONSYS_NO_MC
 
 `ifdef PITONSYS_PCIE
@@ -932,10 +932,10 @@ end
             .chipset_clk(chipset_clk)
 
             `ifndef PITONSYS_NO_MC
-            `ifdef PITON_FPGA_MC_DDR3
+            `ifdef PITON_FPGA_MC_DDR
                 // Memory controller clock
                 , .mc_sys_clk(mc_clk)
-            `endif // endif PITON_FPGA_MC_DDR3
+            `endif // endif PITON_FPGA_MC_DDR
             `endif // endif PITONSYS_NO_MC
 
             `ifdef PITONSYS_SPI
@@ -1297,7 +1297,7 @@ chipset_impl_noc_power_test  chipset_impl (
 `endif
 
     `ifndef PITONSYS_NO_MC
-    `ifdef PITON_FPGA_MC_DDR3
+    `ifdef PITON_FPGA_MC_DDR
     `ifndef F1_BOARD
         // Memory controller clock
         `ifdef PITONSYS_DDR4
@@ -1307,7 +1307,7 @@ chipset_impl_noc_power_test  chipset_impl (
             .mc_clk(mc_clk),
         `endif  // PITONSYS_DDR4                               
     `endif // ifndef F1_BOARD
-    `endif // endif PITON_FPGA_MC_DDR3
+    `endif // endif PITON_FPGA_MC_DDR
     `endif // endif PITONSYS_NO_MC
 
     .chipset_intf_data_noc1(chipset_intf_data_noc1),
@@ -1349,7 +1349,7 @@ chipset_impl_noc_power_test  chipset_impl (
 
     // DRAM and I/O interfaces
     `ifndef PITONSYS_NO_MC
-        `ifdef PITON_FPGA_MC_DDR3 
+        `ifdef PITON_FPGA_MC_DDR
             ,
             .init_calib_complete(init_calib_complete),
             `ifndef F1_BOARD
@@ -1483,7 +1483,7 @@ chipset_impl_noc_power_test  chipset_impl (
                     .pcie_dma_axi_bready(pcie_dma_axi_bready)
                 `endif // PITONSYS_PCIE_DMA
             `endif //ifndef F1_BOARD
-        `endif // endif PITON_FPGA_MC_DDR3
+        `endif // endif PITON_FPGA_MC_DDR
     `endif // endif PITONSYS_NO_MC
 
     `ifdef PITONSYS_IOCTRL
