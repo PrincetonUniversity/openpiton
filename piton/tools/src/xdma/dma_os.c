@@ -41,16 +41,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/*
- * man 2 write:
- * On Linux, write() (and similar system calls) will transfer at most
- * 	0x7ffff000 (2,147,479,552) bytes, returning the number of bytes
- *	actually transferred.  (This is true on both 32-bit and 64-bit
- *	systems.)
- */
-
-#define RW_MAX_SIZE	0x7ffff000
-
 static struct option const long_opts[] = {
 	{"data infile", required_argument, NULL, 'f'},
 	{"board boardname", required_argument, NULL, 'b'},
@@ -61,13 +51,11 @@ static struct option const long_opts[] = {
 
 static int verbose = 0;
 
-#define WR_DEVICE "/dev/xdma0_h2c_0"
-#define RD_DEVICE "/dev/xdma0_c2h_0"
+#define WR_DEVICE "/dev/xdma1_h2c_0"
+#define RD_DEVICE "/dev/xdma1_c2h_0"
 #define SIZE_DEFAULT (1048576ULL * 8)
 
 static int dma_file(uint64_t addr, char *filename);
-static ssize_t read_to_buffer(char *fname, int fd, char *buffer, uint64_t size, uint64_t base);
-static ssize_t write_from_buffer(char *fname, int fd, char *buffer, uint64_t size, uint64_t base);
 void timespec_sub(struct timespec *t1, struct timespec *t2);
 static void usage(const char *name);
 uint64_t get_address(char* boardname);
@@ -133,7 +121,7 @@ static int dma_file(uint64_t addr, char *infname)
 	ssize_t rc;
 	uint64_t size = SIZE_DEFAULT;
 
-	int fpga_wr_fd = open(WR_DEVICE, O_RDWR);
+	int fpga_wr_fd = open(WR_DEVICE, O_WRONLY);
 	if (fpga_wr_fd < 0) {
 		fprintf(stderr, "unable to open device %s.\n", WR_DEVICE);
 		perror("open device");
@@ -185,16 +173,16 @@ static int dma_file(uint64_t addr, char *infname)
         size = remaining > SIZE_DEFAULT ? SIZE_DEFAULT : remaining; 
         remaining -= size;
 
-	    rc = read_to_buffer(infname, infile_fd, write_buffer, size, file_offset);
+		rc = pread(infile_fd, write_buffer, size, file_offset);
+
         if (rc < 0) {
 		    fprintf(stderr, "couldn't read %ld bytes from infile offset %ld.\n", size, file_offset);
 			goto out;
         }
 		
-        /* write buffer to AXI MM address using SGDMA */
 		rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
-		rc = write_from_buffer(WR_DEVICE, fpga_wr_fd, write_buffer, size, addr);
+		rc = pwrite(fpga_wr_fd, write_buffer, size, addr);
         if (rc < 0) {
 		    fprintf(stderr, "couldn't write %ld bytes to FPGA address 0x%lx.\n", size, addr);
 			goto out;
@@ -211,14 +199,14 @@ static int dma_file(uint64_t addr, char *infname)
 			ts_end.tv_sec, ts_end.tv_nsec, size, addr); 
        
         /* verify the correctness of written data */ 
-		rc = read_to_buffer(RD_DEVICE, fpga_rd_fd, read_buffer, size, addr);
+		rc = pread(fpga_rd_fd, read_buffer, size, addr);
         if (rc < 0) {
 		    fprintf(stderr, "couldn't read %ld bytes from FPGA address 0x%lx.\n", size, addr);
 			goto out;
         }
         
         if (memcmp(read_buffer, write_buffer, size)) {
-		    fprintf(stderr, "read and written data inconsistent.");
+		    fprintf(stderr, "read and written data inconsistent.\n");
 		    rc = -EINVAL;
 		    goto out;
         }
@@ -252,105 +240,6 @@ out:
 
 	return rc;
 }
-
-ssize_t read_to_buffer(char *fname, int fd, char *buffer, uint64_t size,
-			uint64_t base)
-{
-	ssize_t rc;
-	uint64_t count = 0;
-	char *buf = buffer;
-	off_t offset = base;
-
-	while (count < size) {
-		uint64_t bytes = size - count;
-
-		if (bytes > RW_MAX_SIZE)
-			bytes = RW_MAX_SIZE;
-
-		if (offset) {
-			rc = lseek(fd, offset, SEEK_SET);
-			if (rc != offset) {
-				fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n",
-					fname, rc, offset);
-				perror("seek file");
-				return -EIO;
-			}
-		}
-
-		/* read data from file into memory buffer */
-		rc = read(fd, buf, bytes);
-		if (rc != bytes) {
-			fprintf(stderr, "%s, R off 0x%lx, 0x%lx != 0x%lx.\n",
-				fname, count, rc, bytes);
-				perror("read file");
-			return -EIO;
-		}
-
-		count += bytes;
-		buf += bytes;
-		offset += bytes;
-	}	 
-
-	if (count != size) {
-		fprintf(stderr, "%s, R failed 0x%lx != 0x%lx.\n",
-				fname, count, size);
-		return -EIO;
-	}
-	return count;
-}
-
-ssize_t write_from_buffer(char *fname, int fd, char *buffer, uint64_t size,
-			uint64_t base)
-{
-	ssize_t rc;
-	uint64_t count = 0;
-	char *buf = buffer;
-	off_t offset = base;
-
-	while (count < size) {
-		uint64_t bytes = size - count;
-
-		if (bytes > RW_MAX_SIZE)
-			bytes = RW_MAX_SIZE;
-
-		if (offset) {
-			rc = lseek(fd, offset, SEEK_SET);
-			if (rc != offset) {
-				fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n",
-					fname, rc, offset);
-				perror("seek file");
-				return -EIO;
-			}
-		}
-
-		/* write data to file from memory buffer */
-		rc = write(fd, buf, bytes);
-		if (rc != bytes) {
-			fprintf(stderr, "%s, W off 0x%lx, 0x%lx != 0x%lx.\n",
-				fname, offset, rc, bytes);
-				perror("write file");
-			return -EIO;
-		}
-
-		count += bytes;
-		buf += bytes;
-		offset += bytes;
-	}	 
-
-	if (count != size) {
-		fprintf(stderr, "%s, R failed 0x%lx != 0x%lx.\n",
-				fname, count, size);
-		return -EIO;
-	}
-	return count;
-}
-
-
-/* Subtract timespec t2 from t1
- *
- * Both t1 and t2 must already be normalized
- * i.e. 0 <= nsec < 1000000000
- */
 
 
 static int timespec_check(struct timespec *t)
