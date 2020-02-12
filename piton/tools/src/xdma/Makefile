@@ -36,15 +36,8 @@ all: dma_os f1_uart
 dma_os: dma_os.c
 	gcc $(CFLAGS) -o $@ dma_os.c -lrt  $(LDLIBS) $(INCLUDES)
 
-f1_uart: f1_uart.c f1_uart.h check_f1_env 
+f1_uart: f1_uart.c f1_uart.h 
 	gcc $(CFLAGS) -o $@ f1_uart.c $(F1_LDLIBS) $(LDLIBS) $(F1_INCLUDES) $(INCLUDES) 
-
-
-
-check_f1_env:
-ifndef SDK_DIR
-    $(error SDK_DIR is undefined. Try "source sdk_setup.sh" to set the software environment)
-endif
 
 clean:
 	rm -rf dma_os f1_uart 
