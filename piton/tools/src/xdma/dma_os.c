@@ -94,11 +94,13 @@ int main(int argc, char *argv[])
 
     if (!infname) {
         fprintf(stderr, "input file name not provided.\n");
+        usage(argv[0]);
         return -EINVAL;
     }
     
     if (!boardname) {
         fprintf(stderr, "board name not provided.\n");
+        usage(argv[0]);
         return -EINVAL;
     }
 
@@ -215,6 +217,7 @@ static int dma_file(uint64_t addr, char *infname)
         }
         
         if (memcmp(read_buffer, write_buffer, size)) {
+	    printf("%d %d \n", read_buffer[0], write_buffer[0]);
             fprintf(stderr, "read and written data inconsistent.\n");
             rc = -EINVAL;
             goto out;
