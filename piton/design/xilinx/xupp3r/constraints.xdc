@@ -46,13 +46,14 @@ set_property -dict {PACKAGE_PIN AT23 IOSTANDARD LVCMOS18} [get_ports sys_rst_n]
 # False paths
 set_false_path -to [get_cells -hierarchical *afifo_ui_rst_r*]
 set_false_path -to [get_cells -hierarchical *ui_clk_sync_rst_r*]
-set_false_path -to [get_cells -hierarchical *ui_clk_syn_rst_delayed*]
 set_false_path -to [get_cells -hierarchical *chipset_rst_n*]
 set_false_path -to [get_cells -hierarchical *init_calib_complete_f*]
+set_false_path -to [get_cells -hierarchical *pcie_dma_axi_resetn*]
 set_false_path -from [get_cells -hierarchical *init_calib_complete_f*]
 set_false_path -from [get_cells -hierarchical *chipset_rst_n*]
 set_false_path -from [get_cells -hierarchical *rstn_reg*]
 set_false_path -from [get_cells -hierarchical *sw_reg*]
+set_false_path -from [get_cells -hierarchical *pcie_dma_axi_resetn*]
 
 #### UART
 set_property -dict {PACKAGE_PIN AM24 IOSTANDARD LVCMOS18} [get_ports uart_tx]

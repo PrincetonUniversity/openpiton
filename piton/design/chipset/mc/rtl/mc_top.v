@@ -191,6 +191,11 @@ module mc_top (
 
 reg init_calib_complete_f;
 reg init_calib_complete_ff;
+wire mc_rst_n;
+reg sys_rst_n_f;
+reg sys_rst_n_ff;
+wire zeroer_rst_n;
+
 
 `ifndef F1_BOARD
 wire                                init_calib_complete;
@@ -464,6 +469,37 @@ assign app_ref_req = 1'b0;
 assign app_sr_req = 1'b0;
 assign app_zq_req = 1'b0;
 
+/*
+ * If DMA is enabled, reset memory controller and axi_innterconnect 
+ * with pcie reset signal, and memory zeroer with sys_rst_n. 
+ * This allows loading image onto FPGA while holding all logic in rst state.
+ */
+
+`ifdef PITONSYS_PCIE_DMA
+// route from PCI to MC is too long, add auxilary regs
+reg pcie_dma_axi_resetn_f;
+reg pcie_dma_axi_resetn_ff;
+always @(posedge pcie_dma_axi_clk) begin
+    pcie_dma_axi_resetn_f <= pcie_dma_axi_resetn;
+    pcie_dma_axi_resetn_ff <= pcie_dma_axi_resetn_f;
+end
+assign mc_rst_n = pcie_dma_axi_resetn_ff;
+`else 
+assign mc_rst_n = sys_rst_n;
+`endif
+
+always @(posedge ui_clk) begin
+    if(ui_clk_sync_rst) begin
+        sys_rst_n_f <= 0;
+        sys_rst_n_ff <= 0;
+    end else begin
+        sys_rst_n_f <= sys_rst_n;
+        sys_rst_n_ff <= sys_rst_n_f;
+    end
+end
+
+assign zeroer_rst_n = sys_rst_n_ff;
+
 
 
 noc_bidir_afifo  mig_afifo  (
@@ -503,7 +539,7 @@ assign app_wdf_wren             = zero_app_wdf_wren;
 assign app_wdf_data             = zero_app_wdf_data;
 assign app_wdf_mask             = zero_app_wdf_mask;
 assign app_wdf_end              = zero_app_wdf_end;
-assign noc_mig_bridge_rst_n     = init_calib_complete_zero & ~ui_clk_sync_rst;
+assign noc_mig_bridge_rst_n     = init_calib_complete_zero;
 `else
 assign app_en                   = core_app_en;
 assign app_cmd                  = core_app_cmd;
@@ -551,13 +587,16 @@ noc_mig_bridge    #  (
     .app_cmd_reg        (core_app_cmd               )
 );
 
+
+
+
 `ifdef PITONSYS_MEM_ZEROER
 memory_zeroer #(
     .MIG_APP_ADDR_WIDTH (`MIG_APP_ADDR_WIDTH        ),
     .MIG_APP_DATA_WIDTH (`MIG_APP_DATA_WIDTH        )
 )    memory_zeroer (
     .clk                        (ui_clk                     ),
-    .rst_n                      (~ui_clk_sync_rst           ),
+    .rst_n                      (zeroer_rst_n               ),
 
     .init_calib_complete_in     (init_calib_complete        ),
     .init_calib_complete_out    (init_calib_complete_zero   ),
@@ -590,7 +629,7 @@ wire app_hi_pri;
 assign app_hi_pri = 1'b0;
   
 ddr4_0 i_ddr4_0 (
-  .sys_rst                   ( ~sys_rst_n                ),
+  .sys_rst                   ( ~mc_rst_n                 ),
   .c0_sys_clk_p              ( mc_clk_p                  ),
   .c0_sys_clk_n              ( mc_clk_n                  ),
   .dbg_clk                   (                           ), // not used 
@@ -645,23 +684,23 @@ ddr4_0 i_ddr4_0 (
 mig_7series_0   mig_7series_0 (
     // Memory interface ports
 `ifndef NEXYS4DDR_BOARD
-    .DDR_addr                      (ddr_addr),
-    .DDR_ba                        (ddr_ba),
-    .DDR_cas_n                     (ddr_cas_n),
-    .DDR_ck_n                      (ddr_ck_n),
-    .DDR_ck_p                      (ddr_ck_p),
-    .DDR_cke                       (ddr_cke),
-    .DDR_ras_n                     (ddr_ras_n),
-    .DDR_reset_n                   (ddr_reset_n),
-    .DDR_we_n                      (ddr_we_n),
-    .DDR_dq                        (ddr_dq),
-    .DDR_dqs_n                     (ddr_dqs_n),
-    .DDR_dqs_p                     (ddr_dqs_p),
+    .ddr3_addr                      (ddr_addr),
+    .ddr3_ba                        (ddr_ba),
+    .ddr3_cas_n                     (ddr_cas_n),
+    .ddr3_ck_n                      (ddr_ck_n),
+    .ddr3_ck_p                      (ddr_ck_p),
+    .ddr3_cke                       (ddr_cke),
+    .ddr3_ras_n                     (ddr_ras_n),
+    .ddr3_reset_n                   (ddr_reset_n),
+    .ddr3_we_n                      (ddr_we_n),
+    .ddr3_dq                        (ddr_dq),
+    .ddr3_dqs_n                     (ddr_dqs_n),
+    .ddr3_dqs_p                     (ddr_dqs_p),
 `ifndef NEXYSVIDEO_BOARD
-    .DDR_cs_n                      (ddr_cs_n),
+    .ddr3_cs_n                      (ddr_cs_n),
 `endif // endif NEXYSVIDEO_BOARD
-    .DDR_dm                        (ddr_dm),
-    .DDR_odt                       (ddr_odt),
+    .ddr3_dm                        (ddr_dm),
+    .ddr3_odt                       (ddr_odt),
 `else // ifdef NEXYS4DDR_BOARD
     .ddr2_addr                      (ddr_addr),
     .ddr2_ba                        (ddr_ba),
@@ -705,7 +744,7 @@ mig_7series_0   mig_7series_0 (
 
     // System Clock Ports
     .sys_clk_i                      (mc_clk),
-    .sys_rst                        (sys_rst_n)
+    .sys_rst                        (mc_rst_n)
 );
 `endif // PITONSYS_DDR4
 
@@ -762,7 +801,7 @@ assign zeroer_axi_buser = sys_axi_buser;
 assign zeroer_axi_bvalid = sys_axi_bvalid;
 assign sys_axi_bready = zeroer_axi_bready;
 
-assign noc_axi4_bridge_rst_n       = ~ui_clk_sync_rst & init_calib_complete_zero;
+assign noc_axi4_bridge_rst_n       = init_calib_complete_zero;
 `else // PITONSYS_MEM_ZEROER
 
 assign sys_axi_awid = core_axi_awid;
@@ -815,7 +854,7 @@ assign core_axi_buser = sys_axi_buser;
 assign core_axi_bvalid = sys_axi_bvalid;
 assign sys_axi_bready = core_axi_bready;
 
-assign noc_axi4_bridge_rst_n    = ~ui_clk_sync_rst & init_calib_complete;
+assign noc_axi4_bridge_rst_n    = init_calib_complete;
 `endif // PITONSYS_MEM_ZEROER
 
 noc_axi4_bridge noc_axi4_bridge  (
@@ -893,20 +932,11 @@ virt_dev_translator write_translation(
     .out_address(core_axi_awaddr)
 );
 
-/*
-assign core_axi_araddr = (core_axi_araddr_not_translated >= 64'hfff0000000) ? core_axi_araddr_not_translated - 64'hfff0000000 + 64'h200000000 
-                                                       : (core_axi_araddr_not_translated >= 64'hf000000000) ? core_axi_araddr_not_translated - 64'hf000000000 + 64'h200000000 
-                                                       : core_axi_araddr_not_translated;
-
-assign core_axi_awaddr = (core_axi_awaddr_not_translated >= 64'hfff0000000) ? core_axi_awaddr_not_translated - 64'hfff0000000 + 64'h200000000 
-                                                       : (core_axi_awaddr_not_translated >= 64'hf000000000) ? core_axi_awaddr_not_translated - 64'hf000000000 + 64'h200000000 
-                                                       : core_axi_awaddr_not_translated;
-*/
 
 `ifdef PITONSYS_MEM_ZEROER
 axi4_zeroer axi4_zeroer(
   .clk                    (ui_clk),
-  .rst_n                  (~ui_clk_sync_rst),
+  .rst_n                  (zeroer_rst_n),
   .init_calib_complete_in (init_calib_complete),
   .init_calib_complete_out(init_calib_complete_zero),
 
@@ -1199,7 +1229,7 @@ assign ui_clk_sync_rst = ~ddr_axi_resetn;
 `ifdef PITONSYS_DDR4
 
 ddr4_axi4 ddr_axi4 (
-  .sys_rst                   ( ~sys_rst_n                ),
+  .sys_rst                   ( ~mc_rst_n                  ),
   .c0_sys_clk_p              ( mc_clk_p                  ),
   .c0_sys_clk_n              ( mc_clk_n                  ),
   .dbg_clk                   (                           ), // not used 
@@ -1228,7 +1258,7 @@ ddr4_axi4 ddr_axi4 (
   .c0_ddr4_parity            ( ddr_parity                ),                        // output wire c0_ddr4_parity
 `endif
   .c0_ddr4_interrupt         (                           ),                    // output wire c0_ddr4_interrupt
-  .c0_ddr4_aresetn           ( sys_rst_n                 ),                        // input wire c0_ddr4_aresetn
+  .c0_ddr4_aresetn           ( mc_rst_n                  ),                        // input wire c0_ddr4_aresetn
   
   .c0_ddr4_s_axi_ctrl_awvalid(1'b0                  ),  // input wire c0_ddr4_s_axi_ctrl_awvalid
   .c0_ddr4_s_axi_ctrl_awready(                      ),  // output wire c0_ddr4_s_axi_ctrl_awready
@@ -1292,29 +1322,29 @@ ddr4_axi4 ddr_axi4 (
 mig_7series_axi4 u_mig_7series_axi4 (
 
     // Memory interface ports
-    .DDR_addr                      (ddr_addr),  // output [13:0]      DDR_addr
-    .DDR_ba                        (ddr_ba),  // output [2:0]     DDR_ba
-    .DDR_cas_n                     (ddr_cas_n),  // output            DDR_cas_n
-    .DDR_ck_n                      (ddr_ck_n),  // output [0:0]       DDR_ck_n
-    .DDR_ck_p                      (ddr_ck_p),  // output [0:0]       DDR_ck_p
-    .DDR_cke                       (ddr_cke),  // output [0:0]        DDR_cke
-    .DDR_ras_n                     (ddr_ras_n),  // output            DDR_ras_n
-    .DDR_reset_n                   (ddr_reset_n),  // output          DDR_reset_n
-    .DDR_we_n                      (ddr_we_n),  // output         DDR_we_n
-    .DDR_dq                        (ddr_dq),  // inout [63:0]     DDR_dq
-    .DDR_dqs_n                     (ddr_dqs_n),  // inout [7:0]       DDR_dqs_n
-    .DDR_dqs_p                     (ddr_dqs_p),  // inout [7:0]       DDR_dqs_p
+    .ddr3_addr                      (ddr_addr),  // output [13:0]      DDR_addr
+    .ddr3_ba                        (ddr_ba),  // output [2:0]     DDR_ba
+    .ddr3_cas_n                     (ddr_cas_n),  // output            DDR_cas_n
+    .ddr3_ck_n                      (ddr_ck_n),  // output [0:0]       DDR_ck_n
+    .ddr3_ck_p                      (ddr_ck_p),  // output [0:0]       DDR_ck_p
+    .ddr3_cke                       (ddr_cke),  // output [0:0]        DDR_cke
+    .ddr3_ras_n                     (ddr_ras_n),  // output            DDR_ras_n
+    .ddr3_reset_n                   (ddr_reset_n),  // output          DDR_reset_n
+    .ddr3_we_n                      (ddr_we_n),  // output         DDR_we_n
+    .ddr3_dq                        (ddr_dq),  // inout [63:0]     DDR_dq
+    .ddr3_dqs_n                     (ddr_dqs_n),  // inout [7:0]       DDR_dqs_n
+    .ddr3_dqs_p                     (ddr_dqs_p),  // inout [7:0]       DDR_dqs_p
     .init_calib_complete            (init_calib_complete),  // output           init_calib_complete
       
-    .DDR_cs_n                      (ddr_cs_n),  // output [0:0]       DDR_cs_n
-    .DDR_dm                        (ddr_dm),  // output [7:0]     DDR_dm
-    .DDR_odt                       (ddr_odt),  // output [0:0]        DDR_odt
+    .ddr3_cs_n                      (ddr_cs_n),  // output [0:0]       DDR_cs_n
+    .ddr3_dm                        (ddr_dm),  // output [7:0]     DDR_dm
+    .ddr3_odt                       (ddr_odt),  // output [0:0]        DDR_odt
 
     // Application interface ports
     .ui_clk                         (ui_clk),  // output            ui_clk
     .ui_clk_sync_rst                (ui_clk_sync_rst),  // output           ui_clk_sync_rst
     .mmcm_locked                    (),  // output           mmcm_locked
-    .aresetn                        (sys_rst_n),  // input            aresetn
+    .aresetn                        (mc_rst_n),  // input            aresetn
     .app_sr_req                     (app_sr_req),  // input         app_sr_req
     .app_ref_req                    (app_ref_req),  // input            app_ref_req
     .app_zq_req                     (app_zq_req),  // input         app_zq_req
@@ -1367,7 +1397,7 @@ mig_7series_axi4 u_mig_7series_axi4 (
 
     // System Clock Ports
     .sys_clk_i                      (mc_clk),
-    .sys_rst                        (sys_rst_n) // input sys_rst
+    .sys_rst                        (mc_rst_n) // input sys_rst
 );
 
 `endif // PITONSYS_DDR4
@@ -1376,7 +1406,7 @@ mig_7series_axi4 u_mig_7series_axi4 (
 
 
 always @(posedge sys_clk) begin
-    if(~sys_rst_n) begin
+    if(~mc_rst_n) begin
         init_calib_complete_f <= 0;
         init_calib_complete_ff <= 0;
     end 

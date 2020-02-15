@@ -536,9 +536,6 @@ def makeDefList(options):
     if options.uart_reset == True:
         defines.append("PITONSYS_UART_RESET")
 
-    if options.uart2_enable == True:
-        defines.append("PITONSYS_UART2")
-
     # --asic-rtl option
     if options.asic_rtl == True:
         defines.append("PITON_ASIC_RTL")

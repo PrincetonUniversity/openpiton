@@ -59,7 +59,7 @@ module piton_aws
     `include "unused_ddr_c_template.inc"
     `include "unused_dma_pcis_template.inc"
 `else 
-    `ifndef PITON_FPGA_MC_DDR3
+    `ifndef PITON_FPGA_MC_DDR
         `include "unused_ddr_c_template.inc"
         `include "unused_dma_pcis_template.inc"
     `else
@@ -211,7 +211,7 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
         .sys_rst_n(piton_rst_n),
 
     `ifndef PITONSYS_NO_MC
-    `ifdef PITON_FPGA_MC_DDR3
+    `ifdef PITON_FPGA_MC_DDR
         .ddr_axi_clk(shell_clk),
         .ddr_axi_resetn(shell_rst_n),
         .ddr_axi_awid(cl_sh_ddr_awid),
@@ -310,7 +310,7 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
             .pcie_dma_axi_bvalid(cl_sh_dma_pcis_bvalid),
             .pcie_dma_axi_bready(sh_cl_dma_pcis_bready),
         `endif // PITONSYS_PCIE_DMA
-    `endif // PITON_FPGA_MC_DDR3
+    `endif // PITON_FPGA_MC_DDR
     `endif // PITONSYS_NO_MC
 
     `ifdef PITONSYS_UART

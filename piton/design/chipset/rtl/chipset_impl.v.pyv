@@ -1407,12 +1407,39 @@ fake_uart fake_uart (
 /////////////////////////////
 
 `ifdef PITON_ARIANE
-
-    wire [2:0] irq_sources, irq_le;
     // 0:level 1:edge
     // Eth is edge, Uart is level
-    assign irq_le      = {1'b1, 1'b0, 1'b0};
-    assign irq_sources = {net_interrupt,uart2_interrupt,  uart_interrupt};
+<% 
+# Order of interrupts in irq_sources should be consistent with
+# order of devices in devices_ariane.xml
+devs_with_ints = []
+int_triggers = []
+for i in range(len(devices)):
+    if devices[i]["name"] == "uart":
+        devs_with_ints += ["uart_interrupt"]
+        int_triggers += ["1'b0"]
+    elif devices[i]["name"] == "uart2":
+        devs_with_ints += ["uart2_interrupt"]
+        int_triggers += ["1'b0"]
+    elif devices[i]["name"] == "net": 
+        devs_with_ints += ["net_interrupt"]
+        int_triggers += ["1'b1"]
+
+print "    wire [%d:0] irq_sources, irq_le;" % (len(devs_with_ints) - 1)
+    
+sources_str = "%s};" % devs_with_ints[0]
+for dev in devs_with_ints[1:]:
+    sources_str = "%s, %s" % (dev, sources_str)
+sources_str = "    assign irq_sources = {" + sources_str
+print sources_str
+    
+le_str = "%s};" % int_triggers[0]
+for trig in int_triggers[1:]:
+    le_str = "%s, %s" % (trig, le_str)
+le_str = "    assign irq_le = {" + le_str
+print le_str
+    
+%>
 
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
     wire ariane_boot_sel;
@@ -1444,7 +1471,7 @@ str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
-        .NumSources     (               3 ),
+        .NumSources     (              %d ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),
         .RomBase        ( 64'h%016x ),
@@ -1501,7 +1528,7 @@ str = '''
         .irq_sources_i                   ( irq_sources                   ),
         .irq_o                           ( irq_o                         )
     );
-''' % (int(DmBase), int(RomBase), int(ClintBase), int(PlicBase))
+''' % (len(devs_with_ints), int(DmBase), int(RomBase), int(ClintBase), int(PlicBase))
 print str
 %>
 

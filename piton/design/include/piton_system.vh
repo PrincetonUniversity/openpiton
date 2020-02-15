@@ -148,6 +148,7 @@
     `undef PITONSYS_SPI
     `define PITONSYS_AXI4_MEM
     `define PITONSYS_PCIE_DMA
+    `define PITONSYS_UART2
 `endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
