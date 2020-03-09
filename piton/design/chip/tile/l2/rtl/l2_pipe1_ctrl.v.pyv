@@ -2842,7 +2842,11 @@ begin
                             begin
                                 //TODO
                                 //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
-                                cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                                `ifdef L2_SEND_NC_REQ
+                                    cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
+                                `else
+                                    cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                                `endif
                             end
                             else
                             begin
@@ -2859,7 +2863,11 @@ begin
                             begin
                                 //TODO
                                 //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    y,          `MSG_TYPE_STORE_MEM};
-                                cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    y,          `MSG_TYPE_STORE_MEM};
+                                `ifdef L2_SEND_NC_REQ
+                                    cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    y,          `MSG_TYPE_STORE_MEM};
+                                `else
+                                    cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    y,          `MSG_TYPE_STORE_MEM};
+                                `endif
                             end
                             else
                             begin
@@ -2904,7 +2912,11 @@ begin
                     begin
                         //TODO
                         //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
-                        cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                        `ifdef L2_SEND_NC_REQ
+                            cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
+                        `else
+                            cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                        `endif
                     end
                     else
                     begin

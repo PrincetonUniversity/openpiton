@@ -191,8 +191,8 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
-        addr_S1 = {mshr_addr_S1[`L2_TAG], mshr_addr_S1[`L2_TAG_INDEX],
-                   msg_subline_id_S1, mshr_addr_S1[`L2_DATA_OFFSET]};
+        addr_S1 = (msg_type_S1 == `MSG_TYPE_NC_LOAD_MEM_ACK) ? mshr_addr_S1 :
+            {mshr_addr_S1[`L2_TAG], mshr_addr_S1[`L2_TAG_INDEX], msg_subline_id_S1, mshr_addr_S1[`L2_DATA_OFFSET]};
         src_chipid_S1 = mshr_src_chipid_S1;
         src_x_S1 = mshr_src_x_S1;   
         src_y_S1 = mshr_src_y_S1;   

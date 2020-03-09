@@ -440,6 +440,9 @@ begin
       `PCX_SZ_16B:
          msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
    endcase
+   if (req_type == `L15_NOC1_REQTYPE_IFILL_REQUEST) begin
+        msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_64B;
+   end
 
    msg_options_2[`MSG_CACHE_TYPE_] = msg_cache_type;
    msg_options_2[`MSG_SUBLINE_VECTOR_] = msg_subline_vector;
