@@ -3534,6 +3534,13 @@ begin
 `else
             msg_send_data_size_S4 = data_size_S4_f;
 `endif
+
+`ifndef NO_RTL_CSM
+            if (smc_miss_S4)
+            begin
+                msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
+            end
+`endif
             msg_send_cache_type_S4 = cache_type_S4_f;
             msg_send_mshrid_S4 = mshr_wr_index_in_S4;
         end

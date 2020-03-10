@@ -104,10 +104,12 @@ begin
         begin
             msg_data_state_next = msg_data_state_0F;
         end
+`ifdef L2_SEND_NC_REQ
         else if (data_in[`MSG_LENGTH] == 1)
         begin
             msg_data_state_next = msg_data_state_1F;
         end
+`endif
         else    
         begin
             msg_data_state_next = msg_data_state_2F;
@@ -143,10 +145,12 @@ begin
                 msg_state_next = msg_state_data0;
             end
         end
+`ifdef L2_SEND_NC_REQ
         else if ((msg_state_f == msg_state_data0) && (msg_data_state_f == msg_data_state_1F))
         begin
             msg_state_next = msg_state_header0;
         end
+`endif
         else if ((msg_state_f == msg_state_data1) && (msg_data_state_f == msg_data_state_2F))
         begin
             msg_state_next = msg_state_header0;
@@ -426,20 +430,30 @@ begin
     data_buf_full = (data_buf_counter_f ==  `L2_P2_DATA_BUF_IN_SIZE);
 end
 
+`ifdef L2_SEND_NC_REQ
 // When receive 1 data flit, we store the same data flit in two slots in the buffer.
 // This is because we always read out 2 flits of data.
 wire extra_data_buf; 
 assign extra_data_buf = (msg_data_valid_in && msg_data_ready_in && msg_data_state_f == msg_data_state_1F) ? 1'b1 : 1'b0;
+`endif
 
 always @ *
 begin
     if ((msg_data_valid_in && msg_data_ready_in) && (msg_data_valid_out && msg_data_ready_out))
     begin
+`ifdef L2_SEND_NC_REQ
         data_buf_counter_next = data_buf_counter_f + 1 + extra_data_buf - `L2_P2_DATA_BUF_IN_FLITS;
+`else
+        data_buf_counter_next = data_buf_counter_f + 1 - `L2_P2_DATA_BUF_IN_FLITS;
+`endif
     end
     else if (msg_data_valid_in && msg_data_ready_in)
     begin 
+`ifdef L2_SEND_NC_REQ
         data_buf_counter_next = data_buf_counter_f + 1 + extra_data_buf;
+`else
+        data_buf_counter_next = data_buf_counter_f + 1;
+`endif
     end
     else if (msg_data_valid_out && msg_data_ready_out)
     begin 
@@ -490,7 +504,11 @@ begin
     end
     else if (msg_data_valid_in && msg_data_ready_in)
     begin
+`ifdef L2_SEND_NC_REQ
         data_wr_ptr_next = data_wr_ptr_f + 1 + extra_data_buf;
+`else
+        data_wr_ptr_next = data_wr_ptr_f + 1;
+`endif
     end
     else
     begin
@@ -507,7 +525,9 @@ end
 always @ *
 begin
     data_rd_ptr_plus1 = data_rd_ptr_f + 1;
+`ifdef L2_SEND_NC_REQ
     data_wr_ptr_plus1 = data_wr_ptr_f + 1;
+`endif
 end
 
 always @ *
@@ -535,17 +555,21 @@ for i in range(L2_P2_DATA_BUF_IN_SIZE):
     else if (msg_data_valid_in && msg_data_ready_in)
     begin
         data_buf_mem_f[data_wr_ptr_f] <= msg_data_in;
+`ifdef L2_SEND_NC_REQ
         if (extra_data_buf) begin
             data_buf_mem_f[data_wr_ptr_plus1] <= msg_data_in;
         end
         else begin
             data_buf_mem_f[data_wr_ptr_plus1] <=  data_buf_mem_f[data_wr_ptr_plus1];
         end
+`endif
     end
     else
     begin 
         data_buf_mem_f[data_wr_ptr_f] <=  data_buf_mem_f[data_wr_ptr_f];
+`ifdef L2_SEND_NC_REQ
         data_buf_mem_f[data_wr_ptr_plus1] <=  data_buf_mem_f[data_wr_ptr_plus1];
+`endif
     end
 end
 
