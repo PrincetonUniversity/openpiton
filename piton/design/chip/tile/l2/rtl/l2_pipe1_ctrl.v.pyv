@@ -243,7 +243,7 @@ module l2_pipe1_ctrl(
     output reg state_rb_en_S2,
 
     output reg [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
-    output reg l2_ifill_S2,
+    output reg l2_ifill_32B_S2,
 
     output reg msg_data_ready_S2,
 
@@ -2156,24 +2156,24 @@ always @ *
 begin
     if (special_addr_type_S2)
     begin
-        l2_ifill_S2 = n;
+        l2_ifill_32B_S2 = n;
     end
     else if (valid_S2 && l2_tag_hit_S2 && data_clk_en_S2 && (data_rdw_en_S2 == rd) && ~l2_wb_S2
     && (cache_type_S2_f == `MSG_CACHE_TYPE_INS))
     begin
-        l2_ifill_S2 = y;
+        l2_ifill_32B_S2 = y;
 `ifdef L2_SEND_NC_REQ
         // NC ifill is on 4B, and do not need 2 cycles to read out the data.
         // So l2_ifill for it is "n"
         if (msg_type_S2_f == `MSG_TYPE_NC_LOAD_REQ && data_size_S2_f != `MSG_DATA_SIZE_32B)
         begin
-            l2_ifill_S2 = n;
+            l2_ifill_32B_S2 = n;
         end
 `endif
     end
     else
     begin
-        l2_ifill_S2 = n;
+        l2_ifill_32B_S2 = n;
     end
 end
 
@@ -2187,11 +2187,11 @@ begin
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && l2_ifill_S2 && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
+    else if (valid_S2 && !(stall_real_S2) && l2_ifill_32B_S2 && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_S2))
+    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_32B_S2))
     begin
         l2_load_data_subline_S2_next = l2_load_data_subline_S2_f + 1;
     end
@@ -2215,7 +2215,7 @@ begin
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_3);
     end
-    else if (l2_ifill_S2)
+    else if (l2_ifill_32B_S2)
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_1);
     end

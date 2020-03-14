@@ -439,7 +439,7 @@ localparam STORE_ACK = 1'd1;
     assign r_resp_buf_header0_next[`MSG_DST_FBITS]  = r_req_buf_header2_f[`MSG_SRC_FBITS_]; //TODO check this...
     assign r_resp_buf_header0_next[`MSG_LENGTH]     = (r_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ &&
                                                        r_req_buf_header1_f[`MSG_DATA_SIZE_] <= `MSG_DATA_SIZE_8B) ? `MSG_LENGTH_WIDTH'd1 :
-                                                       `MSG_LENGTH_WIDTH'd8; //none loads always return 8 words // TODO
+                                                       `MSG_LENGTH_WIDTH'd8; //loads return 8(cacheable) or 1(nc) words 
     assign r_resp_buf_header0_next[`MSG_TYPE]       = (r_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ) ? `MSG_TYPE_NC_LOAD_MEM_ACK :
                                                       (r_req_buf_header0_f[`MSG_TYPE] == `MSG_TYPE_LOAD_MEM) ? `MSG_TYPE_LOAD_MEM_ACK :
                                                       `MSG_TYPE_WIDTH'dx;

@@ -239,10 +239,6 @@ begin
 
     // trin: line coverage: 16B transaction apparently does not happen with the T1 core
     msg_options_2[`MSG_DATA_SIZE_] = msg_data_size;
-    //if (msg_data_size == `PCX_SZ_16B)
-    //    msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
-    //else
-    //    msg_options_2[`MSG_DATA_SIZE_] = msg_data_size;
     msg_options_2[`MSG_CACHE_TYPE_] = msg_cache_type;
     msg_options_2[`MSG_SUBLINE_VECTOR_] = msg_subline_vector;
 
@@ -271,11 +267,6 @@ begin
         begin
             flit[`MSG_ADDR_] = address;
             flit[`MSG_OPTIONS_2_] = msg_options_2;
-            // trin: line coverage: 16B transaction apparently does not happen with the T1 core
-            //if (msg_data_size == `PCX_SZ_16B)
-            //    flit[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
-            //else
-            //    flit[`MSG_DATA_SIZE_] = msg_data_size;
         end
         else if (flit_state == `NOC3_REQ_HEADER_3)
         begin
