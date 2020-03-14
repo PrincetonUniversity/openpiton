@@ -110,8 +110,9 @@ begin
         begin
             msg_data_state_next = msg_data_state_1F;
         end
-        else if (data_in[`MSG_LENGTH] == 4)
+        else if (data_in[`MSG_LENGTH] == 4 && (data_in[`MSG_TYPE] != `MSG_TYPE_WB_REQ))
         begin
+            // WB has 2 data flits
             msg_data_state_next = msg_data_state_4F;
         end
 `endif
