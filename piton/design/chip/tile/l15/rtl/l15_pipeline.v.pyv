@@ -641,6 +641,47 @@ begin
                     end
 
                 end
+                `MSG_TYPE_NC_LOAD_MEM_ACK:
+                begin
+                    predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
+
+                    if (noc2decoder_l15_mshrid == `L15_MSHR_ID_LD)
+                        predecode_address_s1 = mshr_ld_address_array[noc2decoder_l15_threadid];
+                    else if (noc2decoder_l15_mshrid == `L15_MSHR_ID_ST)
+                        predecode_address_s1 = mshr_st_address_array[noc2decoder_l15_threadid];
+
+                    if (predecode_non_cacheable_s1)
+                    begin
+                        // must get into this condition
+                        if (predecode_icache_bit_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                        else if (predecode_dcache_load_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LD_NC;
+                        else if (predecode_atomic_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACK_ATOMIC;
+                        else
+                            predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
+                    end
+                    else
+                    begin
+                            predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
+                    end
+                end
+                `MSG_TYPE_NC_STORE_MEM_ACK:
+                begin
+                    predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
+                    predecode_address_s1 = mshr_st_address_array[noc2decoder_l15_threadid];
+
+                    // one way to distinguish prefetch ack from write-through ack is the mshrid
+                    if (noc2decoder_l15_mshrid == `L15_MSHR_ID_ST)
+                        predecode_reqtype_s1 = `L15_REQTYPE_ACK_WRITETHROUGH;
+                    else
+                    begin
+                        predecode_reqtype_s1 = `L15_REQTYPE_ACK_PREFETCH;
+                        predecode_address_s1 = 0; // bug fix, address cannot be X's
+                    end
+
+                end
                 `MSG_TYPE_INTERRUPT:
                 begin
                     predecode_reqtype_s1 = `L15_REQTYPE_L2_INTERRUPT;
