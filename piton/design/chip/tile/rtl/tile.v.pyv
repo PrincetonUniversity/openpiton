@@ -942,14 +942,14 @@ if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
                         l15_transducer_inval_way,
                         l15_transducer_blockinitstore };
 
-    wire [2:0] transducer_l15_size_PCX_standard;
+    wire [2:0] transducer_l15_size_pcx_standard;
     // see serpent_cache_pkg.sv for definition of the packed struct type "l15_req_t",
     // note that the constants defined in l15.tmp.h and serpent_cache_pkg.sv need to coincide!
     assign { transducer_l15_val,
              transducer_l15_req_ack,
              transducer_l15_rqtype,
              transducer_l15_nc,
-             transducer_l15_size_PCX_standard,
+             transducer_l15_size_pcx_standard,
              transducer_l15_threadid,
              transducer_l15_prefetch,
              transducer_l15_invalidate_cacheline,
@@ -964,11 +964,11 @@ if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
 
     // Could remove this converter after Ariane is changed to send the 
     // PMesh standard data size
-    assign transducer_l15_size = (transducer_l15_size_PCX_standard == `PCX_SZ_1B) ? `MSG_DATA_SIZE_1B :
-                                    (transducer_l15_size_PCX_standard == `PCX_SZ_2B) ? `MSG_DATA_SIZE_2B : 
-                                    (transducer_l15_size_PCX_standard == `PCX_SZ_4B) ? `MSG_DATA_SIZE_4B : 
-                                    (transducer_l15_size_PCX_standard == `PCX_SZ_8B) ? `MSG_DATA_SIZE_8B : 
-                                    (transducer_l15_size_PCX_standard == `PCX_SZ_16B && 
+    assign transducer_l15_size = (transducer_l15_size_pcx_standard == `PCX_SZ_1B) ? `MSG_DATA_SIZE_1B :
+                                    (transducer_l15_size_pcx_standard == `PCX_SZ_2B) ? `MSG_DATA_SIZE_2B : 
+                                    (transducer_l15_size_pcx_standard == `PCX_SZ_4B) ? `MSG_DATA_SIZE_4B : 
+                                    (transducer_l15_size_pcx_standard == `PCX_SZ_8B) ? `MSG_DATA_SIZE_8B : 
+                                    (transducer_l15_size_pcx_standard == `PCX_SZ_16B && 
                                      transducer_l15_rqtype == `PCX_REQTYPE_IFILL && 
                                     ~transducer_l15_invalidate_cacheline) ? `MSG_DATA_SIZE_32B : `MSG_DATA_SIZE_16B; 
 

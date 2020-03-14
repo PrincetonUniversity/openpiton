@@ -120,10 +120,10 @@ begin
     // non-cacheable load data ack  -- 1-16B / 1-2 flit  sparc may send 16BNC-load
     // interrupt            -- 1 flit 
     noc2decoder_l15_data_0 = noc2_data[2*64 - 1 -: 64];
-    noc2decoder_l15_data_1 = (msg_len == 1) ? noc2_data[2*64 - 1 -: 64] : noc2_data[3*64 - 1 -: 64];
-    noc2decoder_l15_data_2 = (msg_len <= 2) ? noc2_data[2*64 - 1 -: 64] : noc2_data[4*64 - 1 -: 64];
-    noc2decoder_l15_data_3 = (msg_len == 1) ? noc2_data[2*64 - 1 -: 64] :
-                                    (msg_len == 2) ? noc2_data[3*64 - 1 -: 64] : noc2_data[5*64 - 1 -: 64];
+    noc2decoder_l15_data_1 = (msg_len == `MSG_LENGTH_WIDTH'd1) ? noc2_data[2*64 - 1 -: 64] : noc2_data[3*64 - 1 -: 64];
+    noc2decoder_l15_data_2 = (msg_len <= `MSG_LENGTH_WIDTH'd2) ? noc2_data[2*64 - 1 -: 64] : noc2_data[4*64 - 1 -: 64];
+    noc2decoder_l15_data_3 = (msg_len == `MSG_LENGTH_WIDTH'd1) ? noc2_data[2*64 - 1 -: 64] :
+                                    (msg_len == `MSG_LENGTH_WIDTH'd2) ? noc2_data[3*64 - 1 -: 64] : noc2_data[5*64 - 1 -: 64];
 
     noc2decoder_l15_src_homeid = 0;
     noc2decoder_l15_src_homeid[`PACKET_HOME_ID_Y_MASK] = noc2_data[`MSG_SRC_Y];

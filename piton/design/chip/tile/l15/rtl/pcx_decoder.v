@@ -81,8 +81,8 @@ begin
       is_message_new <= is_message_new_next;
 end
 
-reg [2:0] pcxdecoder_l15_size_PCX_standard;
-reg [2:0] pcxdecoder_l15_size_PMesh_standard;
+reg [2:0] pcxdecoder_l15_size_pcx_standard;
+reg [2:0] pcxdecoder_l15_size_pmesh_standard;
 
 always @ *
 begin
@@ -100,7 +100,7 @@ begin
    pcxdecoder_l15_invalidate_cacheline = message[111];
    pcxdecoder_l15_blockinitstore = message[109];
    pcxdecoder_l15_l1rplway = message[`PCX_WY_HI:`PCX_WY_LO];
-   pcxdecoder_l15_size_PCX_standard = message[`PCX_SZ_HI:`PCX_SZ_LO];
+   pcxdecoder_l15_size_pcx_standard = message[`PCX_SZ_HI:`PCX_SZ_LO];
    pcxdecoder_l15_address = message[`PCX_AD_HI:`PCX_AD_LO]; // 40b
    pcxdecoder_l15_data = message[`PCX_DA_HI:`PCX_DA_LO];
    pcxdecoder_l15_data_next_entry = pcxbuf_pcxdecoder_data_buf1[`PCX_DA_HI:`PCX_DA_LO];
@@ -129,27 +129,27 @@ begin
 end
 
 always @(*) begin
-   case (pcxdecoder_l15_size_PCX_standard)
+   case (pcxdecoder_l15_size_pcx_standard)
       `PCX_SZ_1B:
-         pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_1B;
+         pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_1B;
       `PCX_SZ_2B:
-         pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_2B;
+         pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_2B;
       `PCX_SZ_4B:
-         pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_4B;
+         pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_4B;
       `PCX_SZ_8B:
-         pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_8B;
+         pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_8B;
       `PCX_SZ_16B:
-         pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_16B;
+         pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_16B;
    endcase
 `ifdef L2_SEND_NC_REQ
    // Sparc sends both 4B and 32B non-cacheable ifill. 
    // Since we could not distinguish them, 
    // we set the data size to always be 32B for ifill
    if (pcxdecoder_l15_rqtype == `PCX_REQTYPE_IFILL && ~pcxdecoder_l15_invalidate_cacheline) begin
-        pcxdecoder_l15_size_PMesh_standard = `MSG_DATA_SIZE_32B;
+        pcxdecoder_l15_size_pmesh_standard = `MSG_DATA_SIZE_32B;
    end
 `endif
 
-    pcxdecoder_l15_size = pcxdecoder_l15_size_PMesh_standard;
+    pcxdecoder_l15_size = pcxdecoder_l15_size_pmesh_standard;
 end
 endmodule

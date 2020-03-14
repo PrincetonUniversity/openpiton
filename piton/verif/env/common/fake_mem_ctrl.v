@@ -320,7 +320,7 @@ begin
         end
         `MSG_TYPE_NC_LOAD_REQ:
         begin
-            $display("WooLaLa NC load, size is %h, address is %h", msg_data_size, msg_addr);
+            $display("Non-cacheable load request, size: %h, address: %h", msg_data_size, msg_addr);
             msg_send_type = `MSG_TYPE_NC_LOAD_MEM_ACK;
             case(msg_data_size)
             `MSG_DATA_SIZE_1B: 
@@ -462,7 +462,7 @@ begin
         end
         `MSG_TYPE_NC_STORE_REQ:
         begin
-            $display("WooLaLa NC store, size is %h, address is %h", msg_data_size, msg_addr);
+            $display("Non-cacheable store request, size: %h, address: %h", msg_data_size, msg_addr);
             msg_send_type = `MSG_TYPE_NC_STORE_MEM_ACK;
             msg_send_length = 8'd0;
             case(msg_data_size)
