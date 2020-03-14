@@ -184,6 +184,7 @@ module l2_pipe1_dpath(
     input wire [`L2_OWNER_BITS-1:0] dir_sharer_counter_S4,
     input wire [`L2_OWNER_BITS-1:0] mshr_inv_counter_out_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_send_type_S4,
+    input wire [`MSG_LENGTH_WIDTH-1:0] msg_send_length_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_send_type_pre_S4,
     input wire state_wr_sel_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_type_S4,
@@ -2074,6 +2075,12 @@ begin
     begin
         msg_send_data_S4 = {2{msg_data_S4_f}}; 
     end
+`ifdef L2_SEND_NC_REQ
+    else if (msg_type_S4 == `MSG_TYPE_NC_LOAD_REQ && msg_send_type_S4 == `MSG_TYPE_DATA_ACK && msg_send_length_S4 == 1)
+    begin
+        msg_send_data_S4 = addr_S4[3] ? {2{data_data_ecc_S4[127:64]}} : {2{data_data_ecc_S4[63:0]}};
+    end
+`endif
     else    
     begin
         msg_send_data_S4 = data_data_ecc_S4;

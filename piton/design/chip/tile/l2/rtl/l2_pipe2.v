@@ -208,6 +208,7 @@ wire [`L2_LRU_OP_BITS-1:0] state_lru_op_S2;
 wire state_rb_en_S2;
 wire dir_clr_en_S2;
 wire l2_load_64B_S2;
+wire l2_load_32B_S2;
 wire [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2;
 //wire [`PHY_ADDR_WIDTH-1:0] addr_S2;
 wire l2_tag_hit_S2;
@@ -384,6 +385,7 @@ l2_pipe2_ctrl ctrl(
     .state_lru_op_S2            (state_lru_op_S2),
     .state_rb_en_S2             (state_rb_en_S2),
     .l2_load_64B_S2             (l2_load_64B_S2),
+    .l2_load_32B_S2             (l2_load_32B_S2),
     .l2_load_data_subline_S2    (l2_load_data_subline_S2),
     .msg_data_ready_S2          (msg_data_ready),
     `ifndef NO_RTL_CSM
@@ -452,6 +454,7 @@ l2_pipe2_dpath dpath(
     .state_rb_en_S2             (state_rb_en_S2),
     .dir_clr_en_S2              (dir_clr_en_S2),
     .l2_load_64B_S2             (l2_load_64B_S2),
+    .l2_load_32B_S2             (l2_load_32B_S2),
     .l2_load_data_subline_S2    (l2_load_data_subline_S2),
     .valid_S2                   (valid_S2),
     .stall_S2                   (stall_S2),

@@ -428,24 +428,27 @@ begin
    msg_options_2 = 0;
    msg_options_3 = 0;
 
-   case (msg_data_size)
-      `PCX_SZ_1B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_1B;
-      `PCX_SZ_2B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_2B;
-      `PCX_SZ_4B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_4B;
-      `PCX_SZ_8B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_8B;
-      `PCX_SZ_16B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
-   endcase
-`ifdef L2_SEND_NC_REQ
-   if (req_type == `L15_NOC1_REQTYPE_IFILL_REQUEST) begin
-        msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_64B;
-   end
-`endif
+//   case (msg_data_size)
+//      `PCX_SZ_1B:
+//         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_1B;
+//      `PCX_SZ_2B:
+//         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_2B;
+//      `PCX_SZ_4B:
+//         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_4B;
+//      `PCX_SZ_8B:
+//         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_8B;
+//      `PCX_SZ_16B:
+//         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
+//   endcase
+//`ifdef L2_SEND_NC_REQ
+//    // Just for Sparc, should move to pcx_decoder in the end
+//   if (req_type == `L15_NOC1_REQTYPE_IFILL_REQUEST && msg_data_size != `PCX_SZ_4B) begin
+//       // Ariane core
+//        msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_32B;
+//   end
+//`endif
 
+   msg_options_2[`MSG_DATA_SIZE_] = msg_data_size;
    msg_options_2[`MSG_CACHE_TYPE_] = msg_cache_type;
    msg_options_2[`MSG_SUBLINE_VECTOR_] = msg_subline_vector;
 

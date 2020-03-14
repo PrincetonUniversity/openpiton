@@ -850,6 +850,7 @@ l2_pipe1_dpath dpath(
     .dir_data_sel_S4            (dir_data_sel_S4),
     .dir_data_S4                (dir_data_S4),
     .msg_send_type_S4           (msg_send_type),
+    .msg_send_length_S4         (msg_send_length),
     .my_nodeid_chipid_S4        (my_nodeid[`NOC_NODEID_CHIPID]),
     .my_nodeid_x_S4             (my_nodeid[`NOC_NODEID_X]),
     .my_nodeid_y_S4             (my_nodeid[`NOC_NODEID_Y]),

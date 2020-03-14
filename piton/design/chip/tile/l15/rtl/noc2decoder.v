@@ -88,6 +88,7 @@ begin
 end
 
 reg [`MSG_MSHRID_WIDTH-1:0] noc2_mshrid;
+reg [`MSG_LENGTH_WIDTH-1:0] msg_len;
 always @ *
 begin
     noc2_data_ack = l15_noc2decoder_ack;
@@ -95,6 +96,8 @@ begin
 
     // these are shared by both requests and replies from L2
     noc2decoder_l15_reqtype = noc2_data[`MSG_TYPE];
+    msg_len = noc2_data[`MSG_LENGTH];
+    
     noc2_mshrid = noc2_data[`MSG_MSHRID];
     noc2decoder_l15_mshrid = noc2_mshrid[`L15_MSHR_ID_WIDTH-1:0];
     noc2decoder_l15_csm_mshrid = noc2_mshrid[`L15_CSM_NUM_TICKETS_LOG2-1:0];
@@ -108,10 +111,19 @@ begin
     noc2decoder_l15_ack_state = noc2_data[`MSG_MESI];
     noc2decoder_l15_fwd_subcacheline_vector = noc2_data[`MSG_SUBLINE_VECTOR];
     noc2decoder_l15_address = noc2_data[`MSG_ADDR];
+
+    // Replicate the data flits if we receive less than 4 to support
+    // non-cacheable requests.
+    // cacheable ifill      -- 32B / 4 flits 
+    // non-cacheable ifill  -- 4B / 1 flit
+    // cacheable load data ack      -- 16B / 2 flit
+    // non-cacheable load data ack  -- 1-16B / 1-2 flit  sparc may send 16BNC-load
+    // interrupt            -- 1 flit 
     noc2decoder_l15_data_0 = noc2_data[2*64 - 1 -: 64];
-    noc2decoder_l15_data_1 = noc2_data[3*64 - 1 -: 64];
-    noc2decoder_l15_data_2 = noc2_data[4*64 - 1 -: 64];
-    noc2decoder_l15_data_3 = noc2_data[5*64 - 1 -: 64];
+    noc2decoder_l15_data_1 = (msg_len == 1) ? noc2_data[2*64 - 1 -: 64] : noc2_data[3*64 - 1 -: 64];
+    noc2decoder_l15_data_2 = (msg_len <= 2) ? noc2_data[2*64 - 1 -: 64] : noc2_data[4*64 - 1 -: 64];
+    noc2decoder_l15_data_3 = (msg_len == 1) ? noc2_data[2*64 - 1 -: 64] :
+                                    (msg_len == 2) ? noc2_data[3*64 - 1 -: 64] : noc2_data[5*64 - 1 -: 64];
 
     noc2decoder_l15_src_homeid = 0;
     noc2decoder_l15_src_homeid[`PACKET_HOME_ID_Y_MASK] = noc2_data[`MSG_SRC_Y];

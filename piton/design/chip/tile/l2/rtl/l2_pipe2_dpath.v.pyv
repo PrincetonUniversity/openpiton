@@ -113,6 +113,7 @@ module l2_pipe2_dpath(
     input wire dir_clr_en_S2,
    
     input wire l2_load_64B_S2, 
+    input wire l2_load_32B_S2, 
     input wire [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
  
     input wire valid_S2,
@@ -541,6 +542,13 @@ begin
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, l2_load_data_subline_S2};
     end
+`ifdef L2_SEND_NC_REQ
+    else if (l2_load_32B_S2)
+    begin
+        data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, 
+                        addr_S2_f[`L2_INS_SUBLINE], l2_load_data_subline_S2[0]};
+    end
+`endif
     else
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, addr_S2_f[`L2_DATA_SUBLINE]};

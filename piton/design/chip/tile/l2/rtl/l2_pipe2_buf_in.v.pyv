@@ -65,10 +65,11 @@ L2_P2_HEADER_BUF_IN_SIZE = 4
 L2_P2_DATA_BUF_IN_SIZE = 16
 %>
 
-localparam msg_data_state_0F = 2'd0;
-localparam msg_data_state_1F = 2'd3; // NC load ack
-localparam msg_data_state_2F = 2'd1;
-localparam msg_data_state_8F = 2'd2;
+localparam msg_data_state_0F = 3'd0;
+localparam msg_data_state_1F = 3'd1; // NC load ack
+localparam msg_data_state_2F = 3'd2;
+localparam msg_data_state_4F = 3'd3;
+localparam msg_data_state_8F = 3'd4;
 
 localparam msg_state_header0 = 4'd0;
 localparam msg_state_header1 = 4'd1;
@@ -85,8 +86,8 @@ localparam msg_state_data7 = 4'd10;
 reg [3:0] msg_state_f;
 reg [3:0] msg_state_next;
 
-reg [1:0] msg_data_state_f;
-reg [1:0] msg_data_state_next;
+reg [2:0] msg_data_state_f;
+reg [2:0] msg_data_state_next;
 
 always @ *
 begin
@@ -108,6 +109,10 @@ begin
         else if (data_in[`MSG_LENGTH] == 1)
         begin
             msg_data_state_next = msg_data_state_1F;
+        end
+        else if (data_in[`MSG_LENGTH] == 4)
+        begin
+            msg_data_state_next = msg_data_state_4F;
         end
 `endif
         else    
@@ -147,6 +152,10 @@ begin
         end
 `ifdef L2_SEND_NC_REQ
         else if ((msg_state_f == msg_state_data0) && (msg_data_state_f == msg_data_state_1F))
+        begin
+            msg_state_next = msg_state_header0;
+        end
+        else if ((msg_state_f == msg_state_data3) && (msg_data_state_f == msg_data_state_4F))
         begin
             msg_state_next = msg_state_header0;
         end

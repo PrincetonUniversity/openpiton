@@ -2162,6 +2162,14 @@ begin
     && (cache_type_S2_f == `MSG_CACHE_TYPE_INS))
     begin
         l2_ifill_S2 = y;
+`ifdef L2_SEND_NC_REQ
+        // NC ifill is on 4B, and do not need 2 cycles to read out the data.
+        // So l2_ifill for it is "n"
+        if (msg_type_S2_f == `MSG_TYPE_NC_LOAD_REQ && data_size_S2_f != `MSG_DATA_SIZE_32B)
+        begin
+            l2_ifill_S2 = n;
+        end
+`endif
     end
     else
     begin
@@ -3484,22 +3492,53 @@ begin
 */
                 msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
                 msg_send_length_S4 = 2;
-                msg_send_data_size_S4 = data_size_S4_f;
+                // msg_send_data_size_S4 = data_size_S4_f;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
             end
+`ifdef L2_SEND_NC_REQ
+            else if (msg_type_S4_f == `MSG_TYPE_NC_LOAD_REQ)
+            begin
+                if (cache_type_S4_f == `MSG_CACHE_TYPE_INS && data_size_S4_f == `MSG_DATA_SIZE_32B)
+                begin
+                    // Just for Sparc non-cacheable 32B ifill
+                    msg_send_length_S4 = 4;
+                    // msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
+                    msg_send_cache_type_S4 = cache_type_S4_f;
+                    msg_send_mshrid_S4 = mshrid_S4;
+                    if (l2_load_data_subline_S4_f == `L2_DATA_SUBLINE_0)
+                    begin
+                        msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
+                    end
+                    else
+                    begin
+                        msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_0H2D;
+                    end
+                end
+                else
+                begin
+                    // non-cacheable data load should be within 8B, but sparc sends 16B nc-load
+                    msg_send_mode_S4 = (data_size_S4_f == `MSG_DATA_SIZE_16B) ? `L2_P1_BUF_OUT_MODE_1H2D : `L2_P1_BUF_OUT_MODE_1H1D;
+                    msg_send_length_S4 = (data_size_S4_f == `MSG_DATA_SIZE_16B) ? 2 : 1;
+                    // msg_send_data_size_S4 = 1-8B;
+                    msg_send_cache_type_S4 = cache_type_S4_f;
+                    msg_send_mshrid_S4 = mshrid_S4;
+                end
+            end
+`endif
             else if (cache_type_S4_f == `MSG_CACHE_TYPE_DATA)
             begin
                 msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
                 msg_send_length_S4 = 2;
-                msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
+                // msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
             end
             else
             begin
+                // ifill ack
                 msg_send_length_S4 = 4;
-                msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
+                // msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
                 if (l2_load_data_subline_S4_f == `L2_DATA_SUBLINE_0)
