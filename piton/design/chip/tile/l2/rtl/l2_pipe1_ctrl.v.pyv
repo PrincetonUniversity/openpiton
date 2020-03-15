@@ -243,7 +243,7 @@ module l2_pipe1_ctrl(
     output reg state_rb_en_S2,
 
     output reg [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
-    output reg l2_ifill_S2,
+    output reg l2_ifill_32B_S2,
 
     output reg msg_data_ready_S2,
 
@@ -2156,16 +2156,24 @@ always @ *
 begin
     if (special_addr_type_S2)
     begin
-        l2_ifill_S2 = n;
+        l2_ifill_32B_S2 = n;
     end
     else if (valid_S2 && l2_tag_hit_S2 && data_clk_en_S2 && (data_rdw_en_S2 == rd) && ~l2_wb_S2
     && (cache_type_S2_f == `MSG_CACHE_TYPE_INS))
     begin
-        l2_ifill_S2 = y;
+        l2_ifill_32B_S2 = y;
+`ifdef L2_SEND_NC_REQ
+        // NC ifill is on 4B, and do not need 2 cycles to read out the data.
+        // So l2_ifill for it is "n"
+        if (msg_type_S2_f == `MSG_TYPE_NC_LOAD_REQ && data_size_S2_f != `MSG_DATA_SIZE_32B)
+        begin
+            l2_ifill_32B_S2 = n;
+        end
+`endif
     end
     else
     begin
-        l2_ifill_S2 = n;
+        l2_ifill_32B_S2 = n;
     end
 end
 
@@ -2179,11 +2187,11 @@ begin
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && l2_ifill_S2 && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
+    else if (valid_S2 && !(stall_real_S2) && l2_ifill_32B_S2 && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_S2))
+    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_32B_S2))
     begin
         l2_load_data_subline_S2_next = l2_load_data_subline_S2_f + 1;
     end
@@ -2207,7 +2215,7 @@ begin
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_3);
     end
-    else if (l2_ifill_S2)
+    else if (l2_ifill_32B_S2)
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_1);
     end
@@ -2842,7 +2850,11 @@ begin
                             begin
                                 //TODO
                                 //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
-                                cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                                `ifdef L2_SEND_NC_REQ
+                                    cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
+                                `else
+                                    cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                                `endif
                             end
                             else
                             begin
@@ -2859,7 +2871,11 @@ begin
                             begin
                                 //TODO
                                 //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    y,          `MSG_TYPE_STORE_MEM};
-                                cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    y,          `MSG_TYPE_STORE_MEM};
+                                `ifdef L2_SEND_NC_REQ
+                                    cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    y,          `MSG_TYPE_STORE_MEM};
+                                `else
+                                    cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    y,          `MSG_TYPE_STORE_MEM};
+                                `endif
                             end
                             else
                             begin
@@ -2904,7 +2920,11 @@ begin
                     begin
                         //TODO
                         //cs_S4 = {y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
-                        cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                        `ifdef L2_SEND_NC_REQ
+                            cs_S4 = {n,         y,          `MSG_TYPE_NC_LOAD_REQ,    n,          `MSG_TYPE_ERROR};
+                        `else
+                            cs_S4 = {n,         y,          `MSG_TYPE_LOAD_MEM,    n,          `MSG_TYPE_ERROR};
+                        `endif
                     end
                     else
                     begin
@@ -3445,7 +3465,7 @@ begin
         `MSG_TYPE_LOAD_FWD, `MSG_TYPE_STORE_FWD, `MSG_TYPE_INV_FWD:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H0D;
-            msg_send_length_S4 = 2;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
             msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
             msg_send_cache_type_S4 = l2_way_state_cache_type_S4;
             msg_send_mshrid_S4 = mshr_wr_index_in_S4;
@@ -3453,41 +3473,65 @@ begin
         `MSG_TYPE_NODATA_ACK:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H0D;
-            msg_send_length_S4 = 0;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd0;
             msg_send_data_size_S4 = `MSG_DATA_SIZE_0B;
             msg_send_cache_type_S4 = cache_type_S4_f;
             msg_send_mshrid_S4 = mshrid_S4;
         end
         `MSG_TYPE_DATA_ACK:
         begin
+            // For DATA_ACK, data_size field is not used
             if (special_addr_type_S4_f)
             begin
-//TODO
-/*
-                msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H1D;
-                msg_send_length_S4 = 1;
-                msg_send_data_size_S4 = `MSG_DATA_SIZE_8B;
-                msg_send_cache_type_S4 = cache_type_S4_f;
-                msg_send_mshrid_S4 = mshrid_S4;
-*/
                 msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
-                msg_send_length_S4 = 2;
-                msg_send_data_size_S4 = data_size_S4_f;
+                msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
+                // msg_send_data_size_S4 = data_size_S4_f;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
             end
+`ifdef L2_SEND_NC_REQ
+            else if (msg_type_S4_f == `MSG_TYPE_NC_LOAD_REQ)
+            begin
+                if (cache_type_S4_f == `MSG_CACHE_TYPE_INS && data_size_S4_f == `MSG_DATA_SIZE_32B)
+                begin
+                    // Just for Sparc non-cacheable 32B ifill
+                    msg_send_length_S4 = `MSG_LENGTH_WIDTH'd4;
+                    // msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
+                    msg_send_cache_type_S4 = cache_type_S4_f;
+                    msg_send_mshrid_S4 = mshrid_S4;
+                    if (l2_load_data_subline_S4_f == `L2_DATA_SUBLINE_0)
+                    begin
+                        msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
+                    end
+                    else
+                    begin
+                        msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_0H2D;
+                    end
+                end
+                else
+                begin
+                    // non-cacheable data load should be within 8B, but sparc sends 16B nc-load
+                    msg_send_mode_S4 = (data_size_S4_f == `MSG_DATA_SIZE_16B) ? `L2_P1_BUF_OUT_MODE_1H2D : `L2_P1_BUF_OUT_MODE_1H1D;
+                    msg_send_length_S4 = (data_size_S4_f == `MSG_DATA_SIZE_16B) ? `MSG_LENGTH_WIDTH'd2 : `MSG_LENGTH_WIDTH'd1;
+                    // msg_send_data_size_S4 = 1-8B;
+                    msg_send_cache_type_S4 = cache_type_S4_f;
+                    msg_send_mshrid_S4 = mshrid_S4;
+                end
+            end
+`endif
             else if (cache_type_S4_f == `MSG_CACHE_TYPE_DATA)
             begin
                 msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
-                msg_send_length_S4 = 2;
-                msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
+                msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
+                // msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
             end
             else
             begin
-                msg_send_length_S4 = 4;
-                msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
+                // ifill ack
+                msg_send_length_S4 = `MSG_LENGTH_WIDTH'd4;
+                // msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
                 msg_send_cache_type_S4 = cache_type_S4_f;
                 msg_send_mshrid_S4 = mshrid_S4;
                 if (l2_load_data_subline_S4_f == `L2_DATA_SUBLINE_0)
@@ -3504,7 +3548,7 @@ begin
         `MSG_TYPE_LOAD_MEM:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H0D;
-            msg_send_length_S4 = 2;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
 `ifdef PITON_ASIC_RTL
             msg_send_data_size_S4 = `MSG_DATA_SIZE_64B;
 `else
@@ -3516,11 +3560,18 @@ begin
         `MSG_TYPE_NC_LOAD_REQ:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H0D;
-            msg_send_length_S4 = 2;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
 `ifdef PITON_ASIC_RTL
             msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
 `else
             msg_send_data_size_S4 = data_size_S4_f;
+`endif
+
+`ifndef NO_RTL_CSM
+            if (smc_miss_S4)
+            begin
+                msg_send_data_size_S4 = `MSG_DATA_SIZE_16B;
+            end
 `endif
             msg_send_cache_type_S4 = cache_type_S4_f;
             msg_send_mshrid_S4 = mshr_wr_index_in_S4;
@@ -3529,7 +3580,7 @@ begin
         `MSG_TYPE_NC_STORE_REQ:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_3H1D;
-            msg_send_length_S4 = 3;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd3;
             msg_send_data_size_S4 = data_size_S4_f;
             msg_send_cache_type_S4 = cache_type_S4_f;
             msg_send_mshrid_S4 = mshr_wr_index_in_S4;
@@ -3537,7 +3588,7 @@ begin
         `MSG_TYPE_INTERRUPT:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H1D;
-            msg_send_length_S4 = 1;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd1;
             msg_send_data_size_S4 = data_size_S4_f;
             msg_send_cache_type_S4 = cache_type_S4_f;
             msg_send_mshrid_S4 = mshrid_S4;
@@ -3545,7 +3596,7 @@ begin
 
         `MSG_TYPE_STORE_MEM:
         begin
-            msg_send_length_S4 = 10;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd10;
 `ifdef PITON_ASIC_RTL
             msg_send_data_size_S4 = `MSG_DATA_SIZE_64B;
 `else
@@ -3565,7 +3616,7 @@ begin
         default:
         begin
             msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_0H0D;
-            msg_send_length_S4 = 0;
+            msg_send_length_S4 = `MSG_LENGTH_WIDTH'd0;
             msg_send_data_size_S4 = `MSG_DATA_SIZE_0B;
             msg_send_cache_type_S4 = `MSG_CACHE_TYPE_DATA;
             msg_send_mshrid_S4 = mshrid_S4;
@@ -3575,7 +3626,7 @@ begin
     else
     begin
         msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_0H0D;
-        msg_send_length_S4 = 0;
+        msg_send_length_S4 = `MSG_LENGTH_WIDTH'd0;
         msg_send_data_size_S4 = `MSG_DATA_SIZE_0B;
         msg_send_cache_type_S4 = `MSG_CACHE_TYPE_DATA;
         msg_send_mshrid_S4 = mshrid_S4;

@@ -649,7 +649,7 @@ assign csm_noc1encoder_req_type = `L15_NOC1_REQTYPE_LD_REQUEST;
 assign csm_noc1encoder_req_mshrid = refill_req_ticket_buf[refill_req_buf_rd_ptr];
 assign csm_noc1encoder_req_address = refill_req_addr_buf[refill_req_buf_rd_ptr];
 assign csm_noc1encoder_req_non_cacheable = 1'b1;
-assign csm_noc1encoder_req_size = `PCX_SZ_16B; // use pcx def because noc1enc translate it to packet def
+assign csm_noc1encoder_req_size = `MSG_DATA_SIZE_16B; 
 
 /*
 // calculate (or look up ghid from address)

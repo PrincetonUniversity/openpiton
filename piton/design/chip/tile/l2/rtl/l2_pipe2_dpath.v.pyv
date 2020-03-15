@@ -113,6 +113,7 @@ module l2_pipe2_dpath(
     input wire dir_clr_en_S2,
    
     input wire l2_load_64B_S2, 
+    input wire l2_load_32B_S2, 
     input wire [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
  
     input wire valid_S2,
@@ -191,8 +192,13 @@ always @ *
 begin
     if (msg_from_mshr_S1)
     begin
+`ifdef L2_SEND_NC_REQ
+        addr_S1 = (msg_type_S1 == `MSG_TYPE_NC_LOAD_MEM_ACK) ? mshr_addr_S1 :
+            {mshr_addr_S1[`L2_TAG], mshr_addr_S1[`L2_TAG_INDEX], msg_subline_id_S1, mshr_addr_S1[`L2_DATA_OFFSET]};
+`else
         addr_S1 = {mshr_addr_S1[`L2_TAG], mshr_addr_S1[`L2_TAG_INDEX],
-                   msg_subline_id_S1, mshr_addr_S1[`L2_DATA_OFFSET]};
+                         msg_subline_id_S1, mshr_addr_S1[`L2_DATA_OFFSET]};
+`endif // L2_SEND_NC_REQ
         src_chipid_S1 = mshr_src_chipid_S1;
         src_x_S1 = mshr_src_x_S1;   
         src_y_S1 = mshr_src_y_S1;   
@@ -536,6 +542,13 @@ begin
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, l2_load_data_subline_S2};
     end
+`ifdef L2_SEND_NC_REQ
+    else if (l2_load_32B_S2)
+    begin
+        data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, 
+                        addr_S2_f[`L2_INS_SUBLINE], l2_load_data_subline_S2[0]};
+    end
+`endif
     else
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, addr_S2_f[`L2_DATA_SUBLINE]};

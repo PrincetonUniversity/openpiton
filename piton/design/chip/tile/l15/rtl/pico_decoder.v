@@ -151,13 +151,13 @@ module pico_decoder(
 
                 case(pico_mem_wstrb)
 		            4'b1111: begin
-		                picodecoder_l15_size = `PCX_SZ_4B;
+		                picodecoder_l15_size = `MSG_DATA_SIZE_4B;
 		            end
 		            4'b1100, 4'b0011: begin
-		                picodecoder_l15_size = `PCX_SZ_2B;
+		                picodecoder_l15_size = `MSG_DATA_SIZE_2B;
 		            end
 		            4'b1000, 4'b0100, 4'b0010, 4'b0001: begin
-		                picodecoder_l15_size = `PCX_SZ_1B;
+		                picodecoder_l15_size = `MSG_DATA_SIZE_1B;
 		            end
 		            // this should never happen
 		            default: begin
@@ -169,7 +169,7 @@ module pico_decoder(
 	        else begin
 	            pico_wdata_flipped = 32'b0;
                 picodecoder_l15_rqtype = `LOAD_RQ;
-	            picodecoder_l15_size = `PCX_SZ_4B;
+	            picodecoder_l15_size = `MSG_DATA_SIZE_4B;
 	        end 
         end
         else begin

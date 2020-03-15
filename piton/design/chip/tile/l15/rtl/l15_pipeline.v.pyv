@@ -582,7 +582,7 @@ begin
                                                                                                 predecode_address_plus0_s1;
                     end
                 end
-                `MSG_TYPE_DATA_ACK:
+                `MSG_TYPE_DATA_ACK, `MSG_TYPE_NC_LOAD_MEM_ACK:
                 begin
                     predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
 
@@ -626,7 +626,7 @@ begin
                             predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
                     end
                 end
-                `MSG_TYPE_NODATA_ACK:
+                `MSG_TYPE_NODATA_ACK, `MSG_TYPE_NC_STORE_MEM_ACK:
                 begin
                     predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
                     predecode_address_s1 = mshr_st_address_array[noc2decoder_l15_threadid];
@@ -2138,9 +2138,9 @@ begin
         end
     endcase
 
-    unshifted_write_mask_s1 =   (predecode_size_s1 == `PCX_SZ_1B) ? 16'b1000_0000_0000_0000 :
-                                (predecode_size_s1 == `PCX_SZ_2B) ? 16'b1100_0000_0000_0000 :
-                                (predecode_size_s1 == `PCX_SZ_4B) ? 16'b1111_0000_0000_0000 :
+    unshifted_write_mask_s1 =   (predecode_size_s1 == `MSG_DATA_SIZE_1B) ? 16'b1000_0000_0000_0000 :
+                                (predecode_size_s1 == `MSG_DATA_SIZE_2B) ? 16'b1100_0000_0000_0000 :
+                                (predecode_size_s1 == `MSG_DATA_SIZE_4B) ? 16'b1111_0000_0000_0000 :
                                                                     16'b1111_1111_0000_0000 ;
 
     write_mask_1B_s1 = unshifted_write_mask_s1 >> (pcxdecoder_l15_address & 4'b1111);
@@ -2152,23 +2152,27 @@ begin
     write_mask_16B_s1 = {16{1'b1}};
 
     case(predecode_size_s1)
-        `PCX_SZ_1B:
+        `MSG_DATA_SIZE_1B:
         begin
             write_mask_s1 = write_mask_1B_s1;
         end
-        `PCX_SZ_2B:
+        `MSG_DATA_SIZE_2B:
         begin
             write_mask_s1 = write_mask_2B_s1;
         end
-        `PCX_SZ_4B:
+        `MSG_DATA_SIZE_4B:
         begin
             write_mask_s1 = write_mask_4B_s1;
         end
-        `PCX_SZ_8B:
+        `MSG_DATA_SIZE_8B:
         begin
             write_mask_s1 = write_mask_8B_s1;
         end
-        `PCX_SZ_16B:
+        `MSG_DATA_SIZE_16B:
+        begin
+            write_mask_s1 = write_mask_16B_s1;
+        end
+        default:
         begin
             write_mask_s1 = write_mask_16B_s1;
         end
@@ -4074,10 +4078,10 @@ begin
     case (cpx_data_source_s3)
         `L15_CPX_SOURCE_LRSC_FLAG:
         begin
-            l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+            l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = ((size_s3 == `MSG_DATA_SIZE_4B) ?
                 {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
                 {7'b0,(~tagcheck_lrsc_flag_s3),56'b0});
-            l15_cpxencoder_data_1[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+            l15_cpxencoder_data_1[`L15_UNPARAM_63_0] = ((size_s3 == `MSG_DATA_SIZE_4B) ?
                 {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
                 {7'b0,(~tagcheck_lrsc_flag_s3),56'b0}); // write 0 on success
         end

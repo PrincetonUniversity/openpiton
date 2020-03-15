@@ -681,6 +681,31 @@ begin
         `MSG_TYPE_INTERRUPT             : $write("       int     ");
         `MSG_TYPE_L2_LINE_FLUSH_REQ     : $write("   line_flush  ");
         `MSG_TYPE_L2_DIS_FLUSH_REQ      : $write("    dis_flush  ");
+        `MSG_TYPE_LR_REQ                : $write("    lr_req     ");
+        `MSG_TYPE_AMO_ADD_REQ           : $write("  amo_add_req  ");
+        `MSG_TYPE_AMO_AND_REQ           : $write("  amo_and_req  ");
+        `MSG_TYPE_AMO_OR_REQ            : $write("  amo_or_req   ");
+        `MSG_TYPE_AMO_XOR_REQ           : $write("  amo_xor_req  ");
+        `MSG_TYPE_AMO_MAX_REQ           : $write("  amo_max_req  ");
+        `MSG_TYPE_AMO_MAXU_REQ          : $write("  amo_maxu_req ");
+        `MSG_TYPE_AMO_MIN_REQ           : $write("  amo_min_req  ");
+        `MSG_TYPE_AMO_MINU_REQ          : $write("  amo_minu_req ");
+        `MSG_TYPE_AMO_ADD_P1_REQ        : $write("  amo_add_p1   ");
+        `MSG_TYPE_AMO_AND_P1_REQ        : $write("  amo_and_p1   ");
+        `MSG_TYPE_AMO_OR_P1_REQ         : $write("  amo_or_p1    ");
+        `MSG_TYPE_AMO_XOR_P1_REQ        : $write("  amo_xor_p1   ");
+        `MSG_TYPE_AMO_MAX_P1_REQ        : $write("  amo_max_p1   ");
+        `MSG_TYPE_AMO_MAXU_P1_REQ       : $write("  amo_maxu_p1  ");
+        `MSG_TYPE_AMO_MIN_P1_REQ        : $write("  amo_min_p1   ");
+        `MSG_TYPE_AMO_MINU_P1_REQ       : $write("  amo_minu_p1  ");
+        `MSG_TYPE_AMO_ADD_P2_REQ        : $write("  amo_add_p2   ");
+        `MSG_TYPE_AMO_AND_P2_REQ        : $write("  amo_and_p2   ");
+        `MSG_TYPE_AMO_OR_P2_REQ         : $write("  amo_or_p2    ");
+        `MSG_TYPE_AMO_XOR_P2_REQ        : $write("  amo_xor_p2   ");
+        `MSG_TYPE_AMO_MAX_P2_REQ        : $write("  amo_max_p2   ");
+        `MSG_TYPE_AMO_MAXU_P2_REQ       : $write("  amo_maxu_p2  ");
+        `MSG_TYPE_AMO_MIN_P2_REQ        : $write("  amo_min_p2   ");
+        `MSG_TYPE_AMO_MINU_P2_REQ       : $write("  amo_minu_p2  ");
         default                         : $write("      undef    ");
     endcase
 end

@@ -458,6 +458,10 @@ begin
             noc2 = "MSG_TYPE_NODATA_ACK";
         `MSG_TYPE_DATA_ACK:
             noc2 = "MSG_TYPE_DATA_ACK";
+        `MSG_TYPE_NC_LOAD_MEM_ACK:
+            noc2 = "MSG_TYPE_NC_LOAD_MEM_ACK";
+        `MSG_TYPE_NC_STORE_MEM_ACK:
+            noc2 = "MSG_TYPE_NC_STORE_MEM_ACK";
         `MSG_TYPE_INTERRUPT:
             noc2 = "MSG_TYPE_L2_INTERRUPT";
         default:
