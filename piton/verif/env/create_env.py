@@ -29,12 +29,12 @@ import sys, os, getopt
 import getpass
 
 def usage ():
-    print "Usage: " + sys.argv[0] + " --name=<environment name> [options]"
-    print "Options:"
-    print "     --verbosity=<verbosity> Set the verbosity of the output."
-    print "                             Essentially the amount of comments in the testbench output."
-    print "                             0 is less, 1 is more."
-    print "     --author=<author>       Set the author of this environment"
+    print("Usage: " + sys.argv[0] + " --name=<environment name> [options]")
+    print("Options:")
+    print("     --verbosity=<verbosity> Set the verbosity of the output.")
+    print("                             Essentially the amount of comments in the testbench output.")
+    print("                             0 is less, 1 is more.")
+    print("     --author=<author>       Set the author of this environment")
 
 def parseCmdArgs ():
     name = None
@@ -59,7 +59,7 @@ def parseCmdArgs ():
             author = arg
 
     if (name == None) :
-        print "You must specify an environment name."
+        print("You must specify an environment name.")
         usage ()
         sys.exit (2)
 
@@ -385,7 +385,7 @@ def main ():
 
     # Get the location of DV_ROOT
     if not "DV_ROOT" in os.environ :
-        print "DV_ROOT environment variable is not defined"
+        print("DV_ROOT environment variable is not defined")
         sys.exit (2)
     dvRoot = os.environ['DV_ROOT'] + "/"
 
@@ -395,7 +395,7 @@ def main ():
 
     # Check if an environment already exists with this name
     if os.path.isdir(envDir + name) or os.path.exists(simsSrcDir + name + ".config") :
-        print "Environment with specified name ('" + name + "') already exists."
+        print("Environment with specified name ('" + name + "') already exists.")
         sys.exit (2)
 
     # Make directory for this environment
