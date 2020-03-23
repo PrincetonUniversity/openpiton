@@ -308,7 +308,7 @@ for i in range(1, len(devices)):
                 % (elseStr, info["base"], info["base"], info["length"])
         print(outputStr,end="")
         if not info["stream_accessible"]:
-            print("& (~uart_boot_en))",end="")
+            print(" & (~uart_boot_en))",end="")
         else:
             print(")",end="")
         outputStr = """

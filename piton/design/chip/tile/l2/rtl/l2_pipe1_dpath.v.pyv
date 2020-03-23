@@ -699,10 +699,10 @@ begin
 end
 /*
 <%  
-print("            l2_tag_hit_S2 =",end="")
+print("            l2_tag_hit_S2 = ",end="")
 for i in range(L2_WAYS):
     if i != L2_WAYS-1:
-        print("tag_hit_way_S2[%d] ||" % (i),end="")
+        print("tag_hit_way_S2[%d] || " % (i),end="")
     else:
         print("tag_hit_way_S2[%d];" % (i))
 %>
