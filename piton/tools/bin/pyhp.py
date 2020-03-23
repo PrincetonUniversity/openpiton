@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Modified by Princeton University on June 9th, 2015
 # Copyright (C) 2000 Christopher Craig
 #
