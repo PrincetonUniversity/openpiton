@@ -447,6 +447,10 @@ def main():
     elif args.core == 'ariane':
         args.config_rtl.append('PITON_ARIANE')
 
+        ## Temporary until we create a solution for SystemVerilog code
+        print_error('Due to lack of support for "pickling" of SystemVerilog code, the Ariane core configuration option is not supported')
+        sys.exit(1)
+
         for i in range(int(args.num_tiles)):
             args.config_rtl.append('RTL_ARIANE' + str(i))
             print_info('defining RTL_ARIANE' + str(i))
@@ -468,6 +472,10 @@ def main():
 
     print_info("network   = " + str(args.network_config))
     os.environ['PTON_NETWORK_CONFIG'] = args.network_config + "_config"
+
+    if args.network_config == "xbar" and args.y_tiles != 1:
+        print_error('When using the xbar network configuration option the y_tiles need to be set to 1.')
+        sys.exit(1)
 
     # cache config
     print_info("l15 size  = " + str(args.config_l15_size))
