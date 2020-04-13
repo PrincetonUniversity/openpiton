@@ -1999,7 +1999,7 @@ sub post_process
         print ("$prg: warning could not copy vcs coverage data back to ${model_path}/coverage/verilog\n") if ($?) ;
 
         if ($opt{asm_diag_name} ne "") {
-          `cp *.s *.S *.tbl *.ev *.exe.gz $launch_dir` ;
+          `shopt -s nullglob; cp *.s *.S *.tbl *.ev *.exe.gz $launch_dir; shopt -u nullglob` ;
           print ("$prg: warning could not copy assembly files back to $launch_dir\n") if ($?) ;
         }
       }
