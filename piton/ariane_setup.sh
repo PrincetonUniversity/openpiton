@@ -37,7 +37,8 @@
 #          default-jdk \
 #          zlib1g-dev \
 #          valgrind \
-#          csh
+#          csh \
+#          device-tree-compiler
 
 
 echo
