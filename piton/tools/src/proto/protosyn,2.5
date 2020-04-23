@@ -162,7 +162,7 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
     # Submit job, retrying on fails
     slurm_cmd = ["sbatch"]
     if dep_list != None and len(dep_list) > 0:
-        slurm_cmd.append("--dependency=afterok:" + ':'.join(dep_list))
+        slurm_cmd.append("--dependency=afterok:" + ':'.join([str(dep) for dep in dep_list]))
     slurm_cmd.append(slurm_file)
     proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -174,10 +174,10 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
         out, err = proc.communicate()
 
     # Get job ID and return for dependencies
-    match = re.match("Submitted batch job (\d+)\n", out)
+    match = re.match(r"b'Submitted batch job (\d+)\\n'", str(out))
     if match:
-        print_info("Submitted batch job %s" % match.group(1))
-        return match.group(1)
+        print_info("Submitted batch job %s" % str(match.group(1)))
+        return str(match.group(1))
     else:
         print_error("Error submitting batch job")
         return None
