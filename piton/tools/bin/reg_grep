@@ -34,7 +34,7 @@ import sys, os
 import re
 
 def usage():
-    print "Usage: " + re.sub(",.*", "", os.path.basename(sys.argv[0])) + " <sim log> [additional sim logs]"
+    print("Usage: " + re.sub(",.*", "", os.path.basename(sys.argv[0])) + " <sim log> [additional sim logs]")
 
 def main():
     # Check cmd args
@@ -48,10 +48,10 @@ def main():
     # Check cmd args
     for simlog in simlogs :
         if not os.path.isfile(simlog):
-            print "Error: Simulation log '" + simlog + "' does not exist."
+            print("Error: Simulation log '" + simlog + "' does not exist.")
             sys.exit(1)
         if simlog[-4:] != ".log" :
-            print "Error: Simulation log '" + simlog + "' does not have the .log suffix...invalid input"
+            print("Error: Simulation log '" + simlog + "' does not have the .log suffix...invalid input")
             sys.exit(1)
 
     # Reg logs
@@ -70,7 +70,7 @@ def main():
             match = re.match("\d+:reg_updated -> spc\((\d+)\) thread\((\d+)\) window\(\d+\) rs1\([0-9a-fx]{2}\)->[0-9a-f]{16} rs2\([0-9a-fx]{2}\)->[0-9a-f]{16} reg#\([lgio][0-7]\) val = [0-9a-f]{16}", 
                              line)
             if match is None :
-                print "Error: Reg log '" + reglog + "' either has no reg updates or invalid simulation log input"
+                print("Error: Reg log '" + reglog + "' either has no reg updates or invalid simulation log input")
                 fp.close()
                 sys.exit(1)
             max_spc = max(max_spc, int(match.group(1)))

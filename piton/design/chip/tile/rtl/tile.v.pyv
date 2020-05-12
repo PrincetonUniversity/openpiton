@@ -177,7 +177,7 @@ if (NETWORK_CONFIG == "xbar_config"):
     output                              dyn2_do_valid,
     output                              dyn2_yummyOut\
 '''
-print s
+print(s)
 %>
 
 `ifdef PITON_ARIANE
@@ -364,12 +364,12 @@ print s
     wire [`SCALE_WIDTH-1:0]             config_dmbr_bin_scale;
     <%
       for i in range(DMBR_BIN_NUM):
-        print "wire [`CREDIT_WIDTH-1:0] config_dmbr_cred_bin_%d;" % i
+        print("wire [`CREDIT_WIDTH-1:0] config_dmbr_cred_bin_%d;" % i)
     %>
 
     <%
       for i in range(DMBR_BIN_NUM):
-        print "wire [`CREDIT_WIDTH-1:0] from_dmbr_cred_bin_%d;" % i
+        print("wire [`CREDIT_WIDTH-1:0] from_dmbr_cred_bin_%d;" % i)
     %>
     wire                                config_csm_en;
     wire [31:0]                         config_system_tile_count;
@@ -591,7 +591,7 @@ if (NETWORK_CONFIG == "xbar_config"):
     assign router_buffer_data_val_noc3 = dyn2_validIn;
     assign router_buffer_consumed_noc3 = dyn2_do_yummy;
 '''
-print s
+print(s)
 %>
     ////////////////////////////////////////////
     // Credit - Val/Rdy Interface Transducers //
@@ -1179,7 +1179,7 @@ print(str)
         // are you shure that a scale factor can be 10? //alavrov
         <%
           for i in range(DMBR_BIN_NUM):
-            print ".creditIn_%d\t\t(config_dmbr_cred_bin_%d)," % (i,i)
+            print(".creditIn_%d\t\t(config_dmbr_cred_bin_%d)," % (i,i))
         %>
 
         //scale factor for replenishment (shoud be 1000)
@@ -1200,7 +1200,7 @@ print(str)
         //outputs
         <%
         for i in range(DMBR_BIN_NUM):
-          print ".curr_cred_bin_%d\t\t\t(from_dmbr_cred_bin_%d)," % (i,i)
+          print(".curr_cred_bin_%d\t\t\t(from_dmbr_cred_bin_%d)," % (i,i))
         %>
 
         .stallOut             (dmbr_l15_stall           )
@@ -1262,13 +1262,13 @@ print(str)
         // config_registers -> DMBR
         <%
           for i in range(DMBR_BIN_NUM):
-            print ".config_dmbr_cred_bin_%d\t\t\t(config_dmbr_cred_bin_%d)," % (i,i)
+            print(".config_dmbr_cred_bin_%d\t\t\t(config_dmbr_cred_bin_%d)," % (i,i))
         %>
 
         // DMBR -> config registers
         <%
           for i in range(DMBR_BIN_NUM):
-            print ".from_dmbr_cred_bin_%d\t\t\t(from_dmbr_cred_bin_%d)," % (i,i)
+            print(".from_dmbr_cred_bin_%d\t\t\t(from_dmbr_cred_bin_%d)," % (i,i))
         %>
 
         .config_csm_en                (config_csm_en                ),

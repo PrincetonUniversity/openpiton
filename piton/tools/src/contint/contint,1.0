@@ -95,47 +95,47 @@ def init_header () :
     prog = re.sub(",.*", "", os.path.basename(sys.argv[0]))
 
     # Print a header
-    print prog + " " + ' '.join(str(s) for s in sys.argv[1:])
-    print prog + ": ====================================================="
-    print prog + ":   Continuous Integration Script for OpenPiton"
-    print prog + ":   Copyright (c) 2015 Princeton University"
-    print prog + ":   All rights reserved."
-    print prog + ": ====================================================="
+    print(prog + " " + ' '.join(str(s) for s in sys.argv[1:]))
+    print(prog + ": =====================================================")
+    print(prog + ":   Continuous Integration Script for OpenPiton")
+    print(prog + ":   Copyright (c) 2015 Princeton University")
+    print(prog + ":   All rights reserved.")
+    print(prog + ": =====================================================")
 
     # Get start datetime and version
     sim_start = datetime.now()
     version = re.findall(",.*", os.path.basename(sys.argv[0]))[0][1:]
 
-    print prog + ": start_time " + sim_start.strftime("%a %b %d %H:%M:%S %Z %Y")
-    print prog + ": running on " + socket.gethostname()
-    print prog + ": uname is " + ' '.join(str(s)  for s in os.uname())
-    print prog + ": version " + version
+    print(prog + ": start_time " + sim_start.strftime("%a %b %d %H:%M:%S %Z %Y"))
+    print(prog + ": running on " + socket.gethostname())
+    print(prog + ": uname is " + ' '.join(str(s)  for s in os.uname()))
+    print(prog + ": version " + version)
 
     # Get relevant environment variables
     dv_root = os.environ.get("DV_ROOT")
     if dv_root == None :
-        print prog + ": Error: DV_ROOT environment variable not set."
+        print(prog + ": Error: DV_ROOT environment variable not set.")
         sys.exit(1)
     model_dir = os.environ.get("MODEL_DIR")
     if model_dir == None :
-        print prog + ": Error: MODEL_DIR environment variable not set."
+        print(prog + ": Error: MODEL_DIR environment variable not set.")
         sys.exit(1)
 
-    print prog + ": dv_root " + dv_root
-    print prog + ": model_dir " + model_dir
+    print(prog + ": dv_root " + dv_root)
+    print(prog + ": model_dir " + model_dir)
 
     return prog, sim_start, version, dv_root, model_dir 
 
 def usage (prog) :
-    print prog + ": Usage: " + prog + " --bundle=<continuous integration bundle> [options]"
-    print prog + ": Options:"
-    print prog + ":      -h, --help              Print this usage message"
-    print prog + ":      --dryrun                Don't actually run, print commands"
-    print prog + ":      --check_results         Do not run simulations, just check results"
-    print prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory"
-    print prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass"
-    print prog + ":      --inverse               Inverts the exit code to return 0 if all tests failed and 1 otherwise, whereas the default is to return 0 if all tests pass and 1 otherwise."
-    print prog + ":      --sim_type=<sim>        Specify the simulator to invoke (vcs, ncv, icv, msm, riv)"
+    print(prog + ": Usage: " + prog + " --bundle=<continuous integration bundle> [options]")
+    print(prog + ": Options:")
+    print(prog + ":      -h, --help              Print this usage message")
+    print(prog + ":      --dryrun                Don't actually run, print commands")
+    print(prog + ":      --check_results         Do not run simulations, just check results")
+    print(prog + ":      --contint_dir=<dir>     Specify a name for the continuous integration run directory")
+    print(prog + ":      --cleanup               Remove run directories and model directories when finished if all tests pass")
+    print(prog + ":      --inverse               Inverts the exit code to return 0 if all tests failed and 1 otherwise, whereas the default is to return 0 if all tests pass and 1 otherwise.")
+    print(prog + ":      --sim_type=<sim>        Specify the simulator to invoke (vcs, ncv, icv, msm, riv)")
 
 def parse_cmd_args (prog) :
     try :
@@ -173,24 +173,24 @@ def parse_cmd_args (prog) :
         elif opt == "--sim_type" :
             sim_type = arg
         else :
-            print prog + ": Unprocessed argument '" + opt + "'."
+            print(prog + ": Unprocessed argument '" + opt + "'.")
             usage (prog)
             sys.exit(1)
    
     if bundle == None :
-        print prog + ": No bundle specified."
+        print(prog + ": No bundle specified.")
         sys.exit(1)
 
     if check_results and contint_dir is None :
-        print prog + ": Must specify --contint_dir with --check_results option"
+        print(prog + ": Must specify --contint_dir with --check_results option")
         sys.exit(1)        
 
     if check_results and dryrun :
-        print prog + ": Cannot specify both check_results and dryrun"
+        print(prog + ": Cannot specify both check_results and dryrun")
         sys.exit(1)
 
     if sim_type not in ["vcs", "ncv", "icv", "msm", "riv"]:
-        print prog + ": sim_type must be one of vcs, ncv, icv, msm or riv"
+        print(prog + ": sim_type must be one of vcs, ncv, icv, msm or riv")
         sys.exit(1)
 
     return bundle, dryrun, check_results, contint_dir, cleanup, inverse, sim_type
@@ -199,7 +199,7 @@ def parse_config (prog, config) :
     try :
         fp = open(config, "r")
     except IOError :
-        print prog + ": Error: Unable to open config file at " + config
+        print(prog + ": Error: Unable to open config file at " + config)
         sys.exit(1)
 
     xml_files = []
@@ -251,7 +251,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                 elif args.tag == "largest_regress":
                     is_largest = True
             if not found_sys :
-                print prog + ": Error: No -sys argument for bundle item, skipping..."
+                print(prog + ": Error: No -sys argument for bundle item, skipping...")
                 continue
 
             # Construct run command
@@ -265,7 +265,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                 if args.tag == "slurm" :
                     sim_q_command += " " + args.text
                 elif args.tag == "largest_regress":
-                    print "This is the largest regression, not adding this tag to run_command"
+                    print("This is the largest regression, not adding this tag to run_command")
                 elif args.text == None :
                     run_command += " -" + args.tag
                 elif args.tag not in ["vcs_build_args", "ncv_build_args", "icv_build_args", "msm_build_args", "riv_build_args", "sim_build_args"] :
@@ -292,7 +292,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             bundle_item.is_largest = is_largest
             bundle_items.append(bundle_item)
         elif child.tag == "include" :
-            print prog + ": Parsing included bundle '" + child.text + "'..."
+            print(prog + ": Parsing included bundle '" + child.text + "'...")
             # Find and parse the included bundle
             if parent_bundle != "" :
                 include_bundle_items = find_bundle (prog, xml_files, child.text, parent_bundle + "_" + bundle, sim_type)
@@ -301,9 +301,9 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
             
             # Check that we found the bundle
             if include_bundle_items == None :
-                print prog + ": Error: Unable to find included bundle '" + child.text + "'....skipping."
+                print(prog + ": Error: Unable to find included bundle '" + child.text + "'....skipping.")
             else :
-                print prog + ": Successfully parsed include bundle '" + child.text + "'."
+                print(prog + ": Successfully parsed include bundle '" + child.text + "'.")
                 bundle_items.extend(include_bundle_items)
         elif child.tag == "sims_build_args" :
             for args in child :
@@ -318,7 +318,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                 else :
                     sims_run_args.append("-" + args.tag + "=" + args.text)
         else :
-            print prog + ": Error: Unknown tag '" + child.tag + "' in " + xml_file + " skipping tag..."
+            print(prog + ": Error: Unknown tag '" + child.tag + "' in " + xml_file + " skipping tag...")
 
     # Apply global sims build and run args to each element in bundle
     for bundle_item in bundle_items :
@@ -334,7 +334,7 @@ def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle, sim_type) :
     try :
         tree = ET.parse(xml_file)
     except IOError :
-        print prog + ": Error: Unable to open XML bundle file at " + xml_file
+        print(prog + ": Error: Unable to open XML bundle file at " + xml_file)
         return None
 
     # Get the root element
@@ -350,7 +350,7 @@ def parse_bundle (prog, xml_file, bundle, xml_files, parent_bundle, sim_type) :
                 bundle_items = parse_bundle_tree (prog, xml_file, child, bundle, xml_files, parent_bundle, sim_type)
                 return bundle_items
     else :
-        print prog + ": Error: Could not find bundles tag in " + xml_file
+        print(prog + ": Error: Could not find bundles tag in " + xml_file)
         return None
 
 def find_bundle (prog, xml_files, bundle, parent_bundle, sim_type) :
@@ -415,7 +415,7 @@ def build_item (dryrun, item) :
             item.build_passed = False
         os.rename("sims.log", item.model_name + "_build_sims.log")
     else :
-        print "Running build command: " + item.build_command
+        print("Running build command: " + item.build_command)
         item.build_passed = True
 
 def parse_job_ids (batch_log) :
@@ -455,15 +455,15 @@ def run_item (dryrun, contint_dir, item) :
             # Collect SLURM job ids
             slurm_job_ids.extend(parse_job_ids(sim_log))
         else :
-            print "Running run command: " + item.run_command
+            print("Running run command: " + item.run_command)
             item.run_passed = True
     else :
         # Create a directory to run test in (model name) and go to it
         try:
             os.makedirs (item.model_name)
         except:
-            print "%s is already exists!" % item.model_name
-            print "Continuing..."
+            print("%s is already exists!" % item.model_name)
+            print("Continuing...")
         os.chdir (item.model_name)
         # Create a SLURM batch script for this test
         fp = open("contint_" + item.name, "w")
@@ -491,7 +491,7 @@ def run_item (dryrun, contint_dir, item) :
             status = os.system(item.sim_q_command + " " + slurm_script_path + " > " + sim_log)
 
             while status != 0:
-                print "Submit failed"
+                print("Submit failed")
                 sleep(30)
                 status = os.system(item.sim_q_command + " " + slurm_script_path + " > " + sim_log)
             if status == 0 :
@@ -502,7 +502,7 @@ def run_item (dryrun, contint_dir, item) :
             # Collect SLURM job ids
             slurm_job_ids.extend(parse_job_ids(sim_log))
         else :
-            print "Running run command: " + item.run_command
+            print("Running run command: " + item.run_command)
             item.run_passed = True
 
         # Change back to contint directory
@@ -529,7 +529,7 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
 
         is_dmbr_source_sink = re.search(r'dmbr_source_sink', item.name)
         if is_dmbr_source_sink != None and not dryrun:
-            print 'Generating source and sink for DMBR unit testing...'
+            print('Generating source and sink for DMBR unit testing...')
             prev_dir = os.getcwd()
             os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
             os.system('./gen_source_sink.py')
@@ -546,7 +546,7 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
         # Generate an assembly test before running a test
         is_dmbr_assembly_gen = re.search(r'dmbr_assembly_gen', item.name)
         if is_dmbr_assembly_gen != None and not dryrun:
-            print 'Running an assembly test generator for DMBR...'
+            print('Running an assembly test generator for DMBR...')
             prev_dir = os.getcwd()
             os.chdir(os.path.join(dv_root, 'verif/env/dmbr_test/test_cases'))
             os.system('./gen_assembly.py')
@@ -576,7 +576,7 @@ def wait_for_jobs (job_ids) :
             wc_proc = subprocess.Popen(["wc", "-l"], stdin=squeue_proc.stdout, \
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = wc_proc.communicate()
-            if out == "1\n" or out == "0\n":
+            if out == b'1\n' or out == b'0\n':
                 remove_jobs.append(job)
 
         # Remove finished jobs from list we are waiting on
@@ -610,7 +610,7 @@ def check_status_log (prog, diag, sim_type) :
     # Figure out diag directory
     curr_dir = os.getcwd()
     if not os.path.isdir(diag) :
-        print prog + ": Error: No such diag directory: " + diag
+        print(prog + ": Error: No such diag directory: " + diag)
         return status, templist, sim_cyc, wall_sec
     else :
         os.chdir(diag)
@@ -709,8 +709,8 @@ def check_asmregress_results (prog, contint_dir, item, sim_type) :
     if os.path.isdir(regress_dir) :
         os.chdir (regress_dir)
     else :
-        print prog + ": Error: Cannot chdir into regression directory at '" + regress_dir + "'"
-        print prog + ":        Skipping checking results for this bundle item..."
+        print(prog + ": Error: Cannot chdir into regression directory at '" + regress_dir + "'")
+        print(prog + ":        Skipping checking results for this bundle item...")
         return
     
     group_count = dict()
@@ -735,7 +735,7 @@ def check_asmregress_results (prog, contint_dir, item, sim_type) :
                 group_count[diag_name_parts[2]] = 0
  
     group_count["ALL"] = 0
-    group_list = sorted(group_count.keys(), reverse=True)
+    group_list = sorted(list(group_count.keys()), reverse=True)
     
     # Initialize some variables 
     for group in group_list :
@@ -763,8 +763,8 @@ def check_asmregress_results (prog, contint_dir, item, sim_type) :
                 if group in group_count :
                     group_count[group] += 1
                 else :
-                    print prog + ": Error: Something is wrong at walk-thru group is " + group
-                    print prog + ": Skipping diag..."
+                    print(prog + ": Error: Something is wrong at walk-thru group is " + group)
+                    print(prog + ": Skipping diag...")
             group_count["ALL"] += 1
 
             # Print processed diag name
@@ -810,7 +810,7 @@ def check_asmregress_results (prog, contint_dir, item, sim_type) :
             sys.stdout.write("\b" * len(diag_name))
             sys.stdout.flush()
 
-    print "%s:        %-65s %4d" % (prog, "Total diags:", group_count["ALL"])
+    print("%s:        %-65s %4d" % (prog, "Total diags:", group_count["ALL"]))
 
     # Store stats collected into item
     item.stats = dict()
@@ -850,7 +850,7 @@ def check_asmtest_results (prog, item, sim_type) :
     sys.stdout.write("\b" * len(diag_name))
     sys.stdout.flush()
 
-    print "%s:        %-65s %4d" % (prog, "Total diags:", 1)
+    print("%s:        %-65s %4d" % (prog, "Total diags:", 1))
 
     # Store stats collected into item
     item.stats = dict()
@@ -1036,8 +1036,8 @@ def generate_status_log (sim_start, item, diag_dir) :
     try :
         fp = open("status.log", "w")
     except IOError :
-        print prog + ": Error: Unable to open 'status.log' file for bundle item '" + item.name + "'"
-        print prog + ":        Skipping checking results for this bundle item..."
+        print(prog + ": Error: Unable to open 'status.log' file for bundle item '" + item.name + "'")
+        print(prog + ":        Skipping checking results for this bundle item...")
         return
 
     # If we didn't find any files to give us information as to what happened
@@ -1085,8 +1085,8 @@ def check_other_results (prog, sim_start, contint_dir, item, sim_type) :
     if os.path.isdir(diag_dir) :
         os.chdir(diag_dir)
     else :
-        print prog + ": Error: Cannot chdir into diag directory at '" + diag_dir + "'"
-        print prog + ":        Skipping checking results for this bundle item..."
+        print(prog + ": Error: Cannot chdir into diag directory at '" + diag_dir + "'")
+        print(prog + ":        Skipping checking results for this bundle item...")
         return
 
     # Generate a status.log file
@@ -1106,7 +1106,7 @@ def check_other_results (prog, sim_start, contint_dir, item, sim_type) :
     sys.stdout.write("\b" * len(diag_name))
     sys.stdout.flush()
 
-    print "%s:        %-65s %4d" % (prog, "Total diags:", 1)
+    print("%s:        %-65s %4d" % (prog, "Total diags:", 1))
 
     # Store stats collected into item
     item.stats = dict()
@@ -1122,7 +1122,7 @@ def check_bundle_results (prog, sim_start, contint_dir, bundle_items, sim_type) 
     # type of bundle item if the build passed (i.e. we ran the run)
     for item in bundle_items :
         if item.build_passed :
-            print prog + ":     Checking results for bundle item '" + item.name + "'"
+            print(prog + ":     Checking results for bundle item '" + item.name + "'")
             if item.type == BundleItemType.AssemblyRegression :
                 check_asmregress_results (prog, contint_dir, item, sim_type)     
             elif item.type == BundleItemType.AssemblyTest :
@@ -1381,13 +1381,13 @@ def print_results (contint_dir, bundle_items) :
     # Print summary for aggregate bundle items
     ###########################################
     # Print header for build and run summary
-    print "\nSummary for builds and runs"
-    print ("=" * 80)
+    print("\nSummary for builds and runs")
+    print(("=" * 80))
     sys.stdout.write("%15s:" % "Status")
     for item in bundle_items :
         if item.type == BundleItemType.Aggregate :
             sys.stdout.write("%11s |" % item.name)
-    print "\n" + "-" * 80
+    print("\n" + "-" * 80)
 
     # Print build pass fail counts
     sys.stdout.write("%15s:" % "Both PASS")
@@ -1406,23 +1406,23 @@ def print_results (contint_dir, bundle_items) :
             sys.stdout.write("%11d |" % item.stats["run_fail_count"])
     sys.stdout.write("\n")
 
-    print "-" * 80
+    print("-" * 80)
     sys.stdout.write("%15s:" % "Item Count")
     for item in bundle_items :
         if item.type == BundleItemType.Aggregate :
             sys.stdout.write("%11d |" % item.stats["bundle_item_count"])
     sys.stdout.write("\n")
 
-    print "=" * 80
+    print("=" * 80)
 
     # Print header
-    print "\nSummary for " + contint_dir + " by bundle item types"
-    print ("=" * 80)
+    print("\nSummary for " + contint_dir + " by bundle item types")
+    print(("=" * 80))
     sys.stdout.write("%15s:" % "Status")
     for item in bundle_items :
         if item.type == BundleItemType.Aggregate :
             sys.stdout.write("%11s |" % item.name)
-    print "\n" + '-' * 80
+    print("\n" + '-' * 80)
     
     # Print status counts
     ordered_types = ["pass", "fail", "diag", "lcns", "maxc", "sckt", "timo", \
@@ -1434,7 +1434,7 @@ def print_results (contint_dir, bundle_items) :
                 sys.stdout.write("%11d |" % item.stats["stat_count"][type])
         sys.stdout.write("\n")
     
-    print "-" * 80
+    print("-" * 80)
     sys.stdout.write("%15s:" % "Diag Count")
     for item in bundle_items :
         if item.type == BundleItemType.Aggregate :
@@ -1442,7 +1442,7 @@ def print_results (contint_dir, bundle_items) :
     sys.stdout.write("\n")
 
     # Print cycles per second
-    print "-" * 80
+    print("-" * 80)
     sys.stdout.write("%15s:" % "Cycles/Sec")
     for item in bundle_items :
         if item.type == BundleItemType.Aggregate :
@@ -1496,7 +1496,7 @@ def print_results (contint_dir, bundle_items) :
             sys.stdout.write("%11d |" % item.stats["pass_fail_count"])
     sys.stdout.write("\n")
 
-    print "=" * 80
+    print("=" * 80)
 
     ############################################
     # Print summary for regression bundle items
@@ -1510,8 +1510,8 @@ def print_results (contint_dir, bundle_items) :
             break
     if all_regress_build_run_pass and regress_bundle_item_count > 0 :
         # Print header
-        print "\nSummary for " + contint_dir + " assembly regressions only"
-        print ("=" * 80)
+        print("\nSummary for " + contint_dir + " assembly regressions only")
+        print(("=" * 80))
         sys.stdout.write("%15s:" % "Status")
         for item in bundle_items :
             if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
@@ -1532,7 +1532,7 @@ def print_results (contint_dir, bundle_items) :
                     if group != "ALL" :
                         sys.stdout.write("%11s |" % group) 
                 sys.stdout.write("%11s |" % "ALL")
-        print "\n" + '-' * 80
+        print("\n" + '-' * 80)
 
         # Print status counts
         for type in ordered_types :
@@ -1546,7 +1546,7 @@ def print_results (contint_dir, bundle_items) :
             sys.stdout.write("\n")
 
         # Print cycles per second
-        print "-" * 80
+        print("-" * 80)
         sys.stdout.write("%15s:" % "Cycles/Sec")
         for item in bundle_items :
             if item.type == BundleItemType.AssemblyRegression and item.build_passed and item.run_passed :
@@ -1584,7 +1584,7 @@ def print_results (contint_dir, bundle_items) :
                 sys.stdout.write("%11d |" % item.stats["pass_fail_count"]["ALL"])
         sys.stdout.write("\n")
 
-        print "=" * 80
+        print("=" * 80)
 
     ######################################
     # Print details for each failing test
@@ -1595,25 +1595,25 @@ def print_results (contint_dir, bundle_items) :
         elif item.type == BundleItemType.AssemblyRegression :
             # Print something if build failed
             if not item.build_passed :
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
-                print "BUILD FAILED"
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
+                print("BUILD FAILED")
             # Print something if run failed
             elif not item.run_passed :  
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
-                print "RUN FAILED"
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
+                print("RUN FAILED")
             # Only print something if it failed
             elif item.stats["group_count_stat"]["ALL"]["pass"] != item.stats["group_count"]["ALL"] :
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
                 for group in item.stats["group_count"] :
                     if group != "ALL" :
-                        print "Details for " + group + " group"
-                        print "=" * 40
+                        print("Details for " + group + " group")
+                        print("=" * 40)
                         for type in ordered_types :
                             if type != "pass" and item.stats["group_count_stat"][group][type] > 0 :
                                 print_header = 1
@@ -1623,14 +1623,14 @@ def print_results (contint_dir, bundle_items) :
                                     if item.stats["diags_status"][diag] == type and \
                                        len(diag_name_parts) > 2 and group == diag_name_parts[2]:
                                         if print_header :
-                                            print STATUS_NAME[type] + ":"
-                                            print "=" * 20
+                                            print(STATUS_NAME[type] + ":")
+                                            print("=" * 20)
                                             print_header = 0
                                         sys.stdout.write("".join(item.stats["diags_status_details"][diag]))
                                 if print_header == 0 :
-                                    print "=" * 20
-                print "Details for ALL not in other groups"
-                print "=" * 40
+                                    print("=" * 20)
+                print("Details for ALL not in other groups")
+                print("=" * 40)
                 for type in ordered_types :
                     if type != "pass" and item.stats["group_count_stat"]["ALL"][type] > 0 :
                         print_header = 1
@@ -1639,32 +1639,32 @@ def print_results (contint_dir, bundle_items) :
                             # Group position in name is 2
                             if item.stats["diags_status"][diag] == type and len(diag_name_parts) <= 2 :
                                 if print_header :
-                                    print STATUS_NAME[type] + ":"
-                                    print "=" * 20
+                                    print(STATUS_NAME[type] + ":")
+                                    print("=" * 20)
                                     print_header = 0
                                 sys.stdout.write("".join(item.stats["diags_status_details"][diag]))
                         if print_header == 0 :
-                            print "=" * 20
+                            print("=" * 20)
         elif item.type == BundleItemType.AssemblyTest or item.type == BundleItemType.Other:
             # Print something if build failed
             if not item.build_passed :
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
-                print "BUILD FAILED"
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
+                print("BUILD FAILED")
             # Print something if run failed
             elif not item.run_passed :
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
-                print "RUN FAILED"
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
+                print("RUN FAILED")
             # Only print something if it fails
             elif item.stats["status"] != "pass" :
-                print "=" * 80
-                print "\n\nDetails for " + item.name
-                print "=" * 80
-                print STATUS_NAME[item.stats["status"]] + ":"
-                print "=" * 20
+                print("=" * 80)
+                print("\n\nDetails for " + item.name)
+                print("=" * 80)
+                print(STATUS_NAME[item.stats["status"]] + ":")
+                print("=" * 20)
                 sys.stdout.write("".join(item.stats["status_details"]))
 
 def contint_main () :
@@ -1674,11 +1674,11 @@ def contint_main () :
     # Parse the command line arguments
     bundle, dryrun, check_results, spec_contint_dir, cleanup, inverse, sim_type = parse_cmd_args (prog)
 
-    print prog + ": processing bundle " + bundle
+    print(prog + ": processing bundle " + bundle)
 
     # Get config file
     contint_config = os.path.join(os.path.dirname(os.path.realpath(__file__)), "contint.config")
-    print prog + ": using config file " + contint_config
+    print(prog + ": using config file " + contint_config)
 
     # Parse the config file to get a list of XML files
     xml_files = parse_config(prog, contint_config)
@@ -1688,7 +1688,7 @@ def contint_main () :
 
     # Check that we found the bundle
     if bundle_items == None :
-        print prog + ": Error: Unable to find bundle '" + bundle + "'."
+        print(prog + ": Error: Unable to find bundle '" + bundle + "'.")
         sys.exit(1)
 
     
@@ -1708,7 +1708,7 @@ def contint_main () :
         os.makedirs(contint_dir)
     else :
         if not os.path.isdir(contint_dir) :
-            print prog + ": Error: Specified contint_dir does not exist and check results was specified."
+            print(prog + ": Error: Specified contint_dir does not exist and check results was specified.")
             sys.exit(1)
     os.chdir(contint_dir)
 
@@ -1728,7 +1728,7 @@ def contint_main () :
         for item in bundle_items :
             model_name = find_model_name (contint_dir, item)
             if model_name is None :
-                print prog + ": Error: Unable to find directory corresponding to bundle item " + item.name
+                print(prog + ": Error: Unable to find directory corresponding to bundle item " + item.name)
                 item.build_passed = False
                 item.run_passed = False
             else :
@@ -1737,11 +1737,11 @@ def contint_main () :
                 item.run_passed = True
 
     # Wait for all SLURM jobs to finish
-    print prog + ": Waiting for simulation jobs to finish..."
+    print(prog + ": Waiting for simulation jobs to finish...")
     wait_for_jobs(slurm_job_ids)
 
     # Check results for each bundle item
-    print prog + ": Checking simulation results..."
+    print(prog + ": Checking simulation results...")
     if not dryrun :
         check_bundle_results (prog, sim_start, contint_dir, bundle_items, sim_type)
 
@@ -1758,7 +1758,7 @@ def contint_main () :
 
     # Cleanup
     if cleanup and all_pass and not dryrun:
-        print "Cleaning up...."
+        print("Cleaning up....")
         # Remove run directory
         shutil.rmtree(contint_dir)
         # Remove model directories

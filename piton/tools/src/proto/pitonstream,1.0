@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
 #
@@ -76,47 +76,47 @@ MEM_SIZE = 33554432 # 1 GB = 32B * 33554432
 FNULL = open(os.devnull, 'w')
 
 def usage():
-    print >> sys.stderr
-    print >> sys.stderr, "Usage:\npitonstream -b <board type> -f <filename> [--ustr]",
-    print >> sys.stderr
-    print >> sys.stderr, "\n       -b, --board  <board_type>"
-    print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
-    print >> sys.stderr, "                  nexys4ddr*"
-    print >> sys.stderr, "                  vc707"
-    print >> sys.stderr, "                  genesys2"
-    print >> sys.stderr, "                  nexysVideo"
-    print >> sys.stderr, "\n                  * current configuration of design doesn't fit on this board"
-    print >> sys.stderr, "\n       -d, --design <design>"
-    print >> sys.stderr, "              Name of design used to determine frequency. Default is 'system'."
-    print >> sys.stderr, "              See $DV_ROOT/tools/src/proto/block.list for supported design modules"
-    print >> sys.stderr, "\n       -c, --core <core_config>"
-    print >> sys.stderr, "              Name of a supported core configuration:"
-    print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
-    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
-    print >> sys.stderr, "\n       -f, --file <filename>"
-    print >> sys.stderr, "              File name with test names. If option --ustr is not specified,"
-    print >> sys.stderr, "              they should be assembly test names, otherwise list of generated"
-    print >> sys.stderr, "              .ustr files"
-    print >> sys.stderr, "\n       -p, --port <portname>"
-    print >> sys.stderr, "              Port name for serial device of FPGA board. Default is 'ttyUSB0'"
-    print >> sys.stderr, "              Check your /dev directory to determine serial device name"
-    print >> sys.stderr, "\n       --precompiled"
-    print >> sys.stderr, "              Optional.  This switch is needed to run precompiled RISCV asm tests."
-    print >> sys.stderr, "\n       --x_tiles"
-    print >> sys.stderr, "              Optional.  Needs to be specified if this parameter differs from the board default."
-    print >> sys.stderr, "\n       --y_tiles"
-    print >> sys.stderr, "              Optional.  Needs to be specified if this parameter differs from the board default."
-    print >> sys.stderr, "\n       --midas_args <midas args>"
-    print >> sys.stderr, "              Optional.  String containing arguments to midas to add during "
-    print >> sys.stderr, "              compilation of the assembly test"
-    print >> sys.stderr, "\n       --ustr"
-    print >> sys.stderr, "              Specifies that test names in the file should be treated as .ustr file names"
-    print >> sys.stderr, "\n       --no_wait_fpga_config"
-    print >> sys.stderr, "              Do not wait for signal that FPGA is configured before running tests."
-    print >> sys.stderr, "              Assume FPGA is configured at launch."
-    print >> sys.stderr, "\n       -h, --help"
-    print >> sys.stderr, "              Display this help message and exit"
-    print >> sys.stderr, "\n"
+    print(file=sys.stderr)
+    print("Usage:\npitonstream -b <board type> -f <filename> [--ustr]", end=' ', file=sys.stderr)
+    print(file=sys.stderr)
+    print("\n       -b, --board  <board_type>", file=sys.stderr)
+    print("              Name of a supported Xilinx's development board. Available options are:", file=sys.stderr)
+    print("                  nexys4ddr*", file=sys.stderr)
+    print("                  vc707", file=sys.stderr)
+    print("                  genesys2", file=sys.stderr)
+    print("                  nexysVideo", file=sys.stderr)
+    print("\n                  * current configuration of design doesn't fit on this board", file=sys.stderr)
+    print("\n       -d, --design <design>", file=sys.stderr)
+    print("              Name of design used to determine frequency. Default is 'system'.", file=sys.stderr)
+    print("              See $DV_ROOT/tools/src/proto/block.list for supported design modules", file=sys.stderr)
+    print("\n       -c, --core <core_config>", file=sys.stderr)
+    print("              Name of a supported core configuration:", file=sys.stderr)
+    print("                  sparc     (opensparc T1 core, default)", file=sys.stderr)
+    print("                  ariane    (64bit RISCV core)", file=sys.stderr)
+    print("\n       -f, --file <filename>", file=sys.stderr)
+    print("              File name with test names. If option --ustr is not specified,", file=sys.stderr)
+    print("              they should be assembly test names, otherwise list of generated", file=sys.stderr)
+    print("              .ustr files", file=sys.stderr)
+    print("\n       -p, --port <portname>", file=sys.stderr)
+    print("              Port name for serial device of FPGA board. Default is 'ttyUSB0'", file=sys.stderr)
+    print("              Check your /dev directory to determine serial device name", file=sys.stderr)
+    print("\n       --precompiled", file=sys.stderr)
+    print("              Optional.  This switch is needed to run precompiled RISCV asm tests.", file=sys.stderr)
+    print("\n       --x_tiles", file=sys.stderr)
+    print("              Optional.  Needs to be specified if this parameter differs from the board default.", file=sys.stderr)
+    print("\n       --y_tiles", file=sys.stderr)
+    print("              Optional.  Needs to be specified if this parameter differs from the board default.", file=sys.stderr)
+    print("\n       --midas_args <midas args>", file=sys.stderr)
+    print("              Optional.  String containing arguments to midas to add during ", file=sys.stderr)
+    print("              compilation of the assembly test", file=sys.stderr)
+    print("\n       --ustr", file=sys.stderr)
+    print("              Specifies that test names in the file should be treated as .ustr file names", file=sys.stderr)
+    print("\n       --no_wait_fpga_config", file=sys.stderr)
+    print("              Do not wait for signal that FPGA is configured before running tests.", file=sys.stderr)
+    print("              Assume FPGA is configured at launch.", file=sys.stderr)
+    print("\n       -h, --help", file=sys.stderr)
+    print("              Display this help message and exit", file=sys.stderr)
+    print("\n", file=sys.stderr)
 
 def checkCmdOptions(options):
     if options.help:
@@ -194,7 +194,7 @@ def pollUART(ser):
             rdata_all += rdata
 
             was_key = False
-            for key in KEY_EVENT_MAP.keys():
+            for key in list(KEY_EVENT_MAP.keys()):
                 # because of split keyword, have to search in all read data
                 m = re.search("%s" % key, rdata_all)
                 if m != None:
@@ -344,7 +344,7 @@ def setParserOptions(parser):
 
 def printDebug(s):
     if DEBUG:
-        print >> sys.stderr, "DEBUG: " + s
+        print("DEBUG: " + s, file=sys.stderr)
 
 def main():
     parser = OptionParser(add_help_option=False)

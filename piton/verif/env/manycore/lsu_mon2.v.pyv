@@ -2412,7 +2412,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
 '''
 pattern = ["SPARC0", "spc0", "count12bits C0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2438,7 +2438,7 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (cpx_spc_data_cx2_local),
     .Dinv  (cpx_spc_data_cx2_Dinv),
@@ -2463,7 +2463,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_byp_mx_data_local),
     .Dinv  (dfq_byp_mx_data_Dinv),
@@ -2488,7 +2488,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_cpx_raw_wdata_local),
     .Dinv  (dfq_cpx_raw_wdata_Dinv),
@@ -2525,7 +2525,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_byp_ff_data_local),
     .Dinv  (dfq_byp_ff_data_Dinv),
@@ -2549,7 +2549,7 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 
 %>local_o, Dinv, Iinv);
 
@@ -2560,7 +2560,7 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 output [`NUM_TILES-1:0]  local_o;
 output [`NUM_TILES-1:0]  Dinv;
@@ -2575,7 +2575,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "local_o[0", "Dinv[0", "Iinv[0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 
 endmodule

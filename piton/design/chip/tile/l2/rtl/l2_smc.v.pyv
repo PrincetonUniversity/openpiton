@@ -120,7 +120,7 @@ always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "    smc_tag[%d] = data_mem_f[%d][`L2_SMC_TAG];" % (i,i)
+    print("    smc_tag[%d] = data_mem_f[%d][`L2_SMC_TAG];" % (i,i))
 %>
 end
 
@@ -128,7 +128,7 @@ always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "    smc_valid[%d] = data_mem_f[%d][`L2_SMC_VALID];" % (i,i)
+    print("    smc_valid[%d] = data_mem_f[%d][`L2_SMC_VALID];" % (i,i))
 %>
 end
 
@@ -136,7 +136,7 @@ always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "    smc_data[%d] = data_mem_f[%d][`L2_SMC_DATA];" % (i,i)
+    print("    smc_data[%d] = data_mem_f[%d][`L2_SMC_DATA];" % (i,i))
 %>
 end
 
@@ -144,7 +144,7 @@ always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "    smc_sdid[%d] = data_mem_f[%d][`L2_SMC_SDID];" % (i,i)
+    print("    smc_sdid[%d] = data_mem_f[%d][`L2_SMC_SDID];" % (i,i))
 %>
 end
 
@@ -168,20 +168,20 @@ end
 always @ *
 begin
 <%
-print("    smc_valid_in = {"),
-for i in xrange(L2_SMC_DATA_NUM-1,-1,-1):
+print("    smc_valid_in = { ",end="")
+for i in range(L2_SMC_DATA_NUM-1,-1,-1):
     if i == 0:
-        print("data_in[%d]" % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1)),
+        print("data_in[%d] " % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1),end="")
     else:
-        print("data_in[%d]," % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1)),
-print "};"
-print("    smc_data_in = {"),
-for i in xrange(L2_SMC_DATA_NUM-1,-1,-1):
+        print("data_in[%d], " % ((i+1)*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)-1),end="")
+print("};")
+print("    smc_data_in = { " ,end="")
+for i in range(L2_SMC_DATA_NUM-1,-1,-1):
     if i == 0:
-        print("data_in[%d:%d]" % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM))),
+        print("data_in[%d:%d] " % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)),end="")
     else:
-        print("data_in[%d:%d]," % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM))),
-print "};"
+        print("data_in[%d:%d], " % (i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)+L2_SMC_DATA_OUT_WIDTH-1, i*(L2_SMC_DATA_IN_WIDTH/L2_SMC_DATA_NUM)),end="")
+print("};")
 %>
 end
 
@@ -190,22 +190,22 @@ wire [`L2_SMC_INDEX_WIDTH-1:0] tag_hit_index;
 wire tag_hit;
 
 <%
-print '''
-reg [%d:0] smc_tag_cmp;''' % (L2_SMC_ENTRIES-1)
+print('''
+reg [%d:0] smc_tag_cmp;''' % (L2_SMC_ENTRIES-1))
 %>
 always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print '''
-    smc_tag_cmp[%d] = (smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in];''' % (i,i,i)
+    print('''
+    smc_tag_cmp[%d] = (smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in];''' % (i,i,i))
 %>
 end
 
 <%
 
-print '''
-l2_priority_encoder_%d priority_encoder_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+print('''
+l2_priority_encoder_%d priority_encoder_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH))
 %>
     .data_in        (smc_tag_cmp),
     .data_out       (tag_hit_index),
@@ -238,33 +238,33 @@ begin
 end
 /*
     <%
-print "    if(rd_en)"
-print "    begin"
+print("    if(rd_en)")
+print("    begin")
 for i in range(L2_SMC_ENTRIES):
     if i == 0:
-        print "        if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i)
-        print "        begin"
-        print "            hit = 1'b1;"
-        print "            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "        end"
+        print("        if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i))
+        print("        begin")
+        print("            hit = 1'b1;")
+        print("            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("        end")
     else:
-        print "        else if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i)
-        print "        begin"
-        print "            hit = 1'b1;"
-        print "            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "        end"
+        print("        else if ((smc_tag[%d] == rd_tag_in) && smc_valid[%d][rd_offset_in])" % (i,i))
+        print("        begin")
+        print("            hit = 1'b1;")
+        print("            hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("        end")
 
-print "        else"
-print "        begin"
-print "            hit = 1'b0;"
-print "            hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
-print "        end"
-print "    end"
-print "    else"
-print "    begin"
-print "        hit = 1'b0;"
-print "        hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
-print "    end"
+print("        else")
+print("        begin")
+print("            hit = 1'b0;")
+print("            hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH))
+print("        end")
+print("    end")
+print("    else")
+print("    begin")
+print("        hit = 1'b0;")
+print("        hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH))
+print("    end")
 
     %>
     end
@@ -276,23 +276,23 @@ wire [`L2_SMC_INDEX_WIDTH-1:0] tag_wr_hit_index;
 wire tag_wr_hit;
 
 <%
-print '''
-reg [%d:0] smc_tag_wr_cmp;''' % (L2_SMC_ENTRIES-1)
+print('''
+reg [%d:0] smc_tag_wr_cmp;''' % (L2_SMC_ENTRIES-1))
 %>
 always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print '''
-    smc_tag_wr_cmp[%d] = (smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0);''' % (i,i,i)
+    print('''
+    smc_tag_wr_cmp[%d] = (smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0);''' % (i,i,i))
 %>
 end
 
 
 <%
 
-print '''
-l2_priority_encoder_%d priority_encoder_wr_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+print('''
+l2_priority_encoder_%d priority_encoder_wr_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH))
 %>
     .data_in        (smc_tag_wr_cmp),
     .data_out       (tag_wr_hit_index),
@@ -324,33 +324,33 @@ end
 always @ *
 begin
 <%
-print "    if(wr_en || (flush_en && (addr_op == 2'd1)))"
-print "    begin"
+print("    if(wr_en || (flush_en && (addr_op == 2'd1)))")
+print("    begin")
 for i in range(L2_SMC_ENTRIES):
     if i == 0:
-        print "        if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i)
-        print "        begin"
-        print "            wr_hit = 1'b1;"
-        print "            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "        end"
+        print("        if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i))
+        print("        begin")
+        print("            wr_hit = 1'b1;")
+        print("            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("        end")
     else:
-        print "        else if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i)
-        print "        begin"
-        print "            wr_hit = 1'b1;"
-        print "            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "        end"
+        print("        else if ((smc_tag[%d] == wr_tag_in) && (smc_valid[%d] != 0))" % (i,i))
+        print("        begin")
+        print("            wr_hit = 1'b1;")
+        print("            wr_hit_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("        end")
 
-print "        else"
-print "        begin"
-print "            wr_hit = 1'b0;"
-print "            wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
-print "        end"
-print "    end"
-print "    else"
-print "    begin"
-print "        wr_hit = 1'b0;"
-print "        wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH)
-print "    end"
+print("        else")
+print("        begin")
+print("            wr_hit = 1'b0;")
+print("            wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH))
+print("        end")
+print("    end")
+print("    else")
+print("    begin")
+print("        wr_hit = 1'b0;")
+print("        wr_hit_index = %d\'d0;" % (L2_SMC_INDEX_WIDTH))
+print("    end")
 
 %>
 end
@@ -454,22 +454,22 @@ wire [`L2_SMC_INDEX_WIDTH-1:0] entry_replace_index;
 wire replace_hit;
 
 <%
-print '''
-reg [%d:0] replace_cmp;''' % (L2_SMC_ENTRIES-1)
+print('''
+reg [%d:0] replace_cmp;''' % (L2_SMC_ENTRIES-1))
 %>
 always @ *
 begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print '''
-    replace_cmp[%d] = (~entry_used_f[%d] && ~entry_locked_f[%d]);''' % (i,i,i)
+    print('''
+    replace_cmp[%d] = (~entry_used_f[%d] && ~entry_locked_f[%d]);''' % (i,i,i))
 %>
 end
 
 <%
 
-print '''
-l2_priority_encoder_%d priority_encoder_replace_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH)
+print('''
+l2_priority_encoder_%d priority_encoder_replace_cmp_%dbits( ''' % (L2_SMC_INDEX_WIDTH, L2_SMC_INDEX_WIDTH))
 %>
     .data_in        (replace_cmp),
     .data_out       (entry_replace_index),
@@ -497,19 +497,19 @@ begin
 <%
 for i in range(L2_SMC_ENTRIES):
     if i == 0:
-        print "    if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i)
-        print "    begin"
-        print "        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "    end"
+        print("    if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i))
+        print("    begin")
+        print("        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("    end")
     else:
-        print "    else if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i)
-        print "    begin"
-        print "        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i)
-        print "    end"
-print "    else"
-print "    begin"
-print "        replace_index = %d\'dx;" % (L2_SMC_INDEX_WIDTH)
-print "    end"
+        print("    else if (~entry_used_f[%d] && ~entry_locked_f[%d])" % (i, i))
+        print("    begin")
+        print("        replace_index = %d\'d%d;" % (L2_SMC_INDEX_WIDTH, i))
+        print("    end")
+print("    else")
+print("    begin")
+print("        replace_index = %d\'dx;" % (L2_SMC_INDEX_WIDTH))
+print("    end")
 %>
 end
 */
@@ -537,7 +537,7 @@ begin
     begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "        data_mem_f[%d] <= {`L2_SMC_ARRAY_WIDTH{1'b0}};" % (i)
+    print("        data_mem_f[%d] <= {`L2_SMC_ARRAY_WIDTH{1'b0}};" % (i))
 %>
     end
     else if (flush_en)
@@ -547,7 +547,7 @@ for i in range(L2_SMC_ENTRIES):
         begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "            data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i)
+    print("            data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i))
 %>
         end
         2'd1:
@@ -562,8 +562,8 @@ for i in range(L2_SMC_ENTRIES):
         begin
 <%
 for i in range(L2_SMC_ENTRIES):
-    print "            if ((smc_sdid[%d] == wr_sdid_in) && (smc_valid[%d] != 0))" % (i,i)
-    print "                data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i)
+    print("            if ((smc_sdid[%d] == wr_sdid_in) && (smc_valid[%d] != 0))" % (i,i))
+    print("                data_mem_f[%d][`L2_SMC_VALID] <= {`L2_SMC_VALID_WIDTH{1'b0}};" % (i))
 %>
         end
         default:

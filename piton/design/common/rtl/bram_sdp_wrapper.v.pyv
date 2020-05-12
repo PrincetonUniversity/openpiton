@@ -101,20 +101,20 @@ assign DOUT          = ren_r ? up_to_date_data : DOUT_r;
   import pyhplib
   from pyhplib import *
 
-  print "generate begin: bram_generate"
+  print("generate begin: bram_generate")
   bram_names = BRAM_CONFIG.keys()
 
-  for i in range(len(bram_names)):
-    name = bram_names[i]
+  i = 0
+  for name in bram_names:
     (depth, width) = (BRAM_CONFIG[name].depth, BRAM_CONFIG[name].width)
 
     if i == 0:
-      print "  if ",
+      print("  if ",end="")
     else:
-      print "  else if ",
+      print("  else if ",end="")
 
-    print "(NAME == \"%s\") begin" % name
-    print """    bram_%dx%d mem (
+    print("(NAME == \"%s\") begin" % name)
+    print("""    bram_%dx%d mem (
        .clka    (MEMCLK        ),
        .ena     (bram_wen      ),
        .wea     (1'b1          ),
@@ -125,10 +125,11 @@ assign DOUT          = ren_r ? up_to_date_data : DOUT_r;
        .enb     (bram_ren      ),
        .addrb   (A             ),
        .doutb   (bram_data_out )
-      );""" % (depth, width) #TODO: change to name
-    print "  end"
-  print "end"
-  print "endgenerate"
+      );""" % (depth, width))#TODO: change to name
+    print("  end")
+    i += 1
+  print("end")
+  print("endgenerate")
 %>
 
 endmodule

@@ -72,17 +72,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    # 512
    print("`define L15_NUM_ENTRIES %d" % numentries)
    # 9
-   print("`define L15_NUM_ENTRIES_LOG2 %d" % math.log(numentries, 2))
+   print("`define L15_NUM_ENTRIES_LOG2 %d" % int(math.log(numentries, 2)))
    # 4
    print("`define L15_WAY_COUNT %d" % CONFIG_L15_ASSOCIATIVITY)
    # 2
-   print("`define L15_WAY_WIDTH %d" % math.log(CONFIG_L15_ASSOCIATIVITY, 2))
+   print("`define L15_WAY_WIDTH %d" % int(math.log(CONFIG_L15_ASSOCIATIVITY, 2)))
 
    l15_set_count = numentries / CONFIG_L15_ASSOCIATIVITY
    l1d_set_count = CONFIG_L1D_SIZE / L15_LINE_SIZE / CONFIG_L1D_ASSOCIATIVITY
    if l15_set_count > l1d_set_count:
       print("`define L15_WMT_EXTENDED_ALIAS")
-      print("`define L15_WMT_ALIAS_WIDTH %d" % math.log(l15_set_count/l1d_set_count, 2))
+      print("`define L15_WMT_ALIAS_WIDTH %d" % int(math.log(l15_set_count/l1d_set_count, 2)))
 
    print("`define L15_CACHELINE_WIDTH %d" % (L15_LINE_SIZE*8))
 %>

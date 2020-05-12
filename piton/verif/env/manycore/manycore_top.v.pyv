@@ -482,7 +482,7 @@ system system(
 
         for i in range(NUM_TILES) :
             tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
-            print tt
+            print(tt)
     %>
 
 `ifndef VERILATOR

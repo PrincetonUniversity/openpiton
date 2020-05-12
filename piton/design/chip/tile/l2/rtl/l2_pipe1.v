@@ -480,7 +480,7 @@ l2_mshr_decoder cam_mshr_decoder(
     `ifndef NO_RTL_CSM
     .smc_miss_out       (cam_mshr_smc_miss),
     `else
-    .smc_miss_out       (0),
+    .smc_miss_out       (),
     `endif
     .recycled           (cam_mshr_recycled),
     .inv_fwd_pending    ()
@@ -508,7 +508,7 @@ l2_mshr_decoder pending_mshr_decoder(
     `ifndef NO_RTL_CSM
     .smc_miss_out       (pending_mshr_smc_miss),
     `else
-    .smc_miss_out       (0),
+    .smc_miss_out       (),
     `endif
     .recycled           (pending_mshr_recycled),
     .inv_fwd_pending    ()

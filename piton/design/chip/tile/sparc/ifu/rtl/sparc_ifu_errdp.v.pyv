@@ -243,7 +243,7 @@ module sparc_ifu_errdp(/*AUTOARG*/
             sparc_ifu_par32  tag_par__WAY(.in  (ictags_s1[`IC_TLB_TAG_WAY__WAY_MASK]),
                                     .out (erd_erc_tagpe_s1[__WAY]));
          '''
-         text = text.replace("__WAY", `i`)
+         text = text.replace("__WAY", repr(i))
          print(text)
    %>
 `else
@@ -253,7 +253,7 @@ module sparc_ifu_errdp(/*AUTOARG*/
             sparc_ifu_par32  tag_par__WAY(.in  ({{`IC_TLB_PARITY_PADDING{1'b0}}, ictags_s1[`IC_TLB_TAG_WAY__WAY_MASK]}),
                                     .out (erd_erc_tagpe_s1[__WAY]));
          '''
-         text = text.replace("__WAY", `i`)
+         text = text.replace("__WAY", repr(i))
          print(text)
    %>
 `endif
@@ -271,7 +271,7 @@ module sparc_ifu_errdp(/*AUTOARG*/
 <%
    for i in range(CONFIG_L1I_ASSOCIATIVITY):
       tt = "wire [(`IC_TAG_SZ+2)-1:0] icv_data_s1__WAY = {icv_data_s1[__WAY], ictags_s1[(`IC_TAG_SZ+1)*(__WAY+1)-1], ictags_s1[(`IC_TAG_SZ+1)*(__WAY+1)-2 -: `IC_TAG_SZ]};"
-      print(tt.replace("__WAY", `i`))
+      print(tt.replace("__WAY", repr(i)))
 %>
 
 always @ *
@@ -297,7 +297,7 @@ begin
                tag_asi_data[34] = icv_data_s1__WAY[`IC_TAG_SZ+1];
             end
          '''
-      text = text.replace("__WAY", `i`)
+      text = text.replace("__WAY", repr(i))
       print(text)
 %>
 end

@@ -65,7 +65,7 @@ module rf_l15_wmt(
 
 <%
    linesize = 16
-   numset = int(CONFIG_L1D_SIZE)/int(CONFIG_L1D_ASSOCIATIVITY)/linesize
+   numset = int(int(CONFIG_L1D_SIZE)/int(CONFIG_L1D_ASSOCIATIVITY)/linesize)
    numway=int(CONFIG_L1D_ASSOCIATIVITY)
    # numset=128
    # numway=4
@@ -121,7 +121,7 @@ begin
       <%
          for i in range (numset):
             for j in range (numway):
-               print "regfile[%d][`L15_WMT_ENTRY_%d_VALID_MASK] <= 1'b0;" % (i,j)
+               print("regfile[%d][`L15_WMT_ENTRY_%d_VALID_MASK] <= 1'b0;" % (i,j))
       %>
    end
    else

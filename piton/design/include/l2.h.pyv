@@ -99,8 +99,8 @@ L2_NUM_SETS = int(L2_SIZE / (L2_LINE_SIZE * L2_WAYS))
 `define BYTE_TO_BIT              8
 
 <%
-print "`define L2_SIZE                  %d" % (L2_SIZE)
-print "`define L2_SIZE_WIDTH            %d" % math.log(L2_SIZE, 2)
+print("`define L2_SIZE                  %d" % (L2_SIZE))
+print("`define L2_SIZE_WIDTH            %d" % math.log(L2_SIZE, 2))
 %>
 
 //`define L2_SIZE                  65536
@@ -108,8 +108,8 @@ print "`define L2_SIZE_WIDTH            %d" % math.log(L2_SIZE, 2)
 
 
 <%
-print "`define L2_LINE_SIZE                  %d" % (L2_LINE_SIZE)
-print "`define L2_LINE_SIZE_WIDTH            %d" % math.log(L2_LINE_SIZE, 2)
+print("`define L2_LINE_SIZE                  %d" % (L2_LINE_SIZE))
+print("`define L2_LINE_SIZE_WIDTH            %d" % math.log(L2_LINE_SIZE, 2))
 %>
 
 //`define L2_LINE_SIZE             64
@@ -120,10 +120,10 @@ print "`define L2_LINE_SIZE_WIDTH            %d" % math.log(L2_LINE_SIZE, 2)
 
 
 <%
-print "`define L2_WAYS                  %d" % (L2_WAYS)
-print "`define L2_WAYS_WIDTH            %d" % (math.log(L2_WAYS,2))
+print("`define L2_WAYS                  %d" % (L2_WAYS))
+print("`define L2_WAYS_WIDTH            %d" % (math.log(L2_WAYS,2)))
 for i in range(L2_WAYS):
-    print "`define L2_WAY_%d                 %d'd%d" % (i, math.log(L2_WAYS,2), i)
+    print("`define L2_WAY_%d                 %d'd%d" % (i, math.log(L2_WAYS,2), i))
 %>
 
 //`define L2_WAYS                  4
@@ -139,12 +139,12 @@ for i in range(L2_WAYS):
 
 // Tag array
 <%
-print "`define L2_TAG_INDEX_WIDTH      %d" % (math.log(L2_NUM_SETS, 2))
-print "`define L2_TAG_WIDTH            %d" % (40-6-math.log(L2_NUM_SETS,2))
-print "`define L2_TAG_WAY_WIDTH        %d" % (40-6-math.log(L2_NUM_SETS,2))
-print "`define L2_TAG_ARRAY_WIDTH      %d" % (L2_WAYS*(40-6-math.log(L2_NUM_SETS,2)))
-print "`define L2_TAG_ARRAY_HEIGHT     %d" % (L2_NUM_SETS)
-print "`define L2_TAG_ARRAY_HEIGHT_LOG2 %d" % (math.log(L2_NUM_SETS, 2))
+print("`define L2_TAG_INDEX_WIDTH      %d" % (math.log(L2_NUM_SETS, 2)))
+print("`define L2_TAG_WIDTH            %d" % (40-6-math.log(L2_NUM_SETS,2)))
+print("`define L2_TAG_WAY_WIDTH        %d" % (40-6-math.log(L2_NUM_SETS,2)))
+print("`define L2_TAG_ARRAY_WIDTH      %d" % (L2_WAYS*(40-6-math.log(L2_NUM_SETS,2))))
+print("`define L2_TAG_ARRAY_HEIGHT     %d" % (L2_NUM_SETS))
+print("`define L2_TAG_ARRAY_HEIGHT_LOG2 %d" % (math.log(L2_NUM_SETS, 2)))
 %>
 //`define L2_TAG_INDEX_WIDTH      8
 //`define L2_TAG_WIDTH            26
@@ -165,8 +165,8 @@ print "`define L2_TAG_ARRAY_HEIGHT_LOG2 %d" % (math.log(L2_NUM_SETS, 2))
 
 `define L2_DATA_ARRAY_WIDTH         144
 <%
-print "`define L2_DATA_ARRAY_HEIGHT     %d" % (L2_NUM_SETS*L2_WAYS*4)
-print "`define L2_DATA_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS*4,2))
+print("`define L2_DATA_ARRAY_HEIGHT     %d" % (L2_NUM_SETS*L2_WAYS*4))
+print("`define L2_DATA_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS*4,2)))
 %>
 `define L2_DATA_DATA_WIDTH_LOG2     7
 `define L2_DATA_DATA_WIDTH          128
@@ -200,8 +200,8 @@ print "`define L2_DATA_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS
 `define L2_DIR_SHARER_BITS      64
 `define L2_DIR_ARRAY_WIDTH      `L2_DIR_SHARER_BITS
 <%
-print "`define L2_DIR_ARRAY_HEIGHT     %d" % (L2_NUM_SETS*L2_WAYS)
-print "`define L2_DIR_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS,2))
+print("`define L2_DIR_ARRAY_HEIGHT     %d" % (L2_NUM_SETS*L2_WAYS))
+print("`define L2_DIR_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS,2)))
 %>
 //State array
 
@@ -250,8 +250,8 @@ print "`define L2_DIR_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS*L2_WAYS,
 `define L2_STATE_DATA_WIDTH     `L2_STATE_WAY_WIDTH*`L2_WAYS
 `define L2_STATE_ARRAY_WIDTH    `L2_STATE_DATA_WIDTH+`L2_WAYS_WIDTH+`L2_WAYS
 <%
-print "`define L2_STATE_ARRAY_HEIGHT     %d" % (L2_NUM_SETS)
-print "`define L2_STATE_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS,2))
+print("`define L2_STATE_ARRAY_HEIGHT     %d" % (L2_NUM_SETS))
+print("`define L2_STATE_ARRAY_HEIGHT_LOG2     %d" % (math.log(L2_NUM_SETS,2)))
 %>
 
 // State decomposition 

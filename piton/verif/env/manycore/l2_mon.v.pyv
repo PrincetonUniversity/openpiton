@@ -632,7 +632,7 @@ begin
 
     '''
     tt = ReplicatePattern(t, ["RTL_SPARC0", "L2_TOP0", "TILE0"]);
-    print tt;
+    print(tt)
 %>
 
 

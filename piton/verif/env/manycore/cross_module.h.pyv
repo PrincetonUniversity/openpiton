@@ -35,7 +35,7 @@
     #print "//num_tiles:", num_tiles
 
     if NUM_TILES == -1:
-        print "//num_tile not defined!"
+        # print "//num_tile not defined!"
         NUM_TILES = MAX_TILE
 %>
 
@@ -204,7 +204,7 @@ for i in range(NUM_TILES):
     `define CFG_ASI_PATH%d    `SPARC_CORE%d.sparc0.cfg_asi
     """
     printstring = printstring.replace("%d", str(i))
-    print printstring
+    print(printstring)
 %>
 
 `define ITAG0           `TOP_MOD.monitor.l_cache_mon0
