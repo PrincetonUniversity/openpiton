@@ -348,6 +348,20 @@ GetOptions (\%opt,
             'build_id=s',
            ) ;
 
+die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
+die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+
+# Setting ost1 by default. This works better than default to 1
+# for heterogeneous-ISA stuff
+if (!$opt{pico} && !$opt{ariane}) {
+  $opt{ost1} = 1 ;
+}
+
+push (@{$opt{config_cpp_args}}, "-DFLIST_OST1")     if ($opt{ost1} || $opt{pico_het}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_PICO")     if ($opt{pico} || $opt{pico_het}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_ARIANE")   if ($opt{ariane}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_ORAM")     if ($opt{oram}) ;
+
 ################################################################################
 # define $result_dir
 ################################################################################
@@ -1099,12 +1113,6 @@ sub gen_flist
   open (OFLIST, ">flist") or die ("DIE. can't open flist file") ;
 
   print OFLIST "$ENV{PWD}/config.v\n";
-
-  # Add ORAM flist if ORAM is specified
-  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tinyoram/rtl/Flist.oram") if ($opt{oram}) ;
-  # Add Ariane flist if -ariane is specified
-  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tile/ariane/Flist.ariane") if ($opt{ariane}) ;
-
 
   foreach my $flist (@{$opt{flist}}) {
     $flist =~ s/\$(\w+)/$ENV{$1}/g ;
@@ -2771,42 +2779,34 @@ sub parse_args
       die ("DIE. network_config can only be xbar_config or 2dmesh_config");
     }
   } else {
-    print "network_config not specified, assuming 2dmesh configuration\n";
+    print "$prg: network_config not specified, assuming 2dmesh configuration\n";
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
-  }
-
-  # Setting ost1 by default. This works better than default to 1
-  # for heterogeneous-ISA stuff
-  if (!$opt{pico} && !$opt{ariane}) {
-    $opt{ost1} = 1 ;
   }
 
   # Set ISA to choose compilation flow based on ISA
   if ($opt{ost1}) {
     $opt{sparcv9} = 1 ;
-    print "Building/running for sparcv9\n" ;
+    print "$prg: Building/running for sparcv9\n" ;
   }
-  if ($opt{pico} || $opt{pico_het}) {
+  if ($opt{pico}) {
     $opt{rv32} = 1 ;
-    print "Building/running for rv32\n" ;
+    print "$prg: Building/running for rv32\n" ;
   }
   if ($opt{ariane}) {
     $opt{rv64} = 1 ;
-    print "Building/running for rv64\n" ;
+    print "$prg: Building/running for rv64\n" ;
   }
 
-  die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
-  die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
   $ENV{PITON_OST1}     = $opt{ost1};
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
   $ENV{PITON_ARIANE}   = $opt{ariane};
   push (@{$opt{config_rtl}}, "PITON_OST1")     if ($opt{ost1});
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
+  push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
   push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
-
 
   if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {
     push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
@@ -2864,7 +2864,7 @@ sub parse_args
 
   # Alexey: set default value for UART_DIV_LATCH define
   if (index("@{$opt{midas_args}}", "UART_DIV_LATCH") == -1) {
-    print "Setting UART_DIV_LATCH to 0xb\n";
+    print "$prg: Setting UART_DIV_LATCH to 0xb\n";
     push (@{$opt{midas_args}}, "-DUART_DIV_LATCH=0xb");
   }
 

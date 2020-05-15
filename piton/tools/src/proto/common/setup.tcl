@@ -88,7 +88,7 @@ if {[info exists ::env(PITON_PICO)]} {
 }
 
 if {[info exists ::env(PITON_PICO_HET)]} {
-  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO_HET"
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO PITON_PICO_HET"
 }
 
 if {[info exists ::env(PITON_ARIANE)]} {
