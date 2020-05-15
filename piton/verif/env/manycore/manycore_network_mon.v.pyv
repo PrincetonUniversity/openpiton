@@ -71,7 +71,7 @@ begin
     for y in range (Y_TILES):
         for x in range (X_TILES):
             flatid = x + (y * X_TILES);
-            print("`ifdef RTL_SPARC%d" % flatid)
+            print("`ifdef RTL_TILE%d" % flatid)
             for nocid in [1,2,3]:
                 for dir in ['N', 'S', 'E', 'W']:
                     for way in ['out']:
@@ -110,7 +110,7 @@ begin
                 check_right = True;
                 check_up = True;
                 check_down = True;
-                print("`ifdef RTL_SPARC%d" % flatid)
+                print("`ifdef RTL_TILE%d" % flatid)
                 for nocid in [1,2,3]:
                     if (y == 0):
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
@@ -156,7 +156,7 @@ begin
                         check_left = False;
 
                     if (check_up):
-                        print("`ifndef RTL_SPARC%d" % flatid_up)
+                        print("`ifndef RTL_TILE%d" % flatid_up)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -167,7 +167,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_down):
-                        print("`ifndef RTL_SPARC%d" % flatid_down)
+                        print("`ifndef RTL_TILE%d" % flatid_down)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -178,7 +178,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_left):
-                        print("`ifndef RTL_SPARC%d" % flatid_left)
+                        print("`ifndef RTL_TILE%d" % flatid_left)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -189,7 +189,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_right):
-                        print("`ifndef RTL_SPARC%d" % flatid_right)
+                        print("`ifndef RTL_TILE%d" % flatid_right)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -221,7 +221,7 @@ begin
                 # Check for valid signal from non-existent tiles to any other tiles.
                 # For example, if there is only tile 0_0 and 0_1, then
                 print('boundary_err = 0;')
-                print("`ifndef RTL_SPARC%d" % flatid)
+                print("`ifndef RTL_TILE%d" % flatid)
                 for nocid in [1,2,3]:
                     if (x != X_TILES-1):
                         check_right = True
@@ -233,7 +233,7 @@ begin
                         check_up = True
 
                     if (check_up):
-                        print("`ifdef RTL_SPARC%d" % flatid_up)
+                        print("`ifdef RTL_TILE%d" % flatid_up)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_N_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -244,7 +244,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_down):
-                        print("`ifdef RTL_SPARC%d" % flatid_down)
+                        print("`ifdef RTL_TILE%d" % flatid_down)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -255,7 +255,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_left):
-                        print("`ifdef RTL_SPARC%d" % flatid_left)
+                        print("`ifdef RTL_TILE%d" % flatid_left)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_W_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -266,7 +266,7 @@ begin
                         print('end')
                         print('`endif')
                     if (check_right):
-                        print("`ifdef RTL_SPARC%d" % flatid_right)
+                        print("`ifdef RTL_TILE%d" % flatid_right)
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')

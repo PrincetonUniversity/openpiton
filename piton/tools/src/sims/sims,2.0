@@ -171,6 +171,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'overwrite' => 0,
         'pal_use_tgseed' => 0,
         'parallel' => 0,
+        'ost1' => 0,
         'ariane' => 0,
         'pico' => 0,
         'pico_het' => 0,
@@ -321,6 +322,7 @@ GetOptions (\%opt,
             'group=s@',
             'model_dir=s',
             'parallel!',
+            'ost1!',
             'ariane!',
             'pico!',
             'pico_het!',
@@ -2707,11 +2709,19 @@ sub parse_args
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
   }
 
+  # Setting ost1 by default. This works better than default to 1
+  # for heterogeneous-ISA stuff
+  if (!$opt{pico} && !$opt{ariane}) {
+    $opt{ost1} = 1 ;
+  }
+
   die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
   die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+  $ENV{PITON_OST1}     = $opt{ost1};
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
   $ENV{PITON_ARIANE}   = $opt{ariane};
+  push (@{$opt{config_rtl}}, "PITON_OST1")     if ($opt{ost1});
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
@@ -2748,11 +2758,12 @@ sub parse_args
   }
 
   for (my $i=0; $i < $pton_num_tiles; $i++) {
+    push (@{$opt{config_rtl}}, "RTL_TILE" . $i);
     if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
         push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
     } elsif ($opt{ariane}) {
         push (@{$opt{config_rtl}}, "RTL_ARIANE" . $i);
-    } else {
+    } elsif ($opt{ost1}) {
         push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
     }
   }
@@ -3029,6 +3040,10 @@ VERILOG COMPILATION RELATED
     -build_id=NAME
            specify the build id of the model to be built. the full path
            to a model is $ENV{MODEL_DIR}/model/build_id.
+
+    -ost1
+           set by default - this specifies that the OpenSPARC T1 core will be used.
+           in this case, programs are compiled and assembled using midas
 
     -pico
            this specifies that the PICORV32 core shall be used instead of OpenSPARC.
