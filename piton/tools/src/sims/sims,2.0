@@ -144,6 +144,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'fast_boot' => 0,
         'finish_mask' => "",
         'flist' => [],
+        'gcc_args' => [],
         'group' => [],
         'group_name' => "",
         'gzip' => 1,
@@ -190,6 +191,14 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'riv_run' => 0,		
         'rtl_timeout' => 5000,
         'run_diag_pl' => 1,
+        'rv32' => 0,
+        'rv32_mabi=s' => "",
+        'rv32_march=s' => "",
+        'rv32_target_triple=s' => "",
+        'rv64' => 0,
+        'rv64_mabi=s' => "",
+        'rv64_march=s' => "",
+        'rv64_target_triple=s' => "",
         'other_sim_build' => 0,
         'sim_build_args' => [],
         'other_sim_build_cmd' => "",
@@ -205,6 +214,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'sjm_diag_name' => "",
         'sjm_diag_path' => "",
         'sjm_diag_root' => [],
+        'sparcv9' => 0,
         'stub_mask' => "",
         'sys' => "",
         'tg_seed' => -1,
@@ -2252,8 +2262,30 @@ sub assemble_diag
       close (DIAGIN) ;
     }
 
-    if ($opt{pico}) {
-      # RISCV flow for RV32IM (PICORV32)
+    # Choose compilation flow based on ISA
+    if ($opt{rv32}) {
+      # RISCV flow for RV32
+      if (!$opt{rv32_target_triple}) {
+        if ($opt{pico}) {
+          $ENV{RV32_TARGET_TRIPLE} = "riscv32-unknown-elf" ;
+        }
+      } else {
+        $ENV{RV32_TARGET_TRIPLE} = $opt{rv32_target_triple} ;
+      }
+      if (!$opt{rv32_march}) {
+        if ($opt{pico}) {
+          $ENV{RV32_MARCH} = "rv32ima" ;
+        }
+      } else {
+        $ENV{RV32_MARCH} = $opt{rv32_march} ;
+      }
+      if (!$opt{rv32_mabi}) {
+        if ($opt{pico}) {
+          $ENV{RV32_MABI} = "ilp32" ;
+        }
+      } else {
+        $ENV{RV32_MABI} = $opt{rv32_mabi} ;
+      }
       print "$prg: assembling 32bit riscv diag (RV32IM)\n" ;
       my $cmd = "rv32_as " ;
       #$cmd .= join (" ", @{$opt{midas_args}}) ;
@@ -2262,8 +2294,30 @@ sub assemble_diag
       my $waitstatus = call_program($cmd, "rv32_as.log");
       die ("DIE. rv32_as compilation error") if ($waitstatus) ;
 
-    } elsif ($opt{ariane}) {
-      # RISCV flow for RV64IMAC (ARIANE from PULP)
+    }
+    if ($opt{rv64}) {
+      # RISCV flow for RV64
+      if (!$opt{rv64_target_triple}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_TARGET_TRIPLE} = "riscv64-unknown-elf" ;
+        }
+      } else {
+        $ENV{RV64_TARGET_TRIPLE} = $opt{rv64_target_triple} ;
+      }
+      if (!$opt{rv64_march}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_MARCH} = "rv64imafdc" ;
+        }
+      } else {
+        $ENV{RV64_MARCH} = $opt{rv64_march} ;
+      }
+      if (!$opt{rv64_mabi}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_MABI} = "lp64d" ;
+        }
+      } else {
+        $ENV{RV64_MABI} = $opt{rv64_mabi} ;
+      }
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
@@ -2271,7 +2325,9 @@ sub assemble_diag
         if ($opt{uart_dmw}) {
           $defs .= " -DPITONSTREAM ";
         }
-        $defs .= $opt{gcc_args};
+        foreach my $additional_args (@{$opt{gcc_args}}) {
+          $defs .= " ${additional_args}";
+        }
         my $cmd = "rv64_cc ${diag_name} \"$defs\"" ;
         print "$prg: $cmd\n";
         my $waitstatus = call_program($cmd, "rv64_cc.log");
@@ -2311,7 +2367,8 @@ sub assemble_diag
         }
         close($fh);
       }
-    } else {
+    }
+    if ($opt{sparcv9}) {
       # standard flow for SAPRC
       # assemble
       push (@{$opt{midas_args}}, "-DFAST_BOOT") if ($opt{fast_boot}) ;
@@ -2471,7 +2528,7 @@ sub parse_args
             'asm_diag_root=s@',
             'build!',
             'precompiled!',
-            'gcc_args=s',
+            'gcc_args=s@',
             'uart_dmw!',
             'trap_offset=s',
             'config_cpp_args=s@',
@@ -2529,6 +2586,14 @@ sub parse_args
             'riv_run!',
             'rtl_timeout=i',
             'run_diag_pl!',
+            'rv32!',
+            'rv32_mabi=s',
+            'rv32_march=s',
+            'rv32_target_triple=s',
+            'rv64!',
+            'rv64_mabi=s',
+            'rv64_march=s',
+            'rv64_target_triple=s',
             'other_sim_build!',
             'sim_build_args=s@',
             'other_sim_build_cmd=s',
@@ -2544,6 +2609,7 @@ sub parse_args
             'sjm_diag_name=s',
             'sjm_diag_path=s',
             'sjm_diag_root=s@',
+            'sparcv9!',
             'stub_mask=s',
             'sys=s',
             'tg_seed=i',
@@ -2713,6 +2779,20 @@ sub parse_args
   # for heterogeneous-ISA stuff
   if (!$opt{pico} && !$opt{ariane}) {
     $opt{ost1} = 1 ;
+  }
+
+  # Set ISA to choose compilation flow based on ISA
+  if ($opt{ost1}) {
+    $opt{sparcv9} = 1 ;
+    print "Building/running for sparcv9\n" ;
+  }
+  if ($opt{pico} || $opt{pico_het}) {
+    $opt{rv32} = 1 ;
+    print "Building/running for rv32\n" ;
+  }
+  if ($opt{ariane}) {
+    $opt{rv64} = 1 ;
+    print "Building/running for rv64\n" ;
   }
 
   die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
@@ -3126,6 +3206,30 @@ this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane swit
 
     -gcc_args
            additional gcc arguments
+
+    -rv32_target_triple
+           specifies rv32 cross-compiler prefix (e.g. riscv32-unknown-elf)
+           default varies by core
+
+    -rv32_march
+           specifies rv32 march string (e.g. rv32ima)
+           default varies by core
+
+    -rv32_mabi
+           specifies rv32 mabi string (e.g. ilp32)
+           default varies by core
+
+    -rv64_target_triple
+           specifies rv64 cross-compiler prefix (e.g. riscv64-unknown-elf)
+           default varies by core
+
+    -rv64_march
+           specifies rv64 march string (e.g. rv64imafdc)
+           default varies by core
+
+    -rv64_mabi
+           specifies rv64 mabi string (e.g. lp64d)
+           default varies by core
 
 VCS COVERMETER
 

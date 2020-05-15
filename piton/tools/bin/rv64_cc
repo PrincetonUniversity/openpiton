@@ -17,8 +17,8 @@
 # second argument can be used to pass additional arguments to GCC.
 
 # Todo: upgrade from IMAC -> IMACFD when FP is available
-RISCV_GCC=riscv64-unknown-elf-gcc
-RISCV_GCC_OPTS="-march=rv64imac -mabi=lp64 -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -fno-common -fno-builtin-printf $2"
+RISCV_GCC=${RV64_TARGET_TRIPLE}-gcc
+RISCV_GCC_OPTS="-march=${RV64_MARCH} -mabi=${RV64_MABI} -DPREALLOCATE=1 -mcmodel=medany -static -std=gnu99 -O2 -fno-common -fno-builtin-printf $2"
 RISCV_LINK_OPTS="-static -nostdlib -nostartfiles -lm -lgcc -T ${DV_ROOT}/verif/diag/assembly/include/riscv/ariane/link.ld"
 
 # $(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
