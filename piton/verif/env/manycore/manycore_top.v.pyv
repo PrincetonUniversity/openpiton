@@ -537,7 +537,7 @@ system system(
         .rst_l     (`CORE_REF0.reset_l));       // Templated
 `endif
 
-`ifndef PITON_OST1
+`ifdef PITON_OST1
     // create sas tasks
     sas_tasks sas_tasks(/*AUTOINST*/
         // Inputs
