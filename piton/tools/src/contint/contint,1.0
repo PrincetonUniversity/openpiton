@@ -246,7 +246,7 @@ def parse_bundle_tree (prog, xml_file, bundle_root, bundle, xml_files, parent_bu
                     if args.tag == "sys" :
                         sys_val = args.text
                         found_sys = True
-                elif args.tag in ["vcs_use_cm", "sim_pll"]:
+                elif args.tag in ["vcs_use_cm", "sim_pll", "ariane"]:
                     build_command += " -" + args.tag
                 elif args.tag == "largest_regress":
                     is_largest = True

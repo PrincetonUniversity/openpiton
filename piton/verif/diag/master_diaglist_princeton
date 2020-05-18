@@ -376,7 +376,7 @@ pico-amoxor     amoxor_w.S
 <ariane_tile16 sys=manycore -x_tiles=4 -y_tiles=4 -ariane>
     <cmp_default name=default>
     <ariane_tile16_simple>
-        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask 0x1111111111111111 -rtl_timeout 10000000>
+        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask=1111111111111111 -rtl_timeout 10000000>
             ariane-hello-world-many hello_world_many.c
         </runargs>
     </ariane_tile16_simple>
