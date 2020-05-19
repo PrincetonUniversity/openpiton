@@ -680,6 +680,7 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
 ///////////////////////
 generate
 if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
+`ifdef PITON_OST1
     ////////////////
     // SPARC Core //
     ////////////////
@@ -818,11 +819,12 @@ if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
         .transducer_l15_req_ack             (transducer_l15_req_ack)
     );
 
-
+`endif // ifdef PITON_OST1
 end
 endgenerate
 generate
 if (TILE_TYPE == `PICORV32_TILE) begin : g_picorv32_core
+`ifdef PITON_PICO
     ///////////////////
     // PicoRV32 Core //
     ///////////////////
@@ -899,6 +901,7 @@ if (TILE_TYPE == `PICORV32_TILE) begin : g_picorv32_core
         .pico_int                           (pico_int)
     );
 
+`endif // ifdef PITON_PICO
 end
 endgenerate
 generate
@@ -1064,7 +1067,7 @@ print(str)
 
     assign unavailable_o = 1'b0;
 
-`endif
+`endif // ifdef PITON_ARIANE
   end
   endgenerate
 

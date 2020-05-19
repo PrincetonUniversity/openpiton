@@ -325,10 +325,8 @@ initial begin
      trap_extract;
     done    = 0;
     good    = 0;
-`ifndef PITON_PICO
-`ifndef PITON_ARIANE
+`ifdef PITON_OST1
     active_thread = 0;
-`endif
 `endif
     hit_bad   = 0;
     first_rst = 1;
@@ -336,10 +334,8 @@ initial begin
 end // initial begin
 always @(posedge rst_l)begin
     if(first_rst)begin
-`ifndef PITON_PICO
-`ifndef PITON_ARIANE
+`ifndef PITON_OST1
         active_thread = 0;
-`endif
 `endif
         first_rst     = 0;
         done          = 0;

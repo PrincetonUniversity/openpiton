@@ -422,6 +422,10 @@ def main():
 
     # core variant
     print_info("core      = " + str(args.core))
+    for i in range(int(args.num_tiles)):
+        args.config_rtl.append('RTL_TILE' + str(i))
+        print_info('defining RTL_TILE' + str(i))
+
     if args.core == 'pico':
 
         args.config_rtl.append('PITON_PICO')
@@ -457,6 +461,7 @@ def main():
 
     elif args.core == 'sparc':
         # this is the default
+        args.config_rtl.append('PITON_OST1')
         for i in range(int(args.num_tiles)):
             args.config_rtl.append('RTL_SPARC' + str(i))
             print_info('defining RTL_SPARC' + str(i))

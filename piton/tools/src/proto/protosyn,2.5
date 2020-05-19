@@ -727,6 +727,10 @@ def main():
 
     # core variant
     print_info("core      = " + str(options.core))
+    for i in range(int(options.num_tiles)):
+        os.environ['RTL_TILE' + str(i)] = "1"
+        print_info('defining RTL_TILE' + str(i))
+
     if options.core == 'pico':
 
         os.environ['PITON_PICO']     = "1"
@@ -759,6 +763,7 @@ def main():
 
     elif options.core == 'sparc':
         # this is the default
+        os.environ['PITON_OST1'] = "1"
         for i in range(int(options.num_tiles)):
             os.environ['RTL_SPARC' + str(i)] = "1"
             print_info('setenv RTL_SPARC' + str(i))

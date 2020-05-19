@@ -79,12 +79,16 @@ set ALL_DEFAULT_VERILOG_MACROS [concat \
     ${BOARD_DEFAULT_VERILOG_MACROS}    \
 ]
 
+if {[info exists ::env(PITON_OST1)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_OST1"
+}
+
 if {[info exists ::env(PITON_PICO)]} {
   append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO"
 }
 
 if {[info exists ::env(PITON_PICO_HET)]} {
-  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO_HET"
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO PITON_PICO_HET"
 }
 
 if {[info exists ::env(PITON_ARIANE)]} {
@@ -100,6 +104,9 @@ for {set k 0} {$k < $::env(PTON_NUM_TILES)} {incr k} {
   }
   if {[info exists "::env(RTL_SPARC$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_SPARC$k"
+  }
+  if {[info exists "::env(RTL_TILE$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_TILE$k"
   }
 }
 
