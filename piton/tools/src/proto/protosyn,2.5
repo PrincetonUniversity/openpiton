@@ -727,7 +727,7 @@ def main():
 
     # core variant
     print_info("core      = " + str(options.core))
-    for i in range(int(args.num_tiles)):
+    for i in range(int(options.num_tiles)):
         os.environ['RTL_TILE' + str(i)] = "1"
         print_info('defining RTL_TILE' + str(i))
 
