@@ -1388,8 +1388,8 @@ sub generic_sim_build
           push (@{$opt{config_rtl}}, "IBM_SRAM_LSU_ICACHE_MODEL_CHECKER") ;
       }
 
-      push (@{$opt{vcs_build_args}}, "+define+COPROCESSOR_ON") if ($opt{dmbr}) ;
-      push (@{$opt{vcs_build_args}}, "+define+DMBR_CHECKER") if ($opt{dmbr_checker}) ;
+      push (@{$opt{config_rtl}}, "COPROCESSOR_ON") if ($opt{dmbr}) ;
+      push (@{$opt{config_rtl}}, "DMBR_CHECKER") if ($opt{dmbr_checker}) ;
     }
     if ($opt{ncv_build}) {
       # build ncelab and ncsim executable files if not present
