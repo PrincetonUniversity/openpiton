@@ -25,7 +25,7 @@
 # Format:
 # BlockID                   BlockPath                           Supported Board,Frequency(MHz),DDRSize(Mbytes)
 piton_aws                   ../../build/f1/piton_aws/design                         f1,62.5,4096
-system                      .                                                       vc707,60,1024;genesys2,66.667,1024;nexysVideo,30,512;vcu118,100,2048;xupp3r,60,32768
+system                      .                                                       vc707,60,1024;genesys2,66.667,1024;nexysVideo,30,512;vcu118,100,2048;xupp3r,60,32768;sume,66.667,4096
 chipset                     chipset                                                 genesys2,66.667,1024;piton_board,50,0
 passthru                    passthru                                                piton_board,100,0
 passthru_loopback           fpga_tests/passthru_loopback                            piton_board,100,0

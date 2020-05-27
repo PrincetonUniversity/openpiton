@@ -94,7 +94,15 @@ module chipset_impl(
     input                                       mc_clk_p,
     input                                       mc_clk_n,
 `else  // PITONSYS_DDR4
+`ifndef SUME_BOARD
     input                                       mc_clk,
+`else 
+    input					mc_clk_p,
+    input 					mc_clk_n,
+    input					clk_ref_p,
+    input					clk_ref_n,
+    //output					chipset_clk,
+`endif //SUME_BOARD
 `endif // PITONSYS_DDR4
 `endif // ifndef F1_BOARD
 `endif // endif PITON_FPGA_MC_DDR3
@@ -238,7 +246,9 @@ module chipset_impl(
 
 `ifdef PITONSYS_SPI
     ,
+`ifndef SUME_BOARD
     input                                       sd_clk,
+`endif //SUME_BOARD
     input                                       sd_cd,
     output                                      sd_reset,
     output                                      sd_clk_out,
@@ -393,6 +403,18 @@ wire                               %s_filter_noc3_ready;
 //////////////////////
 // Sequential Logic //
 //////////////////////
+
+`ifdef SUME_BOARD
+
+wire sd_clk;
+
+sd_clk_gen sd_clk_gen(
+	.sd_sys_clk(sd_clk),
+	.clk_in1(ui_clk),
+	.reset(1'b0),
+	.locked()
+ );
+`endif
 
 `ifdef PITONSYS_IOCTRL
 `ifndef PITONSYS_NO_MC
@@ -795,7 +817,15 @@ credit_to_valrdy noc3_xbar_to_%s(
             .ddr_act_n(ddr_act_n),
             .ddr_bg(ddr_bg),
         `else // PITONSYS_DDR4
+	`ifndef SUME_BOARD
             .sys_clk(mc_clk),
+	`else
+	    .sys_clk_p(mc_clk_p),
+	    .sys_clk_n(mc_clk_n),
+	    .clk_ref_p(clk_ref_p),
+	    .clk_ref_n(clk_ref_n),
+	    .ui_clk(ui_clk),
+	`endif //SUME_BOARD
             .ddr_cas_n(ddr_cas_n),
             .ddr_ras_n(ddr_ras_n),
             .ddr_we_n(ddr_we_n),

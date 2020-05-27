@@ -42,7 +42,9 @@
 // but for top-level constraints I/Os are needed)
 // so the following macros always apply
 `ifdef PITON_FULL_SYSTEM
-    `define PITON_CHIPSET_CLKS_GEN
+`ifndef SUME_BOARD
+   `define PITON_CHIPSET_CLKS_GEN
+`endif //SUME_BOARD
     `define PITON_CLKS_CHIPSET
     `define PITONSYS_IOCTRL
     `define PITONSYS_UART
@@ -58,7 +60,9 @@
     `define PITONSYS_IOCTRL
 // Only for FPGA synthesis
 `ifdef PITON_FPGA_SYNTH
+`ifndef SUME_BOARD
     `define PITON_CHIPSET_CLKS_GEN
+`endif
     `ifdef PITON_ASIC_CHIPSET
         `define PITON_CLKS_PASSTHRU
         `define PITONSYS_INC_PASSTHRU
