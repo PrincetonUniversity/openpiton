@@ -52,7 +52,8 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                                     "nexys4ddr":128,
                                                     "genesys2":256,
                                                     "nexysVideo":128,
-                                                    "f1":512
+                                                    "f1":512,
+                                                    "sume":512
                                                 },
                                         "bram": {   "vc707":512,
                                                     "vcu118":512,
@@ -61,7 +62,8 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
-                                                    "f1":512
+                                                    "f1":512,
+                                                    "sume":512
                                                 },
                                         "dmw":  {   "vc707":512,
                                                     "vcu118":512,
@@ -70,7 +72,8 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
-                                                    "f1":512
+                                                    "f1":512,
+                                                    "sume":512
                                                 }
                                     }
 
@@ -80,7 +83,8 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                                     "nexys4ddr":16,
                                                     "genesys2":32,
                                                     "nexysVideo":16,
-                                                    "f1":64
+                                                    "f1":64,
+                                                    "sume":64
                                                 },
                                         "bram": {   "vc707":512,
                                                     "vcu118":512,
@@ -89,7 +93,8 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
-                                                    "f1":512
+                                                    "f1":512,
+                                                    "sume":512
                                                 },
                                         "dmw": {    "vc707":512,
                                                     "vcu118":512,
@@ -98,7 +103,8 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                                     "genesys2":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
-                                                    "f1":512
+                                                    "f1":512,
+                                                    "sume":512
                                                 }
                                     }
 
@@ -108,7 +114,8 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20,
-                                                    "f1":8*4*2**30
+                                                    "f1":8*4*2**30,
+                                                    "sume":2*8*4**30
                                                 },
                                         "bram": {   "vc707":16384*512,
                                                     "vcu118":16384*512,
@@ -117,7 +124,8 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "genesys2":16384*512,
                                                     "nexysVideo":16384*512,
                                                     "piton_board":256*512,
-                                                    "f1":256*512
+                                                    "f1":256*512,
+                                                    "sume":16384*512
                                                 },
                                         "dmw":  {   "vc707":8*2**30,
                                                     "vcu118":2*8*2**30,
@@ -125,15 +133,18 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "nexys4ddr":8*128*2**20,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20,
-                                                    "f1":8*4*2**30
+                                                    "f1":8*4*2**30,
+						    "sume":8*4*2**30
                                                 }
                                     }
 DW_BIT_SIZE     = 64
 DW_BYTE_SIZE    = DW_BIT_SIZE / 8
 
 
+#UART_BAUD_RATE = 9600
+#UART_BAUD_RATE = 38400
 UART_BAUD_RATE = 115200
-# UART_BAUD_RATE = 921600
+#UART_BAUD_RATE = 921600
 
 OLED_STRING_LEN = 64
 
@@ -263,11 +274,9 @@ def getTestList(fname, flog, ustr_files=False):
 def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", precompiled=False, x_tiles=1, y_tiles=1):
     cmd = ""
     if midas_args is None:
-        cmd = "sims -sys=manycore -novcs_build -midas_only \
-              -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC' %s" % (uart_div_latch, tname)
+        cmd = "/var/services/homes/mabbasidinan/work/hw_memoization/openpiton/piton/tools/bin/sims -sys=manycore -novcs_build -midas_only -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC' %s" % (uart_div_latch, tname)
     else:
-       	cmd = "sims -sys=manycore -novcs_build -midas_only \
-              -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC %s' %s" % \
+       	cmd = "/var/services/homes/mabbasidinan/work/hw_memoization/openpiton/piton/tools/bin/sims -sys=manycore -novcs_build -midas_only -midas_args='-DUART_DIV_LATCH=0x%x -DFPGA_HW -DCIOP -DNO_SLAN_INIT_SPC %s' %s" % \
               (uart_div_latch, midas_args, tname)
 
     if coreType == "ariane":
@@ -283,6 +292,7 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", pre
         # used to run precompiled riscv tests
         cmd += " -precompiled"
 
+    print cmd
     rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
     print cmd
     return rv
