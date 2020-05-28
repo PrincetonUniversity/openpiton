@@ -576,6 +576,8 @@ begin
             noc1 = "L15_NOC1_REQTYPE_AMO_MIN_REQUEST";
         `L15_NOC1_REQTYPE_AMO_MINU_REQUEST:
             noc1 = "L15_NOC1_REQTYPE_AMO_MINU_REQUEST";
+        `L15_NOC1_REQTYPE_LR_REQUEST:
+            noc1 = "L15_NOC1_REQTYPE_LR_REQUEST";
         default:
             noc1 = "ERROR noc1";
         endcase
