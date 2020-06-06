@@ -33,7 +33,7 @@
     from pyhplib import *
 
     print("`define PITON_NUM_TILES " + repr(PITON_NUM_TILES))
-    if (NETWORK_CONFIG == "xbar_config"):
+    if (PITON_NETWORK_CONFIG == "xbar_config"):
         print("`define XBAR_CONFIG")
 %>
 
