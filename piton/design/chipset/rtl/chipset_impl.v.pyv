@@ -1072,7 +1072,7 @@ ciop_fake_iob ciop_fake_iob(
 
         for i in range (PITON_NUM_TILES):
             text2 = text;
-            text2 = text2.replace("PITON_CORE0", "CORE" + repr(i));
+            text2 = text2.replace("PITON_CORE0", "PITON_CORE" + repr(i));
             text2 = text2.replace("spc0_inst_done", "spc" + repr(i) + "_inst_done");
             text2 = text2.replace("pc_w0", "pc_w" + repr(i));
             text2 = text2.replace("PC_W0", "PC_W" + repr(i));
