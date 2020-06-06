@@ -50,16 +50,16 @@ module xy_to_flat_id(
             begin
                 flat_id = `HOME_ID_WIDTH'difield;
             end'''
-        for i in range(X_TILES):
+        for i in range(PITON_X_TILES):
             print("")
             print("`NOC_X_WIDTH'd%d:" % (i))
             print("begin")
             print("     case (y_coord)")
 
-            for j in range(Y_TILES):
+            for j in range(PITON_Y_TILES):
                 tt = text.replace("yfield", str(j))   
                 tt = tt.replace("xfield", str(i))   
-                tt = tt.replace("ifield", str(j*X_TILES + i))
+                tt = tt.replace("ifield", str(j*PITON_X_TILES + i))
                 print(tt)
             print("     default:")
             print("     begin")

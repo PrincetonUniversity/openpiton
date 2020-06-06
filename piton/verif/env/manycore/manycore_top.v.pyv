@@ -480,7 +480,7 @@ system system(
         `endif
         '''
 
-        for i in range(NUM_TILES) :
+        for i in range(PITON_NUM_TILES) :
             tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
             print(tt)
     %>

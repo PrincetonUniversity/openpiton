@@ -50,10 +50,10 @@ module flat_id_to_xy(
             x_coord = `NOC_X_WIDTH'dxfield;
             y_coord = `NOC_Y_WIDTH'dyfield;
         end'''
-        for i in range(NUM_TILES):
+        for i in range(PITON_NUM_TILES):
             tt = text.replace("ifield", str(i))
-            tt = tt.replace("xfield", str(int(i%X_TILES)))
-            tt = tt.replace("yfield", str(int(i/X_TILES)))
+            tt = tt.replace("xfield", str(int(i%PITON_X_TILES)))
+            tt = tt.replace("yfield", str(int(i/PITON_X_TILES)))
             print(tt)
         %>
         default:

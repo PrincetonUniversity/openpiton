@@ -32,7 +32,7 @@
     sys.path.insert(0, os.path.join(os.environ["DV_ROOT"], 'tools/bin/'));
     from pyhplib import *
 
-    print("`define NUM_TILES " + repr(NUM_TILES))
+    print("`define PITON_NUM_TILES " + repr(PITON_NUM_TILES))
     if (NETWORK_CONFIG == "xbar_config"):
         print("`define XBAR_CONFIG")
 %>
@@ -67,10 +67,10 @@ begin
     if($test$plusargs("enable_router_mon"))
     begin
 <%
-    maxflatid = NUM_TILES - 1;
-    for y in range (Y_TILES):
-        for x in range (X_TILES):
-            flatid = x + (y * X_TILES);
+    maxflatid = PITON_NUM_TILES - 1;
+    for y in range (PITON_Y_TILES):
+        for x in range (PITON_X_TILES):
+            flatid = x + (y * PITON_X_TILES);
             print("`ifdef RTL_TILE%d" % flatid)
             for nocid in [1,2,3]:
                 for dir in ['N', 'S', 'E', 'W']:
@@ -98,14 +98,14 @@ always @ (negedge clk)
 begin
     boundary_err = 0;
     <%
-        maxflatid = NUM_TILES - 1;
-        for y in range (Y_TILES):
-            for x in range (X_TILES):
-                flatid = x + (y * X_TILES);
+        maxflatid = PITON_NUM_TILES - 1;
+        for y in range (PITON_Y_TILES):
+            for x in range (PITON_X_TILES):
+                flatid = x + (y * PITON_X_TILES);
                 flatid_right = flatid + 1;
                 flatid_left = flatid - 1;
-                flatid_up = flatid - X_TILES;
-                flatid_down = flatid + X_TILES;
+                flatid_up = flatid - PITON_X_TILES;
+                flatid_down = flatid + PITON_X_TILES;
                 check_left = True;
                 check_right = True;
                 check_up = True;
@@ -122,7 +122,7 @@ begin
                         print('error_y = %d;' % y)
                         print('end')
                         check_up = False;
-                    if (y == Y_TILES-1):
+                    if (y == PITON_Y_TILES-1):
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_S_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -132,7 +132,7 @@ begin
                         print('error_y = %d;' % y)
                         print('end')
                         check_down = False;
-                    if (x == X_TILES-1):
+                    if (x == PITON_X_TILES-1):
                         print("boundary_err = boundary_err | `CHIP.tile_%d_%d_out_E_noc%d_valid;" % (y,x,nocid))
                         print('if (boundary_err == 1)')
                         print('begin')
@@ -223,11 +223,11 @@ begin
                 print('boundary_err = 0;')
                 print("`ifndef RTL_TILE%d" % flatid)
                 for nocid in [1,2,3]:
-                    if (x != X_TILES-1):
+                    if (x != PITON_X_TILES-1):
                         check_right = True
                     if (x != 0):
                         check_left = True
-                    if (y != Y_TILES-1):
+                    if (y != PITON_Y_TILES-1):
                         check_down = True
                     if (y != 0):
                         check_up = True

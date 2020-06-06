@@ -29,7 +29,7 @@ import math
 import sys
 import pyhplib 
 
-DYNAMIC_NODE_PORT = pyhplib.X_TILES + 1
+DYNAMIC_NODE_PORT = pyhplib.PITON_X_TILES + 1
 DYNAMIC_NODE_PORT_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT, 2)))
 DYNAMIC_NODE_PORT_P_3 = DYNAMIC_NODE_PORT + 3
 DYNAMIC_NODE_PORT_P_3_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT_P_3, 2)))

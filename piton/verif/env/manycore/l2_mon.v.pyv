@@ -431,7 +431,7 @@ begin
             if (`L2_TOP0.pipe1.ctrl.addr_S1[39:36] == 4'b1010)
             begin
                 if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                     `ifndef VERILATOR
@@ -446,7 +446,7 @@ begin
                 `HOME_ALLOC_LOW_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -458,7 +458,7 @@ begin
                 `HOME_ALLOC_MIDDLE_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -470,7 +470,7 @@ begin
                 `HOME_ALLOC_HIGH_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -482,7 +482,7 @@ begin
                 `HOME_ALLOC_MIXED_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW] ^ `L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE] ) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -508,7 +508,7 @@ begin
             if (`L2_TOP0.pipe2.ctrl.addr_S1[39:36] == 4'b1010)
             begin
                 if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                     `ifndef VERILATOR
@@ -523,7 +523,7 @@ begin
                 `HOME_ALLOC_LOW_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -535,7 +535,7 @@ begin
                 `HOME_ALLOC_MIDDLE_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -547,7 +547,7 @@ begin
                 `HOME_ALLOC_HIGH_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -559,7 +559,7 @@ begin
                 `HOME_ALLOC_MIXED_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW] ^ `L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE] ) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR

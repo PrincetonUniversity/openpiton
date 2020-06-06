@@ -465,7 +465,7 @@ module jtag_testbench_top_helper
             .pc_w0             (`PCPATH0.fdp.pc_w),
             '''
 
-            for i in range (NUM_TILES): # extend this later
+            for i in range (PITON_NUM_TILES): # extend this later
             #for i in range (8):
                 text2 = text;
                 text2 = text2.replace("spc0_inst_done", "spc" + `i` + "_inst_done");
@@ -529,7 +529,7 @@ module jtag_testbench_top_helper
         end
         '''
 
-        for i in range(NUM_TILES) :
+        for i in range(PITON_NUM_TILES) :
             tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
             print tt
     %>

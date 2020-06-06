@@ -268,8 +268,8 @@ module chipset_impl(
     // Debug
     output                                      ndmreset_o,    // non-debug module reset
     output                                      dmactive_o,    // debug module is active
-    output [`NUM_TILES-1:0]                     debug_req_o,   // async debug request
-    input  [`NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
+    output [`PITON_NUM_TILES-1:0]                     debug_req_o,   // async debug request
+    input  [`PITON_NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
     // JTAG
     input                                       tck_i,
     input                                       tms_i,
@@ -279,10 +279,10 @@ module chipset_impl(
     output                                      tdo_oe_o,
     // CLINT
     input                                       rtc_i,         // Real-time clock in (usually 32.768 kHz)
-    output [`NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
-    output [`NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
+    output [`PITON_NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
+    output [`PITON_NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
     // PLIC
-    output [`NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
+    output [`PITON_NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
 `endif
 );
 
@@ -1070,7 +1070,7 @@ ciop_fake_iob ciop_fake_iob(
         .pc_w0             (`PITON_CORE0_PC_W0),
         '''
 
-        for i in range (NUM_TILES):
+        for i in range (PITON_NUM_TILES):
             text2 = text;
             text2 = text2.replace("PITON_CORE0", "CORE" + repr(i));
             text2 = text2.replace("spc0_inst_done", "spc" + repr(i) + "_inst_done");
@@ -1140,7 +1140,7 @@ for i in range(len(devices)):
 str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
-        .NumHarts       (      `NUM_TILES ),
+        .NumHarts       ( `PITON_NUM_TILES),
         .NumSources     (               2 ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),

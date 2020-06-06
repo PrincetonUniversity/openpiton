@@ -1321,7 +1321,7 @@ end
 //CORE0 END
 '''
 
-for i in range (NUM_TILES):
+for i in range (PITON_NUM_TILES):
     text2 = text;
     text2 = text2.replace("L15_PIPE0", "L15_PIPE" + repr(i));
     text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + repr(i));
