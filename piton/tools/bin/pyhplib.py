@@ -32,16 +32,16 @@ MAX_TILE = 64;
 MAX_X = 8;
 MAX_Y = 8;
 
-X_TILES = int(os.environ.get('PTON_X_TILES', '-1'))
+X_TILES = int(os.environ.get('PITON_X_TILES', '-1'))
 #print "//x_tiles:", num_tiles
 
-Y_TILES = int(os.environ.get('PTON_Y_TILES', '-1'))
+Y_TILES = int(os.environ.get('PITON_Y_TILES', '-1'))
 #print "//y_tiles:", num_tiles
 
-NUM_TILES = int(os.environ.get('PTON_NUM_TILES', '-1'))
+NUM_TILES = int(os.environ.get('PITON_NUM_TILES', '-1'))
 #print "//num_tiles:", num_tiles
 
-NETWORK_CONFIG = (os.environ.get("PTON_NETWORK_CONFIG", "2dmesh_config"))
+NETWORK_CONFIG = (os.environ.get("PITON_NETWORK_CONFIG", "2dmesh_config"))
 
 if X_TILES == -1:
     #print("//x_tiles not defined!")

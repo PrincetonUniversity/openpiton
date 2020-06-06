@@ -1275,13 +1275,13 @@ sub pre_build
     print "compiling DTS and bootroms for Ariane...\n";
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
     my $num_sources = 2;
     # 2 targets per core (M/S mode)
-    my $num_targets = 2 * $ENV{PTON_NUM_TILES};
+    my $num_targets = 2 * $ENV{PITON_NUM_TILES};
     print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
     !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
       die (" Error generating PLIC for Ariane.");
@@ -2329,7 +2329,7 @@ sub assemble_diag
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
-        my $defs = "-DPITON_NUMTILES=$ENV{PTON_NUM_TILES} ";
+        my $defs = "-DPITON_NUMTILES=$ENV{PITON_NUM_TILES} ";
         if ($opt{uart_dmw}) {
           $defs .= " -DPITONSTREAM ";
         }
@@ -2774,13 +2774,13 @@ sub parse_args
   # set up network_config defines
   if ($opt{network_config}) {
     if (($opt{network_config} eq "xbar_config") or ($opt{network_config} eq "2dmesh_config")) {
-      $ENV{PTON_NETWORK_CONFIG}=$opt{network_config};
+      $ENV{PITON_NETWORK_CONFIG}=$opt{network_config};
     } else {
       die ("DIE. network_config can only be xbar_config or 2dmesh_config");
     }
   } else {
     print "$prg: network_config not specified, assuming 2dmesh configuration\n";
-    $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
+    $ENV{PITON_NETWORK_CONFIG}="2d_mesh";
   }
 
   # Set ISA to choose compilation flow based on ISA
@@ -2848,19 +2848,19 @@ sub parse_args
     }
   }
 
-  $ENV{PTON_X_TILES}=$pton_x_tiles;
-  $ENV{PTON_Y_TILES}=$pton_y_tiles;
-  $ENV{PTON_NUM_TILES}=$pton_num_tiles;
+  $ENV{PITON_X_TILES}=$pton_x_tiles;
+  $ENV{PITON_Y_TILES}=$pton_y_tiles;
+  $ENV{PITON_NUM_TILES}=$pton_num_tiles;
   if($opt{dynamic_csm}) {
-    $ENV{PTON_DYNAMIC_CSM}=$opt{dynamic_csm};
+    $ENV{PITON_DYNAMIC_CSM}=$opt{dynamic_csm};
     push (@{$opt{midas_args}}, "-DDYNAMIC_CSM=$opt{dynamic_csm}");
   } else {
-    $ENV{PTON_DYNAMIC_CSM}=0;
+    $ENV{PITON_DYNAMIC_CSM}=0;
   }
 
-  push (@{$opt{midas_args}}, "-DPTON_X_TILES=$pton_x_tiles");
-  push (@{$opt{midas_args}}, "-DPTON_Y_TILES=$pton_y_tiles");
-  push (@{$opt{midas_args}}, "-DPTON_NUM_TILES=$pton_num_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_X_TILES=$pton_x_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_Y_TILES=$pton_y_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_NUM_TILES=$pton_num_tiles");
 
   # Alexey: set default value for UART_DIV_LATCH define
   if (index("@{$opt{midas_args}}", "UART_DIV_LATCH") == -1) {

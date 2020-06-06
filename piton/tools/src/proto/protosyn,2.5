@@ -721,9 +721,9 @@ def main():
     print_info("y_tiles   = " + str(options.y_tiles))
     print_info("num_tiles = " + str(options.num_tiles))
 
-    os.environ['PTON_X_TILES']   = str(options.x_tiles)
-    os.environ['PTON_Y_TILES']   = str(options.y_tiles)
-    os.environ['PTON_NUM_TILES'] = str(options.num_tiles)
+    os.environ['PITON_X_TILES']   = str(options.x_tiles)
+    os.environ['PITON_Y_TILES']   = str(options.y_tiles)
+    os.environ['PITON_NUM_TILES'] = str(options.num_tiles)
 
     # core variant
     print_info("core      = " + str(options.core))
@@ -778,7 +778,7 @@ def main():
         sys.exit(1)
 
     print_info("network   = " + str(options.network_config))
-    os.environ['PTON_NETWORK_CONFIG'] = options.network_config
+    os.environ['PITON_NETWORK_CONFIG'] = options.network_config
 
     # cache config
     print_info("l15 size  = " + str(options.config_l15_size))

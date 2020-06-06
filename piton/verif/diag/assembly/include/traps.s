@@ -2601,7 +2601,7 @@ T0_RdThId_0x12e:
 
 
     srlx    %g1, 8, %o1
-    mulx    %o1, PTON_X_TILES, %o1
+    mulx    %o1, PITON_X_TILES, %o1
     and     %g1, 0xff, %g1
     add     %g1, %o1, %g1    
 
@@ -7142,7 +7142,7 @@ T1_RdThId_0x12e:
 
 
     srlx    %g1, 8, %o1
-    mulx    %o1, PTON_X_TILES, %o1
+    mulx    %o1, PITON_X_TILES, %o1
     and     %g1, 0xff, %g1
     add     %g1, %o1, %g1    
 

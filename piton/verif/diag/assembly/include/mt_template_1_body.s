@@ -29,7 +29,7 @@
 
 #define SYSCMD_0 cat $DV_ROOT/verif/diag/assembly
 #ifdef CSM_ENABLE
-#define SYSCMD_1 bw_cpp -B -P -DNO_DECLARE_TSB -DMT_TEMPLATE -DCSM_ENABLE -DPTON_X_TILES=PTON_X_TILES -DPTON_Y_TILES=PTON_Y_TILES -DPTON_NUM_TILES=PTON_NUM_TILES -I$DV_ROOT/verif/diag/assembly/include
+#define SYSCMD_1 bw_cpp -B -P -DNO_DECLARE_TSB -DMT_TEMPLATE -DCSM_ENABLE -DPITON_X_TILES=PITON_X_TILES -DPITON_Y_TILES=PITON_Y_TILES -DPITON_NUM_TILES=PITON_NUM_TILES -I$DV_ROOT/verif/diag/assembly/include
 #else
 #define SYSCMD_1 bw_cpp -B -P -DNO_DECLARE_TSB -DMT_TEMPLATE -I$DV_ROOT/verif/diag/assembly/include
 #endif
@@ -45,7 +45,7 @@ attr_text {
         part_0_i_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
         part_0_i_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
@@ -60,7 +60,7 @@ attr_data {
         part_0_d_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
         part_0_d_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
@@ -88,7 +88,7 @@ attr_text {
         part_0_i_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
         part_0_i_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
@@ -102,7 +102,7 @@ attr_data {
         part_0_d_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
         part_0_d_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=1, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
