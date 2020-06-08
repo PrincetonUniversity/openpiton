@@ -68,7 +68,21 @@ input                                 ok_iob
 // Type Declarations
 //////////////////////
 
+`ifndef VERILATOR
 reg                             core_ref_clk;
+reg                             sys_rst_n;
+reg                             pll_rst_n;
+reg                             clk_en;
+reg                             pll_bypass;
+reg [4:0]                       pll_rangea;
+wire                            pll_lock;
+reg [1:0]                       clk_mux_sel;
+reg                             async_mux;
+// For simulation only, monitor stuff.  Only cross-module referenced
+// do not delete.
+reg                             diag_done;
+`endif // ifndef VERILATOR
+
 reg                             io_clk;
 reg                             jtag_clk;
 reg                             chipset_clk_osc_p;
@@ -84,29 +98,15 @@ reg                             passthru_clk_osc_n;
 reg                             passthru_chipset_clk_p;
 reg                             passthru_chipset_clk_n;
 
-reg                             sys_rst_n;
-
 reg                             jtag_rst_l;
-reg                             pll_rst_n;
-
-reg                             clk_en;
-
-reg                             pll_bypass;
-reg [4:0]                       pll_rangea;
-wire                            pll_lock;
-
-reg [1:0]                       clk_mux_sel;
 
 reg                             jtag_modesel;
 reg                             jtag_datain;
 wire                            jtag_dataout;
 
-reg                             async_mux;
-
 
 // For simulation only, monitor stuff.  Only cross-module referenced
 // do not delete.
-reg                             diag_done;
 reg                             fail_flag;
 reg [3:0]                       stub_done;
 reg [3:0]                       stub_pass;
