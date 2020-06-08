@@ -292,7 +292,6 @@ def runMidas(tname, uart_div_latch, flog, midas_args=None, coreType="sparc", pre
         # used to run precompiled riscv tests
         cmd += " -precompiled"
 
-    print cmd
     rv = subprocess.call(shlex.split(cmd), stdout=flog, stderr=flog)
     print cmd
     return rv
