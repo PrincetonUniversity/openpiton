@@ -177,11 +177,7 @@ set fileset_obj [get_filesets constrs_1]
 
 # Add/Import constrs file and set constrs file properties
 set constraints_file "${BOARD_DIR}/constraints.xdc"
-set board_constraints_file "${BOARD_DIR}/SUME_Master.xdc"
-set debug_constraints_file "${BOARD_DIR}/debug.xdc"
 add_files -norecurse -fileset $fileset_obj $constraints_file
-add_files -norecurse -fileset $fileset_obj $board_constraints_file
-add_files -norecurse -fileset $fileset_obj $debug_constraints_file
 set file_obj [get_files -of_objects $fileset_obj [list "$constraints_file"]]
 set_property "file_type" "XDC" $file_obj
 set_property "is_enabled" "1" $file_obj
@@ -198,8 +194,7 @@ set_property "used_in_synthesis" "1" $file_obj
 
 # Set 'constrs_1' fileset properties
 set_property "name" "constrs_1" $fileset_obj
-#set_property "target_constrs_file" "$constraints_file" $fileset_obj
-set_property "target_constrs_file" "$debug_constraints_file" $fileset_obj
+set_property "target_constrs_file" "$constraints_file" $fileset_obj
 # Create 'sim_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_1] ""]} {
   create_fileset -simset sim_1
