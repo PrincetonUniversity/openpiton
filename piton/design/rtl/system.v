@@ -407,10 +407,7 @@ module system(
     input                                       btnc,
 `endif
 
-`ifdef SUME_BOARD
-    //input					reset,
-// no switches :(
-`elsif VCU118_BOARD
+`ifdef VCU118_BOARD
     // we only have 4 gpio dip switches on this board
     input  [3:0]                                sw,
 `elsif XUPP3R_BOARD
