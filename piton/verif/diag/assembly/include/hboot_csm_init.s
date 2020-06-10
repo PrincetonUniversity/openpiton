@@ -28,8 +28,8 @@ hboot_csm_init:
 
 #ifdef CSM_ENABLE
 
-#define CSM_CONFIG_REG mpeval((PTON_NUM_TILES%64) << 16)
-#define COREID_REG     mpeval((PTON_X_TILES-1 + ((PTON_Y_TILES-1) * 256)) << 34)
+#define CSM_CONFIG_REG mpeval((PITON_NUM_TILES%64) << 16)
+#define COREID_REG     mpeval((PITON_X_TILES-1 + ((PITON_Y_TILES-1) * 256)) << 34)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! set csm config reg
@@ -90,7 +90,7 @@ csm_cond_done:
 
     brnz  %l2, skip_l2_csm_loop  !skip this for cores other than the first one
     nop
-    setx  PTON_NUM_TILES, %l4, %l2
+    setx  PITON_NUM_TILES, %l4, %l2
 !enable L2 caches of all cores
 l2_csm_loop:
     sub %l2, 1, %l2

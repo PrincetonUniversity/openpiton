@@ -44,7 +44,7 @@ attr_text {
 #endif
 #ifdef CSM_ENABLE
         part_0_i_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=0, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_SIZE_PTR=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,
@@ -58,7 +58,7 @@ attr_data {
         part_0_d_ctx_nonzero_ps0_tsb,
 #ifdef CSM_ENABLE
         part_0_d_ctx_nonzero_ps0_tsb_csm,
-        TTE_HDID=0, TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
+        TTE_HDID=0, TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=0, TTE_LSID=0,
 #endif
         TTE_G=0, TTE_Context=PCONTEXT, TTE_V=1, TTE_Size=0, TTE_SIZE_PTR=0, TTE_NFO=0,
         TTE_IE=0, TTE_Soft2=0, TTE_Diag=0, TTE_Soft=0,

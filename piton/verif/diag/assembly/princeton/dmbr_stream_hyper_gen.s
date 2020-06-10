@@ -37,20 +37,20 @@
 #include "boot.s"
 
 ! dmbr configuration
-#define     TEST_CRED_BIN_0             44
-#define     TEST_CRED_BIN_1             48
-#define     TEST_CRED_BIN_2             9
-#define     TEST_CRED_BIN_3             26
-#define     TEST_CRED_BIN_4             39
-#define     TEST_CRED_BIN_5             32
-#define     TEST_CRED_BIN_6             61
-#define     TEST_CRED_BIN_7             35
-#define     TEST_CRED_BIN_8             39
-#define     TEST_CRED_BIN_9             42
-#define     TEST_BIN_SCALE              2
-#define     TEST_REPL_INTERVAL          7044
+#define     TEST_CRED_BIN_0             33
+#define     TEST_CRED_BIN_1             55
+#define     TEST_CRED_BIN_2             36
+#define     TEST_CRED_BIN_3             11
+#define     TEST_CRED_BIN_4             29
+#define     TEST_CRED_BIN_5             44
+#define     TEST_CRED_BIN_6             55
+#define     TEST_CRED_BIN_7             27
+#define     TEST_CRED_BIN_8             42
+#define     TEST_CRED_BIN_9             21
+#define     TEST_BIN_SCALE              3
+#define     TEST_REPL_INTERVAL          61600
 
-#define     TEST_EXPECTED_INTERV_AVG    18
+#define     TEST_EXPECTED_INTERV_AVG    174
 
 
 #define LOOP_ITERATIONS 2048
