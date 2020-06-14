@@ -268,8 +268,8 @@ module chipset_impl(
     // Debug
     output                                      ndmreset_o,    // non-debug module reset
     output                                      dmactive_o,    // debug module is active
-    output [`NUM_TILES-1:0]                     debug_req_o,   // async debug request
-    input  [`NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
+    output [`PITON_NUM_TILES-1:0]                     debug_req_o,   // async debug request
+    input  [`PITON_NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
     // JTAG
     input                                       tck_i,
     input                                       tms_i,
@@ -279,10 +279,10 @@ module chipset_impl(
     output                                      tdo_oe_o,
     // CLINT
     input                                       rtc_i,         // Real-time clock in (usually 32.768 kHz)
-    output [`NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
-    output [`NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
+    output [`PITON_NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
+    output [`PITON_NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
     // PLIC
-    output [`NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
+    output [`PITON_NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
 `endif
 );
 
@@ -1066,32 +1066,16 @@ ciop_fake_iob ciop_fake_iob(
 
     <%
         text = r'''
-        `ifdef RTL_SPARC0
-          .spc0_inst_done    (`TOP_MOD.monitor.pc_cmp.spc0_inst_done),
-          .pc_w0             (`PCPATH0.fdp.pc_w),
-        `endif
-        `ifdef RTL_PICO0
-          .spc0_inst_done    (1'b1),
-          .pc_w0             ({17'b0, `PICO_CORE0.reg_pc}),
-        `endif
-        `ifdef RTL_ARIANE0
-          .spc0_inst_done    ( `ARIANE_CORE0.piton_pc_vld   ),
-          .pc_w0             ( `ARIANE_CORE0.piton_pc[48:0] ),
-        `endif
+        .spc0_inst_done    (`PITON_CORE0_INST_DONE),
+        .pc_w0             (`PITON_CORE0_PC_W0),
         '''
 
-        for i in range (NUM_TILES): # extend this later
-        #for i in range (8):
+        for i in range (PITON_NUM_TILES):
             text2 = text;
-            text2 = text2.replace("PICO_CORE0", "PICO_CORE" + repr(i));
-            text2 = text2.replace("ARIANE_CORE0", "ARIANE_CORE" + repr(i));
-            text2 = text2.replace("RTL_ARIANE0", "RTL_ARIANE" + repr(i));
-            text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + repr(i));
-            text2 = text2.replace("RTL_PICO0", "RTL_PICO" + repr(i));
+            text2 = text2.replace("PITON_CORE0", "PITON_CORE" + repr(i));
             text2 = text2.replace("spc0_inst_done", "spc" + repr(i) + "_inst_done");
             text2 = text2.replace("pc_w0", "pc_w" + repr(i));
-            text2 = text2.replace("PCPATH0", "PCPATH" + repr(i));
-            text2 = text2.replace("tile0", "tile" + repr(i));
+            text2 = text2.replace("PC_W0", "PC_W" + repr(i));
             print(text2)
     %>
     .clk               (chipset_clk),
@@ -1156,7 +1140,7 @@ for i in range(len(devices)):
 str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
-        .NumHarts       (      `NUM_TILES ),
+        .NumHarts       ( `PITON_NUM_TILES),
         .NumSources     (               2 ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),

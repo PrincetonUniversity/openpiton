@@ -2487,7 +2487,7 @@ HT0_RdThId_0x12e:
     ldxa     [%g1] 0x15, %g1            ! has coreid
 
     srlx    %g1, 8, %o1
-    mulx    %o1, PTON_X_TILES, %o1
+    mulx    %o1, PITON_X_TILES, %o1
     and     %g1, 0xff, %g1
     add     %g1, %o1, %g1    
 
@@ -2791,7 +2791,7 @@ HT0_RdThId_0x18e:
 
 
     srlx    %g1, 8, %o1
-    mulx    %o1, PTON_X_TILES, %o1
+    mulx    %o1, PITON_X_TILES, %o1
     and     %g1, 0xff, %g1
     add     %g1, %o1, %g1    
 
@@ -2926,7 +2926,7 @@ HT0_RdThId_0x196:
     ldxa     [%g4] 0x15, %g4            ! has coreid
 
     srlx    %g4, 8, %g1
-    mulx    %g1, PTON_X_TILES, %g1
+    mulx    %g1, PITON_X_TILES, %g1
     and     %g4, 0xff, %g4
     add     %g4, %g1, %g4    
 

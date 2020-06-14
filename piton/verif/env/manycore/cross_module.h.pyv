@@ -31,12 +31,12 @@
     #MAX_THREAD = 128;
     MAX_TILE = 64;
 
-    NUM_TILES = int(os.environ.get('PTON_NUM_TILES', '-1'))
+    PITON_NUM_TILES = int(os.environ.get('PTON_NUM_TILES', '-1'))
     #print "//num_tiles:", num_tiles
 
-    if NUM_TILES == -1:
+    if PITON_NUM_TILES == -1:
         # print "//num_tile not defined!"
-        NUM_TILES = MAX_TILE
+        PITON_NUM_TILES = MAX_TILE
 %>
 
 `define MONITOR_SIGNAL                 155
@@ -96,7 +96,7 @@
 // Note that the belows were generated through the template file and pyhp
 
 <%
-for i in range(NUM_TILES):
+for i in range(PITON_NUM_TILES):
     printstring = """
     `define TILE%d            `CHIP.tile%d
     `define ARIANE_CORE%d     `TILE%d.g_ariane_core.core.ariane
@@ -193,6 +193,14 @@ for i in range(NUM_TILES):
     `define ITLBPATH%d        `SPARC_CORE%d.sparc0.ifu.itlb
 `endif
     `define CFG_ASI_PATH%d    `SPARC_CORE%d.sparc0.cfg_asi
+
+    `define PITON_CORE%d_INST_DONE  `TOP_MOD.monitor.pc_cmp.spc%d_inst_done
+`ifdef RTL_SPARC%d
+    `define PITON_CORE%d_PC_W%d     `PCPATH%d.fdp.pc_w
+`else
+    `define PITON_CORE%d_PC_W%d     `TOP_MOD.monitor.pc_cmp.spc%d_phy_pc_w
+`endif
+
     """
     printstring = printstring.replace("%d", str(i))
     print(printstring)

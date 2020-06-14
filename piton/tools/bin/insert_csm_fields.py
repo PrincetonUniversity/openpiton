@@ -35,10 +35,10 @@ import string
 import os
 import random
 
-num_tiles = int(os.environ.get('PTON_NUM_TILES', -1))
-x_tiles = int(os.environ.get('PTON_X_TILES', -1))
-y_tiles = int(os.environ.get('PTON_Y_TILES', -1))
-dynamic_csm = int(os.environ.get('PTON_DYNAMIC_CSM', -1))
+num_tiles = int(os.environ.get('PITON_NUM_TILES', -1))
+x_tiles = int(os.environ.get('PITON_X_TILES', -1))
+y_tiles = int(os.environ.get('PITON_Y_TILES', -1))
+dynamic_csm = int(os.environ.get('PITON_DYNAMIC_CSM', -1))
 if x_tiles == -1 or y_tiles == -1:
     print "ERROR: cannot get x_tiles or y_tiles"
 if dynamic_csm == -1:
@@ -64,7 +64,7 @@ for i, l in enumerate(lines):
 
     if dynamic_csm == 0:
         if re.match(r'.*TTE_W.*', l.strip()):
-            print  "        TTE_HDID=" + str(tte_count) + ", TTE_HD_SIZE=mpeval(PTON_NUM_TILES%64), TTE_SDID=" + str(tte_count) +", TTE_LSID=0,"
+            print  "        TTE_HDID=" + str(tte_count) + ", TTE_HD_SIZE=mpeval(PITON_NUM_TILES%64), TTE_SDID=" + str(tte_count) +", TTE_LSID=0,"
             print l 
             tte_count += 1
 

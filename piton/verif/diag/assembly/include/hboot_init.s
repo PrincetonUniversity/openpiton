@@ -42,7 +42,7 @@
     ld      [%g2], %g2            ! has coreid
 
     srlx    %g2, 8, %g3
-    mulx    %g3, PTON_X_TILES, %g3
+    mulx    %g3, PITON_X_TILES, %g3
     and     %g2, 0xff, %g2
     add     %g2, %g3, %g5    
 

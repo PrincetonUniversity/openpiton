@@ -461,17 +461,17 @@ module jtag_testbench_top_helper
 
         <%
             text = r'''
-            .spc0_inst_done    (`TOP_MOD.monitor.pc_cmp.spc0_inst_done),
-            .pc_w0             (`PCPATH0.fdp.pc_w),
+            .spc0_inst_done    (`PITON_CORE0_INST_DONE),
+            .pc_w0             (`PITON_CORE0_PC_W0),
             '''
 
-            for i in range (NUM_TILES): # extend this later
-            #for i in range (8):
+            for i in range (PITON_NUM_TILES):
                 text2 = text;
-                text2 = text2.replace("spc0_inst_done", "spc" + `i` + "_inst_done");
-                text2 = text2.replace("pc_w0", "pc_w" + `i`);
-                text2 = text2.replace("PCPATH0", "PCPATH" + `i`);
-                print text2;
+                text2 = text2.replace("PITON_CORE0", "PITON_CORE" + repr(i));
+                text2 = text2.replace("spc0_inst_done", "spc" + repr(i) + "_inst_done");
+                text2 = text2.replace("pc_w0", "pc_w" + repr(i));
+                text2 = text2.replace("PC_W0", "PC_W" + repr(i));
+                print(text2)
         %>
         .clk               (fpga_clk),
         .rst_n             (`SPARC_CORE0.reset_l)
@@ -529,9 +529,9 @@ module jtag_testbench_top_helper
         end
         '''
 
-        for i in range(NUM_TILES) :
+        for i in range(PITON_NUM_TILES) :
             tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
-            print tt
+            print(tt)
     %>
 
 

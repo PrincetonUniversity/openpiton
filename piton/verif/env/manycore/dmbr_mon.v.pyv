@@ -48,7 +48,7 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 
 <%
 	# declaration of wires and registers
-	for i in range(NUM_TILES):
+	for i in range(PITON_NUM_TILES):
 		print("    wire [TOTAL_CREDIT_WIDTH - 1 : 0]	total_credit_num%d;" % i)
 		print("	   reg	[TOTAL_CREDIT_WIDTH - 1 : 0]	used_credits%d;" % i)
 		print("    reg 	[`REPLENISH_WIDTH - 1 : 0]		rep_cnt%d;" % i)
@@ -56,7 +56,7 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 	#print "\n\n\n"
 
 	# calculation of total number of credits for each tile
-	for i in range(NUM_TILES):
+	for i in range(PITON_NUM_TILES):
 		print("    assign total_credit_num%d = " % i,end="")
 		for j in range(BIN_NUMBER):
 			if j != 0:
@@ -68,7 +68,7 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 
 
 	<%
-		for i in range(NUM_TILES):
+		for i in range(PITON_NUM_TILES):
 			print("""
 			always @(posedge `DMBR%d.clk)
 			begin
@@ -94,7 +94,7 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 // bins isn't exceeded
 `ifdef DMBR_CHECKER
 <%
-for i in range(NUM_TILES):
+for i in range(PITON_NUM_TILES):
 	print("""
 	always @*
 	begin
