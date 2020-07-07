@@ -416,8 +416,6 @@ def main():
     args.config_rtl.append('NO_SCAN')
 
     if args.fusesoc_core == "openpiton::manycore_tb":
-        args.config_rtl.append('NO_SLAM_RANDOM')
-        args.config_rtl.append('NO_MRA_VAL')
         args.config_rtl.append('PITON_DPI')
 
     # core variant
