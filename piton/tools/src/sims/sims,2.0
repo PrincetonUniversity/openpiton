@@ -2724,6 +2724,20 @@ sub parse_args
     else { die ("DIE. Unprocessed argument: $x") ; }
   }
 
+  # Set ISA to choose compilation flow based on ISA
+  if ($opt{ost1}) {
+    $opt{sparcv9} = 1 ;
+    print "$prg: Building/running for sparcv9\n" ;
+  }
+  if ($opt{pico}) {
+    $opt{rv32} = 1 ;
+    print "$prg: Building/running for rv32\n" ;
+  }
+  if ($opt{ariane}) {
+    $opt{rv64} = 1 ;
+    print "$prg: Building/running for rv64\n" ;
+  }
+
   # in case a precompiled riscv binary for ariane is directly specified
   if ($opt{precompiled} and ($opt{rv32} | $opt{rv64})) {
     if (!($opt{asm_diag_name} =~ /\.riscv/)) {
@@ -2781,20 +2795,6 @@ sub parse_args
   } else {
     print "$prg: network_config not specified, assuming 2dmesh configuration\n";
     $ENV{PITON_NETWORK_CONFIG}="2d_mesh";
-  }
-
-  # Set ISA to choose compilation flow based on ISA
-  if ($opt{ost1}) {
-    $opt{sparcv9} = 1 ;
-    print "$prg: Building/running for sparcv9\n" ;
-  }
-  if ($opt{pico}) {
-    $opt{rv32} = 1 ;
-    print "$prg: Building/running for rv32\n" ;
-  }
-  if ($opt{ariane}) {
-    $opt{rv64} = 1 ;
-    print "$prg: Building/running for rv64\n" ;
   }
 
   $ENV{PITON_OST1}     = $opt{ost1};
