@@ -2812,11 +2812,6 @@ sub parse_args
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
   push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
 
-  if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {
-    push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
-    push (@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
-  }
-
   my $pton_x_tiles="";
   my $pton_y_tiles="";
   my $pton_num_tiles="";
@@ -2893,9 +2888,9 @@ sub parse_args
   push (@{$opt{config_rtl}}, "ORAM_ON") if ($opt{oram}) ;
   push (@{$opt{sim_run_args}}, "+oram") if ($opt{oram}) ;
 
-  if ($opt{msm_build} or $opt{icv_build} or $opt{vlt_build}) {
-      push(@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
-      push(@{$opt{config_rtl}}, "NO_MRA_VAL") ;
+  if ($opt{vcs_build} or $opt{ncv_build} or $opt{riv_build}) {
+      push(@{$opt{config_rtl}}, "OST1_PLI_SLAM_RANDOM") ;
+      push(@{$opt{config_rtl}}, "OST1_PLI_MRA_VAL") ;
   }
 
 }

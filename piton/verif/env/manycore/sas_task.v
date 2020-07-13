@@ -2109,7 +2109,7 @@ task process_mra;
     reg all_update;
 
     begin
-`ifndef NO_MRA_VAL
+`ifdef OST1_PLI_MRA_VAL
         `SAS_TASKS.mra_val(cpu_id[9:0], mra_wr_ptr_d2, mra_wdata);
 `endif
         mra_thrid  = mra_wr_ptr_d2[3:2];
