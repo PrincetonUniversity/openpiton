@@ -900,7 +900,7 @@ always @(posedge clk)begin
         <%
             t = r'''
                  `ifdef RTL_SPARC0
-                `SAS_TASKS.task0.process;
+                `SAS_TASKS.task0.process_task;
                   `endif
             '''
             tt = ReplicatePatternSpecial(t, ["RTL_SPARC0", "task0"])

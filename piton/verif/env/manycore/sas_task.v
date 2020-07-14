@@ -6692,7 +6692,7 @@ endtask // cleanup_ctls
 //-----------------------------------------------
 // main routine for REG comparsion.
 //-----------------------------------------------
-task process;
+task process_task;
     reg [2:0] ind;
     reg [2:0] i;
     reg       not_load;
