@@ -53,7 +53,7 @@ input wire [SIZE-1:0] presyncdata;
 output reg [SIZE-1:0] syncdata;
 
 `ifdef PITON_ARIANE
-// this prevents SV assertion failures in Ariane
+// this prevents SV assertion failures in Cva6
 // pragma translate_off
 `define SIM_RST_INIT
 // pragma translate_on

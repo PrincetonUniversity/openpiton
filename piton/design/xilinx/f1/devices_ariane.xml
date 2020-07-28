@@ -11,7 +11,7 @@ specific language governing permissions and limitations under the License.
 
 Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
 Date: 26.11.2018
-Description: Peripheral address map for OpenPiton+Ariane configurations.
+Description: Peripheral address map for OpenPiton+Cva6 configurations.
 -->
 <devices>
     <!--The first entry should always be the filter/chip to xbar connection-->
@@ -51,35 +51,35 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <base>0xfff0d00000</base>
         <length>0x100000</length>
     </port>     -->
-    <!-- note: the following modules are ariane-specific and are only instantiated in HW when using the ariane core -->
+    <!-- note: the following modules are cva6-specific and are only instantiated in HW when using the cva6 core -->
     <port>
         <!-- this is the shared debug module for JTAG access to all cores -->
-        <name>ariane_debug</name>
+        <name>cva6_debug</name>
         <base>0xfff1000000</base>
         <length>0x1000</length>
         <stream_accessible/>
     </port>
     <port>
         <!-- this is the shared bootrom (contains DTB that is generated for the current platform config) -->
-        <name>ariane_bootrom</name>
+        <name>cva6_bootrom</name>
         <base>0xfff1010000</base>
         <length>0x10000</length>
         <stream_accessible/>
     </port>
     <port>
         <!-- core local interrupt controller with real-time counter. this is shared among all cores -->
-        <name>ariane_clint</name>
+        <name>cva6_clint</name>
         <base>0xfff1020000</base>
         <length>0xc0000</length>
         <stream_accessible/>
     </port>
     <!-- platform level interrupt controller -->
     <port>
-        <name>ariane_plic</name>
+        <name>cva6_plic</name>
         <base>0xfff1100000</base>
         <length>0x4000000</length>
         <stream_accessible/>
     </port>
-    <!-- end ariane specific periphs -->
+    <!-- end cva6 specific periphs -->
 </devices>
 

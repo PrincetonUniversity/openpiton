@@ -171,7 +171,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'overwrite' => 0,
         'pal_use_tgseed' => 0,
         'parallel' => 0,
-        'ariane' => 0,
+        'cva6' => 0,
         'pico' => 0,
         'pico_het' => 0,
         'post_process_cmd' => [],
@@ -321,7 +321,7 @@ GetOptions (\%opt,
             'group=s@',
             'model_dir=s',
             'parallel!',
-            'ariane!',
+            'cva6!',
             'pico!',
             'pico_het!',
             'regress!',
@@ -1090,8 +1090,8 @@ sub gen_flist
 
   # Add ORAM flist if ORAM is specified
   push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tinyoram/rtl/Flist.oram") if ($opt{oram}) ;
-  # Add Ariane flist if -ariane is specified
-  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tile/ariane/Flist.ariane") if ($opt{ariane}) ;
+  # Add Cva6 flist if -cva6 is specified
+  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tile/ariane/Flist.cva6") if ($opt{cva6}) ;
 
 
   foreach my $flist (@{$opt{flist}}) {
@@ -1251,20 +1251,20 @@ sub pre_build
 
   system("cp -f flist $cur_dir");
 
-  if($opt{ariane}) {
-    print "compiling DTS and bootroms for Ariane...\n";
+  if($opt{cva6}) {
+    print "compiling DTS and bootroms for Cva6...\n";
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
-      die (" Error compiling DTS for ariane.");
+      die (" Error compiling DTS for cva6.");
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
-      die (" Error compiling DTS for ariane.");
+      die (" Error compiling DTS for cva6.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
     my $num_sources = 2;
     # 2 targets per core (M/S mode)
     my $num_targets = 2 * $ENV{PTON_NUM_TILES};
-    print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
+    print "generating PLIC for Cva6 with $num_targets targets and $num_sources sources...\n";
     !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
-      die (" Error generating PLIC for Ariane.");
+      die (" Error generating PLIC for Cva6.");
     print "done\n";
   }
 
@@ -1356,7 +1356,7 @@ sub generic_sim_build
       push (@{$opt{vcs_build_args}}, "-l compile.log") ;
 
       # some SystemVerilog-specific options
-      if ($opt{ariane}) {
+      if ($opt{cva6}) {
           push (@{$opt{vcs_build_args}}, "-sverilog +systemverilogext+.sv") ;
           push (@{$opt{vcs_build_args}}, "-ntb_opts uvm-1.1 +vpi ") ;
       }
@@ -1484,8 +1484,8 @@ sub generic_sim_build
       # lib_path needs to be before vcs_build_args
       $build_cmd .= $lib_path;
 
-      # the ariane files do not contain the timescale
-      if ($opt{ariane}) {
+      # the cva6 files do not contain the timescale
+      if ($opt{cva6}) {
         $build_cmd .= " -timescale=1ps/1ps ";
       }
     }
@@ -2195,8 +2195,8 @@ sub assemble_diag
     `rm -rf diag.pal diag.s diag.S diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
     die "DIE. could not clean up assembly diag run area"  if ($?) ;
 
-    # add default path to look for precompiled RISCV 64bit assembly tests diags in case of ariane
-    if ($opt{ariane} and $opt{precompiled}) {
+    # add default path to look for precompiled RISCV 64bit assembly tests diags in case of cva6
+    if ($opt{cva6} and $opt{precompiled}) {
       push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
       push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
     }
@@ -2207,9 +2207,9 @@ sub assemble_diag
     my $diag_name ;
     if ($opt{asm_diag_name} =~ /\.pal/)        { $diag_name = "diag.pal"  ; }
     elsif ($opt{asm_diag_name} =~ /\.s\.gz/)   { $diag_name = "diag.s.gz" ; }
-    elsif ($opt{precompiled} and $opt{ariane}) { $diag_name = "diag.exe"  ; }
-    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
-    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.c/)) { $diag_name = "diag.c" ; }
+    elsif ($opt{precompiled} and $opt{cva6}) { $diag_name = "diag.exe"  ; }
+    elsif (($opt{pico} | $opt{cva6}) and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
+    elsif (($opt{pico} | $opt{cva6}) and ($opt{asm_diag_name} =~ /\.c/)) { $diag_name = "diag.c" ; }
     else { $diag_name = "diag.s" ; }
 
     # copy diagnostic to run area
@@ -2260,8 +2260,8 @@ sub assemble_diag
       my $waitstatus = call_program($cmd, "rv32_as.log");
       die ("DIE. rv32_as compilation error") if ($waitstatus) ;
 
-    } elsif ($opt{ariane}) {
-      # RISCV flow for RV64IMAC (ARIANE from PULP)
+    } elsif ($opt{cva6}) {
+      # RISCV flow for RV64IMAC (CVA6 from PULP)
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
@@ -2648,8 +2648,8 @@ sub parse_args
     else { die ("DIE. Unprocessed argument: $x") ; }
   }
 
-  # in case a precompiled riscv binary for ariane is directly specified
-  if ($opt{precompiled} and $opt{ariane}) {
+  # in case a precompiled riscv binary for cva6 is directly specified
+  if ($opt{precompiled} and $opt{cva6}) {
     if (!($opt{asm_diag_name} =~ /\.riscv/)) {
         $opt{asm_diag_name} = fileparse($opt{asm_diag_name}, qr/\.[^.]*/);
     }
@@ -2707,18 +2707,18 @@ sub parse_args
     $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
   }
 
-  die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
+  die ("DIE. -cva6 and -pico/-pico_het cannot be set simultaneously") if ($opt{cva6} && ($opt{pico} || $opt{pico_het})) ;
   die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
-  $ENV{PITON_ARIANE}   = $opt{ariane};
+  $ENV{PITON_ARIANE}   = $opt{cva6};
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
-  push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
-  push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{cva6});
+  push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{cva6});
 
 
-  if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {
+  if ($opt{pico} or $opt{pico_het} or $opt{cva6}) {
     push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
     push (@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
   }
@@ -2750,7 +2750,7 @@ sub parse_args
   for (my $i=0; $i < $pton_num_tiles; $i++) {
     if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
         push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
-    } elsif ($opt{ariane}) {
+    } elsif ($opt{cva6}) {
         push (@{$opt{config_rtl}}, "RTL_ARIANE" . $i);
     } else {
         push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
@@ -3038,8 +3038,8 @@ VERILOG COMPILATION RELATED
            this specifies that a heterogeneous arrangement with OpenSPARC and PICORV32 shall be built,
            where every odd core is a PICORV32 core (along the x-dimension).
 
-    -ariane
-           this specifies that the ARIANE RV64GC core shall be used instead of OpenSPARC.
+    -cva6
+           this specifies that the CVA6 RV64GC core shall be used instead of OpenSPARC.
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
 VERILOG RUNTIME RELATED
@@ -3095,7 +3095,7 @@ midas is the diag assembler
 
 RISCV GCC
 
-this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane switches are specified).
+this is the compiler used for RISC-V cores (e.g., when the -pico or -cva6 switches are specified).
 
     -uart_dmw
            use this switch when compiling code for Pitonstream. this will add load

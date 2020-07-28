@@ -1128,14 +1128,14 @@ fake_uart fake_uart (
     assign irq_sources = {net_interrupt, uart_interrupt};
 
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
-    wire ariane_boot_sel;
+    wire cva6_boot_sel;
 `ifdef PITON_FPGA_SYNTH
-  assign ariane_boot_sel   = uart_boot_en;
+  assign cva6_boot_sel   = uart_boot_en;
 `else
   `ifdef ARIANE_SIM_LINUX_BOOT
-    assign ariane_boot_sel = 1'b0;
+    assign cva6_boot_sel = 1'b0;
   `else
-    assign ariane_boot_sel = 1'b1;
+    assign cva6_boot_sel = 1'b1;
   `endif
 `endif
 
@@ -1145,16 +1145,16 @@ RomBase   = 0
 ClintBase = 0
 PlicBase  = 0
 for i in range(len(devices)):
-    if devices[i]["name"] == "ariane_debug":
+    if devices[i]["name"] == "cva6_debug":
         DmBase = devices[i]["base"]
-    if devices[i]["name"] == "ariane_bootrom":
+    if devices[i]["name"] == "cva6_bootrom":
         RomBase = devices[i]["base"]
-    if devices[i]["name"] == "ariane_clint":
+    if devices[i]["name"] == "cva6_clint":
         ClintBase = devices[i]["base"]
-    if devices[i]["name"] == "ariane_plic":
+    if devices[i]["name"] == "cva6_plic":
         PlicBase = devices[i]["base"]
 str = '''
-    riscv_peripherals #(
+    cva6_riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       (      `NUM_TILES ),
         .NumSources     (               2 ),
@@ -1167,32 +1167,32 @@ str = '''
         .clk_i                           ( chipset_clk                   ),
         .rst_ni                          ( chipset_rst_n                 ),
         .testmode_i                      ( 1'b0                          ),
-        .buf_ariane_debug_noc2_data_i    ( buf_ariane_debug_noc2_data    ),
-        .buf_ariane_debug_noc2_valid_i   ( buf_ariane_debug_noc2_valid   ),
-        .ariane_debug_buf_noc2_ready_o   ( ariane_debug_buf_noc2_ready   ),
-        .ariane_debug_buf_noc3_data_o    ( ariane_debug_buf_noc3_data    ),
-        .ariane_debug_buf_noc3_valid_o   ( ariane_debug_buf_noc3_valid   ),
-        .buf_ariane_debug_noc3_ready_i   ( buf_ariane_debug_noc3_ready   ),
-        .buf_ariane_bootrom_noc2_data_i  ( buf_ariane_bootrom_noc2_data  ),
-        .buf_ariane_bootrom_noc2_valid_i ( buf_ariane_bootrom_noc2_valid ),
-        .ariane_bootrom_buf_noc2_ready_o ( ariane_bootrom_buf_noc2_ready ),
-        .ariane_bootrom_buf_noc3_data_o  ( ariane_bootrom_buf_noc3_data  ),
-        .ariane_bootrom_buf_noc3_valid_o ( ariane_bootrom_buf_noc3_valid ),
-        .buf_ariane_bootrom_noc3_ready_i ( buf_ariane_bootrom_noc3_ready ),
-        .buf_ariane_clint_noc2_data_i    ( buf_ariane_clint_noc2_data    ),
-        .buf_ariane_clint_noc2_valid_i   ( buf_ariane_clint_noc2_valid   ),
-        .ariane_clint_buf_noc2_ready_o   ( ariane_clint_buf_noc2_ready   ),
-        .ariane_clint_buf_noc3_data_o    ( ariane_clint_buf_noc3_data    ),
-        .ariane_clint_buf_noc3_valid_o   ( ariane_clint_buf_noc3_valid   ),
-        .buf_ariane_clint_noc3_ready_i   ( buf_ariane_clint_noc3_ready   ),
-        .buf_ariane_plic_noc2_data_i     ( buf_ariane_plic_noc2_data     ),
-        .buf_ariane_plic_noc2_valid_i    ( buf_ariane_plic_noc2_valid    ),
-        .ariane_plic_buf_noc2_ready_o    ( ariane_plic_buf_noc2_ready    ),
-        .ariane_plic_buf_noc3_data_o     ( ariane_plic_buf_noc3_data     ),
-        .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    ),
-        .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    ),
+        .buf_cva6_debug_noc2_data_i    ( buf_cva6_debug_noc2_data    ),
+        .buf_cva6_debug_noc2_valid_i   ( buf_cva6_debug_noc2_valid   ),
+        .cva6_debug_buf_noc2_ready_o   ( cva6_debug_buf_noc2_ready   ),
+        .cva6_debug_buf_noc3_data_o    ( cva6_debug_buf_noc3_data    ),
+        .cva6_debug_buf_noc3_valid_o   ( cva6_debug_buf_noc3_valid   ),
+        .buf_cva6_debug_noc3_ready_i   ( buf_cva6_debug_noc3_ready   ),
+        .buf_cva6_bootrom_noc2_data_i  ( buf_cva6_bootrom_noc2_data  ),
+        .buf_cva6_bootrom_noc2_valid_i ( buf_cva6_bootrom_noc2_valid ),
+        .cva6_bootrom_buf_noc2_ready_o ( cva6_bootrom_buf_noc2_ready ),
+        .cva6_bootrom_buf_noc3_data_o  ( cva6_bootrom_buf_noc3_data  ),
+        .cva6_bootrom_buf_noc3_valid_o ( cva6_bootrom_buf_noc3_valid ),
+        .buf_cva6_bootrom_noc3_ready_i ( buf_cva6_bootrom_noc3_ready ),
+        .buf_cva6_clint_noc2_data_i    ( buf_cva6_clint_noc2_data    ),
+        .buf_cva6_clint_noc2_valid_i   ( buf_cva6_clint_noc2_valid   ),
+        .cva6_clint_buf_noc2_ready_o   ( cva6_clint_buf_noc2_ready   ),
+        .cva6_clint_buf_noc3_data_o    ( cva6_clint_buf_noc3_data    ),
+        .cva6_clint_buf_noc3_valid_o   ( cva6_clint_buf_noc3_valid   ),
+        .buf_cva6_clint_noc3_ready_i   ( buf_cva6__clint_noc3_ready   ),
+        .buf_cva6_plic_noc2_data_i     ( buf_cva6_plic_noc2_data     ),
+        .buf_cva6_plic_noc2_valid_i    ( buf_cva6_plic_noc2_valid    ),
+        .cva6_plic_buf_noc2_ready_o    ( cva6_plic_buf_noc2_ready    ),
+        .cva6_plic_buf_noc3_data_o     ( cva6_plic_buf_noc3_data     ),
+        .cva6_plic_buf_noc3_valid_o    ( cva6_plic_buf_noc3_valid    ),
+        .buf_cva6_plic_noc3_ready_i    ( buf_cva6_plic_noc3_ready    ),
         // This selects either the BM or linux bootrom
-        .ariane_boot_sel_i               ( ariane_boot_sel               ),
+        .cva6_boot_sel_i               ( cva6_boot_sel               ),
         // Debug sigs to cores
         .ndmreset_o                      ( ndmreset_o                    ),
         .dmactive_o                      ( dmactive_o                    ),
@@ -1221,21 +1221,21 @@ print str
 `else
 
     // tie off unused sigs
-    assign ariane_debug_buf_noc2_ready   = 1'b0;
-    assign ariane_debug_buf_noc3_data    = `NOC_DATA_WIDTH'b0;
-    assign ariane_debug_buf_noc3_valid   = 1'b0;
+    assign cva6_debug_buf_noc2_ready   = 1'b0;
+    assign cva6_debug_buf_noc3_data    = `NOC_DATA_WIDTH'b0;
+    assign cva6_debug_buf_noc3_valid   = 1'b0;
 
-    assign ariane_bootrom_buf_noc2_ready = 1'b0;
-    assign ariane_bootrom_buf_noc3_data  = `NOC_DATA_WIDTH'b0;
-    assign ariane_bootrom_buf_noc3_valid = 1'b0;
+    assign cva6_bootrom_buf_noc2_ready = 1'b0;
+    assign cva6_bootrom_buf_noc3_data  = `NOC_DATA_WIDTH'b0;
+    assign cva6_bootrom_buf_noc3_valid = 1'b0;
 
-    assign ariane_clint_buf_noc2_ready   = 1'b0;
-    assign ariane_clint_buf_noc3_data    = `NOC_DATA_WIDTH'b0;
-    assign ariane_clint_buf_noc3_valid   = 1'b0;
+    assign cva6_clint_buf_noc2_ready   = 1'b0;
+    assign cva6_clint_buf_noc3_data    = `NOC_DATA_WIDTH'b0;
+    assign cva6_clint_buf_noc3_valid   = 1'b0;
 
-    assign ariane_plic_buf_noc2_ready    = 1'b0;
-    assign ariane_plic_buf_noc3_data     = `NOC_DATA_WIDTH'b0;
-    assign ariane_plic_buf_noc3_valid    = 1'b0;
+    assign cva6_plic_buf_noc2_ready    = 1'b0;
+    assign cva6_plic_buf_noc3_data     = `NOC_DATA_WIDTH'b0;
+    assign cva6_plic_buf_noc3_valid    = 1'b0;
 
 `endif
 

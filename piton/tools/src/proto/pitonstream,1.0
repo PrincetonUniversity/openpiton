@@ -92,7 +92,7 @@ def usage():
     print >> sys.stderr, "\n       -c, --core <core_config>"
     print >> sys.stderr, "              Name of a supported core configuration:"
     print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
-    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
+    print >> sys.stderr, "                  cva6    (64bit RISCV core)"
     print >> sys.stderr, "\n       -f, --file <filename>"
     print >> sys.stderr, "              File name with test names. If option --ustr is not specified,"
     print >> sys.stderr, "              they should be assembly test names, otherwise list of generated"
@@ -304,7 +304,7 @@ def compileASMTest(tname, uart_div_latch, st_brd, flog, midas_args=None, coreTyp
 
     # Since we are using an existent synthesized mapping, we have to check
     # that all sections of new tests are mapped
-    rv = isTranslatorOK(addr_data_map, flog, coreType=="ariane")
+    rv = isTranslatorOK(addr_data_map, flog, coreType=="cva6")
     if not rv:
         print_error("Can't use existent storage_addr_trans.tmp.v for %s" % tname)
         return 1
@@ -400,8 +400,8 @@ def main():
     for tname in tests:
         test_cnt += 1
         print_info("Running %s: %d out of %d test" % (tname, test_cnt, test_num))
-        if options.precompiled and options.core == "Ariane":
-            print_info("Using precompiled RISCV test for Ariane.")
+        if options.precompiled and options.core == "Cva6":
+            print_info("Using precompiled RISCV test for Cva6.")
         # Compile .s tests to get .ustr
         if options.ustr == False:
             rv = compileASMTest(tname, uart_div_latch, st_brd, flog, options.midas_args, options.core, options.precompiled, options.x_tiles, options.y_tiles)

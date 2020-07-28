@@ -902,7 +902,7 @@ if (TILE_TYPE == `PICORV32_TILE) begin : g_picorv32_core
 end
 endgenerate
 generate
-if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
+if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_cva6_core
     //////////////////////
     // Ariane RV64 Core //
     //////////////////////
@@ -972,7 +972,7 @@ if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
                                      transducer_l15_rqtype == `PCX_REQTYPE_IFILL && 
                                     ~transducer_l15_invalidate_cacheline) ? `MSG_DATA_SIZE_32B : `MSG_DATA_SIZE_16B; 
 
-    wire [63:0] ariane_bootaddr;
+    wire [63:0] cva6_bootaddr;
 
 <%
 
@@ -1002,7 +1002,7 @@ if PITON_ARIANE:
             else:
               execBase   += "64'h" + cacheBase
               execLength += "64'h" + cacheLength
-        if devices[i]["name"] == "ariane_debug":
+        if devices[i]["name"] == "cva6_debug":
             dmBase       = "%X" % devices[i]["base"]
             dmLength     = "%X" % devices[i]["length"]
             numRules    += 1
@@ -1012,7 +1012,7 @@ if PITON_ARIANE:
             else:
               execBase   += "64'h" + dmBase
               execLength += "64'h" + dmLength
-        if devices[i]["name"] == "ariane_bootrom":
+        if devices[i]["name"] == "cva6_bootrom":
             romBase      = "%X" % devices[i]["base"]
             romLength    = "%X" % devices[i]["length"]
             numRules    += 1
@@ -1031,11 +1031,11 @@ bootAddr = cacheBase
 if romIsPresent:
   bootAddr = romBase
 
-print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
+print("    assign cva6_bootaddr  =  64'h%s;" % bootAddr)
 %>
 
 
-    ariane_verilog_wrap #(
+    cva6_verilog_wrap #(
 <%
 str = '''
         .DmBaseAddress          ( 64'h%s ),
@@ -1052,7 +1052,7 @@ print(str)
         .clk_i       ( clk_gated              ),
         .reset_l     ( rst_n_f                ),
         .spc_grst_l  ( spc_grst_l             ),
-        .boot_addr_i ( ariane_bootaddr        ),
+        .boot_addr_i ( cva6_bootaddr        ),
         .hart_id_i   ( {{64-`JTAG_FLATID_WIDTH{1'b0}}, flat_tileid} ),
         .irq_i       ( irq_i                  ),
         .ipi_i       ( ipi_i                  ),
