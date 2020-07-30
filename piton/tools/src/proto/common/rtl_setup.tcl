@@ -523,6 +523,9 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_opgroup_multifmt_slice.sv"                \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_rounding.sv"                              \
     "${DV_ROOT}/design/chip/tile/ariane/src/fpu/src/fpnew_top.sv"                                   \
+    "${DV_ROOT}/design/chip/tile/ariane/src/pmp/src/cva6_pmp.sv"                                    \
+    "${DV_ROOT}/design/chip/tile/ariane/src/pmp/src/cva6_pmp_entry.sv"                              \
+    "${DV_ROOT}/design/chip/tile/ariane/src/pmp/include/cva6_riscv.sv"                              \
 ]
 
 set CHIP_INCLUDE_FILES [list \
