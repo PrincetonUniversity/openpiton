@@ -106,7 +106,7 @@ See $DV_ROOT/tools/src/proto/block.list for supported design modules"""
     core_choices={"sparc"   : "(opensparc T1 core, default)",
                   "pico"    : "(32bit RISCV core)",
                   "pico_het": "(heterogeneous pico+sparc arrangement)",
-                  "ariane"  : "(64bit RISCV core)"}
+                  "cva6"  : "(64bit RISCV core)"}
     core_help_str = \
 """Name of a supported core configurations (default: %(default)s):
 {}""".format("\n".join("\t* {} : {}".format(key,val) for key, val in core_choices.items()))
@@ -444,11 +444,11 @@ def main():
                 args.config_rtl.append('RTL_SPARC' + str(i))
                 print_info('defining RTL_SPARC' + str(i))
 
-    elif args.core == 'ariane':
+    elif args.core == 'cva6':
         args.config_rtl.append('PITON_ARIANE')
 
         ## Temporary until we create a solution for SystemVerilog code
-        print_error('Due to lack of support for "pickling" of SystemVerilog code, the Ariane core configuration option is not supported')
+        print_error('Due to lack of support for "pickling" of SystemVerilog code, the Cva6 core configuration option is not supported')
         sys.exit(1)
 
         for i in range(int(args.num_tiles)):

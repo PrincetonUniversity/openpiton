@@ -60,7 +60,7 @@ def usage():
     print >> sys.stderr, "\n       -c, --core <core_config>"
     print >> sys.stderr, "              Name of a supported core configuration:"
     print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
-    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
+    print >> sys.stderr, "                  cva6    (64bit RISCV core)"
     print >> sys.stderr, "\n       -h, --help"
     print >> sys.stderr, "              Display this help message"
     print >> sys.stderr, "\n"

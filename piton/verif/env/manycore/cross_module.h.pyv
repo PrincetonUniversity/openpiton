@@ -99,14 +99,14 @@
 for i in range(NUM_TILES):
     printstring = """
     `define TILE%d            `CHIP.tile%d
-    `define ARIANE_CORE%d     `TILE%d.g_ariane_core.core.ariane
+    `define ARIANE_CORE%d     `TILE%d.g_cva6_core.core.cva6
     `define SPARC_CORE%d      `TILE%d.g_sparc_core.core
     `define PICO_CORE%d       `TILE%d.g_picorv32_core.core
     `ifdef RTL_SPARC%d
     `define CORE_REF%d        `SPARC_CORE%d
     `endif // ifdef RTL_SPARC%d
     `ifdef RTL_ARIANE%d
-    `define CORE_REF%d        `TILE%d.g_ariane_core.core
+    `define CORE_REF%d        `TILE%d.g_cva6_core.core
     `endif // ifdef RTL_ARIANE%d
     `ifdef RTL_PICO%d
     `define CORE_REF%d        `PICO_CORE%d

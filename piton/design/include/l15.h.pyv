@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    from pyhplib import *
 
    if 'PITON_ARIANE' in globals():
-       print("// this is used in the ariane SV packages to derive the parameterization")
+       print("// this is used in the Cva6 SV packages to derive the parameterization")
        print("`define CONFIG_L1D_CACHELINE_WIDTH %d"  % 128) # constant at the moment
        print("`define CONFIG_L1I_CACHELINE_WIDTH %d"  % 256) # constant at the moment
        print("`define CONFIG_L15_SIZE %d"             % CONFIG_L15_SIZE)

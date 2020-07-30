@@ -87,7 +87,7 @@ pico-amoxor     amoxor_w.S
 </pico_tile1>
 
 
-<ariane_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -ariane>
+<cva6_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -cva6>
 <cmp_default name=default>
     // note: these asm tests assume that the RISCV tests have been precompiled with the
     // correct environment

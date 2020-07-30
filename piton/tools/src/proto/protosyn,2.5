@@ -73,7 +73,7 @@ def usage():
     print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
     print >> sys.stderr, "                  pico      (32bit RISCV core)"
     print >> sys.stderr, "                  pico_het  (heterogeneous pico+sparc arrangement)"
-    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
+    print >> sys.stderr, "                  cva6    (64bit RISCV core)"
     print >> sys.stderr, "\n       --network_config <network_config>"
     print >> sys.stderr, "              Name of the network type to be used:"
     print >> sys.stderr, "                  2dmesh_config (default)"
@@ -487,7 +487,7 @@ def makeDefList(options):
     #defines.append(df)
 
     # disable CSM in this case
-    if options.core == 'ariane':
+    if options.core == 'cva6':
         defines.append("NO_RTL_CSM")
 
     if (options.board == "f1"):
@@ -749,7 +749,7 @@ def main():
                 os.environ['RTL_SPARC' + str(i)] = "1"
                 print_info('setenv RTL_SPARC' + str(i))
 
-    elif options.core == 'ariane':
+    elif options.core == 'cva6':
         os.environ['PITON_ARIANE'] = "1"
         os.environ['WT_DCACHE']    = "1"
 
@@ -829,8 +829,8 @@ def main():
         if options.core == 'pico_het':
             config += ' -pico -pico_het'
 
-        if options.core == 'ariane':
-            config += ' -ariane'
+        if options.core == 'cva6':
+            config += ' -cva6'
 
         print_info("Synthesizing a test: %s" % options.test_name)
         print_info("Compilation started")
