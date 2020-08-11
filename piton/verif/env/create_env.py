@@ -355,8 +355,6 @@ def writeConfigFile (file, name) :
     file.write ("    -model=" + name + "\n")
     file.write ("    // TODO: Specify top level module(s) to be simulated\n")
     file.write ("    -toplevel=" + name + "_top\n")
-    file.write ("    -novera_build\n")
-    file.write ("    -novera_run\n")
     file.write ("    // TODO: Change the flist file for the DUT which specifies all\n")
     file.write ("    //       the source files for your DUT if it is not correct.\n")
     file.write ("    -flist=$DV_ROOT/design/" + name + "/rtl/Flist." + name + "\n")
@@ -372,7 +370,6 @@ def writeConfigFile (file, name) :
     file.write ("    -vcs_build_args=+nospecify\n")
     file.write ("    -vcs_build_args=+nbaopt\n")
     file.write ("    -vcs_build_args=-Xstrict=1 -notice\n")
-    file.write ("    -vcs_build_args=-e SimvMain $DV_ROOT/verif/env/iss/pli/main.cc\n")
     file.write ("    -sim_run_args=+test_cases_path=$DV_ROOT/verif/env/" + name + "/test_cases/\n")
     file.write ("</" + name + ">")
 
