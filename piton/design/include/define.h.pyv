@@ -221,6 +221,9 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 
 `define MSG_TYPE_LR_REQ              8'd60
 
+// Load request without asking for the ownership
+`define MSG_TYPE_LOAD_NOSHARE_REQ    8'd61
+
 
 //Forward requests from L2 to L15
 `define MSG_TYPE_LOAD_FWD           8'd16
