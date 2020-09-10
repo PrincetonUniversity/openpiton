@@ -760,7 +760,7 @@ begin
         begin
             case (msg_type_trans_S1)
                 `MSG_TYPE_LOAD_REQ, `MSG_TYPE_NC_LOAD_REQ, `MSG_TYPE_NC_STORE_REQ, `MSG_TYPE_PREFETCH_REQ,
-                `MSG_TYPE_STORE_REQ,
+                `MSG_TYPE_STORE_REQ, `MSG_TYPE_LOAD_NOSHARE_REQ,
                 `MSG_TYPE_LR_REQ,
                 `MSG_TYPE_WBGUARD_REQ, `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
                 `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ, `MSG_TYPE_L2_DIS_FLUSH_REQ,`MSG_TYPE_L2_LINE_FLUSH_REQ,
@@ -1603,6 +1603,85 @@ begin
                         begin
                             cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    y,      n,
                                      `OP_ADD,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};
+                        end
+                        else
+                        begin
+                            `ifndef NO_RTL_CSM
+                            if (csm_en)
+                            begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                         `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
+                            end
+                            else
+                            `endif
+                            begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                         `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
+                            end
+                        end
+                    end
+                    default:
+                    begin
+                        cs_S2 = {`CS_SIZE_P1S2{1'bx}};
+                    end
+                    endcase
+                end
+                `MSG_TYPE_LOAD_NOSHARE_REQ:
+                begin
+                    case (l2_way_state_mesi_S2)
+                    `L2_MESI_I:
+                    begin
+                        if (cache_type_S2_f == `MSG_CACHE_TYPE_DATA)
+                        begin
+                            begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,      n,         `OP_CLR,     n,      n,
+                                         `OP_CLR,   y,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I,   y,     `L2_LRU_SET};
+                            end
+                        end
+                        else
+                        begin
+                            begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,     n,      n,
+                                         `OP_CLR,   y,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I,   y,     `L2_LRU_SET};
+                            end
+                        end
+                    end
+                    `L2_MESI_S:
+                    begin
+                        if (cache_type_S2_f == l2_way_state_cache_type_S2)
+                        begin
+                            begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
+                                        `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};
+                            end
+                        end
+                        else
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, y,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                     `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
+                        end
+                    end
+                    `ifndef NO_RTL_CSM
+                    `L2_MESI_B:
+                    begin
+                        if (cache_type_S2_f == l2_way_state_cache_type_S2)
+                        begin
+                                cs_S2 = {`L2_AMO_ALU_NOP, n,         wr,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
+                                         `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,     `L2_LRU_SET};
+                        end
+                        else
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, n,      rd,            y,       n,         `OP_CLR,    n,      n,
+                                     `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, n,      `L2_LRU_CLR};
+                        end
+                    end
+                    `endif
+                    `L2_MESI_E:
+                    begin
+                        if (req_from_owner_S2 && (cache_type_S2_f == l2_way_state_cache_type_S2))
+                        begin
+                            cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      rd,            n,       n,         `OP_CLR,    n,      n,
+                                     `OP_CLR,   n,       n,      `L2_VD_INVAL,  n,      `L2_MESI_I, y,      `L2_LRU_SET};
                         end
                         else
                         begin
@@ -3070,7 +3149,7 @@ begin
                     end
                     endcase
                 end
-                `MSG_TYPE_LOAD_REQ:
+                `MSG_TYPE_LOAD_REQ, `MSG_TYPE_LOAD_NOSHARE_REQ:
                 begin
                     case (l2_way_state_mesi_S4)
                     `L2_MESI_I:

@@ -681,6 +681,7 @@ begin
         `MSG_TYPE_INTERRUPT             : $write("       int     ");
         `MSG_TYPE_L2_LINE_FLUSH_REQ     : $write("   line_flush  ");
         `MSG_TYPE_L2_DIS_FLUSH_REQ      : $write("    dis_flush  ");
+        `MSG_TYPE_LOAD_NOSHARE_REQ      : $write("ld_noshare_req ");
         `MSG_TYPE_LR_REQ                : $write("    lr_req     ");
         `MSG_TYPE_AMO_ADD_REQ           : $write("  amo_add_req  ");
         `MSG_TYPE_AMO_AND_REQ           : $write("  amo_and_req  ");
