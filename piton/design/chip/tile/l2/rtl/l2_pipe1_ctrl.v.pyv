@@ -244,6 +244,8 @@ module l2_pipe1_ctrl(
 
     output reg [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
     output reg l2_ifill_32B_S2,
+    output reg l2_load_noshare_32B_S2,
+    output reg l2_load_noshare_64B_S2,
 
     output reg msg_data_ready_S2,
 
@@ -2287,21 +2289,39 @@ begin
     end
 end
 
+always @ *
+begin
+    l2_load_noshare_32B_S2 = n;
+    l2_load_noshare_64B_S2 = n;
+    if (valid_S2 && l2_tag_hit_S2 && data_clk_en_S2 && (data_rdw_en_S2 == rd) && ~l2_wb_S2
+    && (msg_type_S2_f == `MSG_TYPE_LOAD_NOSHARE_REQ))
+    begin
+        if (data_size_S2_f == `MSG_DATA_SIZE_32B)
+        begin
+            l2_load_noshare_32B_S2 = y;
+        end
+        else if (data_size_S2_f == `MSG_DATA_SIZE_64B)
+        begin
+            l2_load_noshare_64B_S2 = y;
+        end
+    end
+end
 
 
 //writeback reads 64B and required 4 cycles to read out from the data array
 //ifill loads 32B and required 2 cycles to read out from the data array
+//load noshare may request 32B or 64B
 always @ *
 begin
     if (!rst_n)
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && l2_ifill_32B_S2 && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
+    else if (valid_S2 && !(stall_real_S2) && (l2_ifill_32B_S2 || l2_load_noshare_32B_S2) && (l2_load_data_subline_S2_f == `L2_DATA_SUBLINE_1))
     begin
         l2_load_data_subline_S2_next = `L2_DATA_SUBLINE_0;
     end
-    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_32B_S2))
+    else if (valid_S2 && !(stall_real_S2) && (l2_wb_S2 || l2_ifill_32B_S2 || l2_load_noshare_32B_S2 || l2_load_noshare_64B_S2))
     begin
         l2_load_data_subline_S2_next = l2_load_data_subline_S2_f + 1;
     end
@@ -2321,11 +2341,11 @@ reg stall_load_S2;
 
 always @ *
 begin
-    if (l2_wb_S2)
+    if (l2_wb_S2 || l2_load_noshare_64B_S2)
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_3);
     end
-    else if (l2_ifill_32B_S2)
+    else if (l2_ifill_32B_S2 || l2_load_noshare_32B_S2)
     begin
         stall_load_S2 = (l2_load_data_subline_S2_f != `L2_DATA_SUBLINE_1);
     end
@@ -3629,6 +3649,35 @@ begin
                 end
             end
 `endif
+            else if (msg_type_S4_f == `MSG_TYPE_LOAD_NOSHARE_REQ)
+            begin
+                // Allow load noshare to request 32B or 64B data.
+                // For request data size equal or less than 16B, 
+                // we always return 16B L2 subline, without data replication
+                if (data_size_S4_f==`MSG_DATA_SIZE_32B) 
+                begin
+                    msg_send_length_S4 = `MSG_LENGTH_WIDTH'd4;
+                end
+                else if (data_size_S4_f==`MSG_DATA_SIZE_64B) 
+                begin
+                    msg_send_length_S4 = `MSG_LENGTH_WIDTH'd8;
+                end
+                else 
+                begin
+                    msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
+                end
+                // msg_send_data_size_S4 = `MSG_DATA_SIZE_32B;
+                msg_send_cache_type_S4 = cache_type_S4_f;
+                msg_send_mshrid_S4 = mshrid_S4;
+                if (l2_load_data_subline_S4_f == `L2_DATA_SUBLINE_0)
+                begin
+                    msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;
+                end
+                else
+                begin
+                    msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_0H2D;
+                end
+            end
             else if (cache_type_S4_f == `MSG_CACHE_TYPE_DATA)
             begin
                 msg_send_mode_S4 = `L2_P1_BUF_OUT_MODE_1H2D;

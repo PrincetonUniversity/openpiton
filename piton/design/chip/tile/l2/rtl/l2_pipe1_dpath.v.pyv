@@ -154,6 +154,8 @@ module l2_pipe1_dpath(
     input wire [`L2_LRU_OP_BITS-1:0] state_lru_op_S2,
     input wire state_rb_en_S2,
     input wire l2_ifill_32B_S2,
+    input wire l2_load_noshare_32B_S2,
+    input wire l2_load_noshare_64B_S2,
     input wire [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
     input wire valid_S2,
     input wire stall_S2,
@@ -865,11 +867,11 @@ end
 
 always @ *
 begin
-    if (l2_wb_S2)
+    if (l2_wb_S2 || l2_load_noshare_64B_S2)
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, l2_load_data_subline_S2};
     end
-    else if (l2_ifill_32B_S2)
+    else if (l2_ifill_32B_S2 || l2_load_noshare_32B_S2)
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, 
                         addr_S2_f[`L2_INS_SUBLINE], l2_load_data_subline_S2[0]};
