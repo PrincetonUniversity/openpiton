@@ -1033,6 +1033,8 @@ module chip(
        print(xbartemplate.replace("noc1", "noc3"))
 %>
 
+    wire [31:0] default_total_num_tiles;
+    assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
 <%
     template = r'''
@@ -1044,6 +1046,7 @@ module chip(
         .default_chipid             (14'b0),    // the first chip
         .default_coreid_x           (COREIDX),
         .default_coreid_y           (COREIDY),
+        .default_total_num_tiles    (default_total_num_tiles      ),
         .flat_tileid                (`JTAG_FLATID_WIDTH'd_FLAT_ID_)
     `ifdef PITON_RV64_PLATFORM
     `ifdef PITON_RV64_DEBUGUNIT
