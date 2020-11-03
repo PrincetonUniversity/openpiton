@@ -25,6 +25,7 @@ filesets:
             - l2_tag_wrap.v
         depend:
             - openpiton::piton_include
+            - openpiton::piton_tile_common
             - openpiton::l2_sram_wrappers
         file_type: verilogSource
 
