@@ -1509,6 +1509,10 @@ sub generic_sim_build
       # always_comb blocks that operate on arrays inside a generate statement.
       # [SVCHK] - Some checking for conflicts with always_comb and always_latch variables not yet supported.
       $build_cmd .= " -suppress 2583 ";
+      # include our own UVM library if ModelSim does not provide it.
+      if (! grep -d, glob "$ENV{MODELSIM_HOME}/uvm*") {
+        $build_cmd .= " +incdir+$dv_root/tools/src/uvm-1.2/src $dv_root/tools/src/uvm-1.2/src/uvm.sv ";
+      }
     }
     if ($opt{riv_build}) {
       $build_cmd = "vlib work; vlog " ;
@@ -1770,9 +1774,22 @@ sub generic_sim_run
         $cmd .= "$top_n ";
       }
 
+      # include our own UVM library if ModelSim does not provide it.
+      # only the case for 32-bit free ModelSim from Intel, so hardcode on x86.
+      my $msim_os_cpu_slash = $os_cpu_slash;
+      if (! grep -d, glob "$ENV{MODELSIM_HOME}/uvm*") {
+        $msim_os_cpu_slash = `uname -s`;
+        $msim_os_cpu_slash =~ s/\n//g;
+        $msim_os_cpu_slash .= "/";
+        $msim_os_cpu_slash .= "x86";
+        $msim_os_cpu_slash =~ s/\n//g;
+        $cmd .= " -sv_lib $dv_root/tools/$msim_os_cpu_slash/lib/uvm_dpi ";
+	$cmd .= " +UVM_NO_RELNOTES ";
+      }
+
       $cmd .= "-pli \"";
       $cmd .= "$ENV{DV_ROOT}/tools/";
-      $cmd .= $os_cpu_slash;
+      $cmd .= $msim_os_cpu_slash;
       $cmd .= "/lib/libmodelsimpli.so\"";
       $cmd .= " " ;
       $cmd .= join (" ", @{$opt{sim_run_args}}) ;
