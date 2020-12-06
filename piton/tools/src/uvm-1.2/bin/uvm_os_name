@@ -1,0 +1,3 @@
+#! /bin/sh
+
+echo `/bin/uname -s`_`/bin/uname -m`

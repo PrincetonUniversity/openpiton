@@ -1,0 +1,35 @@
+Title: User-Defined Phases
+
+To define your own custom phase, use the following pattern.
+
+ 1. Extend the appropriate base class for your phase type.
+|       class my_PHASE_phase extends uvm_task_phase;
+|       class my_PHASE_phase extends uvm_topdown_phase;
+|       class my_PHASE_phase extends uvm_bottomup_phase;
+
+ 2. Optionally, implement your exec_task or exec_func method.
+|       task exec_task(uvm_component comp, uvm_phase schedule);
+|       function void exec_func(uvm_component comp, uvm_phase schedule);
+
+    If implemented, these methods usually call the related method on the component
+|          comp.PHASE_phase(uvm_phase phase);
+
+ 3. Since the phase class is a singleton, providing an accessor method allows
+    for easy global use, and protecting the constructor prevents misuse.
+|       class my_PHASE_phase extends uvm_topdown_phase;  or uvm_task_phase/uvm_bottomum_phase
+|         static local my_PHASE_phase m_inst;      Local reference to global IMP 
+|         protected function new(string name="PHASE");    Protected constructor for singleton
+|           super.new(name);
+|         endfunction : new
+|         static function my_PHASE_phase get();   Static method for accessing singleton
+|           if (m_imp == null)
+|             m_imp = new();
+|           return m_imp;
+|         endfunction : get
+|          Optionally implement exec_func/exec_task
+|       endclass : my_PHASE_phase
+
+ 4. Insert the phase in a phase schedule or domain using the
+    <uvm_phase::add> method:
+|       my_schedule.add(my_PHASE_class::get());
+

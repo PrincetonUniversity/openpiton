@@ -1,0 +1,5 @@
+Title: Macros and Defines
+
+UVM includes some macros to allow the user to specify intent without the need to specify multiple types of SystemVerilog constructs.  These macros assist with reporting, object behavior (interaction with the factory and field usage in comparing/copying/etc), sequence specification, and TLM connection.
+
+UVM also includes some defines to specify sizing in the register space and to determine version of the UVM standard and/or implementation.

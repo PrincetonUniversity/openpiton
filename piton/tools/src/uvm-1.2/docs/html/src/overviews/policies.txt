@@ -1,0 +1,30 @@
+
+Title: Policy Classes
+
+Each of UVM's policy classes perform a specific task for <uvm_object>-based
+objects: printing, comparing, recording, packing, and unpacking. They are
+implemented separately from ~uvm_object~ so that users can plug in different
+ways to print, compare, etc. without modifying the object class being operated
+on. The user can simply apply a different printer or compare "policy" to
+change how an object is printed or compared. 
+
+Each policy class includes several user-configurable parameters that control
+the operation.  Users may also customize operations by deriving new policy subtypes
+from these base types. For example, the UVM provides four different ~uvm_printer~-based
+policy classes, each of which print objects in a different format.
+
+- <uvm_printer> - performs deep printing of ~uvm_object~-based objects.
+  The UVM provides several subtypes to ~uvm_printer~ that print objects
+  in a specific format: <uvm_table_printer>, <uvm_tree_printer>, and
+  <uvm_line_printer>.  Each such printer has many configuration options
+  that goven what and how object members are printed. 
+
+- <uvm_comparer> - performs deep comparison of ~uvm_object~-based objects.
+  Users may configure what is compared and how miscompares are reported.
+
+- <uvm_recorder> - performs the task of recording ~uvm_object~-based objects to
+  a transaction data base. The implementation is vendor-specific.
+
+- <uvm_packer> - used to pack (serialize) and unpack ~uvm_object~-based properties
+  into bit, byte, or int arrays and back again.
+

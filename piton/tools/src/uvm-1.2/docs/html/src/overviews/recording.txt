@@ -1,0 +1,19 @@
+
+Group: Transaction Recording Classes
+
+The recording classes provide a facility to record transactions
+into a database using a consistent API.  Users can configure what
+gets sent to the backend database, without knowing exactly how the
+connection to that database is established.
+
+The primary interface to the UVM recording facility is the
+<uvm_recorder> class, which serves as a reference to the 
+transaction in the database, as well as the policy which is used
+to record information into the database.
+
+(see uvm_ref_recording.gif)
+
+The UVM provides a default implementation of the recording API, which
+creates textual logs.  This is primarily intended to be used as an 
+example of how to create a recording implementation without the user
+needing to have tool and/or vendor specific code in their testbench.

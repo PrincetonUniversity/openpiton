@@ -45,3 +45,17 @@ foreach tool (configsrch showargv goldfinger pal)
     make INSTALL=$DV_ROOT/tools/$OS/$CPU
     make clean
 end
+
+# The free ModelSim edition from Intel for Linux is only available in 32-bit
+# mode and does not include the UVM library out of the box. Hence, when we
+# cannot find the ModelSim UVM library, we compile our own 32-bit version.
+if ( $?MODELSIM_HOME) then
+    set output = `find $MODELSIM_HOME/ -maxdepth 1 -name 'uvm*'`
+    if ( "$output" == "" ) then
+        echo Cannot find UVM library of ModelSim, falling back on our own.
+	mkdir -p $DV_ROOT/tools/$OS/x86/lib
+	cd $DV_ROOT/tools/src/uvm-1.2/examples
+	make -f Makefile.questa MTI_HOME=$MODELSIM_HOME LIBDIR=$DV_ROOT/tools/$OS/x86/lib dpi_lib32
+	make -f Makefile.questa clean
+    endif
+endif

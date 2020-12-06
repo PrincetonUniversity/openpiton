@@ -1,0 +1,27 @@
+Title: Register Layer
+
+The UVM register layer defines several base classes that,
+when properly extended, abstract the read/write operations
+to registers and memories in a design-under-verification.
+
+A register model is typically composed of a hierarchy of blocks
+that usually map to the design hierarchy.
+Blocks contain registers, register files and memories.
+
+The UVM register layer classes are not usable as-is.
+They only provide generic and introspection capabilities.
+They must be specialized via extensions to provide an abstract
+view that corresponds to the actual registers and memories in a design.
+Due to the large number of registers in a design
+and the numerous small details involved in properly configuring
+the UVM register layer classes,
+this specialization is normally done by a model generator.
+Model generators work from a specification of the registers and
+memories in a design and are thus able to provide an up-to-date,
+correct-by-construction register model.
+Model generators are outside the scope of the UVM library.
+
+The class diagram of a register layer model is shown below.
+
+(see uvm_ref_reg_class_map.gif)
+

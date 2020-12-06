@@ -1,0 +1,1006 @@
+Section: UVM 1.2 Release Notes
+
+Topic: General Overview
+
+This is release 1.2 of the Universal Verification Methodology (UVM)
+reference implementation from Accellera. This distribution includes a
+SystemVerilog based class library, examples, UVM Stardard Reference
+(PDF and HTML), and a User's Guide.
+
+The class library is a reference implementation of the standard. It,
+the examples, and User Guide provide guidance to users of the
+standard. For additional information on the Accellera standard, see
+
+     <http://www.accellera.org/activities/vip>
+
+A good source for information, answers, and resources is
+<http://www.accellera.org/community/uvm>. It contains forums on
+methodology, tool specific issues, and commercial announcements. It
+also has links to additional resources, Accellera sponsored events,
+and other UVM events.
+
+
+Topic: What's Changed
+
+Release 1.2 contains enhancements and fixes to errata.
+
+UVM 1.2 fixes the following enhancements and issues reported under the
+Mantis bug-tracking system. Issues affecting the reference
+documentation (API changes or semantic changes) are follwed with a
+plus sign (+). Issues affecting backward compatibility are folled with
+an asterisk (*)
+
+For detailed information on a specific issue, refer to the Mantis
+database at http://www.eda.org/svdb/view.php?id=<id>, where <id> is
+the Mantis id.
+
+Topic: 1.1 to 1.2 Migration Script
+
+Many of the backwards compatibility concerns caused when transitioning
+from UVM version 1.1 to 1.2 can be addressed with a reasonably simple
+search-and-replace in user code.  To that end, the ~uvm11-to-uvm12.pl~
+is provided.
+
+The following command will update all SystemVerilog source files
+located in the current working directory and any sub-directory:
+
+| % uvm11-to-uvm12.pl --write
+
+See the ~--help~ command-line option for additional details.
+
+The script may not be able to automatically identify all cases of
+backwards incompatibility, and the user may need to fix some
+manually.  Because most of these issues will result in a compile-time
+error, they should be easy to identify.
+
+Group: Mantis 3407 (+)
+uvm_event should be a parameterized class
+
+The ~uvm_event~ class was split into two classes, an abstract
+<uvm_event_base>, and a parameterized <uvm_event#(T)>.
+
+This should have minimal backwards compatibility concerns, as any code
+using ~uvm_event~ without explicitly declaring a ~#(T)~ will default
+to ~uvm_event#(uvm_object)~.
+
+Group: Mantis 3472 (*)
+Deprecate get_config/set_config interface for configuration
+
+The methods ~set_config_int~, ~set_config_string~ and
+~set_config_object~ (and their ~get~ counterparts) are now deprecated
+in favor of <uvm_config_int>, <uvm_config_string> and
+<uvm_config_object>.
+
+Topic: Backwards Compatibility
+Care must be taken when switching from ~set_config_object~ and
+~get_config_object~ to <uvm_config_object>, as the ~clone~
+functionality of the old API no longer exists.
+
+Group: Mantis 3557
+ref guide doesn't show names of UVM runtime phases
+
+The documentation for <UVM Common Phases> and <UVM Run-Time Phases>
+has been updated to include a definition of how phases are named.
+
+Group: Mantis 3586 (+)
+UVM_DISABLE_AUTO_ITEM_RECORDING should be a run_time option
+
+<uvm_sqr_if_base#(REQ,RSP)::disable_auto_item_recording> and 
+<uvm_sqr_if_base#(REQ,RSP)::is_auto_item_recording_enabled> have been
+added to the <uvm_sqr_if_base#(REQ,RSP)> class, allowing the driver
+runtime control over whether or not a sequencer should automatically
+record the items which flow through the sequence item port.
+
+Group: Mantis 3693 (+)
+Setting enum values by name from command line doesn't work
+
+The <uvm_enum_wrapper#(T)> utility class has been added, which provides the
+ability to retrieve an enum value when provided with a string matching
+the ~enum.name()~ for that value.
+
+This class is used by the <`uvm_field_enum> macro when performing
+auto-configuration, such that values can be set using
+~uvm_config_db#(string)~ (or the <uvm_cmdline_processor::+uvm_set_config_string> plusarg).
+
+Group: Mantis 3741 (+)
+Phase's default sequence should also have get_config string support
+
+A new plusarg has been added (<uvm_cmdline_processor::+uvm_set_default_sequence>) which allows
+for the ~default_sequence~ a sequencer executes in
+<uvm_sequencer_base::start_phase_sequence> to be set directly from the command line.
+
+General support for setting ~default_sequence~ as a string was not
+provided, as during runtime the ~default_sequence~ should always be set using
+either <uvm_sequence_base> or <uvm_object_wrapper>.  
+
+Group: Mantis 3783
+Remove all $display calls from BCL, except report_server
+
+All messaging is now routed via <uvm_report_server>.
+
+Group: Mantis 3887 (*)
+request facility to identify unused factory overrides
+
+The ~uvm_factory~ class was split into two classes, an abstract
+<uvm_factory>, a default implementation of <uvm_default_factory>.
+This allows for alternate factories (including those with additional
+debug functionality) to be created.
+
+Control over the global factory was
+migrated to the new <uvm_coreservice_t> class.  
+
+Topic: Backwards Compatibility:
+The undocumented ~uvm_pkg::factory~ variable has been removed, as it
+was unsafe during static initialization, and incompatible with the
+<uvm_coreservice_t> class.  References to this variable need to be
+upgraded to retrieve the factory via <uvm_factory::get>.
+
+Group: Mantis 3893 (+)
+Feature request to create a non-hierarchical objection
+
+<uvm_objection::set_propagate_mode> has been added to provide control
+over whether or not objections propagate.
+
+Group: Mantis 3901
+Feature request to prevent objection from throwing
+decrement-below-zero error if the count is 0
+
+An error is no longer produced if <uvm_objection::drop_objection> is
+called with a count of ~0~, when the current object count is ~0~.
+
+Group: Mantis 4032 (+)
+Not possible to undo a factory override.
+
+A factory override can now be "undone" by supplying a type
+as an override for itself.
+
+i.e.
+| // Perform an override
+| set_type_override_by_type(old_type::get_type(), new_type::get_type());
+| // Undo the override
+| set_type_override_by_type(old_type::get_type(), old_type::get_type());
+
+Group: Mantis 4091
+bug in the ~get_full_name~ method of <uvm_reg_file>.
+
+The ~get_full_name~ method of <uvm_reg_file> now includes the top-level block name.
+
+Group: Mantis 4160
+uvm_comparer not using verbosity setting for print_msg()
+
+The <uvm_comparer::print_msg> method now obeys the
+<uvm_comparer::verbosity> setting.
+
+Group: Mantis 4181 (+)
+transaction order unclear and cant be changed when bus/reg size differ
+
+The ordering of transactions generated when the size of a
+register/field is different than the size of the bus can now be
+controlled via the new <uvm_reg_transaction_order_policy> class.
+
+Group: Mantis 4253
+Volatile fields should always need updating
+
+Volatile register fields will always cause a write(), even if mirrored
+and desired values are the same.
+
+Group: Mantis 4269 (*)
+Add UVM_ prefix to enumerated values
+
+Various top-level enumeration values (such as those declared in
+<uvm_sequence_state_enum>) did not have the ~UVM_~ prefix.  This would
+cause compilation errors when the ~uvm_pkg~ was wildcard imported into
+a scope which had already declared the same names.  These enumerations
+have been corrected to include the proper ~UVM_~ prefix.
+
+Topic: Backawards Compatibility
+References to the values within <uvm_sequence_state_enum> and
+ <uvm_sequencer_arb_mode> must now be prefixed with ~UVM_~.
+
+Group: Mantis 4306
+Bad reference to "record_field_int" in reference guide
+
+A bad reference to ~record_field_int~ has been corrected to
+~record_field~ inside of <uvm_recorder>.
+
+Group: Mantis 4307
+Bad reference to "DEC" in reference guide
+
+Bad references to "DEC" have been corrected to <UVM_DEC> within
+<uvm_object::do_print> and <uvm_object::do_record>.
+
+Group: Mantis 4366 (+)
+uvm_sequence_library documentation missing from html documentation
+
+The <uvm_sequence_library> class has been updated from "beta" to
+"official" status.  As such, it is now documented in the reference
+guide.
+
+Group: Mantis 4378
+Documentation of uvm_component::set_inst_override_by_type()
+incorrectly documents uvm_factory::set_inst_override_by_type()
+
+The documentation of <uvm_component::set_inst_override_by_type> as
+been updated to reflect the proper ordering of the parameters to
+<uvm_factory::set_inst_override_by_type>.
+
+Group: Mantis 4382 (+)
+some symbols in uvm_radix_enum undocumented
+
+Documentation was added for <UVM_UNFORMAT2>, <UVM_UNFORMAT4>,
+<UVM_REAL>, <UVM_REAL_DEC>, and <UVM_REAL_EXP> within the
+<uvm_radix_enum>.
+
+Group: Mantis 4389 (+)
+Deprecate hierarchical propagation of objections; add mode bit in
+interim
+
+<Mantis 3893 (+)> provides the mode bit for controlling propagation of
+objections.  Hierarchical propagation was not outright deprecated in
+this release.
+
+Group: Mantis 4391
+Redundant code in uvm_port_base
+
+Some redundant code in the <uvm_port_base#(IF)> was removed.
+
+Group: Mantis 4416 (*)
+Remove the confusing uvm_severity type 
+
+The confusing ~uvm_severity_type~ was deprecated, and replaced
+internally using <uvm_severity>.
+
+Topic: Backwards Compatibility
+This change should have minimal effect on user code, as the old type
+was simply deprecated, as opposed to removed.  The <1.1 to 1.2 Migration Script> 
+can be used to replace any occurances of the old
+type in user code.
+
+Group: Mantis 4418
+set_report_verbosity doc unclear about setting value or threshold 
+
+The documentation of
+<uvm_report_object::set_report_verbosity_level>,
+<uvm_report_object::set_report_id_verbosity>, and 
+<uvm_report_object::set_report_severity_id_verbosity> were updated to
+provide a clearer definition of exactly what the ~verbosity~ values
+implied.
+
+Group: Mantis 4425
+BUSY flag not cleared when register model is reset 
+
+The register model was updated to clear the BUSY flag when reset.
+
+Group: Mantis 4430 (+)
+Refactor start_phase_sequence logic to be able to kill sequence on
+phase ending 
+
+The method <uvm_sequencer_base::stop_phase_sequence> was added which
+acts as the bookend to <uvm_sequencer_base::start_phase_sequence>.  It
+will call <uvm_sequence_base::kill> on the ~default_sequence~ if the
+sequence is still executing when the phase ends.
+
+Topic: Backwards Compatibility
+While technically acting different than the previous implementation,
+it is unlikely that this will result in any backwards incompatibility
+challenges, as the old mechanism simply terminated the process which
+launched the ~default_sequence~, resulting in a "zombie" sequence.
+
+Group: Mantis 4431 (*)(+)
+Enhance uvm_sequence::starting_phase 
+
+The ~uvm_sequence_base::starting_phase~ variable was publicly accessible
+and not protected from writes-after-reads.  This would result in
+strange behavior (including FATALS and HANGS) if the value was changed
+between a ~raise~ and ~drop~ of the objection within the phase.
+
+The variable was removed, and is now only accessible via the
+<uvm_sequence_base::set_starting_phase> and
+<uvm_sequence_base::get_starting_phase> accessors.  An error will be
+thrown if there are any attempts to 'set' the starting phase after it
+has been retrieved via a 'get'.
+
+Topic: Backwards Compatibility
+This change could potentially effect users, as references to the
+~uvm_sequence_base::starting_phase~ variable will now miscompile.
+The <1.1 to 1.2 Migration Script> can be used to search-and-replace
+within the user code, updating it to the new methods.
+
+Group: Mantis 4432 (+)
+Provide auto-object-to-phase in uvm_sequence_base 
+
+The <uvm_sequence_base::set_automatic_phase_objection> method was
+added, simplifying the code required to object to the ~starting_phase~
+inside of a phase.
+
+Group: Mantis 4433 (*)
+Clean up the number of objections created by phasing 
+
+Objections only make sense in <uvm_task_phase>s which are of the
+<UVM_PHASE_IMP> type.  For all other phases and types, the objections
+have been removed, and any attempt to access the objection will result
+in an error.
+
+Topic: Backwards Compatibility
+While technically acting different than the previous implementation,
+it is unlikely that this will result in any backwards incompatibility
+challenges.  Any user code which would cause the error to occur would
+have been silently ignored by the library in the past, which meant
+that whatever the user was ~trying~ to do wouldn't have worked.
+
+Group: Mantis 4434 (+)
+Provide get_objection_count in uvm_phase 
+
+The method <uvm_phase::get_objection_count> was added, providing the
+user with a cleaner mechanism for dropping all raised objections.
+
+| // Old Code:
+| uvm_objection phase_done;
+| phase_done = phase.get_objection();
+| phase_done.drop_objection(this, 
+|                           "dropping all objections",
+|                           phase_done.get_objection_count(this));
+|
+| // New Code:
+| phase.drop_objection(this,
+|                      "dropping all objections",
+|                      phase.get_objection_count(this));
+|
+
+Group: Mantis 4439 (+)
+seq_item_port.put_response is not documented 
+
+The previously undocumented <uvm_sqr_if_base#(REQ,RSP)::put_response> 
+was added to the standard, providing a non-blocking mechanism for
+sending response information from a driver.
+
+Group: Mantis 4440 
+jump logic too early in phase state pipeline 
+
+The previous implementation of the ~jump~ logic <uvm_phase> caused
+jumps during the ~phase_ended~ callback to be ignored.  This has been
+corrected.
+
+Group: Mantis 4469 (+)
+Provide schedule introspection via get_predecessor/successor_nodes 
+
+The <uvm_phase::get_adjacent_predecessor_nodes> and
+<uvm_phase::get_adjacent_successor_nodes> methods were adding the
+<uvm_phase> api.  This provides the user with the ability to
+programmatically traverse the entire phase graph.
+
+Group: Mantis 4476 (+)
+uvm_sequence fields req/rsp are not documented 
+
+The previously undocumented <uvm_sequence#(REQ,RSP)::req> and
+<uvm_sequence#(REQ,RSP)::rsp> fields were added to the standard.
+
+Group: Mantis 4488 (+)
+sequencer_base should throw error if user allows wait_for_relevant to
+return while is_relevant=0 
+
+An error will now be thrown if the sequencer exceeds the allowable
+number of returns from <uvm_sequence_base::wait_for_relevant> without
+<uvm_sequence_base::is_relevant> returning true.  The allowable
+maximum number can be controlled via the
+<uvm_sequencer_base::set_max_zero_time_wait_relevant_count> method.
+
+Group: Mantis 4513 (+)
+Add uvm_mem_mam_policy allocator to uvm_vreg::allocate() 
+
+The <uvm_vreg::allocate> API was expanded to include an optional third
+~alloc~ argument.
+
+Group: Mantis 4516 (*)
+Remove the unnecessary over-prioritization of uvm_sequence_base in
+default_sequence 
+
+The previous implementation of <uvm_sequencer_base> over-prioritized
+~default_sequence~ configurations which were of type
+<uvm_sequence_base>, such that they would override configurations of
+type <uvm_object_wrapper>, even if the wrapper configurations were
+done with higher precedence.
+
+Topic: Backwards Compatibility
+While technically acting different than the previous implementation,
+it is unlikely that this will result in any backwards incompatibility
+challenges.  The previous implementation would have resulted in
+unexpected behavior at best.
+
+Group: Mantis 4517 (+)
+Add phase-transition callbacks 
+
+The <uvm_phase_cb> and <uvm_phase_cb_pool> were added to provide
+additional hooks into the phasing API.
+
+Group: Mantis 4518 (*)(+)
+Make UVM_OBJECT_MUST_HAVE_CONSTRUCTOR the default behavior 
+
+~Mantis 3770~ provided the ability to optionally enforce an explicit
+constructor with a string-type ~name~ argument in the UVM 1.1a, via
+the ~`UVM_OBJECT_MUST_HAVE_CONSTRUCTOR~ symbol.  This functionality is
+now the ~*default*~ behavior for the UVM.  
+
+Topic: Why uvm_object constructors are now mandatory
+
+The UVM recommends that the following constructor be specified for any class
+extended from <uvm_object>:
+
+| class my_obj extends uvm_object;
+|     ...
+|     `uvm_object_utils(my_obj)
+|
+|     function new(string name = "my_obj")
+|       super.new(name);
+|       ...
+|     endfunction
+|     ...
+| endclass
+
+However, in UVM 1.0 and UVM 1.1, the presence of such a constructor were not enforced
+by the library and they were technically optional.
+If no constructor was specified, a default constructor was provided by SystemVerilog:
+
+| class my_obj extends uvm_object;
+|     ...
+|     `uvm_object_utils(my_obj)
+|
+|     function new();
+|     endfunction
+|     ...
+| endclass
+
+Note the important difference: in the default constructor, there is no ~name~ argument.
+Because the factory could not rely on the presence of that argument,
+<uvm_object> instances were created by calling ~new()~ without any arguments
+and subsequently setting the object instance name using <uvm_object::set_name>.
+
+| obj = new();
+| if (name != "") obj.set_name(name);
+
+In most cases, this difference was not significant.
+However, for any class that makes use of the value of the ~name~ argument
+in the constructor,
+
+| class my_obj extends uvm_object;
+|     your_obj sub;
+|
+|     `uvm_object_utils(my_obj)
+|
+|     function new(string name = "my_obj")
+|       super.new(name);
+|       sub = your_obj::type_id::create({name,".sub"});
+|     endfunction
+|     ...
+| endclass
+
+a difference in behavior was observed between
+instantiating an object directly:
+
+| my_obj o = new("o");
+
+and instantiating an object via the
+factory:
+
+| my_obj o = my_obj::type_id::create("o");
+
+The difference could have been worked around by
+overriding the <uvm_object::set_name> method to
+percolate the effect of the name change.
+However, that work-around was often impossible or too late.
+In the examples above, the former creates an instance of ~your_obj~ named "o.sub"
+whereas the latter creates an instance named "my_obj.sub".
+It made it impossible to control the sub-object factory based on the
+parent object name.
+
+Instantiating coverage group is another example where the work-around did not work.
+Coverage groups cannot be renamed and
+must be instantiated in the encapsulating object's constructor.
+The following example would create coverage groups that are always named "my_obj"
+when using the object factory.
+
+| class my_obj extends uvm_object;
+|     covergroup my_cg(string name);
+|        option.name = name;
+|        ...
+|     endgroup
+|
+|     `uvm_object_utils(my_obj)
+|
+|     function new(string name = "my_obj")
+|       super.new(name);
+|       my_cg = new(name);
+|     endfunction
+|     ...
+| endclass
+
+Because the object factory is such a fundamental element of UVM,
+it is important that it be able to rely on the presence of a ~name~ argument
+in object constructors.
+
+Topic: Backwards Compatibility
+In UVM 1.2, the UVM object factory now requires that uvm_object have a
+constructor with a name argument.  Should this constructor be missing,
+a syntax error will be issued. 
+However, because much of the factory code is hidden in the utility macros,
+the syntax error may not point to the ultimate cause of the problem
+and may be confusing the diagnose.
+
+For example, this simple file
+
+| `include "uvm_macros.svh"
+| program test;
+| 
+| import uvm_pkg::*;
+| 
+| class my_obj extends uvm_object;
+|    `uvm_object_utils(my_obj)
+| endclass
+|
+| endprogram
+
+will produce the following error
+messages:
+
+Questa:
+
+| TBD
+
+IUS:
+
+|file: test.sv
+|`uvm_object_utils(my_obj)
+|                        |
+|ncvlog: *E,TOOMAC (test.sv,8|24): too many actual arguments [10.2.2][10.3(IEEE)].
+
+
+VCS:
+
+| Error-[TMAFTC] Too many arguments to function/task call
+| $UVM_HOME/src/base/uvm_registry.svh, 197
+| "my_obj::new(name)"
+|   The above function/task call is done with more arguments than needed.
+| 
+| 
+| Error-[TMAFTC] Too many arguments to function/task call
+| test.sv, 6
+| "my_obj::new(name)"
+|   The above function/task call is done with more arguments than needed.
+
+When using VCS, ignore the first message reported in uvm_registry.svh
+and focus on the subsequent one identifying the invalid constructor being called.
+The reported line number will be on the ~endclass~ token of the class
+that is missing the required constructor.
+
+Topic: Code migration script
+
+Suitable constructors may be automatically added to classes that are missing them
+by using the ~add_uvm_object_new.pl~ script.
+The following command will update all SystemVerilog source files
+located in the current working directory and any sub-directory:
+
+| % add_uvm_object_new.pl --write
+
+See the ~--help~ command-line option for more details.
+
+The script may not be able to automatically identify all classes
+with missing constructors,
+or users may prefer to manually modify their source files.
+The script is also unable to fix unsuitable constructors;
+those will need to be fixed manually.
+Because the error is a compile-time error, it will be easy to identify
+any remaining changes that are required.
+
+
+Topic: Migrating code using UVM 1.2
+
+To ease the process of migrating code to UVM 1.2,
+the old (incorrect) behavior remain available.
+To restore the old behavior, it is necessary to define
+the `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR symbol when compiling the UVM library:
+
+| % ... +define+UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR uvm_pkg.sv
+
+Users must be aware that this may result in difference in behavior in code that
+now relies on the correct implementation of the UVM object factory.
+
+Topic: What will happen in UVM 1.3?
+
+In UVM 1.3, the UVM object factory will have the corrected behavior *ONLY*.
+The old (incorrect) behavior will no longer remain available.
+
+This is to encourage users to migrate their code forward
+and enable VIP providers to eventually rely on the correct
+behavior of the UVM object factory.
+
+Group: Mantis 4519 (+)
+Enable all flavors of phase jumping 
+
+The <uvm_phase>'s ~jump~ API was extended to include
+<uvm_phase::set_jump_phase> and <uvm_phase::end_prematurely>.  These
+methods allow for a "softer" ~jump~ wherein the phase's execution is
+not immediately terminated.
+
+Group: Mantis 4532
+uvm_reg_access_seq ignoring regs with one RO field 
+
+The <uvm_reg_access_seq> implementation was incorrectly skipping
+registers which contained ~any~ 'RO' fields, as opposed to registers
+which had ~only~ 'RO' fields.  This behavior has been corrected.
+
+Group: Mantis 4533
+initialized memory on DPI side may survive reset and will cause bad
+behaviour
+
+The C-side of the UVM's internal DPI calls was not safe during a
+simulation reset, and could potentially cause memory leaks and bad
+behavior.  This has been corrected.
+
+Group: Mantis 4542
+uvm_test_done should be made "const" 
+
+The undocumented and deprecated ~uvm_pkg::uvm_test_done~ reference was
+made ~const~ to prevent users from accidently changing it.
+
+Topic: Backwards Compatibility
+The ~uvm_test_done~ variable is not part of the UVM
+standard, but may have been used by users coming from the OVM.  As
+such, this change does not have any backward compatibility concerns
+for the UVM standard.
+
+Group: Mantis 4550
+are uvm tlm connections with non-uvm_object a legal/supported use
+model? 
+
+The ~TLM~ documentation was expanded to explicitly allow
+non-<uvm_object>-based types within their parameterization.
+
+Group: Mantis 4553 (+)
+Infinite recursion in uvm_reg_field::get_access 
+
+An error message within the <uvm_reg_field::get_access> method was
+recursively calling <uvm_reg_field::get_access>, resulting in an
+infinite recursion.  This behavior was corrected.
+
+Additionally, while fixing this mantis is was determined that the map
+of field accesses defined in <uvm_reg_field::set_access> was lacking a
+name for the scenario caused when a 'RO' field was added to a 'WO'
+map.  The "NOACCESS" policy was added to handle this scenario.
+
+Group: Mantis 4548
+cleanup static dpi issues 
+
+This mantis wrapped various fixes within the C-side of DPI used within
+the UVM.  
+
+Group: Mantis 4566
+comparer.show_max can cause check to pass when length mismatches 
+
+A bug in the <uvm_comparer> class caused queues of different sizes to
+false-pass when the <uvm_comparer::show_max> value was not equal to
+'1'.  This behavior has been corrected.
+
+Group: Mantis 4567
+uvm_reg::do_predict ignoring UVM_NOT_OK 
+
+The ~uvm_reg::do_predict~ method was overwriting <UVM_NOT_OK> status
+under certain circumstances, and replacing it with <UVM_IS_OK>.  This
+behavior has been corrected.
+
+Group: Mantis 4570 (*)(+)
+Messaging System Revamp
+
+The reporting system was overhauled to use an object-based approach to
+passing information (as opposed to passing many fields multiple
+times).  This simultaneously expanded the functionality of the
+messaging API while providing an easier path for adding functionality
+to this section of the standard in the future.
+
+Topic: Backwards Compatibility
+The ~uvm_report_server::process_report~ and
+~uvm_report_server::compose_message~ methods have been replaced by the
+object-based <uvm_report_server::execute_report_message> and
+<uvm_report_server::compose_report_message> methods.  User code which
+used the old methods will not behave as expected with the new
+implementation.
+
+Topic: Migrating code using UVM 1.2
+
+To ease the process of migrating code to UVM 1.2, the old behavior
+remains available to the user.  To restore the old behavior, it is
+necessary to define the `UVM_DEPRECATED_REPORTING symbol when
+compiling the UVM library:
+
+| % ... +define+UVM_DEPRECATED_REPORTING uvm_pkg.sv
+
+Users must be aware that this will result in different behavior in
+code that now relies on the new implementation of <uvm_report_server>.
+
+Group: Mantis 4572
+packing/unpacking issues 
+
+The ~uvm_packer::pack_int~ method (which has been renamed to
+<uvm_packer::pack_field>) was incorrectly implemented, causing big
+endian packs of 64+ bits to be preocessed incorrectly.  Additionally,
+the <`uvm_unpack_array> implementation did not work properly when
+<uvm_packer::use_metadata> was set to '0'.  These behaviors have been
+corrected.
+
+Group: Mantis 4587
+Bugs in UVM 1.1-c: uvm_reg_tlm_adapter::reg2bus() 
+
+Various fixes we provided for <uvm_reg_tlm_adapter::reg2bus> such that
+iw would properly adhere to <uvm_tlm_gp> rules for ~length~,
+~byte_enable~, and ~byte_enable_length~.
+
+Group: Mantis 4588
+in-built sequence is not equipped to exclude a block from the test
+sequence 
+
+The <uvm_reg_hw_reset_seq> was updated to ensure sub-blocks were
+properly excluded when relevant ~NO_REG_TEST~ attributes were set.
+
+Group: Mantis 4590
+update uvm_hdl.c to allow VCS/IUS to perform backdoor access to VHDL 
+
+The capability to allow VHDL UVM_REG backdoor access using VCS and IUS
+were added.
+
+Group: Mantis 4606
+uvm_report_server is not really extendable/chainable 
+
+In a fix similar to <Mantis 3887 (*)>,  ~uvm_report_server~
+was also split into two classes, an abstract <uvm_report_server> and a
+default implementation of <uvm_default_report_server>.  This allows
+<uvm_report_server> to be fully extended, and multiple report servers
+can be chained together using a "delegate" pattern.
+
+Control over the global report server was
+migrated to the new <uvm_coreservice_t> class.  
+
+Topic: Backwards Compatibility
+If users had previously extended <uvm_report_server>, then their code
+will likely no longer compile because they are not fully implementing
+the ~pure virtual~ interface which the report server now provides.
+The fix to reinstate the previous functionality is to extend the
+<uvm_default_report_server> instead of the <uvm_report_server>.
+
+The <1.1 to 1.2 Migration Script> can be used to replace any
+occurances of the old type in user code.
+
+Group: Mantis 4617
+uvm_report_cb::add_by_name example needs review 
+
+A bad example in the documentation of ~uvm_report_cb::add_by_name~ has
+been fixed.
+
+Group: Mantis 4618 (*)
+resource lookup broken/undefined when fieldname has wildcards 
+
+Meta characters (globs or regular expressions) within the ~fieldname~
+of a resource are no longer interpretted by the resource pool.
+
+Topic: Backwards Compatibility
+The previous behavior for meta characters within the field name was
+not fully defined.
+
+Group: Mantis 4621
+printing of int fields will mask Z values with X 
+
+The <uvm_printer::print_field> and <uvm_printer::print_field_int>
+methods were incorrectly implemented, causing 'Z' values to appear as
+'X' when printed.  This behavior has been corrected.
+
+Group: Mantis 4622
+uvm_phase::unsync() does not work 
+
+The implementation of <uvm_phase::unsync> was updated to properly remove
+the sync relationship.
+
+Group: Mantis 4643
+uvm_dpi_get_next_arg_c doesnt fully adhere to -1800-lrm 
+
+The internal method ~uvm_dpi_get_next_arg_c~ was updated to completely
+adhere to the 1800 lrm.
+
+Group: Mantis 4649 (+)(*)
+Improve memory performance of 'bitstream' interfaces for
+report/record/etc. 
+
+The new <uvm_integral_t> was standardized, which is a less
+memory-expensive packed vector than the <uvm_bitstream_t>.  Support
+for this new type was added to the <uvm_printer>, <uvm_packer>,
+<uvm_recorder> and <uvm_comparer>, as well as the auto-configuration
+provided by the <`uvm_field_*macros>.
+
+Topic: Backwards Compatibility
+In order to provide a consistent API, the ~uvm_printer::print_int~
+method was deprecated and replaced by <uvm_printer::print_field_int>.
+
+Group: Mantis 4666
+uvm_config_db::set expects to be invoked in process context 
+
+The implementation of <uvm_config_db::set> was improperly assuming
+that the method would be invoked within a process context
+(i.e. process.self() != null).  This behavior has been corrected.
+
+Group: Mantis 4677
+remove uvm_global_copy_map 
+
+The internal and undocumented ~uvm_global_copy_map~ was removed and
+replaced by a simple associative array.
+
+Group: Mantis 4686 (+)
+predict updated not just the mirrored field 
+
+The documentation of the <uvm_reg::predict> and <uvm_reg_field::predict>
+methods was clarified to indicate that the methods update ~both~ the
+mirrored and desired values. 
+
+Group: Mantis 4690
+Typo in uvm_sequence_base.vh (mehod should be method) 
+
+A typo in the documentation of <uvm_sequence_base> was corrected.
+
+Group: Mantis 4711
+uvm macros violate 1800lrm iterator requirements 
+
+The <`uvm_field_*macros> were updated to obey 1800 LRM requirements
+for the iterators of arrays.
+
+Group: Mantis 4731
+Static initialization races 
+
+The fix to <Mantis 4606> accidently included a static race condition
+which was fixed.
+
+Group: Mantis 4732 (+)
+uvm_phase_state initializes to incorrect value 
+
+The new phase state <UVM_PHASE_UNINITIALIZED> was added to the
+<uvm_phase_state>.  This new state is the default state for all
+phases after construction.
+
+Group: Mantis 4734
+Bug in uvm_reg_map::get_size(); 
+
+The implementation of ~uvm_reg_map::get_size~ had a typo which
+resulted in the value of the last offset added being used instead of
+the value of the largest offset.  This behavior has been corrected.
+
+Group: Mantis 4738
+DPI Code does not use UVM Messaging 
+
+Similar to <Mantis 3783>, the messages generated from the C-side
+implementation of the UVM dpi code have been refactored to route
+through standard UVM messaging.
+
+Group: Mantis 4743 (+)
+Promote get_next_item, try_next_item, item_done, get, peek, and put to
+be a part of the standard
+
+The documentation of the <uvm_sequencer#(REQ,RSP)::Sequencer Interface> 
+was expanded to include the implementations of the various methods.
+
+Group: Mantis 4744 (*)(+)
+Recording System Revamp 
+
+Similar to <Mantis 4570 (*)(+)>, the recording system was overhauled
+to use an object-based approach to connecting to transaction
+databases.  This resulted in two new classes <uvm_tr_stream> and
+<uvm_tr_database>, which provided an object-based implementation of
+the undocumented implementation API for the ~uvm_recorder~.
+
+Additionally, a new data policy <uvm_link_base> was added for
+expressing arbitrary relationships in a compile-safe manner.
+
+Topic: Backwards Compatibility
+The changes made to the <uvm_recorder> API were primarily isolated to
+undocumented and non-standardized methods within <uvm_recorder>
+class.  New examples are provided via <uvm_text_recorder>,
+<uvm_text_tr_stream> and <uvm_text_tr_database> to illustrate to
+developers how the new system works.
+
+Group: Mantis 4766 (*)
+Fix broken `uvm_record_field + `uvm_record_attribute interaction 
+
+The fix for this mantis involved creating a new method
+<uvm_recorder::use_record_attribute>.  The new method allows for a
+conditional usage of the <`uvm_record_attribute> macro, allowing users
+to create their own recorders without interfering with
+vendor-specific recorders
+
+Topic: Backwards Compatibility
+Vendors which had provided an implementation of the
+<`uvm_record_attribute> macro need to add an implementation of
+<uvm_recorder::use_record_attribute> in their recorders to allow
+compatibility with the new macro implementation.
+
+Group: Mantis 4767 (+)
+`uvm_pack_int and `uvm_unpack_int bypass the uvm_packer policy methods 
+
+The previous implementation of the ~`uvm_pack_*~ macros bypassed the
+<uvm_packer> policy methods, and directly accessed an undocumented
+member variable of the <uvm_packer> class.  This implementation was
+refactored to use the policy methods without accessing any
+undocumented functionality.
+
+Additionally, a new API was added to the <uvm_packer> to provide the
+ability to pack/unpack an arbrary number of bits from an array of
+bits, bytes or ints.  This new API provides easier compatibility with
+the SystemVerilog stream operator.
+
+Group: Mantis 4772
+separate uvm_hdl* source into files-by-vendor 
+
+Related to <Mantis 4588>, the fix for this mantis separated the hdl
+vendor dpi implementations into vendor-specific files.
+
+Group: Mantis 4783 (*)
+`uvm_record_* macros bypass uvm_recorder policy class 
+
+The previously undocumented ~`uvm_record_*~ macros bypassed the
+<uvm_recorder> policy methods, and called undocumented and
+non-standard methods.  Their implementation has been refactored to use the
+<uvm_recorder> policy methods by default.
+
+Topic: Backwards Compatibility
+The changes to the macros should be transparent to most end users,
+however developers which were supporting the old undocumented macros
+may need to update their implementations.
+
+Group: Mantis 4786 (+)
+print_real is undocumented 
+
+A typo in the documentation of <uvm_printer::print_real> resulted in
+the method being absent from the standard.  This has been corrected.
+
+Group: Mantis 4784 (+)
+`uvm_record_int/string/time/real are undocumented 
+
+After fixing <Mantis 4783 (*)>, the previously undocumented
+<`uvm_record_int>, <`uvm_record_field>, <`uvm_record_real>,
+<`uvm_record_string> and <`uvm_record_time> have been officially added
+to the standard.
+
+Group: Mantis 4861
+Adding a uvm_reg_map to an existing regmap instance required both maps 
+to have the same parent.  The behavior was fixed and the bad error
+message corrected.
+
+Group: Mantis 4871
+Fixed a problem wherein multiple ~+uvm_set_*~ commands were ignored
+after a format error.
+
+Group: Mantis 4882
+The instance name of the phase objection was changed to reflect the
+name of the phase.
+
+Group: Mantis 4884
+A performance fix was implemented which avoided the copy of large QDA
+within the spell checker.
+
+Group: Mantis 4893
+Fixed a bug within uvm_leaf_scope which could lead to stall of
+simulation.
+
+Group: Mantis 4920
+Fixed random stability bug in ~lookup_name~ which caused instability
+when the config database was queried.
+
+Group: Mantis 4923
+A check was added for an out-of-bound queue access in uvm_misc.svh.
+This check caused no functional change, but prevents certain tools
+from throwing a warning when processing the code.
+
+Group: Mantis 4925
+The macros <`UVM_MAX_STREAMBITS>, <`UVM_PACKER_MAX_BYTES> and 
+<`UVM_DEFAULT_TIMEOUT> were relocated to
+src/macros/uvm_global_defines.svh, which is included via
+uvm_macros.svh.  These changes will make the UVM 1.2 Reference HTML
+out of sync with the UVM 1.2 Reference PDF, however this change is
+strictly contained to the formatting/location of documentation, not a
+functional difference.
+
+Group: Mantis 4931
+Various typos and bad links within the reference guide were corrected.

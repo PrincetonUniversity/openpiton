@@ -1,0 +1,275 @@
+Accellera UVM 1.2 Release Notes
+================================
+
+date: Fri Jun 13 11:13:37 IDT 2014
+repository state: UVM_1_2_RELEASE-1-gd6e87e2
+
+General Overview
+----------------
+
+This is release 1.2 of the Universal Verification Methodology (UVM)
+reference implementation from Accellera. This distribution includes a
+SystemVerilog based class library, examples, UVM Stardard Reference
+(PDF and HTML), and a User's Guide.
+
+The class library is a reference implementation of the standard. It,
+the examples, and User Guide provide guidance to users of the
+standard. For additional information on the Accellera standard, see
+
+     http://www.accellera.org/activities/vip
+
+A good source for information, answers, and resources is
+http://www.accellera.org/community/uvm. It contains forums on
+methodology, tool specific issues, and commercial announcements. It
+also has links to additional resources, Accellera sponsored events,
+and other UVM events.
+
+
+What's Changed
+--------------
+
+Release 1.2 contains enhancements and fixes to errata.
+
+UVM 1.2 fixes the following enhancements and issues reported under the
+Mantis bug-tracking system. Issues affecting the reference
+documentation (API changes or semantic changes) are preceded with an
+plus sign (+). Issues affecting backward compatibility are precedded with
+an asterisk (*)
+
+For detailed information on a specific issue, refer to the Mantis
+database at http://www.eda.org/svdb/view.php?id=<id>, where <id> is
+the Mantis id.
+
+
+In increasing Mantis numerical order:
+
+(+) Mantis 3407: uvm_event should be a param class
+
+(*) Mantis 3472: Deprecated set/get_config_int/string/object
+
+Mantis 3557: Names of phases (e.g. "main" for main_phase) now documented
+
+(+) Mantis 3586: Added support for run-time disabling of auto item recording
+
+(+) Mantis 3693: Added uvm_enum_wrapper#(T) type, and functionality to set
+enumerations by string name.  This allows for enum fields to be
+configured using uvm_config_db#(string)::set, as well as from the 
+command line using +uvm_set_config_string.
+
+(+) Mantis 3741: Added command-line functionality to setting
+default_sequence (+uvm_set_default_sequence)
+
+Mantis 3783: all messaging is now routed via uvm_report_server
+
+(*) Mantis 3887: allows the factory to be replaced in order to trace create or override calls as well as to identify unused 
+overrides. Code referencing uvm_pkg::factory needs to be upgraded to retrieve the factory via uvm_factory::get 
+
+(+) Mantis 3893: allows for the hierarchical propagation of
+uvm_objections to be disabled via set_propagate_mode.
+
+Mantis 3901: Feature request to prevent objection from throwing 
+decrement-below-zero error if the count is 0
+
+Mantis 4032: Added the ability to undo a factory override.
+
+Mantis 4091: Added missing top-level block name to uvm_reg_file::get_fullname()
+
+Mantis 4160: uvm_comparer not using verbosity setting for print_msg
+
+Mantis 4181: transaction order unclear and cant be changed when bus/reg size differ
+
+Mantis 4253: Volatile register fields will cause a write() even if mirrored and desired values are the same.
+
+(*) Mantis 4269: Added UVM_ prefix to enumerated values
+
+Mantis 4306: Correction of documentation record_field_int ->
+record_field
+
+Mantis 4307: Correction of documentation DEC -> UVM_DEC
+
+(+) Mantis 4366: uvm_sequence_library documentation missing from generate html
+
+Mantis 4378: Proper documentation of set_inst_override_by_name and 
+             set_type_override_by_name in uvm_component.
+
+Mantis 4382: Add document for UVM_UNFORMAT2/4 and UVM_REAL/REAL_DEC/REAL_EXP
+
+(+) Mantis 4389: mode bit for propagation of objections was added via Mantis 3893
+
+Mantis 4391: removed redundant code in uvm_port_base
+
+(*) Mantis 4416 : The confusing uvm_severity_type was deprecated, and
+replaced internally using uvm_severity.  The 1.1 -> 1.2 conversion
+script can be used to replace any occurances in user code.
+
+Mantis 4418 : Clarified meaning of specified verbosity when using set_report_verbosity
+
+Mantis 4425: BUSY flag now cleared when register model is reset.
+
+(+) Mantis 4430: default sequences are now killed during PHASE_ENDED
+
+(*) Mantis 4431: Enhance uvm_sequence::starting_phase
+The "starting_phase" variable is now data access protected within
+uvm_sequence_base, and the user must use the "get_starting_phase" and
+"set_starting_phase" accesors.  This prevents possible fatal errors
+and deadlocks caused when a starting_phase is changed after it has
+already been evaluated.  The backward incompatibility can be avoided by
+not defining UVM_NO_DEPRECATED or by defining UVM_DEPRECATED_STARTING_PHASE, 
+or it can be fixed by using manual edits or the bin/uvm11-to-uvm12.pl 
+helper script to update user code to use the new accessor methods.
+
+(+) Mantis 4432: Provide auto-object-to-phase in uvm_sequence_base
+
+(+) Mantis 4433: Remove unnecessary uvm_objection instances within
+non-uvm_task_phase nodes
+
+(+) Mantis 4434: Added get_objection_count to uvm_phase
+
+(+) Mantis 4439: Documented put_response() on the uvm_seq_pull_port
+
+Mantis 4440: Now possible to jump during phase_ended()
+
+(+) Mantis 4469: The ability to programatically traverse the phase graph
+was added via get_adjacent_predecessor_nodes and
+get_adjacent_successor_nodes inside of uvm_phase
+
+(+) Mantis 4476: uvm_sequence::req and uvm_sequence::rsp now documented.
+
+Mantis 4488: Potential zero-time loop when user does not correctly implement uvm_sequence::wait_for_relevant() now throws an error
+
+(+) Mantis 4513: Added user-defined memory allocation policy to uvm_vreg::allocate()
+
+(+) Mantis 4516: Proper prioritization of default sequences
+
+(+) Mantis 4517: Added phase transition callbacks
+
+(*) Mantis 4518: Classes extended from uvm_object now require an
+explicit constructor with a string-type name argument.  This
+functionality was optionally enabled in prior versions by defining the
+`UVM_OBJECT_MUST_HAVE_CONSTRUCTOR symbol (Mantis 3770).  This
+functionality is now the default. Should the obsolete functionality be
+required, define the `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR symbol.
+
+(+) Mantis 4519: Added uvm_phase::set_jump_phase() and uvm_phase::end_prematurely(),
+which together implement uvm_phase::jump().
+
+Mantis 4532: uvm_reg_access_seq ignoring regs with one RO field
+
+Mantis 4533: static data in DPI may survive reset
+
+Mantis 4542: uvm_test_done is now const to prevent changes
+
+Mantis 4550: clarified that TLM port transaction types are not restricted to class/uvm_objects
+
+(+) Mantis 4553: Introduces NOACCESS field access in uvm_reg_field.svh; removed error msgs from get_access(), and augmented by using NOACCESS when map and field have conflicting access values. 
+
+Mantis 4548: cleanup dpi coding issues
+
+Mantis 4566: uvm_comparer now detects any queue size mismatch when comparer.show_max != 1
+
+Mantis 4567 : fixed do_predict call overwriting the NOT_OK status with OK status on backdoor writes to RO reg
+
+(+)(*) Mantis 4570: Messaging System Revamp
+   Makes message object-based and enable user to derive from the message
+   object and attach additional fields to messaging infrastructure and 
+   reporting format. In addition, an option is provided to record the 
+   messages and the attached fields.
+
+Mantis 4572: packing of ints with 64+bits and array unpack broken
+
+Mantis 4587: Added length, byte_enable, byte_length fixes for reg2bus to adhere to tlm_gp rules
+
+Mantis 4588: changes in hw_reset_seq to ensure sub-blocks are excluded when relevant NO_REG_TEST attribute is set
+
+Mantis 4590: implemented capability to allow VHDL UVM_REG backdoor access using VCS. Users need to pass elaboration swtich with arguments to enable Mixed-Language API's -cflags "-DVCSMX" 
+
+(*) Mantis 4606: uvm_report server is not chainable/extendable uvm_report_server can now be extended, chained using delegate pattern
+
+Mantis 4617: bad example in documentation uvm_report_cb::add_by_name
+
+(*) Mantis 4618: resource lookup broken when fieldname has wildcards. meta characters in the fieldname are not interpreted anymore as glob/regex.
+
+Mantis 4621: printing of int will mask Z values with X
+
+Mantis 4622: uvm_phase::unsync() now actually removes the sync relationship
+
+Mantis 4643: uvm_dpi_get_next_arg_c doesnt fully adhere to 1800lrm
+
+(*) Mantis 4649: Improve memory performance for 'bitstream' interfaces
+for report/record/compare/pack etc.  
+  The implementation now supports a less memory-expensive
+  uvm_integral_t which is sized as a 64b packed logic vector.  This
+  type is used in the "*_field_int()" methods for
+  reporting/recording/comparing and packing/unpacking.  
+  As a side effect, for consisteny "print_int" was renamed to
+  "print_field", however print_int is being left in the implementation
+  for backwards compatibility purposes.
+
+Mantis 4666: uvm_config_db::set expects to be invoked in process context
+
+Mantis 4677: uvm_global_copy_map removed
+
+(+) Mantis 4686: updated documentation to indicate the uvm_reg(_field)::predict is updating mirrored AND  desired values
+
+Mantis 4690: mehod -> method in uvm_sequence_base documentation
+
+Mantis 4711: Fixed LRM violation
+
+Mantis 4731: Fixed initialization race introduced by Mantis 4606.
+
+Mantis 4732: Provides new phase state 'UVM_PHASE_UNINITIALIZED' to
+indicate phase state prior to a phase existing in a schedule.
+
+Mantis 4734: Fixed bug in uvm_reg_map::get_size()
+
+Mantis 4738: Fixed bug wherein messages from built-in UVM dpi code
+were not being routed through standard UVM messaging.
+
+Mantis 4743: uvm_sequencer::get_next_item/try_next_item/item_done/get/peek/put
+may now be called directly.
+
+(*) Mantis 4744: Makes recording system object based.  Introduced new 
+uvm_tr_stream and uvm_tr_database classes.  
+
+(*) Mantis 4766: Fix broken `uvm_record_field / attribute interaction.
+  The fix for this mantis involved creating a new method
+  'use_record_attribute' in uvm_recorder.  The new method allows for a
+  conditional usage of the `uvm_record_attribute macro, allowing users
+  to create their own recorders without interfering with
+  vendor-specific recorders
+
+(+) Mantis 4767: Fixed the `uvm_pack and `uvm_unpack macros which
+bypassed the packer policy methods.  Additionally, added
+pack_bits/bytes/ints and unpack_bits/bytes/ints to allow easier
+compatibility with the SystemVerilog stream operator.
+
+Mantis 4772: separated hdl vendor dpi backends into one file per vendor
+
+(*) Mantis 4783: The `uvm_record_* macros no longer call undocumented
+member methods of uvm_recorder.
+
+(+) Mantis 4786: Corrected the documentation of print_real
+
+(+) Mantis 4784: documenting the `uvm_record_(int,string,real,time) macros
+
+Mantis 4861: adding a uvm_reg_map to an existing regmap instance did require 
+both maps to have the same parent. bad error message and behaviour fixed.
+
+Mantis 4871: Fixed problem that multiple +uvm_set_* commands were ignored after a 
+format error
+
+Mantis 4882: changed name of phase objection to reflect phase name
+
+Mantis 4884: Performance fix avoiding the copy of large QDA into uvm_spell_chkr::check
+
+Mantis 4893: Fixed bug in uvm_leaf_scope which could lead to stall of simulation
+
+Mantis 4920: Fixed random stability bug in lookup_name which would cause instability 
+when the config database is queried.
+
+Mantis 4923: Added check for out of bound queue access in uvm_misc.svh .
+
+Mantis 4925: Moved macros from base/uvm_globals into macros/uvm_global_defines, removed duiplicate macros within uvm_pkg. These changes will make UVM_1.2 Reference HTML out of sync with UVM-1.2 PDF documentation.
+
+Mantis 4931: Various typos and bad links within the reference guide
+were corrected.
