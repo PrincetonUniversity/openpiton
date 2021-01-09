@@ -612,16 +612,16 @@ begin
                     begin
                         if (predecode_icache_bit_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                        else if (predecode_atomic_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
+                            // Only Load Reserve is both Cacheable and AMO 
+                            // (just store NC=0 to mshr[in MSHR S1 logic], nc bit is still 1 in LR PCX req)
                         else if (predecode_dcache_load_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LD;
                         else if (predecode_dcache_noc2_store_im_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_IM;
                         else if (predecode_dcache_noc2_store_sm_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_SM;
-                        else if (predecode_atomic_s1)
-                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
-                            // Only Load Reserve is both Cacheable and AMO 
-                            // (just store NC=0 to mshr[in MSHR S1 logic], nc bit is still 1 in LR PCX req)
                         else
                             predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
                     end
@@ -1506,10 +1506,6 @@ begin
                     `L15_REQTYPE_AMO_LR:
                     begin
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LR_REQUEST;
-                        decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_WAIT_ACK;
-                        // For LR, mshr_update_state can not be IM or SM, 
-                        // otherwise the ACKDT_LR will be recognised as a ACKDT_ST_IM/SM. 
-                        // So we explicitly set the mshr_update_state to WAIT_ACK
                     end
                     `L15_REQTYPE_CAS:
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
