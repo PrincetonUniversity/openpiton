@@ -37,7 +37,7 @@
 #
 #####################################################################
 
-import time, re, sys, os, serial, shlex, subprocess, csv
+import time, re, sys, os, serial, shlex, subprocess, csv, binascii
 import make_mem_map as mmm
 import image2stream as i2s
 from optparse import OptionParser
@@ -191,7 +191,7 @@ def pollUART(ser):
         if len(rdata) > 0:
             # have to store all data in case of a key
             # is split between two different reads from serial device
-            rdata_all += rdata
+            rdata_all += str(rdata)
 
             was_key = False
             for key in list(KEY_EVENT_MAP.keys()):
@@ -202,7 +202,7 @@ def pollUART(ser):
                     event = KEY_EVENT_MAP[key]
                     # if keyword was in the current read chunk of data,
                     # we can remove it, since it's not test output
-                    rdata = re.sub("%s" % key, "", rdata)
+                    rdata = re.sub("%s" % key, "", str(rdata))
                     was_key = True
                     break
 
@@ -230,7 +230,7 @@ def loadTest(tname, ser):
     prev_perc = 0
     for line in f:
         line_striped = line.strip()
-        ser.write(line_striped.decode("hex"))
+        ser.write(binascii.unhexlify(line_striped))
         line_cnt += 1
         perc = 100*line_cnt/num_lines
         if (perc > prev_perc):
@@ -392,7 +392,7 @@ def main():
     	        return
 
     # Main test loop
-    fp = open("pitonstream_summary.csv", "wb")
+    fp = open("pitonstream_summary.csv", "w")
     csvwriter = csv.writer(fp, delimiter=',', quotechar='|')
     csvwriter.writerow(["seqID","test","status","walltime (seconds)"])
     test_num = len(tests)
