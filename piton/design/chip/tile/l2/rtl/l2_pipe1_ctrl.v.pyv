@@ -247,6 +247,8 @@ module l2_pipe1_ctrl(
     output reg l2_load_noshare_32B_S2,
     output reg l2_load_noshare_64B_S2,
 
+    output reg msg_data_16B_amo_S2_f,
+
     output reg msg_data_ready_S2,
 
     `ifndef NO_RTL_CSM
@@ -367,6 +369,7 @@ reg [`L2_ADDR_TYPE_WIDTH-1:0] addr_type_S1;
 reg [`L2_ADDR_OP_WIDTH-1:0] addr_op_S1;
 reg special_addr_type_S1;
 reg msg_data_rd_S1;
+reg msg_data_16B_amo_S1;
 
 always @ *
 begin
@@ -437,6 +440,7 @@ begin
     else if (valid_S1 && (!msg_from_mshr_S1) &&
        (msg_type_trans_S1 == `MSG_TYPE_CAS_P1_REQ
         || msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ
+        || msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ
         || msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P1_REQ
         || msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P1_REQ
         || msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P1_REQ
@@ -452,6 +456,7 @@ begin
             (msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ
             || msg_type_trans_S1 == `MSG_TYPE_CAS_P2N_REQ
             || msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ
+            || msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ
             || msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ
             || msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ
             || msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ
@@ -552,6 +557,17 @@ begin
         else
         begin
             msg_type_trans_S1 = `MSG_TYPE_SWAP_P2_REQ;
+        end
+    end
+    `MSG_TYPE_SWAPWB_REQ:
+    begin
+        if (atomic_state_S1_f == atomic_state0)
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_SWAPWB_P1_REQ;
+        end
+        else
+        begin
+            msg_type_trans_S1 = `MSG_TYPE_SWAPWB_P2_REQ;
         end
     end
     `MSG_TYPE_AMO_ADD_REQ:
@@ -766,6 +782,7 @@ begin
                 `MSG_TYPE_LR_REQ,
                 `MSG_TYPE_WBGUARD_REQ, `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
                 `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ, `MSG_TYPE_L2_DIS_FLUSH_REQ,`MSG_TYPE_L2_LINE_FLUSH_REQ,
+                `MSG_TYPE_SWAPWB_P1_REQ, `MSG_TYPE_SWAPWB_P2_REQ,
                 `MSG_TYPE_AMO_ADD_P1_REQ, `MSG_TYPE_AMO_ADD_P2_REQ,
                 `MSG_TYPE_AMO_AND_P1_REQ, `MSG_TYPE_AMO_AND_P2_REQ,
                 `MSG_TYPE_AMO_OR_P1_REQ, `MSG_TYPE_AMO_OR_P2_REQ,
@@ -807,6 +824,7 @@ begin
     else if ((valid_S1 && !stall_S1)
            &&((msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ)
            || (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ)
+           || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ)
            || (msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ)
            || (msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ)
            || (msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ)
@@ -823,6 +841,7 @@ begin
     else if ((valid_S2 && !stall_S2)
            &&((((msg_type_S2_f == `MSG_TYPE_CAS_P2Y_REQ)
            || (msg_type_S2_f == `MSG_TYPE_SWAP_P2_REQ)
+           || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P2_REQ)
            || (msg_type_S2_f == `MSG_TYPE_AMO_ADD_P2_REQ)
            || (msg_type_S2_f == `MSG_TYPE_AMO_AND_P2_REQ)
            || (msg_type_S2_f == `MSG_TYPE_AMO_OR_P2_REQ)
@@ -862,6 +881,11 @@ begin
                   ||  addr_type_S1 == `L2_ADDR_TYPE_TAG_ACCESS);
 end
 
+always @ *
+begin
+    msg_data_16B_amo_S1 = valid_S1 && ((msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ)) && (data_size_S1 == `MSG_DATA_SIZE_16B);
+    //msg_data_16B_amo_masked_S1 = valid_S1 && ((msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ)) && (data_size_S1 == `MSG_DATA_SIZE_16B);
+end
 
 always @ *
 begin
@@ -956,6 +980,7 @@ begin
     msg_header_ready_S1 = msg_header_ready_real_S1
         && ((msg_type_trans_S1 != `MSG_TYPE_CAS_P1_REQ)
          && (msg_type_trans_S1 != `MSG_TYPE_SWAP_P1_REQ)
+         && (msg_type_trans_S1 != `MSG_TYPE_SWAPWB_P1_REQ)
          && (msg_type_trans_S1 != `MSG_TYPE_AMO_ADD_P1_REQ)
          && (msg_type_trans_S1 != `MSG_TYPE_AMO_AND_P1_REQ)
          && (msg_type_trans_S1 != `MSG_TYPE_AMO_OR_P1_REQ)
@@ -1048,6 +1073,7 @@ begin
         mshr_pending_index_S2_f <= 0;
         special_addr_type_S2_f <= 0;
         msg_data_rd_S2_f <= 0;
+        msg_data_16B_amo_S2_f <= 1'b0;
         amo_alu_op_S2_f <= `L2_AMO_ALU_OP_WIDTH'b0;
     end
     else if (!stall_S2)
@@ -1068,6 +1094,7 @@ begin
         mshr_pending_index_S2_f <= mshr_pending_index_S1;
         special_addr_type_S2_f <= special_addr_type_S1;
         msg_data_rd_S2_f <= msg_data_rd_S1;
+        msg_data_16B_amo_S2_f <= msg_data_16B_amo_S1;
         amo_alu_op_S2_f <= amo_alu_op_S1;
     end
 end
@@ -1853,6 +1880,7 @@ begin
                     endcase
                 end
                 `MSG_TYPE_SWAP_P1_REQ,
+                `MSG_TYPE_SWAPWB_P1_REQ,
                 `MSG_TYPE_AMO_ADD_P1_REQ,
                 `MSG_TYPE_AMO_AND_P1_REQ,
                 `MSG_TYPE_AMO_OR_P1_REQ,
@@ -1904,6 +1932,7 @@ begin
 
                 `MSG_TYPE_CAS_P2Y_REQ,
                 `MSG_TYPE_SWAP_P2_REQ,
+                `MSG_TYPE_SWAPWB_P2_REQ,
                 `MSG_TYPE_AMO_ADD_P2_REQ,
                 `MSG_TYPE_AMO_AND_P2_REQ,
                 `MSG_TYPE_AMO_OR_P2_REQ,
@@ -1918,7 +1947,8 @@ begin
                     begin
                         case (msg_type_S2_f)
                         `MSG_TYPE_CAS_P2Y_REQ,
-                        `MSG_TYPE_SWAP_P2_REQ:
+                        `MSG_TYPE_SWAP_P2_REQ,
+                        `MSG_TYPE_SWAPWB_P2_REQ:
                         begin
                             cs_S2 = {`L2_AMO_ALU_NOP, n,         rd,      `OP_CLR, y,      wr,            n,       n,         `OP_CLR,    n,      y,
                                  `OP_CLR,   y,       y,      `L2_VD_DIRTY,  n,      `L2_MESI_I, y,      `L2_LRU_SET};
@@ -2257,10 +2287,19 @@ begin
     req_recycle_S2 = req_recycle_cur_S2 | req_recycle_buf_S2_f;
 end
 
+reg msg_data_16B_rd_in_advance_S2;
+always @(*) 
+begin
+    // If amo swap data size is 16B, we'll read the first 8B during SWAP_P1, and read the next 8B as usual(during P2)
+    msg_data_16B_rd_in_advance_S2 = msg_data_16B_amo_S2_f && ((msg_type_S2_f == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P1_REQ));
+end
 
 always @ *
 begin
-    msg_data_ready_S2 = valid_S2 && !stall_S2 && (cs_S2[`CS_STATE_DATA_RDY_P1S2] || msg_data_rd_S2_f);
+    // there are several cases that we need to read msg data
+    // msg_data_rd covers the config reg write; cs_S2[`CS_STATE_DATA_RDY_P1S2] covers more generous cases including AMO ops;
+    // msg_data_16B_rd_in_advance is for the special case in which data size for SWAP is 16B
+    msg_data_ready_S2 = (valid_S2 && !stall_S2 && (cs_S2[`CS_STATE_DATA_RDY_P1S2] || msg_data_rd_S2_f || msg_data_16B_rd_in_advance_S2)); 
 end
 
 
@@ -2365,14 +2404,13 @@ reg stall_msg_S2;
 
 always @ *
 begin
-    stall_msg_S2 = (cs_S2[`CS_STATE_DATA_RDY_P1S2] || msg_data_rd_S2_f) && ~msg_data_valid_S2;
+    stall_msg_S2 = ((cs_S2[`CS_STATE_DATA_RDY_P1S2] || msg_data_rd_S2_f || msg_data_16B_rd_in_advance_S2) && ~msg_data_valid_S2);
 end
-
 
 always @ *
 begin
     stall_real_S2 = valid_S2 && (stall_pre_S2 || stall_msg_S2);
- end
+end
 
 always @ *
 begin
@@ -3270,6 +3308,7 @@ begin
                     endcase
                 end
                 `MSG_TYPE_CAS_P1_REQ, `MSG_TYPE_SWAP_P1_REQ,
+                `MSG_TYPE_SWAPWB_P1_REQ,
                 `MSG_TYPE_AMO_ADD_P1_REQ,
                 `MSG_TYPE_AMO_AND_P1_REQ,
                 `MSG_TYPE_AMO_OR_P1_REQ,
@@ -3300,6 +3339,7 @@ begin
                 end
 
                 `MSG_TYPE_CAS_P2Y_REQ, `MSG_TYPE_SWAP_P2_REQ,
+                `MSG_TYPE_SWAPWB_P2_REQ,
                 `MSG_TYPE_AMO_ADD_P2_REQ,
                 `MSG_TYPE_AMO_AND_P2_REQ,
                 `MSG_TYPE_AMO_OR_P2_REQ,
@@ -3652,17 +3692,17 @@ begin
             else if (msg_type_S4_f == `MSG_TYPE_LOAD_NOSHARE_REQ)
             begin
                 // Allow load noshare to request 32B or 64B data.
-                // For request data size equal or less than 16B, 
+                // For request data size equal or less than 16B,
                 // we always return 16B L2 subline, without data replication
-                if (data_size_S4_f==`MSG_DATA_SIZE_32B) 
+                if (data_size_S4_f==`MSG_DATA_SIZE_32B)
                 begin
                     msg_send_length_S4 = `MSG_LENGTH_WIDTH'd4;
                 end
-                else if (data_size_S4_f==`MSG_DATA_SIZE_64B) 
+                else if (data_size_S4_f==`MSG_DATA_SIZE_64B)
                 begin
                     msg_send_length_S4 = `MSG_LENGTH_WIDTH'd8;
                 end
-                else 
+                else
                 begin
                     msg_send_length_S4 = `MSG_LENGTH_WIDTH'd2;
                 end
@@ -4210,6 +4250,7 @@ always @ *
 begin
     if ((msg_type_S4_f == `MSG_TYPE_CAS_P1_REQ
         || msg_type_S4_f == `MSG_TYPE_SWAP_P1_REQ
+        || msg_type_S4_f == `MSG_TYPE_SWAPWB_P1_REQ
         || msg_type_S4_f == `MSG_TYPE_AMO_ADD_P1_REQ
         || msg_type_S4_f == `MSG_TYPE_AMO_AND_P1_REQ
         || msg_type_S4_f == `MSG_TYPE_AMO_OR_P1_REQ

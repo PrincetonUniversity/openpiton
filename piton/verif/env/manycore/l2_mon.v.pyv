@@ -659,6 +659,9 @@ begin
         `MSG_TYPE_SWAP_REQ              : $write("    swap_req   ");
         `MSG_TYPE_SWAP_P1_REQ           : $write("  swap_p1_req  ");
         `MSG_TYPE_SWAP_P2_REQ           : $write("  swap_p2_req  ");
+        `MSG_TYPE_SWAPWB_REQ            : $write("  swapwb_req   ");
+        `MSG_TYPE_SWAPWB_P1_REQ         : $write(" swapwb_p1_req ");
+        `MSG_TYPE_SWAPWB_P2_REQ         : $write(" swapwb_p2_req ");
         `MSG_TYPE_WB_REQ                : $write("     wb_req    ");
         `MSG_TYPE_WBGUARD_REQ           : $write("   wbgrd_req   ");
         `MSG_TYPE_NC_LOAD_REQ           : $write("   nc_ld_req   ");
