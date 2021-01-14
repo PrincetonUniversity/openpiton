@@ -121,6 +121,9 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 if  {[info exists ::env(PITON_ARIANE)]} {
   puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
   
+  
+  # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
+  # and https://www.xilinx.com/support/answers/72570.html
   set tmp_PYTHONPATH $env(PYTHONPATH)                                                                               
   set tmp_PYTHONHOME $env(PYTHONHOME)                                                                               
   unset ::env(PYTHONPATH)                                                                                           
