@@ -120,6 +120,15 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 if  {[info exists ::env(PITON_ARIANE)]} {
   puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
+  
+  
+  # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
+  # and https://www.xilinx.com/support/answers/72570.html
+  set tmp_PYTHONPATH $env(PYTHONPATH)                                                                               
+  set tmp_PYTHONHOME $env(PYTHONHOME)                                                                               
+  unset ::env(PYTHONPATH)                                                                                           
+  unset ::env(PYTHONHOME)
+  
   set TMP [pwd]
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
   # Note: dd dumps info to stderr that we do not want to interpret
@@ -141,5 +150,7 @@ if  {[info exists ::env(PITON_ARIANE)]} {
 
   cd $TMP
   puts "INFO: done"
+  set ::env(PYTHONPATH) $tmp_PYTHONPATH                                                                           
+  set ::env(PYTHONHOME) $tmp_PYTHONHOME 
 }
 
