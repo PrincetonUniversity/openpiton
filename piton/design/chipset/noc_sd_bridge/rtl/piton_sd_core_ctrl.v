@@ -106,7 +106,7 @@ module piton_sd_core_ctrl (
     reg                         cache_re_f;
     reg [2:0]                   offset_f;
 
-    reg [`MSG_TYPE]             type;
+    reg [`MSG_TYPE]             type_reg;
     reg [`MSG_LENGTH]           payload;
     reg [`MSG_MSHRID]           mshr;
     reg [`PHY_ADDR_BITS]        addr;
@@ -119,13 +119,13 @@ module piton_sd_core_ctrl (
     wire    splitter_bridge_go  =   bridge_splitter_rdy && splitter_bridge_val;
     wire    bridge_splitter_go  =   splitter_bridge_rdy && bridge_splitter_val;
 
-    wire    store       =   (type == `MSG_TYPE_STORE_REQ) ||
-                            (type == `MSG_TYPE_STORE_MEM);
-    wire    ncstore     =   (type == `MSG_TYPE_NC_STORE_REQ);
+    wire    store       =   (type_reg == `MSG_TYPE_STORE_REQ) ||
+                            (type_reg == `MSG_TYPE_STORE_MEM);
+    wire    ncstore     =   (type_reg == `MSG_TYPE_NC_STORE_REQ);
     wire    wr          =   store || ncstore;
-    wire    load        =   (type == `MSG_TYPE_LOAD_REQ) ||
-                            (type == `MSG_TYPE_LOAD_MEM);
-    wire    ncload      =   (type == `MSG_TYPE_NC_LOAD_REQ);
+    wire    load        =   (type_reg == `MSG_TYPE_LOAD_REQ) ||
+                            (type_reg == `MSG_TYPE_LOAD_MEM);
+    wire    ncload      =   (type_reg == `MSG_TYPE_NC_LOAD_REQ);
     wire    rd          =   load || ncload;
 
     `ifndef SDCTRL_TEST
@@ -180,7 +180,7 @@ module piton_sd_core_ctrl (
             state               <=  NOC_RST;
             counter             <=  0;
             offset              <=  0;
-            type                <=  0;
+            type_reg                <=  0;
             payload             <=  0;
             mshr                <=  0;
             addr                <=  0;
@@ -217,7 +217,7 @@ module piton_sd_core_ctrl (
             end
 
             if (state   ==  NOC_IDLE && splitter_bridge_go) begin
-                type    <=  splitter_bridge_data[`MSG_TYPE];
+                type_reg    <=  splitter_bridge_data[`MSG_TYPE];
                 payload <=  splitter_bridge_data[`MSG_LENGTH];
                 mshr    <=  splitter_bridge_data[`MSG_MSHRID];
             end
