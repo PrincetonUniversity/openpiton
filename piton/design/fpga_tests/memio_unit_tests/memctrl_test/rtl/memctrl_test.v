@@ -226,7 +226,7 @@ begin
         end
         3'd1:
         begin
-            addr_incr_val = {{`PHY_ADDR_WIDTH-7{1'b0}}, 7'd1};;
+            addr_incr_val = {{`PHY_ADDR_WIDTH-7{1'b0}}, 7'd1};
             data_payload_flits = 8'd1;
             mem_top_addr = {{`PHY_ADDR_WIDTH-MEMSIZE_BYTES_LOG2{1'b0}}, {MEMSIZE_BYTES_LOG2{1'b1}}};
         end
