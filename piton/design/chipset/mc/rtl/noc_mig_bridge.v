@@ -549,7 +549,7 @@ assign app_addr_virt = pkt_w2[buf_current_cmd][`MSG_ADDR_];
   storage_addr_trans #(
 `endif
     .STORAGE_ADDR_WIDTH(`MIG_APP_ADDR_WIDTH)
-  ) cpu_mig_addr_translastor (
+  ) cpu_mig_addr_translator (
     .va_byte_addr       (app_addr_virt        ),
     .storage_addr_out   (storage_addr_out     )
   );

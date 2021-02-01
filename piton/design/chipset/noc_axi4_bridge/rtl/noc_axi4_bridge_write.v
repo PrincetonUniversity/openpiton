@@ -183,7 +183,7 @@ storage_addr_trans_unified   #(
 storage_addr_trans #(
 `endif
 .STORAGE_ADDR_WIDTH(`AXI4_ADDR_WIDTH)
-) cpu_mig_raddr_translastor (
+) cpu_mig_raddr_translator (
     .va_byte_addr       (virt_addr  ),
     .storage_addr_out   (phys_addr  )
 );
