@@ -2291,7 +2291,10 @@ reg msg_data_16B_rd_in_advance_S2;
 always @(*) 
 begin
     // If amo swap data size is 16B, we'll read the first 8B during SWAP_P1, and read the next 8B as usual(during P2)
-    msg_data_16B_rd_in_advance_S2 = msg_data_16B_amo_S2_f && ((msg_type_S2_f == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P1_REQ));
+    // advance read only happens when mshr_en is false, otherwise P1 will go through the flow again.
+    msg_data_16B_rd_in_advance_S2 = msg_data_16B_amo_S2_f && 
+                                    ((msg_type_S2_f == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P1_REQ)) &&
+                                    !cs_S2[`CS_MSHR_WR_EN_P1S2];
 end
 
 always @ *
