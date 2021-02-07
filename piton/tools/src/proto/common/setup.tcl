@@ -126,14 +126,7 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 
 if  {[info exists ::env(PITON_ARIANE)]} {
-<<<<<<< HEAD
   puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
-=======
-  set tmp_PYTHONPATH $env(PYTHONPATH)
-  set tmp_PYTHONHOME $env(PYTHONHOME)
-  unset ::env(PYTHONPATH)
-  unset ::env(PYTHONHOME)
->>>>>>> a13043d... add initial support for supporting uboot spl
 
   set TMP [pwd]
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
