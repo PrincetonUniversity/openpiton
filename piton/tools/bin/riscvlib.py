@@ -120,7 +120,7 @@ def _reg_fmt(addrBase, addrLen, addrCells, sizeCells):
 
     return tmpStr
 
-def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, timeStamp):
+def gen_riscv_dts_linux(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, timeStamp):
 
     assert nCpus >= 1
 
@@ -321,6 +321,181 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
 
     tmpStr += '''
     };
+};
+    '''
+
+    # this needs to match
+    assert ioDeviceNr-1 == numIrqs
+
+    with open(dtsPath + '/ariane.dts','w') as file:
+        file.write(tmpStr)
+
+
+def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, timeStamp):
+
+    assert nCpus >= 1
+
+    # get UART base
+    uartBase = 0xDEADBEEF
+    for i in range(len(devices)):
+        if devices[i]["name"] == "uart":
+            uartBase = devices[i]["base"]
+
+
+    tmpStr = '''// DTS generated with gen_riscv_dts(...)
+// OpenPiton + Ariane framework
+// Date: %s
+
+/dts-v1/;
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    u-boot,dm-pre-reloc;
+    compatible = "openpiton,ariane";
+
+    chosen {
+       u-boot,dm-pre-reloc;
+       bootargs = "debug loglevel=9";
+       stdout-path = "uart0:115200";
+    };
+
+    aliases {
+        u-boot,dm-pre-reloc;
+        cpu0 = &CPU0;
+        console = &uart0;
+        serial0 = &uart0;
+    };
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        u-boot,dm-pre-reloc;
+        timebase-frequency = <%d>;
+    ''' % (timeStamp, uartBase, timeBaseFreq)
+
+    for k in range(nCpus):
+        tmpStr += '''
+        CPU%d: cpu@%d {
+            clock-frequency = <%d>;
+            u-boot,dm-pre-reloc;
+            device_type = "cpu";
+            reg = <%d>;
+            status = "okay";
+            compatible = "eth, ariane", "riscv";
+            riscv,isa = "rv64imafdc";
+            mmu-type = "riscv,sv39";
+            tlb-split;
+            // HLIC - hart local interrupt controller
+            CPU%d_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+        ''' % (k,k,cpuFreq,k,k)
+
+    tmpStr += '''
+    };
+    '''
+
+    # this parses the device structure read from the OpenPiton devices*.xml file
+    # only get main memory ranges here
+    for i in range(len(devices)):
+        if devices[i]["name"] == "mem":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+    memory@%08x {
+        u-boot,dm-pre-reloc;
+        device_type = "memory";
+        reg = <%s>;
+    };
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
+
+    # TODO: this needs to be extended
+    # get the number of interrupt sources
+    numIrqs = 0
+    devWithIrq = ["uart", "net"];
+    for i in range(len(devices)):
+        if devices[i]["name"] in devWithIrq:
+            numIrqs += 1
+
+
+    # get the remaining periphs
+    ioDeviceNr=1
+    for i in range(len(devices)):
+        # CLINT
+        if devices[i]["name"] == "ariane_clint":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        clint@%08x {
+            u-boot,dm-pre-reloc;
+            compatible = "riscv,clint0";
+            interrupts-extended = <''' % (addrBase)
+            for k in range(nCpus):
+                tmpStr += "&CPU%d_intc 3 &CPU%d_intc 7 " % (k,k)
+            tmpStr += '''>;
+            reg = <%s>;
+            reg-names = "control";
+        };
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
+        # PLIC
+        if devices[i]["name"] == "ariane_plic":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        PLIC0: plic@%08x {
+            u-boot,dm-pre-reloc;
+            #address-cells = <0>;
+            #interrupt-cells = <1>;
+            compatible = "riscv,plic0";
+            interrupt-controller;
+            interrupts-extended = <''' % (addrBase)
+            for k in range(nCpus):
+                tmpStr += "&CPU%d_intc 11 &CPU%d_intc 9 " % (k,k)
+            tmpStr += '''>;
+            reg = <%s>;
+            riscv,max-priority = <7>;
+            riscv,ndev = <%d>;
+        };
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2), numIrqs)
+        # DTM
+        if devices[i]["name"] == "ariane_debug":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        debug-controller@%08x {
+            compatible = "riscv,debug-013";
+            interrupts-extended = <''' % (addrBase)
+            for k in range(nCpus):
+                tmpStr += "&CPU%d_intc 65535 " % (k)
+            tmpStr += '''>;
+            reg = <%s>;
+            reg-names = "control";
+        };
+            ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
+        # UART
+        if devices[i]["name"] == "uart":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        uart@%08x {
+            u-boot,dm-pre-reloc;
+            compatible = "ns16550";
+            reg = <%s>;
+            clock-frequency = <%d>;
+            current-speed = <115200>;
+            interrupt-parent = <&PLIC0>;
+            interrupts = <%d>;
+            reg-shift = <0>; // regs are spaced on 8 bit boundary (modified from Xilinx UART16550 to be ns16550 compatible)
+        };
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
+            ioDeviceNr+=1
+
+
+    tmpStr += '''
 };
     '''
 

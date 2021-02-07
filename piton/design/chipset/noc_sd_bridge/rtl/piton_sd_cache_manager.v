@@ -120,6 +120,7 @@ module piton_sd_cache_manager (
     wire    tm_cache_go = cache_tm_rdy && tm_cache_val;
     wire    cache_tm_go = tm_cache_rdy && cache_tm_val;
 
+    wire [`CACHE_BLOCK_PLACEMENT_BITS] addr_query_indexed  [`CACHE_INDEXES-1:0];
     wire    [`CACHE_INDEX_BITS]     index_query =   cache_entry_scan[`CACHE_INDEX_BITS];
 
     wire    [31:0]  cache_tm_addr_dma_lkp           =
@@ -374,7 +375,6 @@ module piton_sd_cache_manager (
     reg     [`CACHE_ENTRY_INDEXED_BITS]     entry_lkp_indexed_f [`CACHE_INDEXES-1:0];
 
     wire    [`CACHE_INDEXES-1:0]            dirty_query_indexed;
-    wire    [`CACHE_BLOCK_PLACEMENT_BITS]   addr_query_indexed  [`CACHE_INDEXES-1:0];
 
     wire    [`CACHE_ENTRY_BITS]     update_entry
         =   cache_update_sel ?   cache_entry_query_f :   cache_entry_lkp_f;

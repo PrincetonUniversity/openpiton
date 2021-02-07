@@ -126,7 +126,14 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 
 if  {[info exists ::env(PITON_ARIANE)]} {
+<<<<<<< HEAD
   puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
+=======
+  set tmp_PYTHONPATH $env(PYTHONPATH)
+  set tmp_PYTHONHOME $env(PYTHONHOME)
+  unset ::env(PYTHONPATH)
+  unset ::env(PYTHONHOME)
+>>>>>>> a13043d... add initial support for supporting uboot spl
 
   set TMP [pwd]
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
@@ -134,11 +141,15 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
+  cd $::env(PITON_ROOT)/design/common/uboot
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
-  exec make clean 2> /dev/null
-  exec make all MAX_HARTS=$::env(PITON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
+  exec make distclean 2> /dev/null
+  exec cp configs/openpiton_ariane_defconfig .config
+  exec CROSS_COMPILE=$env(RISCV)/bin/riscv-none-elf- make -j8 2> /dev/null
+  exec cp spl/u-boot-spl.bin $::env(ARIANE_ROOT)/openpiton/bootrom/linux/u-boot-spl.img
+  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
+  exec make u-boot-spl.sv
   puts "INFO: done"
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
