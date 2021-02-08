@@ -134,12 +134,13 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(PITON_ROOT)/design/common/uboot
+  cd $::env(PITON_ROOT)/piton/design/common/uboot
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make distclean 2> /dev/null
   exec cp configs/openpiton_ariane_defconfig .config
-  exec CROSS_COMPILE=$env(RISCV)/bin/riscv-none-elf- make -j8 2> /dev/null
+  #TODO: update riscv toochain
+  exec make CROSS_COMPILE=$::env(RISCV_TOOLCHAIN)/bin/riscv-none-embed- -j8 2> /dev/null
   exec cp spl/u-boot-spl.bin $::env(ARIANE_ROOT)/openpiton/bootrom/linux/u-boot-spl.img
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
   exec make u-boot-spl.sv

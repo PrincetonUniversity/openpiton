@@ -372,7 +372,7 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
         #size-cells = <0>;
         u-boot,dm-pre-reloc;
         timebase-frequency = <%d>;
-    ''' % (timeStamp, uartBase, timeBaseFreq)
+    ''' % (timeStamp, timeBaseFreq)
 
     for k in range(nCpus):
         tmpStr += '''
@@ -477,11 +477,12 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # UART
+        # TODO: update uart sequence numbers
         if devices[i]["name"] == "uart":
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        uart@%08x {
+        uart0: uart@%08x {
             u-boot,dm-pre-reloc;
             compatible = "ns16550";
             reg = <%s>;
@@ -493,7 +494,39 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
         };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
             ioDeviceNr+=1
-
+        # Ethernet
+        if devices[i]["name"] == "net":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        eth: ethernet@%08x {
+            compatible = "xlnx,xps-ethernetlite-1.00.a";
+            device_type = "network";
+            reg = <%s>;
+            interrupt-parent = <&PLIC0>;
+            interrupts = <%d>;
+            local-mac-address = [ 00 18 3E 02 E3 E5 ];
+            phy-handle = <&phy0>;
+            xlnx,duplex = <0x1>;
+            xlnx,include-global-buffers = <0x1>;
+            xlnx,include-internal-loopback = <0x0>;
+            xlnx,include-mdio = <0x1>;
+            xlnx,rx-ping-pong = <0x1>;
+            xlnx,s-axi-id-width = <0x1>;
+            xlnx,tx-ping-pong = <0x1>;
+            xlnx,use-internal = <0x0>;
+            axi_ethernetlite_0_mdio: mdio {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                phy0: phy@1 {
+                    compatible = "ethernet-phy-id001C.C915";
+                    device_type = "ethernet-phy";
+                    reg = <1>;
+                };
+            };
+        };
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), ioDeviceNr)
+            ioDeviceNr+=1
 
     tmpStr += '''
 };
@@ -502,7 +535,7 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
     # this needs to match
     assert ioDeviceNr-1 == numIrqs
 
-    with open(dtsPath + '/ariane.dts','w') as file:
+    with open(dtsPath + '/openpiton-ariane.dts','w+') as file:
         file.write(tmpStr)
 
 
