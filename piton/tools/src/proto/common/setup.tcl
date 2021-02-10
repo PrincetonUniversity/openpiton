@@ -145,7 +145,7 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
   exec make u-boot-spl.sv
   exec mv u-boot-spl.sv bootrom_linux.sv
-  exec sed -i 's/u-boot-spl/bootrom_linux/g' bootrom_linux.sv
+  exec sed -i {s/u-boot-spl/bootrom_linux/g} bootrom_linux.sv
   puts "INFO: done"
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
