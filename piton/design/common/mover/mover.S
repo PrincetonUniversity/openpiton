@@ -1,4 +1,4 @@
-#include "mover.h"
+#include "addr.h"
   .section .text.reloc, "ax", @progbits
   .globl spl_reloc
 spl_reloc:
@@ -18,7 +18,7 @@ memcpy:
   // assume address is aligned by 8
   // x5 holds the current size
   // x6 hold temporary data
-  li x1, REL_START_LOCATION
+  la x1, spl
   li x2, TARGET_TEXT_BASE
   li x3, REL_LENGTH
   mv x4, a1
@@ -43,3 +43,9 @@ jmp_to_reloc:
   li x2, 0
   amoswap.w x2, x2, 0(x7)
   jr x4
+
+  .section .rodata.spl, "a", @progbits
+  .globl .spl
+  .align 5, 0
+spl:
+  .incbin "../uboot/spl/u-boot-spl.bin"
