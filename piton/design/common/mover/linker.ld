@@ -1,6 +1,6 @@
 SECTIONS
 {
-    ROM_BASE = 0xfff10100000; /* ... but actually position independent */
+    ROM_BASE = 0x85000000; /* ... but actually position independent */
 
     . = ROM_BASE;
     .text : ALIGN(4) { *(.text*) }

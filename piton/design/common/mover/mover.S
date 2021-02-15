@@ -19,9 +19,9 @@ memcpy:
   // x5 holds the current size
   // x6 hold temporary data
   la x1, spl
-  li x2, TARGET_TEXT_BASE
-  li x3, REL_LENGTH
-  mv x4, a1
+  li x2, 0x80000000
+  li x3, 0x100000
+  li x4, 0x80000000
   li x5, 0
 1:
   bge x5, x3, jmp_to_reloc
@@ -42,6 +42,7 @@ jmp_to_reloc:
   // release the lock
   li x2, 0
   amoswap.w x2, x2, 0(x7)
+  li x4, 0x80000000
   jr x4
 
   .section .rodata.spl, "a", @progbits
