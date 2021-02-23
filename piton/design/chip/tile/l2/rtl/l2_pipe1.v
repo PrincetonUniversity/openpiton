@@ -846,6 +846,7 @@ l2_pipe1_dpath dpath(
     .data_clk_en_S2             (data_clk_en),
     .stall_real_S2              (stall_real_S2),
     .amo_alu_op_S2              (amo_alu_op_S2),
+    .msg_data_ready_S2          (msg_data_ready),
 
     .valid_S3                   (valid_S3),
     .stall_S3                   (stall_S3),

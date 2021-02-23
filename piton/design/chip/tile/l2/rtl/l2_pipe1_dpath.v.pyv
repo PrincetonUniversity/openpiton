@@ -169,7 +169,7 @@ module l2_pipe1_dpath(
     input wire data_clk_en_S2,
     input wire stall_real_S2,
     input wire [`L2_AMO_ALU_OP_WIDTH-1:0] amo_alu_op_S2,
-    input wire msg_data_ready_S2;
+    input wire msg_data_ready_S2,
 
     //Inputs to Stage 3
 
