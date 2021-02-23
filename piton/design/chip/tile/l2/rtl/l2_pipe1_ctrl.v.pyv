@@ -345,6 +345,8 @@ reg [`MSG_TYPE_WIDTH-1:0] msg_type_S2_f;
 reg msg_from_mshr_S2_f;
 reg [`MSG_TYPE_WIDTH-1:0] msg_type_S4_f;
 
+reg msg_data_pending, msg_data_pending_f;
+
 //============================
 // Stage 1
 //============================
@@ -932,15 +934,40 @@ begin
 end
 
 reg stall_msg_S1;
+reg stall_msg_data_S1;
 
 always @ *
 begin
     stall_msg_S1 = msg_data_rd_S1 && ~msg_data_valid_S1;
 end
 
+wire msg_carrying_data_S1 = (msg_data_16B_amo_S2_f && ((msg_type_S2_f == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P1_REQ))) ||
+                              (msg_type_S2_f == `MSG_TYPE_CAS_P2Y_REQ    ) ||
+                              (msg_type_S2_f == `MSG_TYPE_SWAP_P2_REQ    ) ||
+                              (msg_type_S2_f == `MSG_TYPE_SWAPWB_P2_REQ  ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_ADD_P2_REQ ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_AND_P2_REQ ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_OR_P2_REQ  ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_XOR_P2_REQ ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_MAX_P2_REQ ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_MAXU_P2_REQ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_MIN_P2_REQ ) ||
+                              (msg_type_S2_f == `MSG_TYPE_AMO_MINU_P2_REQ) ||
+                              (msg_type_S2_f == `MSG_TYPE_NC_STORE_REQ) ||
+                              (msg_type_S2_f == `MSG_TYPE_CAS_P1_REQ) ||
+                              (msg_type_S2_f == `MSG_TYPE_CAS_P2N_REQ) || (msg_type_S2_f == `MSG_TYPE_INTERRUPT_FWD);
+always @(*) begin
+    // This is a pretty conservative stall, but we actually won't have many cases with msg_data_pending.
+    // For requests that carries msg_data (nc_store, atomic), they might get into mshr. In this case,
+    // msg_data_val would be high for a long time, until that request come back from mshr and raise 
+    // msg_data_ready. During this period, if another request carrying data arrives, it will read the 
+    // wrong data. To prevent this, we simply stop accepting new request until msg_data_pending is resolved.
+    stall_msg_data_S1 = (msg_data_pending || msg_data_pending_f) && msg_carrying_data_S1 && !msg_from_mshr_S1;
+end
+
 always @ *
 begin
-    stall_S1 = valid_S1 && (stall_pre_S1 || stall_hazard_S1 || stall_mshr_S1 || stall_msg_S1);
+    stall_S1 = valid_S1 && (stall_pre_S1 || stall_hazard_S1 || stall_mshr_S1 || stall_msg_S1 || stall_msg_data_S1);
 end
 
 
@@ -1029,6 +1056,7 @@ reg mshr_smc_miss_S2_f;
 reg [`L2_MSHR_INDEX_WIDTH-1:0] mshr_pending_index_S2_f;
 reg special_addr_type_S2_f;
 reg msg_data_rd_S2_f;
+reg msg_carrying_data_S2_f;
 
 always @ (posedge clk)
 begin
@@ -1047,6 +1075,7 @@ begin
         special_addr_type_S2_f <= 0;
         msg_data_rd_S2_f <= 0;
         amo_alu_op_S2_f <= `L2_AMO_ALU_OP_WIDTH'b0;
+        msg_carrying_data_S2_f <= 1'b0;
     end
     else if (!stall_S2)
     begin
@@ -1067,6 +1096,7 @@ begin
         special_addr_type_S2_f <= special_addr_type_S1;
         msg_data_rd_S2_f <= msg_data_rd_S1;
         amo_alu_op_S2_f <= amo_alu_op_S1;
+        msg_carrying_data_S2_f <= msg_carrying_data_S1;
     end
 end
 
@@ -2180,6 +2210,30 @@ end
 always @ *
 begin
     msg_data_ready_S2 = valid_S2 && !stall_S2 && (cs_S2[`CS_STATE_DATA_RDY_P1S2] || msg_data_rd_S2_f);
+end
+
+always @(*) begin
+    msg_data_pending = 1'b0;
+    if (msg_carrying_data_S2_f && !msg_data_ready_S2) begin
+        if (cs_S2[`CS_MSHR_WR_EN_P1S2]) begin
+            // CAUTION: We assume that after a request reads msg_data, it would not get into mshr again.
+            msg_data_pending = 1'b1;
+        end
+    end
+end
+
+always @(posedge clk) begin
+    if (~rst_n) begin
+        msg_data_pending_f <= 1'b0;
+    end
+    else if (msg_carrying_data_S2_f && !msg_data_ready_S2) begin
+        if (cs_S2[`CS_MSHR_WR_EN_P1S2]) begin
+            msg_data_pending_f <= 1'b1;
+        end
+    end
+    else if (msg_data_ready_S2 && msg_data_valid_S2) begin
+        msg_data_pending_f <= 1'b0;
+    end
 end
 
 
