@@ -941,21 +941,21 @@ begin
     stall_msg_S1 = msg_data_rd_S1 && ~msg_data_valid_S1;
 end
 
-wire msg_carrying_data_S1 = (msg_data_16B_amo_S2_f && ((msg_type_S2_f == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_S2_f == `MSG_TYPE_SWAPWB_P1_REQ))) ||
-                              (msg_type_S2_f == `MSG_TYPE_CAS_P2Y_REQ    ) ||
-                              (msg_type_S2_f == `MSG_TYPE_SWAP_P2_REQ    ) ||
-                              (msg_type_S2_f == `MSG_TYPE_SWAPWB_P2_REQ  ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_ADD_P2_REQ ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_AND_P2_REQ ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_OR_P2_REQ  ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_XOR_P2_REQ ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_MAX_P2_REQ ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_MAXU_P2_REQ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_MIN_P2_REQ ) ||
-                              (msg_type_S2_f == `MSG_TYPE_AMO_MINU_P2_REQ) ||
-                              (msg_type_S2_f == `MSG_TYPE_NC_STORE_REQ) ||
-                              (msg_type_S2_f == `MSG_TYPE_CAS_P1_REQ) ||
-                              (msg_type_S2_f == `MSG_TYPE_CAS_P2N_REQ) || (msg_type_S2_f == `MSG_TYPE_INTERRUPT_FWD);
+wire msg_carrying_data_S1 = (msg_data_16B_amo_S1 && ((msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ))) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_CAS_P2Y_REQ    ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ    ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ  ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ  ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P2_REQ ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P2_REQ ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P2_REQ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P2_REQ ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P2_REQ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_NC_STORE_REQ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_CAS_P1_REQ) ||
+                              (msg_type_trans_S1 == `MSG_TYPE_CAS_P2N_REQ) || (msg_type_trans_S1 == `MSG_TYPE_INTERRUPT_FWD);
 always @(*) begin
     // This is a pretty conservative stall, but we actually won't have many cases with msg_data_pending.
     // For requests that carries msg_data (nc_store, atomic), they might get into mshr. In this case,
