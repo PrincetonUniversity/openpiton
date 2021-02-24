@@ -2214,7 +2214,7 @@ end
 
 always @(*) begin
     msg_data_pending = 1'b0;
-    if (msg_carrying_data_S2_f && !msg_data_ready_S2) begin
+    if (valid_S2 && msg_carrying_data_S2_f && !msg_data_ready_S2) begin
         if (cs_S2[`CS_MSHR_WR_EN_P1S2]) begin
             // CAUTION: We assume that after a request reads msg_data, it would not get into mshr again.
             msg_data_pending = 1'b1;
@@ -2226,7 +2226,7 @@ always @(posedge clk) begin
     if (~rst_n) begin
         msg_data_pending_f <= 1'b0;
     end
-    else if (msg_carrying_data_S2_f && !msg_data_ready_S2) begin
+    else if (valid_S2 && msg_carrying_data_S2_f && !msg_data_ready_S2) begin
         if (cs_S2[`CS_MSHR_WR_EN_P1S2]) begin
             msg_data_pending_f <= 1'b1;
         end
