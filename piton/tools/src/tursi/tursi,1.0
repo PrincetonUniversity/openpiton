@@ -511,7 +511,7 @@ def main():
 
     if do_pickle:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
+        cmd = 'fusesoc --config {} run --build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:
