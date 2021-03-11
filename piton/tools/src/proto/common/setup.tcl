@@ -129,11 +129,13 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
 
   set TMP [pwd]
+  # copy the dts for the bare metal bootrom first
+  exec cp $::env(PITON_ROOT)/piton/design/common/uboot/arch/riscv/dts/openpiton-ariane.dts $::env(ARIANE_ROOT)/openpiton/bootrom/ariane.dts
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
-  # Note: dd dumps info to stderr that we do not want to interpret
-  # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
+  puts "INFO: bare metal firmware generation complete"
+  # then we generate the spl image
   cd $::env(PITON_ROOT)/piton/design/common/uboot
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
@@ -141,11 +143,13 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   exec cp configs/openpiton_ariane_defconfig .config
   #TODO: update riscv toochain
   exec make CROSS_COMPILE=$::env(RISCV_TOOLCHAIN)/bin/riscv-none-embed- -j8 2> /dev/null
-  exec cp spl/u-boot-spl.bin $::env(ARIANE_ROOT)/openpiton/bootrom/linux/u-boot-spl.img
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
-  exec make u-boot-spl.sv
-  exec mv u-boot-spl.sv bootrom_linux.sv
-  exec sed -i {s/u-boot-spl/bootrom_linux/g} bootrom_linux.sv
+  # generate mover using the spl image
+  cd $::env(PITON_ROOT)/piton/design/common/mover/
+  exec make 2> /dev/null
+  # generate the linux bootrom using mover image
+  exec mv mover.sv $::env(ARIANE_ROOT)/openpiton/bootrom/linux/bootrom_linux.sv
+  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux/
+  exec sed -i {s/mover/bootrom_linux/g} bootrom_linux.sv
   puts "INFO: done"
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
