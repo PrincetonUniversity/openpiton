@@ -1,9 +1,9 @@
 SECTIONS
 {
-    ROM_BASE = 0x85000000; /* ... but actually position independent */
-
+    ROM_BASE = 0xfff1010000; /* ... but actually position independent */
+/*ROM_BASE = 0x80000000;*/
     . = ROM_BASE;
     .text : ALIGN(4) { *(.text*) }
-    .data : ALIGN(4) { *(.data*) }
+    . = ROM_BASE + 0x80;
     .rodata.spl : { *(.rodata.spl) }
 }

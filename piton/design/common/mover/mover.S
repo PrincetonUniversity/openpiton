@@ -35,9 +35,11 @@ acquire_loop:
   // all other cores try to acquire the lock in acquire loop
   // when the lock is acquired, it jumps to jump_to_reloc, which
   // clears the lock and jump to uboot-spl
-  li x2, 1
-  amoswap.w x3, x2, 0(x7)
+  //li x2, 1
+  //amoswap.w x3, x2, 0(x7)
+  lw x3, 0(x7)
   beqz x3, jmp_to_reloc
+  j acquire_loop
 jmp_to_reloc:
   // release the lock
   li x2, 0
@@ -49,4 +51,4 @@ jmp_to_reloc:
   .globl .spl
   .align 5, 0
 spl:
-  .incbin "../uboot/spl/u-boot-spl.bin"
+.incbin "../../../../../uboot/spl/u-boot-spl.bin"

@@ -1,4 +1,4 @@
-bootrom_img = mover.img mover.sv
+bootrom_img = mover.img mover.sv mover.h
 
 GCC=riscv64-unknown-elf-gcc
 OBJCOPY=riscv64-unknown-elf-objcopy
