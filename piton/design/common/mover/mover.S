@@ -51,4 +51,4 @@ jmp_to_reloc:
   .globl .spl
   .align 5, 0
 spl:
-.incbin "../../../../../uboot/spl/u-boot-spl.bin"
+.incbin "../uboot/spl/u-boot-spl.bin"
