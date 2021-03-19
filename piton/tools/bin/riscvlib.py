@@ -362,7 +362,6 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
 
     aliases {
         u-boot,dm-pre-reloc;
-        cpu0 = &CPU0;
         console = &uart0;
         serial0 = &uart0;
     };
@@ -461,6 +460,7 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
             riscv,ndev = <%d>;
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2), numIrqs)
+
         # DTM
         if devices[i]["name"] == "ariane_debug":
             addrBase = devices[i]["base"]
@@ -494,6 +494,20 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
         };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
             ioDeviceNr+=1
+
+        # sd card
+        if devices[i]["name"] == "sd":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        sdhci_0: sdhci@%08x {
+            u-boot,dm-pre-reloc;
+            status = "okay";
+            compatible = "ariane,piton-mmc";
+            reg = <%s>;
+        };
+            ''' %(addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
+
         # Ethernet
         if devices[i]["name"] == "net":
             addrBase = devices[i]["base"]
