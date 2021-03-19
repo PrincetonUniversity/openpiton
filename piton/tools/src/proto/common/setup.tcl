@@ -137,6 +137,8 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   puts "INFO: bare metal firmware generation complete"
   # then we generate the spl image
   cd $::env(PITON_ROOT)/piton/design/common/uboot
+  # FIXME: find a better way to handle branches in git submodules
+  exec git checkout dual-core
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make distclean 2> /dev/null
