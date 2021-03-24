@@ -503,7 +503,7 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
         sdhci_0: sdhci@%08x {
             u-boot,dm-pre-reloc;
             status = "okay";
-            compatible = "ariane,piton-mmc";
+            compatible = "openpiton,piton-mmc";
             reg = <%s>;
         };
             ''' %(addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
