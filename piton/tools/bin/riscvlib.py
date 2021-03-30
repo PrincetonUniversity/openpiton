@@ -549,7 +549,7 @@ def gen_riscv_dts_uboot(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPa
     # this needs to match
     assert ioDeviceNr-1 == numIrqs
 
-    with open(dtsPath + '/openpiton-ariane.dts','w+') as file:
+    with open(dtsPath + '/openpiton-riscv64.dts','w+') as file:
         file.write(tmpStr)
 
 
