@@ -1000,7 +1000,7 @@ end
 
 
 reg [`L2_DATA_DATA_WIDTH-1:0] msg_data_mask_in_S2;
-reg [`L2_DATA_DATA_WIDTH-1:0] amo_bitmask_S2;
+wire [`L2_DATA_DATA_WIDTH-1:0] amo_bitmask_S2;
 reg [`L2_DATA_DATA_WIDTH-1:0] data_data_merge_S2;
 wire [`L2_DATA_ECC_PARITY_WIDTH-1:0] data_data_parity1_S2;
 wire [`L2_DATA_ECC_PARITY_WIDTH-1:0] data_data_parity2_S2;
