@@ -483,7 +483,11 @@ reg     [SIZE-1:0]      q ;
 
 `ifdef NO_SCAN
 always @ (posedge clk or negedge rst_l)
-	q[SIZE-1:0]  <= (!rst_l) ? {SIZE{1'b0}} : din[SIZE-1:0];
+ `ifdef YOSYS
+  if (!rst_l) q[SIZE-1:0] <= {SIZE{1'b0}}; else q[SIZE-1:0]  <= din[SIZE-1:0];
+ `else
+   q[SIZE-1:0]  <= (!rst_l) ? {SIZE{1'b0}} : din[SIZE-1:0];
+ `endif
 `else
 
 // Reset dominates
@@ -527,8 +531,18 @@ output  [SIZE-1:0]      q ;     // output
 // Reset dominates
 // synopsys async_set_reset "rst_l"
  reg [SIZE-1:0] q;   
-always @ (posedge clk or negedge rst_l)
-  q[SIZE-1:0] <= ~rst_l ?  {SIZE{1'b0}} : ({SIZE{rst_l}} & din[SIZE-1:0]);
+always @ (posedge clk or negedge rst_l) begin
+ `ifdef YOSYS
+    if (~rst_l) begin
+        q[SIZE-1:0] <=  {SIZE{1'b0}};
+    end else begin
+        q[SIZE-1:0] <=  ({SIZE{rst_l}} & din[SIZE-1:0]);
+    end
+ `else
+   q[SIZE-1:0] <= ~rst_l ?  {SIZE{1'b0}} : ({SIZE{rst_l}} & din[SIZE-1:0]);
+ `endif
+
+end
 
 //   reg  [SIZE-1:0]   qm, qs, qm_l, qs_l, qm_f, qs_f;
 //   wire              s_l;
@@ -819,9 +833,17 @@ output  [SIZE-1:0]      q ;     // output
 reg     [SIZE-1:0]      q ;
 
 // synopsys async_set_reset "set_l"
-always @ (posedge clk or negedge set_l)
-  q[SIZE-1:0] <= ~set_l ? {SIZE{1'b1}} : ({SIZE{~set_l}} | din[SIZE-1:0]);
-
+always @ (posedge clk or negedge set_l) begin
+`ifdef YOSYS
+    if (~set_l) begin
+        q[SIZE-1:0] <= {SIZE{1'b1}};
+    end else begin
+        q[SIZE-1:0] <= ({SIZE{~set_l}} | din[SIZE-1:0]);
+    end
+`else
+   q[SIZE-1:0] <= ~set_l ? {SIZE{1'b1}} : ({SIZE{~set_l}} | din[SIZE-1:0]);
+`endif
+end
 endmodule // dffsl_async_ns
 
 // POSITIVE-EDGE TRIGGERED FLOP WITH SET_H , without SCAN.
