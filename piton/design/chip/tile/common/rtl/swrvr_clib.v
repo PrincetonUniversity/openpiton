@@ -483,10 +483,10 @@ reg     [SIZE-1:0]      q ;
 
 `ifdef NO_SCAN
 always @ (posedge clk or negedge rst_l)
- `ifdef YOSYS
-  if (!rst_l) q[SIZE-1:0] <= {SIZE{1'b0}}; else q[SIZE-1:0]  <= din[SIZE-1:0];
- `else
+ `ifndef YOSYS
    q[SIZE-1:0]  <= (!rst_l) ? {SIZE{1'b0}} : din[SIZE-1:0];
+ `else
+   if (!rst_l) q[SIZE-1:0] <= {SIZE{1'b0}}; else q[SIZE-1:0]  <= din[SIZE-1:0];
  `endif
 `else
 
@@ -532,14 +532,14 @@ output  [SIZE-1:0]      q ;     // output
 // synopsys async_set_reset "rst_l"
  reg [SIZE-1:0] q;   
 always @ (posedge clk or negedge rst_l) begin
- `ifdef YOSYS
+ `ifndef YOSYS
+    q[SIZE-1:0] <= ~rst_l ?  {SIZE{1'b0}} : ({SIZE{rst_l}} & din[SIZE-1:0]);
+ `else
     if (~rst_l) begin
         q[SIZE-1:0] <=  {SIZE{1'b0}};
     end else begin
         q[SIZE-1:0] <=  ({SIZE{rst_l}} & din[SIZE-1:0]);
     end
- `else
-   q[SIZE-1:0] <= ~rst_l ?  {SIZE{1'b0}} : ({SIZE{rst_l}} & din[SIZE-1:0]);
  `endif
 
 end
@@ -834,14 +834,14 @@ reg     [SIZE-1:0]      q ;
 
 // synopsys async_set_reset "set_l"
 always @ (posedge clk or negedge set_l) begin
-`ifdef YOSYS
-    if (~set_l) begin
-        q[SIZE-1:0] <= {SIZE{1'b1}};
-    end else begin
-        q[SIZE-1:0] <= ({SIZE{~set_l}} | din[SIZE-1:0]);
-    end
-`else
+`ifndef YOSYS
    q[SIZE-1:0] <= ~set_l ? {SIZE{1'b1}} : ({SIZE{~set_l}} | din[SIZE-1:0]);
+`else
+   if (~set_l) begin
+      q[SIZE-1:0] <= {SIZE{1'b1}};
+   end else begin
+      q[SIZE-1:0] <= ({SIZE{~set_l}} | din[SIZE-1:0]);
+   end
 `endif
 end
 endmodule // dffsl_async_ns
