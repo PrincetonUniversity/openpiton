@@ -12,11 +12,14 @@ filesets:
             - dynamic_output_control.v
             - dynamic_output_datapath.v
             - dynamic_output_top.v
+       depend:
+            - openpiton::dynamic_node_components
        file_type: verilogSource
 
 targets:
     default:
         filesets: [rtl]
+        generate: [pyhp_preprocess]
 
 generate:
     pyhp_preprocess:
