@@ -81,6 +81,12 @@ Usage
 Currenty, Tursi is integrated with the OpenPiton infrastructure. That
 means you will have to download OpenPiton and setup the environment
 before using Tursi.
+As Tursi allows pickling of modules outside of the OpenPiton codebase
+you will need to setup the environment for those design correctly before
+you are able to use Tursi to create their pickled designs.
+
+A number of pregenerated pickled designs can be found on the
+[OpenPiton Design Benchmark (OPDB) repository](https://github.com/PrincetonUniversity/OPDB).
 
 Environment Configuration and Setup
 -----------------------------------
@@ -201,7 +207,7 @@ presents a visualization of the hierarchy of IP blocks that naturally
 arises from the CAPI description of OpenPiton’s dependencies.
 
 ![\[fig:OPDB\_hierarchy\] OPDB module
-hierarchy](figures/OPDB_hierarchy.jpg){width="\linewidth"}
+hierarchy](figures/OPDB_hierarchy.jpg)
 
 Note that, if the new module is located outside the OpenPiton root
 directory, where we have already generated a FuseSoC local library, a
@@ -247,17 +253,3 @@ Finally, all development, testing, and usage of Tursi and of its output
 has been performed on machines running GNU/Linux distributions, thus
 support for Windows or MacOS may be buggy or limited.
 
-Example Yosys scripts
----------------------
-
-Together with Tursi we are including two example scripts for converting designs from
-Verilog HDL to BLIF or AIGER formats. The scripts are parametrized through environment
-variables:
- - INPUT_VERILOG_FILE: input verilog file (pickled file generated through Tursi)
- - OUTPUT_AIGER_FILE: output file in AIG format
- - OUTPUT_BLIF_FILE: output file in BLIF format
- - TOP_MODULE: Top-level module name 
-
-[Verilog to BLIF](v2blif.tcl)
-
-[Verilog to AIGER](v2aiger.tcl)
