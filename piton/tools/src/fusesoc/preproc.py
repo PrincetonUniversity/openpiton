@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # Parse YAML file
     with open(sys.argv[1], 'r') as yaml_fp:
         try:
-            config = yaml.load(yaml_fp)
+            config = yaml.load(yaml_fp, yaml.SafeLoader)
         except yaml.YAMLError as exc:
             print("Error in configuration file:", exc)
 

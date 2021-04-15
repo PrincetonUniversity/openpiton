@@ -1,5 +1,5 @@
 CAPI=2:
-name : openpiton::preprocessor:0
+name : openpiton::preprocessor:0.1
 
 generators:
     pyhp_preprocess_gen:

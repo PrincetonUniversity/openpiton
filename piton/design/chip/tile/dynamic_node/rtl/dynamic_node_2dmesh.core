@@ -1,0 +1,30 @@
+CAPI=2:
+name: openpiton::dynamic_node_2dmesh:0.1
+description: Top-level Dynamic Node
+
+filesets:
+    rtl:
+        depend:
+            - openpiton::dynamic_node
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [dynamic_node_top_wrap]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [dynamic_node_top_wrap]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+
