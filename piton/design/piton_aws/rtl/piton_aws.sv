@@ -322,6 +322,14 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
         `endif
     `endif
 
+    `ifdef PITON_ARIANE
+        .tck_i(tck), 
+        .tms_i(tms),
+        .trst_ni(reset),
+        .td_i(tdi),
+        .td_o(tdo),
+    `endif
+
         .sw(sw[7:0]), 
         .leds(leds[7:0]) 
 
