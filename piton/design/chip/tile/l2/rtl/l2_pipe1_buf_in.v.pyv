@@ -401,7 +401,7 @@ begin
     begin   
 <%
 for i in range(L2_P1_HEADER_BUF_IN_SIZE):
-    print "        header_buf_mem_f[%d] <= 0;" % (i)
+    print("        header_buf_mem_f[%d] <= 0;" % (i))
 %>
     end
     else if (msg_header_valid_in && msg_header_ready_in)
@@ -526,7 +526,7 @@ begin
     begin   
 <%
 for i in range(L2_P1_DATA_BUF_IN_SIZE):
-    print "        data_buf_mem_f[%d] <= 0;" % (i)
+    print("        data_buf_mem_f[%d] <= 0;" % (i))
 %>
     end
     else if (msg_data_valid_in && msg_data_ready_in)

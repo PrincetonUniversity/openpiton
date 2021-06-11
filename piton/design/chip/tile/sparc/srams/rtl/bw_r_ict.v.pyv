@@ -288,7 +288,7 @@ wire [`IC_PHYS_TAG_MASK_ALL] write_bus_mask_x = {
       wire [`IC_PHYS_TAG_HI:0] rdtag_y_phys___WAY = rdtag_y_phys[`IC_PHYS_TAG___WAY_MASK];
       assign rdtag_y[`IC_TLB_TAG___WAY_MASK] = rdtag_y_phys___WAY[`IC_TLB_TAG_HI:0];
       '''
-      text = text.replace("__WAY", "WAY" + `i`)
+      text = text.replace("__WAY", "WAY" + repr(i))
       print(text)
   %>
 

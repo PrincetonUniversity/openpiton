@@ -2412,7 +2412,7 @@ reg  [3:0] spc0_strm_stxa_tid_decode;
 '''
 pattern = ["SPARC0", "spc0", "count12bits C0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2426,9 +2426,9 @@ print tt
 // (DO NOT place within the "for (8 = 0; 8 < 8; 8++) { ... }" section.)
 ////////////////////////////////////////////////////////////////////////////////
 
-wire [`NUM_TILES-1:0] cpx_spc_data_cx2_local;
-wire [`NUM_TILES-1:0] cpx_spc_data_cx2_Dinv;
-wire [`NUM_TILES-1:0] cpx_spc_data_cx2_Iinv;
+wire [`PITON_NUM_TILES-1:0] cpx_spc_data_cx2_local;
+wire [`PITON_NUM_TILES-1:0] cpx_spc_data_cx2_Dinv;
+wire [`PITON_NUM_TILES-1:0] cpx_spc_data_cx2_Iinv;
 
 ack_evict_decode cpx_spc_data_cx2_decode(
 <%
@@ -2438,7 +2438,7 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (cpx_spc_data_cx2_local),
     .Dinv  (cpx_spc_data_cx2_Dinv),
@@ -2447,9 +2447,9 @@ print tt
 
 
 
-wire [`NUM_TILES-1:0] dfq_byp_mx_data_local;
-wire [`NUM_TILES-1:0] dfq_byp_mx_data_Dinv;
-wire [`NUM_TILES-1:0] dfq_byp_mx_data_Iinv;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_mx_data_local;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_mx_data_Dinv;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_mx_data_Iinv;
 
 ack_evict_decode dfq_byp_mx_data_decode(
 <%
@@ -2463,7 +2463,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_byp_mx_data_local),
     .Dinv  (dfq_byp_mx_data_Dinv),
@@ -2472,9 +2472,9 @@ print tt
 
 
 
-wire [`NUM_TILES-1:0] dfq_cpx_raw_wdata_local;
-wire [`NUM_TILES-1:0] dfq_cpx_raw_wdata_Dinv;
-wire [`NUM_TILES-1:0] dfq_cpx_raw_wdata_Iinv;
+wire [`PITON_NUM_TILES-1:0] dfq_cpx_raw_wdata_local;
+wire [`PITON_NUM_TILES-1:0] dfq_cpx_raw_wdata_Dinv;
+wire [`PITON_NUM_TILES-1:0] dfq_cpx_raw_wdata_Iinv;
 
 ack_evict_decode dfq_cpx_raw_wdata_decode(
 <%
@@ -2488,7 +2488,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_cpx_raw_wdata_local),
     .Dinv  (dfq_cpx_raw_wdata_Dinv),
@@ -2497,12 +2497,12 @@ print tt
 
 
 
-wire [`NUM_TILES-1:0] dfq_byp_ff_data_local;
-reg  [`NUM_TILES-1:0] dfq_byp_ff_data_local_d1, dfq_byp_ff_data_local_d2;
-wire [`NUM_TILES-1:0] dfq_byp_ff_data_Dinv;
-reg  [`NUM_TILES-1:0] dfq_byp_ff_data_Dinv_d1, dfq_byp_ff_data_Dinv_d2;
-wire [`NUM_TILES-1:0] dfq_byp_ff_data_Iinv;
-reg  [`NUM_TILES-1:0] dfq_byp_ff_data_Iinv_d1, dfq_byp_ff_data_Iinv_d2;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_local;
+reg  [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_local_d1, dfq_byp_ff_data_local_d2;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_Dinv;
+reg  [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_Dinv_d1, dfq_byp_ff_data_Dinv_d2;
+wire [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_Iinv;
+reg  [`PITON_NUM_TILES-1:0] dfq_byp_ff_data_Iinv_d1, dfq_byp_ff_data_Iinv_d2;
 
 always @(posedge clk) begin
     dfq_byp_ff_data_local_d1 <= dfq_byp_ff_data_local;
@@ -2525,7 +2525,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "CORE0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
     .local_o (dfq_byp_ff_data_local),
     .Dinv  (dfq_byp_ff_data_Dinv),
@@ -2549,7 +2549,7 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 
 %>local_o, Dinv, Iinv);
 
@@ -2560,11 +2560,11 @@ text = '''
         `endif'''
 pattern = ["RTL_SPARC0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
-output [`NUM_TILES-1:0]  local_o;
-output [`NUM_TILES-1:0]  Dinv;
-output [`NUM_TILES-1:0]  Iinv;
+output [`PITON_NUM_TILES-1:0]  local_o;
+output [`PITON_NUM_TILES-1:0]  Dinv;
+output [`PITON_NUM_TILES-1:0]  Iinv;
 
 <%
 text = '''
@@ -2575,7 +2575,7 @@ text = '''
     `endif'''
 pattern = ["RTL_SPARC0", "local_o[0", "Dinv[0", "Iinv[0", "in0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 
 endmodule

@@ -153,7 +153,7 @@ module l2_pipe1_dpath(
     input wire state_lru_en_S2,
     input wire [`L2_LRU_OP_BITS-1:0] state_lru_op_S2,
     input wire state_rb_en_S2,
-    input wire l2_ifill_S2,
+    input wire l2_ifill_32B_S2,
     input wire [`L2_DATA_SUBLINE_WIDTH-1:0] l2_load_data_subline_S2,
     input wire valid_S2,
     input wire stall_S2,
@@ -184,6 +184,7 @@ module l2_pipe1_dpath(
     input wire [`L2_OWNER_BITS-1:0] dir_sharer_counter_S4,
     input wire [`L2_OWNER_BITS-1:0] mshr_inv_counter_out_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_send_type_S4,
+    input wire [`MSG_LENGTH_WIDTH-1:0] msg_send_length_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_send_type_pre_S4,
     input wire state_wr_sel_S4,
     input wire [`MSG_TYPE_WIDTH-1:0] msg_type_S4,
@@ -625,12 +626,12 @@ end
 
 
 <%
-print "reg [`L2_TAG_WAY_WIDTH - 1:0] tag_data_way_S2 [%d:0];" % (L2_WAYS-1) 
-print "\n"
-print "reg [%d:0] tag_hit_way_S2;" % (L2_WAYS-1);
-print "\n"
-print "reg [`L2_STATE_WAY_WIDTH - 1:0] state_way_S2 [%d:0];" % (L2_WAYS-1) 
-print "\n"
+print("reg [`L2_TAG_WAY_WIDTH - 1:0] tag_data_way_S2 [%d:0];" % (L2_WAYS-1) )
+print("\n")
+print("reg [%d:0] tag_hit_way_S2;" % (L2_WAYS-1))
+print("\n")
+print("reg [`L2_STATE_WAY_WIDTH - 1:0] state_way_S2 [%d:0];" % (L2_WAYS-1) )
+print("\n")
 %>
 
 
@@ -640,7 +641,7 @@ always @ *
 begin
 <%
 for i in range(L2_WAYS):
-    print "    tag_data_way_S2[%d] = tag_data_trans_S2[`L2_TAG_WAY_WIDTH * %d - 1: `L2_TAG_WAY_WIDTH * %d];" % (i, i+1, i)
+    print("    tag_data_way_S2[%d] = tag_data_trans_S2[`L2_TAG_WAY_WIDTH * %d - 1: `L2_TAG_WAY_WIDTH * %d];" % (i, i+1, i))
 %>
 end
 
@@ -648,25 +649,25 @@ always @ *
 begin
 <%
 for i in range(L2_WAYS):
-    print '''    state_way_S2[%d] = state_data_trans_S2[`L2_STATE_WAY_WIDTH * %d - 1: 
-`L2_STATE_WAY_WIDTH * %d];''' % (i, i+1, i)
+    print('''    state_way_S2[%d] = state_data_trans_S2[`L2_STATE_WAY_WIDTH * %d - 1: 
+`L2_STATE_WAY_WIDTH * %d];''' % (i, i+1, i))
 %>
 end
 
 <%
 for i in range(L2_WAYS):
-    print "always @ *"
-    print "begin"   
-    print '''    if ((addr_S2_f[`L2_TAG] == tag_data_way_S2[%d]) && 
-(state_way_S2[%d][`L2_STATE_VD] == `L2_VD_CLEAN || state_way_S2[%d][`L2_STATE_VD] == `L2_VD_DIRTY ))''' % (i, i, i)
-    print "    begin"   
-    print "        tag_hit_way_S2[%d] = 1'b1;" % (i)
-    print "    end"
-    print "    else"
-    print "    begin"
-    print "        tag_hit_way_S2[%d] = 1'b0;" % (i)
-    print "    end"
-    print "end"
+    print("always @ *")
+    print("begin")
+    print('''    if ((addr_S2_f[`L2_TAG] == tag_data_way_S2[%d]) && 
+(state_way_S2[%d][`L2_STATE_VD] == `L2_VD_CLEAN || state_way_S2[%d][`L2_STATE_VD] == `L2_VD_DIRTY ))''' % (i, i, i))
+    print("    begin")
+    print("        tag_hit_way_S2[%d] = 1'b1;" % (i))
+    print("    end")
+    print("    else")
+    print("    begin")
+    print("        tag_hit_way_S2[%d] = 1'b0;" % (i))
+    print("    end")
+    print("end")
 %>
 
 
@@ -674,8 +675,8 @@ wire l2_tag_cmp_hit_S2;
 
 <%
 
-print '''
-l2_priority_encoder_%d priority_encoder_tag_cmp_%dbits( ''' % (L2_WAYS_WIDTH, L2_WAYS_WIDTH)
+print('''
+l2_priority_encoder_%d priority_encoder_tag_cmp_%dbits( ''' % (L2_WAYS_WIDTH, L2_WAYS_WIDTH))
 %>
     .data_in        (tag_hit_way_S2),
     .data_out       (l2_hit_way_sel_S2),
@@ -698,12 +699,12 @@ begin
 end
 /*
 <%  
-print "            l2_tag_hit_S2 =",
+print("            l2_tag_hit_S2 = ",end="")
 for i in range(L2_WAYS):
     if i != L2_WAYS-1:
-        print "tag_hit_way_S2[%d] ||" % (i),
+        print("tag_hit_way_S2[%d] || " % (i),end="")
     else:
-        print "tag_hit_way_S2[%d];" % (i)
+        print("tag_hit_way_S2[%d];" % (i))
 %>
     end
 end
@@ -713,12 +714,12 @@ end
 always @ *
 begin
 <% 
-print "    l2_hit_way_sel_S2 = {`L2_WAYS_WIDTH{1'b0}};"
+print("    l2_hit_way_sel_S2 = {`L2_WAYS_WIDTH{1'b0}};")
 for i in range(L2_WAYS):
-    print "    if (tag_hit_way_S2[%d])" % (i)
-    print "    begin" 
-    print "        l2_hit_way_sel_S2 = `L2_WAY_%d;" % (i)
-    print "    end" 
+    print("    if (tag_hit_way_S2[%d])" % (i))
+    print("    begin")
+    print("        l2_hit_way_sel_S2 = `L2_WAY_%d;" % (i))
+    print("    end")
 %>
 end
 */
@@ -730,31 +731,31 @@ begin
 <% 
 for i in range(L2_WAYS):
     if i == 0:
-        print "     if (!state_way_S2[%d][`L2_STATE_VD]) " % (i)
+        print("     if (!state_way_S2[%d][`L2_STATE_VD]) " % (i))
     else:
-        print "     else if (!state_way_S2[%d][`L2_STATE_VD]) " % (i)
-    print "        begin"
-    print "            l2_evict_way_sel_S2 = `L2_WAY_%d;" % (i)
-    print "        end"
+        print("     else if (!state_way_S2[%d][`L2_STATE_VD]) " % (i))
+    print("        begin")
+    print("            l2_evict_way_sel_S2 = `L2_WAY_%d;" % (i))
+    print("        end")
 %>
     else
     begin
     case (l2_rb_bits_S2)
 <% 
 for i in range(L2_WAYS):
-    print "    %d\'d%d:" % (L2_WAYS_WIDTH, i)
-    print "    begin"
+    print("    %d\'d%d:" % (L2_WAYS_WIDTH, i))
+    print("    begin")
     for j in range(L2_WAYS):
         if j == 0:
-            print "        if (!l2_lru_bits_S2[%d])" % ((j+i)%L2_WAYS)
+            print("        if (!l2_lru_bits_S2[%d])" % ((j+i)%L2_WAYS))
         elif j == L2_WAYS-1:
-            print "        else"
+            print("        else")
         else:
-            print "        else if (!l2_lru_bits_S2[%d])" % ((j+i)%L2_WAYS)
-        print "        begin"
-        print "            l2_evict_way_sel_S2 = `L2_WAY_%d;" % ((j+i)%L2_WAYS)
-        print "        end"
-    print "    end"
+            print("        else if (!l2_lru_bits_S2[%d])" % ((j+i)%L2_WAYS))
+        print("        begin")
+        print("            l2_evict_way_sel_S2 = `L2_WAY_%d;" % ((j+i)%L2_WAYS))
+        print("        end")
+    print("    end")
 %>
     default:
     begin
@@ -868,7 +869,7 @@ begin
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, l2_load_data_subline_S2};
     end
-    else if (l2_ifill_S2)
+    else if (l2_ifill_32B_S2)
     begin
         data_addr_S2 = {addr_S2_f[`L2_TAG_INDEX],l2_way_sel_S2, 
                         addr_S2_f[`L2_INS_SUBLINE], l2_load_data_subline_S2[0]};
@@ -908,11 +909,11 @@ begin
         // State access is only available when L2_WAYS is less than 8
             <%
 if (L2_WAYS < 8):
-    print """if (addr_S2[`L2_ADDR_OP] == {`L2_ADDR_OP_WIDTH{1'b0}})
+    print("""if (addr_S2[`L2_ADDR_OP] == {`L2_ADDR_OP_WIDTH{1'b0}})
             begin
                 return_data_S2 = {{(`L2_P1_DATA_BUF_IN_WIDTH - `L2_STATE_DATA_WIDTH){1'b0}}, state_data_trans_S2[`L2_STATE_DATA]};
             end
-            else"""
+            else""")
 %>            begin
                 return_data_S2 = {{(`L2_P1_DATA_BUF_IN_WIDTH - `L2_RB_BITS - `L2_LRU_BITS){1'b0}}, l2_rb_bits_S2, l2_lru_bits_S2};
             end
@@ -2074,6 +2075,12 @@ begin
     begin
         msg_send_data_S4 = {2{msg_data_S4_f}}; 
     end
+`ifdef L2_SEND_NC_REQ
+    else if (msg_type_S4 == `MSG_TYPE_NC_LOAD_REQ && msg_send_type_S4 == `MSG_TYPE_DATA_ACK && msg_send_length_S4 == 1)
+    begin
+        msg_send_data_S4 = addr_S4[3] ? {2{data_data_ecc_S4[127:64]}} : {2{data_data_ecc_S4[63:0]}};
+    end
+`endif
     else    
     begin
         msg_send_data_S4 = data_data_ecc_S4;

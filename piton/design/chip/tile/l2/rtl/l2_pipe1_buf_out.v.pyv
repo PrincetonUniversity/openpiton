@@ -227,7 +227,7 @@ begin
     begin  
 <%
 for i in range(L2_P1_BUF_OUT_SIZE):
-    print "        buf_mem_f[%d] <= 0;" % (i)
+    print("        buf_mem_f[%d] <= 0;" % (i))
 %>
     end
     else if (valid_in && ready_in)

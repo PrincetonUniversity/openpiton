@@ -57,7 +57,8 @@ def setParserOptions(parser):
     fusesoc_core_choices = {
         "openpiton::chip"               : "OpenPiton Chip (multiple tiles)",
         "openpiton::chip_bridge"        : "OpenPiton Chip Bridge (connects tile array with chipset)",
-        "openpiton::dynamic_node"       : "OpenPiton Dynamic Node",
+        "openpiton::dynamic_node_2dmesh" : "OpenPiton Dynamic Node",
+        "openpiton::dynamic_node_xbar"  : "OpenPiton Dynamic Node",
         "openpiton::fpga_bridge_rcv_32" : "OpenPiton FPGA Bridge (connects FPGA with tile array)",
         "openpiton::fpu"                : "OpenSPARC T1 Floating-Point Unit (FPU)",
         "openpiton::ifu_esl"            : "Execution Drafting",
@@ -80,7 +81,12 @@ def setParserOptions(parser):
         "openpiton::sparc_mul"          : "OpenSPARC T1 Multiplier Unit (MLU)",
         "openpiton::sparc_srams"        : "OpenSPARC T1 SRAMS (L1)",
         "openpiton::sparc_tlu"          : "OpenSPARC T1 Trap Logic Unit (TLU)",
-        "openpiton::tile"               : "OpenPiton Tile"
+        "openpiton::tile"               : "OpenPiton Tile",
+        "opencores::gng"                : "OpenCores Gausian Noise Generator (GNG)",
+        "opencores::fft"                : "OpenCores Fast Fourier Transformation (FFT)",
+        "openpiton::gng_top"            : "OpenCores Gausian Noise Generator (GNG) together with OpenPiton wrapper",
+        "openpiton::fft_top"            : "OpenCores Fast Fourier Transformation (FFT) together with OpenPiton wrapper",
+        "verticalresearchgroup::miaow"  : "MIAOW GPGPU"
     }
     fusesoc_core_help_str = \
 """Available core for picking using FuseSoc (default: %(default)s):
@@ -288,10 +294,15 @@ def makeDefList(options):
     return defines
 
 
+# The following dictionary provides the name of the top-level module for each
+# core description 
 fusesoc2toplevel = {
     "openpiton::chip"               : "chip",
     "openpiton::chip_bridge"        : "chip_bridge",
-    "openpiton::dynamic_node"       : "[*](#dynamic-node-top-module)",
+## Dynamic node is commented out as it is a special case. Depending on the
+## choice of interconnenct (2d_mesh vs xbar) a different top-level module is used
+##  "openpiton::dynamic_node"       : "[*](#dynamic-node-top-module)",
+##
     "openpiton::fpga_bridge_rcv_32" : "fpga_bridge_rcv_32",
     "openpiton::fpu"                : "fpu",
     "openpiton::ifu_esl"            : "sparc_ifu_esl",
@@ -312,12 +323,17 @@ fusesoc2toplevel = {
     "openpiton::sparc_lsu"          : "lsu",
     "openpiton::sparc_mul"          : "sparc_mul_top_nospu_wrap",
     "openpiton::sparc_tlu"          : "tlu_nospu_wrap",
-    "openpiton::tile"               : "tile"
+    "openpiton::tile"               : "tile",
+    "opencores::gng"                : "gng",
+    "opencores::fft"                : "fftmain",
+    "openpiton::gng_top"            : "gng_top",
+    "openpiton::fft_top"            : "fft_top",
+    "verticalresearchgroup::miaow"  : "neko"
 }
 
 json_template = """{{
  "version"  : {__version__},
- "toplevel" : {__toplevel__}
+ "toplevel" : "{__toplevel__}"
 }}
 """
 
@@ -327,11 +343,14 @@ def generate_IDF_minimal_json(args, w_env):
     
     if core in fusesoc2toplevel: # Check dict
         toplevel = fusesoc2toplevel[core]
-    elif core == "openpiton::dynamic_node": # Handle dynamic_node special case
+    elif core == "openpiton::dynamic_node_2dmesh" or core == "openpiton::dynamic_node_xbar": # Handle dynamic_node special case
         if args.network_config == "2dmesh":
             toplevel = "dynamic_node_top_wrap"
         elif args.network_config == "xbar":
             toplevel = "dynamic_node_top_wrap_para"
+    else:
+        print_error("No toplevel entry of special entry {}. Aborting..".format(core))
+        sys.exit(1)
 
     if toplevel == None: # No match found
         print_error("No toplevel available for core {}. Aborting..".format(core))
@@ -406,9 +425,9 @@ def main():
     print_info("y_tiles   = " + str(args.y_tiles))
     print_info("num_tiles = " + str(args.num_tiles))
 
-    os.environ['PTON_X_TILES']   = str(args.x_tiles)
-    os.environ['PTON_Y_TILES']   = str(args.y_tiles)
-    os.environ['PTON_NUM_TILES'] = str(args.num_tiles)
+    os.environ['PITON_X_TILES']   = str(args.x_tiles)
+    os.environ['PITON_Y_TILES']   = str(args.y_tiles)
+    os.environ['PITON_NUM_TILES'] = str(args.num_tiles)
 
     ##################################
     # Set defines to pass as backend args
@@ -416,12 +435,17 @@ def main():
     args.config_rtl.append('NO_SCAN')
 
     if args.fusesoc_core == "openpiton::manycore_tb":
-        args.config_rtl.append('NO_SLAM_RANDOM')
-        args.config_rtl.append('NO_MRA_VAL')
         args.config_rtl.append('PITON_DPI')
+
+    if args.fusesoc_core == "verticalresearchgroup::miaow":
+        args.config_rtl.append('MIAOW_FPGA_BUILD')
 
     # core variant
     print_info("core      = " + str(args.core))
+    for i in range(int(args.num_tiles)):
+        args.config_rtl.append('RTL_TILE' + str(i))
+        print_info('defining RTL_TILE' + str(i))
+
     if args.core == 'pico':
 
         args.config_rtl.append('PITON_PICO')
@@ -447,12 +471,17 @@ def main():
     elif args.core == 'ariane':
         args.config_rtl.append('PITON_ARIANE')
 
+        ## Temporary until we create a solution for SystemVerilog code
+        print_error('Due to lack of support for "pickling" of SystemVerilog code, the Ariane core configuration option is not supported')
+        sys.exit(1)
+
         for i in range(int(args.num_tiles)):
             args.config_rtl.append('RTL_ARIANE' + str(i))
             print_info('defining RTL_ARIANE' + str(i))
 
     elif args.core == 'sparc':
         # this is the default
+        args.config_rtl.append('PITON_OST1')
         for i in range(int(args.num_tiles)):
             args.config_rtl.append('RTL_SPARC' + str(i))
             print_info('defining RTL_SPARC' + str(i))
@@ -467,7 +496,11 @@ def main():
         sys.exit(1)
 
     print_info("network   = " + str(args.network_config))
-    os.environ['PTON_NETWORK_CONFIG'] = args.network_config + "_config"
+    os.environ['PITON_NETWORK_CONFIG'] = args.network_config + "_config"
+
+    if args.network_config == "xbar" and args.y_tiles != 1:
+        print_error('When using the xbar network configuration option the y_tiles need to be set to 1.')
+        sys.exit(1)
 
     # cache config
     print_info("l15 size  = " + str(args.config_l15_size))
@@ -500,7 +533,7 @@ def main():
 
     if do_pickle:
         #print_info("Pickling: %s" % args.core_name)
-        cmd = 'fusesoc --config {} build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
+        cmd = 'fusesoc --config {} run --build --target=pickle --tool=icarus {} --iverilog_options="{}"'.format(fusesoc_config_arg, args.fusesoc_core, " ".join(["-D%s " % define for define in args.config_rtl]))
         print_info(cmd)
         ret_val = os.system(cmd)
         if ret_val != 0:

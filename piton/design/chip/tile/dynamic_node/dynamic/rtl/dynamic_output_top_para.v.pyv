@@ -70,7 +70,7 @@ output [`DATA_WIDTH-1:0] data_out;
 
 <%
 for a in range (DYNAMIC_NODE_PORT):
-  print "output thanks_%d_out;" % a
+  print("output thanks_%d_out;" % a)
 %>
 output valid_out;
 
@@ -85,15 +85,15 @@ input reset;
 
 <%
 for a in range (DYNAMIC_NODE_PORT):
-  print "input route_req_%d_in;" % a
-print ""
+  print("input route_req_%d_in;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "input tail_%d_in;" % a
-print ""
+  print("input tail_%d_in;" % a)
+print("")
 for a in range (DYNAMIC_NODE_PORT):
-  print "input [`DATA_WIDTH-1:0] data_%d_in;" % a
+  print("input [`DATA_WIDTH-1:0] data_%d_in;" % a)
 for a in range (DYNAMIC_NODE_PORT):
-  print "input valid_%d_in;" % a
+  print("input valid_%d_in;" % a)
 %>
 input default_ready_in;
 input yummy_in;
@@ -103,7 +103,7 @@ input yummy_in;
 for a in range (DYNAMIC_NODE_PORT):
   s = "`define ROUTE_%d %d'b" % (a, DYNAMIC_NODE_PORT_LOG2)
   s = s + ("{0:0%db}" % DYNAMIC_NODE_PORT_LOG2).format(a)
-  print s
+  print(s)
 %>
 //This is the state
 //NOTHING HERE BUT US CHICKENS
@@ -170,7 +170,7 @@ always @ (current_route_connection<%= dynamic_node_para_define.string_ports_onel
 begin
 	case(current_route_connection)
     <%
-    print ""
+    print("")
     for a in range(DYNAMIC_NODE_PORT):
       print ("\t`ROUTE_%d:    current_route_req <= route_req_%d_in;" % (a,a))
     %>

@@ -61,6 +61,12 @@ LIB_A_ICARUS=	$(TOOL_PLI_DIR)/mem/libmem_pli_icarus.a \
 LIB_A_MODELSIM=	$(TOOL_PLI_DIR)/mem/libmem_pli_modelsim.a \
 		$(TOOL_PLI_DIR)/socket/libsocket_pli_modelsim.a \
 		$(TOOL_PLI_DIR)/iop/libiob_modelsim.a
+		
+# riviera .a libraries
+
+LIB_A_RIVIERA=	$(TOOL_PLI_DIR)/mem/libmem_pli_riviera.a \
+		$(TOOL_PLI_DIR)/socket/libsocket_pli_riviera.a \
+		$(TOOL_PLI_DIR)/iop/libiob_riviera.a
 
 NCV_EXE = 	ncsim ncelab
 
@@ -81,6 +87,10 @@ icaruspli: veriuser.vpi
 # Modelsim targets 
 
 modelsimpli: libmodelsimpli.so
+
+# Riviera targets 
+
+rivierapli: librivierapli.so
 
 # VCS .a libraries
 
@@ -149,12 +159,30 @@ $(TOOL_PLI_DIR)/iop/libiob_modelsim.a:
 	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.modelsim)
 	(rm -f $(LIB_PATH)/libiob_modelsim.a)
 	cp $@ $(LIB_PATH)
+	
+# Riviera .a libraries
+
+$(TOOL_PLI_DIR)/mem/libmem_pli_riviera.a:
+	(cd $(TOOL_PLI_DIR)/mem; make -f Makefile.riviera)
+	(rm -f $(LIB_PATH)/libmem_pli_riviera.a)
+	cp $@ $(LIB_PATH)
+
+$(TOOL_PLI_DIR)/socket/libsocket_pli_riviera.a:
+	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.riviera)
+	(rm -f $(LIB_PATH)/libsocket_pli_riviera.a)
+	cp $@ $(LIB_PATH)
+
+$(TOOL_PLI_DIR)/iop/libiob_riviera.a:
+	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.riviera)
+	(rm -f $(LIB_PATH)/libiob_riviera.a)
+	cp $@ $(LIB_PATH)
 
 clean:
 	make clean_vcs 
 	make clean_ncv
 	make clean_icarus
 	make clean_modelsim
+	make clean_riviera
 
 clean_vcs:
 	rm -rf $(LIB_A)
@@ -168,6 +196,9 @@ clean_icarus:
 
 clean_modelsim:
 	rm -rf $(LIB_A_MODELSIM)
+
+clean_riviera:
+	rm -rf $(LIB_A_RIVIERA)
 	
 ncelab: 
 	$(CCC) -o ncelab \
@@ -231,6 +262,11 @@ veriuser_modelsim.o: veriuser.c
 	$(CC) -fpic -c -o veriuser_modelsim.o veriuser.c \
 	$(MODELSIM_CC_OPTS)
 
+#Riviera PLI support
+ veriuser_riviera.o: veriuser.c
+	$(CC) -fpic -c -DUSE_VPI -DRIVIERA -I${RIVIERA_HOME}/interfaces/include -o veriuser_riviera.o veriuser.c \
+	$(RIVIERA_CC_OPTS) 	
+	
 veriuser.vpi: $(LIB_A_ICARUS) veriuser_icarus.o
 	$(CXX) -shared -o $@ veriuser_icarus.o \
 	-L$(ICARUS_HOME)/lib -lvpi \
@@ -254,3 +290,12 @@ libmodelsimpli.so: $(LIB_A_MODELSIM) veriuser_modelsim.o
 	cp $@ $(LIB_PATH)
 	(rm -f $@)
 	(rm -f veriuser_modelsim.o)
+	
+librivierapli.so: $(LIB_A_RIVIERA) veriuser_riviera.o
+	$(CXX) -shared -o $@ veriuser_riviera.o \
+	$(LIB_A_RIVIERA) \
+        $(ADDITIONAL_ARGS)
+	(rm -f $(LIB_PATH)/$@)
+	cp $@ $(LIB_PATH)
+	(rm -f $@)
+	(rm -f veriuser_riviera.o)

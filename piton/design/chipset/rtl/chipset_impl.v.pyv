@@ -330,8 +330,8 @@ module chipset_impl(
     // Debug
     output                                      ndmreset_o,    // non-debug module reset
     output                                      dmactive_o,    // debug module is active
-    output [`NUM_TILES-1:0]                     debug_req_o,   // async debug request
-    input  [`NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
+    output [`PITON_NUM_TILES-1:0]                     debug_req_o,   // async debug request
+    input  [`PITON_NUM_TILES-1:0]                     unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
     // JTAG
     input                                       tck_i,
     input                                       tms_i,
@@ -341,10 +341,10 @@ module chipset_impl(
     output                                      tdo_oe_o,
     // CLINT
     input                                       rtc_i,         // Real-time clock in (usually 32.768 kHz)
-    output [`NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
-    output [`NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
+    output [`PITON_NUM_TILES-1:0]                     timer_irq_o,   // Timer interrupts
+    output [`PITON_NUM_TILES-1:0]                     ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
     // PLIC
-    output [`NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
+    output [`PITON_NUM_TILES*2-1:0]                   irq_o          // level sensitive IR lines, mip & sip (async)
 `endif
 );
 
@@ -462,7 +462,7 @@ for i in range(len(devices)):
     if devices[i]["virtual"]:
             continue
 # wires for the noc2 crossbar
-    print """
+    print("""
 wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc2_data;
 wire                   %s_buf_xbar_noc2_valid;
 wire                   %s_buf_xbar_noc2_yummy;
@@ -480,10 +480,10 @@ wire                   buf_%s_noc2_ready;
 """ % (devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
-       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+       devices[i]["name"], devices[i]["name"], devices[i]["name"]))
 
 # wires for the noc3 crossbar
-    print """
+    print("""
 wire [`DATA_WIDTH-1:0] %s_buf_xbar_noc3_data;
 wire                   %s_buf_xbar_noc3_valid;
 wire                   %s_buf_xbar_noc3_yummy;
@@ -501,26 +501,26 @@ wire                   buf_%s_noc3_ready;
 """ % (devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
-       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+       devices[i]["name"], devices[i]["name"], devices[i]["name"]))
     # if the device doesn't have a noc2 input, tie off unused wires
     if not (devices[i]["noc2_in"]):
-        print """
+        print("""
 assign %s_buf_noc2_data = `DATA_WIDTH'b0;
 assign %s_buf_noc2_valid = 1'b0;
 assign %s_buf_noc3_ready = 1'b0;
-""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"]))
     # otherwise, give it a set of packet filter wires except for the chip (for now)
     elif (i > 0):
-        print """
+        print("""
 wire [`DATA_WIDTH-1:0]            %s_filter_noc2_data;
 wire                              %s_filter_noc2_valid;
 wire                              filter_%s_noc2_ready;
-""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
-        print """
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"]))
+        print("""
 wire [`DATA_WIDTH-1:0]             filter_%s_noc3_data;
 wire                               filter_%s_noc3_valid;
 wire                               %s_filter_noc3_ready;
-""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"])
+""" % (devices[i]["name"], devices[i]["name"], devices[i]["name"]))
 
 %>
 
@@ -627,19 +627,19 @@ for i in range(len(devices)):
         tmpNum +=1
 
 if tmpNum:
-    print """
+    print("""
 wire [%d-1:0] invalid_access;
 assign invalid_access_o = |invalid_access;
-""" % (tmpNum)
+""" % (tmpNum))
 else:
-    print """
+    print("""
 assign invalid_access_o = 1'b0;
-"""
+""")
 
 tmpIdx=0
 for i in range(len(devices)):
     if devices[i]["noc2_in"]:
-        print """
+        print("""
 packet_filter %s_packet_filter(
     .clk(chipset_clk),
     .rst_n(chipset_rst_n),
@@ -672,7 +672,7 @@ packet_filter %s_packet_filter(
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
        devices[i]["name"], devices[i]["name"], devices[i]["name"],
-       devices[i]["name"], devices[i]["name"], devices[i]["name"])
+       devices[i]["name"], devices[i]["name"], devices[i]["name"]))
         tmpIdx+=1
 %>
 
@@ -702,7 +702,7 @@ for i in range(len(devices)):
 xbartemplate = xbartemplate[:-3] + r'''
 );'''
 
-print xbartemplate
+print(xbartemplate)
 
 xbartemplate = r'''
 io_xbar_top_wrap io_xbar_noc3 (
@@ -732,7 +732,7 @@ xbartemplate = xbartemplate[:-3] + r'''
 );''' % (DYNAMIC_NODE_PORT - 1)
 
 
-print xbartemplate
+print(xbartemplate)
 
 for i in range(len(devices)):
     if devices[i]["virtual"]:  
@@ -768,8 +768,8 @@ credit_to_valrdy noc2_xbar_to_%s(
 );''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"],
          devices[i]["name"], devices[i]["name"], devices[i]["name"])
 
-    print valrdy_credit_template
-    print credit_valrdy_template
+    print(valrdy_credit_template)
+    print(credit_valrdy_template)
 
     valrdy_credit_template = r'''
 valrdy_to_credit noc3_%s_to_xbar (
@@ -801,8 +801,8 @@ credit_to_valrdy noc3_xbar_to_%s(
 );''' % (devices[i]["name"], devices[i]["name"], devices[i]["name"], devices[i]["name"],
          devices[i]["name"], devices[i]["name"], devices[i]["name"])
 
-    print valrdy_credit_template
-    print credit_valrdy_template
+    print(valrdy_credit_template)
+    print(credit_valrdy_template)
 %>
 
 `ifdef PITONSYS_PCIE
@@ -1175,7 +1175,7 @@ ciop_iob ciop_iob     (
 <%
 for i in range(1, len(devices)):
     if devices[i]["name"] == "uart":
-        print '''
+        print('''
 uart_top        uart_top (
     .axi_clk                    ( chipset_clk                           ),
     .rst_n                      ( chipset_rst_n                         ),
@@ -1232,7 +1232,7 @@ uart_top        uart_top (
     .xbar_uart_noc3_valid       ( filter_uart_noc3_valid                ),
     .xbar_uart_noc3_data        ( filter_uart_noc3_data                 ),
     .uart_xbar_noc3_ready       ( uart_filter_noc3_ready                )
-);''' % (devices[i]["portnum"])
+);''' % (devices[i]["portnum"]))
 %>
 `else // ifndef PITONSYS_UART
     assign uart_interrupt = 1'b0;
@@ -1243,7 +1243,7 @@ uart_top        uart_top (
 <%
 for i in range(1, len(devices)):
     if devices[i]["name"] == "uart2":
-        print '''
+        print('''
 
 uart_lite uart2(
     .axi_clk                    ( chipset_clk                           ),
@@ -1263,7 +1263,7 @@ uart_lite uart2(
     .xbar_uart_noc3_ready       ( buf_uart2_noc3_ready                   )
 );
 
-'''
+''')
 %>
 `else // PITONSYS_UART2
 assign uart2_interrupt = 1'b0;
@@ -1353,33 +1353,17 @@ ciop_fake_iob ciop_fake_iob(
 
     <%
         text = r'''
-        `ifdef RTL_SPARC0
-          .spc0_inst_done    (`TOP_MOD.monitor.pc_cmp.spc0_inst_done),
-          .pc_w0             (`PCPATH0.fdp.pc_w),
-        `endif
-        `ifdef RTL_PICO0
-          .spc0_inst_done    (1'b1),
-          .pc_w0             ({17'b0, `PICO_CORE0.reg_pc}),
-        `endif
-        `ifdef RTL_ARIANE0
-          .spc0_inst_done    ( `ARIANE_CORE0.piton_pc_vld   ),
-          .pc_w0             ( `ARIANE_CORE0.piton_pc[48:0] ),
-        `endif
+        .spc0_inst_done    (`PITON_CORE0_INST_DONE),
+        .pc_w0             (`PITON_CORE0_PC_W0),
         '''
 
-        for i in range (NUM_TILES): # extend this later
-        #for i in range (8):
+        for i in range (PITON_NUM_TILES):
             text2 = text;
-            text2 = text2.replace("PICO_CORE0", "PICO_CORE" + `i`);
-            text2 = text2.replace("ARIANE_CORE0", "ARIANE_CORE" + `i`);
-            text2 = text2.replace("RTL_ARIANE0", "RTL_ARIANE" + `i`);
-            text2 = text2.replace("RTL_SPARC0", "RTL_SPARC" + `i`);
-            text2 = text2.replace("RTL_PICO0", "RTL_PICO" + `i`);
-            text2 = text2.replace("spc0_inst_done", "spc" + `i` + "_inst_done");
-            text2 = text2.replace("pc_w0", "pc_w" + `i`);
-            text2 = text2.replace("PCPATH0", "PCPATH" + `i`);
-            text2 = text2.replace("tile0", "tile" + `i`);
-            print text2;
+            text2 = text2.replace("PITON_CORE0", "PITON_CORE" + repr(i));
+            text2 = text2.replace("spc0_inst_done", "spc" + repr(i) + "_inst_done");
+            text2 = text2.replace("pc_w0", "pc_w" + repr(i));
+            text2 = text2.replace("PC_W0", "PC_W" + repr(i));
+            print(text2)
     %>
     .clk               (chipset_clk),
     .rst_n             (chipset_rst_n)
@@ -1425,19 +1409,19 @@ for i in range(len(devices)):
         devs_with_ints += ["net_interrupt"]
         int_triggers += ["1'b1"]
 
-print "    wire [%d:0] irq_sources, irq_le;" % (len(devs_with_ints) - 1)
+print("    wire [%d:0] irq_sources, irq_le;" % (len(devs_with_ints) - 1))
     
 sources_str = "%s};" % devs_with_ints[0]
 for dev in devs_with_ints[1:]:
     sources_str = "%s, %s" % (dev, sources_str)
 sources_str = "    assign irq_sources = {" + sources_str
-print sources_str
+print(sources_str)
     
 le_str = "%s};" % int_triggers[0]
 for trig in int_triggers[1:]:
     le_str = "%s, %s" % (trig, le_str)
 le_str = "    assign irq_le = {" + le_str
-print le_str
+print(le_str)
     
 %>
 
@@ -1470,7 +1454,7 @@ for i in range(len(devices)):
 str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
-        .NumHarts       (      `NUM_TILES ),
+        .NumHarts       ( `PITON_NUM_TILES),
         .NumSources     (              %d ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),
@@ -1529,7 +1513,7 @@ str = '''
         .irq_o                           ( irq_o                         )
     );
 ''' % (len(devs_with_ints), int(DmBase), int(RomBase), int(ClintBase), int(PlicBase))
-print str
+print(str)
 %>
 
 `else

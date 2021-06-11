@@ -79,11 +79,11 @@ const char info[] = {
        ariane_ver[0:8],
        boardName,
        timeStamp,
-       int(os.environ['PTON_X_TILES']),
-       int(os.environ['PTON_Y_TILES']),
-       int(os.environ['PTON_NUM_TILES']),
+       int(os.environ['PITON_X_TILES']),
+       int(os.environ['PITON_Y_TILES']),
+       int(os.environ['PITON_NUM_TILES']),
        sysFreq,
-       os.environ['PTON_NETWORK_CONFIG'],
+       os.environ['PITON_NETWORK_CONFIG'],
        int(memLen/1024/1024),
        int(os.environ['CONFIG_L1I_SIZE'])/1024,
        int(os.environ['CONFIG_L1I_ASSOCIATIVITY']),
@@ -271,7 +271,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             current-speed = <115200>;
             interrupt-parent = <&PLIC0>;
             interrupts = <%d>;
-            reg-shift = <2>; // regs are spaced on 32 bit boundary
+            reg-shift = <0>; // regs are spaced on 8 bit boundary (modified from Xilinx UART16550 to be ns16550 compatible)
         };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
             ioDeviceNr+=1

@@ -68,7 +68,21 @@ input                                 ok_iob
 // Type Declarations
 //////////////////////
 
+`ifndef VERILATOR
 reg                             core_ref_clk;
+reg                             sys_rst_n;
+reg                             pll_rst_n;
+reg                             clk_en;
+reg                             pll_bypass;
+reg [4:0]                       pll_rangea;
+wire                            pll_lock;
+reg [1:0]                       clk_mux_sel;
+reg                             async_mux;
+// For simulation only, monitor stuff.  Only cross-module referenced
+// do not delete.
+reg                             diag_done;
+`endif // ifndef VERILATOR
+
 reg                             io_clk;
 reg                             jtag_clk;
 reg                             chipset_clk_osc_p;
@@ -84,29 +98,15 @@ reg                             passthru_clk_osc_n;
 reg                             passthru_chipset_clk_p;
 reg                             passthru_chipset_clk_n;
 
-reg                             sys_rst_n;
-
 reg                             jtag_rst_l;
-reg                             pll_rst_n;
-
-reg                             clk_en;
-
-reg                             pll_bypass;
-reg [4:0]                       pll_rangea;
-wire                            pll_lock;
-
-reg [1:0]                       clk_mux_sel;
 
 reg                             jtag_modesel;
 reg                             jtag_datain;
 wire                            jtag_dataout;
 
-reg                             async_mux;
-
 
 // For simulation only, monitor stuff.  Only cross-module referenced
 // do not delete.
-reg                             diag_done;
 reg                             fail_flag;
 reg [3:0]                       stub_done;
 reg [3:0]                       stub_pass;
@@ -430,7 +430,7 @@ system system(
     monitor   monitor(
         .clk    (`CHIP_INT_CLK),
         .cmp_gclk  (`CHIP_INT_CLK),
-        .rst_l     (`CORE_REF0.reset_l)
+        .rst_l     (`CHIP.rst_n_inter_sync)
         );
 
 `ifndef MINIMAL_MONITORING
@@ -443,7 +443,8 @@ system system(
     //  and it is randomized. For some reason if we left it as X's some tests will fail
     <%
         t = '''
-        `ifndef NO_SLAM_RANDOM
+        `ifdef OST1_PLI_SLAM_RANDOM
+        `ifdef RTL_SPARC0
         initial begin
             $slam_random(`SPARC_REG0.bw_r_irf_core.register01.bw_r_irf_register.window, 8, 0);
             $slam_random(`SPARC_REG0.bw_r_irf_core.register02.bw_r_irf_register.window, 8, 0);
@@ -478,16 +479,18 @@ system system(
             $slam_random(`SPARC_REG0.bw_r_irf_core.register31.bw_r_irf_register.window, 8, 0);
         end
         `endif
+        `endif
         '''
 
-        for i in range(NUM_TILES) :
+        for i in range(PITON_NUM_TILES) :
             tt = t.replace('SPARC_REG0', 'SPARC_REG%d' % i)
-            print tt
+            tt = t.replace('RTL_SPARC0', 'RTL_SPARC%d' % i)
+            print(tt)
     %>
 
 `ifndef VERILATOR
     // T1's TSO monitor, stripped of all L2 references
-    tso_mon tso_mon(`CHIP_INT_CLK, `CORE_REF0.reset_l);
+    tso_mon tso_mon(`CHIP_INT_CLK, `CHIP.rst_n_inter_sync);
 `endif
 
     // L15 MONITORS
@@ -530,35 +533,29 @@ system system(
 //        need_sas_sparc_intf_update  = 1;
 //    end // initial begin
 
-`ifndef PITON_PICO
-`ifndef PITON_ARIANE
+`ifdef PITON_OST1
     sas_intf  sas_intf(/*AUTOINST*/
         // Inputs
         .clk       (`CHIP_INT_CLK),      // Templated
-        .rst_l     (`CORE_REF0.reset_l));       // Templated
-`endif
+        .rst_l     (`CHIP.rst_n_inter_sync));       // Templated
 `endif
 
-`ifndef PITON_PICO
-`ifndef PITON_ARIANE
+`ifdef PITON_OST1
     // create sas tasks
     sas_tasks sas_tasks(/*AUTOINST*/
         // Inputs
         .clk      (`CHIP_INT_CLK),      // Templated
-        .rst_l        (`CORE_REF0.reset_l));       // Templated
-`endif
+        .rst_l        (`CHIP.rst_n_inter_sync));       // Templated
 `endif
 
-`ifndef PITON_ARIANE
+`ifdef PITON_OST1
     // sparc pipe flow monitor
     sparc_pipe_flow sparc_pipe_flow(/*AUTOINST*/
         // Inputs
         .clk  (`CHIP_INT_CLK));         // Templated
 `endif
 
-`ifndef PITON_PICO_HET
     manycore_network_mon network_mon (`CHIP_INT_CLK);
-`endif
 
 `endif // MINIMAL_MONITORING
 `endif // DISABLE_ALL_MONITORS

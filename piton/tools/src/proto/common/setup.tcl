@@ -79,19 +79,23 @@ set ALL_DEFAULT_VERILOG_MACROS [concat \
     ${BOARD_DEFAULT_VERILOG_MACROS}    \
 ]
 
+if {[info exists ::env(PITON_OST1)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_OST1"
+}
+
 if {[info exists ::env(PITON_PICO)]} {
   append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO"
 }
 
 if {[info exists ::env(PITON_PICO_HET)]} {
-  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO_HET"
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_PICO PITON_PICO_HET"
 }
 
 if {[info exists ::env(PITON_ARIANE)]} {
   append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE WT_DCACHE"
 }
 
-for {set k 0} {$k < $::env(PTON_NUM_TILES)} {incr k} {
+for {set k 0} {$k < $::env(PITON_NUM_TILES)} {incr k} {
   if {[info exists "::env(RTL_ARIANE$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_ARIANE$k"
   }
@@ -100,6 +104,9 @@ for {set k 0} {$k < $::env(PTON_NUM_TILES)} {incr k} {
   }
   if {[info exists "::env(RTL_SPARC$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_SPARC$k"
+  }
+  if {[info exists "::env(RTL_TILE$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_TILE$k"
   }
 }
 
@@ -112,7 +119,16 @@ set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 
 if  {[info exists ::env(PITON_ARIANE)]} {
-  puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PTON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
+  puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
+  
+  
+  # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
+  # and https://www.xilinx.com/support/answers/72570.html
+  set tmp_PYTHONPATH $env(PYTHONPATH)                                                                               
+  set tmp_PYTHONHOME $env(PYTHONHOME)                                                                               
+  unset ::env(PYTHONPATH)                                                                                           
+  unset ::env(PYTHONHOME)
+  
   set TMP [pwd]
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
   # Note: dd dumps info to stderr that we do not want to interpret
@@ -123,10 +139,10 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
-  exec make all MAX_HARTS=$::env(PTON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
+  exec make all MAX_HARTS=$::env(PITON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
   puts "INFO: done"
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
-  set NUM_TARGETS [expr 2*$::env(PTON_NUM_TILES)]
+  set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
   set NUM_SOURCES 2
   puts "INFO: generating PLIC for Ariane ($NUM_TARGETS targets, $NUM_SOURCES sources)..."
   cd $::env(ARIANE_ROOT)/src/rv_plic/rtl
@@ -134,5 +150,7 @@ if  {[info exists ::env(PITON_ARIANE)]} {
 
   cd $TMP
   puts "INFO: done"
+  set ::env(PYTHONPATH) $tmp_PYTHONPATH                                                                           
+  set ::env(PYTHONHOME) $tmp_PYTHONHOME 
 }
 

@@ -582,7 +582,7 @@ begin
                                                                                                 predecode_address_plus0_s1;
                     end
                 end
-                `MSG_TYPE_DATA_ACK:
+                `MSG_TYPE_DATA_ACK, `MSG_TYPE_NC_LOAD_MEM_ACK:
                 begin
                     predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
 
@@ -612,21 +612,21 @@ begin
                     begin
                         if (predecode_icache_bit_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                        else if (predecode_atomic_s1)
+                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
+                            // Only Load Reserve is both Cacheable and AMO 
+                            // (just store NC=0 to mshr[in MSHR S1 logic], nc bit is still 1 in LR PCX req)
                         else if (predecode_dcache_load_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LD;
                         else if (predecode_dcache_noc2_store_im_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_IM;
                         else if (predecode_dcache_noc2_store_sm_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_ST_SM;
-                        else if (predecode_atomic_s1)
-                            predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
-                            // Only Load Reserve is both Cacheable and AMO 
-                            // (just store NC=0 to mshr[in MSHR S1 logic], nc bit is still 1 in LR PCX req)
                         else
                             predecode_reqtype_s1 = `L15_REQTYPE_IGNORE; // error case
                     end
                 end
-                `MSG_TYPE_NODATA_ACK:
+                `MSG_TYPE_NODATA_ACK, `MSG_TYPE_NC_STORE_MEM_ACK:
                 begin
                     predecode_icache_bit_s1 = predecode_mshr_read_control_s1[`L15_CONTROL_ICACHE];
                     predecode_address_s1 = mshr_st_address_array[noc2decoder_l15_threadid];
@@ -1506,10 +1506,6 @@ begin
                     `L15_REQTYPE_AMO_LR:
                     begin
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LR_REQUEST;
-                        decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_WAIT_ACK;
-                        // For LR, mshr_update_state can not be IM or SM, 
-                        // otherwise the ACKDT_LR will be recognised as a ACKDT_ST_IM/SM. 
-                        // So we explicitly set the mshr_update_state to WAIT_ACK
                     end
                     `L15_REQTYPE_CAS:
                         decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_CAS_REQUEST_FROM_PCX;
@@ -2138,9 +2134,9 @@ begin
         end
     endcase
 
-    unshifted_write_mask_s1 =   (predecode_size_s1 == `PCX_SZ_1B) ? 16'b1000_0000_0000_0000 :
-                                (predecode_size_s1 == `PCX_SZ_2B) ? 16'b1100_0000_0000_0000 :
-                                (predecode_size_s1 == `PCX_SZ_4B) ? 16'b1111_0000_0000_0000 :
+    unshifted_write_mask_s1 =   (predecode_size_s1 == `MSG_DATA_SIZE_1B) ? 16'b1000_0000_0000_0000 :
+                                (predecode_size_s1 == `MSG_DATA_SIZE_2B) ? 16'b1100_0000_0000_0000 :
+                                (predecode_size_s1 == `MSG_DATA_SIZE_4B) ? 16'b1111_0000_0000_0000 :
                                                                     16'b1111_1111_0000_0000 ;
 
     write_mask_1B_s1 = unshifted_write_mask_s1 >> (pcxdecoder_l15_address & 4'b1111);
@@ -2152,23 +2148,27 @@ begin
     write_mask_16B_s1 = {16{1'b1}};
 
     case(predecode_size_s1)
-        `PCX_SZ_1B:
+        `MSG_DATA_SIZE_1B:
         begin
             write_mask_s1 = write_mask_1B_s1;
         end
-        `PCX_SZ_2B:
+        `MSG_DATA_SIZE_2B:
         begin
             write_mask_s1 = write_mask_2B_s1;
         end
-        `PCX_SZ_4B:
+        `MSG_DATA_SIZE_4B:
         begin
             write_mask_s1 = write_mask_4B_s1;
         end
-        `PCX_SZ_8B:
+        `MSG_DATA_SIZE_8B:
         begin
             write_mask_s1 = write_mask_8B_s1;
         end
-        `PCX_SZ_16B:
+        `MSG_DATA_SIZE_16B:
+        begin
+            write_mask_s1 = write_mask_16B_s1;
+        end
+        default:
         begin
             write_mask_s1 = write_mask_16B_s1;
         end
@@ -2321,8 +2321,8 @@ reg val_s2_next;
 for e in s2floplist:
     name = e[0] + '_s2'
     width = e[1]
-    print "reg [%s-1:0] %s;" % (width, name)
-    print "reg [%s-1:0] %s_next;" % (width, name)
+    print("reg [%s-1:0] %s;" % (width, name))
+    print("reg [%s-1:0] %s_next;" % (width, name))
 %>
 
 always @ (posedge clk)
@@ -2333,7 +2333,7 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s <= 0;" % (name)
+            print("%s <= 0;" % (name))
         %>
     end
     else
@@ -2342,7 +2342,7 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s <= %s_next;" % (name,name)
+            print("%s <= %s_next;" % (name,name))
         %>
     end
 end
@@ -2365,13 +2365,13 @@ begin
         <%
         for e in s2floplist:
             name = e[0] + '_s2'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
         `else
         <%
         for e in s2floplist_no_rtl_csm:
             name = e[0] + '_s2'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
         `endif
     end
@@ -3207,8 +3207,8 @@ s3floplist = [
 for e in s3floplist:
     name = e[0] + '_s3'
     width = e[1]
-    print "reg [%s-1:0] %s;" % (width, name)
-    print "reg [%s-1:0] %s_next;" % (width, name)
+    print("reg [%s-1:0] %s;" % (width, name))
+    print("reg [%s-1:0] %s_next;" % (width, name))
 %>
 reg val_s3_next;
 reg [`L15_LRUARRAY_MASK] lru_data_s3;
@@ -3249,7 +3249,7 @@ begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s <= 0;" % (name)
+            print("%s <= 0;" % (name))
         %>
     end
     else
@@ -3262,7 +3262,7 @@ begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s <= %s_next;" % (name,name)
+            print("%s <= %s_next;" % (name,name))
         %>
     end
 end
@@ -3373,7 +3373,7 @@ always @* begin
         <%
         for e in s3floplist:
             name = e[0] + '_s3'
-            print "%s_next = %s;" % (name,name)
+            print("%s_next = %s;" % (name,name))
         %>
     end
     else
@@ -3383,7 +3383,7 @@ always @* begin
         for e in s3floplist:
             name = e[0] + '_s3'
             names2 = e[0] + '_s2'
-            print "%s_next = %s;" % (name,names2)
+            print("%s_next = %s;" % (name,names2))
         %>
     end
 end
@@ -4074,10 +4074,10 @@ begin
     case (cpx_data_source_s3)
         `L15_CPX_SOURCE_LRSC_FLAG:
         begin
-            l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+            l15_cpxencoder_data_0[`L15_UNPARAM_63_0] = ((size_s3 == `MSG_DATA_SIZE_4B) ?
                 {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
                 {7'b0,(~tagcheck_lrsc_flag_s3),56'b0});
-            l15_cpxencoder_data_1[`L15_UNPARAM_63_0] = ((size_s3 == `PCX_SZ_4B) ?
+            l15_cpxencoder_data_1[`L15_UNPARAM_63_0] = ((size_s3 == `MSG_DATA_SIZE_4B) ?
                 {7'b0,(~tagcheck_lrsc_flag_s3),24'b0, 7'b0,(~tagcheck_lrsc_flag_s3),24'b0} :
                 {7'b0,(~tagcheck_lrsc_flag_s3),56'b0}); // write 0 on success
         end

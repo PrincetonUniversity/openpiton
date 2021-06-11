@@ -54,7 +54,7 @@ module io_xbar_top_wrap
     input clk,
     input reset_in,
     <%
-    print ""
+    print("")
     io_xbar_node_define.print_ports_nl ("    input [`DATA_WIDTH-1:0] dataIn_%d,")
     io_xbar_node_define.print_ports_nl ("    input validIn_%d,")
     io_xbar_node_define.print_ports ("    input yummyIn_%d,")
@@ -83,7 +83,7 @@ module io_xbar_top_wrap
     input [`XY_WIDTH-1:0] myLocY,
     input [`CHIP_ID_WIDTH-1:0] myChipID,
     <%
-    print ""
+    print("")
     io_xbar_node_define.print_ports_nl ("    output [`DATA_WIDTH-1:0] dataOut_%d,")
     io_xbar_node_define.print_ports_nl ("    output validOut_%d,")
     io_xbar_node_define.print_ports_nl ("    output yummyOut_%d,")
@@ -117,7 +117,7 @@ module io_xbar_top_wrap
         .clk(clk),
         .reset_in(reset_in),
         <%
-        print ""
+        print("")
         io_xbar_node_define.print_ports_2 ("        .dataIn_%d(dataIn_%d),")
         io_xbar_node_define.print_ports_2 ("        .validIn_%d(validIn_%d),")
         io_xbar_node_define.print_ports_2 ("        .yummyIn_%d(yummyIn_%d),")
@@ -129,7 +129,7 @@ module io_xbar_top_wrap
         .store_meter_partner_address_X(5'b0),
         .store_meter_partner_address_Y(5'b0),
         <%
-        print ""
+        print("")
         io_xbar_node_define.print_ports_2 ("        .dataOut_%d(dataOut_%d),")
         io_xbar_node_define.print_ports_2 ("        .validOut_%d(validOut_%d),")
         io_xbar_node_define.print_ports_2 ("        .yummyOut_%d(yummyOut_%d),")

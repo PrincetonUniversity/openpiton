@@ -42,7 +42,7 @@ text = ''',
 '''
 pattern = ["spc0", "pc_w0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 );
 //temp. memory.
@@ -171,11 +171,11 @@ begin
         dest_x = `NOC_X_WIDTH'dxfield;
         dest_y = `NOC_Y_WIDTH'dyfield;
     end'''
-    for i in range(NUM_TILES):
+    for i in range(PITON_NUM_TILES):
         tt = text.replace("ifield", str(i))
-        tt = tt.replace("xfield", str(i%X_TILES))
-        tt = tt.replace("yfield", str(i/X_TILES))
-        print tt
+        tt = tt.replace("xfield", str(int(i%PITON_X_TILES)))
+        tt = tt.replace("yfield", str(int(i/PITON_X_TILES)))
+        print(tt)
     %>
     default:
     begin
@@ -194,7 +194,7 @@ wire [48:0]                      pc_w0_buf           = pc_w0;
 '''
 pattern = ["spc0", "pc_w0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
 
 reg 	 ok_iob;
@@ -223,7 +223,7 @@ text = ''',
             pc_w0_buf'''
 pattern = ["spc0", "pc_w0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
         );
         `else // ifndef PITON_DPI
@@ -234,7 +234,7 @@ text = '''
         end'''
 pattern = ["spc0", "pc_w0"]
 tt = ReplicatePattern(text, pattern)
-print tt
+print(tt)
 %>
         cpx_driven = drive_iob();
         if (cpx_driven) begin

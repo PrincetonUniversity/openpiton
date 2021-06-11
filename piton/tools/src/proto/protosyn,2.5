@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
 #
@@ -53,98 +53,98 @@ PROJECT_IMPL_LOG = "implementation.log"
 FLOW_STEP_OPTIONS = ["project", "impl"]
 
 def usage():
-    print >> sys.stderr
-    print >> sys.stderr, "Usage:\nprotosyn -b <board_type> [-d <design>] [--bram-test <test_name>]",
-    print >> sys.stderr, "[--from <FPGA flow step>] [--to <FPGA flow step>] [--no-ddr] [--uart-dmw ddr] [--eth] [--oled <string>]"
-    print >> sys.stderr
-    print >> sys.stderr, "       -b, --board  <board_type>"
-    print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
-    print >> sys.stderr, "                  vc707"
-    print >> sys.stderr, "                  vcu118"
-    print >> sys.stderr, "                  xupp3r"
-    print >> sys.stderr, "                  genesys2"
-    print >> sys.stderr, "                  nexysVideo"
-    print >> sys.stderr, "                  f1"
-    print >> sys.stderr, "\n       -d, --design <design>"
-    print >> sys.stderr, "              Name of design module to synthesize.  The default is 'system', which"
-    print >> sys.stderr, "              synthesizes a full system with chip and chipset. See"
-    print >> sys.stderr, "              $DV_ROOT/tools/src/proto/block.list for supported design modules"
-    print >> sys.stderr, "\n       -c, --core <core_config>"
-    print >> sys.stderr, "              Name of a supported core configuration:"
-    print >> sys.stderr, "                  sparc     (opensparc T1 core, default)"
-    print >> sys.stderr, "                  pico      (32bit RISCV core)"
-    print >> sys.stderr, "                  pico_het  (heterogeneous pico+sparc arrangement)"
-    print >> sys.stderr, "                  ariane    (64bit RISCV core)"
-    print >> sys.stderr, "\n       --network_config <network_config>"
-    print >> sys.stderr, "              Name of the network type to be used:"
-    print >> sys.stderr, "                  2dmesh_config (default)"
-    print >> sys.stderr, "                  xbar_config"
-    print >> sys.stderr, "\n       --x_tiles <number>"
-    print >> sys.stderr, "       --y_tiles <number>"
-    print >> sys.stderr, "              Number of tiles to instantiate in each direction. Default: 1."
-    print >> sys.stderr, "       --num_tiles <number>"
-    print >> sys.stderr, "              Total number of tiles. Default: 1."
-    print >> sys.stderr, "              In case the x/y tile defaults are not overridden, this creates an arrangement assuming x_tiles<=8."
-    print >> sys.stderr, "\n       --config_l1i_size <number>"
-    print >> sys.stderr, "       --config_l1d_size <number>"
-    print >> sys.stderr, "       --config_l15_size <number>"
-    print >> sys.stderr, "       --config_l2_size <number>"
-    print >> sys.stderr, "              Cache sizes in bytes, defaults: 8192 (L1D/L1.5), 16384 (L1I), 65536 (L2)"
-    print >> sys.stderr, "\n       --config_l1i_associativity <number>"
-    print >> sys.stderr, "       --config_l1d_associativity <number>"
-    print >> sys.stderr, "       --config_l15_associativity <number>"
-    print >> sys.stderr, "       --config_l2_associativity  <number>"
-    print >> sys.stderr, "              Cache associativities, default: 4"
-    print >> sys.stderr, "\n       --bram-test <test_name>"
-    print >> sys.stderr, "              Name of the test to be mapped into BRAM"
-    print >> sys.stderr, "\n       --no-ddr"
-    print >> sys.stderr, "              Implement design without DDR memory"
-    print >> sys.stderr, "\n       --eth"
-    print >> sys.stderr, "              Add Ethernet controller to implementation"
-    print >> sys.stderr, "\n       --uart-dmw <storage type>"
-    print >> sys.stderr, "              Implement design with Direct Memory Write (DMW) from UART module turned on."
-    print >> sys.stderr, "              Storage type: \"ddr\""
-    print >> sys.stderr, "\n       --uart-reset"
-    print >> sys.stderr, "              Attach UART traffic sniffer to the uart port. This sniffer will send"
-    print >> sys.stderr, "              the reset signal to the whole system if it sees magic sequence 0x9a337213af278f34"
-    print >> sys.stderr, "\n       --uart2-enable"
-    print >> sys.stderr, "              Enable second uart device"
-    print >> sys.stderr, "\n       --asic-rtl"
-    print >> sys.stderr, "              Implement design with ASIC RTL."
-    print >> sys.stderr, "\n       --chip-bridge"
-    print >> sys.stderr, "              Implement full system including the chip bridge"
-    print >> sys.stderr, "\n       --inc-passthru"
-    print >> sys.stderr, "              Include passthru between chip and chipset (requires --chip-bridge)"
-    print >> sys.stderr, "\n       --passthru-dec"
-    print >> sys.stderr, "              Use decode version of passthru (requires --inc-passthru if design"
-    print >> sys.stderr, "              is not 'passthru' or 'passthru_loopback')"
-    print >> sys.stderr, "\n       --passthru-dec-uart-pkttrace"
-    print >> sys.stderr, "              Dumps packet trace seen by decode version of passthrough to UART"
-    print >> sys.stderr, "              for debugging (requires --passthru-dec)"
-    print >> sys.stderr, "\n       --define <comma separated list of defines>"
-    print >> sys.stderr, "              Comma separated list of custom Verilog macro defines"
-    print >> sys.stderr, "\n       --make-mem-map"
-    print >> sys.stderr, "              Create a mapping of test specified by --bram-test option to a BRAM"
-    print >> sys.stderr, "\n       --from <step>"
-    print >> sys.stderr, "              Start FPGA flow from a specified step. Available options are:"
-    print >> sys.stderr, "                  project"
-    print >> sys.stderr, "                  impl"
-    print >> sys.stderr, "\n       --to  <step>"
-    print >> sys.stderr, "              Run FPGA flow to a specified step (including). Available options are:"
-    print >> sys.stderr, "                  project"
-    print >> sys.stderr, "                  impl"
-    print >> sys.stderr, "\n       --oled <string>"
-    print >> sys.stderr, "\n            String to be displayed on OLED display."
-    print >> sys.stderr, "\n            (Genesys2 and nexysVideo boards only"
-    print >> sys.stderr, "\n       --slurm"
-    print >> sys.stderr, "              Run steps of flow using SLURM job scheduler"
-    print >> sys.stderr, "\n       --swait"
-    print >> sys.stderr, "\n            Wait for slurm jobs to finish"
-    print >> sys.stderr, "\n       -j, --jobs"
-    print >> sys.stderr, "              Number of jobs to use in Vivado implementation flow"
-    print >> sys.stderr, "\n       -h, --help"
-    print >> sys.stderr, "              Display this help message and exit"
-    print >> sys.stderr, "\n"
+    print(file=sys.stderr)
+    print("Usage:\nprotosyn -b <board_type> [-d <design>] [--bram-test <test_name>]", end=' ', file=sys.stderr)
+    print("[--from <FPGA flow step>] [--to <FPGA flow step>] [--no-ddr] [--uart-dmw ddr] [--eth] [--oled <string>]", file=sys.stderr)
+    print(file=sys.stderr)
+    print("       -b, --board  <board_type>", file=sys.stderr)
+    print("              Name of a supported Xilinx's development board. Available options are:", file=sys.stderr)
+    print("                  vc707", file=sys.stderr)
+    print("                  vcu118", file=sys.stderr)
+    print("                  xupp3r", file=sys.stderr)
+    print("                  genesys2", file=sys.stderr)
+    print("                  nexysVideo", file=sys.stderr)
+    print("                  f1", file=sys.stderr)
+    print("\n       -d, --design <design>", file=sys.stderr)
+    print("              Name of design module to synthesize.  The default is 'system', which", file=sys.stderr)
+    print("              synthesizes a full system with chip and chipset. See", file=sys.stderr)
+    print("              $DV_ROOT/tools/src/proto/block.list for supported design modules", file=sys.stderr)
+    print("\n       -c, --core <core_config>", file=sys.stderr)
+    print("              Name of a supported core configuration:", file=sys.stderr)
+    print("                  sparc     (opensparc T1 core, default)", file=sys.stderr)
+    print("                  pico      (32bit RISCV core)", file=sys.stderr)
+    print("                  pico_het  (heterogeneous pico+sparc arrangement)", file=sys.stderr)
+    print("                  ariane    (64bit RISCV core)", file=sys.stderr)
+    print("\n       --network_config <network_config>", file=sys.stderr)
+    print("              Name of the network type to be used:", file=sys.stderr)
+    print("                  2dmesh_config (default)", file=sys.stderr)
+    print("                  xbar_config", file=sys.stderr)
+    print("\n       --x_tiles <number>", file=sys.stderr)
+    print("       --y_tiles <number>", file=sys.stderr)
+    print("              Number of tiles to instantiate in each direction. Default: 1.", file=sys.stderr)
+    print("       --num_tiles <number>", file=sys.stderr)
+    print("              Total number of tiles. Default: 1.", file=sys.stderr)
+    print("              In case the x/y tile defaults are not overridden, this creates an arrangement assuming x_tiles<=8.", file=sys.stderr)
+    print("\n       --config_l1i_size <number>", file=sys.stderr)
+    print("       --config_l1d_size <number>", file=sys.stderr)
+    print("       --config_l15_size <number>", file=sys.stderr)
+    print("       --config_l2_size <number>", file=sys.stderr)
+    print("              Cache sizes in bytes, defaults: 8192 (L1D/L1.5), 16384 (L1I), 65536 (L2)", file=sys.stderr)
+    print("\n       --config_l1i_associativity <number>", file=sys.stderr)
+    print("       --config_l1d_associativity <number>", file=sys.stderr)
+    print("       --config_l15_associativity <number>", file=sys.stderr)
+    print("       --config_l2_associativity  <number>", file=sys.stderr)
+    print("              Cache associativities, default: 4", file=sys.stderr)
+    print("\n       --bram-test <test_name>", file=sys.stderr)
+    print("              Name of the test to be mapped into BRAM", file=sys.stderr)
+    print("\n       --no-ddr", file=sys.stderr)
+    print("              Implement design without DDR memory", file=sys.stderr)
+    print("\n       --eth", file=sys.stderr)
+    print("              Add Ethernet controller to implementation", file=sys.stderr)
+    print("\n       --uart-dmw <storage type>", file=sys.stderr)
+    print("              Implement design with Direct Memory Write (DMW) from UART module turned on.", file=sys.stderr)
+    print("              Storage type: \"ddr\"", file=sys.stderr)
+    print("\n       --uart-reset", file=sys.stderr)
+    print("              Attach UART traffic sniffer to the uart port. This sniffer will send", file=sys.stderr)
+    print("              the reset signal to the whole system if it sees magic sequence 0x9a337213af278f34", file=sys.stderr)
+    print("\n       --uart2-enable", file=sys.stderr)
+    print("              Enable second uart device", file=sys.stderr)
+    print("\n       --asic-rtl", file=sys.stderr)
+    print("              Implement design with ASIC RTL.", file=sys.stderr)
+    print("\n       --chip-bridge", file=sys.stderr)
+    print("              Implement full system including the chip bridge", file=sys.stderr)
+    print("\n       --inc-passthru", file=sys.stderr)
+    print("              Include passthru between chip and chipset (requires --chip-bridge)", file=sys.stderr)
+    print("\n       --passthru-dec", file=sys.stderr)
+    print("              Use decode version of passthru (requires --inc-passthru if design", file=sys.stderr)
+    print("              is not 'passthru' or 'passthru_loopback')", file=sys.stderr)
+    print("\n       --passthru-dec-uart-pkttrace", file=sys.stderr)
+    print("              Dumps packet trace seen by decode version of passthrough to UART", file=sys.stderr)
+    print("              for debugging (requires --passthru-dec)", file=sys.stderr)
+    print("\n       --define <comma separated list of defines>", file=sys.stderr)
+    print("              Comma separated list of custom Verilog macro defines", file=sys.stderr)
+    print("\n       --make-mem-map", file=sys.stderr)
+    print("              Create a mapping of test specified by --bram-test option to a BRAM", file=sys.stderr)
+    print("\n       --from <step>", file=sys.stderr)
+    print("              Start FPGA flow from a specified step. Available options are:", file=sys.stderr)
+    print("                  project", file=sys.stderr)
+    print("                  impl", file=sys.stderr)
+    print("\n       --to  <step>", file=sys.stderr)
+    print("              Run FPGA flow to a specified step (including). Available options are:", file=sys.stderr)
+    print("                  project", file=sys.stderr)
+    print("                  impl", file=sys.stderr)
+    print("\n       --oled <string>", file=sys.stderr)
+    print("\n            String to be displayed on OLED display.", file=sys.stderr)
+    print("\n            (Genesys2 and nexysVideo boards only", file=sys.stderr)
+    print("\n       --slurm", file=sys.stderr)
+    print("              Run steps of flow using SLURM job scheduler", file=sys.stderr)
+    print("\n       --swait", file=sys.stderr)
+    print("\n            Wait for slurm jobs to finish", file=sys.stderr)
+    print("\n       -j, --jobs", file=sys.stderr)
+    print("              Number of jobs to use in Vivado implementation flow", file=sys.stderr)
+    print("\n       -h, --help", file=sys.stderr)
+    print("              Display this help message and exit", file=sys.stderr)
+    print("\n", file=sys.stderr)
 
 def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
     # Write slurm batch file
@@ -165,7 +165,7 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
     # Submit job, retrying on fails
     slurm_cmd = ["sbatch"]
     if dep_list != None and len(dep_list) > 0:
-        slurm_cmd.append("--dependency=afterok:" + ':'.join(dep_list))
+        slurm_cmd.append("--dependency=afterok:" + ':'.join([str(dep) for dep in dep_list]))
     slurm_cmd.append(slurm_file)
     proc = subprocess.Popen(slurm_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -177,10 +177,10 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
         out, err = proc.communicate()
 
     # Get job ID and return for dependencies
-    match = re.match("Submitted batch job (\d+)\n", out)
+    match = re.match(r"b'Submitted batch job (\d+)\\n'", str(out))
     if match:
-        print_info("Submitted batch job %s" % match.group(1))
-        return match.group(1)
+        print_info("Submitted batch job %s" % str(match.group(1)))
+        return str(match.group(1))
     else:
         print_error("Error submitting batch job")
         return None
@@ -227,7 +227,7 @@ def runImplF1(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
 
     # Generate additional defines file that will be sourced in tcl script
     f = open("additional_defines.tcl", "w")
-    print >> f, "set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list)
+    print("set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list), file=f)
     f.close()
 
     print_info("Generating DCP for AWS F1")
@@ -308,7 +308,7 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
 
     # Generate additional defines file that will be sourced in tcl script
     f = open("additional_defines.tcl", "w")
-    print >> f, "set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list)
+    print("set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list), file=f)
     f.close()
 
     tool = find_board_tool(board)
@@ -638,9 +638,9 @@ def genUARTInit(board, design_data):
     path = os.path.join(DV_ROOT, "design/chipset/uart/xilinx/")
     path = os.path.join(path, board, "ip_cores/atg_uart_init/uart_data.coe")
     f = open(path, 'w')
-    print >> f, "memory_initialization_radix=16;"
-    print >> f, """memory_initialization_vector=00000080 %08x 00000000 00000003 00000003 00000000 \
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000;""" % div
+    print("memory_initialization_radix=16;", file=f)
+    print("""memory_initialization_vector=00000080 %08x 00000000 00000003 00000003 00000000 \
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000;""" % div, file=f)
     f.close()
 
 def main():
@@ -726,12 +726,16 @@ def main():
     print_info("y_tiles   = " + str(options.y_tiles))
     print_info("num_tiles = " + str(options.num_tiles))
 
-    os.environ['PTON_X_TILES']   = str(options.x_tiles)
-    os.environ['PTON_Y_TILES']   = str(options.y_tiles)
-    os.environ['PTON_NUM_TILES'] = str(options.num_tiles)
+    os.environ['PITON_X_TILES']   = str(options.x_tiles)
+    os.environ['PITON_Y_TILES']   = str(options.y_tiles)
+    os.environ['PITON_NUM_TILES'] = str(options.num_tiles)
 
     # core variant
     print_info("core      = " + str(options.core))
+    for i in range(int(options.num_tiles)):
+        os.environ['RTL_TILE' + str(i)] = "1"
+        print_info('defining RTL_TILE' + str(i))
+
     if options.core == 'pico':
 
         os.environ['PITON_PICO']     = "1"
@@ -764,6 +768,7 @@ def main():
 
     elif options.core == 'sparc':
         # this is the default
+        os.environ['PITON_OST1'] = "1"
         for i in range(int(options.num_tiles)):
             os.environ['RTL_SPARC' + str(i)] = "1"
             print_info('setenv RTL_SPARC' + str(i))
@@ -778,7 +783,7 @@ def main():
         sys.exit(1)
 
     print_info("network   = " + str(options.network_config))
-    os.environ['PTON_NETWORK_CONFIG'] = options.network_config
+    os.environ['PITON_NETWORK_CONFIG'] = options.network_config
 
     # cache config
     print_info("l15 size  = " + str(options.config_l15_size))

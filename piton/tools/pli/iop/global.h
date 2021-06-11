@@ -42,6 +42,7 @@ extern "C" {
 #define PC_EVENT CPX_LOC+1
 
 //global define
+#ifndef RIVIERA
 #ifndef __ICARUS__
 #ifndef PITON_DPI
 extern "C" void io_printf(char*, ...);
@@ -49,6 +50,9 @@ extern "C" void io_printf(char*, ...);
 #define io_printf printf
 #endif // ifndef PITON_DPI
 #endif // ifndef __ICARUS__
+#else
+#define io_printf printf
+#endif  // ifndef RIVIERA
 #define KeyType unsigned long long
 //define event record.
 typedef struct event_record{

@@ -48,28 +48,28 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 
 <%
 	# declaration of wires and registers
-	for i in xrange(NUM_TILES):
-		print "    wire [TOTAL_CREDIT_WIDTH - 1 : 0]	total_credit_num%d;" % i
-		print "	   reg	[TOTAL_CREDIT_WIDTH - 1 : 0]	used_credits%d;" % i
-		print "    reg 	[`REPLENISH_WIDTH - 1 : 0]		rep_cnt%d;" % i
-		print "	   wire									rst_credits%d;" % i
+	for i in range(PITON_NUM_TILES):
+		print("    wire [TOTAL_CREDIT_WIDTH - 1 : 0]	total_credit_num%d;" % i)
+		print("	   reg	[TOTAL_CREDIT_WIDTH - 1 : 0]	used_credits%d;" % i)
+		print("    reg 	[`REPLENISH_WIDTH - 1 : 0]		rep_cnt%d;" % i)
+		print("	   wire									rst_credits%d;" % i)
 	#print "\n\n\n"
 
 	# calculation of total number of credits for each tile
-	for i in xrange(NUM_TILES):
-		print "    assign total_credit_num%d = " % i,
-		for j in xrange(BIN_NUMBER):
+	for i in range(PITON_NUM_TILES):
+		print("    assign total_credit_num%d = " % i,end="")
+		for j in range(BIN_NUMBER):
 			if j != 0:
-				print " + ",
-			print "`DMBR%d.creditIn_%d" % (i,j),
-		print ";"
-		print "assign rst_credits%d = rep_cnt%d == `DMBR%d.replenishCyclesIn;" % (i,i,i)
+				print(" + ",end="")
+			print("`DMBR%d.creditIn_%d" % (i,j),end="")
+		print(";")
+		print("assign rst_credits%d = rep_cnt%d == `DMBR%d.replenishCyclesIn;" % (i,i,i))
 %>
 
 
 	<%
-		for i in range(NUM_TILES):
-			print """
+		for i in range(PITON_NUM_TILES):
+			print("""
 			always @(posedge `DMBR%d.clk)
 			begin
 			if (`DMBR%d.rst)
@@ -79,14 +79,14 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 								  `DMBR%d.l2responseIn & ~`DMBR%d.l2missIn & (used_credits%d > 0)	? used_credits%d - 1 :
 								  rst_credits%d														? {TOTAL_CREDIT_WIDTH{1'b0}} :
 								  																	  used_credits%d 	;""" \
-			% (i,i,i,i,i,i,i,i,i,i,i,i)
-			print
-			print """if(`DMBR%d.rst)
+			% (i,i,i,i,i,i,i,i,i,i,i,i))
+			print()
+			print("""if(`DMBR%d.rst)
 			    rep_cnt%d <= {`REPLENISH_WIDTH{1'b0}};
 			else
 				rep_cnt%d <= rst_credits%d	? {`REPLENISH_WIDTH{1'b0}} : rep_cnt%d + 1'b1;""" \
-			% (i,i,i,i,i)
-			print "end"
+			% (i,i,i,i,i))
+			print("end")
 	%>
 
 
@@ -94,8 +94,8 @@ localparam TOTAL_CREDIT_WIDTH = `CREDIT_WIDTH + 4;	// 10 bins > 2^4 increasing i
 // bins isn't exceeded
 `ifdef DMBR_CHECKER
 <%
-for i in range(NUM_TILES):
-	print """
+for i in range(PITON_NUM_TILES):
+	print("""
 	always @*
 	begin
 		if ((used_credits%d > (total_credit_num%d + 1) ) & `DMBR%d.l1missIn)
@@ -106,7 +106,7 @@ for i in range(NUM_TILES):
 			$display("***********************************************************\\n");
 			$stop;
 		end
-	end""" % (i,i,i,i,i,i)
+	end""" % (i,i,i,i,i,i))
 %>
 `endif
 

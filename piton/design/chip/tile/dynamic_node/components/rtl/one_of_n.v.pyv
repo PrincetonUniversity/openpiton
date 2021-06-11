@@ -34,7 +34,7 @@ DYNAMIC_NODE_PORT_LOG2 = dynamic_node_para_define.DYNAMIC_NODE_PORT_LOG2
 %>
 module one_of_n(
   <%
-  print ""
+  print("")
   dynamic_node_para_define.print_ports("  in%d,")
   %>
   sel,
@@ -49,10 +49,10 @@ module one_of_n(
         out={WIDTH{1'b0}};
         case(sel)
         <%
-        print ""
+        print("")
         for a in range (DYNAMIC_NODE_PORT):
           s = "            %d'd%d:out=in%d;" % (DYNAMIC_NODE_PORT_LOG2, a, a)
-          print s
+          print(s)
         %>
             default:; // indicates null
         endcase

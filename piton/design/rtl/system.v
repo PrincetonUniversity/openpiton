@@ -566,14 +566,14 @@ wire                pcie_cfg_rst_out_n;
 // Debug
 wire                     ndmreset;    // non-debug module reset
 wire                     dmactive;    // debug module is active
-wire  [`NUM_TILES-1:0]   debug_req;   // async debug request
-wire  [`NUM_TILES-1:0]   unavailable; // communicate whether the hart is unavailable (e.g.: power down)
+wire  [`PITON_NUM_TILES-1:0]   debug_req;   // async debug request
+wire  [`PITON_NUM_TILES-1:0]   unavailable; // communicate whether the hart is unavailable (e.g.: power down)
 // CLINT
 wire                     rtc;         // Real-time clock in (usually 32.768 kHz)
-wire  [`NUM_TILES-1:0]   timer_irq;   // Timer interrupts
-wire  [`NUM_TILES-1:0]   ipi;         // software interrupt (a.k.a inter-process-interrupt)
+wire  [`PITON_NUM_TILES-1:0]   timer_irq;   // Timer interrupts
+wire  [`PITON_NUM_TILES-1:0]   ipi;         // software interrupt (a.k.a inter-process-interrupt)
 // PLIC
-wire  [`NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (async)
+wire  [`PITON_NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (async)
 
 `endif
 

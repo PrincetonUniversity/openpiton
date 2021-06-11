@@ -111,9 +111,9 @@ begin
     begin
 <%
 for i in range(L2_STATE_ARRAY_WIDTH):
-    print '''
+    print('''
         data_out[%d] = data_mask_in_buf[%d] ? data_in_buf[%d] : data_out_real[%d];
-    ''' % (i, i, i, i)
+    ''' % (i, i, i, i))
 
 %>
     end

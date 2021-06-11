@@ -67,28 +67,28 @@ begin
 def toBinary(n, w):
     return ''.join(str(1 & int(n) >> i) for i in range(w)[::-1])
 
-for i in xrange(HOME_ID_WIDTH-1,-1,-1):
+for i in range(HOME_ID_WIDTH-1,-1,-1):
     if i == HOME_ID_WIDTH-1:
-        print "    if (num_homes[%d])" % (i)
-        print "    begin"
-        print "        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**i-1, HOME_ID_WIDTH))
-        print "        isPowerOf2 = ~(|(num_homes[%d:0]));" % (i-1)
-        print "    end"
+        print("    if (num_homes[%d])" % (i))
+        print("    begin")
+        print("        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**i-1, HOME_ID_WIDTH)))
+        print("        isPowerOf2 = ~(|(num_homes[%d:0]));" % (i-1))
+        print("    end")
     else:
-        print "    else if (num_homes[%d])" % (i)
-        print "    begin"
-        print "        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**i-1, HOME_ID_WIDTH))
+        print("    else if (num_homes[%d])" % (i))
+        print("    begin")
+        print("        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**i-1, HOME_ID_WIDTH)))
         if i > 0:
-            print "        isPowerOf2 = ~(|(num_homes[%d:0]));" % (i-1)
+            print("        isPowerOf2 = ~(|(num_homes[%d:0]));" % (i-1))
         else:
-            print "        isPowerOf2 = 1'b1;"
-        print "    end"
+            print("        isPowerOf2 = 1'b1;")
+        print("    end")
 
-print "    else"
-print "    begin"
-print "        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**HOME_ID_WIDTH-1, HOME_ID_WIDTH))
-print "        isPowerOf2 = 1'b1;"
-print "    end"
+print("    else")
+print("    begin")
+print("        home_low_mask = %d\'b%s;" % (HOME_ID_WIDTH, toBinary(2**HOME_ID_WIDTH-1, HOME_ID_WIDTH)))
+print("        isPowerOf2 = 1'b1;")
+print("    end")
 %>
 end
 

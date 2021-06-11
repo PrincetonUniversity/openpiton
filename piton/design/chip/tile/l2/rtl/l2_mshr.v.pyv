@@ -118,10 +118,10 @@ begin
     empty_slots = 0;
 <%
 for i in range(L2_MSHR_ENTRIES):
-    print "    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
-    print "    begin"
-    print "        empty_slots = empty_slots + 1;"
-    print "    end"
+    print("    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i))
+    print("    begin")
+    print("        empty_slots = empty_slots + 1;")
+    print("    end")
 %>
 end
 
@@ -130,22 +130,22 @@ begin
 <%
 for i in range(L2_MSHR_ENTRIES):
     if i == 0:
-        print "    if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i)
-        print "    begin"
-        print "        pending = 1'b1;" 
-        print "        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "    end"
+        print("    if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i))
+        print("    begin")
+        print("        pending = 1'b1;")
+        print("        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("    end")
     else:
-        print "    else if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i)
-        print "    begin"
-        print "        pending = 1'b1;" 
-        print "        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "    end"
-print "    else"
-print "    begin"
-print "        pending = 1'b0;" 
-print "        pending_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
-print "    end"
+        print("    else if (state_mem_f[%d] == `L2_MSHR_STATE_PENDING)" % (i))
+        print("    begin")
+        print("        pending = 1'b1;")
+        print("        pending_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("    end")
+print("    else")
+print("    begin")
+print("        pending = 1'b0;")
+print("        pending_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH))
+print("    end")
 %>
 end
 
@@ -154,19 +154,19 @@ begin
 <%
 for i in range(L2_MSHR_ENTRIES):
     if i == 0:
-        print "    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
-        print "    begin"
-        print "        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "    end"
+        print("    if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i))
+        print("    begin")
+        print("        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("    end")
     else:
-        print "    else if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i)
-        print "    begin"
-        print "        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "    end"
-print "    else"
-print "    begin"
-print "        empty_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
-print "    end"
+        print("    else if (state_mem_f[%d] == `L2_MSHR_STATE_INVAL)" % (i))
+        print("    begin")
+        print("        empty_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("    end")
+print("    else")
+print("    begin")
+print("        empty_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH))
+print("    end")
 %>
 end
 
@@ -202,33 +202,33 @@ end
 always @ *
 begin
 <%
-print "    if(cam_en)"
-print "    begin"
+print("    if(cam_en)")
+print("    begin")
 for i in range(L2_MSHR_ENTRIES):
     if i == 0:
-        print "        if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i)
-        print "        begin"
-        print "            hit = 1'b1;"
-        print "            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "        end"
+        print("        if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i))
+        print("        begin")
+        print("            hit = 1'b1;")
+        print("            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("        end")
     else:
-        print "        else if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i)
-        print "        begin"
-        print "            hit = 1'b1;"
-        print "            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i)
-        print "        end"
+        print("        else if ((data_mem_f[%d][`L2_MSHR_CMP_ADDR] == addr_in) && (state_mem_f[%d] != `L2_MSHR_STATE_INVAL))" % (i,i))
+        print("        begin")
+        print("            hit = 1'b1;")
+        print("            hit_index = %d\'d%d;" % (L2_MSHR_INDEX_WIDTH, i))
+        print("        end")
 
-print "        else"
-print "        begin"
-print "            hit = 1'b0;"
-print "            hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
-print "        end"
-print "    end"
-print "    else"
-print "    begin"
-print "        hit = 1'b0;"
-print "        hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH)
-print "    end"
+print("        else")
+print("        begin")
+print("            hit = 1'b0;")
+print("            hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH))
+print("        end")
+print("    end")
+print("    else")
+print("    begin")
+print("        hit = 1'b0;")
+print("        hit_index = %d\'d0;" % (L2_MSHR_INDEX_WIDTH))
+print("    end")
 
 %>
 end
@@ -242,7 +242,7 @@ begin
     begin
 <%
 for i in range(L2_MSHR_ENTRIES):
-    print "        state_mem_f[%d] <= `L2_MSHR_STATE_INVAL;" % (i)
+    print("        state_mem_f[%d] <= `L2_MSHR_STATE_INVAL;" % (i))
 %>
     end
     else if (wr_state_en)
@@ -281,10 +281,10 @@ for i in range(L2_MSHR_ENTRIES):
     begin
 <%
 for i in range(L2_MSHR_ENTRIES):
-    print "        if ((state_mem_f[%d] == `L2_MSHR_STATE_WAIT) && (data_mem_f[%d][`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ))" % (i,i)
-    print "        begin"
-    print "            state_mem_f[%d] <= `L2_MSHR_STATE_PENDING;" % (i)
-    print "        end"
+    print("        if ((state_mem_f[%d] == `L2_MSHR_STATE_WAIT) && (data_mem_f[%d][`L2_MSHR_MSG_TYPE] == `MSG_TYPE_WBGUARD_REQ))" % (i,i))
+    print("        begin")
+    print("            state_mem_f[%d] <= `L2_MSHR_STATE_PENDING;" % (i))
+    print("        end")
 %>
     end
 end
@@ -327,7 +327,7 @@ begin
     begin
 <%
 for i in range(L2_MSHR_ENTRIES):
-    print "        counter_mem_f[%d] <= {`L2_OWNER_BITS{1'b0}};" % (i)
+    print("        counter_mem_f[%d] <= {`L2_OWNER_BITS{1'b0}};" % (i))
 %>
     end
     else if (pending && pending_ready)
@@ -351,7 +351,7 @@ begin
     begin
 <%
 for i in range(L2_MSHR_ENTRIES):
-    print "        data_mem_f[%d] <= {`L2_MSHR_ARRAY_WIDTH{1'b0}};" % (i)
+    print("        data_mem_f[%d] <= {`L2_MSHR_ARRAY_WIDTH{1'b0}};" % (i))
 %>
     end
     else if (wr_data_en)

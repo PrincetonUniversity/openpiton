@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
@@ -51,8 +51,8 @@ BRAM_SIZE = 16384
 
 
 def printAddrDataMap(addr_data_map):
-    for key in addr_data_map.keys():
-        print "Addr: %x Data: %s" % (key, addr_data_map[key])
+    for key in list(addr_data_map.keys()):
+        print("Addr: %x Data: %s" % (key, addr_data_map[key]))
 
 class Section:
     def __init__(self, start, end, mem_trace, st_brd):
@@ -120,13 +120,13 @@ class TestSections:
         return self.sections
 
     def addSection(self, new_sect, flog):
-        print >> flog, "Adding new section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
+        print("Adding new section: [%x, %x]" % (new_sect.s_start, new_sect.s_end), file=flog)
         for s in self.sections:
             if (((new_sect.s_start >= s.s_start) and (new_sect.s_start <= s.s_end)) or
                 ((new_sect.s_end   >= s.s_start) and (new_sect.s_end   <= s.s_end))):
-                print >> flog, "Error: Trying to add a section which overlaps with an existant one!"
-                print >> flog, "New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end)
-                print >> flog, "Existant section: [%x, %x]" % (s.s_start, s.s_end)
+                print("Error: Trying to add a section which overlaps with an existant one!", file=flog)
+                print("New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end), file=flog)
+                print("Existant section: [%x, %x]" % (s.s_start, s.s_end), file=flog)
                 print_error("Error: Trying to add a section which overlaps with existant!")
                 print_error("New section: [%x, %x]" % (new_sect.s_start, new_sect.s_end))
                 print_error("Existant section: [%x, %x]" % (s.s_start, s.s_end))
@@ -134,26 +134,26 @@ class TestSections:
         self.sections.append(new_sect)
 
 def usage():
-    print >> sys.stderr
-    print >> sys.stderr, "Usage:\nmake_mem_map -b <board type> -s <storage type> -t <test name>"
-    print >> sys.stderr
-    print >> sys.stderr, "\n        -b, --board <board type>"
-    print >> sys.stderr, "              Name of a supported Xilinx's development board. Available options are:"
-    print >> sys.stderr, "                  nexys4ddr*"
-    print >> sys.stderr, "                  vc707"
-    print >> sys.stderr, "                  genesys2"
-    print >> sys.stderr, "                  nexysVideo"
-    print >> sys.stderr, "\n                  * current configuration of design doesn't fit on this board"
-    print >> sys.stderr, "\n        -s, --storage <storage type>"
-    print >> sys.stderr, "              Type of a storage to store an assembly test in"
-    print >> sys.stderr, "                  bram - default"
-    print >> sys.stderr, "                  ddr"
-    print >> sys.stderr, "\n        -t, --test <test name>"
-    print >> sys.stderr, "              Name of an assembly test to put into storage"
+    print(file=sys.stderr)
+    print("Usage:\nmake_mem_map -b <board type> -s <storage type> -t <test name>", file=sys.stderr)
+    print(file=sys.stderr)
+    print("\n        -b, --board <board type>", file=sys.stderr)
+    print("              Name of a supported Xilinx's development board. Available options are:", file=sys.stderr)
+    print("                  nexys4ddr*", file=sys.stderr)
+    print("                  vc707", file=sys.stderr)
+    print("                  genesys2", file=sys.stderr)
+    print("                  nexysVideo", file=sys.stderr)
+    print("\n                  * current configuration of design doesn't fit on this board", file=sys.stderr)
+    print("\n        -s, --storage <storage type>", file=sys.stderr)
+    print("              Type of a storage to store an assembly test in", file=sys.stderr)
+    print("                  bram - default", file=sys.stderr)
+    print("                  ddr", file=sys.stderr)
+    print("\n        -t, --test <test name>", file=sys.stderr)
+    print("              Name of an assembly test to put into storage", file=sys.stderr)
 
 def checkCmdOptions(options):
     if options.tname == None:
-        print >> sys.stderr,  "ERROR: provide a test name"
+        print("ERROR: provide a test name", file=sys.stderr)
         usage()
         exit(2)
 
@@ -168,8 +168,8 @@ def fullAddr(val):
 def genCoe(section_list):
     dir_path = os.environ['MODEL_DIR']
     f = open(dir_path + '/test_proto.coe', 'w')
-    print >> f, "memory_initialization_radix=16;"
-    print >> f, "memory_initialization_vector="
+    print("memory_initialization_radix=16;", file=f)
+    print("memory_initialization_vector=", file=f)
 
 
     for j in range(0,len(section_list)):
@@ -181,7 +181,7 @@ def genCoe(section_list):
                 term = ';'
             else:
                 term = ','
-            print >> f, blocks[i]+term
+            print(blocks[i]+term, file=f)
 
     f.close()
 
@@ -190,78 +190,78 @@ def genVerilogMapping(section_list, st_brd, fname=MAP_MODULE_NAME, tname="unknow
     f = open(fname, 'w')
     l = len(section_list)
 
-    print >> f, "//-----------------------------------------"
-    print >> f, "// Auto generated mapping module"
-    print >> f, "// It is provided for test: %s " % tname
-    print >> f, "//-----------------------------------------"
-    print >> f, """ module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
+    print("//-----------------------------------------", file=f)
+    print("// Auto generated mapping module", file=f)
+    print("// It is provided for test: %s " % tname, file=f)
+    print("//-----------------------------------------", file=f)
+    print(""" module storage_addr_trans #(parameter MEM_ADDR_WIDTH=64, VA_ADDR_WIDTH=40, STORAGE_ADDR_WIDTH=12)
 (
     input       [VA_ADDR_WIDTH-1:0]         va_byte_addr,
 
     output      [STORAGE_ADDR_WIDTH-1:0]    storage_addr_out,
     output                                  hit_any_section
 );
-"""
+""", file=f)
 
-    print >> f, "wire [63:0] storage_addr;"
-    print >> f
-
-    for i in range(0,l):
-        print >> f, "wire [63:0] %30s_%d;" % ('bram_addr', i)
-
-    print >> f
+    print("wire [63:0] storage_addr;", file=f)
+    print(file=f)
 
     for i in range(0,l):
-        print >> f, "wire %35s_%d;" % ('in_section', i)
+        print("wire [63:0] %30s_%d;" % ('bram_addr', i), file=f)
 
-    print >> f
+    print(file=f)
+
+    for i in range(0,l):
+        print("wire %35s_%d;" % ('in_section', i), file=f)
+
+    print(file=f)
 
     block_byte_width = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board] / 8
     block_byte_offset_w = math.log(block_byte_width, 2)
     for i in range(0,l):
         s = section_list[i]
-        print >> f, "assign bram_addr_%d = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h%x) >> %d) + %d;" % \
-                    (i, s.s_start, block_byte_offset_w, s.bram_addr)
+        print("assign bram_addr_%d = (({{(MEM_ADDR_WIDTH-VA_ADDR_WIDTH){1'b0}}, va_byte_addr} - 64'h%x) >> %d) + %d;" % \
+                    (i, s.s_start, block_byte_offset_w, s.bram_addr), file=f)
 
-    print >> f
+    print(file=f)
 
     for i in range(0,l):
         s = section_list[i]
-        print >> f, "assign in_section_%d = (va_byte_addr >= 64'h%x) & (va_byte_addr < 64'h%x);" % \
-                    (i, s.s_start, s.s_end)
+        print("assign in_section_%d = (va_byte_addr >= 64'h%x) & (va_byte_addr < 64'h%x);" % \
+                    (i, s.s_start, s.s_end), file=f)
 
-    print >> f
+    print(file=f)
 
-    print >> f, "assign storage_addr ="
+    print("assign storage_addr =", file=f)
     for i in range(0,l):
         s = section_list[i]
         term = ';' if i == (l-1) else '|'
-        print >> f, "({STORAGE_ADDR_WIDTH{in_section_%d}} & bram_addr_%d[STORAGE_ADDR_WIDTH-1:0])%s" % \
-                (i, i, term)
+        print("({STORAGE_ADDR_WIDTH{in_section_%d}} & bram_addr_%d[STORAGE_ADDR_WIDTH-1:0])%s" % \
+                (i, i, term), file=f)
 
 
-    print >> f
+    print(file=f)
     # number of addressable chunks in storage / storage block
     block_bit_size = STORAGE_BLOCK_BIT_WIDTH[st_brd.storage][st_brd.board]
     addressable_bit_size = STORAGE_ADDRESSABLE_BIT_WIDTH[st_brd.storage][st_brd.board]
     addres_chunks_in_block = int(math.log(block_bit_size / addressable_bit_size, 2))
     if addres_chunks_in_block > 0:
-        print >> f, "assign storage_addr_out = {storage_addr, %d'b0};" % addres_chunks_in_block
+        print("assign storage_addr_out = {storage_addr, %d'b0};" % addres_chunks_in_block, file=f)
     else:
-        print >> f, "assign storage_addr_out = storage_addr;"
+        print("assign storage_addr_out = storage_addr;", file=f)
 
 
-    print >> f
-    print >> f, "assign hit_any_section = "
+    print(file=f)
+    print("assign hit_any_section = ", file=f)
     for i in range(0,l):
         term = ';' if i == (l-1) else '|'
-        print >> f, "in_section_%d %s" % (i, term)
+        print("in_section_%d %s" % (i, term), file=f)
 
-    print >> f
-    print >> f, "endmodule"
-    print >> f, "//-----------------------------------------"
-    print >> f, "// End of auto generated mapping"
-    print >> f, "//-----------------------------------------"
+    print(file=f)
+    print("endmodule", file=f)
+    print("//-----------------------------------------", file=f)
+    print("// End of auto generated mapping", file=f)
+    print("//-----------------------------------------", file=f)
     f.close()
 
 
@@ -311,7 +311,7 @@ def mapToBram(section_list, st_brd):
         bram_addr += s.getBlockNum()
         if (bram_addr > max_block_num):
             limit_exceeded = True
-        print >> f, s
+        print(s, file=f)
 
     f.close()
 
@@ -337,14 +337,14 @@ def makeAddrDataTestDict(fname, memimage_map, flog):
             addr = int(m.group(1), 16)
             # print "Looking for addr %d" % addr
             if addr not in test_map:
-                if memimage_map.has_key(addr):
+                if addr in memimage_map:
                     test_map[addr] = memimage_map.get(addr)
                     # print "Adding Addr: %x Data: %s to test dictionary" % (addr, memimage_map.get(addr))
                 else:
                     # print >> sys.stderr, "Warning: %x is not in memimage file" % addr
                     # print >> sys.stderr, "Mapping with 0's"
-                    print >> flog, "Warning: %x is not in memimage file" % addr
-                    print >> flog, "Mapping with 0's"
+                    print("Warning: %x is not in memimage file" % addr, file=flog)
+                    print("Mapping with 0's", file=flog)
                     test_map[addr] = 16*'0'
     # print test_map
     # print >> sys.stderr, "Closing a file: %s" % fname
@@ -369,7 +369,7 @@ def memTestData(st_brd, test_map, flog):
     # Test version - automatic section creation
     #####################################################################
     max_unacc_interv = 512*16   #  10 cache lines == 10 rows in bram
-    accessed_addr = test_map.keys()
+    accessed_addr = list(test_map.keys())
     accessed_addr.sort()
     addr_prev = accessed_addr[0]
     sect_first = addr_prev
@@ -387,7 +387,7 @@ def memTestData(st_brd, test_map, flog):
     print_info("Checking correctness of section mapping... ")
 
     sections = test_sections.getSections()
-    for k in test_map.keys():
+    for k in list(test_map.keys()):
         k_is_found = False
         for s in sections:
             if ((k >= s.s_start) and (k < s.s_end)):
@@ -412,7 +412,7 @@ def makeMapping(st_brd, tname="unknown"):
 
 
     mem_image_data = memImageData(fname_image)
-    print_info("Length of image file: %d" % len(mem_image_data.keys()))
+    print_info("Length of image file: %d" % len(list(mem_image_data.keys())))
     addr_data_test_map = makeAddrDataTestDict(fsim_log, mem_image_data, flog)
     sections = memTestData(st_brd, addr_data_test_map, flog)
     # print "Length of used data: %d" % len(sections)

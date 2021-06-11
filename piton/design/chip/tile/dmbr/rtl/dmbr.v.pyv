@@ -64,7 +64,7 @@ module dmbr(
 
     <%
     for i in range(DMBR_BIN_NUM):
-        print "output reg [`CREDIT_WIDTH-1:0] curr_cred_bin_%d," % i
+        print("output reg [`CREDIT_WIDTH-1:0] curr_cred_bin_%d," % i)
     %>
    
     //output to L1.5
@@ -78,7 +78,7 @@ module dmbr(
         
         <%
         for i in range(DMBR_BIN_NUM):
-            print "curr_cred_bin_%d <= {`CREDIT_WIDTH{1'b0}};" % i
+            print("curr_cred_bin_%d <= {`CREDIT_WIDTH{1'b0}};" % i)
         %>
     end
 
@@ -96,19 +96,19 @@ reg [`REPLENISH_WIDTH-1:0] total_stall_cycles;
 
 <%
 for i in range(DMBR_BIN_NUM):
-    print "reg [`CREDIT_WIDTH-1:0] curCredit_%d;" % i
-    print "reg [`CREDIT_WIDTH-1:0] next_credit_%d;" % i
-    print "reg [`CREDIT_WIDTH-1:0] repCredit_%d;" % i
-    print "reg req_en_%d;" % i
-    print "reg add_en_%d;" % i
+    print("reg [`CREDIT_WIDTH-1:0] curCredit_%d;" % i)
+    print("reg [`CREDIT_WIDTH-1:0] next_credit_%d;" % i)
+    print("reg [`CREDIT_WIDTH-1:0] repCredit_%d;" % i)
+    print("reg req_en_%d;" % i)
+    print("reg add_en_%d;" % i)
 %>
 
 <%
 for i in range(MAX_TAG):
-    print "reg [3:0] bin_used_%d;" % i      # why the width is not defined ??? @alavrov
-    print "reg [`COUNTER_WIDTH:0] interval_%d;" % i      # why not defined ???
-    print "reg [`COUNTER_WIDTH-1:0] bin_number_%d;" % i    # why not defined ???
-    print "reg [`COUNTER_WIDTH:0] sum_counter_%d;" % i   # why not defined ???
+    print("reg [3:0] bin_used_%d;" % i)     # why the width is not defined ??? @alavrov
+    print("reg [`COUNTER_WIDTH:0] interval_%d;" % i)     # why not defined ???
+    print("reg [`COUNTER_WIDTH-1:0] bin_number_%d;" % i)   # why not defined ???
+    print("reg [`COUNTER_WIDTH:0] sum_counter_%d;" % i)  # why not defined ???
 %>
 
 reg [`CREDIT_WIDTH-1:0] curCredit_mux;
@@ -744,7 +744,7 @@ always @*
 begin
     <%
     for i in range(DMBR_BIN_NUM):
-        print "curr_cred_bin_%d = curCredit_%d;" % (i,i)
+        print("curr_cred_bin_%d = curCredit_%d;" % (i,i))
     %> 
 end
 

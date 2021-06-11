@@ -29,7 +29,7 @@
 
 module bits2hex(
     input      [3:0]    bits,
-    output reg [7:0]    char
+    output reg [7:0]    ochar
 );
 
 ///////////////////////
@@ -47,23 +47,23 @@ module bits2hex(
 always @ *
 begin
     case (bits)
-        4'h0: char = "0";
-        4'h1: char = "1";
-        4'h2: char = "2";
-        4'h3: char = "3";
-        4'h4: char = "4";
-        4'h5: char = "5";
-        4'h6: char = "6";
-        4'h7: char = "7";
-        4'h8: char = "8";
-        4'h9: char = "9";
-        4'ha: char = "a";
-        4'hb: char = "b";
-        4'hc: char = "c";
-        4'hd: char = "d";
-        4'he: char = "e";
-        4'hf: char = "f";
-        default: char = "?";
+        4'h0: ochar = "0";
+        4'h1: ochar = "1";
+        4'h2: ochar = "2";
+        4'h3: ochar = "3";
+        4'h4: ochar = "4";
+        4'h5: ochar = "5";
+        4'h6: ochar = "6";
+        4'h7: ochar = "7";
+        4'h8: ochar = "8";
+        4'h9: ochar = "9";
+        4'ha: ochar = "a";
+        4'hb: ochar = "b";
+        4'hc: ochar = "c";
+        4'hd: ochar = "d";
+        4'he: ochar = "e";
+        4'hf: ochar = "f";
+        default: ochar = "?";
     endcase
 end
 

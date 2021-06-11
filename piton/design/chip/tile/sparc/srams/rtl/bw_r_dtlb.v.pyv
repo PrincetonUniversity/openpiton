@@ -1508,14 +1508,14 @@ always	@ (/*AUTOSENSE*/rd_csm or rd_data or rd_tag or rw_index or rw_index_vld
 	begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''        if ((rw_index[`TLB_INDEX_WIDTH-1:0] == %d) & ((wr_vld_tmp & rw_index_vld) | rd_tag | rd_data | rd_csm))
+    print('''        if ((rw_index[`TLB_INDEX_WIDTH-1:0] == %d) & ((wr_vld_tmp & rw_index_vld) | rd_tag | rd_data | rd_csm))
          begin
             rw_wdline[%d] = 1'b1;
          end
          else	
          begin
             rw_wdline[%d] = 1'b0;
-         end''' % (i, i, i)
+         end''' % (i, i, i))
 %>
 					
 	end
@@ -1526,14 +1526,14 @@ always	@ (/*AUTOSENSE*/rd_data or rd_tag or rw_index or rw_index_vld
 	begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''        if ((rw_index[`TLB_INDEX_WIDTH-1:0] == %d) & ((wr_vld_tmp & rw_index_vld) | rd_tag | rd_data))
+    print('''        if ((rw_index[`TLB_INDEX_WIDTH-1:0] == %d) & ((wr_vld_tmp & rw_index_vld) | rd_tag | rd_data))
          begin
             rw_wdline[%d] = 1'b1;
          end
          else	
          begin
             rw_wdline[%d] = 1'b0;
-         end''' % (i, i, i)
+         end''' % (i, i, i))
 %>
 
 	end
@@ -1556,7 +1556,7 @@ always	@ (negedge clk)
 	begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''        if (((rw_index_vld & rw_wdline[%d]) | (~rw_index_vld & tlb_entry_replace_d2[%d])) & wr_vld_tmp & ~rw_disable)
+    print('''        if (((rw_index_vld & rw_wdline[%d]) | (~rw_index_vld & tlb_entry_replace_d2[%d])) & wr_vld_tmp & ~rw_disable)
 		    begin
 				if (~rst_tri_en)
 					begin
@@ -1591,7 +1591,7 @@ for i in range(TLB_ENTRIES):
                     rd_tte_csm <= tmp_csm;
 					end
 			
-			end''' % (i,i,i,i,i,i,i,i,i,i,i,i,i)
+			end''' % (i,i,i,i,i,i,i,i,i,i,i,i,i))
 %>
 //=========================================================================================
 //	Read STLB
@@ -1599,7 +1599,7 @@ for i in range(TLB_ENTRIES):
 
 <%
 for i in range(TLB_ENTRIES):
-    print '''        if (rw_wdline[%d] & (rd_tag | rd_data | rd_csm) & ~rw_disable)
+    print('''        if (rw_wdline[%d] & (rd_tag | rd_data | rd_csm) & ~rw_disable)
 				begin
 					tmp_tag  = tte_tag_ram[%d] ;
 					tmp_data = tte_data_ram[%d] ;
@@ -1615,7 +1615,7 @@ for i in range(TLB_ENTRIES):
 						rd_tte_csm <= tmp_csm ;
 					end
 
-				end''' % (i,i,i,i,i,i,i)
+				end''' % (i,i,i,i,i,i,i))
 %>
 		if (cam_vld & ~rw_disable)
   		begin
@@ -1623,25 +1623,25 @@ for i in range(TLB_ENTRIES):
     			sat = {`TLB_ENTRIES{1'b0}};
 <%
 for i in range(TLB_ENTRIES):
-    print '''             begin
+    print('''             begin
       				if(cam_hit[%d])
       				begin
         				sat = sat + {{(`TLB_ENTRIES-1){1'b0}}, 1'b1};
       				end
-    			end''' % (i)
+    			end''' % (i))
 %>
 			// Only one hit occur read the data
     			if(sat == {{(`TLB_ENTRIES-1){1'b0}}, 1'b1})
     			begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''                   begin
+    print('''                   begin
                     if (cam_hit[%d])
                     begin
                             rd_tte_data[42:0] <= tte_data_ram[%d] ;
                             rd_tte_csm <= tte_csm_ram[%d] ;
                     end
-				end''' % (i,i,i)
+				end''' % (i,i,i))
 %>
 			end
 			else
@@ -1650,13 +1650,13 @@ for i in range(TLB_ENTRIES):
 				// ram cell will not be corrupted.
 <%
 for i in range(TLB_ENTRIES):
-    print '''               begin
+    print('''               begin
 					if (cam_hit[%d])
                     begin
                         		tte_data_ram[%d] <= 43'bx ;
                         		tte_csm_ram[%d] <= {`TLB_CSM_WIDTH{1'bx}} ;
                     end
-				end''' % (i,i,i)
+				end''' % (i,i,i))
 %>
                 rd_tte_data[42:0] <= 43'bx ;
                 rd_tte_csm <= {`TLB_CSM_WIDTH{1'bx}};
@@ -1665,10 +1665,10 @@ for i in range(TLB_ENTRIES):
 
 <%
 for i in range(TLB_ENTRIES):
-    print '''                   begin
+    print('''                   begin
                                 if (cam_hit[%d])
                                         tlb_entry_used[%d] <= 1'b1;
-                        end''' % (i,i)
+                        end''' % (i,i))
 %>
 // Clear on following edge if necessary.
 // CHANGE(SATYA) : tlb_entry_used qualified with valid needs to be used to determine
@@ -1681,11 +1681,11 @@ for i in range(TLB_ENTRIES):
                         begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''                           begin
+    print('''                           begin
                                                 //if (~tlb_entry_locked[t])
                                                 if (~tlb_entry_locked[%d] & ~cam_vld & ~wr_vld)
                                                         tlb_entry_used[%d] <= 1'b0;
-                                        end''' % (i,i)
+                                        end''' % (i,i))
 %>
                         end
 	end
@@ -1751,7 +1751,7 @@ always	@ (negedge clk)
 	begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''           if (((rw_index_vld & rw_wdline[%d]) | (~rw_index_vld & tlb_entry_replace_d2[%d])) & wr_vld_tmp & ~rw_disable)
+    print('''           if (((rw_index_vld & rw_wdline[%d]) | (~rw_index_vld & tlb_entry_replace_d2[%d])) & wr_vld_tmp & ~rw_disable)
 				begin
 				if (~rst_tri_en)
 					begin
@@ -1775,7 +1775,7 @@ for i in range(TLB_ENTRIES):
 					rd_tte_data[42:0] <= {tmp_data[42:12],tmp_data[11:0]} ;
 					end
 			
-			end''' % (i,i,i,i,i,i,i,i,i,i,i)
+			end''' % (i,i,i,i,i,i,i,i,i,i,i))
 %>
 //=========================================================================================
 //	Read STLB
@@ -1783,7 +1783,7 @@ for i in range(TLB_ENTRIES):
 
 <%
 for i in range(TLB_ENTRIES):
-    print '''   if (rw_wdline[%d] & (rd_tag | rd_data) & ~rw_disable)
+    print('''   if (rw_wdline[%d] & (rd_tag | rd_data) & ~rw_disable)
 				begin
 					tmp_tag  = tte_tag_ram[%d] ;
 					tmp_data = tte_data_ram[%d] ;
@@ -1795,7 +1795,7 @@ for i in range(TLB_ENTRIES):
 						rd_tte_data[42:0] <= {tmp_data[42:12],tmp_data[11:0]} ;
 					end
 
-				end''' % (i,i,i,i,i,i)
+				end''' % (i,i,i,i,i,i))
 %>
 		if (cam_vld & ~rw_disable)
   		begin
@@ -1803,24 +1803,24 @@ for i in range(TLB_ENTRIES):
     			sat = {`TLB_ENTRIES{1'b0}};
 <%
 for i in range(TLB_ENTRIES):
-    print '''             begin
+    print('''             begin
       				if(cam_hit[%d])
       				begin
         				sat = sat + {{(`TLB_ENTRIES-1){1'b0}}, 1'b1};
       				end
-    			end''' % (i)
+    			end''' % (i))
 %>
 			// Only one hit occur read the data
     			if(sat == {{(`TLB_ENTRIES-1){1'b0}}, 1'b1})
     			begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''                   begin
+    print('''                   begin
                     if (cam_hit[%d])
                     begin
                             rd_tte_data[42:0] <= tte_data_ram[%d] ;
                     end
-				end''' % (i,i)
+				end''' % (i,i))
 %>
 			end
 			else
@@ -1829,10 +1829,10 @@ for i in range(TLB_ENTRIES):
 				// ram cell will not be corrupted.
 <%
 for i in range(TLB_ENTRIES):
-    print '''               begin
+    print('''               begin
 					if (cam_hit[%d])
                         		tte_data_ram[%d] <= 43'bx ;
-				end''' % (i,i)
+				end''' % (i,i))
 %>
                 rd_tte_data[42:0] <= 43'bx ;
 			end
@@ -1840,10 +1840,10 @@ for i in range(TLB_ENTRIES):
 
 <%
 for i in range(TLB_ENTRIES):
-    print '''                   begin
+    print('''                   begin
                                 if (cam_hit[%d])
                                         tlb_entry_used[%d] <= 1'b1;
-                        end''' % (i,i)
+                        end''' % (i,i))
 %>
 
 // Clear on following edge if necessary.
@@ -1857,11 +1857,11 @@ for i in range(TLB_ENTRIES):
                         begin
 <%
 for i in range(TLB_ENTRIES):
-    print '''                           begin
+    print('''                           begin
                                                 //if (~tlb_entry_locked[t])
                                                 if (~tlb_entry_locked[%d] & ~cam_vld & ~wr_vld)
                                                         tlb_entry_used[%d] <= 1'b0;
-                                        end''' % (i,i)
+                                        end''' % (i,i))
 %>
                         end
 	end
@@ -1889,7 +1889,7 @@ always  @ ( negedge clk )
 	
 <%
 for i in range(TLB_ENTRIES):
-    print '''           begin
+    print('''           begin
                         /*if (demap_all)  begin
                                 if (demap_auto & demap_other) ademap_hit[n]   =
                                         (~mismatch[n] & demap_all_but_locked_hit[n] & demap_other
@@ -1899,7 +1899,7 @@ for i in range(TLB_ENTRIES):
                                 if (demap_auto & demap_other) ademap_hit[%d]    =
                                         (~mismatch[%d] & demap_other & tlb_entry_vld[%d]) ;
                                 //end
-			end''' % (i,i,i)
+			end''' % (i,i,i))
 %>
 	end  // always
 
@@ -1910,7 +1910,7 @@ always	@ (/*AUTOSENSE*/ /*memory or*/
 	
 <%
 for i in range(TLB_ENTRIES):
-    print'''		    	begin
+    print('''		    	begin
 			tag[58:0] = tte_tag_ram[%d] ;	// CHANGE
 
 			mismatch_va_b47_28[%d] = 
@@ -1968,7 +1968,7 @@ for i in range(TLB_ENTRIES):
 				// being cleared. Satya-this is the only one we need.
                                 end
 //			no_hit = cam_vld ;
-			end''' % (i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i)
+			end''' % (i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i))
 %>
 	end  // always
 
@@ -2007,7 +2007,7 @@ always @ (negedge clk)
  
 <%
 for i in range(TLB_ENTRIES):
-    print '''
+    print('''
 always @ (negedge clk)
 	begin
         if (async_reset)
@@ -2024,12 +2024,12 @@ always @ (negedge clk)
                 tlb_entry_vld[%d] <= 1'b0 ;		
             end
 	end
-    ''' % (i,i,i,i,i,i,i,i)
+    ''' % (i,i,i,i,i,i,i,i))
 %>
 `else
 <%
 for i in range(TLB_ENTRIES):
-    print '''
+    print('''
 always @ (negedge clk)
 	begin
         if (async_reset)
@@ -2046,7 +2046,7 @@ always @ (negedge clk)
                 tlb_entry_vld[%d] <= 1'b0 ;		
             end
 	end
-    ''' % (i,i,i,i,i,i,i,i)
+    ''' % (i,i,i,i,i,i,i,i))
 %>
 `endif
 
@@ -2278,19 +2278,19 @@ assign squash[63] = |(~used[62:0]) ; */
 <%
 for i in range(TLB_ENTRIES):
     if i == 0:
-        print '''
+        print('''
                 if(~used[%d])
                 begin
                   tlb_entry_replace_d1[%d] = ~used[%d] ;
                 end
-         ''' % (i,i,i)
+         ''' % (i,i,i))
     else:
-        print '''
+        print('''
                 else if(~used[%d])
                 begin
                   tlb_entry_replace_d1[%d] = ~used[%d] ;
                 end
-         ''' % (i,i,i)
+         ''' % (i,i,i))
 
 %>
   	  else

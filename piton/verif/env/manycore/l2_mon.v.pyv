@@ -431,7 +431,7 @@ begin
             if (`L2_TOP0.pipe1.ctrl.addr_S1[39:36] == 4'b1010)
             begin
                 if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                     `ifndef VERILATOR
@@ -446,7 +446,7 @@ begin
                 `HOME_ALLOC_LOW_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -458,7 +458,7 @@ begin
                 `HOME_ALLOC_MIDDLE_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -470,7 +470,7 @@ begin
                 `HOME_ALLOC_HIGH_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -482,7 +482,7 @@ begin
                 `HOME_ALLOC_MIXED_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW] ^ `L2_TOP0.pipe1.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE] ) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe1 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe1.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -508,7 +508,7 @@ begin
             if (`L2_TOP0.pipe2.ctrl.addr_S1[39:36] == 4'b1010)
             begin
                 if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                 begin
                     $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                     `ifndef VERILATOR
@@ -523,7 +523,7 @@ begin
                 `HOME_ALLOC_LOW_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -535,7 +535,7 @@ begin
                 `HOME_ALLOC_MIDDLE_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -547,7 +547,7 @@ begin
                 `HOME_ALLOC_HIGH_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_HIGH]) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -559,7 +559,7 @@ begin
                 `HOME_ALLOC_MIXED_ORDER_BITS:
                 begin
                     if (((`L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_LOW] ^ `L2_TOP0.pipe2.ctrl.addr_S1[`HOME_ID_ADDR_POS_MIDDLE] ) % `L15_TOP0.l15_csm.num_homes_s2)
-                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `X_TILES))
+                    != (`L2_TOP0.pipe1.dpath.my_nodeid_x_S4 + `L2_TOP0.pipe1.dpath.my_nodeid_y_S4 * `PITON_X_TILES))
                     begin
                         $display("%d : Simulation -> FAIL(TILE0 L2 pipe2 receive illegal address 0x%x)", $time,  `L2_TOP0.pipe2.ctrl.addr_S1);
                         `ifndef VERILATOR
@@ -632,7 +632,7 @@ begin
 
     '''
     tt = ReplicatePattern(t, ["RTL_SPARC0", "L2_TOP0", "TILE0"]);
-    print tt;
+    print(tt)
 %>
 
 
@@ -681,6 +681,31 @@ begin
         `MSG_TYPE_INTERRUPT             : $write("       int     ");
         `MSG_TYPE_L2_LINE_FLUSH_REQ     : $write("   line_flush  ");
         `MSG_TYPE_L2_DIS_FLUSH_REQ      : $write("    dis_flush  ");
+        `MSG_TYPE_LR_REQ                : $write("    lr_req     ");
+        `MSG_TYPE_AMO_ADD_REQ           : $write("  amo_add_req  ");
+        `MSG_TYPE_AMO_AND_REQ           : $write("  amo_and_req  ");
+        `MSG_TYPE_AMO_OR_REQ            : $write("  amo_or_req   ");
+        `MSG_TYPE_AMO_XOR_REQ           : $write("  amo_xor_req  ");
+        `MSG_TYPE_AMO_MAX_REQ           : $write("  amo_max_req  ");
+        `MSG_TYPE_AMO_MAXU_REQ          : $write("  amo_maxu_req ");
+        `MSG_TYPE_AMO_MIN_REQ           : $write("  amo_min_req  ");
+        `MSG_TYPE_AMO_MINU_REQ          : $write("  amo_minu_req ");
+        `MSG_TYPE_AMO_ADD_P1_REQ        : $write("  amo_add_p1   ");
+        `MSG_TYPE_AMO_AND_P1_REQ        : $write("  amo_and_p1   ");
+        `MSG_TYPE_AMO_OR_P1_REQ         : $write("  amo_or_p1    ");
+        `MSG_TYPE_AMO_XOR_P1_REQ        : $write("  amo_xor_p1   ");
+        `MSG_TYPE_AMO_MAX_P1_REQ        : $write("  amo_max_p1   ");
+        `MSG_TYPE_AMO_MAXU_P1_REQ       : $write("  amo_maxu_p1  ");
+        `MSG_TYPE_AMO_MIN_P1_REQ        : $write("  amo_min_p1   ");
+        `MSG_TYPE_AMO_MINU_P1_REQ       : $write("  amo_minu_p1  ");
+        `MSG_TYPE_AMO_ADD_P2_REQ        : $write("  amo_add_p2   ");
+        `MSG_TYPE_AMO_AND_P2_REQ        : $write("  amo_and_p2   ");
+        `MSG_TYPE_AMO_OR_P2_REQ         : $write("  amo_or_p2    ");
+        `MSG_TYPE_AMO_XOR_P2_REQ        : $write("  amo_xor_p2   ");
+        `MSG_TYPE_AMO_MAX_P2_REQ        : $write("  amo_max_p2   ");
+        `MSG_TYPE_AMO_MAXU_P2_REQ       : $write("  amo_maxu_p2  ");
+        `MSG_TYPE_AMO_MIN_P2_REQ        : $write("  amo_min_p2   ");
+        `MSG_TYPE_AMO_MINU_P2_REQ       : $write("  amo_minu_p2  ");
         default                         : $write("      undef    ");
     endcase
 end

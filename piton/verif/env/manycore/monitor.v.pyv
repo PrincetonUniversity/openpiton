@@ -1211,7 +1211,7 @@ module monitor(/*AUTOARG*/
     '''
     patterns = ["RTL_SPARC0", "mon0", "PATH0", "SPARC_CORE0", "chk0", "10'd0"];
     tt = ReplicatePattern(t, patterns);
-    print tt;
+    print(tt)
 %>
 
 
@@ -1281,21 +1281,11 @@ module monitor(/*AUTOARG*/
 
 `endif // ifdef GATE_SIM
 
-`ifdef RTL_SPARC0
+`ifdef RTL_TILE0
    //monitor good trap and bad trap.
    pc_cmp pc_cmp(clk, rst_l); // Sumti - Shifting it back to clk, sas race with +fast_boot.
 //dump cache
-`endif // ifdef RTL_SPARC0
-
-`ifdef RTL_PICO0
-   //monitor good trap and bad trap.
-   pc_cmp pc_cmp(clk, rst_l); // Sumti - Shifting it back to clk, sas race with +fast_boot.
-`endif // ifdef RTL_PICO0
-
-`ifdef RTL_ARIANE0
-   //monitor good trap and bad trap.
-   pc_cmp pc_cmp(clk, rst_l); // Sumti - Shifting it back to clk, sas race with +fast_boot.
-`endif // ifdef RTL_ARIANE0
+`endif // ifdef RTL_TILE0
 
 	// dump_cache dump_cache();
 
@@ -1318,7 +1308,7 @@ module monitor(/*AUTOARG*/
                 `endif'''
             tt = ReplicatePattern(t, ["SPARC_CORE0", "cmp_pcxandcpx0", "RTL_SPARC0",
                     ".cpu    (0"]);
-            print tt;
+            print(tt)
         %>
 
 	`endif  // ifdef DRAM_SAT

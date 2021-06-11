@@ -428,19 +428,7 @@ begin
    msg_options_2 = 0;
    msg_options_3 = 0;
 
-   case (msg_data_size)
-      `PCX_SZ_1B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_1B;
-      `PCX_SZ_2B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_2B;
-      `PCX_SZ_4B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_4B;
-      `PCX_SZ_8B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_8B;
-      `PCX_SZ_16B:
-         msg_options_2[`MSG_DATA_SIZE_] = `MSG_DATA_SIZE_16B;
-   endcase
-
+   msg_options_2[`MSG_DATA_SIZE_] = msg_data_size;
    msg_options_2[`MSG_CACHE_TYPE_] = msg_cache_type;
    msg_options_2[`MSG_SUBLINE_VECTOR_] = msg_subline_vector;
 

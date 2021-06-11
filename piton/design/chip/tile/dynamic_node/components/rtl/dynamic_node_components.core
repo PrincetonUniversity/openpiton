@@ -10,11 +10,14 @@ filesets:
             - one_of_eight.v
             - one_of_five.v
             - net_dff.v
+       depend:
+            - openpiton::preprocessor
        file_type: verilogSource
 
 targets:
     default:
         filesets: [rtl]
+        generate: [pyhp_preprocess]
 
 generate:
     pyhp_preprocess:

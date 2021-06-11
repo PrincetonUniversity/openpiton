@@ -71,10 +71,10 @@ output thanks_all_temp_out;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "output route_req_%d_out;" % a
-  print s
+  print(s)
 for a in range (DYNAMIC_NODE_PORT):
   s = "output default_ready_%d;" % a
-  print s
+  print(s)
 %>
 output tail_out;
 
@@ -92,7 +92,7 @@ input valid_in;
 <%
 for a in range (DYNAMIC_NODE_PORT):
   s = "input thanks_%d;" % a
-  print s
+  print(s)
 %>
 input [`PAYLOAD_LEN-1:0] length;
 

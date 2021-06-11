@@ -29,12 +29,12 @@ import sys, os, getopt
 import getpass
 
 def usage ():
-    print "Usage: " + sys.argv[0] + " --name=<environment name> [options]"
-    print "Options:"
-    print "     --verbosity=<verbosity> Set the verbosity of the output."
-    print "                             Essentially the amount of comments in the testbench output."
-    print "                             0 is less, 1 is more."
-    print "     --author=<author>       Set the author of this environment"
+    print("Usage: " + sys.argv[0] + " --name=<environment name> [options]")
+    print("Options:")
+    print("     --verbosity=<verbosity> Set the verbosity of the output.")
+    print("                             Essentially the amount of comments in the testbench output.")
+    print("                             0 is less, 1 is more.")
+    print("     --author=<author>       Set the author of this environment")
 
 def parseCmdArgs ():
     name = None
@@ -59,7 +59,7 @@ def parseCmdArgs ():
             author = arg
 
     if (name == None) :
-        print "You must specify an environment name."
+        print("You must specify an environment name.")
         usage ()
         sys.exit (2)
 
@@ -355,8 +355,6 @@ def writeConfigFile (file, name) :
     file.write ("    -model=" + name + "\n")
     file.write ("    // TODO: Specify top level module(s) to be simulated\n")
     file.write ("    -toplevel=" + name + "_top\n")
-    file.write ("    -novera_build\n")
-    file.write ("    -novera_run\n")
     file.write ("    // TODO: Change the flist file for the DUT which specifies all\n")
     file.write ("    //       the source files for your DUT if it is not correct.\n")
     file.write ("    -flist=$DV_ROOT/design/" + name + "/rtl/Flist." + name + "\n")
@@ -372,7 +370,6 @@ def writeConfigFile (file, name) :
     file.write ("    -vcs_build_args=+nospecify\n")
     file.write ("    -vcs_build_args=+nbaopt\n")
     file.write ("    -vcs_build_args=-Xstrict=1 -notice\n")
-    file.write ("    -vcs_build_args=-e SimvMain $DV_ROOT/verif/env/iss/pli/main.cc\n")
     file.write ("    -sim_run_args=+test_cases_path=$DV_ROOT/verif/env/" + name + "/test_cases/\n")
     file.write ("</" + name + ">")
 
@@ -385,7 +382,7 @@ def main ():
 
     # Get the location of DV_ROOT
     if not "DV_ROOT" in os.environ :
-        print "DV_ROOT environment variable is not defined"
+        print("DV_ROOT environment variable is not defined")
         sys.exit (2)
     dvRoot = os.environ['DV_ROOT'] + "/"
 
@@ -395,7 +392,7 @@ def main ():
 
     # Check if an environment already exists with this name
     if os.path.isdir(envDir + name) or os.path.exists(simsSrcDir + name + ".config") :
-        print "Environment with specified name ('" + name + "') already exists."
+        print("Environment with specified name ('" + name + "') already exists.")
         sys.exit (2)
 
     # Make directory for this environment

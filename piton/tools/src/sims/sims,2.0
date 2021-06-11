@@ -144,6 +144,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'fast_boot' => 0,
         'finish_mask' => "",
         'flist' => [],
+        'gcc_args' => [],
         'group' => [],
         'group_name' => "",
         'gzip' => 1,
@@ -171,6 +172,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'overwrite' => 0,
         'pal_use_tgseed' => 0,
         'parallel' => 0,
+        'ost1' => 0,
         'ariane' => 0,
         'pico' => 0,
         'pico_het' => 0,
@@ -184,8 +186,19 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'report' => 0,
         'rerun' => 0,
         'result_dir' => "",
+        'riv_build' => 0,
+        'riv_build_args' => [],
+        'riv_run' => 0,		
         'rtl_timeout' => 5000,
         'run_diag_pl' => 1,
+        'rv32' => 0,
+        'rv32_mabi=s' => "",
+        'rv32_march=s' => "",
+        'rv32_target_triple=s' => "",
+        'rv64' => 0,
+        'rv64_mabi=s' => "",
+        'rv64_march=s' => "",
+        'rv64_target_triple=s' => "",
         'other_sim_build' => 0,
         'sim_build_args' => [],
         'other_sim_build_cmd' => "",
@@ -201,6 +214,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'sjm_diag_name' => "",
         'sjm_diag_path' => "",
         'sjm_diag_root' => [],
+        'sparcv9' => 0,
         'stub_mask' => "",
         'sys' => "",
         'tg_seed' => -1,
@@ -318,9 +332,13 @@ GetOptions (\%opt,
             'group=s@',
             'model_dir=s',
             'parallel!',
+            'ost1!',
             'ariane!',
             'pico!',
             'pico_het!',
+            'sparcv9!',
+            'rv32!',
+            'rv64!',
             'regress!',
             'regress_id=s',
             'report!',
@@ -332,6 +350,20 @@ GetOptions (\%opt,
             'simslog_name=s',
             'build_id=s',
            ) ;
+
+die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
+die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+
+# Setting ost1 by default. This works better than default to 1
+# for heterogeneous-ISA stuff
+if (!$opt{pico} && !$opt{ariane}) {
+  $opt{ost1} = 1 ;
+}
+
+push (@{$opt{config_cpp_args}}, "-DFLIST_OST1")     if ($opt{ost1} || $opt{pico_het}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_PICO")     if ($opt{pico} || $opt{pico_het}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_ARIANE")   if ($opt{ariane}) ;
+push (@{$opt{config_cpp_args}}, "-DFLIST_ORAM")     if ($opt{oram}) ;
 
 ################################################################################
 # define $result_dir
@@ -468,7 +500,8 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &create_model_path () if ($opt{vcs_build} or $opt{other_sim_build} or
                           $opt{icv_build} or $opt{ncv_build} or
-                          $opt{msm_build} or $opt{vlt_build}) ;
+                          $opt{msm_build} or $opt{vlt_build} or
+						  $opt{riv_build}) ;
 
 ################################################################################
 # do some pre building stuff - generate flist
@@ -476,7 +509,8 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &pre_build () if ($opt{vcs_build} or $opt{other_sim_build} or
                   $opt{icv_build} or $opt{ncv_build} or
-                  $opt{msm_build} or $opt{vlt_build}) ;
+                  $opt{msm_build} or $opt{vlt_build} or
+				  $opt{riv_build}) ;
 
 ################################################################################
 # build the simulation model
@@ -484,7 +518,8 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &generic_sim_build () if ($opt{vcs_build} or $opt{ncv_build} or
                           $opt{icv_build} or $opt{other_sim_build} or
-                          $opt{msm_build} or $opt{vlt_build}) ;
+                          $opt{msm_build} or $opt{vlt_build} or
+						  $opt{riv_build}) ;
 
 ################################################################################
 # assemble .s diag
@@ -500,7 +535,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &oram_image () if (($opt{vcs_run} or $opt{ncv_run} or
                     $opt{icv_run} or $opt{other_sim_run} or
-                    $opt{msm_run} or $opt{vlt_run}) and
+                    $opt{msm_run} or $opt{vlt_run} or $opt{riv_run}) and
                     $opt{oram}); #if ($opt{image_diag_name}
 
 ################################################################################
@@ -509,7 +544,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 
 &generic_sim_run () if ($opt{vcs_run} or $opt{ncv_run} or
                         $opt{icv_run} or $opt{other_sim_run} or
-                        $opt{msm_run} or $opt{vlt_run}) ;
+                        $opt{msm_run} or $opt{vlt_run} or $opt{riv_run}) ;
 
 ################################################################################
 # run diag.pl if present
@@ -518,7 +553,7 @@ else { $model_path = "$model_dir/$opt{model}/$opt{build_id}" ; }
 if (    -e "diag.pl" and
   ( $opt{vcs_run} or $opt{ncv_run} or
       $opt{icv_run} or $opt{other_sim_run} or
-      $opt{msm_run} or $opt{vlt_run}) and
+      $opt{msm_run} or $opt{vlt_run} or $opt{riv_run}) and
        $opt{run_diag_pl} )
 {
   print "$prg: executing diag.pl\n";
@@ -535,7 +570,7 @@ if (    -e "diag.pl" and
 
 &post_process if ($opt{vcs_run} or $opt{ncv_run} or
                   $opt{icv_run} or $opt{other_sim_run} or
-                  $opt{msm_run} or $opt{vlt_run}) ;
+                  $opt{msm_run} or $opt{vlt_run} or $opt{riv_run}) ;
 
 &print_footer () ;
 
@@ -874,6 +909,8 @@ sub regress
           $cmd .= "-msm_build " ;
       } elsif (($opt{sim_type}) eq "vlt") {
           $cmd .= "-vlt_build " ;
+      } elsif (($opt{sim_type}) eq "riv") {
+          $cmd .= "-riv_build " ;
       } else {
           $cmd .= "-other_sim_build " ;
       }
@@ -946,6 +983,8 @@ sub regress
             push (@cmd, "-msm_run") ;
           } elsif (($opt{sim_type}) eq "vlt") {
             push (@cmd, "-vlt_run") ;
+          } elsif (($opt{sim_type}) eq "riv") {
+            push (@cmd, "-riv_run") ;
           } else {
             push (@cmd, "-other_sim_run") ;
           }
@@ -1077,12 +1116,6 @@ sub gen_flist
   open (OFLIST, ">flist") or die ("DIE. can't open flist file") ;
 
   print OFLIST "$ENV{PWD}/config.v\n";
-
-  # Add ORAM flist if ORAM is specified
-  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tinyoram/rtl/Flist.oram") if ($opt{oram}) ;
-  # Add Ariane flist if -ariane is specified
-  push (@{$opt{flist}}, "$ENV{DV_ROOT}/design/chip/tile/ariane/Flist.ariane") if ($opt{ariane}) ;
-
 
   foreach my $flist (@{$opt{flist}}) {
     $flist =~ s/\$(\w+)/$ENV{$1}/g ;
@@ -1245,13 +1278,13 @@ sub pre_build
     print "compiling DTS and bootroms for Ariane...\n";
     !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PTON_NUM_TILES} && cd - > /dev/null") or
+    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
     my $num_sources = 2;
     # 2 targets per core (M/S mode)
-    my $num_targets = 2 * $ENV{PTON_NUM_TILES};
+    my $num_targets = 2 * $ENV{PITON_NUM_TILES};
     print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
     !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
       die (" Error generating PLIC for Ariane.");
@@ -1301,6 +1334,10 @@ sub generic_sim_build
       if ($opt{msm_build}) {
         if (!defined($ENV{MODELSIM_HOME})) { die ("DIE. MODELSIM_HOME not defined.") }
         print "$prg: MODELSIM_HOME is $ENV{MODELSIM_HOME}\n";
+      }
+      if ($opt{riv_build}) {
+        if (!defined($ENV{RIVIERA_HOME})) { die ("DIE. RIVIERA_HOME not defined.") }
+        print "$prg: RIVIERA_HOME is $ENV{RIVIERA_HOME}\n";
       }
     }
 
@@ -1354,8 +1391,8 @@ sub generic_sim_build
           push (@{$opt{config_rtl}}, "IBM_SRAM_LSU_ICACHE_MODEL_CHECKER") ;
       }
 
-      push (@{$opt{vcs_build_args}}, "+define+COPROCESSOR_ON") if ($opt{dmbr}) ;
-      push (@{$opt{vcs_build_args}}, "+define+DMBR_CHECKER") if ($opt{dmbr_checker}) ;
+      push (@{$opt{config_rtl}}, "COPROCESSOR_ON") if ($opt{dmbr}) ;
+      push (@{$opt{config_rtl}}, "DMBR_CHECKER") if ($opt{dmbr_checker}) ;
     }
     if ($opt{ncv_build}) {
       # build ncelab and ncsim executable files if not present
@@ -1435,6 +1472,12 @@ sub generic_sim_build
           push (@{$opt{sim_build_args}}, $x);
       }
     }
+    if ($opt{riv_build}) {
+      foreach my $x (@{$opt{riv_build_args}})
+      {
+          push (@{$opt{sim_build_args}}, $x);
+      }
+    }
     if ($opt{vlt_build}) {
       foreach my $x (@{$opt{vlt_build_args}})
       {
@@ -1490,6 +1533,10 @@ sub generic_sim_build
       # [SVCHK] - Some checking for conflicts with always_comb and always_latch variables not yet supported.
       $build_cmd .= " -suppress 2583 ";
     }
+    if ($opt{riv_build}) {
+      $build_cmd = "vlib work; vlog " ;
+    }
+	
     if ($opt{vlt_build}) {
       $build_cmd = "verilator -cc " ;
       $build_cmd .= "-exe $dv_root/tools/verilator/my_top.cpp " ;
@@ -1502,6 +1549,7 @@ sub generic_sim_build
       $build_cmd .= "--top-module cmp_top " ;
       $build_cmd .= "-Wno-fatal " ;
       $build_cmd .= "-Wno-BLKANDNBLK " ;
+      $build_cmd .= "-Wno-TIMESCALEMOD " ;
       $build_cmd .= "-DPITON_DPI " ;
       $build_cmd .= "--unroll-count 256 " ;
       $build_cmd .= "-CFLAGS -DVERILATOR " ;
@@ -1588,6 +1636,7 @@ sub generic_sim_run
     die ("DIE. INCA_libs not found in $model_path") if ($opt{ncv_run} and ! -e "$model_path/INCA_libs") ;
     die ("DIE. a.out not found in $model_path") if ($opt{icv_run} and ! -e "$model_path/a.out") ;
     die ("DIE. work/ not found in $model_path") if ($opt{msm_run} and ! -d "$model_path/work") ;
+	die ("DIE. work/ not found in $model_path") if ($opt{riv_run} and ! -d "$model_path/work") ;
     die ("DIE. obj_dir/ not found in $model_path") if ($opt{vlt_run} and ! -d "$model_path/obj_dir") ;
 
     # pass the good trap and bad trap addresses to the testbench
@@ -1753,6 +1802,50 @@ sub generic_sim_run
       $cmd .= join (" ", @{$opt{sim_run_args}}) ;
       print("====================================\n$cmd\n====================================");
     }
+	
+if ($opt{riv_run}) {
+    if (!$opt{gui}) {
+        $cmd .= "vsimsa" ;
+		$cmd .= " ";
+		$cmd .= "-do \" vsim ";
+		$cmd .= "-lib ";
+		$cmd .= "$model_path/work ";
+		
+
+		foreach my $top_n (@{$opt{toplevel}}) {
+			$cmd .= "$top_n ";
+		}
+		$cmd .= "+access +r ";
+		$cmd .= "-pli \"";
+		$cmd .= "$ENV{DV_ROOT}/tools/";
+		$cmd .= $os_cpu_slash;
+		$cmd .= "/lib/librivierapli.so\"";
+		$cmd .= " " ;
+		$cmd .= join (" ", @{$opt{sim_run_args}}) ;
+		$cmd .= "; run -all\" ";
+		print("====================================\n$cmd\n====================================");
+     }
+	 else {
+      $cmd .= "vsim" ;
+	  $cmd .= " ";
+
+      $cmd .= "-lib ";
+      $cmd .= "$model_path/work ";
+      $cmd .= "-do \"run -all\" ";
+
+      foreach my $top_n (@{$opt{toplevel}}) {
+        $cmd .= "$top_n ";
+      }
+	  $cmd .= "+access +r ";
+      $cmd .= "-pli \"";
+      $cmd .= "$ENV{DV_ROOT}/tools/";
+      $cmd .= $os_cpu_slash;
+      $cmd .= "/lib/librivierapli.so\"";
+      $cmd .= " " ;
+      $cmd .= join (" ", @{$opt{sim_run_args}}) ;
+      print("====================================\n$cmd\n====================================");
+	 } 
+    }	
 
     if ($opt{vlt_run}) {
       $cmd .= "$model_path/obj_dir/Vcmp_top " ;
@@ -1805,6 +1898,11 @@ sub generic_sim_run
       print "$prg: MODELSIM_HOME is $ENV{MODELSIM_HOME}\n";
     }
 
+    if ($opt{riv_run}) {
+      if (!defined($ENV{RIVIERA_HOME})) { die ("DIE. RIVIERA_HOME not defined.") }
+      print "$prg: RIVIERA_HOME is $ENV{RIVIERA_HOME}\n";
+    }	
+	
     if ($ENV{LM_LICENSE_FILE}) {
       print "$prg: LM_LICENSE_FILE : $ENV{LM_LICENSE_FILE}\n";
     } else {
@@ -1925,7 +2023,7 @@ sub post_process
         print ("$prg: warning could not copy vcs coverage data back to ${model_path}/coverage/verilog\n") if ($?) ;
 
         if ($opt{asm_diag_name} ne "") {
-          `cp *.s *.S *.tbl *.ev *.exe.gz $launch_dir` ;
+          `shopt -s nullglob; cp *.s *.S *.tbl *.ev *.exe.gz $launch_dir; shopt -u nullglob` ;
           print ("$prg: warning could not copy assembly files back to $launch_dir\n") if ($?) ;
         }
       }
@@ -2133,9 +2231,9 @@ sub assemble_diag
     my $diag_name ;
     if ($opt{asm_diag_name} =~ /\.pal/)        { $diag_name = "diag.pal"  ; }
     elsif ($opt{asm_diag_name} =~ /\.s\.gz/)   { $diag_name = "diag.s.gz" ; }
-    elsif ($opt{precompiled} and $opt{ariane}) { $diag_name = "diag.exe"  ; }
-    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
-    elsif (($opt{pico} | $opt{ariane}) and ($opt{asm_diag_name} =~ /\.c/)) { $diag_name = "diag.c" ; }
+    elsif ($opt{precompiled} and ($opt{rv32} | $opt{rv64})) { $diag_name = "diag.exe"  ; }
+    elsif (($opt{rv32} | $opt{rv64}) and ($opt{asm_diag_name} =~ /\.S/)) { $diag_name = "diag.S" ; }
+    elsif (($opt{rv32} | $opt{rv64}) and ($opt{asm_diag_name} =~ /\.c/)) { $diag_name = "diag.c" ; }
     else { $diag_name = "diag.s" ; }
 
     # copy diagnostic to run area
@@ -2176,8 +2274,30 @@ sub assemble_diag
       close (DIAGIN) ;
     }
 
-    if ($opt{pico}) {
-      # RISCV flow for RV32IM (PICORV32)
+    # Choose compilation flow based on ISA
+    if ($opt{rv32}) {
+      # RISCV flow for RV32
+      if (!$opt{rv32_target_triple}) {
+        if ($opt{pico}) {
+          $ENV{RV32_TARGET_TRIPLE} = "riscv32-unknown-elf" ;
+        }
+      } else {
+        $ENV{RV32_TARGET_TRIPLE} = $opt{rv32_target_triple} ;
+      }
+      if (!$opt{rv32_march}) {
+        if ($opt{pico}) {
+          $ENV{RV32_MARCH} = "rv32ima" ;
+        }
+      } else {
+        $ENV{RV32_MARCH} = $opt{rv32_march} ;
+      }
+      if (!$opt{rv32_mabi}) {
+        if ($opt{pico}) {
+          $ENV{RV32_MABI} = "ilp32" ;
+        }
+      } else {
+        $ENV{RV32_MABI} = $opt{rv32_mabi} ;
+      }
       print "$prg: assembling 32bit riscv diag (RV32IM)\n" ;
       my $cmd = "rv32_as " ;
       #$cmd .= join (" ", @{$opt{midas_args}}) ;
@@ -2186,16 +2306,40 @@ sub assemble_diag
       my $waitstatus = call_program($cmd, "rv32_as.log");
       die ("DIE. rv32_as compilation error") if ($waitstatus) ;
 
-    } elsif ($opt{ariane}) {
-      # RISCV flow for RV64IMAC (ARIANE from PULP)
+    }
+    if ($opt{rv64}) {
+      # RISCV flow for RV64
+      if (!$opt{rv64_target_triple}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_TARGET_TRIPLE} = "riscv64-unknown-elf" ;
+        }
+      } else {
+        $ENV{RV64_TARGET_TRIPLE} = $opt{rv64_target_triple} ;
+      }
+      if (!$opt{rv64_march}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_MARCH} = "rv64imafdc" ;
+        }
+      } else {
+        $ENV{RV64_MARCH} = $opt{rv64_march} ;
+      }
+      if (!$opt{rv64_mabi}) {
+        if ($opt{ariane}) {
+          $ENV{RV64_MABI} = "lp64d" ;
+        }
+      } else {
+        $ENV{RV64_MABI} = $opt{rv64_mabi} ;
+      }
       # only recompile if necessary
       if (!$opt{precompiled}) {
         print "$prg: assembling 64bit riscv diag (RV64IMAC)\n" ;
-        my $defs = "-DPITON_NUMTILES=$ENV{PTON_NUM_TILES} ";
+        my $defs = "-DPITON_NUMTILES=$ENV{PITON_NUM_TILES} ";
         if ($opt{uart_dmw}) {
           $defs .= " -DPITONSTREAM ";
         }
-        $defs .= $opt{gcc_args};
+        foreach my $additional_args (@{$opt{gcc_args}}) {
+          $defs .= " ${additional_args}";
+        }
         my $cmd = "rv64_cc ${diag_name} \"$defs\"" ;
         print "$prg: $cmd\n";
         my $waitstatus = call_program($cmd, "rv64_cc.log");
@@ -2235,7 +2379,8 @@ sub assemble_diag
         }
         close($fh);
       }
-    } else {
+    }
+    if ($opt{sparcv9}) {
       # standard flow for SAPRC
       # assemble
       push (@{$opt{midas_args}}, "-DFAST_BOOT") if ($opt{fast_boot}) ;
@@ -2395,7 +2540,7 @@ sub parse_args
             'asm_diag_root=s@',
             'build!',
             'precompiled!',
-            'gcc_args=s',
+            'gcc_args=s@',
             'uart_dmw!',
             'trap_offset=s',
             'config_cpp_args=s@',
@@ -2448,8 +2593,19 @@ sub parse_args
             'report!',
             'rerun!',
             'result_dir=s',
+            'riv_build!',
+            'riv_build_args=s@',
+            'riv_run!',
             'rtl_timeout=i',
             'run_diag_pl!',
+            'rv32!',
+            'rv32_mabi=s',
+            'rv32_march=s',
+            'rv32_target_triple=s',
+            'rv64!',
+            'rv64_mabi=s',
+            'rv64_march=s',
+            'rv64_target_triple=s',
             'other_sim_build!',
             'sim_build_args=s@',
             'other_sim_build_cmd=s',
@@ -2465,6 +2621,7 @@ sub parse_args
             'sjm_diag_name=s',
             'sjm_diag_path=s',
             'sjm_diag_root=s@',
+            'sparcv9!',
             'stub_mask=s',
             'sys=s',
             'tg_seed=i',
@@ -2571,8 +2728,22 @@ sub parse_args
     else { die ("DIE. Unprocessed argument: $x") ; }
   }
 
+  # Set ISA to choose compilation flow based on ISA
+  if ($opt{ost1}) {
+    $opt{sparcv9} = 1 ;
+    print "$prg: Building/running for sparcv9\n" ;
+  }
+  if ($opt{pico}) {
+    $opt{rv32} = 1 ;
+    print "$prg: Building/running for rv32\n" ;
+  }
+  if ($opt{ariane}) {
+    $opt{rv64} = 1 ;
+    print "$prg: Building/running for rv64\n" ;
+  }
+
   # in case a precompiled riscv binary for ariane is directly specified
-  if ($opt{precompiled} and $opt{ariane}) {
+  if ($opt{precompiled} and ($opt{rv32} | $opt{rv64})) {
     if (!($opt{asm_diag_name} =~ /\.riscv/)) {
         $opt{asm_diag_name} = fileparse($opt{asm_diag_name}, qr/\.[^.]*/);
     }
@@ -2589,6 +2760,7 @@ sub parse_args
     $opt{ncv_build} = 0 ;
     $opt{icv_build} = 0 ;
     $opt{msm_build} = 0 ;
+	$opt{riv_build} = 0 ;
     $opt{vlt_build} = 0 ;
     $opt{other_sim_build} = 0 ;
   }
@@ -2620,30 +2792,25 @@ sub parse_args
   # set up network_config defines
   if ($opt{network_config}) {
     if (($opt{network_config} eq "xbar_config") or ($opt{network_config} eq "2dmesh_config")) {
-      $ENV{PTON_NETWORK_CONFIG}=$opt{network_config};
+      $ENV{PITON_NETWORK_CONFIG}=$opt{network_config};
     } else {
       die ("DIE. network_config can only be xbar_config or 2dmesh_config");
     }
   } else {
-    print "network_config not specified, assuming 2dmesh configuration\n";
-    $ENV{PTON_NETWORK_CONFIG}="2d_mesh";
+    print "$prg: network_config not specified, assuming 2dmesh configuration\n";
+    $ENV{PITON_NETWORK_CONFIG}="2d_mesh";
   }
 
-  die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
-  die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_het}) ;
+  $ENV{PITON_OST1}     = $opt{ost1};
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
   $ENV{PITON_ARIANE}   = $opt{ariane};
+  push (@{$opt{config_rtl}}, "PITON_OST1")     if ($opt{ost1});
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
+  push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
   push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
-
-
-  if ($opt{pico} or $opt{pico_het} or $opt{ariane}) {
-    push (@{$opt{config_rtl}}, "NO_MRA_VAL") ;
-    push (@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
-  }
 
   my $pton_x_tiles="";
   my $pton_y_tiles="";
@@ -2658,9 +2825,9 @@ sub parse_args
     $pton_y_tiles=$opt{y_tiles};
     $pton_num_tiles=($opt{x_tiles} * $opt{y_tiles});
   } else {
-    print "x_tiles and y_tiles not defined, assuming x dimension is <= 8\n" ;
+    print "$prg: x_tiles and y_tiles not defined, assuming x dimension is <= 8\n" ;
     if (! $opt{num_tile}) {
-        print "num_tile not defined, assuming just one tile\n" ;
+        print "$prg: num_tile not defined, assuming just one tile\n" ;
         $opt{num_tile} = 1;
     }
 
@@ -2670,32 +2837,33 @@ sub parse_args
   }
 
   for (my $i=0; $i < $pton_num_tiles; $i++) {
+    push (@{$opt{config_rtl}}, "RTL_TILE" . $i);
     if ($opt{pico} || ($opt{pico_het} && ($i % 2 == 1))) {
         push (@{$opt{config_rtl}}, "RTL_PICO" . $i);
     } elsif ($opt{ariane}) {
         push (@{$opt{config_rtl}}, "RTL_ARIANE" . $i);
-    } else {
+    } elsif ($opt{ost1}) {
         push (@{$opt{config_rtl}}, "RTL_SPARC" . $i);
     }
   }
 
-  $ENV{PTON_X_TILES}=$pton_x_tiles;
-  $ENV{PTON_Y_TILES}=$pton_y_tiles;
-  $ENV{PTON_NUM_TILES}=$pton_num_tiles;
+  $ENV{PITON_X_TILES}=$pton_x_tiles;
+  $ENV{PITON_Y_TILES}=$pton_y_tiles;
+  $ENV{PITON_NUM_TILES}=$pton_num_tiles;
   if($opt{dynamic_csm}) {
-    $ENV{PTON_DYNAMIC_CSM}=$opt{dynamic_csm};
+    $ENV{PITON_DYNAMIC_CSM}=$opt{dynamic_csm};
     push (@{$opt{midas_args}}, "-DDYNAMIC_CSM=$opt{dynamic_csm}");
   } else {
-    $ENV{PTON_DYNAMIC_CSM}=0;
+    $ENV{PITON_DYNAMIC_CSM}=0;
   }
 
-  push (@{$opt{midas_args}}, "-DPTON_X_TILES=$pton_x_tiles");
-  push (@{$opt{midas_args}}, "-DPTON_Y_TILES=$pton_y_tiles");
-  push (@{$opt{midas_args}}, "-DPTON_NUM_TILES=$pton_num_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_X_TILES=$pton_x_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_Y_TILES=$pton_y_tiles");
+  push (@{$opt{midas_args}}, "-DPITON_NUM_TILES=$pton_num_tiles");
 
   # Alexey: set default value for UART_DIV_LATCH define
   if (index("@{$opt{midas_args}}", "UART_DIV_LATCH") == -1) {
-    print "Setting UART_DIV_LATCH to 0xb\n";
+    print "$prg: Setting UART_DIV_LATCH to 0xb\n";
     push (@{$opt{midas_args}}, "-DUART_DIV_LATCH=0xb");
   }
 
@@ -2720,9 +2888,9 @@ sub parse_args
   push (@{$opt{config_rtl}}, "ORAM_ON") if ($opt{oram}) ;
   push (@{$opt{sim_run_args}}, "+oram") if ($opt{oram}) ;
 
-  if ($opt{msm_build} or $opt{icv_build} or $opt{vlt_build}) {
-      push(@{$opt{config_rtl}}, "NO_SLAM_RANDOM") ;
-      push(@{$opt{config_rtl}}, "NO_MRA_VAL") ;
+  if ($opt{vcs_build} or $opt{ncv_build} or $opt{riv_build}) {
+      push(@{$opt{config_rtl}}, "OST1_PLI_SLAM_RANDOM") ;
+      push(@{$opt{config_rtl}}, "OST1_PLI_MRA_VAL") ;
   }
 
 }
@@ -2863,8 +3031,8 @@ OPENPITON ARGUMENTS
 
 VERILOG COMPILATION RELATED
 
-    -sim_type=vcs/ncv/icv/msm/vlt
-         defines which simulator to use vcs, ncverilog, icarus, modelsim, or verilator, defaults to vcs.
+    -sim_type=vcs/ncv/icv/msm/vlt/riv
+         defines which simulator to use vcs, ncverilog, icarus, modelsim, riviera, or verilator, defaults to vcs.
 
     -sim_q_command="command"
          defines which job queue manager command to use to launch jobs.
@@ -2891,6 +3059,13 @@ VERILOG COMPILATION RELATED
            modelsim compile options. multiple options can be specified using
            multiple such arguments.
 
+    -riv_build/-noriv_build
+           builds a riviera model. defaults to off.
+
+    -riv_build_args=OPTION
+           riviera compile options. multiple options can be specified using
+           multiple such arguments.		   
+		   
     -vlt_build/-novlt_build
            builds a verilator model. defaults to off.
 
@@ -2944,6 +3119,10 @@ VERILOG COMPILATION RELATED
     -build_id=NAME
            specify the build id of the model to be built. the full path
            to a model is $ENV{MODEL_DIR}/model/build_id.
+
+    -ost1
+           set by default - this specifies that the OpenSPARC T1 core will be used.
+           in this case, programs are compiled and assembled using midas
 
     -pico
            this specifies that the PICORV32 core shall be used instead of OpenSPARC.
@@ -3026,6 +3205,30 @@ this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane swit
 
     -gcc_args
            additional gcc arguments
+
+    -rv32_target_triple
+           specifies rv32 cross-compiler prefix (e.g. riscv32-unknown-elf)
+           default varies by core
+
+    -rv32_march
+           specifies rv32 march string (e.g. rv32ima)
+           default varies by core
+
+    -rv32_mabi
+           specifies rv32 mabi string (e.g. ilp32)
+           default varies by core
+
+    -rv64_target_triple
+           specifies rv64 cross-compiler prefix (e.g. riscv64-unknown-elf)
+           default varies by core
+
+    -rv64_march
+           specifies rv64 march string (e.g. rv64imafdc)
+           default varies by core
+
+    -rv64_mabi
+           specifies rv64 mabi string (e.g. lp64d)
+           default varies by core
 
 VCS COVERMETER
 
@@ -3250,6 +3453,10 @@ Build an icarus model using DV_ROOT as design root
 Build a modelsim model using DV_ROOT as design root
 
   sims -sys=manycore -x_tiles=1 -y_tiles=1 -msm_build
+  
+Build a riviera model using DV_ROOT as design root
+
+  sims -sys=manycore -x_tiles=1 -y_tiles=1 -riv_build  
 
 Build a verilator model using DV_ROOT as design root
 

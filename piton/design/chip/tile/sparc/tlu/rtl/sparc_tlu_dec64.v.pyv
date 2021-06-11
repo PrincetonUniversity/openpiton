@@ -60,7 +60,7 @@ begin
     case (in)
 <%
 for i in range(64) :
-    print '''       6\'h%02x: out = 64\'h%016x;''' % (i, 2**i)
+    print('''       6\'h%02x: out = 64\'h%016x;''' % (i, 2**i))
 %>
     endcase
 end

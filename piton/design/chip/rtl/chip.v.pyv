@@ -143,13 +143,13 @@ module chip(
     ,
     // Debug
     input                                       ndmreset_i,    // non-debug module reset
-    input   [`NUM_TILES-1:0]                    debug_req_i,   // async debug request
-    output  [`NUM_TILES-1:0]                    unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
+    input   [`PITON_NUM_TILES-1:0]                    debug_req_i,   // async debug request
+    output  [`PITON_NUM_TILES-1:0]                    unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
     // CLINT
-    input   [`NUM_TILES-1:0]                    timer_irq_i,   // Timer interrupts
-    input   [`NUM_TILES-1:0]                    ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
+    input   [`PITON_NUM_TILES-1:0]                    timer_irq_i,   // Timer interrupts
+    input   [`PITON_NUM_TILES-1:0]                    ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
     // PLIC
-    input   [`NUM_TILES*2-1:0]                  irq_i          // level sensitive IR lines, mip & sip (async)
+    input   [`PITON_NUM_TILES*2-1:0]                  irq_i          // level sensitive IR lines, mip & sip (async)
 `endif
 );
 
@@ -344,53 +344,53 @@ module chip(
    wire [127:0]                                 ctap_clk_en_inter; // trin TODO: parameterize this number (63)
    <%
        # generate wires
-       for i in range(X_TILES):
-           for j in range(Y_TILES):
-               flatid = i + (j * X_TILES)
-               print "wire tile%d_jtag_ucb_val;" % flatid
-               print "wire [`UCB_BUS_WIDTH-1:0] tile%d_jtag_ucb_data;" % flatid
+       for i in range(PITON_X_TILES):
+           for j in range(PITON_Y_TILES):
+               flatid = i + (j * PITON_X_TILES)
+               print("wire tile%d_jtag_ucb_val;" % flatid)
+               print("wire [`UCB_BUS_WIDTH-1:0] tile%d_jtag_ucb_data;" % flatid)
    %>
 
    // Generate tile wiring
 <%
-   if (NETWORK_CONFIG == "xbar_config"):
-       for i in range(X_TILES + 1):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
+       for i in range(PITON_X_TILES + 1):
            for k in [1,2,3]:
-               print "wire [`DATA_WIDTH-1:0] xbar_%d_out_noc%d_data;" % (i, k)
-               print "wire xbar_%d_out_noc%d_valid;" % (i, k)
-               print "wire xbar_%d_out_noc%d_yummy;" % (i, k)
-       for i in range(X_TILES):
-           for j in range(Y_TILES):
+               print("wire [`DATA_WIDTH-1:0] xbar_%d_out_noc%d_data;" % (i, k))
+               print("wire xbar_%d_out_noc%d_valid;" % (i, k))
+               print("wire xbar_%d_out_noc%d_yummy;" % (i, k))
+       for i in range(PITON_X_TILES):
+           for j in range(PITON_Y_TILES):
                for k in [1,2,3]:
-                   print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_noc%d_data;" % (j,i,k)
-                   print "wire tile_%d_%d_out_noc%d_valid;" % (j,i,k)
-                   print "wire tile_%d_%d_out_noc%d_yummy;" % (j,i,k)
+                   print("wire [`DATA_WIDTH-1:0] tile_%d_%d_out_noc%d_data;" % (j,i,k))
+                   print("wire tile_%d_%d_out_noc%d_valid;" % (j,i,k))
+                   print("wire tile_%d_%d_out_noc%d_yummy;" % (j,i,k))
        # make offchip signals
        for k in [1,2,3]:
-           print "wire [`DATA_WIDTH-1:0] offchip_out_noc%d_data;" % (k)
-           print "wire offchip_out_noc%d_valid;" % (k)
-           print "wire offchip_out_noc%d_yummy;" % (k)
+           print("wire [`DATA_WIDTH-1:0] offchip_out_noc%d_data;" % (k))
+           print("wire offchip_out_noc%d_valid;" % (k))
+           print("wire offchip_out_noc%d_yummy;" % (k))
    else:
-       for i in range(X_TILES):
-           for j in range(Y_TILES):
+       for i in range(PITON_X_TILES):
+           for j in range(PITON_Y_TILES):
                currentid = (i, j);
                rightid = (i, j + 1);
                downid = (i + 1, j);
-               flatid = i + (j * X_TILES);
+               flatid = i + (j * PITON_X_TILES);
                for k in [1,2,3]:
                    # print "`ifdef RTL_SPARC%d" % flatid
-                   print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_N_noc%d_data;" % (j,i,k)
-                   print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_S_noc%d_data;" % (j,i,k)
-                   print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_E_noc%d_data;" % (j,i,k)
-                   print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_W_noc%d_data;" % (j,i,k)
-                   print "wire tile_%d_%d_out_N_noc%d_valid;" % (j,i,k)
-                   print "wire tile_%d_%d_out_S_noc%d_valid;" % (j,i,k)
-                   print "wire tile_%d_%d_out_E_noc%d_valid;" % (j,i,k)
-                   print "wire tile_%d_%d_out_W_noc%d_valid;" % (j,i,k)
-                   print "wire tile_%d_%d_out_N_noc%d_yummy;" % (j,i,k)
-                   print "wire tile_%d_%d_out_S_noc%d_yummy;" % (j,i,k)
-                   print "wire tile_%d_%d_out_E_noc%d_yummy;" % (j,i,k)
-                   print "wire tile_%d_%d_out_W_noc%d_yummy;" % (j,i,k)
+                   print("wire [`DATA_WIDTH-1:0] tile_%d_%d_out_N_noc%d_data;" % (j,i,k))
+                   print("wire [`DATA_WIDTH-1:0] tile_%d_%d_out_S_noc%d_data;" % (j,i,k))
+                   print("wire [`DATA_WIDTH-1:0] tile_%d_%d_out_E_noc%d_data;" % (j,i,k))
+                   print("wire [`DATA_WIDTH-1:0] tile_%d_%d_out_W_noc%d_data;" % (j,i,k))
+                   print("wire tile_%d_%d_out_N_noc%d_valid;" % (j,i,k))
+                   print("wire tile_%d_%d_out_S_noc%d_valid;" % (j,i,k))
+                   print("wire tile_%d_%d_out_E_noc%d_valid;" % (j,i,k))
+                   print("wire tile_%d_%d_out_W_noc%d_valid;" % (j,i,k))
+                   print("wire tile_%d_%d_out_N_noc%d_yummy;" % (j,i,k))
+                   print("wire tile_%d_%d_out_S_noc%d_yummy;" % (j,i,k))
+                   print("wire tile_%d_%d_out_E_noc%d_yummy;" % (j,i,k))
+                   print("wire tile_%d_%d_out_W_noc%d_yummy;" % (j,i,k))
                    # print "`else"
                    # print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_N_noc%d_data = `DATA_WIDTH'b0;" % (j,i,k)
                    # print "wire [`DATA_WIDTH-1:0] tile_%d_%d_out_S_noc%d_data = `DATA_WIDTH'b0;" % (j,i,k)
@@ -407,26 +407,26 @@ module chip(
                    # print "`endif"
        # make some dummy signals
        for k in [1,2,3]:
-           print "wire [`DATA_WIDTH-1:0] dummy_out_N_noc%d_data = `DATA_WIDTH'b0;" % (k)
-           print "wire [`DATA_WIDTH-1:0] dummy_out_S_noc%d_data = `DATA_WIDTH'b0;" % (k)
-           print "wire [`DATA_WIDTH-1:0] dummy_out_E_noc%d_data = `DATA_WIDTH'b0;" % (k)
-           print "wire [`DATA_WIDTH-1:0] dummy_out_W_noc%d_data = `DATA_WIDTH'b0;" % (k)
-           print "wire dummy_out_N_noc%d_valid = 1'b0;" % (k)
-           print "wire dummy_out_S_noc%d_valid = 1'b0;" % (k)
-           print "wire dummy_out_E_noc%d_valid = 1'b0;" % (k)
-           print "wire dummy_out_W_noc%d_valid = 1'b0;" % (k)
-           print "wire dummy_out_N_noc%d_yummy = 1'b0;" % (k)
-           print "wire dummy_out_S_noc%d_yummy = 1'b0;" % (k)
-           print "wire dummy_out_E_noc%d_yummy = 1'b0;" % (k)
-           print "wire dummy_out_W_noc%d_yummy = 1'b0;" % (k)
+           print("wire [`DATA_WIDTH-1:0] dummy_out_N_noc%d_data = `DATA_WIDTH'b0;" % (k))
+           print("wire [`DATA_WIDTH-1:0] dummy_out_S_noc%d_data = `DATA_WIDTH'b0;" % (k))
+           print("wire [`DATA_WIDTH-1:0] dummy_out_E_noc%d_data = `DATA_WIDTH'b0;" % (k))
+           print("wire [`DATA_WIDTH-1:0] dummy_out_W_noc%d_data = `DATA_WIDTH'b0;" % (k))
+           print("wire dummy_out_N_noc%d_valid = 1'b0;" % (k))
+           print("wire dummy_out_S_noc%d_valid = 1'b0;" % (k))
+           print("wire dummy_out_E_noc%d_valid = 1'b0;" % (k))
+           print("wire dummy_out_W_noc%d_valid = 1'b0;" % (k))
+           print("wire dummy_out_N_noc%d_yummy = 1'b0;" % (k))
+           print("wire dummy_out_S_noc%d_yummy = 1'b0;" % (k))
+           print("wire dummy_out_E_noc%d_yummy = 1'b0;" % (k))
+           print("wire dummy_out_W_noc%d_yummy = 1'b0;" % (k))
        # make offchip signals
        for k in [1,2,3]:
            # print "wire [`DATA_WIDTH-1:0] offchip_out_S_noc%d_data;" % (k)
-           print "wire [`DATA_WIDTH-1:0] offchip_out_E_noc%d_data;" % (k)
+           print("wire [`DATA_WIDTH-1:0] offchip_out_E_noc%d_data;" % (k))
            # print "wire offchip_out_S_noc%d_valid;" % (k)
-           print "wire offchip_out_E_noc%d_valid;" % (k)
+           print("wire offchip_out_E_noc%d_valid;" % (k))
            # print "wire offchip_out_S_noc%d_yummy;" % (k)
-           print "wire offchip_out_E_noc%d_yummy;" % (k)
+           print("wire offchip_out_E_noc%d_yummy;" % (k))
 %>
 
    //////////////////////
@@ -521,12 +521,12 @@ module chip(
    assign proc_oram_valid = tile_0_0_out_W_noc2_valid;
    assign proc_oram_data = tile_0_0_out_W_noc2_data;
    assign oram_proc_yummy = tile_0_0_out_W_noc3_yummy;'''
-   if (NETWORK_CONFIG == "xbar_config"):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
        s = r'''
    assign proc_oram_valid = xbar_X_TILES_out_noc2_valid;
    assign proc_oram_data = xbar_X_TILES_out_noc2_data;
    assign oram_proc_yummy = xbar_X_TILES_out_noc3_yummy;'''
-   print s.replace("X_TILES", str(X_TILES))
+   print(s.replace("X_TILES", str(PITON_X_TILES)))
 %>
    assign offchip_oram_valid = offchip_processor_noc3_valid;
    assign offchip_oram_data = offchip_processor_noc3_data;
@@ -536,12 +536,12 @@ module chip(
    assign processor_offchip_noc1_valid = tile_0_0_out_W_noc1_valid;
    assign processor_offchip_noc1_data = tile_0_0_out_W_noc1_data;
    assign offchip_processor_noc1_yummy = tile_0_0_out_W_noc1_yummy;'''
-   if (NETWORK_CONFIG == "xbar_config"):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
        s = r'''
    assign processor_offchip_noc1_valid = xbar_X_TILES_out_noc1_valid;
    assign processor_offchip_noc1_data = xbar_X_TILES_out_noc1_data;
    assign offchip_processor_noc1_yummy = xbar_X_TILES_out_noc1_yummy;'''
-   print s.replace("X_TILES", str(X_TILES))
+   print(s.replace("X_TILES", str(PITON_X_TILES)))
 %>
    assign processor_offchip_noc2_valid = oram_offchip_valid;
    assign processor_offchip_noc2_data = oram_offchip_data;
@@ -550,12 +550,12 @@ module chip(
    assign offchip_processor_noc2_yummy = tile_0_0_out_W_noc2_yummy;
    assign processor_offchip_noc3_valid = tile_0_0_out_W_noc3_valid;
    assign processor_offchip_noc3_data = tile_0_0_out_W_noc3_data;'''
-   if (NETWORK_CONFIG == "xbar_config"):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
        s = r'''
    assign offchip_processor_noc2_yummy = xbar_X_TILES_out_noc2_yummy;
    assign processor_offchip_noc3_valid = xbar_X_TILES_out_noc3_valid;
    assign processor_offchip_noc3_data = xbar_X_TILES_out_noc3_data;'''
-   print s.replace("X_TILES", str(X_TILES))
+   print(s.replace("X_TILES", str(PITON_X_TILES)))
 %>
    assign offchip_processor_noc3_yummy = offchip_oram_yummy;
 <%
@@ -569,7 +569,7 @@ module chip(
    assign offchip_out_E_noc3_data = oram_proc_data;
    assign offchip_out_E_noc3_valid = oram_proc_valid;
    assign offchip_out_E_noc3_yummy = processor_offchip_noc3_yummy;'''
-   if (NETWORK_CONFIG == "xbar_config"):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
        s = r'''
    assign offchip_out_noc1_data = offchip_processor_noc1_data;
    assign offchip_out_noc1_valid = offchip_processor_noc1_valid;
@@ -580,7 +580,7 @@ module chip(
    assign offchip_out_noc3_data = oram_proc_data;
    assign offchip_out_noc3_valid = oram_proc_valid;
    assign offchip_out_noc3_yummy = processor_offchip_noc3_yummy;'''
-   print s
+   print(s)
 %>
 
    // trin: off-chip channel mux when disabling oram
@@ -609,10 +609,10 @@ module chip(
 <%
    t0 = 'assign tiles_jtag_ucb_val ='
    t1 = 'assign tiles_jtag_ucb_data ='
-   for i in range(X_TILES):
-       for j in range(Y_TILES):
+   for i in range(PITON_X_TILES):
+       for j in range(PITON_Y_TILES):
            currentid = (i, j);
-           flatid = i + (j * X_TILES);
+           flatid = i + (j * PITON_X_TILES);
            if flatid == 0:
                t0 = t0 + ' tile%d_jtag_ucb_val' % flatid
                t1 = t1 + ' tile%d_jtag_ucb_data' % flatid
@@ -621,8 +621,8 @@ module chip(
                t1 = t1 + ' | tile%d_jtag_ucb_data' % flatid
    t0 = t0 + ';'
    t1 = t1 + ';'
-   print t0
-   print t1
+   print(t0)
+   print(t1)
 %>
 
    /////////////////////////
@@ -991,7 +991,7 @@ module chip(
 
    // generate the cross bars
 <%
-   if (NETWORK_CONFIG == "xbar_config"):
+   if (PITON_NETWORK_CONFIG == "xbar_config"):
        xbartemplate = r'''
        dynamic_node_top_wrap_para xbar_noc1(
            .clk                (clk_muxed),
@@ -1002,8 +1002,8 @@ module chip(
            .myLocY                     (8'b0),  // not used
        '''
 
-       for i in range (X_TILES):
-           for j in range (Y_TILES):
+       for i in range (PITON_X_TILES):
+           for j in range (PITON_Y_TILES):
                xbartemplate += "    .dataIn_%d(tile_%d_%d_out_noc1_data),\n"  % (i, j,i)
                xbartemplate += "    .validIn_%d(tile_%d_%d_out_noc1_valid),\n"  % (i, j,i)
                xbartemplate += "    .yummyIn_%d(tile_%d_%d_out_noc1_yummy),\n"  % (i, j,i)
@@ -1011,19 +1011,19 @@ module chip(
                xbartemplate += "    .validOut_%d(xbar_%d_out_noc1_valid),\n"  % (i, i)
                xbartemplate += "    .yummyOut_%d(xbar_%d_out_noc1_yummy),\n\n"  % (i, i)
 
-       xbartemplate += "    .dataIn_%d(offchip_out_noc1_data),\n"  % X_TILES
-       xbartemplate += "    .validIn_%d(offchip_out_noc1_valid),\n"  % X_TILES
-       xbartemplate += "    .yummyIn_%d(offchip_out_noc1_yummy),\n"  % X_TILES
-       xbartemplate += "    .dataOut_%d(xbar_%d_out_noc1_data),\n"  % (X_TILES, X_TILES)
-       xbartemplate += "    .validOut_%d(xbar_%d_out_noc1_valid),\n"  % (X_TILES, X_TILES)
-       xbartemplate += "    .yummyOut_%d(xbar_%d_out_noc1_yummy),\n\n"  % (X_TILES, X_TILES)
-       xbartemplate += "    .thanksIn_%d();\n" % (X_TILES)
+       xbartemplate += "    .dataIn_%d(offchip_out_noc1_data),\n"  % PITON_X_TILES
+       xbartemplate += "    .validIn_%d(offchip_out_noc1_valid),\n"  % PITON_X_TILES
+       xbartemplate += "    .yummyIn_%d(offchip_out_noc1_yummy),\n"  % PITON_X_TILES
+       xbartemplate += "    .dataOut_%d(xbar_%d_out_noc1_data),\n"  % (PITON_X_TILES, PITON_X_TILES)
+       xbartemplate += "    .validOut_%d(xbar_%d_out_noc1_valid),\n"  % (PITON_X_TILES, PITON_X_TILES)
+       xbartemplate += "    .yummyOut_%d(xbar_%d_out_noc1_yummy),\n\n"  % (PITON_X_TILES, PITON_X_TILES)
+       xbartemplate += "    .thanksIn_%d();\n" % (PITON_X_TILES)
        xbartemplate = xbartemplate[:-2] + r'''
        );'''
 
-       print xbartemplate
-       print xbartemplate.replace("noc1", "noc2")
-       print xbartemplate.replace("noc1", "noc3")
+       print(xbartemplate)
+       print(xbartemplate.replace("noc1", "noc2"))
+       print(xbartemplate.replace("noc1", "noc3"))
 %>
 
     // Generate tile instances
@@ -1080,7 +1080,7 @@ module chip(
         .dyn0_yummyOut_W     ( out_W_noc1_yummy ),
         .dyn0_yummyOut_S     ( out_S_noc1_yummy ),'''
         #.ec_dyn0            (                  ),'''
-    if (NETWORK_CONFIG == "xbar_config"):
+    if (PITON_NETWORK_CONFIG == "xbar_config"):
         subtemplate = r'''
         .dyn0_dataIn         ( in_noc1_data     ),
         .dyn0_validIn        ( in_noc1_valid    ),
@@ -1099,30 +1099,33 @@ module chip(
     '''
 
     # generate the tiles
-    for i in range(X_TILES):
-        for j in range(Y_TILES):
+    for i in range(PITON_X_TILES):
+        for j in range(PITON_Y_TILES):
             currentid = (i, j);
-            flatid = i + (j * X_TILES);
+            flatid = i + (j * PITON_X_TILES);
             # print template
             currenttile = template.replace("tile0", "tile%d" % (flatid));
-            currenttile = currenttile.replace("COREIDX", "8'd" + `i`);
-            currenttile = currenttile.replace("COREIDY", "8'd" + `j`);
+            currenttile = currenttile.replace("COREIDX", "8'd" + repr(i));
+            currenttile = currenttile.replace("COREIDY", "8'd" + repr(j));
             currenttile = currenttile.replace("out_", "tile_%d_%d_out_" % (j,i));
-            currenttile = currenttile.replace("_FLAT_ID_", `flatid`);
+            currenttile = currenttile.replace("_FLAT_ID_", repr(flatid));
+            currenttype = "`SPARC_TILE"
 
             if (PITON_PICO_HET):
                 if (flatid % 2) == 0:
-                    currenttile = currenttile.replace("TYPE_OF_TILE", "`SPARC_TILE")
+                    currenttype = "`SPARC_TILE"
                 else:
-                    currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
+                    currenttype = "`PICORV32_TILE"
             elif (PITON_PICO):
-                currenttile = currenttile.replace("TYPE_OF_TILE", "`PICORV32_TILE")
+                currenttype = "`PICORV32_TILE"
             elif (PITON_ARIANE):
-                currenttile = currenttile.replace("TYPE_OF_TILE", "`ARIANE_RV64_TILE")
+                currenttype = "`ARIANE_RV64_TILE"
             else:
-                currenttile = currenttile.replace("TYPE_OF_TILE", "`SPARC_TILE")
+                currenttype = "`SPARC_TILE"
 
-            if (NETWORK_CONFIG == "xbar_config"):
+            currenttile = currenttile.replace("TYPE_OF_TILE", currenttype)
+
+            if (PITON_NETWORK_CONFIG == "xbar_config"):
                 currenttile = currenttile.replace("in_", "xbar_%d_out_" % i);
             else:
                 # now put in the data in direction
@@ -1131,7 +1134,7 @@ module chip(
                 else:
                     idN = "dummy"
 
-                if (j != Y_TILES - 1):
+                if (j != PITON_Y_TILES - 1):
                     idS = "tile_%d_%d" % (j+1, i)
                 else:
                     idS = "dummy"
@@ -1141,7 +1144,7 @@ module chip(
                 else:
                     idW = "dummy"
 
-                if (i != X_TILES - 1):
+                if (i != PITON_X_TILES - 1):
                     idE = "tile_%d_%d" % (j, i+1)
                 else:
                     idE = "dummy"
@@ -1157,7 +1160,7 @@ module chip(
                 currenttile = currenttile.replace("in_W", idW + "_out_E");
 
             # print "`ifdef RTL_SPARC%d" % flatid
-            print currenttile;
+            print(currenttile)
             # print "`endif"
 %>
 endmodule

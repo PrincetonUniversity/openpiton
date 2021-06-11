@@ -29,35 +29,35 @@ import math
 import sys
 import pyhplib 
 
-DYNAMIC_NODE_PORT = pyhplib.X_TILES + 1
+DYNAMIC_NODE_PORT = pyhplib.PITON_X_TILES + 1
 DYNAMIC_NODE_PORT_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT, 2)))
 DYNAMIC_NODE_PORT_P_3 = DYNAMIC_NODE_PORT + 3
 DYNAMIC_NODE_PORT_P_3_LOG2 = int(math.ceil(math.log(DYNAMIC_NODE_PORT_P_3, 2)))
 
 def print_ports (s):
     for a in range (DYNAMIC_NODE_PORT):
-        print (s % a)
+        print((s % a))
 
 def print_ports_nm1 (s):
     for a in range (DYNAMIC_NODE_PORT - 1):
-        print (s % a)    
+        print((s % a))    
 
 def print_ports_2 (s):
     for a in range (DYNAMIC_NODE_PORT):
-        print (s % (a, a))
+        print((s % (a, a)))
 
 def print_ports_nm1_3_nl (s):
     for a in range (DYNAMIC_NODE_PORT - 1):
-        print (s % (a, a, a))
-    print ""
+        print((s % (a, a, a)))
+    print("")
 
 def print_ports_nl (s):
     print_ports(s)
-    print ""
+    print("")
 
 def print_ports_nl_nm1 (s):
     print_ports_nm1(s)
-    print ""
+    print("")
 
 def string_ports_oneline (s1 , s2):
     for a in range (DYNAMIC_NODE_PORT):
@@ -82,8 +82,8 @@ def print_ports_oneline_2 (s1 , s2):
     print (s1)
 
 #generate direction default_dir s.t. msg from default_dir has priority when going to dir
-def gen_default_dir (dir):
-    default_dir = (dir + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1)
-    if (dir == DYNAMIC_NODE_PORT - 1):
-        default_dir = (0 + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1)
+def gen_default_dir (direction):
+    default_dir = int((direction + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1))
+    if (direction == DYNAMIC_NODE_PORT - 1):
+        default_dir = int((0 + (DYNAMIC_NODE_PORT - 1) / 2) % (DYNAMIC_NODE_PORT - 1))
     return default_dir

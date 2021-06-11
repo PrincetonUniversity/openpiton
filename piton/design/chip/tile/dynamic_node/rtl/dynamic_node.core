@@ -19,23 +19,6 @@ targets:
         filesets: [rtl]
         generate: [pyhp_preprocess]
 
-    pickle:
-        default_tool: icarus
-        filesets: [rtl]
-        generate: [pyhp_preprocess]
-        toplevel: [dynamic_node_top]
-        tools:
-            icarus:
-                iverilog_options: [-g 2001 -E]
-
-    verify:
-        default_tool: icarus
-        filesets: [rtl]
-        generate: [pyhp_preprocess]
-        toplevel: [dynamic_node_top]
-        tools:
-            icarus:
-                iverilog_options: [-g 2001]
 
 generate:
     pyhp_preprocess:

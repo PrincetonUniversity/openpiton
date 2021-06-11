@@ -299,7 +299,7 @@
 
 
     srlx    %g1, 8, %l1
-    mulx    %l1, PTON_X_TILES, %l1
+    mulx    %l1, PITON_X_TILES, %l1
     and     %g1, 0xff, %g1
     add     %g1, %l1, %g1    
 

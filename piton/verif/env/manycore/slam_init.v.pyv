@@ -34,7 +34,7 @@
     from pyhplib import ReplicatePattern1
 
     MAX_TILE = pyhplib.MAX_TILE
-    print "`define MAX_TILE " + `MAX_TILE`;
+    print("`define MAX_TILE " + repr(MAX_TILE))
 %>
 
 
@@ -103,7 +103,7 @@ initial begin
         `endif // RTL_SPARC0
     '''
     tt = ReplicatePattern(t, ["SPARC_CORE0", "RTL_SPARC0"]);
-    print tt;
+    print(tt)
 %>
 
     end // if fast_boot begin
@@ -122,7 +122,7 @@ initial begin
         `endif
     '''
     tt = ReplicatePattern(t, ["SPARC_CORE0", "RTL_SPARC0"]);
-    print tt;
+    print(tt)
 %>
     end
 end
@@ -668,7 +668,7 @@ always @(posedge `SPARC_CORE0.cmp_grst_l) begin
 
     '''
     tt = ReplicatePattern(t, ["ICTPATH0", "ICVPATH0", "DTAG0", "DVLD0", "RTL_SPARC0"]);
-    print tt;
+    print(tt)
 %>
 
     end // if (!$test$plusargs("no_bisi_init"))
@@ -695,7 +695,7 @@ initial begin
      `endif
     '''
     tt = ReplicatePattern(t, ["SPARC_CORE0", "status[0", "RTL_SPARC0"]);
-    print tt;
+    print(tt)
 %>
 
     if($value$plusargs("tlb_slam=%h", tlb_slam))begin
@@ -1426,7 +1426,7 @@ initial begin
 
     '''
     tt = ReplicatePattern1(t, ["SPARC_CORE1", "SPARC_REG1", "FLOATPATH1", "RTL_SPARC1"]);
-    print tt;
+    print(tt)
 %>
 
     end // if no_slam_init

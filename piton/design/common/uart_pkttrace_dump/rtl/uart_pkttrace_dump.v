@@ -257,7 +257,7 @@ side2string # (
 // Convert 64-bit data to hex string
 bits2hex bits2hex[(`NOC_DATA_WIDTH/4)-1:0] (
     .bits   (process_pkt_data           ),
-    .char   (process_pkt_data_hex_string)
+    .ochar   (process_pkt_data_hex_string)
 );
 
 // UART serializer

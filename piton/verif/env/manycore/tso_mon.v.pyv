@@ -125,7 +125,7 @@ reg        spc1_dfq_wr_en_d1;
 '''
 pattern = ["RTL_SPARC1", "CORE1", "spc1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 //--------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ text ='''
 '''
 pattern = ["RTL_SPARC1", "CORE1", "spc1", "pcx1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 //--------------------------------------------------------------------------------------
@@ -287,7 +287,7 @@ text ='''
 '''
 pattern = ["RTL_SPARC1", "CORE1", "spc1", "cnt1", "mixture1", "ret1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 //----------------------------------------------------------------------------------------
@@ -353,7 +353,7 @@ text = '''
 '''
 pattern = ["RTL_SPARC1", "spc1", "pcx1", "cnt1", "mixture1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 end
@@ -372,7 +372,7 @@ text = '''
 '''
 pattern = ["RTL_SPARC1", "spc1", "pcx1", ", 1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 end
 
@@ -407,7 +407,7 @@ text = '''
 '''
 pattern = ["RTL_SPARC1", "spc1", "pcx1", "ret1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 end
 
@@ -426,7 +426,7 @@ text = '''
 '''
 pattern = ["RTL_SPARC1", "spc1", " 1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
   end // of rst_l
 end
@@ -970,7 +970,7 @@ end
 '''
 pattern = ["CORE1", "spc1", ", 1", "C1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 //-----------------------------------------------------------------------------
@@ -1078,7 +1078,7 @@ end
 '''
 pattern = ["RTL_SPARC1", "CORE1", "spc1", ", 1"]
 tt = ReplicatePattern1(text, pattern)
-print tt
+print(tt)
 %>
 
 

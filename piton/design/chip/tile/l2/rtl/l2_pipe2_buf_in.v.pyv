@@ -41,6 +41,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `include "l2.tmp.h"
 `include "define.tmp.h"
 
+`define LOCAL_STATE_WIDTH 4
+
 module l2_pipe2_buf_in(
 
     input wire clk,
@@ -65,27 +67,30 @@ L2_P2_HEADER_BUF_IN_SIZE = 4
 L2_P2_DATA_BUF_IN_SIZE = 16
 %>
 
-localparam msg_data_state_0F = 2'd0;
-localparam msg_data_state_2F = 2'd1;
-localparam msg_data_state_8F = 2'd2;
 
-localparam msg_state_header0 = 4'd0;
-localparam msg_state_header1 = 4'd1;
-localparam msg_state_header2 = 4'd2;
-localparam msg_state_data0 = 4'd3;
-localparam msg_state_data1 = 4'd4;
-localparam msg_state_data2 = 4'd5;
-localparam msg_state_data3 = 4'd6;
-localparam msg_state_data4 = 4'd7;
-localparam msg_state_data5 = 4'd8;
-localparam msg_state_data6 = 4'd9;
-localparam msg_state_data7 = 4'd10;
+localparam msg_data_state_0F = `LOCAL_STATE_WIDTH'd0;
+localparam msg_data_state_1F = `LOCAL_STATE_WIDTH'd1; // NC load ack
+localparam msg_data_state_2F = `LOCAL_STATE_WIDTH'd2;
+localparam msg_data_state_4F = `LOCAL_STATE_WIDTH'd3;
+localparam msg_data_state_8F = `LOCAL_STATE_WIDTH'd4;
 
-reg [3:0] msg_state_f;
-reg [3:0] msg_state_next;
+localparam msg_state_header0 = `LOCAL_STATE_WIDTH'd0;
+localparam msg_state_header1 = `LOCAL_STATE_WIDTH'd1;
+localparam msg_state_header2 = `LOCAL_STATE_WIDTH'd2;
+localparam msg_state_data0 = `LOCAL_STATE_WIDTH'd3;
+localparam msg_state_data1 = `LOCAL_STATE_WIDTH'd4;
+localparam msg_state_data2 = `LOCAL_STATE_WIDTH'd5;
+localparam msg_state_data3 = `LOCAL_STATE_WIDTH'd6;
+localparam msg_state_data4 = `LOCAL_STATE_WIDTH'd7;
+localparam msg_state_data5 = `LOCAL_STATE_WIDTH'd8;
+localparam msg_state_data6 = `LOCAL_STATE_WIDTH'd9;
+localparam msg_state_data7 = `LOCAL_STATE_WIDTH'd10;
 
-reg [1:0] msg_data_state_f;
-reg [1:0] msg_data_state_next;
+reg [`LOCAL_STATE_WIDTH-1:0] msg_state_f;
+reg [`LOCAL_STATE_WIDTH-1:0] msg_state_next;
+
+reg [`LOCAL_STATE_WIDTH-1:0] msg_data_state_f;
+reg [`LOCAL_STATE_WIDTH-1:0] msg_data_state_next;
 
 always @ *
 begin
@@ -95,14 +100,25 @@ begin
     end
     else if((msg_state_f == msg_state_header0) && valid_in)
     begin
-        if (data_in[`MSG_LENGTH] == 8)
+        if (data_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'd8)
         begin
             msg_data_state_next = msg_data_state_8F;
         end
-        else if (data_in[`MSG_LENGTH] == 0)
+        else if (data_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'd0)
         begin
             msg_data_state_next = msg_data_state_0F;
         end
+`ifdef L2_SEND_NC_REQ
+        else if (data_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'd1)
+        begin
+            msg_data_state_next = msg_data_state_1F;
+        end
+        else if (data_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'd4 && (data_in[`MSG_TYPE] != `MSG_TYPE_WB_REQ))
+        begin
+            // WB has 2 data flits
+            msg_data_state_next = msg_data_state_4F;
+        end
+`endif
         else    
         begin
             msg_data_state_next = msg_data_state_2F;
@@ -129,7 +145,7 @@ begin
     begin
         if ((msg_state_f == msg_state_header0) && (data_in[`MSG_TYPE] != `MSG_TYPE_WB_REQ))
         begin
-            if (data_in[`MSG_LENGTH] == 0)
+            if (data_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'd0)
             begin
                 msg_state_next = msg_state_header0;
             end
@@ -138,6 +154,16 @@ begin
                 msg_state_next = msg_state_data0;
             end
         end
+`ifdef L2_SEND_NC_REQ
+        else if ((msg_state_f == msg_state_data0) && (msg_data_state_f == msg_data_state_1F))
+        begin
+            msg_state_next = msg_state_header0;
+        end
+        else if ((msg_state_f == msg_state_data3) && (msg_data_state_f == msg_data_state_4F))
+        begin
+            msg_state_next = msg_state_header0;
+        end
+`endif
         else if ((msg_state_f == msg_state_data1) && (msg_data_state_f == msg_data_state_2F))
         begin
             msg_state_next = msg_state_header0;
@@ -150,7 +176,7 @@ begin
             end
             else
             begin
-                msg_state_next = msg_state_f + 3'd1;
+                msg_state_next = msg_state_f + `LOCAL_STATE_WIDTH'd1;
             end
         end
     end
@@ -384,7 +410,7 @@ begin
     begin   
 <%
 for i in range(L2_P2_HEADER_BUF_IN_SIZE):
-    print "        header_buf_mem_f[%d] <= 0;" % (i)
+    print("        header_buf_mem_f[%d] <= 0;" % (i))
 %>
     end
     else if (msg_header_valid_in && msg_header_ready_in)
@@ -409,6 +435,7 @@ reg [`L2_P2_DATA_BUF_IN_LOG_SIZE-1:0] data_rd_ptr_next;
 reg [`L2_P2_DATA_BUF_IN_LOG_SIZE-1:0] data_rd_ptr_plus1;
 reg [`L2_P2_DATA_BUF_IN_LOG_SIZE-1:0] data_wr_ptr_f;
 reg [`L2_P2_DATA_BUF_IN_LOG_SIZE-1:0] data_wr_ptr_next;
+reg [`L2_P2_DATA_BUF_IN_LOG_SIZE-1:0] data_wr_ptr_plus1;
 
 always @ *
 begin
@@ -416,15 +443,30 @@ begin
     data_buf_full = (data_buf_counter_f ==  `L2_P2_DATA_BUF_IN_SIZE);
 end
 
+`ifdef L2_SEND_NC_REQ
+// When receive 1 data flit, we store the same data flit in two slots in the buffer.
+// This is because we always read out 2 flits of data.
+wire extra_data_buf; 
+assign extra_data_buf = (msg_data_valid_in && msg_data_ready_in && msg_data_state_f == msg_data_state_1F) ? 1'b1 : 1'b0;
+`endif
+
 always @ *
 begin
     if ((msg_data_valid_in && msg_data_ready_in) && (msg_data_valid_out && msg_data_ready_out))
     begin
+`ifdef L2_SEND_NC_REQ
+        data_buf_counter_next = data_buf_counter_f + 1 + extra_data_buf - `L2_P2_DATA_BUF_IN_FLITS;
+`else
         data_buf_counter_next = data_buf_counter_f + 1 - `L2_P2_DATA_BUF_IN_FLITS;
+`endif
     end
     else if (msg_data_valid_in && msg_data_ready_in)
     begin 
+`ifdef L2_SEND_NC_REQ
+        data_buf_counter_next = data_buf_counter_f + 1 + extra_data_buf;
+`else
         data_buf_counter_next = data_buf_counter_f + 1;
+`endif
     end
     else if (msg_data_valid_out && msg_data_ready_out)
     begin 
@@ -475,7 +517,11 @@ begin
     end
     else if (msg_data_valid_in && msg_data_ready_in)
     begin
+`ifdef L2_SEND_NC_REQ
+        data_wr_ptr_next = data_wr_ptr_f + 1 + extra_data_buf;
+`else
         data_wr_ptr_next = data_wr_ptr_f + 1;
+`endif
     end
     else
     begin
@@ -492,6 +538,9 @@ end
 always @ *
 begin
     data_rd_ptr_plus1 = data_rd_ptr_f + 1;
+`ifdef L2_SEND_NC_REQ
+    data_wr_ptr_plus1 = data_wr_ptr_f + 1;
+`endif
 end
 
 always @ *
@@ -513,16 +562,27 @@ begin
     begin   
 <%
 for i in range(L2_P2_DATA_BUF_IN_SIZE):
-    print "        data_buf_mem_f[%d] <= 0;" % (i)
+    print("        data_buf_mem_f[%d] <= 0;" % (i))
 %>
     end
     else if (msg_data_valid_in && msg_data_ready_in)
     begin
         data_buf_mem_f[data_wr_ptr_f] <= msg_data_in;
+`ifdef L2_SEND_NC_REQ
+        if (extra_data_buf) begin
+            data_buf_mem_f[data_wr_ptr_plus1] <= msg_data_in;
+        end
+        else begin
+            data_buf_mem_f[data_wr_ptr_plus1] <=  data_buf_mem_f[data_wr_ptr_plus1];
+        end
+`endif
     end
     else
     begin 
         data_buf_mem_f[data_wr_ptr_f] <=  data_buf_mem_f[data_wr_ptr_f];
+`ifdef L2_SEND_NC_REQ
+        data_buf_mem_f[data_wr_ptr_plus1] <=  data_buf_mem_f[data_wr_ptr_plus1];
+`endif
     end
 end
 
