@@ -102,43 +102,35 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
 //////////////////////////// resets ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
-
-    (* dont_touch = "true" *) logic pipe_piton_rst_n;
     logic pre_piton_rst_n;
     logic piton_rst_n;
 
-    lib_pipe #(.WIDTH(1), .STAGES(4)) PIPE_piton_rst_n (.clk(shell_clk), .rst_n(1'b1), .in_bus(sh_cl_status_vdip[15]), .out_bus(pipe_piton_rst_n));
-
-    always_ff @(negedge pipe_piton_rst_n or posedge piton_clk)
-       if (!pipe_piton_rst_n)
-       begin
-          pre_piton_rst_n <= 0;
-          piton_rst_n <= 0;
-       end
-       else
-       begin
-          pre_piton_rst_n <= 1;
-          piton_rst_n <= pre_piton_rst_n;
-       end
+    // Piton reset comes from 15th dip switch 
+    always_ff @(negedge sh_cl_status_vdip[15] or posedge piton_clk)
+        if (!sh_cl_status_vdip[15])
+        begin
+            pre_piton_rst_n <= 0;
+            piton_rst_n <= 0;
+        end
+        else begin
+            pre_piton_rst_n <= 1;
+            piton_rst_n <= pre_piton_rst_n;
+        end
 
 
-    (* dont_touch = "true" *) logic pipe_shell_rst_n;
     logic pre_shell_rst_n;
     logic shell_rst_n;
 
-    lib_pipe #(.WIDTH(1), .STAGES(4)) PIPE_shell_rst_n (.clk(shell_clk), .rst_n(1'b1), .in_bus(rst_main_n), .out_bus(pipe_shell_rst_n));
-
-    always_ff @(negedge pipe_shell_rst_n or posedge shell_clk)
-       if (!pipe_shell_rst_n)
-       begin
-          pre_shell_rst_n <= 0;
-          shell_rst_n <= 0;
-       end
-       else
-       begin
-          pre_shell_rst_n <= 1;
-          shell_rst_n <= pre_shell_rst_n;
-       end
+    always_ff @(negedge rst_main_n or posedge shell_clk)
+        if (!rst_main_n)
+        begin
+            pre_shell_rst_n <= 0;
+            shell_rst_n <= 0;
+        end
+        else begin
+            pre_shell_rst_n <= 1;
+            shell_rst_n <= pre_shell_rst_n;
+        end
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -157,24 +149,12 @@ assign cl_sh_id1 = 32'h1D51_FEDC;
     logic [15:0] leds_q_q;
 
     always_ff @(posedge piton_clk)
-       if (!piton_rst_n)
-       begin
-          sw_q <= 0;
-          sw_q_q <= 0;
-       end
-       else
        begin
           sw_q <= sh_cl_status_vdip;
           sw_q_q <= sw_q;
        end
 
     always_ff @(posedge shell_clk)
-       if (!shell_rst_n)
-       begin
-          leds_q <= 0;
-          leds_q_q <= 0;
-       end
-       else
        begin
           leds_q <= leds;
           leds_q_q <= leds_q;
