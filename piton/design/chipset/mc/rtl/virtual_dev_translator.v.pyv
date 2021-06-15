@@ -47,22 +47,22 @@ elseStr = ""
 for i in range(1, len(devices)):
     info = devices[i]
     if info["virtual"]:
-    	outputStr = """
+        outputStr = """
     %sif (in_address >= `PHY_ADDR_WIDTH'h%x && in_address < `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x)""" \
                 % (elseStr, info["base"], info["base"], info["length"])
-        print outputStr
+        print(outputStr)
         outputStr = """
     begin
         out_address = in_address - `PHY_ADDR_WIDTH'h%x + `PHY_ADDR_WIDTH'h%x;
     end""" % (info["base"], info["map_to"])
-        print outputStr
+        print(outputStr)
         elseStr = "else "
 
 outputStr = """
     %sbegin
         out_address = in_address;
     end""" % (elseStr)
-print outputStr
+print(outputStr)
 %>
 end
 
