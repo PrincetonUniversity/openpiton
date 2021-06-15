@@ -112,7 +112,7 @@ for {set k 0} {$k < $::env(PITON_NUM_TILES)} {incr k} {
 
 puts "INFO: Using Defines: ${ALL_DEFAULT_VERILOG_MACROS}"
 
-# credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
+# credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50
 # and https://www.xilinx.com/support/answers/72570.html
 set tmp_PYTHONPATH $env(PYTHONPATH)
 set tmp_PYTHONHOME $env(PYTHONHOME)
@@ -142,7 +142,7 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make distclean 2> /dev/null
-  exec make ARCH=riscv CROSS_COMPILE=~/piton/xpack-riscv-none-embed-gcc-10.1.0-1.1/bin/riscv-none-embed- openpiton_riscv64_defconfig
+  exec make ARCH=riscv CROSS_COMPILE=~/piton/xpack-riscv-none-embed-gcc-10.1.0-1.1/bin/riscv-none-embed- openpiton_riscv64_spl_defconfig
   #TODO: update riscv toochain
   exec make CROSS_COMPILE=$::env(RISCV_TOOLCHAIN)/bin/riscv-none-embed- -j8 2> /dev/null
   # generate mover using the spl image
@@ -154,6 +154,18 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux/
   exec sed -i {s/mover/bootrom_linux/g} bootrom_linux.sv
   puts "INFO: done"
+  # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
+  set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
+  set NUM_SOURCES 2
+  puts "INFO: generating PLIC for Ariane ($NUM_TARGETS targets, $NUM_SOURCES sources)..."
+  cd $::env(ARIANE_ROOT)/src/rv_plic/rtl
+  exec ./gen_plic_addrmap.py -t $NUM_TARGETS -s $NUM_SOURCES > plic_regmap.sv
+
+  cd $TMP
+  puts "INFO: done"
+
+
+
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
   set NUM_SOURCES 2
