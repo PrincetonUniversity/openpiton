@@ -156,8 +156,8 @@ reg [6:0] size[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [5:0] offset[`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0];
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] resp_id_f;
 wire resp_go;
-wire sd_card = (virt_addr[`PHY_ADDR_WIDTH-1]);
-wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ);
+wire sd_card = (virt_addr[`PHY_ADDR_WIDTH-1]) & ~uart_boot_en;
+wire uncacheable = (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_LOAD_REQ) & ~uart_boot_en;
 
 generate begin
     genvar i;
@@ -170,35 +170,42 @@ generate begin
             else begin
                 if ((i == req_id_f) && m_axi_argo) begin
                     if (sd_card) begin
-                        offset[i] <= {virt_addr[5:3], 3'b0};
                         size[i] <= 7'd8;
+                        offset[i] <= {virt_addr[5:3], 3'b0};
                     end
                     else if (uncacheable) begin
-                        offset[i] <= virt_addr[5:0];
                         case (req_header_f[`MSG_DATA_SIZE])
                             `MSG_DATA_SIZE_0B: begin
                                 size[i] <= 7'd0;
+                                offset[i] <= 6'b0;;
                             end
                             `MSG_DATA_SIZE_1B: begin
                                 size[i] <= 7'd1;
+                                offset[i] <= virt_addr[5:0];
                             end
                             `MSG_DATA_SIZE_2B: begin
                                 size[i] <= 7'd2;
+                                offset[i] <= {virt_addr[5:1], 1'b0};
                             end
                             `MSG_DATA_SIZE_4B: begin
                                 size[i] <= 7'd4;
+                                offset[i] <= {virt_addr[5:2], 2'b0};
                             end
                             `MSG_DATA_SIZE_8B: begin
                                 size[i] <= 7'd8;
+                                offset[i] <= {virt_addr[5:3], 3'b0};
                             end
                             `MSG_DATA_SIZE_16B: begin
                                 size[i] <= 7'd16;
+                                offset[i] <= {virt_addr[5:4], 4'b0};
                             end
                             `MSG_DATA_SIZE_32B: begin
                                 size[i] <= 7'd32;
+                                offset[i] <= {virt_addr[5:5], 5'b0};
                             end
                             `MSG_DATA_SIZE_64B: begin
                                 size[i] <= 7'd64;
+                                offset[i] <= 6'b0;
                             end
                             default: begin
                                 // should never end up here
@@ -325,34 +332,19 @@ always @(posedge clk) begin
         endcase // resp_state
     end 
 end
-/*
-ila_read ila_read(
-    .clk(clk), // input wire clk
 
+ila_1 read_ila(
+    .clk(clk), 
+    .probe0(rst_n), 
+    .probe1(m_axi_araddr), 
+    .probe5(virt_addr), 
+    .probe15(phys_addr), 
+    .probe3(uart_boot_en), 
+    .probe4(uncacheable), 
+    .probe10(m_axi_rdata), 
+    .probe6(m_axi_rvalid), 
+    .probe14(req_header_f),  
+    .probe7(sd_card)
+);
 
-    .probe0(rst_n), // input wire [0:0]  probe0  
-    .probe1(uart_boot_en), // input wire [0:0]  probe1 
-    .probe2(req_val), // input wire [0:0]  probe2 
-    .probe3(req_header), // input wire [191:0]  probe3 
-    .probe4(req_id), // input wire [1:0]  probe4 
-    .probe5(req_rdy), // input wire [0:0]  probe5 
-    .probe6(resp_val), // input wire [0:0]  probe6 
-    .probe7(resp_id), // input wire [1:0]  probe7 
-    .probe8(resp_data), // input wire [511:0]  probe8 
-    .probe9(resp_rdy), // input wire [0:0]  probe9 
-    .probe10(m_axi_arid), // input wire [15:0]  probe10 
-    .probe11(m_axi_araddr), // input wire [63:0]  probe11 
-    .probe12(m_axi_arvalid), // input wire [0:0]  probe12 
-    .probe13(m_axi_arready), // input wire [0:0]  probe13 
-    .probe14(m_axi_rid), // input wire [15:0]  probe14 
-    .probe15(m_axi_rdata), // input wire [511:0]  probe15 
-    .probe16(m_axi_rvalid), // input wire [0:0]  probe16 
-    .probe17(m_axi_rready), // input wire [0:0]  probe17 
-    .probe18(req_state), // input wire [0:0]  probe18 
-    .probe19(req_header_f), // input wire [191:0]  probe19 
-    .probe20(req_id_f), // input wire [1:0]  probe20 
-    .probe21(resp_id_f), // input wire [1:0]  probe21 
-    .probe22(resp_state), // input wire [1:0]  probe22 
-    .probe23(data_offseted) // input wire [511:0]  probe23
-);*/
 endmodule

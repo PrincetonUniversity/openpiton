@@ -33,8 +33,8 @@
     <port>
         <name>mem</name>
         <base>0x0</base>
-        <!-- 1 GB -->
-        <length>0x40000000</length>
+        <!-- 16GB -->
+        <length>0x400000000</length>
     </port>
     <port>
         <name>iob</name>
@@ -45,9 +45,18 @@
     <port>
         <name>sd</name>
         <base>0xf000000000</base>
-        <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0300000</length>
+        <!-- 8GB -->
+        <length>0x400000000</length>
         <virtual/>
+        <map_to>0x400000000</map_to>
+    </port>
+    <port>
+        <name>sd2</name>
+        <base>0xfff0000000</base>
+        <!-- reset PC  - reset PC + 1 MB-->
+        <length>0x300000</length>
+        <virtual/>
+        <map_to>0x400000000</map_to>
     </port>
     <port>
         <name>uart</name>

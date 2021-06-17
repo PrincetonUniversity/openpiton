@@ -39,9 +39,18 @@
     <port>
         <name>sd</name>
         <base>0xf000000000</base>
-        <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0300000</length>
+        <!-- 8GB -->
+        <length>0x200000000</length>
         <virtual/>
+        <map_to>0x200000000</map_to>
+    </port>
+    <port>
+        <name>sd2</name>
+        <base>0xfff0000000</base>
+        <!-- reset PC  - reset PC + 1 MB-->
+        <length>0x300000</length>
+        <virtual/>
+        <map_to>0x200000000</map_to>
     </port>
     <port>
         <name>iob</name>
