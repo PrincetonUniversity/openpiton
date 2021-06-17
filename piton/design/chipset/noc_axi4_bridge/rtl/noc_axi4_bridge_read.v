@@ -333,18 +333,4 @@ always @(posedge clk) begin
     end 
 end
 
-ila_1 read_ila(
-    .clk(clk), 
-    .probe0(rst_n), 
-    .probe1(m_axi_araddr), 
-    .probe5(virt_addr), 
-    .probe15(phys_addr), 
-    .probe3(uart_boot_en), 
-    .probe4(uncacheable), 
-    .probe10(m_axi_rdata), 
-    .probe6(m_axi_rvalid), 
-    .probe14(req_header_f),  
-    .probe7(sd_card)
-);
-
 endmodule
