@@ -180,11 +180,13 @@ module system(
 `ifndef VCU118_BOARD
 `ifndef NEXYSVIDEO_BOARD
 `ifndef XUPP3R_BOARD
+`ifndef F1_BOARD
   input                                         tck_i,
   input                                         tms_i,
   input                                         trst_ni,
   input                                         td_i,
   output                                        td_o,
+`endif //F1_BOARD
 `endif//XUPP3R_BOARD
 `endif //NEXYSVIDEO_BOARD
 `endif //VCU118_BOARD
