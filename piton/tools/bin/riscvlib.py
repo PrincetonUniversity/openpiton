@@ -260,7 +260,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # UART
-        if devices[i]["name"] == "uart":
+        if (devices[i]["name"] == "uart") or (devices[i]["name"] == "uart2"):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
@@ -272,23 +272,6 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             interrupt-parent = <&PLIC0>;
             interrupts = <%d>;
             reg-shift = <0>; // regs are spaced on 8 bit boundary (modified from Xilinx UART16550 to be ns16550 compatible)
-        };
-            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
-            ioDeviceNr+=1
-
-        # UART2
-        if devices[i]["name"] == "uart2":
-            addrBase = devices[i]["base"]
-            addrLen  = devices[i]["length"]
-            tmpStr += '''
-        uart2@%08x {
-            compatible = "ns16550";
-            reg = <%s>;
-            clock-frequency = <%d>;
-            current-speed = <115200>;
-            interrupt-parent = <&PLIC0>;
-            interrupts = <%d>;
-            reg-shift = <2>; // regs are spaced on 32 bit boundary
         };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
             ioDeviceNr+=1
