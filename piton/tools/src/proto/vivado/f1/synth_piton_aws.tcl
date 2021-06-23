@@ -13,6 +13,8 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Modified by Princeton University
+
 #Param needed to avoid clock name collisions
 set_param sta.enableAutoGenClkNamePersistence 0
 set CL_MODULE $CL_MODULE

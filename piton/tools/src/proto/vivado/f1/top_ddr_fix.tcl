@@ -13,6 +13,8 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Modified by Princeton University
+
 set_property STARTUP_WAIT TRUE [get_cells WRAPPER_INST/CL/SH_DDR/ddr_cores.DDR4_*/inst/u_ddr4_infrastructure/gen_mmcme4.u_mmcme_adv_inst]
 set_property STARTUP_WAIT TRUE [get_cells {WRAPPER_INST/CL/SH_DDR/ddr_cores.DDR4_*/inst/u_ddr4_mem_intfc/u_mig_ddr4_phy/inst/u_ddr4_phy_pll/plle_loop[*].gen_plle4.PLLE4_BASE_INST_OTHER}]
 
