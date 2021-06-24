@@ -155,11 +155,7 @@ assign config_chipid = chipid;
 assign config_coreid_x = coreid_x;
 assign config_coreid_y = coreid_y;
 
-`ifndef TOTAL_NUM_TILE
-localparam default_total_num_tile = 36;
-`else
-localparam default_total_num_tile = `TOTAL_NUM_TILE;
-`endif
+localparam default_total_num_tile = `PITON_NUM_TILES;
 
 always @ (posedge clk)
 begin
