@@ -130,12 +130,12 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   unset ::env(PYTHONHOME)
   
   set TMP [pwd]
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
+  cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/baremetal
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
+  cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/linux
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null

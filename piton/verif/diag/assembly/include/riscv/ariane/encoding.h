@@ -1,1 +1,1 @@
-../../../../../../design/chip/tile/ariane/bootrom/encoding.h
+../../../../../../design/chipset/rv64_platform/bootrom/encoding.h

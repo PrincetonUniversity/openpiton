@@ -1276,9 +1276,9 @@ sub pre_build
 
   if($opt{ariane}) {
     print "compiling DTS and bootroms for Ariane...\n";
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
+    !system("cd $ENV{DV_ROOT}/design/chipset/rv64_platform/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
+    !system("cd $ENV{DV_ROOT}/design/chipset/rv64_platform/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet

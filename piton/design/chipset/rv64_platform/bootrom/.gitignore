@@ -1,0 +1,4 @@
+*.elf
+*.img
+*.dtb
+*.sv
