@@ -22,7 +22,7 @@ MAIN_SV = $(MAIN:.elf=.sv)
 
 #.PHONY: clean
 
-$(MAIN): ariane.dtb $(OBJS_C) $(OBJS_S) linker.lds
+$(MAIN): rv64_platform.dtb $(OBJS_C) $(OBJS_S) linker.lds
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -Tlinker.lds $(OBJS_S) $(OBJS_C) -o $(MAIN)
 	@echo "LD    >= $(MAIN)"
 
@@ -42,6 +42,9 @@ $(MAIN): ariane.dtb $(OBJS_C) $(OBJS_S) linker.lds
 	@$(CC) $(CFLAGS) $(CCASFLAGS) $(INCLUDES) -c $<  -o $@ 
 	@echo "CC    <= $<"
 
+rv64_platform.dts: FORCE
+	$(PYTHON) ${DV_ROOT}/tools/bin/riscvlib.py
+
 %.dtb: %.dts
 	dtc -I dts $< -O dtb -o $@
 
@@ -54,5 +57,7 @@ clean:
 
 all: $(MAIN) $(MAIN_BIN) $(MAIN_IMG) $(MAIN_SV)
 	@echo "zero stage bootloader has been compiled!"
+
+FORCE:
 
 # DO NOT DELETE THIS LINE -- make depend needs it

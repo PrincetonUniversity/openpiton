@@ -2,3 +2,5 @@
 *.img
 *.dtb
 *.sv
+info.h
+rv64_platform.dts
