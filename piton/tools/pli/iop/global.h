@@ -31,9 +31,13 @@
 #include "verilated_vpi.h"
 #endif
 #endif
+#ifdef  __cplusplus
 extern "C" {
 #include "b_ary.h"
 }
+#else
+#include "b_ary.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 
