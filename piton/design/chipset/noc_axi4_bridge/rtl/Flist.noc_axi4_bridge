@@ -1,4 +1,4 @@
-9// ========== Copyright Header Begin ============================================
+// ========== Copyright Header Begin ============================================
 // Copyright (c) 2019 Princeton University
 // All rights reserved.
 //
@@ -31,4 +31,5 @@ noc_axi4_bridge_ser.v
 noc_axi4_bridge_deser.v
 noc_axi4_bridge_read.v
 noc_axi4_bridge_write.v
-
+noc_axi4_bridge_sram_req.v
+noc_axi4_bridge_sram_data.v

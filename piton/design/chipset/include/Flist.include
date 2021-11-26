@@ -28,3 +28,4 @@
 mc_define.h
 uart16550_define.vh
 chipset_define.vh
+noc_axi4_bridge_define.vh
