@@ -1276,9 +1276,9 @@ sub pre_build
 
   if($opt{ariane}) {
     print "compiling DTS and bootroms for Ariane...\n";
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
+    !system("cd $ENV{ARIANE_ROOT}/corev_apu/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
-    !system("cd $ENV{ARIANE_ROOT}/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
+    !system("cd $ENV{ARIANE_ROOT}/corev_apu/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
       die (" Error compiling DTS for ariane.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
@@ -1286,7 +1286,7 @@ sub pre_build
     # 2 targets per core (M/S mode)
     my $num_targets = 2 * $ENV{PITON_NUM_TILES};
     print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
-    !system("cd $ENV{ARIANE_ROOT}/src/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
+    !system("cd $ENV{ARIANE_ROOT}/corev_apu/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
       die (" Error generating PLIC for Ariane.");
     print "done\n";
   }

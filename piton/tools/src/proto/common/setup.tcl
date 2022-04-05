@@ -124,18 +124,18 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   
   # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
   # and https://www.xilinx.com/support/answers/72570.html
-  set tmp_PYTHONPATH $env(PYTHONPATH)                                                                               
-  set tmp_PYTHONHOME $env(PYTHONHOME)                                                                               
-  unset ::env(PYTHONPATH)                                                                                           
+  set tmp_PYTHONPATH $::env(PYTHONPATH)
+  set tmp_PYTHONHOME $::env(PYTHONHOME)
+  unset ::env(PYTHONPATH)
   unset ::env(PYTHONHOME)
   
   set TMP [pwd]
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/baremetal
+  cd $::env(ARIANE_ROOT)/corev_apu/openpiton/bootrom/baremetal
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(ARIANE_ROOT)/openpiton/bootrom/linux
+  cd $::env(ARIANE_ROOT)/corev_apu/openpiton/bootrom/linux
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
@@ -145,12 +145,12 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]
   set NUM_SOURCES 2
   puts "INFO: generating PLIC for Ariane ($NUM_TARGETS targets, $NUM_SOURCES sources)..."
-  cd $::env(ARIANE_ROOT)/src/rv_plic/rtl
+  cd $::env(ARIANE_ROOT)/corev_apu/rv_plic/rtl
   exec ./gen_plic_addrmap.py -t $NUM_TARGETS -s $NUM_SOURCES > plic_regmap.sv
 
   cd $TMP
   puts "INFO: done"
-  set ::env(PYTHONPATH) $tmp_PYTHONPATH                                                                           
-  set ::env(PYTHONHOME) $tmp_PYTHONHOME 
+  set ::env(PYTHONPATH) $tmp_PYTHONPATH
+  set ::env(PYTHONHOME) $tmp_PYTHONHOME
 }
 

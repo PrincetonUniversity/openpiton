@@ -99,7 +99,7 @@
 for i in range(PITON_NUM_TILES):
     printstring = """
     `define TILE%d            `CHIP.tile%d
-    `define ARIANE_CORE%d     `TILE%d.g_ariane_core.core.ariane
+    `define ARIANE_CORE%d     `TILE%d.g_ariane_core.core.ariane.i_cva6
     `define SPARC_CORE%d      `TILE%d.g_sparc_core.core
     `define PICO_CORE%d       `TILE%d.g_picorv32_core.core
     `define CCX_TRANSDUCER%d  `TILE%d.g_sparc_core.ccx_l15_transducer

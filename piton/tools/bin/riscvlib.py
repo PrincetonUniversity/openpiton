@@ -142,11 +142,9 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
     #size-cells = <2>;
     compatible = "eth,ariane-bare-dev";
     model = "eth,ariane-bare";
-    // TODO: interrupt-based UART is currently very slow
-    // with this configuration. this needs to be fixed.
-    // chosen {
-    //     stdout-path = "/soc/uart@%08x:115200";
-    // };
+    chosen {
+        stdout-path = "/soc/uart@%08x:115200";
+    };
     cpus {
         #address-cells = <1>;
         #size-cells = <0>;
@@ -244,21 +242,6 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             riscv,ndev = <%d>;
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2), numIrqs)
-        # DTM
-        if devices[i]["name"] == "ariane_debug":
-            addrBase = devices[i]["base"]
-            addrLen  = devices[i]["length"]
-            tmpStr += '''
-        debug-controller@%08x {
-            compatible = "riscv,debug-013";
-            interrupts-extended = <''' % (addrBase)
-            for k in range(nCpus):
-                tmpStr += "&CPU%d_intc 65535 " % (k)
-            tmpStr += '''>;
-            reg = <%s>;
-            reg-names = "control";
-        };
-            ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # UART
         if devices[i]["name"] == "uart":
             addrBase = devices[i]["base"]
