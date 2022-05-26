@@ -114,11 +114,13 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_DST_CHIPID          63:50
 `define MSG_DST_CHIPID_HI       63
 
+`define MSG_AMO_MASK0           71:64
 `define MSG_DATA_SIZE           74:72
 `define MSG_CACHE_TYPE          75
 `define MSG_SUBLINE_VECTOR      79:76
 `define MSG_ADDR                119:80
 
+`define MSG_AMO_MASK1           135:128
 `define MSG_LSID                147:142
 `define MSG_SDID                157:148
 `define MSG_SRC_FBITS           161:158
@@ -128,6 +130,7 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 
 // these shifted fields are added for convienience
 // HEADER 2
+`define MSG_AMO_MASK0_           7:0
 `define MSG_DATA_SIZE_           10:8
 `define MSG_CACHE_TYPE_          11
 `define MSG_SUBLINE_VECTOR_      15:12
@@ -137,6 +140,7 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_ADDR_                (`MSG_ADDR_HI_):(`MSG_ADDR_LO_)
 
 // HEADER 3
+`define MSG_AMO_MASK1_           7:0
 `define MSG_LSID_                19:14 // 147-128:142-128
 `define MSG_SDID_                29:20
 `define MSG_OPTIONS_3_           29:0
@@ -220,6 +224,14 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_TYPE_AMO_MINU_P2_REQ     8'd59
 
 `define MSG_TYPE_LR_REQ              8'd60
+
+// Load request without asking for the ownership
+`define MSG_TYPE_LOAD_NOSHARE_REQ    8'd61
+
+// SC3 writeback swap AMO
+`define MSG_TYPE_SWAPWB_REQ         8'd62
+`define MSG_TYPE_SWAPWB_P1_REQ      8'd63
+`define MSG_TYPE_SWAPWB_P2_REQ      8'd64
 
 
 //Forward requests from L2 to L15
@@ -369,6 +381,10 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_LSID_WIDTH          6
 `define MSG_HDID_WIDTH          10
 `define MSG_LHID_WIDTH          6
+
+`define MSG_AMO_MASK0_WIDTH     8
+`define MSG_AMO_MASK1_WIDTH     8
+`define MSG_AMO_MASK_WIDTH      16
 
 
 `define TLB_CSM_WIDTH           33

@@ -82,6 +82,8 @@ begin
         `MSG_TYPE_NC_STORE_MEM_ACK      : $sformat( msg_type_string, " nc_st_mem_ack   ");
         `MSG_TYPE_NODATA_ACK            : $sformat( msg_type_string, "   nodata_ack    ");
         `MSG_TYPE_DATA_ACK              : $sformat( msg_type_string, "    data_ack     ");
+        `MSG_TYPE_LOAD_NOSHARE_REQ      : $sformat( msg_type_string, "  ld_noshare_req ");
+        `MSG_TYPE_LR_REQ                : $sformat( msg_type_string, "    lr_req       ");
         `MSG_TYPE_AMO_ADD_REQ           : $sformat( msg_type_string, "    amo_add_req  ");
         `MSG_TYPE_AMO_ADD_P1_REQ        : $sformat( msg_type_string, "  amo_add_p1_req ");
         `MSG_TYPE_AMO_ADD_P2_REQ        : $sformat( msg_type_string, "  amo_add_p2_req ");
