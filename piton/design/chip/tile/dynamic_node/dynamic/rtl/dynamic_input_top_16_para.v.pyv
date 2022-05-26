@@ -115,8 +115,10 @@ thanks_inst = ""
 for a in range (DYNAMIC_NODE_PORT):
   thanks_inst = thanks_inst + (".thanks_%d(thanks_%d), " % (a,a))
 %>
+wire [2:0] final_bits;
+assign final_bits = data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-1] ? 3'b0 : data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-2:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-4];
 // Change fbits position in order to be compatible   
 dynamic_input_control_para control(.thanks_all_temp_out(thanks_all_temp), <%= route_reqs_inst%><%= default_readys_inst%>.tail_out(tail_out), .clk(clk), .reset(reset), .my_loc_x_in(my_loc_x_in), .my_loc_y_in(my_loc_y_in), 
-    .my_chip_id_in(my_chip_id_in), .abs_x(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH-`XY_WIDTH]), .abs_y(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-`XY_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH]), .abs_chip_id(data_out_internal[`DATA_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH]),.final_bits(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-2:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-4]), .valid_in(valid_out_internal), <%= thanks_inst%>.length(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-5:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-4-`PAYLOAD_LEN]));
+    .my_chip_id_in(my_chip_id_in), .abs_x(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH-`XY_WIDTH]), .abs_y(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-`XY_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH]), .abs_chip_id(data_out_internal[`DATA_WIDTH-1:`DATA_WIDTH-`CHIP_ID_WIDTH]),.final_bits(final_bits), .valid_in(valid_out_internal), <%= thanks_inst%>.length(data_out_internal[`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-5:`DATA_WIDTH-`CHIP_ID_WIDTH-2*`XY_WIDTH-4-`PAYLOAD_LEN]));
 
 endmodule
