@@ -55,6 +55,7 @@ import pyhplib
 from pyhplib import *
 
 print("`define PITON_NUM_TILES %d" % PITON_NUM_TILES)
+print("`define PITON_RV64_TILES %d" % PITON_RV64_TILES)
 print("`define PITON_X_TILES %d"   % PITON_X_TILES)
 print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 %>
@@ -159,6 +160,9 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_DST_NODEID_WIDTH    `NOC_NODEID_WIDTH
 `define MSG_LENGTH_WIDTH        8
 `define MSG_OPTIONS_1_WIDTH     6
+`define MSG_OPTIONS_2_WIDTH     16
+`define MSG_OPTIONS_3_WIDTH     30
+`define MSG_OPTIONS_4_WIDTH     6
 
 // Width of MSG_ADDR field - you're probably looking for PHY_ADDR_WIDTH
 `define MSG_ADDR_WIDTH          48
@@ -227,12 +231,10 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 
 // Load request without asking for the ownership
 `define MSG_TYPE_LOAD_NOSHARE_REQ    8'd61
-
 // SC3 writeback swap AMO
 `define MSG_TYPE_SWAPWB_REQ         8'd62
 `define MSG_TYPE_SWAPWB_P1_REQ      8'd63
 `define MSG_TYPE_SWAPWB_P2_REQ      8'd64
-
 
 //Forward requests from L2 to L15
 `define MSG_TYPE_LOAD_FWD           8'd16
@@ -446,6 +448,12 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 //`define HOME_ID_X_POS               2:0
 //`define HOME_ID_Y_POS_WIDTH         3
 //`define HOME_ID_Y_POS               5:3
+
+// For the on-chip device access requests(addr starts with 0xe), 
+ // address has specific fields for x, y, and fbits
+ `define ON_CHIP_DEV_X_POS       31:28
+ `define ON_CHIP_DEV_Y_POS       27:24
+ `define ON_CHIP_DEV_FBITS       23:20
 
 // Packet format for home id
 `define PACKET_HOME_ID_WIDTH        (`NOC_CHIPID_WIDTH+`NOC_X_WIDTH+`NOC_Y_WIDTH)

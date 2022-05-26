@@ -2024,7 +2024,8 @@ begin
         msg_send_dst_chipid_S4 = src_chipid_S4_f;
         msg_send_dst_x_S4 = src_x_S4_f;
         msg_send_dst_y_S4 = src_y_S4_f;
-        msg_send_dst_fbits_S4 = `NOC_FBITS_L1;
+        // Reqs may come from other on-chip devices
+        msg_send_dst_fbits_S4 = src_fbits_S4_f;
 
     end
     `MSG_TYPE_LOAD_MEM, `MSG_TYPE_NC_LOAD_REQ, `MSG_TYPE_NC_STORE_REQ, `MSG_TYPE_STORE_MEM:
