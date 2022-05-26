@@ -5,3 +5,8 @@ async_fifo.v
 bram_1rw_wrapper.v
 bram_1r1w_wrapper.v
 synchronizer.v
+noc_prio_merger.v
+noc_fbits_splitter.v
+noc_simple_merger.v
+noc_simple_splitter.v
+sync_fifo_vr.v
