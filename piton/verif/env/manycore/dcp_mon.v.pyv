@@ -1,0 +1,456 @@
+// Copyright (c) 2020 Princeton University
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+//==================================================================================================
+//  Filename      : dcp_mon.v
+//  Created On    : 2020-03-08
+//  Revision      :
+//  Author        : Marcelo Orenes Vera
+//  Company       : Princeton University
+//  Email         : movera@princeton.edu
+//
+//  Description   : Monitors for the DCP Unit
+//
+//
+//====================================================================================================
+<%
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.environ["DV_ROOT"], 'tools/bin/'));
+    from pyhplib import *
+%>
+
+`include "define.tmp.h"
+`include "dcp.h"
+`include "sys.h"
+`include "iop.h"
+`include "cross_module.tmp.h"
+
+module dcp_mon (
+    input wire clk,
+    input wire rst_l
+);
+
+integer i;
+
+reg [511:0] noc1;
+reg [63:0] ld_stall_sum;
+reg [63:0] st_stall_sum;
+reg [63:0] occupancy_sum;
+reg [63:0] transactions_sum;
+
+always @ (posedge clk)
+begin
+
+if(!$test$plusargs("disable_dcp_mon")) begin
+
+    if (!rst_l) begin
+        ld_stall_sum <= 64'b0;
+        st_stall_sum <= 64'b0;
+        occupancy_sum <= 64'b0;
+        transactions_sum <= 64'b0;
+    end else begin
+        //ld_stall_sum <= ld_stall_sum;
+        //st_stall_sum <= st_stall_sum;
+        //occupancy_sum <= occupancy_sum;
+        //transactions_sum <= transactions_sum;
+
+<%
+    t = r'''
+
+    `ifdef RTL_IS_TILE0
+
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.src_dcp_vr_noc3_val && `DECADES_IS_TILE0.is_core_inst.dcp.src_dcp_vr_noc3_rdy)
+    begin
+        $display("SRC_DCP_NOC3: %x",`DECADES_IS_TILE0.is_core_inst.dcp.src_dcp_vr_noc3_dat);
+        $display("+++ %d +++", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_val_r)
+    begin
+        $display("S2_REQ! mshr/entry/addr/rdy/nocr: %d/%d/%x/%d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s2_mshr,
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s2_entry, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s2_addr,
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s2_req_rdy,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_rdy); 
+        $display("***** %d *****",$time/1000);
+    end
+    `ifdef DCP_AES
+    // AES Debug Prints
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_aes_wrapper.aes_inputs_valid_reg)
+    begin
+        $display("AES inputs are valid: %x/%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_aes_wrapper.aes_key_data_reg,
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_aes_wrapper.aes_plaintext_data_reg); 
+        $display("***** %d *****",$time/1000);
+    end
+
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_aes_wrapper.aes_ciphertext_valid)
+    begin
+        $display("AES output is valid: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_aes_wrapper.aes_ciphertext_data); 
+        $display("***** %d *****",$time/1000);
+    end
+    `endif
+
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_val_sel)
+    begin
+    $display("S1_REQ! real/addr_val: %d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_req_real,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_addr_val); 
+    $display("S1_ADDR! tlb_vaddr/s1_vaddr/tlb_paddr: %x/%x/%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_vaddr,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_vaddr,
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_paddr); 
+    $display("S1_CHOSEN! val_r/fifo/oh: %b/%d/%b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_val_r,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_fifo,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_fifo_oh); 
+    $display("S1_STALL! full/stall: %b/%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_fifo_full,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_stall); 
+    $display("S1_COMPL! req/tlb/rdy/nocr: %d/%d/%d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_requested,
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_tlb_requested, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.s1_rdy, 
+                `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_rdy); 
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.l0_val_r[0])
+    begin
+    $display("F0:ENTRY! %b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.data_st_r[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fifo_global_head[0]]);
+    $display("ENT_P1! %b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.data_st_r[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fifo_global_head_p1_wrap[0]]);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_incr_hsk)
+    begin
+        $display("INCR! idx:%d, entry:%d, nxt:%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_incr_idx,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_incr_entry,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fifo_tail_nxt); 
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_hsk)
+    begin
+        //$display("DECR! idx:%d entry:%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_idx,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_entry); 
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fc_add_hsk)
+    begin
+        $display("ADD! idx:%d size:%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fc_add_idx,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fc_add_size); 
+        $display("***** %d *****", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.tlb_req)// &&`DECADES_IS_TILE0.is_core_inst.dcp.tlb_ack )
+    begin
+        $display("TLB! VA/PA: %x/%x",`DECADES_IS_TILE0.is_core_inst.dcp.tlb_vaddr,`DECADES_IS_TILE0.is_core_inst.dcp.tlb_paddr); 
+        $display("TLB! HIT/EXC: %d/%d",`DECADES_IS_TILE0.is_core_inst.tlb_ack,`DECADES_IS_TILE0.is_core_inst.tlb_exc_val); 
+        $display("***** %d *****", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_hsk)
+    begin
+        $display("CONF!! T/Fifo!: %d-%d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.coreid_y,`DECADES_IS_TILE0.is_core_inst.dcp.coreid_x,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_fifo);
+        $display("CONF!! T/Fifo!: %x, %x, %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_address,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1_data_hi,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1_data_lo); 
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_reset) $display("RESET: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_aconfigure) $display("Config Access: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_econfigure) $display("Config Execute: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_ainvalidate) $display("Close Access: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_einvalidate) $display("Close Execute: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_stats) $display("Stats: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_init) $display("INIT: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_aconf) $display("Tried Config Access: %d, s0_val_r=%b, config_r=%b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_val_r,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_aconfigured_r);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_econf) $display("Tried Config Execute: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_conf_val) $display("CR_CONF: addr=%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_conf_addr);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_add_val) $display("CR_LOOP: b=%d, e=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_add_begin,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_add_end);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_B) $display("Conf B: b=%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_data);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.conf_op_debug) $display("Debug op=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fifo_bits);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_conf) $display("TLB_CONF: op=%d, data=%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fifo_bits,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c0_data);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_poll) $display("TLB_POLL: op=%d, snoop=%x, fault=%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fifo_bits,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_snoop_entry, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_exc_vaddr);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.invalidate) $display("Conf while INVALIDATE flag");
+        else begin 
+               $display("Conf_other: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+               //`MONITOR_PATH.fail("Illegal config msg");
+           end
+        $display("***** %d *****", $time/1000);
+    end
+
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.pipe_hsk)
+    begin
+        $display("CR_PIPE_pre!! word=%d fifo=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.pipe_word_idx, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.pipe_fifo);
+        $display("word_map=%b chunk=%d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.word_map,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_clr_idx);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.last_word) 
+            $display("last: chunkt_nxt=%d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_tail_nxt);
+        $display("&&TIMEP&& %d &&&&", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_pipe_val)
+    begin
+        $display("CR_PIPE!rdy=%d addr=%x, b_value=%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_pipe_rdy,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_pipe_addr, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.b_value);
+        $display("&&TIMEP&& %d &&&&", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_cr_req)
+    begin
+        $display("TLB_CR!! vaddr=%x ack=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_cr_vpage, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.tlb_cr_ack);  
+        $display("***** %d *****", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.cr_req_hsk)
+    begin
+        $display("CR_REQ!! paddr=%x idx=%d rdy=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_req_paddr, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_req_idx,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_req_rdy);  
+        $display("last_entry_alloc=%d, chunk=%d",!`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.fifo_remaining_chunks, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_alloc_idx);
+        $display("rem=%d, words=%b, chunkh_nxt=%d, req_part=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.alloc_remaining_words,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.valid_words,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_head_nxt,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_req_part);
+        $display("&&TIMER&& %d &&&&", $time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_fill_val)
+    begin
+        $display("CR_FILL!! pend=%b idx=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_st_pend, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_fill_idx);
+        $display("fifo_pipe_req=%b, res_part=%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.fifo_pipe_req, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_fill_part);
+        $display("words=%b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr.u_cr.chunk_map_r[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.cr_fill_idx]);
+        $display("&&TIMEF&& %d &&&&", $time/1000);
+    end
+
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_in)
+    begin
+        $display("STORE!! T/FIfo!: %d-%d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.coreid_y,`DECADES_IS_TILE0.is_core_inst.dcp.coreid_x, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_fifo);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_load) $display("Load: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_data);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_double_load) $display("LoadD: 1:%x 2:%x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_data2, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1_addr);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_prod) $display("Produce: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_data);
+        else if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_op_atomic) $display("Atomic: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_data);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.l0_val)
+    begin
+        $display("CONSUME!! T/Fifo!: %d-%d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.coreid_y,`DECADES_IS_TILE0.is_core_inst.dcp.coreid_x, `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_fifo); 
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_hsk)
+    begin
+        $display("T/Fifo %d-%d/%d, read entry %d",`DECADES_IS_TILE0.is_core_inst.dcp.coreid_y, `DECADES_IS_TILE0.is_core_inst.dcp.coreid_x,
+            `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_idx,`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.fc_decr_entry);
+        $display("Fifo read stalled %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_ld_fifo_stall);
+        $display("Fifo store stalled %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_st_fifo_stall);
+        $display("Fifo occupancy %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_use);
+        $display("Transaction total count %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_transactions);
+        $display("Transaction fifo count %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_fifo_transactions);
+        $display("Cycles st count %d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_st_fifo);
+        $display("Cycles ld count %d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_ld_fifo);
+        $display("Trans ld count %d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_ld_fifo);
+        //$display("Load stall accum %d",ld_stall_sum);
+        $display("Latency produce %f", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_st_fifo/(
+                    `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_fifo_transactions+`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_use));
+        $display("Latency consume %f", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_ld_fifo/`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_fifo_transactions);
+        //$display("Store stall accum %d",st_stall_sum);
+        st_stall_sum <= st_stall_sum + `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_st_fifo_stall;
+        ld_stall_sum <= ld_stall_sum + `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_ld_fifo_stall;
+        occupancy_sum <= occupancy_sum + `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_use;
+        transactions_sum <= transactions_sum + 1'b1;
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_hsk)
+    begin
+        $write("NOC1_IN_MSG_TYPE: "); print_msg_type(`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_reqtype);
+        $display(" at time: %d", $time/1000);
+        $display("NOC1_DEC_SRC: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_src);
+        $display("NOC1_DEC_MSHRID: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_mshrid);
+        $display("NOC1_DEC_SIZE: %b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc1decoder_dcp_size);
+        $display("NOC1_DEC_OPCODE: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s0_op);
+        //$display("NOC1_DEC_DATA: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_fill_data0);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_val && `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_ack)
+    begin
+        $write("NOC2_IN_MSG_TYPE: "); print_msg_type(`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_reqtype); $display(" at time: %d", $time/1000);
+        $display("NOC2_DEC_MSHRID: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_mshrid);
+        $display("NOC2_DEC_FILL: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_fill_data0);
+        $display("NOC2_DEC_DATA0: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_data[127:0]);
+        $display("NOC2_DEC_DATA1: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_data[255:128]);
+        $display("NOC2_DEC_DATA2: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_data[383:256]);
+        $display("NOC2_DEC_DATA3: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2decoder_dcp_data[511:384]);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc3decoder_dcp_val && `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc3decoder_dcp_ack)
+    begin
+        $write("NOC3_IN_MSG_TYPE: "); print_msg_type(`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc3decoder_dcp_reqtype); $display(" at time: %d", $time/1000);
+        $display("NOC3_DEC_MSHRID: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc3decoder_dcp_mshrid);
+        $display("NOC3_DEC_DATA: %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.fc_fill_data);
+        $display("FILL: %d/%d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill0[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill_entry],
+                               `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill1[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill_entry_p1]);
+        $display("FILL ST: %b/%b",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.data_st_r[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill_entry],
+                                  `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.data_st_r[`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.u_maple.u_fc.fc_fill_entry_p1]);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_hsk)
+    begin
+        $display("NOC1_ENC_DST: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_homeid);
+        $display("NOC1_ENC_MSHRID: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_mshrid);
+        $display("NOC1_ENC_AMO_REQ: addr %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_address);
+        $display("NOC1_ENC_AMO_REQ: data1 %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_data_0);
+        $display("NOC1_ENC_AMO_REQ: data2 %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_data_1);
+        $display("NOC1_ENC_AMO_REQ: write_mask %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc1buffer_write_mask);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_hsk)
+    begin
+        //$display("NOC2_OUT waited for %d, at time: %d", `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.count_noc2_stall_r, $time/1000);
+        $display("NOC2_ENC_DST: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_homeid);
+        $display("NOC2_ENC_MSHRID: %d",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_mshrid);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_tload_sel) begin
+            $display("NOC2_ENC_TLOAD_REQ: size %d addr %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.s2_op_tload_64*32+32,
+                    `DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.dcp_noc2buffer_address);
+        end
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_load_sel) $display("NOC2_ENC_LOAD_ACK: data %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_data);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_conf_sel) $display("NOC2_ENC_CONF_RESP: data %x",`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.c1_data);
+        if (`DECADES_IS_TILE0.is_core_inst.dcp.u_pipe.noc2_store_sel) $display("NOC2_ENC_STORE_ACK");
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc1_val && `DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc1_rdy)
+    begin
+        $display("NOC1_ENC_DATA: %x",`DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc1_dat);
+        $display("***** %d *****",$time/1000);
+    end
+    if (`DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc2_val)
+    begin
+        $display("NOC2_ENC_DATA/%d: %x",`DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc2_rdy,`DECADES_IS_TILE0.is_core_inst.dcp.dcp_dst_vr_noc2_dat);
+        $display("***** %d *****",$time/1000);
+    end
+    `endif    
+
+    '''
+    tt = ReplicatePattern(t, ["RTL_IS_TILE0","DECADES_IS_TILE0"]);
+    print(tt)
+%>
+
+
+    end //else
+ /*
+     if (`L15_TOP0.noc1encoder.noc1encoder_noc1out_val && `L15_TOP0.noc1encoder.noc1encoder_noc1buffer_req_ack)
+     begin
+         noc1 = 0;
+         case(`L15_TOP0.noc1encoder.req_type)
+         `L15_NOC1_REQTYPE_WRITEBACK_GUARD:
+             noc1 = "L15_NOC1_REQTYPE_WRITEBACK_GUARD";
+         `L15_NOC1_REQTYPE_LD_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_LD_REQUEST";
+         `L15_NOC1_REQTYPE_IFILL_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_IFILL_REQUEST";
+         `L15_NOC1_REQTYPE_WRITETHROUGH_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_WRITETHROUGH_REQUEST";
+         `L15_NOC1_REQTYPE_ST_UPGRADE_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_ST_UPGRADE_REQUEST";
+         `L15_NOC1_REQTYPE_ST_FILL_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_ST_FILL_REQUEST";
+         `L15_NOC1_REQTYPE_CAS_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_CAS_REQUEST";
+         `L15_NOC1_REQTYPE_SWAP_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_SWAP_REQUEST";
+         `L15_NOC1_REQTYPE_INTERRUPT_FWD:
+             noc1 = "L15_NOC1_REQTYPE_INTERRUPT_FWD";
+         `L15_NOC1_REQTYPE_AMO_ADD_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_ADD_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_AND_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_AND_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_OR_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_OR_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_XOR_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_XOR_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_MAX_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_MAX_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_MAXU_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_MAXU_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_MIN_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_MIN_REQUEST";
+         `L15_NOC1_REQTYPE_AMO_MINU_REQUEST:
+             noc1 = "L15_NOC1_REQTYPE_AMO_MINU_REQUEST";
+         default:
+             noc1 = "ERROR noc1";
+         endcase
+
+          $write("%0d TILE0 L1.5: Sending NOC1 %s", $time/1000, noc1);
+         $display("   mshrid %d, nc %d, size %d, address %0x",
+                     `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_mshrid, `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_non_cacheable,
+                     `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_size, `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_address);
+         //$display("   Data0: 0x%x", `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_data_0);
+         //$display("   Data1: 0x%x", `L15_TOP0.noc1encoder.noc1buffer_noc1encoder_req_data_1);
+         //$display("   Destination X: %d Y: %d", `L15_TOP0.noc1encoder.msg_dest_l2_xpos, `L15_TOP0.noc1encoder.msg_dest_l2_ypos);
+     end
+  */
+end //end of monitor enable
+end
+
+
+task print_msg_type;
+input [`MSG_TYPE_WIDTH-1:0] msg_type;
+begin
+    case (msg_type)
+        `MSG_TYPE_LOAD_REQ              : $write("    ld_req     ");
+        `MSG_TYPE_PREFETCH_REQ          : $write("   pref_req    ");
+        `MSG_TYPE_STORE_REQ             : $write("    st_req     ");
+        `MSG_TYPE_BLK_STORE_REQ         : $write("  blk_st_req   ");
+        `MSG_TYPE_BLKINIT_STORE_REQ     : $write(" blkinit_st_req");
+        `MSG_TYPE_CAS_REQ               : $write("    cas_req    ");
+        `MSG_TYPE_CAS_P1_REQ            : $write("  cas_p1_req   ");
+        `MSG_TYPE_CAS_P2Y_REQ           : $write("  cas_p2y_req  ");
+        `MSG_TYPE_CAS_P2N_REQ           : $write("  cas_p2n_req  ");
+        `MSG_TYPE_SWAP_REQ              : $write("    swap_req   ");
+        `MSG_TYPE_SWAP_P1_REQ           : $write("  swap_p1_req  ");
+        `MSG_TYPE_SWAP_P2_REQ           : $write("  swap_p2_req  ");
+        `MSG_TYPE_WB_REQ                : $write("     wb_req    ");
+        `MSG_TYPE_WBGUARD_REQ           : $write("   wbgrd_req   ");
+        `MSG_TYPE_NC_LOAD_REQ           : $write("   nc_ld_req   ");
+        `MSG_TYPE_NC_STORE_REQ          : $write("   nc_st_req   ");
+        `MSG_TYPE_LOAD_FWD              : $write("     ld_fwd    ");
+        `MSG_TYPE_STORE_FWD             : $write("     st_fwd    ");
+        `MSG_TYPE_INV_FWD               : $write("    inv_fwd    ");
+        `MSG_TYPE_LOAD_MEM              : $write("     ld_mem    ");
+        `MSG_TYPE_STORE_MEM             : $write("     st_mem    ");
+        `MSG_TYPE_LOAD_FWDACK           : $write("   ld_fwdack   ");
+        `MSG_TYPE_STORE_FWDACK          : $write("   st_fwdack   ");
+        `MSG_TYPE_INV_FWDACK            : $write("   inv_fwdack  ");
+        `MSG_TYPE_LOAD_MEM_ACK          : $write("   ld_mem_ack  ");
+        `MSG_TYPE_STORE_MEM_ACK         : $write("   st_mem_ack  ");
+        `MSG_TYPE_NC_LOAD_MEM_ACK       : $write(" nc_ld_mem_ack ");
+        `MSG_TYPE_NC_STORE_MEM_ACK      : $write(" nc_st_mem_ack ");
+        `MSG_TYPE_NODATA_ACK            : $write("   nodata_ack  ");
+        `MSG_TYPE_DATA_ACK              : $write("    data_ack   ");
+        `MSG_TYPE_INTERRUPT_FWD         : $write("     int_fwd   ");
+        `MSG_TYPE_INTERRUPT             : $write("       int     ");
+        `MSG_TYPE_L2_LINE_FLUSH_REQ     : $write("   line_flush  ");
+        `MSG_TYPE_L2_DIS_FLUSH_REQ      : $write("    dis_flush  ");
+        `MSG_TYPE_LR_REQ                : $write("    lr_req     ");
+        `MSG_TYPE_AMO_ADD_REQ           : $write("  amo_add_req  ");
+        `MSG_TYPE_AMO_AND_REQ           : $write("  amo_and_req  ");
+        `MSG_TYPE_AMO_OR_REQ            : $write("  amo_or_req   ");
+        `MSG_TYPE_AMO_XOR_REQ           : $write("  amo_xor_req  ");
+        `MSG_TYPE_AMO_MAX_REQ           : $write("  amo_max_req  ");
+        `MSG_TYPE_AMO_MAXU_REQ          : $write("  amo_maxu_req ");
+        `MSG_TYPE_AMO_MIN_REQ           : $write("  amo_min_req  ");
+        `MSG_TYPE_AMO_MINU_REQ          : $write("  amo_minu_req ");
+        `MSG_TYPE_AMO_ADD_P1_REQ        : $write("  amo_add_p1   ");
+        `MSG_TYPE_AMO_AND_P1_REQ        : $write("  amo_and_p1   ");
+        `MSG_TYPE_AMO_OR_P1_REQ         : $write("  amo_or_p1    ");
+        `MSG_TYPE_AMO_XOR_P1_REQ        : $write("  amo_xor_p1   ");
+        `MSG_TYPE_AMO_MAX_P1_REQ        : $write("  amo_max_p1   ");
+        `MSG_TYPE_AMO_MAXU_P1_REQ       : $write("  amo_maxu_p1  ");
+        `MSG_TYPE_AMO_MIN_P1_REQ        : $write("  amo_min_p1   ");
+        `MSG_TYPE_AMO_MINU_P1_REQ       : $write("  amo_minu_p1  ");
+        `MSG_TYPE_AMO_ADD_P2_REQ        : $write("  amo_add_p2   ");
+        `MSG_TYPE_AMO_AND_P2_REQ        : $write("  amo_and_p2   ");
+        `MSG_TYPE_AMO_OR_P2_REQ         : $write("  amo_or_p2    ");
+        `MSG_TYPE_AMO_XOR_P2_REQ        : $write("  amo_xor_p2   ");
+        `MSG_TYPE_AMO_MAX_P2_REQ        : $write("  amo_max_p2   ");
+        `MSG_TYPE_AMO_MAXU_P2_REQ       : $write("  amo_maxu_p2  ");
+        `MSG_TYPE_AMO_MIN_P2_REQ        : $write("  amo_min_p2   ");
+        `MSG_TYPE_AMO_MINU_P2_REQ       : $write("  amo_minu_p2  ");
+        default                         : $write("      undef    ");
+    endcase
+end
+endtask
+
+
+
+
+
+
+
+
+endmodule

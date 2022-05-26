@@ -1210,7 +1210,70 @@ print(str)
         .merger_dst_vr_noc_rdy         (merger_buffer_vr_noc2_rdy)   
     );
 
+generate
+if (TILE_TYPE == `DECADES_IS_TILE) begin : g_is_tile_core
+`ifdef DECADES_DECOUPLING
+    reg spc_grst_l_reg, rst_n_ff;
+    always @(posedge clk) begin
+        rst_n_ff <= rst_n_f;
+        spc_grst_l_reg <= rst_n_ff;
+    end
+    assign spc_grst_l = spc_grst_l_reg;
 
+    /////////////////////
+    // IS Tile Components //
+    /////////////////////
+    is_core is_core_inst (
+        .clk_gated                              (clk_gated),
+        .rst_n_f                                (rst_n_f),
+        .config_system_tile_count               (config_system_tile_count),
+        .config_home_alloc_method               (config_home_alloc_method),
+        .config_chipid                          (config_chipid),
+        .config_coreid_x                        (config_coreid_x),
+        .config_coreid_y                        (config_coreid_y),
+        .splitter_dev1_vr_noc1_val              (splitter_dst1_vr_noc1_val),
+        .splitter_dev1_vr_noc1_dat              (splitter_dst1_vr_noc1_dat),
+        .splitter_dev1_vr_noc1_rdy              (splitter_dst1_vr_noc1_rdy),
+        .dev1_merger_vr_noc1_val                (src1_merger_vr_noc1_val),  
+        .dev1_merger_vr_noc1_dat                (src1_merger_vr_noc1_dat),  
+        .dev1_merger_vr_noc1_rdy                (src1_merger_vr_noc1_rdy),  
+        .splitter_dev1_vr_noc2_val              (splitter_dst1_vr_noc2_val),
+        .splitter_dev1_vr_noc2_dat              (splitter_dst1_vr_noc2_dat),
+        .splitter_dev1_vr_noc2_rdy              (splitter_dst1_vr_noc2_rdy),
+        .dev1_merger_vr_noc2_val                (src1_merger_vr_noc2_val),  
+        .dev1_merger_vr_noc2_dat                (src1_merger_vr_noc2_dat),  
+        .dev1_merger_vr_noc2_rdy                (src1_merger_vr_noc2_rdy),  
+        .splitter_dev1_vr_noc3_val              (splitter_dst1_vr_noc3_val),
+        .splitter_dev1_vr_noc3_dat              (splitter_dst1_vr_noc3_dat),
+        .splitter_dev1_vr_noc3_rdy              (splitter_dst1_vr_noc3_rdy),
+        .l15_transducer_ack                     (l15_transducer_ack),
+        .l15_transducer_header_ack              (l15_transducer_header_ack),
+        
+        .transducer_l15_val                     (transducer_l15_val),
+        .transducer_l15_rqtype                  (transducer_l15_rqtype),
+        .transducer_l15_amo_op                  (transducer_l15_amo_op),
+        .transducer_l15_size                    (transducer_l15_size),
+        .transducer_l15_address                 (transducer_l15_address),
+        .transducer_l15_data                    (transducer_l15_data),
+        .transducer_l15_nc                      (transducer_l15_nc),
+        .transducer_l15_threadid                (transducer_l15_threadid),
+        .transducer_l15_prefetch                (transducer_l15_prefetch),
+        .transducer_l15_blockstore              (transducer_l15_blockstore),
+        .transducer_l15_blockinitstore          (transducer_l15_blockinitstore),
+        .transducer_l15_l1rplway                (transducer_l15_l1rplway),
+        .transducer_l15_invalidate_cacheline    (transducer_l15_invalidate_cacheline),
+        .transducer_l15_csm_data                (transducer_l15_csm_data),
+        .transducer_l15_data_next_entry         (transducer_l15_data_next_entry),
+        .transducer_l15_req_ack                 (transducer_l15_req_ack),
+        .l15_transducer_val                     (l15_transducer_val),
+        .l15_transducer_returntype              (l15_transducer_returntype),
+        .l15_transducer_threadid                (l15_transducer_threadid),
+        .l15_transducer_data_0                  (l15_transducer_data_0),
+        .l15_transducer_data_1                  (l15_transducer_data_1)
+    );
+
+`endif // ifdef DECADES_DECOUPLING
+end else begin : no_is
     assign splitter_dst1_vr_noc1_rdy = 1'b0;
     assign splitter_dst1_vr_noc2_rdy = 1'b0;
     assign splitter_dst1_vr_noc3_rdy = 1'b0;
@@ -1218,6 +1281,8 @@ print(str)
     assign src1_merger_vr_noc1_dat = 64'd0;
     assign src1_merger_vr_noc2_val = 1'b0;  
     assign src1_merger_vr_noc2_dat = 64'd0;
+end
+endgenerate
 
     //////////
     // L1.5 //

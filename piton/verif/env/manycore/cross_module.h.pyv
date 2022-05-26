@@ -102,6 +102,7 @@ for i in range(PITON_NUM_TILES):
     `define ARIANE_CORE%d     `TILE%d.g_ariane_core.core.ariane
     `define SPARC_CORE%d      `TILE%d.g_sparc_core.core
     `define PICO_CORE%d       `TILE%d.g_picorv32_core.core
+    `define DECADES_IS_TILE%d `TILE%d.g_is_tile_core
     `define CCX_TRANSDUCER%d  `TILE%d.g_sparc_core.ccx_l15_transducer
     `define PICO_TRANSDUCER%d `TILE%d.g_picorv32_core.pico_l15_transducer
     `define L15_TOP%d         `TILE%d.l15.l15

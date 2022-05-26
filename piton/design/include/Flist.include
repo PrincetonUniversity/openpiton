@@ -28,6 +28,8 @@
 define.h
 l2.h
 l15.h
+dcp.h
+is.h
 lsu.h
 ifu.h
 

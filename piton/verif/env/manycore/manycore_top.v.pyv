@@ -432,7 +432,12 @@ system system(
         .cmp_gclk  (`CHIP_INT_CLK),
         .rst_l     (`CHIP.rst_n_inter_sync)
         );
-
+        
+    //DCP MONITORS
+    dcp_mon dcp_mon(
+        .clk   (`CHIP_INT_CLK),
+        .rst_l (`CHIP.rst_n_inter_sync)
+    );
 `ifndef MINIMAL_MONITORING
     integer j;
 

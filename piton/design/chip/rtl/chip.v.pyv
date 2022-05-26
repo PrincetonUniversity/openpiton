@@ -1111,7 +1111,14 @@ module chip(
             currenttile = currenttile.replace("_FLAT_ID_", repr(flatid));
             currenttype = "`SPARC_TILE"
 
-            if (PITON_PICO_HET):
+            if (DECADES_DECOUPLING):
+               if (flatid % 2) == 1:
+                  #Create an IS Tile every 2 tiles
+                  currenttype = "`DECADES_IS_TILE"
+                  #currenttype = "`ARIANE_RV64_TILE"
+               else:
+                  currenttype = "`ARIANE_RV64_TILE"
+            elif (PITON_PICO_HET):
                 if (flatid % 2) == 0:
                     currenttype = "`SPARC_TILE"
                 else:
