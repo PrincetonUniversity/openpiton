@@ -88,7 +88,12 @@ else
   cd -
 
   cd build
-  ../configure --prefix=$ROOT/tmp/riscv-tests/build
+  tmp_dest=$PITON_ROOT/tmp
+  if [ -w /tmp ]
+  then
+    tmp_dest=/tmp
+  fi
+  ../configure --prefix=$tmp_dest/riscv-tests/build
 
   make clean
   make isa        -j${NUM_JOBS} > /dev/null
