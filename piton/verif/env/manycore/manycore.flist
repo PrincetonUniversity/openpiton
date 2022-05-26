@@ -56,6 +56,7 @@ manycore_network_mon.v
 -v cmp_l15_messages_mon.v
 -v jtag_mon.v
 -v l2_mon.v
+-v dcp_mon.v
 -v async_fifo_mon.v
 -v iob_mon.v
 fake_pll.v

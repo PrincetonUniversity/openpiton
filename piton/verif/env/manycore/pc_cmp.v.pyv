@@ -237,6 +237,28 @@ endtask // get_thread_status
                     end
                 end
         `else // RTL_ARIANE0
+        `ifdef RTL_IS_TILE0
+                assign spc0_thread_id = 2'b00;
+                assign spc0_rtl_pc = spc0_phy_pc_w;
+
+                always @(posedge clk) begin
+                    if (~rst_l) begin
+                      active_thread[(0*4)]   <= 1'b0;
+                      active_thread[(0*4)+1] <= 1'b0;
+                      active_thread[(0*4)+2] <= 1'b0;
+                      active_thread[(0*4)+3] <= 1'b0;
+                      spc0_inst_done         <= 0;
+                      spc0_phy_pc_w          <= 0;
+                    end else begin
+                      active_thread[(0*4)]   <= 1'b1;
+                      active_thread[(0*4)+1] <= 1'b1;
+                      active_thread[(0*4)+2] <= 1'b1;
+                      active_thread[(0*4)+3] <= 1'b1;
+                      spc0_inst_done <= `DECADES_IS_TILE0.is_core_inst.inst_done;
+                      spc0_phy_pc_w <= `DECADES_IS_TILE0.is_core_inst.pc_w;
+                    end
+                end
+        `else // RTL_IS_TILE0
         `ifdef RTL_PICO0
                 assign spc0_thread_id = 2'b00;
                 assign spc0_rtl_pc = spc0_phy_pc_w;
@@ -257,11 +279,12 @@ endtask // get_thread_status
                     spc0_phy_pc_w <= {{16{`PICO_CORE0.reg_pc[31]}}, `PICO_CORE0.reg_pc[31:0]};
                 end
         `endif // RTL_PICO0
+        `endif // RTL_IS_TILE0
         `endif // RTL_ARIANE0
         `endif // RTL_SPARC0
         '''
-    pattern = ["SPARC0", "RTL_ARIANE0", "RTL_PICO0", "PATH0", "spc0", "sas_m0", "pcs0", "pcf0", "pcd0", "pce0", \
-                "IFQDP0", "DTUPATH0", "PICO_CORE0", "ARIANE_CORE0", "active_thread[(0"];
+    pattern = ["SPARC0", "RTL_ARIANE0", "RTL_PICO0", "ARIANE0", "IS_TILE0", "PATH0", "spc0", "sas_m0", "pcs0", "pcf0", "pcd0", "pce0", \
+                "IFQDP0", "DTUPATH0", "PICO_CORE0", "ARIANE_CORE0", "DECADES_IS_TILE0", "active_thread[(0"];
     tt = ReplicatePattern(t, pattern);
     print(tt)
 %>

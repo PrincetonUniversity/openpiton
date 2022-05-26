@@ -76,6 +76,10 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define NOC_FBITS_L2        4'd0
 `define NOC_FBITS_FP        4'd0
 `define NOC_FBITS_MEM       4'd2
+`define NOC_FBITS_DCP       4'b1000
+`define NOC_FBITS_SP        4'b1101
+`define NOC_FBITS_MMU       4'b1010
+`define NOC_FBITS_DREAM     4'b1011
 
 `define NOC_NODEID_WIDTH    34
 `define NOC_DATACOUNT_WIDTH 5
@@ -576,6 +580,7 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define SPARC_TILE       0
 `define PICORV32_TILE    1
 `define ARIANE_RV64_TILE 2
+`define DECADES_IS_TILE  4
 
 `endif
 

@@ -212,42 +212,87 @@ print(s)
     wire [`NOC_X_WIDTH-1:0]             config_coreid_x;
     wire [`NOC_Y_WIDTH-1:0]             config_coreid_y;
 
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc1;
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc2;
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc3;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc1_dat;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc2_dat;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc3_dat;
 
-    wire                                buffer_processor_valid_noc1;
-    wire                                buffer_processor_valid_noc2;
-    wire                                buffer_processor_valid_noc3;
-    wire                                processor_router_ready_noc1;
-    wire                                processor_router_ready_noc2;
-    wire                                processor_router_ready_noc3;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc1_dat;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc2_dat;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc3_dat;
 
-    wire                                router_processor_ready_noc1;
-    wire                                router_processor_ready_noc2;
-    wire                                router_processor_ready_noc3;
+    wire                                buffer_splitter_vr_noc1_val;
+    wire                                buffer_splitter_vr_noc2_val;
+    wire                                buffer_splitter_vr_noc3_val;
+    wire                                buffer_splitter_vr_noc1_rdy;
+    wire                                buffer_splitter_vr_noc2_rdy;
+    wire                                buffer_splitter_vr_noc3_rdy;
+
+    wire                                merger_buffer_vr_noc1_val;
+    wire                                merger_buffer_vr_noc2_val;
+    wire                                merger_buffer_vr_noc3_val;
+    wire                                merger_buffer_vr_noc1_rdy;
+    wire                                merger_buffer_vr_noc2_rdy;
+    wire                                merger_buffer_vr_noc3_rdy;
+
+
+    // NoC interface for different intra-tile devices
+    // NoC1
+    wire                                splitter_processor_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc1_dat;
+    wire                                splitter_processor_vr_noc1_rdy;
+    wire                                splitter_dst1_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc1_dat;
+    wire                                splitter_dst1_vr_noc1_rdy;
+
+    wire                                processor_merger_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc1_dat;
+    wire                                processor_merger_vr_noc1_rdy;
+    wire                                src1_merger_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc1_dat;
+    wire                                src1_merger_vr_noc1_rdy;
+
+    // NoC2
+    wire                                splitter_processor_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc2_dat;
+    wire                                splitter_processor_vr_noc2_rdy;
+    wire                                splitter_dst1_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc2_dat;
+    wire                                splitter_dst1_vr_noc2_rdy;
+
+    wire                                processor_merger_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc2_dat;
+    wire                                processor_merger_vr_noc2_rdy;
+    wire                                src1_merger_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc2_dat;
+    wire                                src1_merger_vr_noc2_rdy;
+    
+    // NoC3
+    wire                                splitter_processor_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc3_dat;
+    wire                                splitter_processor_vr_noc3_rdy;
+    wire                                splitter_dst1_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc3_dat;
+    wire                                splitter_dst1_vr_noc3_rdy;
+
+    wire                                processor_merger_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc3_dat;
+    wire                                processor_merger_vr_noc3_rdy;
+    wire                                src1_merger_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc3_dat;
+    wire                                src1_merger_vr_noc3_rdy;
 
     // Processor val/rdy interface
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc1;
-    wire                                processor_router_valid_noc1;
     wire                                buffer_router_yummy_noc1;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc1;
     wire                                buffer_router_valid_noc1;
 
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc2;
-    wire                                processor_router_valid_noc2;
     wire                                buffer_router_yummy_noc2;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc2;
     wire                                buffer_router_valid_noc2;
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc3;
-    wire                                processor_router_valid_noc3;
     wire                                buffer_router_yummy_noc3;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc3;
     wire                                buffer_router_valid_noc3;
 
@@ -605,9 +650,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk1(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc1),
-        .valid_in(processor_router_valid_noc1),
-        .ready_in(router_processor_ready_noc1),
+        .data_in(merger_buffer_vr_noc1_dat),
+        .valid_in(merger_buffer_vr_noc1_val),
+        .ready_in(merger_buffer_vr_noc1_rdy),
 
         .data_out(buffer_router_data_noc1),           // Data
         .valid_out(buffer_router_valid_noc1),       // Val signal
@@ -617,9 +662,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk2(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc2),
-        .valid_in(processor_router_valid_noc2),
-        .ready_in(router_processor_ready_noc2),
+        .data_in(merger_buffer_vr_noc2_dat),
+        .valid_in(merger_buffer_vr_noc2_val),
+        .ready_in(merger_buffer_vr_noc2_rdy),
 
         .data_out(buffer_router_data_noc2),           // Data
         .valid_out(buffer_router_valid_noc2),       // Val signal
@@ -629,9 +674,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk3(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc3),
-        .valid_in(processor_router_valid_noc3),
-        .ready_in(router_processor_ready_noc3),
+        .data_in(processor_merger_vr_noc3_dat),
+        .valid_in(processor_merger_vr_noc3_val),
+        .ready_in(processor_merger_vr_noc3_rdy),
 
         .data_out(buffer_router_data_noc3),           // Data
         .valid_out(buffer_router_valid_noc3),       // Val signal
@@ -646,9 +691,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc1),
         .yummy_in(buffer_router_yummy_noc1),
 
-        .data_out(buffer_processor_data_noc1),           // Data
-        .valid_out(buffer_processor_valid_noc1),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc1)    // Rdy signal from processor to dynamic network
+       .data_out(buffer_splitter_vr_noc1_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc1_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc1_rdy)    // Rdy signal from processor to dynamic network
     );
 
     credit_to_valrdy cgni_blk2(
@@ -658,9 +703,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc2),
         .yummy_in(buffer_router_yummy_noc2),
 
-        .data_out(buffer_processor_data_noc2),           // Data
-        .valid_out(buffer_processor_valid_noc2),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc2)    // Rdy signal from processor to dynamic network
+       .data_out(buffer_splitter_vr_noc2_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc2_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc2_rdy)    // Rdy signal from processor to dynamic network
     );
 
     credit_to_valrdy cgni_blk3(
@@ -670,9 +715,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc3),
         .yummy_in(buffer_router_yummy_noc3),
 
-        .data_out(buffer_processor_data_noc3),           // Data
-        .valid_out(buffer_processor_valid_noc3),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc3)    // Rdy signal from processor to dynamic network
+        .data_out(buffer_splitter_vr_noc3_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc3_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc3_rdy)    // Rdy signal from processor to dynamic network
     );
 
 ///////////////////////
@@ -1039,6 +1084,11 @@ print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
 
 
     ariane_verilog_wrap #(
+        // PMA configuration
+        // non-idempotent region: first GB of mem and the range with the bit 40 set (but the range 0xe0-0xef, used for scratchpad)
+        .NrNonIdempotentRules  (3),
+        .NonIdempotentAddrBase ({64'he100000000,64'h8000000000,64'h0000000000}),
+        .NonIdempotentLength   ({64'h1f00000000,64'h6000000000,64'h0040000000}),
 <%
 str = '''
         .DmBaseAddress          ( 64'h%s ),
@@ -1071,6 +1121,168 @@ print(str)
   end
   endgenerate
 
+    noc_simple_splitter noc1_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc1_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc1_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc1_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc1_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc1_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc1_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc1_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc1_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc1_rdy)
+    );
+
+
+    noc_simple_splitter noc2_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc2_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc2_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc2_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc2_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc2_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc2_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc2_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc2_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc2_rdy)
+    );
+
+
+    noc_simple_splitter noc3_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc3_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc3_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc3_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc3_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc3_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc3_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc3_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc3_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc3_rdy)
+    );
+
+
+    noc_simple_merger noc1_merger(   
+        .clk                        (clk_gated),
+        .rst_n                      (rst_n_f),
+                                                          
+        .src0_merger_vr_noc_val       (processor_merger_vr_noc1_val), // For L15 and L2
+        .src0_merger_vr_noc_dat       (processor_merger_vr_noc1_dat),
+        .src0_merger_vr_noc_rdy       (processor_merger_vr_noc1_rdy),
+                                                          
+        .src1_merger_vr_noc_val       (src1_merger_vr_noc1_val),
+        .src1_merger_vr_noc_dat       (src1_merger_vr_noc1_dat),
+        .src1_merger_vr_noc_rdy       (src1_merger_vr_noc1_rdy),
+                                     
+        .merger_dst_vr_noc_val         (merger_buffer_vr_noc1_val),  
+        .merger_dst_vr_noc_dat         (merger_buffer_vr_noc1_dat),
+        .merger_dst_vr_noc_rdy         (merger_buffer_vr_noc1_rdy)   
+    );
+
+
+    noc_simple_merger noc2_merger(   
+        .clk                        (clk_gated),
+        .rst_n                      (rst_n_f),
+                                                          
+        .src0_merger_vr_noc_val       (processor_merger_vr_noc2_val), // For L15 and L2
+        .src0_merger_vr_noc_dat       (processor_merger_vr_noc2_dat),
+        .src0_merger_vr_noc_rdy       (processor_merger_vr_noc2_rdy),
+                                                          
+        .src1_merger_vr_noc_val       (src1_merger_vr_noc2_val),
+        .src1_merger_vr_noc_dat       (src1_merger_vr_noc2_dat),
+        .src1_merger_vr_noc_rdy       (src1_merger_vr_noc2_rdy),
+                                     
+        .merger_dst_vr_noc_val         (merger_buffer_vr_noc2_val),  
+        .merger_dst_vr_noc_dat         (merger_buffer_vr_noc2_dat),
+        .merger_dst_vr_noc_rdy         (merger_buffer_vr_noc2_rdy)   
+    );
+
+generate
+if (TILE_TYPE == `DECADES_IS_TILE) begin : g_is_tile_core
+`ifdef DECADES_DECOUPLING
+    reg spc_grst_l_reg, rst_n_ff;
+    always @(posedge clk) begin
+        rst_n_ff <= rst_n_f;
+        spc_grst_l_reg <= rst_n_ff;
+    end
+    assign spc_grst_l = spc_grst_l_reg;
+
+    /////////////////////
+    // IS Tile Components //
+    /////////////////////
+    is_core is_core_inst (
+        .clk_gated                              (clk_gated),
+        .rst_n_f                                (rst_n_f),
+        .config_system_tile_count               (config_system_tile_count),
+        .config_home_alloc_method               (config_home_alloc_method),
+        .config_chipid                          (config_chipid),
+        .config_coreid_x                        (config_coreid_x),
+        .config_coreid_y                        (config_coreid_y),
+        .splitter_dev1_vr_noc1_val              (splitter_dst1_vr_noc1_val),
+        .splitter_dev1_vr_noc1_dat              (splitter_dst1_vr_noc1_dat),
+        .splitter_dev1_vr_noc1_rdy              (splitter_dst1_vr_noc1_rdy),
+        .dev1_merger_vr_noc1_val                (src1_merger_vr_noc1_val),  
+        .dev1_merger_vr_noc1_dat                (src1_merger_vr_noc1_dat),  
+        .dev1_merger_vr_noc1_rdy                (src1_merger_vr_noc1_rdy),  
+        .splitter_dev1_vr_noc2_val              (splitter_dst1_vr_noc2_val),
+        .splitter_dev1_vr_noc2_dat              (splitter_dst1_vr_noc2_dat),
+        .splitter_dev1_vr_noc2_rdy              (splitter_dst1_vr_noc2_rdy),
+        .dev1_merger_vr_noc2_val                (src1_merger_vr_noc2_val),  
+        .dev1_merger_vr_noc2_dat                (src1_merger_vr_noc2_dat),  
+        .dev1_merger_vr_noc2_rdy                (src1_merger_vr_noc2_rdy),  
+        .splitter_dev1_vr_noc3_val              (splitter_dst1_vr_noc3_val),
+        .splitter_dev1_vr_noc3_dat              (splitter_dst1_vr_noc3_dat),
+        .splitter_dev1_vr_noc3_rdy              (splitter_dst1_vr_noc3_rdy),
+        .l15_transducer_ack                     (l15_transducer_ack),
+        .l15_transducer_header_ack              (l15_transducer_header_ack),
+        
+        .transducer_l15_val                     (transducer_l15_val),
+        .transducer_l15_rqtype                  (transducer_l15_rqtype),
+        .transducer_l15_amo_op                  (transducer_l15_amo_op),
+        .transducer_l15_size                    (transducer_l15_size),
+        .transducer_l15_address                 (transducer_l15_address),
+        .transducer_l15_data                    (transducer_l15_data),
+        .transducer_l15_nc                      (transducer_l15_nc),
+        .transducer_l15_threadid                (transducer_l15_threadid),
+        .transducer_l15_prefetch                (transducer_l15_prefetch),
+        .transducer_l15_blockstore              (transducer_l15_blockstore),
+        .transducer_l15_blockinitstore          (transducer_l15_blockinitstore),
+        .transducer_l15_l1rplway                (transducer_l15_l1rplway),
+        .transducer_l15_invalidate_cacheline    (transducer_l15_invalidate_cacheline),
+        .transducer_l15_csm_data                (transducer_l15_csm_data),
+        .transducer_l15_data_next_entry         (transducer_l15_data_next_entry),
+        .transducer_l15_req_ack                 (transducer_l15_req_ack),
+        .l15_transducer_val                     (l15_transducer_val),
+        .l15_transducer_returntype              (l15_transducer_returntype),
+        .l15_transducer_threadid                (l15_transducer_threadid),
+        .l15_transducer_data_0                  (l15_transducer_data_0),
+        .l15_transducer_data_1                  (l15_transducer_data_1)
+    );
+
+`endif // ifdef DECADES_DECOUPLING
+end else begin : no_is
+    assign splitter_dst1_vr_noc1_rdy = 1'b0;
+    assign splitter_dst1_vr_noc2_rdy = 1'b0;
+    assign splitter_dst1_vr_noc3_rdy = 1'b0;
+    assign src1_merger_vr_noc1_val = 1'b0;  
+    assign src1_merger_vr_noc1_dat = 64'd0;
+    assign src1_merger_vr_noc2_val = 1'b0;  
+    assign src1_merger_vr_noc2_dat = 64'd0;
+end
+endgenerate
 
     //////////
     // L1.5 //
@@ -1125,21 +1337,20 @@ print(str)
 
         .transducer_l15_req_ack             (transducer_l15_req_ack),
 
-
-        .noc1_out_rdy(router_processor_ready_noc1),
-        .noc2_in_val(buffer_processor_valid_noc2),
-        .noc2_in_data(buffer_processor_data_noc2),
-        .noc3_out_rdy(router_processor_ready_noc3),
         .dmbr_l15_stall(dmbr_l15_stall),
         .chipid(config_chipid),
         .coreid_x(config_coreid_x),
         .coreid_y(config_coreid_y),
 
-        .noc1_out_val(processor_router_valid_noc1),
-        .noc1_out_data(processor_router_data_noc1),
-        .noc2_in_rdy(processor_router_ready_noc2),
-        .noc3_out_val(processor_router_valid_noc3),
-        .noc3_out_data(processor_router_data_noc3),
+        .noc1_out_rdy(processor_merger_vr_noc1_rdy),
+        .noc1_out_val(processor_merger_vr_noc1_val),
+        .noc1_out_data(processor_merger_vr_noc1_dat),
+        .noc2_in_val(splitter_processor_vr_noc2_val),
+        .noc2_in_data(splitter_processor_vr_noc2_dat),
+        .noc2_in_rdy(splitter_processor_vr_noc2_rdy),
+        .noc3_out_rdy(processor_merger_vr_noc3_rdy),
+        .noc3_out_val(processor_merger_vr_noc3_val),
+        .noc3_out_data(processor_merger_vr_noc3_dat),
         .l15_dmbr_l1missIn(l15_dmbr_l1missIn),
         .l15_dmbr_l1missTag(l15_dmbr_l1missTag),
         .l15_dmbr_l2missIn(l15_dmbr_l2missIn),
@@ -1219,16 +1430,16 @@ print(str)
         .chipid(config_chipid),
         .coreid_x(config_coreid_x),
         .coreid_y(config_coreid_y),
-        .noc1_valid_in(buffer_processor_valid_noc1),
-        .noc3_valid_in(buffer_processor_valid_noc3),
-        .noc1_data_in(buffer_processor_data_noc1),
-        .noc3_data_in(buffer_processor_data_noc3),
-        .noc2_ready_out(router_processor_ready_noc2),
-
-        .noc1_ready_in(processor_router_ready_noc1),
-        .noc3_ready_in(processor_router_ready_noc3),
-        .noc2_valid_out(processor_router_valid_noc2),
-        .noc2_data_out(processor_router_data_noc2),
+        .noc1_valid_in(splitter_processor_vr_noc1_val),
+        .noc3_valid_in(splitter_processor_vr_noc3_val),
+        .noc1_data_in( splitter_processor_vr_noc1_dat),
+        .noc3_data_in( splitter_processor_vr_noc3_dat),
+        .noc2_ready_out(processor_merger_vr_noc2_rdy),
+        
+        .noc1_ready_in(splitter_processor_vr_noc1_rdy),
+        .noc3_ready_in(splitter_processor_vr_noc3_rdy),
+        .noc2_valid_out(processor_merger_vr_noc2_val),
+        .noc2_data_out(processor_merger_vr_noc2_dat),
 
         // interface to srams
         .srams_rtap_data (l2_rtap_data),

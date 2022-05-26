@@ -148,13 +148,13 @@ static void init_tls()
 // always init all threads
 void _init(int cid, int nc)
 {
+#ifndef DECADES_DECOUPLING
   volatile static uint32_t finish_sync0 = 0;
   volatile static uint32_t finish_sync1 = 0;
 
   char num[2]   = {cid, nc};
   char *argv[1] = {num};
   int ret = main(2, argv);
-
   ATOMIC_OP(finish_sync0, 1, add, w);
   //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync0) : "r" (1) : "memory");
   while(finish_sync0 != nc);
@@ -172,7 +172,12 @@ void _init(int cid, int nc)
 
   ATOMIC_OP(finish_sync1, 1, add, w);
   //__asm__ __volatile__ (  " amoadd.w zero, %1, %0" : "+A" (finish_sync1) : "r" (1) : "memory");
-
+#else
+  int pattern = DECADES_DECOUPLING;
+  char num[2]   = {cid/pattern, (nc+1)/pattern};
+  char *argv[1] = {num};
+  int ret = main(2, argv);
+#endif
   exit(ret);
  
   // // only single-threaded programs should ever get here.
