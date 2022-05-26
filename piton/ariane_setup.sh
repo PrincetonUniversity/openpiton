@@ -49,11 +49,10 @@ echo
 
 echo "make sure that you source this script in a bash shell in the root folder of OpenPiton"
 
-if [ "$0" !=  "bash" ] && [ "$0" != "-bash" ]
+if [ -z "$BASH" ] || [ ${0: -4} !=  "bash" ]
 then
   echo "not in bash ($0), aborting"
   return
-
 fi
 
 SCRIPTNAME=ariane_setup.sh
@@ -76,7 +75,11 @@ export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
 ## GCC and RISCV GCC setup
 export CXX=g++ CC=gcc
 # customize this to a fast local disk
-export RISCV=/scratch/`whoami`/riscv_install
+
+if [ "$RISCV" ==  "" ]
+then
+  export RISCV=$HOME/scratch/riscv_install
+fi
 export VERILATOR_ROOT=$ARIANE_ROOT/tmp/verilator-4.014/
 
 # setup paths
