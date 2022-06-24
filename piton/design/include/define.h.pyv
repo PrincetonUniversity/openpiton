@@ -309,69 +309,6 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_DATA_SIZE_32B       3'b110
 `define MSG_DATA_SIZE_64B       3'b111
 
-
-//`define HOME_ID_MASK_X          10:10
-//Additional fields for Sharer Domain ID and Logical Sharer ID
-//For coherence domain restriction only
-
-
-// Tri: dynamically adjust these parameters based on how many tiles are available
-//  Assumption: 8x8 topology
-`ifdef RTL_SPARC63
-`define HOME_ID_MASK_X          8:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          11:9
-`define HOME_ID_MASK_Y_ENABLE   1
-`define TOTAL_NUM_TILE          64
-`else
-`ifdef RTL_SPARC31
-`define HOME_ID_MASK_X          8:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          10:9
-`define HOME_ID_MASK_Y_ENABLE   1
-`define TOTAL_NUM_TILE          32
-`else
-`ifdef RTL_SPARC15
-`define HOME_ID_MASK_X          8:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          9:9
-`define HOME_ID_MASK_Y_ENABLE   1
-`define TOTAL_NUM_TILE          16
-`else
-`ifdef RTL_SPARC7
-`define HOME_ID_MASK_X          8:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          0:0
-`define HOME_ID_MASK_Y_ENABLE   0
-`define TOTAL_NUM_TILE          8
-`else
-`ifdef RTL_SPARC3
-`define HOME_ID_MASK_X          7:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          0:0
-`define HOME_ID_MASK_Y_ENABLE   0
-`define TOTAL_NUM_TILE          4
-`else
-`ifdef RTL_SPARC1
-`define HOME_ID_MASK_X          6:6
-`define HOME_ID_MASK_X_ENABLE   1
-`define HOME_ID_MASK_Y          0:0
-`define HOME_ID_MASK_Y_ENABLE   0
-`define TOTAL_NUM_TILE          2
-`else
-`define HOME_ID_MASK_X          6:6
-`define HOME_ID_MASK_X_ENABLE   0
-`define HOME_ID_MASK_Y          0:0
-`define HOME_ID_MASK_Y_ENABLE   0
-`define TOTAL_NUM_TILE          1
-`endif
-`endif
-`endif
-`endif
-`endif
-`endif
-
-
 //`define DMBR_TAG_WIDTH 4
 
 //Clumpy Shared Memory
