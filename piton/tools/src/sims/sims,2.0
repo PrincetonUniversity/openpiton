@@ -1183,7 +1183,7 @@ sub gen_flist
         my $linetmpout = (split(' ',substr($line, 0, -3)))[-1] . ".tmp." . substr($line, -2, 1);
         if (-e $linepyv) {
           # print("original is $line\n");
-          system("pyhp.py $linepyv > $linetmpout");
+          !system("pyhp.py $linepyv > $linetmpout") or die("Error running PyHP for $linepyv\n");;
           $line = $linetmp . "\n";
         }
       }
