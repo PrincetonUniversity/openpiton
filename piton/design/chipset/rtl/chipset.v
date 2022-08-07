@@ -476,27 +476,34 @@ module chipset(
 
 `endif  // PITON_BOARD
 
-`ifdef PITON_ARIANE
-    ,
+`ifdef PITON_RV64_PLATFORM
+`ifdef PITON_RV64_DEBUGUNIT
     // Debug
-    output                                      ndmreset_o,    // non-debug module reset
-    output                                      dmactive_o,    // debug module is active
-    output  [`PITON_NUM_TILES-1:0]                    debug_req_o,   // async debug request
-    input   [`PITON_NUM_TILES-1:0]                    unavailable_i, // communicate whether the hart is unavailable (e.g.: power down)
+,    output                                                 ndmreset_o      // non-debug module reset
+,    output                                                 dmactive_o      // debug module is active
+,    output  [`PITON_NUM_TILES-1:0]                         debug_req_o     // async debug request
+,    input   [`PITON_NUM_TILES-1:0]                         unavailable_i   // communicate whether the hart is unavailable (e.g.: power down)
     // JTAG
-    input                                       tck_i,
-    input                                       tms_i,
-    input                                       trst_ni,
-    input                                       td_i,
-    output                                      td_o,
-    output                                      tdo_oe_o,
+,    input                                                  tck_i
+,    input                                                  tms_i
+,    input                                                  trst_ni
+,    input                                                  td_i
+,    output                                                 td_o
+,    output                                                 tdo_oe_o
+`endif // ifdef PITON_RV64_DEBUGUNIT
+
+`ifdef PITON_RV64_CLINT
     // CLINT
-    input                                       rtc_i,         // Real-time clock in (usually 32.768 kHz)
-    output  [`PITON_NUM_TILES-1:0]                    timer_irq_o,   // Timer interrupts
-    output  [`PITON_NUM_TILES-1:0]                    ipi_o,         // software interrupt (a.k.a inter-process-interrupt)
+,    input                                                  rtc_i           // Real-time clock in (usually 32.768 kHz)
+,    output  [`PITON_NUM_TILES-1:0]                         timer_irq_o     // Timer interrupts
+,    output  [`PITON_NUM_TILES-1:0]                         ipi_o           // software interrupt (a.k.a inter-process-interrupt)
+`endif // ifdef PITON_RV64_CLINT
+
+`ifdef PITON_RV64_PLIC
     // PLIC
-    output  [`PITON_NUM_TILES*2-1:0]                  irq_o          // level sensitive IR lines, mip & sip (async)
-`endif
+,    output  [`PITON_NUM_TILES*2-1:0]                       irq_o           // level sensitive IR lines, mip & sip (async)
+`endif // ifdef PITON_RV64_PLIC
+`endif // ifdef PITON_RV64_PLATFORM
 
 );
 
@@ -1414,23 +1421,30 @@ chipset_impl_noc_power_test  chipset_impl (
             `endif // PITON_FPGA_ETHERNETLITE   
     `endif // endif PITONSYS_IOCTRL
 
-    `ifdef PITON_ARIANE
-        ,
-        .ndmreset_o             ( ndmreset_o    ),
-        .dmactive_o             ( dmactive_o    ),
-        .debug_req_o            ( debug_req_o   ),
-        .unavailable_i          ( unavailable_i ),
-        .tck_i                  ( tck_i         ),
-        .tms_i                  ( tms_i         ),
-        .trst_ni                ( trst_ni       ),
-        .td_i                   ( td_i          ),
-        .td_o                   ( td_o          ),
-        .tdo_oe_o               ( tdo_oe_o      ),
-        .rtc_i                  ( rtc_i         ),
-        .timer_irq_o            ( timer_irq_o   ),
-        .ipi_o                  ( ipi_o         ),
-        .irq_o                  ( irq_o         )
-    `endif
+    `ifdef PITON_RV64_PLATFORM
+    `ifdef PITON_RV64_DEBUGUNIT
+        ,.ndmreset_o             ( ndmreset_o    )
+        ,.dmactive_o             ( dmactive_o    )
+        ,.debug_req_o            ( debug_req_o   )
+        ,.unavailable_i          ( unavailable_i )
+        ,.tck_i                  ( tck_i         )
+        ,.tms_i                  ( tms_i         )
+        ,.trst_ni                ( trst_ni       )
+        ,.td_i                   ( td_i          )
+        ,.td_o                   ( td_o          )
+        ,.tdo_oe_o               ( tdo_oe_o      )
+    `endif // ifdef PITON_RV64_DEBUGUNIT
+    
+    `ifdef PITON_RV64_CLINT
+        ,.rtc_i                  ( rtc_i         )
+        ,.timer_irq_o            ( timer_irq_o   )
+        ,.ipi_o                  ( ipi_o         )
+    `endif // ifdef PITON_RV64_CLINT
+    
+    `ifdef PITON_RV64_PLIC
+        ,.irq_o                  ( irq_o         )
+    `endif // ifdef PITON_RV64_PLIC
+    `endif // ifdef PITON_RV64_PLATFORM
 );
 
 

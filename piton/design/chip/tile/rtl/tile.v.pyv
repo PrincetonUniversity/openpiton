@@ -32,7 +32,7 @@ from pyhplib import *
 import riscvlib
 import time
 
-if PITON_ARIANE:
+if PITON_RV64_PLATFORM:
   devices = pyhplib.ReadDevicesXMLFile()
 %>
 
@@ -171,17 +171,24 @@ if (PITON_NETWORK_CONFIG == "xbar_config"):
 print(s)
 %>
 
-`ifdef PITON_ARIANE
-    ,
+`ifdef PITON_RV64_PLATFORM
+`ifdef PITON_RV64_DEBUGUNIT
     // Debug
-    input                               debug_req_i,   // async debug request
-    output                              unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
+,   input                               debug_req_i    // async debug request
+,   output                              unavailable_o  // communicate whether the hart is unavailable (e.g.: power down)
+`endif // ifdef PITON_RV64_DEBUGUNIT
+
+`ifdef PITON_RV64_CLINT
     // CLINT
-    input                               timer_irq_i,   // Timer interrupts
-    input                               ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
+,   input                               timer_irq_i    // Timer interrupts
+,   input                               ipi_i          // software interrupt (a.k.a inter-process-interrupt)
+`endif // ifdef PITON_RV64_CLINT
+
+`ifdef PITON_RV64_PLIC
     // PLIC
-    input   [1:0]                       irq_i          // level sensitive IR lines, mip & sip (async)
-`endif
+,   input   [1:0]                       irq_i          // level sensitive IR lines, mip & sip (async)
+`endif // ifdef PITON_RV64_PLIC
+`endif // ifdef PITON_RV64_PLATFORM
 );
     // clock gating
     wire clk_gated;

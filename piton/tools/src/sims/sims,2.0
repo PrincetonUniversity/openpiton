@@ -2805,11 +2805,16 @@ sub parse_args
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
   $ENV{PITON_ARIANE}   = $opt{ariane};
+  $ENV{PITON_RV64_PLATFORM}   = "1" if ($opt{ariane});
   push (@{$opt{config_rtl}}, "PITON_OST1")     if ($opt{ost1});
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
   push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
   push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "PITON_RV64_PLATFORM")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "PITON_RV64_DEBUGUNIT")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "PITON_RV64_CLINT")   if ($opt{ariane});
+  push (@{$opt{config_rtl}}, "PITON_RV64_PLIC")   if ($opt{ariane});
   push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
 
   my $pton_x_tiles="";
