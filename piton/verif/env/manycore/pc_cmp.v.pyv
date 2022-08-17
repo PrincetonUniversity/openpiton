@@ -260,7 +260,7 @@ endtask // get_thread_status
         `endif // RTL_ARIANE0
         `endif // RTL_SPARC0
         '''
-    pattern = ["SPARC0", "PATH0", "spc0", "sas_m0", "pcs0", "pcf0", "pcd0", "pce0", \
+    pattern = ["SPARC0", "RTL_ARIANE0", "RTL_PICO0", "PATH0", "spc0", "sas_m0", "pcs0", "pcf0", "pcd0", "pce0", \
                 "IFQDP0", "DTUPATH0", "PICO_CORE0", "ARIANE_CORE0", "active_thread[(0"];
     tt = ReplicatePattern(t, pattern);
     print(tt)

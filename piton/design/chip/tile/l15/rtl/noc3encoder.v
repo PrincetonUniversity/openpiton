@@ -155,17 +155,6 @@ begin
 
     address = l15_noc3encoder_req_address;
 
-    // old non-csm implementation
-    // if (`HOME_ID_MASK_X_ENABLE)
-    //     dest_l2_xpos = l15_noc3encoder_req_address[`HOME_ID_MASK_X];
-    // else
-    //     dest_l2_xpos = 0;
-    // if (`HOME_ID_MASK_Y_ENABLE)
-    //     dest_l2_ypos = l15_noc3encoder_req_address[`HOME_ID_MASK_Y];
-    // else
-    //     dest_l2_ypos = 0;
-    // dest_chipid = 0;
-
     dest_l2_xpos = l15_noc3encoder_req_homeid[`PACKET_HOME_ID_X_MASK];
     dest_l2_ypos = l15_noc3encoder_req_homeid[`PACKET_HOME_ID_Y_MASK];
     dest_chipid = l15_noc3encoder_req_homeid[`PACKET_HOME_ID_CHIP_MASK];
