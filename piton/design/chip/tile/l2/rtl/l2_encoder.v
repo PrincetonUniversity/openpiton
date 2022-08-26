@@ -78,7 +78,7 @@ begin
                   msg_src_fbits,
                   msg_sdid,
                   msg_lsid,
-                  14'd0,
+                  {(`NOC_DATA_WIDTH-`NOC_NODEID_WIDTH-`MSG_SDID_WIDTH-`MSG_LSID_WIDTH){1'b0}},
 
                   8'd0,
                   msg_addr,

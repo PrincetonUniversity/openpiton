@@ -60,6 +60,7 @@ module l2_mshr_decoder(
     output reg [`MSG_SDID_WIDTH-1:0] sdid_out,
     output reg [`MSG_LSID_WIDTH-1:0] lsid_out,
     output reg [`MSG_LSID_WIDTH-1:0] miss_lsid_out,
+    output reg [`MSG_AMO_MASK_WIDTH-1:0] amo_mask_out,
     output reg smc_miss_out,
     output reg recycled,
     output reg inv_fwd_pending
@@ -86,6 +87,7 @@ begin
     smc_miss_out = data_in[`L2_MSHR_SMC_MISS];
     recycled = data_in[`L2_MSHR_RECYCLED];
     inv_fwd_pending = data_in[`L2_MSHR_INV_FWD_PENDING];
+    amo_mask_out = data_in[`L2_MSHR_AMO_MASK];
 end
 
 endmodule

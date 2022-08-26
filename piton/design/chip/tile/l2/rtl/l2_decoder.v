@@ -61,7 +61,8 @@ module l2_decoder(
     output reg [`MSG_SRC_Y_WIDTH-1:0] msg_src_y,
     output reg [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits,
     output reg [`MSG_SDID_WIDTH-1:0] msg_sdid,
-    output reg [`MSG_LSID_WIDTH-1:0] msg_lsid
+    output reg [`MSG_LSID_WIDTH-1:0] msg_lsid,
+    output reg [`MSG_AMO_MASK_WIDTH-1:0] msg_amo_mask
 );
 
 always @ *
@@ -83,6 +84,7 @@ begin
     msg_src_fbits = msg_header[`MSG_SRC_FBITS];
     msg_sdid = msg_header[`MSG_SDID];
     msg_lsid = msg_header[`MSG_LSID];
+    msg_amo_mask = {msg_header[`MSG_AMO_MASK0], msg_header[`MSG_AMO_MASK1]};
 end
 
 endmodule
