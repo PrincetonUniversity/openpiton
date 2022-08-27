@@ -11,7 +11,7 @@ int main()
 
     print_uart("sd initialized!\r\n");
 
-    int res = gpt_find_boot_partition((uint8_t *)0x80000000UL, 2 * 16384);
+    int res = gpt_find_boot_partition((uint8_t *)0x80000000UL, 2 * 32768);
 
     return 0;
 }
