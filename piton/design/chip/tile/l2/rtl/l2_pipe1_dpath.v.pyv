@@ -1035,7 +1035,7 @@ end
 // transfer the amo_msg_data byte mask into bit mask
 genvar i;
 generate
-for (i=0; i<`MSG_AMO_MASK_WIDTH; i=i+1) begin
+for (i=0; i<`MSG_AMO_MASK_WIDTH; i=i+1) begin : amo_bitmask_S2_gen
     assign amo_bitmask_S2[8*i +: 8] = (amo_mask_S2_f[i] == 1'b1) ? 8'b11111111 : 8'b00000000;
 end
 endgenerate
