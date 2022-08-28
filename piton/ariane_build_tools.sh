@@ -61,17 +61,14 @@ else
 
   # not all tools are required at the moment
   ci/make-tmp.sh
-  cd /home/$USER/MARCore1/openpiton
-  #source/build-riscv-gcc.sh
-  source/install-fesvr.sh
-  # ci/build-riscv-tests.sh
-  # ci/install-dtc.sh
-  source/install-spike.sh
-  # ci/get-torture.sh
-  source/install-verilator.sh
+  cd /home/muheet-ghani/openpiton
+   source /home/muheet-ghani/openpiton/source/build-riscv-gcc.sh
+   source /home/muheet-ghani/openpiton/source/install-fesvr.sh
+   source /home/muheet-ghani/openpiton/source/install-spike.sh
+   source /home/muheet-ghani/openpiton/source/install-verilator.sh
 
   # build the RISCV tests if necessary
-  cd piton/design/chip/tile/ariane/
+  cd /home/muheet-ghani/openpiton/piton/design/chip/tile/ariane/
   cd tmp
 
   git clone https://github.com/riscv/riscv-tests.git
