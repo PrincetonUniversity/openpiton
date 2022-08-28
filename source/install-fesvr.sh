@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
 VERSION=30e85ce253788b29bd4ac0b5e5c23a077d96dc24
 
 cd $ROOT/tmp
