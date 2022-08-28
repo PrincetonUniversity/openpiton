@@ -26,3 +26,13 @@ cd riscv-gnu-toolchain
 ./configure --prefix=/home/$USER/tools/riscv_install
 make
 ```
+Cloning Openpiton repo in /home/$USER
+
+
+```
+git clone https://github.com/MARCore1/openpiton.git
+sudo bash
+bash
+cd /home/$USER/MARCore1/openpiton
+source piton/arian_setup.sh
+```
