@@ -20,7 +20,7 @@ if ! [ -e $RISCV/bin ]; then
     if [[ $1 -ne "0" || -z ${1} ]]; then
       echo "Compiling RISC-V Toolchain"
       ./configure --prefix=$RISCV > /dev/null
-      make -j${NUM_JOBS} > /dev/null
+      make
       echo "Compilation Finished"
     fi
 fi
