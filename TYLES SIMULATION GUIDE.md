@@ -36,4 +36,8 @@ sudo bash
 bash
 cd /home/$USER/MARCore1/openpiton
 source piton/arian_setup.sh
+source piton/arian_build_tools.sh
 ```
+Output after completion
+
+![image](https://user-images.githubusercontent.com/81433387/187090809-2f5b9a9b-03ca-469f-b553-9a6fd24a295d.png)
