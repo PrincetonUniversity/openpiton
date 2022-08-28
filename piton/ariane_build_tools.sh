@@ -71,6 +71,7 @@ else
   source/install-verilator.sh
 
   # build the RISCV tests if necessary
+  cd piton/design/chip/tile/ariane/
   cd tmp
 
   git clone https://github.com/riscv/riscv-tests.git
