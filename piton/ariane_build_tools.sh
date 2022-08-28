@@ -61,21 +61,20 @@ else
 
   # not all tools are required at the moment
   ci/make-tmp.sh
-  ci/build-riscv-gcc.sh
-  ci/install-fesvr.sh
+  cd /home/$USER/MARCore1/openpiton
+  source/build-riscv-gcc.sh
+  source/install-fesvr.sh
   # ci/build-riscv-tests.sh
   # ci/install-dtc.sh
-  ci/install-spike.sh
+  source/install-spike.sh
   # ci/get-torture.sh
-  ci/install-verilator.sh
+  source/install-verilator.sh
 
   # build the RISCV tests if necessary
-  VERSION="7cc76ea83b4f827596158c8ba0763e93da65de8f"
   cd tmp
 
-  [ -d riscv-tests ] || git clone https://github.com/riscv/riscv-tests.git
+  git clone https://github.com/riscv/riscv-tests.git
   cd riscv-tests
-  git checkout $VERSION
   git submodule update --init --recursive
   autoconf
   mkdir -p build
