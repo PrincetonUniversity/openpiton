@@ -62,7 +62,7 @@ else
   # not all tools are required at the moment
   ci/make-tmp.sh
   cd /home/$USER/MARCore1/openpiton
-  source/build-riscv-gcc.sh
+  #source/build-riscv-gcc.sh
   source/install-fesvr.sh
   # ci/build-riscv-tests.sh
   # ci/install-dtc.sh
