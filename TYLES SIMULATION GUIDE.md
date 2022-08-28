@@ -23,7 +23,7 @@ If you already have then run below commands without any sudo permission. also cr
 ```
 cd /home/$USER
 cd riscv-gnu-toolchain
-./configure --prefix=/home/$USER/tools/riscv_install
+./configure --prefix=/home/$USER/tools/riscv_install > /dev/null
 make
 ```
 Cloning Openpiton repo in /home/$USER
