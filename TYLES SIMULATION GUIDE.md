@@ -41,3 +41,8 @@ source piton/arian_build_tools.sh
 Output after completion
 
 ![image](https://user-images.githubusercontent.com/81433387/187090809-2f5b9a9b-03ca-469f-b553-9a6fd24a295d.png)
+
+If the above output shows on your terminal then source the file
+```
+source openpiton/source/riscv-test.sh
+```
