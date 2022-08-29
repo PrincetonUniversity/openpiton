@@ -2,7 +2,7 @@
 set -e
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
-cd $ROOT/tmp
+cd /home/muheet-ghani/openpiton/piton/design/chip/tile/arian/tmp
 
 if [ -z ${NUM_JOBS} ]; then
     NUM_JOBS=1
