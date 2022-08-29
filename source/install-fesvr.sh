@@ -3,7 +3,7 @@ set -e
 ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
 VERSION=30e85ce253788b29bd4ac0b5e5c23a077d96dc24
 
-cd $ROOT/tmp
+cd /home/muheet-ghani/openpiton/piton/design/chip/tile/arian/tmp
 
 if [ -z ${NUM_JOBS} ]; then
     NUM_JOBS=1
