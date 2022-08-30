@@ -52,3 +52,11 @@ sims -sys=manycore -x_tiles=1 -y_tiles=1 -vlt_build -ariane
 ```
 ![image](https://user-images.githubusercontent.com/81433387/187253966-3f2362c7-dea6-4ea5-a55b-f993c0f0e8df.png)
 
+For VCD file pass some flags with commands line in the directory of openpiton showing below. *my_top.vcd* is the dump file in the directory of openpiton. 
+```
+sims -sys=manycore -x_tiles=1 -y_tiles=1 -vlt_build -ariane -vlt_build_args=--trace -vlt_build_args=-CFLAGS -vlt_build_args=-DVERILATOR_VCD
+
+sims -sys=manycore -vlt_run -x_tiles=1 -y_tiles=1 rv64ui-p-addi.S -ariane -precompiled -vlt_build_args=--trace -vlt_build_args=-CFLAGS -vlt_build_args=-DVERILATOR_VCD
+
+```
+
