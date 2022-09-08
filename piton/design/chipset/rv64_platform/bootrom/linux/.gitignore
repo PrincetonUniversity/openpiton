@@ -1,0 +1,7 @@
+*.bin
+*.elf
+*.img
+*.dtb
+*.sv
+*.o
+bootrom_linux.h

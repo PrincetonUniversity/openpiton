@@ -199,6 +199,7 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'rv64_mabi=s' => "",
         'rv64_march=s' => "",
         'rv64_target_triple=s' => "",
+        'rv64_platform' => 0,
         'other_sim_build' => 0,
         'sim_build_args' => [],
         'other_sim_build_cmd' => "",
@@ -339,6 +340,7 @@ GetOptions (\%opt,
             'sparcv9!',
             'rv32!',
             'rv64!',
+            'rv64_platform!',
             'regress!',
             'regress_id=s',
             'report!',
@@ -1183,7 +1185,7 @@ sub gen_flist
         my $linetmpout = (split(' ',substr($line, 0, -3)))[-1] . ".tmp." . substr($line, -2, 1);
         if (-e $linepyv) {
           # print("original is $line\n");
-          system("pyhp.py $linepyv > $linetmpout");
+          !system("pyhp.py $linepyv > $linetmpout") or die("Error running PyHP for $linepyv\n");;
           $line = $linetmp . "\n";
         }
       }
@@ -1274,20 +1276,20 @@ sub pre_build
 
   system("cp -f flist $cur_dir");
 
-  if($opt{ariane}) {
-    print "compiling DTS and bootroms for Ariane...\n";
-    !system("cd $ENV{ARIANE_ROOT}/corev_apu/openpiton/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
-      die (" Error compiling DTS for ariane.");
-    !system("cd $ENV{ARIANE_ROOT}/corev_apu/openpiton/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
-      die (" Error compiling DTS for ariane.");
+  if($opt{rv64_platform}) {
+    print "compiling rv64 DTS and bootroms...\n";
+    !system("cd $ENV{DV_ROOT}/design/chipset/rv64_platform/bootrom/baremetal && make clean && make all && cd - > /dev/null") or
+      die (" Error compiling rv64 DTS.");
+    !system("cd $ENV{DV_ROOT}/design/chipset/rv64_platform/bootrom/linux && make clean && make all MAX_HARTS=$ENV{PITON_NUM_TILES} && cd - > /dev/null") or
+      die (" Error compiling rv64 DTS.");
     print "done\n";
     # currently we have two sources (hardcoded in chipset_impl): UART and Ethernet
     my $num_sources = 2;
     # 2 targets per core (M/S mode)
     my $num_targets = 2 * $ENV{PITON_NUM_TILES};
-    print "generating PLIC for Ariane with $num_targets targets and $num_sources sources...\n";
+    print "generating PLIC for rv64 platform with $num_targets targets and $num_sources sources...\n";
     !system("cd $ENV{ARIANE_ROOT}/corev_apu/rv_plic/rtl && ./gen_plic_addrmap.py -t $num_targets -s $num_sources > plic_regmap.sv") or
-      die (" Error generating PLIC for Ariane.");
+      die (" Error generating PLIC for rv64 platform.");
     print "done\n";
   }
 
@@ -1377,12 +1379,6 @@ sub generic_sim_build
       push (@{$opt{vcs_build_args}}, "+lint=all,noVCDE,noVNGS,noPCTIO-L,noPCTIO");
       push (@{$opt{vcs_build_args}}, "+warn=all");
       push (@{$opt{vcs_build_args}}, "-l compile.log") ;
-
-      # some SystemVerilog-specific options
-      if ($opt{ariane}) {
-          push (@{$opt{vcs_build_args}}, "-sverilog +systemverilogext+.sv") ;
-          push (@{$opt{vcs_build_args}}, "-ntb_opts uvm-1.1 +vpi ") ;
-      }
 
       if ($opt{ibm}) {
           push (@{$opt{config_rtl}}, "IBM_SRAM_RF16X160_MODEL_CHECKER") ;
@@ -1506,11 +1502,6 @@ sub generic_sim_build
       }
       # lib_path needs to be before vcs_build_args
       $build_cmd .= $lib_path;
-
-      # the ariane files do not contain the timescale
-      if ($opt{ariane}) {
-        $build_cmd .= " -timescale=1ps/1ps ";
-      }
     }
     if ($opt{ncv_build}) {
       $build_cmd = "LD_LIBRARY_PATH=";
@@ -2219,7 +2210,7 @@ sub assemble_diag
     `rm -rf diag.pal diag.s diag.S diag.pl diag.exe mem.image diag.ev symbol.tbl` ;
     die "DIE. could not clean up assembly diag run area"  if ($?) ;
 
-    # add default path to look for precompiled RISCV 64bit assembly tests diags in case of ariane
+    # add default path to look for precompiled RISCV 64bit assembly tests diags
     if ($opt{ariane} and $opt{precompiled}) {
       push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa";
       push @{$opt{asm_diag_root}}, "$ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks";
@@ -2606,6 +2597,7 @@ sub parse_args
             'rv64_mabi=s',
             'rv64_march=s',
             'rv64_target_triple=s',
+            'rv64_platform!',
             'other_sim_build!',
             'sim_build_args=s@',
             'other_sim_build_cmd=s',
@@ -2728,21 +2720,7 @@ sub parse_args
     else { die ("DIE. Unprocessed argument: $x") ; }
   }
 
-  # Set ISA to choose compilation flow based on ISA
-  if ($opt{ost1}) {
-    $opt{sparcv9} = 1 ;
-    print "$prg: Building/running for sparcv9\n" ;
-  }
-  if ($opt{pico}) {
-    $opt{rv32} = 1 ;
-    print "$prg: Building/running for rv32\n" ;
-  }
-  if ($opt{ariane}) {
-    $opt{rv64} = 1 ;
-    print "$prg: Building/running for rv64\n" ;
-  }
-
-  # in case a precompiled riscv binary for ariane is directly specified
+  # in case a precompiled riscv binary is directly specified
   if ($opt{precompiled} and ($opt{rv32} | $opt{rv64})) {
     if (!($opt{asm_diag_name} =~ /\.riscv/)) {
         $opt{asm_diag_name} = fileparse($opt{asm_diag_name}, qr/\.[^.]*/);
@@ -2805,12 +2783,8 @@ sub parse_args
   $ENV{PITON_PICO}     = $opt{pico};
   $ENV{PITON_PICO_HET} = $opt{pico_het};
   $ENV{PITON_ARIANE}   = $opt{ariane};
-  push (@{$opt{config_rtl}}, "PITON_OST1")     if ($opt{ost1});
-  push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico});
-  push (@{$opt{config_rtl}}, "PITON_PICO")     if ($opt{pico_het});
+  $ENV{PITON_RV64_PLATFORM}   = "1" if ($opt{rv64_platform});
   push (@{$opt{config_rtl}}, "PITON_PICO_HET") if ($opt{pico_het});
-  push (@{$opt{config_rtl}}, "PITON_ARIANE")   if ($opt{ariane});
-  push (@{$opt{config_rtl}}, "WT_DCACHE")      if ($opt{ariane});
 
   my $pton_x_tiles="";
   my $pton_y_tiles="";
@@ -2883,10 +2857,6 @@ sub parse_args
 
   # Push optional dmbr enable
   push (@{$opt{midas_args}}, "-DDMBR_ENABLE") if ($opt{dmbr});
-
-  # Push optional oram enable
-  push (@{$opt{config_rtl}}, "ORAM_ON") if ($opt{oram}) ;
-  push (@{$opt{sim_run_args}}, "+oram") if ($opt{oram}) ;
 
   if ($opt{vcs_build} or $opt{ncv_build} or $opt{riv_build}) {
       push(@{$opt{config_rtl}}, "OST1_PLI_SLAM_RANDOM") ;
@@ -3125,7 +3095,7 @@ VERILOG COMPILATION RELATED
            in this case, programs are compiled and assembled using midas
 
     -pico
-           this specifies that the PICORV32 core shall be used instead of OpenSPARC.
+           this specifies that the PICORV32 core shall be used
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
     -pico_het
@@ -3133,7 +3103,7 @@ VERILOG COMPILATION RELATED
            where every odd core is a PICORV32 core (along the x-dimension).
 
     -ariane
-           this specifies that the ARIANE RV64GC core shall be used instead of OpenSPARC.
+           this specifies that the ARIANE RV64GC core shall be used
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
 VERILOG RUNTIME RELATED
@@ -3189,7 +3159,7 @@ midas is the diag assembler
 
 RISCV GCC
 
-this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane switches are specified).
+this is the compiler used for RISC-V cores
 
     -uart_dmw
            use this switch when compiling code for Pitonstream. this will add load
@@ -3198,7 +3168,7 @@ this is the compiler used for RISC-V cores (e.g., when the -pico or -ariane swit
 
     -precompiled
            specify this in order to use pre-built assembly tests and benchmarks from the RISC-V toolchain folder.
-           this basically adds the two search paths
+           combined with -ariane, this basically adds the two search paths
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/isa
              $ENV{ARIANE_ROOT}/tmp/riscv-tests/build/benchmarks
            to @{$opt{asm_diag_root}}, and skips the compilation step.

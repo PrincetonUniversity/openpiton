@@ -139,18 +139,25 @@ module chip(
    output                                       offchip_processor_noc3_yummy
 `endif // endif PITON_NO_CHIP_BRIDGE
 
-`ifdef PITON_ARIANE
-    ,
+`ifdef PITON_RV64_PLATFORM
+`ifdef PITON_RV64_DEBUGUNIT
     // Debug
-    input                                       ndmreset_i,    // non-debug module reset
-    input   [`PITON_NUM_TILES-1:0]                    debug_req_i,   // async debug request
-    output  [`PITON_NUM_TILES-1:0]                    unavailable_o, // communicate whether the hart is unavailable (e.g.: power down)
+,   input                                       ndmreset_i      // non-debug module reset
+,   input   [`PITON_NUM_TILES-1:0]              debug_req_i     // async debug request
+,   output  [`PITON_NUM_TILES-1:0]              unavailable_o   // communicate whether the hart is unavailable (e.g.: power down)
+`endif // ifdef PITON_RV64_DEBUGUNIT
+
+`ifdef PITON_RV64_CLINT
     // CLINT
-    input   [`PITON_NUM_TILES-1:0]                    timer_irq_i,   // Timer interrupts
-    input   [`PITON_NUM_TILES-1:0]                    ipi_i,         // software interrupt (a.k.a inter-process-interrupt)
+,   input   [`PITON_NUM_TILES-1:0]              timer_irq_i     // Timer interrupts
+,   input   [`PITON_NUM_TILES-1:0]              ipi_i           // software interrupt (a.k.a inter-process-interrupt)
+`endif // ifdef PITON_RV64_CLINT
+
+`ifdef PITON_RV64_PLIC
     // PLIC
-    input   [`PITON_NUM_TILES*2-1:0]                  irq_i          // level sensitive IR lines, mip & sip (async)
-`endif
+,   input   [`PITON_NUM_TILES*2-1:0]            irq_i           // level sensitive IR lines, mip & sip (async)
+`endif // ifdef PITON_RV64_PLIC
+`endif // ifdef PITON_RV64_PLATFORM
 );
 
 <%
@@ -1037,14 +1044,21 @@ module chip(
         .default_chipid             (14'b0),    // the first chip
         .default_coreid_x           (COREIDX),
         .default_coreid_y           (COREIDY),
-        .flat_tileid                (`JTAG_FLATID_WIDTH'd_FLAT_ID_),
-    `ifdef PITON_ARIANE
-        .debug_req_i         ( debug_req_i[_FLAT_ID_]   ),
-        .unavailable_o       ( unavailable_o[_FLAT_ID_] ),
-        .timer_irq_i         ( timer_irq_i[_FLAT_ID_]   ),
-        .ipi_i               ( ipi_i[_FLAT_ID_]         ),
-        .irq_i               ( irq_i[_FLAT_ID_*2 +: 2]  ),
-    `endif
+        .flat_tileid                (`JTAG_FLATID_WIDTH'd_FLAT_ID_)
+    `ifdef PITON_RV64_PLATFORM
+    `ifdef PITON_RV64_DEBUGUNIT
+        ,.debug_req_i         ( debug_req_i[_FLAT_ID_]   )
+        ,.unavailable_o       ( unavailable_o[_FLAT_ID_] )
+    `endif // ifdef PITON_RV64_DEBUGUNIT
+    `ifdef PITON_RV64_CLINT
+        ,.timer_irq_i         ( timer_irq_i[_FLAT_ID_]   )
+        ,.ipi_i               ( ipi_i[_FLAT_ID_]         )
+    `endif // ifdef PITON_RV64_CLINT
+    `ifdef PITON_RV64_PLIC
+        ,.irq_i               ( irq_i[_FLAT_ID_*2 +: 2]  )
+    `endif // ifdef PITON_RV64_PLIC
+    `endif // ifdef PITON_RV64_PLATFORM
+        ,
         // ucb from tiles to jtag
         .tile_jtag_ucb_val   ( tile0_jtag_ucb_val      ),
         .tile_jtag_ucb_data  ( tile0_jtag_ucb_data     ),

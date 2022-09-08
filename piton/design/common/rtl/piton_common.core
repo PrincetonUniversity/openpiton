@@ -14,10 +14,20 @@ filesets:
 targets:
     default:
         filesets: [rtl]
+        generate: [pyhp_preprocess]
     pickle:
         default_tool: icarus
         filesets: [rtl]
+        generate: [pyhp_preprocess]
         toplevel: [async_fifo]
         tools:
             icarus:
                 iverilog_options: [-g 2001 -E]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me: [[noc_prio_merger.v.pyv, noc_prio_merger.tmp.v],
+                         [noc_fbits_splitter.v.pyv, noc_fbits_splitter.tmp.v]]
+            

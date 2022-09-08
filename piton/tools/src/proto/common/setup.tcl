@@ -92,7 +92,7 @@ if {[info exists ::env(PITON_PICO_HET)]} {
 }
 
 if {[info exists ::env(PITON_ARIANE)]} {
-  append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE WT_DCACHE"
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE PITON_RV64_PLATFORM PITON_RV64_DEBUGUNIT PITON_RV64_CLINT PITON_RV64_PLIC WT_DCACHE"
 }
 
 for {set k 0} {$k < $::env(PITON_NUM_TILES)} {incr k} {
@@ -130,12 +130,12 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   unset ::env(PYTHONHOME)
   
   set TMP [pwd]
-  cd $::env(ARIANE_ROOT)/corev_apu/openpiton/bootrom/baremetal
+  cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/baremetal
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(ARIANE_ROOT)/corev_apu/openpiton/bootrom/linux
+  cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/linux
   # Note: dd dumps info to stderr that we do not want to interpret
   # otherwise this command fails...
   exec make clean 2> /dev/null
