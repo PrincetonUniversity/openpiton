@@ -421,7 +421,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/fifo_v3.sv"                      \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/shift_reg.sv"                    \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lfsr_8bit.sv"                    \
-    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lfsr.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lfsr.sv"                         \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lzc.sv"                          \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/exp_backoff.sv"                  \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/rr_arb_tree.sv"                  \
@@ -429,11 +429,12 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/cdc_2phase.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/unread.sv"                       \
     "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/popcount.sv"                     \
-    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/fpga-support/rtl/SyncSpRamBeNx64.sv"              \
-    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/axi_mem_if/src/axi2mem.sv"                        \
-    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/pulp_clock_gating.sv"      \
-    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/cluster_clock_inverter.sv" \
-    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/pulp_clock_mux2.sv"        \
+    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/axi_mem_if/src/axi2mem.sv"                                \
+    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/fpga/tc_clk_xilinx.sv"         \
+    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/fpga/tc_sram_xilinx.sv"        \
+    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/deprecated/cluster_clk_cells.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/deprecated/pulp_clk_cells.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/common/local/util/tc_sram_xilinx_wrapper.sv"           \
     "${DV_ROOT}/design/chip/tile/ariane/core/axi_adapter.sv"                                   \
     "${DV_ROOT}/design/chip/tile/ariane/core/alu.sv"                                           \
     "${DV_ROOT}/design/chip/tile/ariane/core/fpu_wrap.sv"                                      \
@@ -458,6 +459,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/core/issue_stage.sv"                                   \
     "${DV_ROOT}/design/chip/tile/ariane/core/load_unit.sv"                                     \
     "${DV_ROOT}/design/chip/tile/ariane/core/load_store_unit.sv"                               \
+    "${DV_ROOT}/design/chip/tile/ariane/core/lsu_bypass.sv"                                    \
     "${DV_ROOT}/design/chip/tile/ariane/core/mmu_sv39/mmu.sv"                                           \
     "${DV_ROOT}/design/chip/tile/ariane/core/mult.sv"                                          \
     "${DV_ROOT}/design/chip/tile/ariane/core/multiplier.sv"                                    \
