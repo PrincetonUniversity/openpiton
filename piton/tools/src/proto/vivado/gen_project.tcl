@@ -234,9 +234,9 @@ set_property "verilog_uppercase" "0" $fileset_obj
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {
   if {$VIVADO_FLOW_PERF_OPT} {
-    create_run -name synth_1 -part ${FPGA_PART} -flow {Vivado Synthesis 2015} -strategy "Flow_PerfOptimized_high" -constrset constrs_1
+    create_run -name synth_1 -part ${FPGA_PART} -flow "Vivado Synthesis $VIVADO_VERSION" -strategy "Flow_PerfOptimized_high" -constrset constrs_1
   } else {
-    create_run -name synth_1 -part ${FPGA_PART} -flow {Vivado Synthesis 2015} -strategy "Vivado Synthesis Defaults" -constrset constrs_1
+    create_run -name synth_1 -part ${FPGA_PART} -flow "Vivado Synthesis $VIVADO_VERSION" -strategy "Vivado Synthesis Defaults" -constrset constrs_1
   }
 } else {
   if {$VIVADO_FLOW_PERF_OPT} {
@@ -244,16 +244,11 @@ if {[string equal [get_runs -quiet synth_1] ""]} {
   } else {
     set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
   }
-  set_property flow "Vivado Synthesis 2015" [get_runs synth_1]
+  set_property flow "Vivado Synthesis $VIVADO_VERSION" [get_runs synth_1]
 }
 set fileset_obj [get_runs synth_1]
 set_property "constrset" "constrs_1" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "description" "Higher performance designs, resource sharing is turned off, the global fanout guide is set to a lower number, FSM extraction forced to one-hot, LUT combining is disabled, equivalent registers are preserved, SRL are inferred  with a larger threshold" $fileset_obj
-} else {
-  set_property "description" "Vivado Synthesis Defaults" $fileset_obj
-}
-set_property "flow" "Vivado Synthesis 2015" $fileset_obj
+set_property "flow" "Vivado Synthesis $VIVADO_VERSION" $fileset_obj
 set_property "name" "synth_1" $fileset_obj
 set_property "needs_refresh" "0" $fileset_obj
 set_property "part" "${FPGA_PART}" $fileset_obj
@@ -263,40 +258,19 @@ if {$VIVADO_FLOW_PERF_OPT} {
 } else {
   set_property "strategy" "Vivado Synthesis Defaults" $fileset_obj
 }
+
+set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.FSM_EXTRACTION auto [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.KEEP_EQUIVALENT_REGISTERS false [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.RESOURCE_SHARING auto [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.NO_LC false [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.CONTROL_SET_OPT_THRESHOLD auto [get_runs synth_1]
+
 #set_property "incremental_checkpoint" "" $fileset_obj
 set_property "include_in_archive" "1" $fileset_obj
 set_property "steps.synth_design.tcl.pre" "" $fileset_obj
 set_property "steps.synth_design.tcl.post" "" $fileset_obj
-set_property "steps.synth_design.args.flatten_hierarchy" "rebuilt" $fileset_obj
-set_property "steps.synth_design.args.gated_clock_conversion" "off" $fileset_obj
-set_property "steps.synth_design.args.bufg" "12" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "steps.synth_design.args.fanout_limit" "400" $fileset_obj
-} else {
-  set_property "steps.synth_design.args.fanout_limit" "10000" $fileset_obj
-}
-set_property "steps.synth_design.args.directive" "Default" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "steps.synth_design.args.fsm_extraction" "one_hot" $fileset_obj
-  set_property "steps.synth_design.args.keep_equivalent_registers" "1" $fileset_obj
-  set_property "steps.synth_design.args.resource_sharing" "off" $fileset_obj
-} else {
-  set_property "steps.synth_design.args.fsm_extraction" "auto" $fileset_obj
-  set_property "steps.synth_design.args.keep_equivalent_registers" "0" $fileset_obj
-  set_property "steps.synth_design.args.resource_sharing" "auto" $fileset_obj
-}
-set_property "steps.synth_design.args.control_set_opt_threshold" "auto" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "steps.synth_design.args.no_lc" "1" $fileset_obj
-  set_property "steps.synth_design.args.shreg_min_size" "5" $fileset_obj
-} else {
-  set_property "steps.synth_design.args.no_lc" "0" $fileset_obj
-  set_property "steps.synth_design.args.shreg_min_size" "3" $fileset_obj
-}
-set_property "steps.synth_design.args.max_bram" "-1" $fileset_obj
-set_property "steps.synth_design.args.max_dsp" "-1" $fileset_obj
-set_property "steps.synth_design.args.cascade_dsp" "auto" $fileset_obj
-set_property -name {steps.synth_design.args.more options} -value {} -objects $fileset_obj
 
 # set the current synth run
 current_run -synthesis $fileset_obj
@@ -304,9 +278,9 @@ current_run -synthesis $fileset_obj
 # Create 'impl_1' run (if not found)
 if {[string equal [get_runs -quiet impl_1] ""]} {
   if {$VIVADO_FLOW_PERF_OPT} {
-    create_run -name impl_1 -part ${FPGA_PART} -flow {Vivado Implementation 2015} -strategy "Performance_Explore" -constrset constrs_1 -parent_run synth_1
+    create_run -name impl_1 -part ${FPGA_PART} -flow "Vivado Implementation $VIVADO_VERSION" -strategy "Performance_ExtraTimingOpt" -constrset constrs_1 -parent_run synth_1
   } else {
-    create_run -name impl_1 -part ${FPGA_PART} -flow {Vivado Implementation 2015} -strategy "Vivado Implementation Defaults" -constrset constrs_1 -parent_run synth_1
+    create_run -name impl_1 -part ${FPGA_PART} -flow "Vivado Implementation $VIVADO_VERSION" -strategy "Vivado Implementation Defaults" -constrset constrs_1 -parent_run synth_1
   }
 } else {
   if {$VIVADO_FLOW_PERF_OPT} {
@@ -314,16 +288,11 @@ if {[string equal [get_runs -quiet impl_1] ""]} {
   } else {
     set_property strategy "Vivado Implementation Defaults" [get_runs impl_1]
   }
-  set_property flow "Vivado Implementation 2015" [get_runs impl_1]
+  set_property flow "Vivado Implementation $VIVADO_VERSION" [get_runs impl_1]
 }
 set fileset_obj [get_runs impl_1]
 set_property "constrset" "constrs_1" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "description" "Uses multiple algorithms for optimization, placement, and routing to get potentially better results." $fileset_obj
-} else {
-  set_property "description" "Vivado Implementation Defaults" $fileset_obj
-}
-set_property "flow" "Vivado Implementation 2015" $fileset_obj
+set_property "flow" "Vivado Implementation $VIVADO_VERSION" $fileset_obj
 set_property "name" "impl_1" $fileset_obj
 set_property "needs_refresh" "0" $fileset_obj
 if {[string equal ${BOARD_PART} ""] != 0} {
@@ -335,6 +304,7 @@ if {$VIVADO_FLOW_PERF_OPT} {
 } else {
   set_property "strategy" "Vivado Implementation Defaults" $fileset_obj
 }
+
 #set_property "incremental_checkpoint" "" $fileset_obj
 set_property "include_in_archive" "1" $fileset_obj
 set_property "steps.opt_design.is_enabled" "1" $fileset_obj
@@ -342,15 +312,11 @@ set_property "steps.opt_design.tcl.pre" "" $fileset_obj
 set_property "steps.opt_design.tcl.post" "" $fileset_obj
 set_property "steps.opt_design.args.verbose" "0" $fileset_obj
 if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "steps.opt_design.args.directive" "Explore" $fileset_obj
+  set_property "steps.opt_design.args.directive" "ExploreWithRemap" $fileset_obj
 } else {
   set_property "steps.opt_design.args.directive" "Default" $fileset_obj
 }
 set_property -name {steps.opt_design.args.more options} -value {} -objects $fileset_obj
-set_property "steps.power_opt_design.is_enabled" "0" $fileset_obj
-set_property "steps.power_opt_design.tcl.pre" "" $fileset_obj
-set_property "steps.power_opt_design.tcl.post" "" $fileset_obj
-set_property -name {steps.power_opt_design.args.more options} -value {} -objects $fileset_obj
 set_property "steps.place_design.tcl.pre" "" $fileset_obj
 set_property "steps.place_design.tcl.post" "" $fileset_obj
 if {$VIVADO_FLOW_PERF_OPT} {
@@ -359,32 +325,23 @@ if {$VIVADO_FLOW_PERF_OPT} {
   set_property "steps.place_design.args.directive" "Default" $fileset_obj
 }
 set_property -name {steps.place_design.args.more options} -value {} -objects $fileset_obj
-set_property "steps.post_place_power_opt_design.is_enabled" "0" $fileset_obj
-set_property "steps.post_place_power_opt_design.tcl.pre" "" $fileset_obj
-set_property "steps.post_place_power_opt_design.tcl.post" "" $fileset_obj
-set_property -name {steps.post_place_power_opt_design.args.more options} -value {} -objects $fileset_obj
-set_property "steps.phys_opt_design.is_enabled" "0" $fileset_obj
-set_property "steps.phys_opt_design.tcl.pre" "" $fileset_obj
-set_property "steps.phys_opt_design.tcl.post" "" $fileset_obj
-if {$VIVADO_FLOW_PERF_OPT} {
-  set_property "steps.phys_opt_design.args.directive" "Explore" $fileset_obj
-} else {
-  set_property "steps.phys_opt_design.args.directive" "Default" $fileset_obj
-}
-set_property -name {steps.phys_opt_design.args.more options} -value {} -objects $fileset_obj
+
+set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+set_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE AggressiveExplore [get_runs impl_1]
+
 set_property "steps.route_design.tcl.pre" "" $fileset_obj
 set_property "steps.route_design.tcl.post" "" $fileset_obj
 if {$VIVADO_FLOW_PERF_OPT} {
- set_property "steps.route_design.args.directive" "Explore" $fileset_obj
+ set_property "steps.route_design.args.directive" "AggressiveExplore" $fileset_obj
 } else {
  set_property "steps.route_design.args.directive" "Default" $fileset_obj
 }
+
+set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.TCL.POST {} [get_runs impl_1]
+set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE ExploreWithAggressiveHoldFix [get_runs impl_1]
+
 set_property -name {steps.route_design.args.more options} -value {} -objects $fileset_obj
-set_property "steps.post_route_phys_opt_design.is_enabled" "0" $fileset_obj
-set_property "steps.post_route_phys_opt_design.tcl.pre" "" $fileset_obj
-set_property "steps.post_route_phys_opt_design.tcl.post" "" $fileset_obj
-set_property "steps.post_route_phys_opt_design.args.directive" "Default" $fileset_obj
-set_property -name {steps.post_route_phys_opt_design.args.more options} -value {} -objects $fileset_obj
 set_property "steps.write_bitstream.tcl.pre" "" $fileset_obj
 set_property "steps.write_bitstream.tcl.post" "" $fileset_obj
 set_property "steps.write_bitstream.args.raw_bitfile" "0" $fileset_obj
@@ -400,3 +357,5 @@ set_property -name {steps.write_bitstream.args.more options} -value {} -objects 
 current_run -implementation $fileset_obj
 
 puts "INFO: Project created:${PROJECT_NAME}"
+
+

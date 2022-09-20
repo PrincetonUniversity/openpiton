@@ -32,6 +32,8 @@ set MODEL_DIR $::env(MODEL_DIR)
 set DESIGN_DIR $::env(PROTOSYN_RUNTIME_DESIGN_PATH)
 set BOARD $::env(PROTOSYN_RUNTIME_BOARD)
 set BOARD_DIR "${DESIGN_DIR}/$BOARD"
+
+set VIVADO_VERSION [ string range [ version -short ] 0 3 ]
 source $DV_ROOT/tools/src/proto/common/rtl_setup.tcl
 source $DESIGN_DIR/design.tcl
 source $DV_ROOT/tools/src/proto/${BOARD}/board.tcl
