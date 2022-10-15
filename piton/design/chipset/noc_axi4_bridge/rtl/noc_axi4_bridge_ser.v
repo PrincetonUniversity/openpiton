@@ -50,6 +50,7 @@ localparam SEND_HEADER = 2'd1;
 localparam SEND_DATA = 2'd2;
 
 reg [`AXI4_DATA_WIDTH-1:0] data_in_f;
+reg [`NOC_DATA_WIDTH-1:0] resp_header;
 
 wire in_go = in_val & in_rdy;
 wire flit_out_go = flit_out_val & flit_out_rdy;
@@ -102,7 +103,7 @@ always @(posedge clk) begin
       SEND_DATA: begin
         if (remaining_flits == `MSG_LENGTH_WIDTH'b1) begin
           state <= flit_out_rdy ? ACCEPT : SEND_DATA;
-          remaining_flits <= 0;
+          remaining_flits <= flit_out_rdy ? 0 : 1;
         end
         else begin
           state <= SEND_DATA;
@@ -118,7 +119,6 @@ always @(posedge clk) begin
   end
 end
 
-reg [`NOC_DATA_WIDTH-1:0] resp_header;
 always @(posedge clk) begin
   if (~rst_n) begin
     resp_header <= `NOC_DATA_WIDTH'b0;
