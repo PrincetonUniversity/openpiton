@@ -102,7 +102,7 @@ always @(posedge clk) begin
       SEND_DATA: begin
         if (remaining_flits == `MSG_LENGTH_WIDTH'b1) begin
           state <= flit_out_rdy ? ACCEPT : SEND_DATA;
-          remaining_flits <= 0;
+          remaining_flits <= flit_out_rdy ? remaining_flits - `MSG_LENGTH_WIDTH'b1 : remaining_flits;
         end
         else begin
           state <= SEND_DATA;
@@ -144,8 +144,15 @@ always @(posedge clk) begin
             end
             `MSG_TYPE_NC_LOAD_REQ: begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_LOAD_MEM_ACK;
+              `ifdef L2_SEND_NC_REQ
+              if (header_in[`MSG_DATA_SIZE] < `MSG_DATA_SIZE_8B)
+                resp_header[`MSG_LENGTH  ]   <= 1;
+              else 
+                resp_header[`MSG_LENGTH  ]   <= (1 << (header_in[`MSG_DATA_SIZE] - 1)) / (`NOC_DATA_WIDTH / 8);
+              `else 
               resp_header[`MSG_LENGTH  ]     <= `PAYLOAD_LEN; 
-            end
+              `endif
+           end
             `MSG_TYPE_NC_STORE_REQ: begin
               resp_header[`MSG_TYPE    ]     <= `MSG_TYPE_NC_STORE_MEM_ACK;
               resp_header[`MSG_LENGTH  ]     <= 0;
@@ -180,6 +187,19 @@ always @(posedge clk) begin
   end
 end
 
+wire [`NOC_DATA_WIDTH-1:0] data_out;
+assign data_out = data_in_f >> (64 * (`PAYLOAD_LEN - remaining_flits));
+
+reg [`NOC_DATA_WIDTH-1:0] data_out_reversed;
+genvar i;
+generate
+  for (i = 0; i < `NOC_DATA_WIDTH/8; i = i + 1) begin
+    always @(*) begin
+      data_out_reversed[i*8 +: 8] = data_out[`NOC_DATA_WIDTH-(i+1)*8 +: 8];
+    end
+  end
+endgenerate
+
 always @(*) begin
   case (state)
     ACCEPT: begin
@@ -189,7 +209,7 @@ always @(*) begin
       flit_out = resp_header;
     end
     SEND_DATA: begin
-      flit_out = data_in_f >> (64 * (`PAYLOAD_LEN - remaining_flits));
+      flit_out = data_out;
     end
     default: begin
       flit_out = `NOC_DATA_WIDTH'b0;

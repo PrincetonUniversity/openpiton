@@ -384,3 +384,44 @@ def implFlowSuccess(log_dir, run_dir):
 
     dbg.print_info("Design was implemented successfully!")
     return True
+
+def implF1FlowSuccess(log_dir, work_dir):
+    rep_dir = os.path.join(work_dir, "reports")
+
+    # check that implementation was started
+    fpath = os.path.join(log_dir, PROJECT_IMPL_LOG)
+    if not strInFile(fpath, ["Start design synthesis"]):
+        dbg.print_error("Implementation wasn't launched properly!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check synthesis results
+    if not strInFile(fpath, ["synth_design completed successfully"]):
+        dbg.print_error("FPGA synthesis failed!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check implementation results
+    if not strInFile(fpath, ["route_design completed successfully"]):
+        dbg.print_error("FPGA implementation failed!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    # check archive results
+    if not strInFile(fpath, [r"AWS FPGA: \(\d+:\d+:\d+\) - Build complete."]):
+        dbg.print_error("Archive generation failed")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+
+    # check timing
+    fname = [f for f in os.listdir(rep_dir) if f.endswith("SH_CL_final_timing_summary.rpt")][0]
+    fpath = os.path.join(rep_dir, fname)
+    if not strInFile(fpath, ["timing constraints are met"]):
+        dbg.print_error("Implemented design has timing violations!")
+        dbg.print_error("Check: %s" % fpath)
+        return False
+
+    dbg.print_info("Design was implemented successfully!")
+    return True
+

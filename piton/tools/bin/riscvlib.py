@@ -201,7 +201,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
     # TODO: this needs to be extended
     # get the number of interrupt sources
     numIrqs = 0
-    devWithIrq = ["uart", "net"];
+    devWithIrq = ["uart", "net", "uart2"];
     for i in range(len(devices)):
         if devices[i]["name"] in devWithIrq:
             numIrqs += 1
@@ -260,7 +260,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2))
         # UART
-        if devices[i]["name"] == "uart":
+        if (devices[i]["name"] == "uart") or (devices[i]["name"] == "uart2"):
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''

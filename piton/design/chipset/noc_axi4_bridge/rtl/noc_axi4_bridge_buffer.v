@@ -66,8 +66,8 @@ module noc_axi4_bridge_buffer (
 
   // in serializer
   output [`MSG_HEADER_WIDTH-1:0] ser_header, 
-  output [`AXI4_DATA_WIDTH-1:0] ser_data, 
-  output ser_val, 
+  output reg [`AXI4_DATA_WIDTH-1:0] ser_data, 
+  output reg ser_val, 
   input  ser_rdy
 );
 
@@ -86,12 +86,6 @@ reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_in;
 reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]    fifo_out;
 reg preser_arb;
 reg [`NOC_AXI4_BRIDGE_IN_FLIGHT_LIMIT-1:0] bram_rdy;
-reg [`AXI4_DATA_WIDTH-1:0] ser_data_f;
-wire [`MSG_HEADER_WIDTH-1:0] ser_header_f;
-reg ser_val_f;
-reg [`AXI4_DATA_WIDTH-1:0] ser_data_ff;
-reg [`MSG_HEADER_WIDTH-1:0] ser_header_ff;
-reg ser_val_ff;
 
 
 wire deser_go = (deser_rdy & deser_val);
@@ -100,7 +94,10 @@ wire read_resp_go = (read_resp_val & read_resp_rdy);
 wire write_req_go = (write_req_val & write_req_rdy);
 wire write_resp_go = (write_resp_val & write_resp_rdy);
 wire req_go = read_req_go || write_req_go;
-wire preser_rdy = ~ser_val_ff || ser_rdy;
+wire preser_rdy = ~ser_val || ser_rdy;
+wire preser_val = (read_resp_val & ~preser_arb) | (write_resp_val & preser_arb);
+wire preser_go = preser_val & preser_rdy;
+
 wire ser_go = ser_val & ser_rdy;
 
 //
@@ -153,7 +150,7 @@ endgenerate
 noc_axi4_bridge_sram_data noc_axi4_bridge_sram_data
 (
     .MEMCLK(clk), 
-    .RESET_N(rst_n),
+    .RESET_N(1),
     .CEA(1),
     .AA(write_req_id),
     .RDWENA(1'b1),
@@ -192,14 +189,16 @@ end
 noc_axi4_bridge_sram_req noc_axi4_bridge_sram_req
 (
     .MEMCLK(clk), 
-    .RESET_N(rst_n),
-    .CEA(1),
+    .RESET_N(1),
+
+    .CEA(preser_go),
     .AA(preser_arb ? write_resp_id : read_resp_id),
     .RDWENA(1'b1),
+    .DOUTA(ser_header),
+
     .CEB(req_go),
     .AB(fifo_out),
     .RDWENB(1'b0),
-    .DOUTA(ser_header_f),
     .BWB({`MSG_HEADER_WIDTH{1'b1}}),
     .DINB(pkt_header[fifo_out])
 );
@@ -227,39 +226,26 @@ assign write_resp_rdy = preser_arb & preser_rdy;
 
 always @(posedge clk) begin
     if(~rst_n) begin
-        ser_data_f <= 0;
-        ser_val_f <= 0;
-        ser_header_ff <= 0;
-        ser_val_ff <= 0;
-        ser_data_ff <= 0;
+        ser_data <= 0;
+        ser_val <= 0;
     end 
     else begin
         if (preser_rdy) begin
             if (preser_arb) begin
-                ser_val_f <= write_resp_val;
-                ser_data_f <= 0;
+                ser_val <= write_resp_val;
+                ser_data <= 0;
             end
             else begin
-                ser_val_f <= read_resp_val;
-                ser_data_f <= read_resp_data;
+                ser_val <= read_resp_val;
+                ser_data <= read_resp_data;
             end
-            ser_val_ff <= ser_val_f;
-            ser_data_ff <= ser_data_f;
-            ser_header_ff <= ser_header_f;
         end
         else begin
-            ser_val_f <= ser_val_f;
-            ser_data_f <= ser_data_f;
-            ser_val_ff <= ser_val_ff;
-            ser_data_ff <= ser_data_ff;
-            ser_header_ff <= ser_header_ff;
+            ser_val <= ser_val;
+            ser_data <= ser_data;
         end
     end
 end
-
-assign ser_data = ser_data_ff;
-assign ser_val = ser_val_ff;
-assign ser_header = ser_header_ff;
 
 
 /*
@@ -295,35 +281,10 @@ ila_buffer ila_buffer (
   .probe25(fifo_out), // input wire [1:0]  probe25 
   .probe26(preser_arb), // input wire [0:0]  probe26 
   .probe27(bram_rdy), // input wire [3:0]  probe27 
-  .probe28(ser_data_f), // input wire [511:0]  probe28 
-  .probe29(ser_header_f), // input wire [191:0]  probe29 
-  .probe30(ser_val_f), // input wire [0:0]  probe30 
-  .probe31(ser_data_ff), // input wire [511:0]  probe31 
-  .probe32(ser_header_ff), // input wire [191:0]  probe32 
-  .probe33(ser_val_ff), // input wire [0:0]  probe33 
   .probe34(rst_n) // input wire [0:0]  probe34
 );
 
-reg [159:0] reqresp_count;
-always @(posedge clk) begin
-    if (~rst_n) begin
-        reqresp_count <= 0;
-    end
-    else begin
-        reqresp_count <= ser_go & deser_go ? reqresp_count     : 
-                                   deser_go ? reqresp_count + 1 :
-                                   ser_go ? reqresp_count - 1 : 
-                                             reqresp_count;
 
-    end
-end
-
-ila_axi_protocol_checker ila_axi_protocol_checker (
-    .clk(clk), // input wire clk
-
-    .probe0(rst_n), // input wire [0:0]  probe0  
-    .probe1(reqresp_count) // input wire [159:0]  probe1
-);
 */
 
 endmodule

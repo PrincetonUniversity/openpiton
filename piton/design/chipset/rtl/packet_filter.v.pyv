@@ -85,7 +85,7 @@ devices = pyhplib.ReadDevicesXMLFile()
     reg invalid_access, invalid_access_d, invalid_access_q;
 
     always @* begin
-		    invalid_access_d = invalid_access_q;
+            invalid_access_d = invalid_access_q;
         case (state_reg)
         IDLE: begin
             filter_xbar_val = 1'b0;
@@ -152,8 +152,8 @@ devices = pyhplib.ReadDevicesXMLFile()
 
             state_next = noc2_filter_val ? TWOFLITS : ONEFLIT;
 
-		        invalid_access_d = invalid_access_q | (noc2_filter_val & invalid_access);
-		end
+                invalid_access_d = invalid_access_q | (noc2_filter_val & invalid_access);
+        end
         TWOFLITS: begin
             if ((num_flits_reg == `MSG_LENGTH_WIDTH'd1)) begin
                 if (xbar_filter_rdy) begin
@@ -365,8 +365,8 @@ print(outputstr)
         end
         else
         begin
-      			invalid_access_q  <= invalid_access_d;
-			      flit_buffer_0_reg <= flit_buffer_0_next;
+                invalid_access_q  <= invalid_access_d;
+                  flit_buffer_0_reg <= flit_buffer_0_next;
             flit_buffer_1_reg <= flit_buffer_1_next;
             num_flits_reg     <= num_flits_next;
             flits_sent_reg    <= flits_sent_next;

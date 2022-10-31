@@ -34,7 +34,6 @@ module noc_axi4_bridge (
     input  wire                                   clk,
     input  wire                                   rst_n,
     input  wire                                   uart_boot_en,
-    input  wire                                   phy_init_done, 
 
     // Noc interface
     input  wire                                   src_bridge_vr_noc2_val,
@@ -167,7 +166,6 @@ noc_axi4_bridge_deser noc_axi4_bridge_deser(
     .flit_in(src_bridge_vr_noc2_dat), 
     .flit_in_val(src_bridge_vr_noc2_val), 
     .flit_in_rdy(src_bridge_vr_noc2_rdy), 
-    .phy_init_done(phy_init_done),
 
     .header_out(deser_header), 
     .data_out(deser_data), 

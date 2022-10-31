@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+import subprocess
+import os
+import sys
+
+subprocess.call(["sudo", os.path.join(os.environ["DV_ROOT"], "./tools/src/xdma/f1_uart")] + sys.argv)

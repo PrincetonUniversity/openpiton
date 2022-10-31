@@ -37,7 +37,6 @@ module noc_axi4_bridge_deser (
   input [`NOC_DATA_WIDTH-1:0] flit_in, 
   input  flit_in_val, 
   output flit_in_rdy, 
-  input phy_init_done,
 
   output [`MSG_HEADER_WIDTH-1:0] header_out, 
   output [`AXI4_DATA_WIDTH-1:0] data_out, 
@@ -56,9 +55,10 @@ reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
 reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN-1:0]; //buffer for incomming packets
 reg [`MSG_LENGTH_WIDTH-1:0]         remaining_flits; //flits remaining in current packet
+reg [`MSG_LENGTH_WIDTH-1:0]         num_data_flits; // data flits in current packet
 reg [2:0]                           state;
 
-assign flit_in_rdy = (state != SEND) & phy_init_done;
+assign flit_in_rdy = (state != SEND) & rst_n;
 wire flit_in_go = flit_in_val & flit_in_rdy;
 assign out_val = (state == SEND);
 
@@ -69,6 +69,7 @@ always @(posedge clk) begin
     pkt_w1 <= 0;
     pkt_w2 <= 0;
     pkt_w3 <= 0;
+    num_data_flits <= 0;
   end 
   else begin
     case (state)
@@ -77,11 +78,13 @@ always @(posedge clk) begin
           state <= ACCEPT_W2;
           remaining_flits <= flit_in[`MSG_LENGTH]-1;
           pkt_w1 <= flit_in;  
+          num_data_flits <= flit_in[`MSG_LENGTH]-2;
         end
         else begin
           state <= state;
           remaining_flits <= remaining_flits;
           pkt_w1 <= pkt_w1;
+          num_data_flits <= num_data_flits;
         end
         pkt_w2 <= pkt_w2;
         pkt_w3 <= pkt_w3;  
@@ -99,6 +102,7 @@ always @(posedge clk) begin
         end
         pkt_w1 <= pkt_w1;
         pkt_w3 <= pkt_w3;  
+        num_data_flits <= num_data_flits;
       end
       ACCEPT_W3: begin
         if (flit_in_go) begin
@@ -119,6 +123,7 @@ always @(posedge clk) begin
         end
         pkt_w1 <= pkt_w1;
         pkt_w2 <= pkt_w2;
+        num_data_flits <= num_data_flits;
       end
       ACCEPT_DATA: begin
         if (flit_in_go) begin
@@ -138,6 +143,7 @@ always @(posedge clk) begin
         pkt_w1 <= pkt_w1;
         pkt_w2 <= pkt_w2;
         pkt_w3 <= pkt_w3;  
+        num_data_flits <= num_data_flits;
       end
       SEND: begin
         if (out_rdy) begin
@@ -146,6 +152,7 @@ always @(posedge clk) begin
           pkt_w1 <= 0;
           pkt_w2 <= 0;
           pkt_w3 <= 0;
+          num_data_flits <= 0;
         end
         else begin
           state <= state;
@@ -153,11 +160,22 @@ always @(posedge clk) begin
           pkt_w1 <= pkt_w1;
           pkt_w2 <= pkt_w2;
           pkt_w3 <= pkt_w3;  
+          num_data_flits <= num_data_flits;
         end
       end
     endcase // state
   end
 end
+
+reg [`NOC_DATA_WIDTH-1:0] flit_in_reversed;
+genvar j;
+generate
+  for (j = 0; j < `NOC_DATA_WIDTH/8; j = j + 1) begin
+    always @(*) begin
+      flit_in_reversed[j*8 +: 8] = flit_in[`NOC_DATA_WIDTH-(j+1)*8 +: 8];
+    end
+  end
+endgenerate
 
 genvar i;
 generate
@@ -178,6 +196,6 @@ endgenerate
 
 
 assign header_out = {pkt_w3, pkt_w2, pkt_w1};
-assign data_out = {in_data_buf[0], in_data_buf[1], in_data_buf[2], in_data_buf[3], in_data_buf[4], in_data_buf[5], in_data_buf[6], in_data_buf[7]};
+assign data_out = {in_data_buf[0], in_data_buf[1], in_data_buf[2], in_data_buf[3], in_data_buf[4], in_data_buf[5], in_data_buf[6], in_data_buf[7]} >> (`NOC_DATA_WIDTH * (`PAYLOAD_LEN - num_data_flits));
 
 endmodule

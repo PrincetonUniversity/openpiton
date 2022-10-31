@@ -41,6 +41,7 @@ import image2stream as i2s
 from optparse import OptionParser
 from fpga_lib import *
 from dbg import *
+from datetime import datetime
 
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
@@ -106,6 +107,8 @@ def usage():
     print("\n       --uart-reset", file=sys.stderr)
     print("              Attach UART traffic sniffer to the uart port. This sniffer will send", file=sys.stderr)
     print("              the reset signal to the whole system if it sees magic sequence 0x9a337213af278f34", file=sys.stderr)
+    print("\n       --uart2-enable", file=sys.stderr)
+    print("              Enable second uart device", file=sys.stderr)
     print("\n       --asic-rtl", file=sys.stderr)
     print("              Implement design with ASIC RTL.", file=sys.stderr)
     print("\n       --chip-bridge", file=sys.stderr)
@@ -182,7 +185,7 @@ def slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list) :
         print_error("Error submitting batch job")
         return None
 
-def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
+def run_vivado(log, script, args, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
     # Variables passed to TCL scripts
     os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
     os.environ['PROTOSYN_RUNTIME_BOARD'] = board
@@ -190,29 +193,15 @@ def run_vivado(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jna
 
     # use custom vivado version if provided
     if(os.environ.get('VIVADO_BIN')) is not None:
-        cmd = os.environ['VIVADO_BIN'].split(" ") + ["-mode", "batch", "-source", script]
+        cmd = os.environ['VIVADO_BIN'].split(" ") + ["-mode", "batch", "-source", script] + args
     else:
-        cmd = ["vivado", "-mode", "batch", "-source", script]
+        cmd = ["vivado", "-mode", "batch", "-source", script, "-tclargs"] + args
 
     if slurm:
         return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
     else:
         flog = open(log, "w")
-        subprocess.call(cmd, stdout=flog)
-        flog.close()
-        return None
-
-def run_f1_script(log, design_dir, board, slurm, tpn, mem_mb, time_str, jname, dep_list):
-    # Variables passed to TCL scripts
-    os.environ['PROTOSYN_RUNTIME_DESIGN_PATH'] = design_dir
-    os.environ['PROTOSYN_RUNTIME_BOARD'] = board
-
-    cmd = [os.environ['CL_DIR']+"/build/scripts/aws_build_dcp_from_cl.sh", "-notify", "-clock_recipe_a", "A0", "-clock_recipe_b", "B1", "-clock_recipe_c", "C2"]
-    if slurm:
-        return slurm_launch(cmd, log, tpn, mem_mb, time_str, jname, dep_list)
-    else:
-        flog = open(log, "w")
-        subprocess.call(cmd, stdout=flog)
+        subprocess.call(cmd, stdout=flog, stderr=flog)
         flog.close()
         return None
 
@@ -230,44 +219,42 @@ def run_ise(log, script, design_dir, board, slurm, tpn, mem_mb, time_str, jname,
         flog.close()
         return None
 
-def runImplF1(board, design_data, src_dir, work_dir, log_dir, def_list, slurm, dep_list):
+def runImplF1(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
     prev_dir = os.getcwd()
-
-    # Copy all sources in ppp/build/... , and set new CL_DIR
-    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "build") + " " + work_dir)
-    if not os.path.exists(os.path.join(work_dir, "design", "xilinx")):
-        os.makedirs(os.path.join(work_dir, "design", "xilinx"))
-    os.system("rsync -raz --copy-links " + os.path.join(src_dir, "design", "cl_id_defines.vh") + " " + os.path.join(work_dir, "design"))
-    os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "f1") + " " + os.path.join(work_dir, "design", "xilinx"))
-    os.system("rsync -raz --copy-links " + os.path.join(DV_ROOT, "design", "xilinx", "design.tcl") + " " + os.path.join(work_dir, "design", "xilinx", "design.tcl"))
-    os.environ["ORIGINAL_CL_DIR"] = os.environ["CL_DIR"]
-    os.environ["CL_DIR"] = work_dir
-
-    #hack to fight with aws scripts assuming we have SH_DDR in top module
-    #aws_constraints_inpath = os.path.join(os.environ["HDK_SHELL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    #aws_constraints_outpath = os.path.join(os.environ["CL_DIR"], "build", "constraints", "cl_synth_aws.xdc")
-    #os.system("sed 's/SH_DDR/sh_ddr/g' " + aws_constraints_inpath + " > " + aws_constraints_outpath)
-    
-    # Ok, lets go build staff finally
-    os.chdir(os.path.join(work_dir, "build", "scripts"))
+    os.chdir(work_dir)
+    os.environ['CL_BUILD_DIR'] = work_dir 
+    os.environ['CL_DIR'] = work_dir 
 
     # Generate additional defines file that will be sourced in tcl script
     f = open("additional_defines.tcl", "w")
     print("set PROTOSYN_RUNTIME_DEFINES \"%s\"" % ' '.join(def_list), file=f)
     f.close()
 
-    tool = find_board_tool(board)
-
-    #dname = board + "_piton"
-    #os.chdir(dname)
-    print_info("Generating DCP for AWS F1 in nohup")
+    print_info("Generating DCP for AWS F1")
     design_board_dir = os.path.join(design_data["PATH"], board)
     impl_log = os.path.join(log_dir, PROJECT_IMPL_LOG)
+    impl_flow = os.path.join(DV_ROOT, "tools/src/proto/vivado/f1", "create_dcp_from_cl.tcl")
     jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
-    jid = run_f1_script(impl_log, design_data["PATH"], board, \
-                     slurm, 8, 64000, "6:00:00", jname, dep_list)
-    print_info("Log available at %s" % os.path.join(os.getcwd(), "last_log"))
+    
+    timestamp = datetime.now().strftime("%m_%d_%Y-%H%M%S")
+    strategy = "DEFAULT"
+    hdk_version = re.search(r"[\d.]+", str(subprocess.check_output(["grep", "HDK_VERSION" , os.path.join(os.environ["HDK_DIR"],"hdk_version.txt")]))).group()
+    shell_version = re.search(r"0x\d+", str(subprocess.check_output(["grep", "SHELL_VERSION" , os.path.join(os.environ["HDK_SHELL_DIR"],"shell_version.txt")]))).group()
+    # Next 4 fields must stay consistent with CL_SH_ID0(1) defines in piton_aws.sv
+    device_id = "0xF001"
+    vendor_id = "0x1D0F"
+    subsystem_id = "0x1D51"
+    subsystem_vendor_id = "0xFEDC"
+    clock_recipe_a = "A0"
+    clock_recipe_b = "B1"
+    clock_recipe_c = "C2"
+    uram_option = "2" 
+    notify = "0" 
+    opt_vdefine = " "
+    args = [timestamp, strategy, hdk_version, shell_version, device_id, vendor_id, subsystem_id, subsystem_vendor_id, clock_recipe_a, clock_recipe_b, clock_recipe_c, uram_option, notify, opt_vdefine]
 
+    jid = run_vivado(impl_log, impl_flow, args, design_data["PATH"], board, \
+                     slurm, 8, 64000, "6:00:00", jname, dep_list)
     os.chdir(prev_dir)
 
     return jid
@@ -286,9 +273,10 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     proj_script = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/gen_project.tcl")
     proj_log = os.path.join(log_dir, PROJECT_BUILD_LOG)
     jname = "protosyn_mkproj_%s_%s" % (board, design_data["ID"])
+    args = []
     jid = None
     if (tool == "vivado"):
-        jid = run_vivado(proj_log, proj_script, design_data["PATH"], board, \
+        jid = run_vivado(proj_log, proj_script, args, design_data["PATH"], board, \
                          slurm, 1, 4096, "1:00:00", jname, dep_list)
     elif (tool == "ise") :
         jid = run_ise(proj_log, proj_script, design_data["PATH"], board, \
@@ -332,9 +320,10 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
     impl_log = os.path.join(log_dir, PROJECT_IMPL_LOG)
     impl_flow = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/impl_flow.tcl")
     jname = "protosyn_impl_%s_%s" % (board, design_data["ID"])
+    args = []
     jid = None
     if (tool == "vivado"):
-        jid = run_vivado(impl_log, impl_flow, design_data["PATH"], board, \
+        jid = run_vivado(impl_log, impl_flow, args, design_data["PATH"], board, \
                          slurm, 8, 64000, "6:00:00", jname, dep_list)
     elif (tool == "ise"):
         jid = run_ise(impl_log, impl_flow, design_data["PATH"], board, \
@@ -462,6 +451,7 @@ def setParserOptions(parser):
     parser.add_option("--eth", dest="eth", action="store_true", default=False)
     parser.add_option("--uart-dmw", dest="uart_dmw", action="store", default=None)
     parser.add_option("--uart-reset", dest="uart_reset", action="store_true", default=False)
+    parser.add_option("--uart2-enable", dest="uart2_enable", action="store_true", default=False)
     parser.add_option("--asic-rtl", dest="asic_rtl", action="store_true", default=False)
     parser.add_option("--chip-bridge", dest="chip_bridge", action="store_true", default=False)
     parser.add_option("--inc-passthru", dest="inc_passthru", action="store_true", default=False)
@@ -477,6 +467,9 @@ def setParserOptions(parser):
     parser.add_option("--swait", dest="swait", action="store_true", default=False)
     parser.add_option("--axi4_mem", dest="axi4_mem", action="store_true", default=False)
     parser.add_option("--zeroer_off", dest="zeroer_off", action="store_true", default=False)
+    parser.add_option("--pcie_dma_enable", dest="pcie_dma_enable", action="store_true", default=False)
+    parser.add_option("--pcie_cfg_enable", dest="pcie_cfg_enable", action="store_true", default=False)
+    parser.add_option("--pcie_enable", dest="pcie_enable", action="store_true", default=False)
 
     return parser
 
@@ -497,7 +490,7 @@ def makeDefList(options):
     if (options.no_ddr == True) or (options.board == "piton_board"):
         defines.append("PITONSYS_NO_MC")
     else:   # default option
-        defines.append("PITON_FPGA_MC_DDR3")
+        defines.append("PITON_FPGA_MC_DDR")
 
     # --axi4_mem option
     if (options.axi4_mem == True):
@@ -510,6 +503,18 @@ def makeDefList(options):
     if (options.zeroer_off == False):
         defines.append("PITONSYS_MEM_ZEROER")    
 
+    # --pcie_dma_enable option
+    if (options.pcie_dma_enable == True):
+        defines.append("PITONSYS_PCIE_DMA")
+
+    # --pcie_cfg_enable option
+    if (options.pcie_cfg_enable == True):
+        defines.append("PITONSYS_PCIE_CFG")
+
+    # --pcie_enable option
+    if (options.pcie_enable == True):
+        defines.append("PITONSYS_PCIE")
+    
     # do not use SD controller if BRAM is used for boot or a test or if board doesn't have sd
     if (options.test_name != None) or (options.board in {"piton_board", 'xupp3r', "f1"}):
         pass
@@ -630,7 +635,7 @@ def makeMemMapping(st_brd, work_dir, log_dir):
 def genUARTInit(board, design_data):
     print_info("Using core clock frequency: %s MHz" % design_data["BOARDS"][board]["FREQ"])
     div = calcUARTLatch(design_data, board)
-    path = os.path.join(DV_ROOT, "design/chipset/io_ctrl/xilinx/")
+    path = os.path.join(DV_ROOT, "design/chipset/uart/xilinx/")
     path = os.path.join(path, board, "ip_cores/atg_uart_init/uart_data.coe")
     f = open(path, 'w')
     print("memory_initialization_radix=16;", file=f)
@@ -908,11 +913,13 @@ def main():
 
     # f1
     if run_f1_impl:
-        src = os.path.join(os.environ["HDK_DIR"], "cl", "developer_designs", "piton_aws")
-        jid = runImplF1(options.board, design_data, src, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
+        if int(options.jobs)>1:
+            print_info("Using %d jobs in Vivado" % int(options.jobs))
+        os.environ['NUM_VIVADO_JOBS']   = str(int(options.jobs))
+        jid = runImplF1(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
         if jid != None:
             dep_list.append(jid)
-
+        
 
     ####################################################################################
     # Waiting for all previous jobs to finish before checking results
@@ -938,6 +945,13 @@ def main():
             if exit_code == 0:
                 print_info("Checking Project Implementation results")
                 if not implFlowSuccess(rc_dir.log, rc_dir.run):
+                    exit_code = 1
+
+        if run_f1_impl:
+            # check implementation only if project build was successfull
+            if exit_code == 0:
+                print_info("Checking DCP generation results")
+                if not implF1FlowSuccess(rc_dir.log, rc_dir.work):
                     exit_code = 1
 
     os.chdir(prev_dir)

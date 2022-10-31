@@ -22,14 +22,22 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
     <port>
         <name>mem</name>
         <base>0x80000000</base>
-        <!-- 32GB -->
-        <length>0x800000000</length>
+        <!-- 14GB -->
+        <length>0x380000000</length>
     </port>
     <port>
         <name>iob</name>
         <base>0x9f00000000</base>
         <length>0x10</length>
         <noc2in/>
+    </port>
+    <port>
+        <name>sd</name>
+        <base>0xf000000000</base>
+        <!-- Give it up to reset PC + 1 MB-->
+        <length>0x400000000</length>
+        <virtual/>
+        <map_to>0x400000000</map_to>
     </port>
     <port>
         <name>uart</name>
