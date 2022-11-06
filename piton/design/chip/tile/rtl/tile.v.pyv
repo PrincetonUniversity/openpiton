@@ -1039,6 +1039,7 @@ print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
     ariane_verilog_wrap #(
 <%
 str = '''
+        .NrPMPEntries           ( 4    ),
         .DmBaseAddress          ( 64'h%s ),
         .SwapEndianess          ( 1'b1 ),
         .NrExecuteRegionRules   ( %d   ),
