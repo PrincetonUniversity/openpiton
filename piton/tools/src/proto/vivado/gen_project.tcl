@@ -337,9 +337,18 @@ if {$VIVADO_FLOW_PERF_OPT} {
  set_property "steps.route_design.args.directive" "Default" $fileset_obj
 }
 
-set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.TCL.POST {} [get_runs impl_1]
-set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE ExploreWithAggressiveHoldFix [get_runs impl_1]
+set VIVADO_POSTROUTEPHYSOPT $::env(VIVADO_POSTROUTEPHYSOPT)
+if {$VIVADO_POSTROUTEPHYSOPT} {
+  set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+  set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.TCL.POST {} [get_runs impl_1]
+  set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE ExploreWithAggressiveHoldFix [get_runs impl_1]
+} else {
+  set_property "steps.post_route_phys_opt_design.is_enabled" "0" $fileset_obj
+  set_property "steps.post_route_phys_opt_design.tcl.pre" "" $fileset_obj
+  set_property "steps.post_route_phys_opt_design.tcl.post" "" $fileset_obj
+  set_property "steps.post_route_phys_opt_design.args.directive" "Default" $fileset_obj
+  set_property -name {steps.post_route_phys_opt_design.args.more options} -value {} -objects $fileset_obj
+}
 
 set_property -name {steps.route_design.args.more options} -value {} -objects $fileset_obj
 set_property "steps.write_bitstream.tcl.pre" "" $fileset_obj
