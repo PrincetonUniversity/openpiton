@@ -46,8 +46,8 @@ set_property verilog_define ${ALL_VERILOG_MACROS} [get_fileset sources_1]
 set_property verilog_define ${ALL_VERILOG_MACROS} [get_fileset sim_1]
 
 # Some additional effort to meet timing
-set_property flow {Vivado Implementation 2016} [get_runs impl_1]
-set_property strategy Performance_ExtraTimingOpt [get_runs impl_1]
+#set_property flow "Vivado Implementation $VIVADO_VERSION" [get_runs impl_1]
+#set_property strategy Performance_ExtraTimingOpt [get_runs impl_1]
 
 # Dealing with Vivado case, when it locks IPs as old ones
 upgrade_ip [get_ips -all]
@@ -56,7 +56,7 @@ upgrade_ip [get_ips -all]
 # not only for synthesis
 close_project
 open_project ${VIVADO_PROJECT_FILE}
-
+auto_detect_xpm
 # Launch implementation
 launch_run impl_1 -to_step write_bitstream -jobs $::env(NUM_VIVADO_JOBS)
 puts "INFO: Implementation launched for project '${PROJECT_NAME}'"

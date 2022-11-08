@@ -37,8 +37,18 @@ proc pyhp_preprocess {RTL_IMPL_FILES} {
             append GEN_RTL_IMPL_FILE "tmp."
             append GEN_RTL_IMPL_FILE [string index ${RTL_IMPL_FILE} [expr ${RTL_IMPL_FILENAME_LEN} - 1]]
     
+            # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
+            # and https://www.xilinx.com/support/answers/72570.html
+            set tmp_PYTHONPATH $::env(PYTHONPATH)
+            set tmp_PYTHONHOME $::env(PYTHONHOME)
+            unset ::env(PYTHONPATH)
+            unset ::env(PYTHONHOME)
+
             # Run PyHP
             exec pyhp.py ${PYV_IMPL_FILE} > ${GEN_RTL_IMPL_FILE}
+
+            set ::env(PYTHONPATH) $tmp_PYTHONPATH
+            set ::env(PYTHONHOME) $tmp_PYTHONHOME
     
             # Append to new source file list
             set GEN_RTL_IMPL_FILES "${GEN_RTL_IMPL_FILES} ${GEN_RTL_IMPL_FILE}"

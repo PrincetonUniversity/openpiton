@@ -505,13 +505,3 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 8. After the synthesis is done - you can go load it in your F1 instance!
 
-#### Planned Improvements
-
-The following items are currently under development and will be released soon.
-
-- Thorough validation of cache coherence.
-- RISC-V FESVR support in simulation.
-- Synthesis flow for large FPGAs.
-- Performance enhancements (cache re-parameterization, write-buffer throughput).
-
-Stay tuned!
