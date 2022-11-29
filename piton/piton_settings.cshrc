@@ -81,16 +81,43 @@ setenv PERL_MODULE_BASE $DV_ROOT/tools/perlmod
 
 # Synopsys variables from $SYN_HOME
 
-setenv SYN_LIB $SYN_HOME/libraries/syn
-setenv SYN_BIN $SYN_HOME/sparcOS5/syn/bin
+if (! $?SYN_HOME) then
+  setenv SYN_LIB=$SYN_HOME/libraries/syn
+  setenv SYN_BIN=$SYN_HOME/sparcOS5/syn/bin
+endif
 
 # Set Perl related variables
 setenv PERL_CMD "/usr/bin/perl"
 
 # Set path
+setenv NEWPATH "$DV_ROOT/tools/bin"
 
-setenv PATH "$DV_ROOT/tools/bin:$NCV_HOME/tools/bin:$VCS_HOME/bin:$VERA_HOME/bin:$SYN_BIN/:$CC_BIN/:$PATH"
+if ($?VCS_HOME) then
+  setenv NEWPATH ${NEWPATH}:${VCS_HOME}/bin
+endif
 
-set path = (. $DV_ROOT/tools/bin $NCV_HOME/tools/bin $VCS_HOME/bin $VERA_HOME/bin $SYN_BIN $CC_BIN $path)
+if ($?NCV_HOME) then
+  setenv NEWPATH ${NEWPATH}:${NCV_HOME}/tools.lnx86/bin/64bit
+endif
 
-setenv LD_LIBRARY_PATH "$LD_LIBRARY_PATH:$DV_ROOT/tools/src/goldfinger/lib"
+if ($?ICARUS_HOME) then
+  setenv NEWPATH ${NEWPATH}:${ICARUS_HOME}/bin
+endif
+
+if ($?MODELSIM_HOME) then
+  setenv NEWPATH ${NEWPATH}:${MODELSIM_HOME}/bin
+endif
+
+if ($?RIVIERA_HOME) then
+  setenv NEWPATH ${NEWPATH}:${RIVIERA_HOME}/bin
+endif
+
+if ($?SYN_BIN) then
+  setenv NEWPATH ${NEWPATH}:${SYN_BIN}
+endif
+
+if ($?CC_BIN) then
+  setenv NEWPATH ${NEWPATH}:${CC_BIN}
+endif
+
+setenv PATH ${NEWPATH}:${PATH}
