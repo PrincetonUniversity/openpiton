@@ -108,8 +108,6 @@ wire                            jtag_dataout;
 // For simulation only, monitor stuff.  Only cross-module referenced
 // do not delete.
 reg                             fail_flag;
-reg [3:0]                       stub_done;
-reg [3:0]                       stub_pass;
 
 ////////////////////
 // Simulated Clocks
@@ -161,8 +159,6 @@ begin
     // but are cross referenced from monitor.v.pyv.  Do not
     // delete
     fail_flag = 1'b0;
-    stub_done = 4'b0;
-    stub_pass = 4'b0;
 
     // Clocks initial value
     core_ref_clk = 1'b0;

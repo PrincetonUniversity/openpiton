@@ -211,7 +211,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'simslog' => 1,
         'simslog_name' => "sims.log",
         'sparcv9' => 0,
-        'stub_mask' => "",
         'sys' => "",
         'tg_seed' => -1,
         'tmp_dir' => ".",
@@ -1690,7 +1689,6 @@ sub generic_sim_run
 
     # convert -args to +args
     push (@{$opt{sim_run_args}}, "+finish_mask=$opt{finish_mask}") if ($opt{finish_mask} ne "") ;
-    push (@{$opt{sim_run_args}}, "+stub_mask=$opt{stub_mask}") if ($opt{stub_mask} ne "") ;
     push (@{$opt{sim_run_args}}, "+TIMEOUT=$opt{rtl_timeout}") if ($opt{rtl_timeout}) ;
     push (@{$opt{sim_run_args}}, "+max_cycle=$opt{max_cycle}") if ($opt{max_cycle}) ;
 
@@ -2600,7 +2598,6 @@ sub parse_args
             'simslog!',
             'simslog_name=s',
             'sparcv9!',
-            'stub_mask=s',
             'sys=s',
             'tg_seed=i',
             'tmp_dir=s',
@@ -3258,11 +3255,6 @@ MISC
            example: -finish_mask=0xe
            Simulation will be terminated by good_trap, if thread 1, 2 and
            3 hits the good_trap.
-
-    -stub_mask=MASK
-           mask for vcs simulation termination. Simulation ends when the
-           stub driving the relevant bit in the mask is asserted. This
-           is a hexadecimal value similar to -finish_mask
 
     -rtl_timeout
            passes a +TIMEOUT to the simv run.
