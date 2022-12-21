@@ -217,8 +217,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'toplevel' => [],
         'tarcopy' => 0,
         'use_config' => 1,
-        'vcd' => 0,
-        'vcdfile' => "",
         'vcs_build' => 0,
         'vcs_build_args' => [],
         'clean' => 0,
@@ -1665,28 +1663,6 @@ sub generic_sim_run
       $ncvcommand = "\"run\"";
     }
 
-    if ($opt{vcd}) {
-      my $vcdfile = "";
-      if ($opt{vcdfile} eq "") {
-        $vcdfile = "$opt{tmp_dir}/sim.vcd.$$" ;
-      } elsif ( $opt{vcdfile} =~ /^\// ) {  ## full path name specified -- use file name as is
-        $vcdfile = $opt{vcdfile} ;
-      } else { ## relative path specified -- use name under tmp dir
-        $vcdfile = "$opt{tmp_dir}/$opt{vcdfile}.$$" ;
-      }
-
-      if ($opt{ncv_run}) {
-        $ncvcommand = "\"database -open \"myvcd\" -vcd -into \"$vcdfile\"; ";
-        $ncvcommand .= "probe -create -vcd -database myvcd cmp_top -all -depth all; ";
-        $ncvcommand .= "run\""
-      } else {
-        push (@{$opt{sim_run_args}}, "+vcd") ;
-        push (@{$opt{sim_run_args}}, "-vcd $vcdfile") ;
-      }
-    } else {
-      push (@{$opt{sim_run_args}}, "+vcs+dumpvarsoff") ;
-    }
-
     # convert -args to +args
     push (@{$opt{sim_run_args}}, "+finish_mask=$opt{finish_mask}") if ($opt{finish_mask} ne "") ;
     push (@{$opt{sim_run_args}}, "+TIMEOUT=$opt{rtl_timeout}") if ($opt{rtl_timeout}) ;
@@ -1909,13 +1885,6 @@ if ($opt{riv_run}) {
       print PERFLOG "$prg: sim_start $main::sim_start" ;
       print PERFLOG "$prg: sim_stop $main::sim_stop" ;
       close (PERFLOG) ;
-    }
-
-    # copy over vcd dump
-
-    if (-f "$opt{tmp_dir}/$opt{vcdfile}") {
-      `mv $opt{tmp_dir}/$opt{vcdfile} sim.vcd`;
-      die ("DIE. unable to move sim.vcd over\n") if ($?) ;
     }
 }
 
@@ -2604,8 +2573,6 @@ sub parse_args
             'toplevel=s@',
             'tarcopy!',
             'use_config!',
-            'vcd!',
-            'vcdfile=s',
             'vcs_build!',
             'vcs_build_args=s@',
             'clean!',
@@ -3086,18 +3053,6 @@ VERILOG COMPILATION RELATED
            in this case, programs are compiled and assembled using the RISCV GCC toolchain.
 
 VERILOG RUNTIME RELATED
-
-    -vcd/-novcd
-           signals the bench to dump in VCD format
-
-    -vcdfile=filename
-           the name of the vcd dump file.  if the file name starts with
-           a "/", that is the file dumped to, otherwise, the actual file is
-           created under 'tmp_dir/vcdfile' and copied back to the current
-           directory when the simulation ends.  use "-vcdfile=`pwd`/filename"
-           to force the file to be written in the current directory directly
-           (not efficient since dumping is done over network instead of to
-           a local disk).
 
     -vcs_run/-novcs_run
            runs the vcs simulation (simv). defaults to off.
