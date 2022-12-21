@@ -140,7 +140,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'jobcommand_name' => "sim_command",
         'dryrun' => 0,
         'dv_root' => "",
-        'env_base' => "",
         'fast_boot' => 0,
         'finish_mask' => "",
         'flist' => [],
@@ -1308,10 +1307,6 @@ sub generic_sim_build
     chdir $model_path or die ("DIE. Can't cd to $model_path") ;
 
     if ($opt{vcs_build} or $opt{ncv_build}) {
-      # copy the sdf file
-      my $sdf_file = "$opt{env_base}/cmp_top.sdf" ;
-      `cp -f $sdf_file .` if (($opt{vcs_use_sdf}) and (-f $sdf_file)) ;
-
       chomp(my $vcsd = "vcsd".$proj_vars{vcsprefix});
       $vcsd =~ s/(vcsd)vcs(\d+)\.(\d+).*/$1$2$3/;
       my $vcsd_tab = "vcsd.tab";
@@ -2539,7 +2534,6 @@ sub parse_args
             'jobcommand_name=s',
             'dryrun!',
             'dv_root=s',
-            'env_base=s',
             'fast_boot!',
             'finish_mask=s',
             'flist=s@',
@@ -2719,10 +2713,6 @@ sub parse_args
     }
     print "$prg: looking for precompiled RISCV binary $opt{asm_diag_name}\n";
   }
-
-
-  # expand environment variables
-  $opt{env_base} =~ s/\$(\w+)/$ENV{$1}/g ;
 
   # if -nobuild specified disable all build options
   if ($opt{build} == 0) {
@@ -3325,11 +3315,6 @@ IT SYSTEM RELATED
 
     -sims_config=FILE
             full path to sims config file
-
-    -env_base=PATH
-            this specifies the root directory for the bench environment.
-            it is typically defined in the bench config file. It has no
-            default.
 
     -config_cpp_args=OPTION
             this allows the user to provide CPP arguments (defines/undefines)
