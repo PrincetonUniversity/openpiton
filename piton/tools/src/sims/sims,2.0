@@ -232,7 +232,6 @@ Getopt::Long::Configure ('no_auto_abbrev') ;
         'vcs_use_cm' => 0,
         'vcs_use_cli' => 0,
         'vcs_use_initreg' => 0,
-        'vcs_use_sdf' => 0,
         'vlt_build' => 0,
         'vlt_build_args' => [],
         'vlt_run' => 0,
@@ -1348,7 +1347,6 @@ sub generic_sim_build
         push(@{$opt{vcs_build_args}}, "-top $top_n") ;
       }
 
-      push (@{$opt{vcs_build_args}}, "+compsdf") if ($opt{vcs_use_sdf}) ;
       push (@{$opt{vcs_build_args}}, "+initreg") if ($opt{vcs_use_initreg}) ;
       push (@{$opt{vcs_build_args}}, "-cm $opt{vcs_cm_args}") if ($opt{vcs_use_cm}) ;
       push (@{$opt{vcs_build_args}}, "-cm_cond $opt{vcs_cm_cond}") if ($opt{vcs_use_cm} and ($opt{vcs_cm_cond} ne "")) ;
@@ -2588,7 +2586,6 @@ sub parse_args
             'vcs_use_cli!',
             'vcs_use_cm!',
             'vcs_use_initreg!',
-            'vcs_use_sdf!',
             'verbose!',
             'vfile=s@',
             'vlt_build!',
@@ -3004,10 +3001,6 @@ VERILOG COMPILATION RELATED
            initialize all registers to a valid state (1/0).
            this feature works with -tg_seed to set the seed of the random
            initialization. this defaults to off.
-
-    -vcs_use_sdf/-novcs_use_sdf
-           build vcs model (simv) with an sdf file.
-           defaults to off.
 
     -vcs_use_cli/-novcs_use_cli
            use the +cli -line options when building a vcs model (simv).
