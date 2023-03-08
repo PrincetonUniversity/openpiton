@@ -89,7 +89,7 @@ module l15_wrap (
     // input from config registers to pipeline
     input [63:0]                            config_l15_read_res_data_s3,
     input                                   config_csm_en,
-    input [5:0]                             config_system_tile_count_5_0,
+    input [31:0]                            config_system_tile_count,
     input [`HOME_ALLOC_METHOD_WIDTH-1:0]    config_home_alloc_method, 
     input [`L15_HMT_BASE_ADDR_WIDTH-1:0]    config_hmt_base,
 
@@ -117,8 +117,6 @@ module l15_wrap (
     input  [`SRAM_WRAPPER_BUS_WIDTH-1:0]    rtap_srams_bist_data
 );
 
-    wire [31:0]   config_system_tile_count = {26'bx, config_system_tile_count_5_0};
-   
     l15 l15 (
         .clk(clk),
         .rst_n(rst_n),

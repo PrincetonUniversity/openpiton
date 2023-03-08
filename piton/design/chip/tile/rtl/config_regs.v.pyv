@@ -60,6 +60,7 @@ module config_regs(
    input wire [`NOC_CHIPID_WIDTH-1:0] default_chipid,
    input wire [`NOC_X_WIDTH-1:0] default_coreid_x,
    input wire [`NOC_Y_WIDTH-1:0] default_coreid_y,
+   input wire [31:0] default_total_num_tiles,
 
 <%
 for i in range(DMBR_BIN_NUM):
@@ -155,8 +156,6 @@ assign config_chipid = chipid;
 assign config_coreid_x = coreid_x;
 assign config_coreid_y = coreid_y;
 
-localparam default_total_num_tile = `PITON_NUM_TILES;
-
 always @ (posedge clk)
 begin
    if (!rst_n)
@@ -176,7 +175,7 @@ begin
       dmbr_rd_cur_val <= 1'b0;
       hmt_base <= `L15_HMT_BASE_ADDR_WIDTH'b0;
       csm_en <= 1'b0;
-      system_tile_count <= default_total_num_tile;
+      system_tile_count <= default_total_num_tiles;
       home_alloc_method <= `HOME_ALLOC_MIXED_ORDER_BITS;
       chipid <= default_chipid;
       coreid_x <= default_coreid_x;

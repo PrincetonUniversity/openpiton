@@ -45,6 +45,7 @@ module tile #(
     input wire [`NOC_CHIPID_WIDTH-1:0]  default_chipid,
     input wire [`NOC_X_WIDTH-1:0]       default_coreid_x,
     input wire [`NOC_Y_WIDTH-1:0]       default_coreid_y,
+    input wire [31:0]                   default_total_num_tiles,
     input wire [`JTAG_FLATID_WIDTH-1:0] flat_tileid,
 
     // UCB interface for test access port
@@ -1155,7 +1156,7 @@ print(str)
         // config regs
         .config_csm_en(config_csm_en),
         .config_hmt_base(config_hmt_base),
-        .config_system_tile_count_5_0(config_system_tile_count[5:0]),
+        .config_system_tile_count(config_system_tile_count),
         .config_home_alloc_method(config_home_alloc_method),
 
         // sram interfaces
@@ -1252,6 +1253,7 @@ print(str)
         .default_chipid               (default_chipid               ),
         .default_coreid_x             (default_coreid_x             ),
         .default_coreid_y             (default_coreid_y             ),
+        .default_total_num_tiles      (default_total_num_tiles      ),
 
         .config_hmt_base              (config_hmt_base              ),
 
