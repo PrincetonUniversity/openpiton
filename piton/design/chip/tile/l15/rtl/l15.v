@@ -194,7 +194,7 @@ l15_csm l15_csm(
     // config regs
     .l15_hmt_base_reg(config_hmt_base),
     .csm_en(config_csm_en),
-    .system_tile_count(config_system_tile_count[`HOME_ID_WIDTH-1:0]),
+    .system_tile_count(config_system_tile_count),
     .home_alloc_method(config_home_alloc_method),
     
     // interface with pipeline

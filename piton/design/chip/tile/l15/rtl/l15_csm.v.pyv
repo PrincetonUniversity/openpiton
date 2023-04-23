@@ -55,7 +55,7 @@ module l15_csm(
    input wire csm_en,
 
    // static system input / configure registers
-   input wire [`HOME_ID_WIDTH-1:0] system_tile_count,
+   input wire [31:0] system_tile_count,
    input wire [`HOME_ALLOC_METHOD_WIDTH-1:0] home_alloc_method, 
    input wire [`L15_HMT_BASE_ADDR_WIDTH-1:0] l15_hmt_base_reg,
 
