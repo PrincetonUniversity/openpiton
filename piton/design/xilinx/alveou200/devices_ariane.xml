@@ -1,0 +1,84 @@
+<!--
+Copyright 2018 ETH Zurich and University of Bologna.
+Copyright and related rights are licensed under the Solderpad Hardware
+License, Version 0.51 (the "License"); you may not use this file except in
+compliance with the License.  You may obtain a copy of the License at
+http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+or agreed to in writing, software, hardware and materials distributed under
+this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
+Date: 26.11.2018
+Description: Peripheral address map for OpenPiton+Ariane configurations.
+-->
+<devices>
+    <!--The first entry should always be the filter/chip to xbar connection-->
+    <port>
+        <name>chip</name>
+        <noc2in/>
+    </port>
+    <port>
+        <name>mem</name>
+        <base>0x80000000</base>
+        <!-- 2GB -->
+        <length>0x80000000</length>
+    </port>
+    <port>
+        <name>iob</name>
+        <base>0x9f00000000</base>
+        <length>0x10</length>
+        <noc2in/>
+    </port>
+    <port>
+        <name>sd</name>
+        <base>0xf000000000</base>
+        <!-- Give it up to reset PC + 1 MB-->
+        <length>0xff0300000</length>
+    </port>
+    <port>
+        <name>uart</name>
+        <base>0xfff0c2c000</base>
+        <!-- Just give it all the space up to the network device? -->
+        <length>0xd4000</length>
+        <noc2in/>
+        <stream_accessible/>
+    </port>
+<!--     <port>
+        <name>net</name>
+        <base>0xfff0d00000</base>
+        <length>0x100000</length>
+    </port> -->
+    <!-- note: the following modules are ariane-specific and are only instantiated in HW when using the ariane core -->
+    <port>
+        <!-- this is the shared debug module for JTAG access to all cores -->
+        <name>ariane_debug</name>
+        <base>0xfff1000000</base>
+        <length>0x1000</length>
+        <stream_accessible/>
+    </port>
+    <port>
+        <!-- this is the shared bootrom (contains DTB that is generated for the current platform config) -->
+        <name>ariane_bootrom</name>
+        <base>0xfff1010000</base>
+        <length>0x10000</length>
+        <stream_accessible/>
+    </port>
+    <port>
+        <!-- core local interrupt controller with real-time counter. this is shared among all cores -->
+        <name>ariane_clint</name>
+        <base>0xfff1020000</base>
+        <length>0xc0000</length>
+        <stream_accessible/>
+    </port>
+    <!-- platform level interrupt controller -->
+    <port>
+        <name>ariane_plic</name>
+        <base>0xfff1100000</base>
+        <length>0x4000000</length>
+        <stream_accessible/>
+    </port>
+    <!-- end ariane specific periphs -->
+</devices>
+
