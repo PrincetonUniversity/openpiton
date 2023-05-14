@@ -68,3 +68,7 @@ set DESIGN_PRJ_IP_FILES [concat \
     ${PASSTHRU_PRJ_IP_FILES} \
     ${CHIPSET_PRJ_IP_FILES} \
 ]
+
+# Create an empty variable that will be filled in case the design uses a block design 
+# at board.tcl
+set DESIGN_BD_FILES ""

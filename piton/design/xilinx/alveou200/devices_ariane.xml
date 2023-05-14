@@ -32,12 +32,6 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <noc2in/>
     </port>
     <port>
-        <name>sd</name>
-        <base>0xf000000000</base>
-        <!-- Give it up to reset PC + 1 MB-->
-        <length>0xff0300000</length>
-    </port>
-    <port>
         <name>uart</name>
         <base>0xfff0c2c000</base>
         <!-- Just give it all the space up to the network device? -->
