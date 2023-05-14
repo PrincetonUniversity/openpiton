@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
 #
@@ -44,7 +43,6 @@ PROJECT_BUILD_LOG = "make_project.log"
 PROJECT_IMPL_LOG = "implementation.log"
 DV_ROOT = os.environ['DV_ROOT']
 MODEL_DIR = os.environ['MODEL_DIR']
-MEEP_DIR = os.environ['MEEP_DIR']
 DESIGN_BLOCK_LIST = os.path.join(DV_ROOT, "tools/src/proto/block.list")
 MAP_MODULE_NAME = "storage_addr_trans.v"
 NOC_PAYLOAD_WIDTH = 512
@@ -76,8 +74,6 @@ STORAGE_BLOCK_BIT_WIDTH         =   {   "ddr":  {   "vc707":512,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
                                                     "f1":512
-                                                },
-                                        "hbm":  {   "alveou200":256
                                                 }
                                     }
 
@@ -109,10 +105,7 @@ STORAGE_ADDRESSABLE_BIT_WIDTH   =   {   "ddr":  {   "vc707":64,
                                                     "nexysVideo":512,
                                                     "piton_board":512,
                                                     "f1":512
-                                                },
-                                        "hbm":  {   "alveou200":33
                                                 }
-
                                     }
 
 STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
@@ -142,8 +135,6 @@ STORAGE_BIT_SIZE                =   {   "ddr":  {   "vc707":8*2**30,
                                                     "genesys2":8*2**30,
                                                     "nexysVideo":8*512*2**20,
                                                     "f1":8*4*2**30
-                                                },
-                                        "hbm":  {   "alveou200":8*4*2**33
                                                 }
                                     }
 DW_BIT_SIZE     = 64
@@ -168,7 +159,7 @@ class ProtoDir:
         proj_name = board + "_" + design
         self.run = os.path.join(self.work, proj_name, proj_name + ".runs")
 
-def find_design_block(design_block, meep_mode=False):
+def find_design_block(design_block):
     fp = open(DESIGN_BLOCK_LIST, 'r')
     for line in fp:
         # Check for comments
@@ -184,18 +175,7 @@ def find_design_block(design_block, meep_mode=False):
                 for board_string in line_split[2].split(';'):
                     if board_string != "":
                         board_string_split = board_string.split(',')
-                        board_freq = board_string_split[1]
-                        print("Defined %s clock frequency for %s board" % (design_block, board_string_split[0]), end="")
-                        if meep_mode:
-                          print(" under MEEP shell", end="")
-                          facc = open(os.path.join(MEEP_DIR, "accelerator_def.csv"), 'r')
-                          for acc_line in facc:
-                            acc_feature = re.split(',|\n', acc_line)
-                            if len(acc_feature) > 2:
-                              if acc_feature[2] == 'chipset_clk' : board_freq = str(int( float(acc_feature[1])/1e6 ))
-                          facc.close()
-                        print(": %s MHz" % board_freq)
-                        board_support[board_string_split[0]] = {"FREQ": board_freq,
+                        board_support[board_string_split[0]] = {"FREQ": board_string_split[1],
                                                                 "DDRSIZE": board_string_split[2]}
                 block_data["BOARDS"] = board_support
 
@@ -374,7 +354,7 @@ def buildProjectSuccess(log_dir):
         dbg.print_error("Check: %s" % fpath)
         return False
 
-    dbg.print_info("Project was built successfully!")
+    dbg.print_info("Project was build successfully!")
     return True
 
 
