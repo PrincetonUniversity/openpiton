@@ -34,6 +34,9 @@ set VIVADO_FLOW_PERF_OPT 0
 set BOARD_DEFAULT_VERILOG_MACROS "ALVEOU200_BOARD"
 
 # Create a block design containing PCIe and GPIO using the FPGA_PART variable
+# It will produce the "pcie.bd" file
 source $DV_ROOT/design/chipset/xilinx/alveou200/pcie.tcl
+
+set DESIGN_BD_FILES [list pcie]
 
 

@@ -34,4 +34,5 @@ set ALL_FILES [concat \
     $ALL_COE_FILES \
     $ALL_PRJ_IP_FILES \
     $ALL_XCI_IP_FILES \
+    $ALL_BD_FILES \
 ]
