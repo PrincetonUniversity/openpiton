@@ -4,6 +4,10 @@
 #include <smp.h>
 #define DRAM_BASE 0x80000000
 
+.option arch, +zicsr
+
+
+
   .section .text.init
   .option norvc
   .globl _prog_start
