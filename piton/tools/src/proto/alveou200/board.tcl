@@ -31,7 +31,7 @@
 set BOARD_PART ""
 set FPGA_PART "xcu200-fsgd2104-2-e"
 set VIVADO_FLOW_PERF_OPT 0
-set BOARD_DEFAULT_VERILOG_MACROS "ALVEOU200_BOARD"
+set BOARD_DEFAULT_VERILOG_MACROS "ALVEO_BOARD"
 
 # Create a block design containing PCIe and GPIO using the FPGA_PART variable
 # It will produce the "pcie.bd" file

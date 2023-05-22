@@ -170,7 +170,7 @@
 
 `ifdef XUPP3R_BOARD
     `define XUPP3R_OR_ALVEO
-`elseif ALVEO_BOARD
+`elsif ALVEO_BOARD
     `define XUPP3R_OR_ALVEO
 `endif
 
