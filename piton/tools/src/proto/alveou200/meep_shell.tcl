@@ -365,6 +365,8 @@ proc create_root_design { parentCell } {
  
   # Final changes
   set_property name c0_ddr4 [get_bd_intf_ports C0_DDR4_0]
+  set_property name c0_ddr4_s_axi_ctrl [get_bd_intf_ports c0_ddr4_axil_ctrl]
+
 
   # Restore current instance
   current_bd_instance $oldCurInst
