@@ -177,7 +177,7 @@ proc create_root_design { parentCell } {
    CONFIG.FREQ_HZ {300000000} \
    ] $c0_sysclk
 
-  set mem_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 mem_axi ]
+  set m_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi ]
   set_property -dict [ list \
    CONFIG.ADDR_WIDTH {64} \
    CONFIG.ARUSER_WIDTH {0} \
@@ -207,7 +207,7 @@ proc create_root_design { parentCell } {
    CONFIG.SUPPORTS_NARROW_BURST {1} \
    CONFIG.WUSER_BITS_PER_BYTE {0} \
    CONFIG.WUSER_WIDTH {0} \
-   ] $mem_axi
+   ] $m_axi
 
   set pci_express_x16 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:pcie_7x_mgt_rtl:1.0 pci_express_x16 ]
 
@@ -242,6 +242,7 @@ proc create_root_design { parentCell } {
   # Create instance: chip_rstn, and set properties
   set chip_rstn [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 chip_rstn ]
   set_property -dict [ list \
+   CONFIG.DIN_WIDTH {2} \
    CONFIG.DIN_FROM {1} \
    CONFIG.DIN_TO {1} \
    CONFIG.DOUT_WIDTH {1} \
@@ -328,7 +329,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net C0_SYS_CLK_0_1 [get_bd_intf_ports c0_sysclk] [get_bd_intf_pins ddr4_0/C0_SYS_CLK]
   connect_bd_intf_net -intf_net axi_xbar_pcie_M00_AXI [get_bd_intf_pins axi_xbar_pcie/M00_AXI] [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI]
   connect_bd_intf_net -intf_net ddr4_0_C0_DDR4 [get_bd_intf_ports C0_DDR4_0] [get_bd_intf_pins ddr4_0/C0_DDR4]
-  connect_bd_intf_net -intf_net mem_axi_1 [get_bd_intf_ports mem_axi] [get_bd_intf_pins axi_xbar_pcie/S01_AXI]
+  connect_bd_intf_net -intf_net m_axi_1 [get_bd_intf_ports m_axi] [get_bd_intf_pins axi_xbar_pcie/S01_AXI]
   connect_bd_intf_net -intf_net pcie_refclk_1 [get_bd_intf_ports pcie_refclk] [get_bd_intf_pins util_ds_buf/CLK_IN_D]
   connect_bd_intf_net -intf_net qdma_0_M_AXI [get_bd_intf_pins axi_xbar_pcie/S00_AXI] [get_bd_intf_pins qdma_0/M_AXI]
   connect_bd_intf_net -intf_net qdma_0_M_AXI_LITE [get_bd_intf_pins axi_gpio_0/S_AXI] [get_bd_intf_pins qdma_0/M_AXI_LITE]
@@ -357,11 +358,13 @@ proc create_root_design { parentCell } {
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   assign_bd_address -offset 0x40000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces mem_axi] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces m_axi] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
 
   # Exclude Address Segments
   exclude_bd_addr_seg -offset 0x80000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces c0_ddr4_axil_ctrl] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP_CTRL/C0_REG]
-
+ 
+  # Final changes
+  set_property name c0_ddr4 [get_bd_intf_ports C0_DDR4_0]
 
   # Restore current instance
   current_bd_instance $oldCurInst

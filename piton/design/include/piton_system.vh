@@ -122,6 +122,8 @@
     `define PITON_CHIPSET_DIFF_CLK
 `elsif GENESYS2_BOARD
     `define PITON_CHIPSET_DIFF_CLK
+`elsif ALVEO_BOARD
+    `define PITON_CHIPSET_DIFF_CLK
 `elsif PITON_BOARD
     `define PITON_CHIPSET_DIFF_CLK
     `define PITON_CHIPSET_DIFF_CLK_POLARITY_CAPS
@@ -143,6 +145,9 @@
     `undef PITON_FPGA_SD_BOOT
     `undef PITONSYS_SPI
     `define PITONSYS_AXI4_MEM
+`elsif ALVEO_BOARD
+    `undef PITON_FPGA_SD_BOOT
+    `undef PITONSYS_SPI
 `endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
@@ -159,4 +164,13 @@
     `define PITONSYS_DDR4
 `elsif XUPP3R_BOARD
     `define PITONSYS_DDR4
+`elsif ALVEO_BOARD
+    `define PITONSYS_DDR4
 `endif
+
+`ifdef XUPP3R_BOARD
+    `define XUPP3R_OR_ALVEO
+`elseif ALVEO_BOARD
+    `define XUPP3R_OR_ALVEO
+`endif
+

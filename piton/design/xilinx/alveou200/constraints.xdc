@@ -57,8 +57,7 @@ set_property PACKAGE_PIN AV7              [get_ports {pci_express_x16_txp[12]} ]
 # Clock
 set_property PACKAGE_PIN AM10             [get_ports pcie_refclk_clk_n ]                       ;# Bank 225 - MGTREFCLK0N_225
 set_property PACKAGE_PIN AM11             [get_ports pcie_refclk_clk_p ]                       ;# Bank 225 - MGTREFCLK0P_225
-#set_property PACKAGE_PIN AP12             [get_ports "SYSCLK5_N"]                          ;# Bank 225 - MGTREFCLK1N_225
-#set_property PACKAGE_PIN AP13             [get_ports "SYSCLK5_P"]                          ;# Bank 225 - MGTREFCLK1P_225
+
 set_property PACKAGE_PIN AU3              [get_ports {pci_express_x16_rxn[11]} ]                   ;# Bank 225 - MGTYRXN0_225
 set_property PACKAGE_PIN AT1              [get_ports {pci_express_x16_rxn[10]} ]                   ;# Bank 225 - MGTYRXN1_225
 set_property PACKAGE_PIN AR3              [get_ports {pci_express_x16_rxn[9]} ]                    ;# Bank 225 - MGTYRXN2_225
@@ -264,3 +263,7 @@ set_property -dict {PACKAGE_PIN BF29 IOSTANDARD POD12_DCI      } [get_ports ddr4
 set_property -dict {PACKAGE_PIN BE26 IOSTANDARD DIFF_POD12_DCI } [get_ports ddr4_sdram_c0_dqs_c[3] ]; # Bank 40 VCCO - VCC1V2 Net "DDR4_C0_DQS_C10" - IO_L1N_T0L_N1_DBC_40
 set_property -dict {PACKAGE_PIN BD26 IOSTANDARD DIFF_POD12_DCI } [get_ports ddr4_sdram_c0_dqs_t[3] ]; # Bank 40 VCCO - VCC1V2 Net "DDR4_C0_DQS_T10" - IO_L1P_T0L_N0_DBC_40
 #
+
+set_property PACKAGE_PIN BC21             [get_ports hbm_cattrip]   		
+set_property IOSTANDARD  LVCMOS12         [get_ports hbm_cattrip]   		
+set_property PULLTYPE PULLDOWN            [get_ports hbm_cattrip]

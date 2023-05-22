@@ -108,6 +108,17 @@ module system(
 `endif // endif PITON_PASSTHRU_CLKS_GEN
 `endif // endif PITON_SYS_INC_PASSTHRU
 
+`ifdef PITON_ALVEO
+# PCIe interface
+    input         pcie_refclk_clk_n    ,
+    input         pcie_refclk_clk_p    ,
+    input         pcie_perstn          ,		
+    input  [15:0] pci_express_x16_rxn  ,
+    input  [15:0] pci_express_x16_rxp  ,
+    output [15:0] pci_express_x16_txn  ,
+    output [15:0] pci_express_x16_txp  ,
+`endif
+
 `ifndef F1_BOARD
 `ifdef PITON_CHIPSET_CLKS_GEN
 `ifdef PITON_CHIPSET_DIFF_CLK
@@ -142,7 +153,10 @@ module system(
     input sys_clk,
 `endif
 
+`ifndef ALVEO_BOARD
+
     input                                       sys_rst_n,
+`endif
 
 `ifndef PITON_FPGA_SYNTH
     input                                       pll_rst_n,
@@ -180,6 +194,7 @@ module system(
 `ifndef VCU118_BOARD
 `ifndef NEXYSVIDEO_BOARD
 `ifndef XUPP3R_BOARD
+`ifndef ALVEO_BOARD
 `ifndef F1_BOARD
   input                                         tck_i,
   input                                         tms_i,
@@ -187,6 +202,7 @@ module system(
   input                                         td_i,
   output                                        td_o,
 `endif//F1_BOARD
+`endif // ALVEO_BOARD
 `endif//XUPP3R_BOARD
 `endif //NEXYSVIDEO_BOARD
 `endif //VCU118_BOARD
@@ -230,11 +246,11 @@ module system(
         output [`DDR3_CS_WIDTH-1:0]             ddr_cs_n,
     `endif // endif NEXYSVIDEO_BOARD
     `ifdef PITONSYS_DDR4
-    `ifdef XUPP3R_BOARD
+    `ifdef XUPP3R_OR_ALVEO
     output                                      ddr_parity,
     `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-    `endif // XUPP3R_BOARD
+    `endif // XUPP3R_OR_ALVEO
     `else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     `endif // PITONSYS_DDR4
@@ -384,7 +400,7 @@ module system(
 `ifdef VCU118_BOARD
     // we only have 4 gpio dip switches on this board
     input  [3:0]                                sw,
-`elsif XUPP3R_BOARD
+`elsif XUPP3R_OR_ALVEO
     // no switches :(
 `else
     input  [7:0]                                sw,
@@ -392,6 +408,8 @@ module system(
 
 `ifdef XUPP3R_BOARD
     output [3:0]                                leds
+`ifdef ALVEO_BOARD
+    output                                      hbm_cattrip
 `else 
     output [7:0]                                leds
 `endif
@@ -559,6 +577,13 @@ assign rtc = rtc_div[6];
 // tie off
 assign uart_rts = 1'b0;
 `endif // VCU118_BOARD
+
+`ifdef ALVEO_BOARD
+
+    wire sys_rst_n;
+    assign hbm_cattrip = 1'b0;
+
+`endif
 
 // Different reset active levels for different boards
 always @ *
@@ -945,6 +970,18 @@ chipset chipset(
     .mc_clk_n(mc_clk_n),
 `endif // PITONSYS_DDR4
 
+`ifdef PITON_ALVEO
+# PCIe interface
+    .pcie_refclk_clk_n (pcie_refclk_clk_n)    ,
+    .pcie_refclk_clk_p (pcie_refclk_clk_p)   ,
+    .pcie_perstn (pcie_perstn)          ,		
+    .pci_express_x16_rxn (pci_express_x16_rxn)  ,
+    .pci_express_x16_rxp (pci_express_x16_rxp)  ,
+    .pci_express_x16_txn (pci_express_x16_txn ) ,
+    .pci_express_x16_txp (pci_express_x16_txp)  ,
+    .resetn (resetn),
+`endif
+
 `else // ifndef PITON_CHIPSET_CLKS_GEN
     .chipset_clk(chipset_clk),
 `ifndef PITONSYS_NO_MC
@@ -1066,7 +1103,7 @@ chipset chipset(
 `ifndef NEXYSVIDEO_BOARD
     .ddr_cs_n(ddr_cs_n),
 `endif // endif NEXYSVIDEO_BOARD
-`ifdef XUPP3R_BOARD
+`ifdef XUPP3R_OR_ALVEO
     .ddr_parity(ddr_parity),
 `else
     .ddr_dm(ddr_dm),
@@ -1133,6 +1170,10 @@ chipset chipset(
 `endif // ifndef F1_BOARD
 `endif // PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
+
+`ifdef ALVEO_BOARD
+    .chip_rstn (sys_rst_n),
+`endif
 
 `ifdef PITONSYS_IOCTRL
 `ifdef PITONSYS_UART
@@ -1203,7 +1244,7 @@ chipset chipset(
     .btnc(btnc),
 `endif
 
-`ifndef XUPP3R_BOARD
+`ifndef XUPP3R_OR_ALVEO
     .sw(sw),
 `endif
     .leds(leds)
