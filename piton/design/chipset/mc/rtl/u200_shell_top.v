@@ -12,6 +12,8 @@ module u200_shell_top (
     output [15:0] pci_express_x16_txp  ,
     input         resetn               ,
 
+    output       c0_ddr4_act_n,
+    output [16:0] c0_ddr4_adr,
     output [1:0] c0_ddr4_ba,
     output [1:0] c0_ddr4_bg,
     output [0:0] c0_ddr4_ck_c,
