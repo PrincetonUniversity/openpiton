@@ -109,7 +109,6 @@ module system(
 `endif // endif PITON_SYS_INC_PASSTHRU
 
 `ifdef PITON_ALVEO
-# PCIe interface
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
@@ -408,7 +407,7 @@ module system(
 
 `ifdef XUPP3R_BOARD
     output [3:0]                                leds
-`ifdef ALVEO_BOARD
+`elsif ALVEO_BOARD
     output                                      hbm_cattrip
 `else 
     output [7:0]                                leds
@@ -971,7 +970,6 @@ chipset chipset(
 `endif // PITONSYS_DDR4
 
 `ifdef PITON_ALVEO
-# PCIe interface
     .pcie_refclk_clk_n (pcie_refclk_clk_n)    ,
     .pcie_refclk_clk_p (pcie_refclk_clk_p)   ,
     .pcie_perstn (pcie_perstn)          ,		

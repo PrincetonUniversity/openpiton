@@ -1,4 +1,6 @@
 
+`include "mc_define.h"
+
 module u200_shell_top (
 
     input         pcie_refclk_clk_n    ,
@@ -10,28 +12,28 @@ module u200_shell_top (
     output [15:0] pci_express_x16_txp  ,
     input         resetn               ,
 
-    output [1:0] c0_ddr4_ba;
-    output [1:0] c0_ddr4_bg;
-    output [0:0] c0_ddr4_ck_c;
-    output [0:0] c0_ddr4_ck_t;
-    output [0:0] c0_ddr4_cke;
-    output [0:0] c0_ddr4_cs_n;
-    inout [71:0] c0_ddr4_dq;
-    inout [17:0] c0_ddr4_dqs_c;
-    inout [17:0] c0_ddr4_dqs_t;
-    output [0:0] c0_ddr4_odt;
-    output c0_ddr4_par;
-    output c0_ddr4_reset_n;
-    output c0_ddr4_ui_clk_sync_rst;
+    output [1:0] c0_ddr4_ba,
+    output [1:0] c0_ddr4_bg,
+    output [0:0] c0_ddr4_ck_c,
+    output [0:0] c0_ddr4_ck_t,
+    output [0:0] c0_ddr4_cke,
+    output [0:0] c0_ddr4_cs_n,
+    inout [71:0] c0_ddr4_dq,
+    inout [17:0] c0_ddr4_dqs_c,
+    inout [17:0] c0_ddr4_dqs_t,
+    output [0:0] c0_ddr4_odt,
+    output c0_ddr4_par,
+    output c0_ddr4_reset_n,
+    output c0_ddr4_ui_clk_sync_rst,
     // Reference clock
-    input c0_sysclk_clk_n;
-    input c0_sysclk_clk_p;
+    input c0_sysclk_clk_n,
+    input c0_sysclk_clk_p,
 	// input mc_clk                  							,
 	// input mc_rstn                 							,
     output  chip_rstn                                           ,
 	input   chipset_clk             							,
-	outptut chipset_rstn	          							,
-    output c0_init_calib_complete;
+	output chipset_rstn	          							,
+    output c0_init_calib_complete,
 	
 	input   [`NOC_DATA_WIDTH-1:0]   mem_flit_in_data      ,
     input                           mem_flit_in_val       ,
@@ -277,7 +279,7 @@ module u200_shell_top (
 		.c0_ddr4_s_axi_rvalid    ( m_axi_rvalid),              // output wire c0_ddr4_s_axi_rvalid
 		.c0_ddr4_s_axi_rresp    ( m_axi_rresp),                // output wire [1 : 0] c0_ddr4_s_axi_rresp
 		.c0_ddr4_s_axi_rid    ( m_axi_rid),                    // output wire [15 : 0] c0_ddr4_s_axi_rid
-		.c0_ddr4_s_axi_rdata    ( m_axi_rdata)                 // output wire [511 : 0] c0_ddr4_s_axi_rdata
+		.c0_ddr4_s_axi_rdata    ( m_axi_rdata),                 // output wire [511 : 0] c0_ddr4_s_axi_rdata
 		// PCIe 
 		.pci_express_x16_rxn(pci_express_x16_rxn),
 		.pci_express_x16_rxp(pci_express_x16_rxp),

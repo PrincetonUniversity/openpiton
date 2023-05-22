@@ -105,6 +105,25 @@
     `define DDR3_CS_WIDTH           2
     `define DDR3_BG_WIDTH           2
     `define DDR3_ODT_WIDTH          2
+`elsif ALVEO_BOARD
+    `define BOARD_MEM_SIZE_MB       8192
+    `define WORDS_PER_BURST         8
+    `define WORD_SIZE               8 // in bytes
+    `define MIG_APP_ADDR_WIDTH      32
+    `define MIG_APP_CMD_WIDTH       3
+    `define MIG_APP_DATA_WIDTH      512
+    `define MIG_APP_MASK_WIDTH      64
+
+    `define DDR3_DQ_WIDTH           72
+    `define DDR3_DQS_WIDTH          18
+    `define DDR3_ADDR_WIDTH         18
+    `define DDR3_BA_WIDTH           2
+    `define DDR3_DM_WIDTH           0
+    `define DDR3_CK_WIDTH           1
+    `define DDR3_CKE_WIDTH          2
+    `define DDR3_CS_WIDTH           2
+    `define DDR3_BG_WIDTH           2
+    `define DDR3_ODT_WIDTH          2    
 `elsif NEXYS4DDR_BOARD
     `define BOARD_MEM_SIZE_MB       256
     `define WORDS_PER_BURST         8

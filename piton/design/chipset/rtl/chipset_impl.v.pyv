@@ -88,7 +88,6 @@ module chipset_impl(
     output                                      invalid_access_o,
 
 `ifdef PITON_ALVEO
-# PCIe interface
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
@@ -800,7 +799,7 @@ credit_to_valrdy noc3_xbar_to_%s(
             .pcie_perstn(pcie_perstn),
             .pcie_refclk_clk_n(pcie_refclk_clk_n),
             .pcie_refclk_clk_p(pcie_refclk_clk_p),
-            .resetn(resetn)
+            .resetn(resetn),
 
             // DDR4 physicall interface
             .c0_ddr4_act_n             ( ddr_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4
