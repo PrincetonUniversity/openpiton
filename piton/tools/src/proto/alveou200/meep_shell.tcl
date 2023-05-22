@@ -355,6 +355,9 @@ proc create_root_design { parentCell } {
   connect_bd_net -net util_ds_buf_IBUF_OUT [get_bd_pins qdma_0/sys_clk_gt] [get_bd_pins util_ds_buf/IBUF_OUT]
   connect_bd_net -net vdd_0_dout [get_bd_pins qdma_0/qsts_out_rdy] [get_bd_pins qdma_0/tm_dsc_sts_rdy] [get_bd_pins vdd_0/dout]
 
+  create_bd_port -dir O -type clk c0_ddr4_ui_clk
+  connect_bd_net [get_bd_ports c0_ddr4_ui_clk] [get_bd_pins ddr4_0/c0_ddr4_ui_clk]
+
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   assign_bd_address -offset 0x40000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
@@ -366,6 +369,7 @@ proc create_root_design { parentCell } {
   # Final changes
   set_property name c0_ddr4 [get_bd_intf_ports C0_DDR4_0]
   set_property name c0_ddr4_s_axi_ctrl [get_bd_intf_ports c0_ddr4_axil_ctrl]
+  set_property name c0_ddr4_s_axi [get_bd_intf_ports m_axi]
 
 
   # Restore current instance

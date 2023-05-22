@@ -200,8 +200,8 @@ module u200_shell_top (
 
 	meep_shell meep_shell_i (
 
-		.c0_sys_clk_p              ( sys_clk_p                 ),
-		.c0_sys_clk_n              ( sys_clk_n                 ),
+		.c0_sysclk_clk_p           ( sys_clk_p                 ),
+		.c0_sysclk_clk_n           ( sys_clk_n                 ),
 		.c0_ddr4_ui_clk            ( mc_clk                    ),
 		.c0_ddr4_ui_clk_sync_rst   ( mc_rstn                   ),
 		.c0_init_calib_complete    ( init_calib_complete       ),
