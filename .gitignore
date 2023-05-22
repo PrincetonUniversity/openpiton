@@ -78,6 +78,7 @@ piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*
 !piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xci
 !piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.xco
 !piton/design/*/*/*/*/*/*/*/*/*/*/xilinx/*/ip_cores/*/*.coe
+*.bd
 
 # Ignore files generated for DMBR unit testing
 piton/verif/diag/assembly/princeton/dmbr_stream_hyper_gen.s

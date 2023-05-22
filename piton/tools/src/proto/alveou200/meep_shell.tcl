@@ -378,7 +378,7 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
-file copy tmp_proj/project_1.srcs/sources_1/bd/meep_shell/meep_shell.bd $DV_ROOT/design/chipset/xilinx/alveou200/meep_shell.bd
+file copy -force tmp_proj/project_1.srcs/sources_1/bd/meep_shell/meep_shell.bd $DV_ROOT/design/chipset/xilinx/alveou200/meep_shell.bd
 
 close_project
 
