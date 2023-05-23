@@ -29,9 +29,13 @@ set script_folder [_tcl::get_script_folder]
 # project, but make sure you do not have an existing project
 # <./tmp_proj/project_1.xpr> in the current working folder.
 
+set DV_ROOT $::env(DV_ROOT)
+
+set tmp_build_dir ${DV_ROOT}/build/alveou200
+
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project -force project_1 tmp_proj -part xcu200-fsgd2104-2-e
+   create_project -force ${tmp_build_dir}/tmp_proj -part xcu200-fsgd2104-2-e
    set_property BOARD_PART xilinx.com:au200:part0:1.3 [current_project]
 }
 
@@ -140,7 +144,7 @@ proc create_root_design { parentCell } {
   # Create interface ports
   set C0_DDR4_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:ddr4_rtl:1.0 C0_DDR4_0 ]
 
-  set c0_ddr4_axil_ctrl [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 c0_ddr4_axil_ctrl ]
+  set c0_ddr4_s_axi_ctrl [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 c0_ddr4_s_axi_ctrl ]
   set_property -dict [ list \
    CONFIG.ADDR_WIDTH {32} \
    CONFIG.ARUSER_WIDTH {0} \
@@ -170,14 +174,14 @@ proc create_root_design { parentCell } {
    CONFIG.SUPPORTS_NARROW_BURST {0} \
    CONFIG.WUSER_BITS_PER_BYTE {0} \
    CONFIG.WUSER_WIDTH {0} \
-   ] $c0_ddr4_axil_ctrl
+   ] $c0_ddr4_s_axi_ctrl
 
   set c0_sysclk [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 c0_sysclk ]
   set_property -dict [ list \
    CONFIG.FREQ_HZ {300000000} \
    ] $c0_sysclk
 
-  set m_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi ]
+  set c0_ddr4_s_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 c0_ddr4_s_axi ]
   set_property -dict [ list \
    CONFIG.ADDR_WIDTH {64} \
    CONFIG.ARUSER_WIDTH {0} \
@@ -207,7 +211,7 @@ proc create_root_design { parentCell } {
    CONFIG.SUPPORTS_NARROW_BURST {1} \
    CONFIG.WUSER_BITS_PER_BYTE {0} \
    CONFIG.WUSER_WIDTH {0} \
-   ] $m_axi
+   ] $c0_ddr4_s_axi
 
   set pci_express_x16 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:pcie_7x_mgt_rtl:1.0 pci_express_x16 ]
 
@@ -325,11 +329,11 @@ proc create_root_design { parentCell } {
   set vdd_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 vdd_0 ]
 
   # Create interface connections
-  connect_bd_intf_net -intf_net C0_DDR4_S_AXI_CTRL_0_1 [get_bd_intf_ports c0_ddr4_axil_ctrl] [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI_CTRL]
+  connect_bd_intf_net -intf_net C0_DDR4_S_AXI_CTRL_0_1 [get_bd_intf_ports c0_ddr4_s_axi_ctrl] [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI_CTRL]
   connect_bd_intf_net -intf_net C0_SYS_CLK_0_1 [get_bd_intf_ports c0_sysclk] [get_bd_intf_pins ddr4_0/C0_SYS_CLK]
   connect_bd_intf_net -intf_net axi_xbar_pcie_M00_AXI [get_bd_intf_pins axi_xbar_pcie/M00_AXI] [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI]
   connect_bd_intf_net -intf_net ddr4_0_C0_DDR4 [get_bd_intf_ports C0_DDR4_0] [get_bd_intf_pins ddr4_0/C0_DDR4]
-  connect_bd_intf_net -intf_net m_axi_1 [get_bd_intf_ports m_axi] [get_bd_intf_pins axi_xbar_pcie/S01_AXI]
+  connect_bd_intf_net -intf_net c0_ddr4_s_axi_1 [get_bd_intf_ports c0_ddr4_s_axi] [get_bd_intf_pins axi_xbar_pcie/S01_AXI]
   connect_bd_intf_net -intf_net pcie_refclk_1 [get_bd_intf_ports pcie_refclk] [get_bd_intf_pins util_ds_buf/CLK_IN_D]
   connect_bd_intf_net -intf_net qdma_0_M_AXI [get_bd_intf_pins axi_xbar_pcie/S00_AXI] [get_bd_intf_pins qdma_0/M_AXI]
   connect_bd_intf_net -intf_net qdma_0_M_AXI_LITE [get_bd_intf_pins axi_gpio_0/S_AXI] [get_bd_intf_pins qdma_0/M_AXI_LITE]
@@ -361,15 +365,13 @@ proc create_root_design { parentCell } {
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   assign_bd_address -offset 0x40000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces m_axi] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces c0_ddr4_s_axi] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
 
   # Exclude Address Segments
-  exclude_bd_addr_seg -offset 0x80000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces c0_ddr4_axil_ctrl] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP_CTRL/C0_REG]
+  exclude_bd_addr_seg -offset 0x80000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces c0_ddr4_s_axi_ctrl] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP_CTRL/C0_REG]
  
   # Final changes
   set_property name c0_ddr4 [get_bd_intf_ports C0_DDR4_0]
-  set_property name c0_ddr4_s_axi_ctrl [get_bd_intf_ports c0_ddr4_axil_ctrl]
-  set_property name c0_ddr4_s_axi [get_bd_intf_ports m_axi]
 
 
   # Restore current instance
@@ -387,10 +389,12 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
-file copy -force tmp_proj/project_1.srcs/sources_1/bd/meep_shell/meep_shell.bd $DV_ROOT/design/chipset/xilinx/alveou200/meep_shell.bd
+# file copy -force tmp_proj/project_1.srcs/sources_1/bd/meep_shell/meep_shell.bd $DV_ROOT/design/chipset/xilinx/alveou200/meep_shell.bd
+save_bd_design_as meep_shell -force -dir ${DV_ROOT}/design/chipset/xilinx/alveou200
+
 
 close_project
 
-file delete -force ./tmp_proj
+file delete -force $tmp_build_dir
 
 
