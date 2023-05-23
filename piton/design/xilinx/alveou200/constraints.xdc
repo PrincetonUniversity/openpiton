@@ -12,9 +12,7 @@ set_property BITSTREAM.CONFIG.UNUSEDPIN Pullup [current_design]
 set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR Yes [current_design]         
 # ------------------------------------------------------------------------
 
-#300MHz DDR0 system clock
-set_property PACKAGE_PIN AY38             [get_ports  {sysclk0_clk_n} ]            
-set_property PACKAGE_PIN AY37             [get_ports  {sysclk0_clk_p} ]            
+    
 
 # 156.25MHz General purpose system clock
 set_property PACKAGE_PIN AV19             [ get_ports  {sysclk1_clk_n} ]     
@@ -114,6 +112,9 @@ set_property PACKAGE_PIN AF7              [get_ports {pci_express_x16_txp[0]} ]
 create_clock -period 10.000 -name  pcie_refclk [get_ports pcie_refclk_clk_p]
 
 #There are other 3 DDR chips in the u200, here it is only the C0
+#300MHz DDR0 system clock
+set_property PACKAGE_PIN AY38             [get_ports  {mc_clk_n} ]            
+set_property PACKAGE_PIN AY37             [get_ports  {mc_clk_p} ]        
 
 set_property -dict {PACKAGE_PIN AR36 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[16]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR16"   - IO_L23N_T3U_N9_42
 set_property -dict {PACKAGE_PIN AP36 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[15]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR15"   - IO_L23P_T3U_N8_42

@@ -97,6 +97,9 @@ module chipset_impl(
     output [15:0] pci_express_x16_txp  ,
     input         resetn ,
     output        chip_rstn            ,
+    // DDR reference clock
+    input         c0_sysclk_clk_p ,
+    input         c0_sysclk_clk_n ,
 `endif
 
 `ifndef PITONSYS_NO_MC
@@ -820,8 +823,8 @@ credit_to_valrdy noc3_xbar_to_%s(
             .c0_ddr4_reset_n           ( ddr_reset_n               ),
 
             // DDR4 clock & reset
-            .c0_sysclk_clk_p           ( sys_clk_p                 ),
-            .c0_sysclk_clk_n           ( sys_clk_n                 ),
+            .c0_sysclk_clk_p           ( c0_sysclk_clk_p           ),
+            .c0_sysclk_clk_n           ( c0_sysclk_clk_n           ),
 
             .c0_init_calib_complete    ( init_calib_complete       ),
 

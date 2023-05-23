@@ -108,7 +108,7 @@ module system(
 `endif // endif PITON_PASSTHRU_CLKS_GEN
 `endif // endif PITON_SYS_INC_PASSTHRU
 
-`ifdef ALVEO_BOARD
+`ifdef PITON_ALVEO
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
@@ -116,6 +116,7 @@ module system(
     input  [15:0] pci_express_x16_rxp  ,
     output [15:0] pci_express_x16_txn  ,
     output [15:0] pci_express_x16_txp  ,
+    input         resetn ,
 `endif
 
 `ifndef F1_BOARD
@@ -969,7 +970,7 @@ chipset chipset(
     .mc_clk_n(mc_clk_n),
 `endif // PITONSYS_DDR4
 
-`ifdef PITON_ALVEO
+`ifdef ALVEO_BOARD
     .pcie_refclk_clk_n (pcie_refclk_clk_n)    ,
     .pcie_refclk_clk_p (pcie_refclk_clk_p)   ,
     .pcie_perstn (pcie_perstn)          ,		
