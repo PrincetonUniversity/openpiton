@@ -153,6 +153,10 @@ foreach xci_file $ALL_XCI_IP_FILES {
     }
 }
 
+if {[info exists ::env(PITON_BLACKPARROT)]} {
+    source ${DV_ROOT}/tools/src/proto/common/blackparrot.tcl
+}
+
 # Set 'sources_1' fileset properties
 set_property "design_mode" "RTL" $fileset_obj
 set_property "edif_extra_search_paths" "" $fileset_obj

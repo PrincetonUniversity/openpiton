@@ -1,0 +1,3 @@
++incdir+black-parrot-subsystems/openpiton/v/
+black-parrot-subsystems/openpiton/v/bp_pce.sv
+black-parrot-subsystems/openpiton/v/bp_piton_tile.sv

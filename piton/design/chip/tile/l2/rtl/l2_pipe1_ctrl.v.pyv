@@ -281,6 +281,7 @@ module l2_pipe1_ctrl(
     output reg  msg_from_mshr_S4,
     output reg req_recycle_S4,
     output reg inv_fwd_pending_S4,
+    output reg msg_data_8B_amo_S4,
 
     output wire [`L2_OWNER_BITS-1:0] dir_sharer_S4,
     output reg [`L2_OWNER_BITS-1:0] dir_sharer_counter_S4,
@@ -369,7 +370,9 @@ reg [`L2_ADDR_TYPE_WIDTH-1:0] addr_type_S1;
 reg [`L2_ADDR_OP_WIDTH-1:0] addr_op_S1;
 reg special_addr_type_S1;
 reg msg_data_rd_S1;
+reg msg_amo_S1;
 reg msg_data_16B_amo_S1;
+reg msg_data_8B_amo_S1;
 
 always @ *
 begin
@@ -883,8 +886,24 @@ end
 
 always @ *
 begin
-    msg_data_16B_amo_S1 = valid_S1 && ((msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ)) && (data_size_S1 == `MSG_DATA_SIZE_16B);
+    msg_amo_S1 = valid_S1
+              && (msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_ADD_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_AND_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_OR_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_XOR_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_MAX_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_MAXU_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_MIN_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_AMO_MINU_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_SWAP_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_SWAP_P2_REQ
+              ||  msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ || msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ);
+end
+
+always @ *
+begin
+    msg_data_16B_amo_S1 = valid_S1 && msg_amo_S1 && (data_size_S1 == `MSG_DATA_SIZE_16B);
     //msg_data_16B_amo_masked_S1 = valid_S1 && ((msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P1_REQ) || (msg_type_trans_S1 == `MSG_TYPE_SWAPWB_P2_REQ)) && (data_size_S1 == `MSG_DATA_SIZE_16B);
+    msg_data_8B_amo_S1 = valid_S1 && msg_amo_S1 && (data_size_S1 == `MSG_DATA_SIZE_8B);
 end
 
 always @ *
@@ -1056,6 +1075,7 @@ reg mshr_smc_miss_S2_f;
 reg [`L2_MSHR_INDEX_WIDTH-1:0] mshr_pending_index_S2_f;
 reg special_addr_type_S2_f;
 reg msg_data_rd_S2_f;
+reg msg_data_8B_amo_S2_f;
 
 always @ (posedge clk)
 begin
@@ -1074,6 +1094,7 @@ begin
         special_addr_type_S2_f <= 0;
         msg_data_rd_S2_f <= 0;
         msg_data_16B_amo_S2_f <= 1'b0;
+        msg_data_8B_amo_S2_f <= 1'b0;
         amo_alu_op_S2_f <= `L2_AMO_ALU_OP_WIDTH'b0;
     end
     else if (!stall_S2)
@@ -1095,6 +1116,7 @@ begin
         special_addr_type_S2_f <= special_addr_type_S1;
         msg_data_rd_S2_f <= msg_data_rd_S1;
         msg_data_16B_amo_S2_f <= msg_data_16B_amo_S1;
+        msg_data_8B_amo_S2_f <= msg_data_8B_amo_S1;
         amo_alu_op_S2_f <= amo_alu_op_S1;
     end
 end
@@ -2443,6 +2465,7 @@ reg [`L2_MSHR_STATE_BITS-1:0] mshr_state_in_S3_f;
 reg [`L2_MSHR_INDEX_WIDTH-1:0] mshr_pending_index_S3_f;
 reg special_addr_type_S3_f;
 reg req_recycle_S3_f;
+reg msg_data_8B_amo_S3_f;
 
 always @ (posedge clk)
 begin
@@ -2466,6 +2489,7 @@ begin
         mshr_pending_index_S3_f <= 0;
         special_addr_type_S3_f <= 0;
         req_recycle_S3_f <= 0;
+        msg_data_8B_amo_S3_f <= 0;
     end
     else if (!stall_S3)
     begin
@@ -2487,6 +2511,7 @@ begin
         mshr_pending_index_S3_f <= mshr_pending_index_S2_f;
         special_addr_type_S3_f <= special_addr_type_S2_f;
         req_recycle_S3_f <= req_recycle_S2;
+        msg_data_8B_amo_S3_f <= msg_data_8B_amo_S2_f;
     end
 end
 
@@ -2624,6 +2649,7 @@ reg [`L2_MSHR_INDEX_WIDTH-1:0] mshr_pending_index_S4_f;
 reg special_addr_type_S4_f;
 reg [`L2_DIR_ARRAY_WIDTH-1:0] dir_data_S4_f;
 reg req_recycle_S4_f;
+reg msg_data_8B_amo_S4_f;
 
 
 always @ (posedge clk)
@@ -2649,6 +2675,7 @@ begin
         special_addr_type_S4_f <= 0;
         dir_data_S4_f <= 0;
         req_recycle_S4_f <= 0;
+        msg_data_8B_amo_S4_f <= 0;
     end
     else if (!stall_S4)
     begin
@@ -2671,6 +2698,7 @@ begin
         special_addr_type_S4_f <= special_addr_type_S3_f;
         dir_data_S4_f <= dir_data_S3;
         req_recycle_S4_f <= req_recycle_S3;
+        msg_data_8B_amo_S4_f <= msg_data_8B_amo_S3_f;
     end
 end
 
@@ -2722,6 +2750,7 @@ begin
     special_addr_type_S4 = special_addr_type_S4_f;
     dir_data_S4 = dir_data_S4_f;
     msg_from_mshr_S4 = msg_from_mshr_S4_f;
+    msg_data_8B_amo_S4 = msg_data_8B_amo_S4_f;
 end
 
 

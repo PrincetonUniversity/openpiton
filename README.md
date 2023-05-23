@@ -129,7 +129,6 @@ Step 3. will then download and compile the RISC-V toolchain, the assembly tests 
 
 > You will need Vivado 2018.2 or newer to build an FPGA bitstream with Ariane.
 
-
 #### Running RISC-V Tests and Benchmarks
 
 The RISC-V benchmarks are precompiled in the tool setup step mentioned above. You can run individual benchmarks by first building the simulation model with
@@ -505,3 +504,17 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 8. After the synthesis is done - you can go load it in your F1 instance!
 
+# Support for the BlackParrot RV64GC Core
+
+This version of OpenPiton supports the [64bit BlackParrot RISC-V processor](https://github.com/black-parrot/black-parrot) from University of Washington and Boston University. BlackParrot has been equipped with the P-MESH Cache Engine (PCE), which connects the BlackParrot Cache Engine Interface to the L1.5 cache provided by OpenPiton's P-Mesh. Instructions to run are identical to running with Ariane, except to use the -blackparrot flag instead.
+
+#### Planned Improvements
+
+The following items are currently under development and will be released soon.
+
+- Thorough validation of cache coherence.
+- RISC-V FESVR support in simulation.
+- Synthesis flow for large FPGAs.
+- Performance enhancements (cache re-parameterization, write-buffer throughput).
+
+Stay tuned!
