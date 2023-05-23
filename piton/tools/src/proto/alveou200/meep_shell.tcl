@@ -31,11 +31,15 @@ set script_folder [_tcl::get_script_folder]
 
 set DV_ROOT $::env(DV_ROOT)
 
-set tmp_build_dir ${DV_ROOT}/build/alveou200
+set tmp_build_dir ${DV_ROOT}/build/bd_alveo
+set tmp_prj "create_bd"
+
+file delete -force ${tmp_build_dir}/${tmp_prj}
+
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project -force ${tmp_build_dir}/tmp_proj -part xcu200-fsgd2104-2-e
+   create_project -force ${tmp_build_dir}/${tmp_prj} -part xcu200-fsgd2104-2-e
    set_property BOARD_PART xilinx.com:au200:part0:1.3 [current_project]
 }
 
@@ -395,6 +399,6 @@ save_bd_design_as meep_shell -force -dir ${DV_ROOT}/design/chipset/xilinx/alveou
 
 close_project
 
-file delete -force $tmp_build_dir
+file delete -force ${tmp_build_dir}/${tmp_prj}
 
 
