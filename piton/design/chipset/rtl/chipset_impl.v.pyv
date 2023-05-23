@@ -95,6 +95,8 @@ module chipset_impl(
     input  [15:0] pci_express_x16_rxp  ,
     output [15:0] pci_express_x16_txn  ,
     output [15:0] pci_express_x16_txp  ,
+    input         resetn ,
+    output        chip_rstn            ,
 `endif
 
 `ifndef PITONSYS_NO_MC

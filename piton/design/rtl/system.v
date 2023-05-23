@@ -108,7 +108,7 @@ module system(
 `endif // endif PITON_PASSTHRU_CLKS_GEN
 `endif // endif PITON_SYS_INC_PASSTHRU
 
-`ifdef PITON_ALVEO
+`ifdef ALVEO_BOARD
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
