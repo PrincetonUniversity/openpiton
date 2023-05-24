@@ -85,7 +85,7 @@ module u200_shell_top (
 
 	noc_axi4_bridge noc_axi4_bridge  (
 		.clk                ( 	mc_clk  		),  
-		.rst_n              ( 	mc_rstn 		), 
+		.rst_n              ( 	~mc_rst 		), 
 		.uart_boot_en       ( 	1'b0			),
 		.phy_init_done      ( 	init_calib_complete	),
 
@@ -154,7 +154,7 @@ module u200_shell_top (
 		.c0_sysclk_clk_p           ( c0_sysclk_clk_p           ),
 		.c0_sysclk_clk_n           ( c0_sysclk_clk_n           ),
 		.c0_ddr4_ui_clk            ( mc_clk                    ),
-		.c0_ddr4_ui_clk_sync_rst   ( mc_rstn                   ),
+		.c0_ddr4_ui_clk_sync_rst   ( mc_rst                    ),
 		.c0_init_calib_complete    ( init_calib_complete       ),
 
 		// DDR4 physicall interface

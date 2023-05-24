@@ -32,7 +32,7 @@ set script_folder [_tcl::get_script_folder]
 set DV_ROOT $::env(DV_ROOT)
 set PITON_ROOT $::env(PITON_ROOT)
 
-set tmp_build_dir ${PITON_ROOT}/build/bd_alveo
+set tmp_build_dir ${PITON_ROOT}/build/alveou200/bd_alveo
 set tmp_prj "create_bd"
 
 file delete -force ${tmp_build_dir}/${tmp_prj}
