@@ -116,14 +116,14 @@
 
     `define DDR3_DQ_WIDTH           72
     `define DDR3_DQS_WIDTH          18
-    `define DDR3_ADDR_WIDTH         18
+    `define DDR3_ADDR_WIDTH         17
     `define DDR3_BA_WIDTH           2
     `define DDR3_DM_WIDTH           0
     `define DDR3_CK_WIDTH           1
-    `define DDR3_CKE_WIDTH          2
-    `define DDR3_CS_WIDTH           2
+    `define DDR3_CKE_WIDTH          1
+    `define DDR3_CS_WIDTH           1
     `define DDR3_BG_WIDTH           2
-    `define DDR3_ODT_WIDTH          2    
+    `define DDR3_ODT_WIDTH          1    
 `elsif NEXYS4DDR_BOARD
     `define BOARD_MEM_SIZE_MB       256
     `define WORDS_PER_BURST         8

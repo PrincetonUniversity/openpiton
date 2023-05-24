@@ -839,63 +839,8 @@ credit_to_valrdy noc3_xbar_to_%s(
 
             .mem_flit_out_val(mem_buf_noc3_valid),
             .mem_flit_out_data(mem_buf_noc3_data),
-            .mem_flit_out_rdy(buf_mem_noc3_ready),
-
-            // AXI4 Memory Interface
-            // AXI Write Address Channel Signals
-            .m_axi_awid(m_axi_awid),
-            .m_axi_awaddr(m_axi_awaddr),
-            .m_axi_awlen(m_axi_awlen),
-            .m_axi_awsize(m_axi_awsize),
-            .m_axi_awburst(m_axi_awburst),
-            .m_axi_awlock(m_axi_awlock),
-            .m_axi_awcache(m_axi_awcache),
-            .m_axi_awprot(m_axi_awprot),
-            .m_axi_awqos(m_axi_awqos),
-            .m_axi_awregion(m_axi_awregion),
-            .m_axi_awuser(m_axi_awuser),
-            .m_axi_awvalid(m_axi_awvalid),
-            .m_axi_awready(m_axi_awready),
-
-            // AXI Write Data Channel Signals
-            .m_axi_wid(m_axi_wid),
-            .m_axi_wdata(m_axi_wdata),
-            .m_axi_wstrb(m_axi_wstrb),
-            .m_axi_wlast(m_axi_wlast),
-            .m_axi_wuser(m_axi_wuser),
-            .m_axi_wvalid(m_axi_wvalid),
-            .m_axi_wready(m_axi_wready),
-
-            // AXI Read Address Channel Signals
-            .m_axi_arid(m_axi_arid),
-            .m_axi_araddr(m_axi_araddr),
-            .m_axi_arlen(m_axi_arlen),
-            .m_axi_arsize(m_axi_arsize),
-            .m_axi_arburst(m_axi_arburst),
-            .m_axi_arlock(m_axi_arlock),
-            .m_axi_arcache(m_axi_arcache),
-            .m_axi_arprot(m_axi_arprot),
-            .m_axi_arqos(m_axi_arqos),
-            .m_axi_arregion(m_axi_arregion),
-            .m_axi_aruser(m_axi_aruser),
-            .m_axi_arvalid(m_axi_arvalid),
-            .m_axi_arready(m_axi_arready),
-
-            // AXI Read Data Channel Signals
-            .m_axi_rid(m_axi_rid),
-            .m_axi_rdata(m_axi_rdata),
-            .m_axi_rresp(m_axi_rresp),
-            .m_axi_rlast(m_axi_rlast),
-            .m_axi_ruser(m_axi_ruser),
-            .m_axi_rvalid(m_axi_rvalid),
-            .m_axi_rready(m_axi_rready),
-
-            // AXI Write Response Channel Signals
-            .m_axi_bid(m_axi_bid),
-            .m_axi_bresp(m_axi_bresp),
-            .m_axi_buser(m_axi_buser),
-            .m_axi_bvalid(m_axi_bvalid),
-            .m_axi_bready(m_axi_bready)
+            .mem_flit_out_rdy(buf_mem_noc3_ready)
+            
             );
     `else
         mc_top mc_top(

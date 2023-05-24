@@ -15,10 +15,10 @@ set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR Yes [current_design]
     
 
 # 156.25MHz General purpose system clock
-set_property PACKAGE_PIN AV19             [ get_ports  {sysclk1_clk_n} ]     
-set_property PACKAGE_PIN AU19             [ get_ports  {sysclk1_clk_p} ]     
+set_property PACKAGE_PIN AV19             [ get_ports  {chipset_clk_osc_n} ]     
+set_property PACKAGE_PIN AU19             [ get_ports  {chipset_clk_osc_p} ]     
 
-set_property IOSTANDARD  LVDS              [ get_ports  {sysclk*} ]     
+set_property IOSTANDARD  LVDS              [ get_ports  {chipset_clk*} ]     
 
 
 set_property PACKAGE_PIN AL20              [get_ports resetn]   			
@@ -26,9 +26,9 @@ set_property IOSTANDARD LVCMOS12           [get_ports resetn]
 
 
 # UART
-set_property PACKAGE_PIN   BF18           [get_ports rs232_rxd]
-set_property PACKAGE_PIN   BB20           [get_ports rs232_txd]
-set_property IOSTANDARD  LVCMOS12         [get_ports rs232_*]
+set_property PACKAGE_PIN   BF18           [get_ports uart_rx]
+set_property PACKAGE_PIN   BB20           [get_ports uart_tx]
+set_property IOSTANDARD  LVCMOS12         [get_ports uart_*]
 
 ##
 ## PCIe MGTY Interface
@@ -120,11 +120,11 @@ set_property -dict {PACKAGE_PIN AR36 IOSTANDARD SSTL12_DCI     } [get_ports ddr_
 set_property -dict {PACKAGE_PIN AP36 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[15]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR15"   - IO_L23P_T3U_N8_42
 #set_property -dict {PACKAGE_PIN AN34 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_odt[1]   ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ODT1"    - IO_L22N_T3U_N7_DBC_AD0N_42
 #set_property -dict {PACKAGE_PIN AM34 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_cs_n[3]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_CS_B3"   - IO_L22P_T3U_N6_DBC_AD0P_42
-set_property -dict {PACKAGE_PIN AR33 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_cs_n[0]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_CS_B0"   - IO_T3U_N12_42
+set_property -dict {PACKAGE_PIN AR33 IOSTANDARD SSTL12_DCI     } [get_ports ddr_cs_n[0]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_CS_B0"   - IO_T3U_N12_42
 set_property -dict {PACKAGE_PIN AN36 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[13]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR13"   - IO_L24N_T3U_N11_42
 #set_property -dict {PACKAGE_PIN AN35 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[17]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR17"   - IO_L24P_T3U_N10_42
 set_property -dict {PACKAGE_PIN AP35 IOSTANDARD SSTL12_DCI     } [get_ports ddr_addr[14]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ADR14"   - IO_L21N_T3L_N5_AD8N_42
-set_property -dict {PACKAGE_PIN AP34 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_odt[0]   ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ODT0"    - IO_L21P_T3L_N4_AD8P_42
+set_property -dict {PACKAGE_PIN AP34 IOSTANDARD SSTL12_DCI     } [get_ports ddr_odt[0]   ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_ODT0"    - IO_L21P_T3L_N4_AD8P_42
 #set_property -dict {PACKAGE_PIN AP33 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_cs_n[1]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_CS_B1"   - IO_L20N_T3L_N3_AD1N_42
 #set_property -dict {PACKAGE_PIN AN33 IOSTANDARD SSTL12_DCI     } [get_ports ddr4_sdram_c0_cs_n[2]  ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_CS_B2"   - IO_L20P_T3L_N2_AD1P_42
 set_property -dict {PACKAGE_PIN AT35 IOSTANDARD SSTL12_DCI     } [get_ports ddr_ba[0]    ]; # Bank 42 VCCO - VCC1V2 Net "DDR4_C0_BA0"     - IO_L19N_T3L_N1_DBC_AD9N_42
