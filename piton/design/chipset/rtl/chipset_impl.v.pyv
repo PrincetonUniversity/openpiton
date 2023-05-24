@@ -78,7 +78,7 @@ DYNAMIC_NODE_PORT = io_xbar_node_define.DYNAMIC_NODE_PORT
 module chipset_impl(
     // Clocks and resets
     input                                       chipset_clk,
-    input                                       chipset_rst_n,
+    
     input                                       piton_ready_n,
 
     output                                      test_start,
@@ -100,6 +100,9 @@ module chipset_impl(
     // DDR reference clock
     input         c0_sysclk_clk_p ,
     input         c0_sysclk_clk_n ,
+
+`else
+    input                                       chipset_rst_n,
 `endif
 
 `ifndef PITONSYS_NO_MC
@@ -830,7 +833,7 @@ credit_to_valrdy noc3_xbar_to_%s(
 
             .chip_rstn                 (chip_rstn             ),
             .chipset_clk               (chipset_clk           ),
-            .chipset_rstn              (chipset_rstn          ),
+            .chipset_rstn              (chipset_rst_n          ),
 
 
             .mem_flit_in_val(buf_mem_noc2_valid),

@@ -158,20 +158,20 @@ module u200_shell_top (
 		.c0_init_calib_complete    ( init_calib_complete       ),
 
 		// DDR4 physicall interface
-		.c0_ddr4_act_n             ( ddr_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4
-		.c0_ddr4_adr               ( ddr_addr                  ),
-		.c0_ddr4_ba                ( ddr_ba                    ),
-		.c0_ddr4_bg                ( ddr_bg                    ), // bank group address
-		.c0_ddr4_ck_t              ( ddr_ck_p                  ),
-		.c0_ddr4_ck_c              ( ddr_ck_n                  ),
-		.c0_ddr4_cke               ( ddr_cke                   ),
-		.c0_ddr4_cs_n              ( ddr_cs_n                  ),
-		.c0_ddr4_dq                ( ddr_dq                    ), 
-		.c0_ddr4_dqs_c             ( ddr_dqs_n                 ), 
-		.c0_ddr4_dqs_t             ( ddr_dqs_p                 ), 
-		.c0_ddr4_odt               ( ddr_odt                   ),
-		.c0_ddr4_par               ( ddr_parity                ),                        // output wire c0_ddr4_parity
-		.c0_ddr4_reset_n           ( ddr_reset_n               ),
+		.c0_ddr4_act_n             ( c0_ddr4_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4
+		.c0_ddr4_adr               ( c0_ddr4_adr                  ),
+		.c0_ddr4_ba                ( c0_ddr4_ba                    ),
+		.c0_ddr4_bg                ( c0_ddr4_bg                    ), // bank group address
+		.c0_ddr4_ck_t              ( c0_ddr4_ck_t                  ),
+		.c0_ddr4_ck_c              ( c0_ddr4_ck_c                  ),
+		.c0_ddr4_cke               ( c0_ddr4_cke                   ),
+		.c0_ddr4_cs_n              ( c0_ddr4_cs_n                  ),
+		.c0_ddr4_dq                ( c0_ddr4_dq                    ), 
+		.c0_ddr4_dqs_c             ( c0_ddr4_dqs_c                 ), 
+		.c0_ddr4_dqs_t             ( c0_ddr4_dqs_t                 ), 
+		.c0_ddr4_odt               ( c0_ddr4_odt                   ),
+		.c0_ddr4_par               ( c0_ddr4_par                   ),                        // output wire c0_ddr4_parity
+		.c0_ddr4_reset_n           ( c0_ddr4_reset_n               ),
 
 		// DDR4 control interface, not used, grounded
 		.c0_ddr4_s_axi_ctrl_awvalid(1'b0                  ),  // input wire c0_ddr4_s_axi_ctrl_awvalid

@@ -313,7 +313,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net qdma_0_axi_aresetn [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins proc_sys_rst_pcie/ext_reset_in] [get_bd_pins qdma_0/axi_aresetn]
   connect_bd_net -net qdma_0_phy_ready [get_bd_pins proc_sys_rst_pcie/dcm_locked] [get_bd_pins qdma_0/phy_ready]
   connect_bd_net -net resetn_1 [get_bd_ports resetn] [get_bd_pins rst_ea_CLK0/ext_reset_in]
-  connect_bd_net -net rst_ea_CLK0_interconnect_aresetn [get_bd_pins axi_xbar_pcie/ARESETN] [get_bd_pins ddr4_0/c0_ddr4_aresetn] [get_bd_pins rst_ea_CLK0/interconnect_aresetn]
+  connect_bd_net -net rst_ea_CLK0_interconnect_aresetn [get_bd_pins axi_xbar_pcie/ARESETN] [get_bd_pins rst_ea_CLK0/interconnect_aresetn]
   connect_bd_net -net rst_ea_CLK0_peripheral_aresetn [get_bd_pins axi_xbar_pcie/M00_ARESETN] [get_bd_pins axi_xbar_pcie/S01_ARESETN] [get_bd_pins rst_ea_CLK0/peripheral_aresetn]
   connect_bd_net -net rst_ea_CLK0_peripheral_reset [get_bd_pins ddr4_0/sys_rst] [get_bd_pins rst_ea_CLK0/peripheral_reset]
   connect_bd_net -net sys_rstn_Dout [get_bd_pins rst_ea_CLK0/aux_reset_in] [get_bd_pins sys_rstn/Dout]
