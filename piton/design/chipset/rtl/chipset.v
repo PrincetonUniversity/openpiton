@@ -1445,9 +1445,7 @@ chipset_impl_noc_power_test  chipset_impl (
         .pcie_refclk_clk_n(pcie_refclk_clk_n),
         .pcie_refclk_clk_p(pcie_refclk_clk_p),
         .resetn(resetn),
-        .chip_rstn (chip_rstn),
-        .c0_sysclk_clk_p ( mc_clk_p ),
-        .c0_sysclk_clk_n ( mc_clk_n )
+        .chip_rstn (chip_rstn)
     
     `endif
 
