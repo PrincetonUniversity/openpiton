@@ -358,7 +358,7 @@ def buildProjectSuccess(log_dir):
     return True
 
 
-def implFlowSuccess(log_dir, run_dir):
+def implFlowSuccess(log_dir, run_dir, postroutephysopt):
     syn_dir = os.path.join(run_dir, "synth_1")
     impl_dir = os.path.join(run_dir, "impl_1")
 
@@ -384,7 +384,11 @@ def implFlowSuccess(log_dir, run_dir):
         return False
 
     # check timing
-    fname = [f for f in os.listdir(impl_dir) if f.endswith("timing_summary_routed.rpt")][0]
+    fname = ""
+    if postroutephysopt:
+        fname = [f for f in os.listdir(impl_dir) if f.endswith("timing_summary_postroute_physopted.rpt")][0]
+    else:
+        fname = [f for f in os.listdir(impl_dir) if f.endswith("timing_summary_routed.rpt")][0]
     fpath = os.path.join(impl_dir, fname)
     if not strInFile(fpath, ["timing constraints are met"]):
         dbg.print_error("Implemented design has timing violations!")
