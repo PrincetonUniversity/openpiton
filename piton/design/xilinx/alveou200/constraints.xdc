@@ -12,6 +12,9 @@ set_property BITSTREAM.CONFIG.UNUSEDPIN Pullup [current_design]
 set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR Yes [current_design]         
 # ------------------------------------------------------------------------
 
+# Don't time the GPIO reset signals
+set_false_path -from [get_pins -hier *Not_Dual.gpio_Data_Out_reg*/C]
+
     
 
 # 156.25MHz General purpose system clock
