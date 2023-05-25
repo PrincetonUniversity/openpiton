@@ -333,9 +333,15 @@ proc create_root_design { parentCell } {
   # Exclude Address Segments
   exclude_bd_addr_seg -offset 0x80000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces c0_ddr4_s_axi_ctrl] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP_CTRL/C0_REG]
  
-  # Final changes
+ # ##################################################################
+  # Final changes. Use this block to customize the bd
   set_property name c0_ddr4 [get_bd_intf_ports C0_DDR4_0]
 
+  # Decrease the PCIe speed for better timing results
+  set_property -dict [list CONFIG.pl_link_cap_max_link_speed {2.5_GT/s} CONFIG.axi_data_width {128_bit} CONFIG.plltype {CPLL} CONFIG.pf0_device_id {901F} CONFIG.pf2_device_id {921F} CONFIG.pf3_device_id {931F}] [get_bd_cells qdma_0]
+
+
+ # ###################################################################
 
   # Restore current instance
   current_bd_instance $oldCurInst
