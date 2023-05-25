@@ -61,7 +61,7 @@ module u200_shell_top (
 		.rst_1           ( ~chipset_rstn    ),
 
 		.clk_2           ( mc_clk            ),
-		.rst_2           ( ~mc_rstn          ),
+		.rst_2           ( mc_rst            ),
 
 		// CPU --> MIG
 		.flit_in_val_1   ( mem_flit_in_val   ),
