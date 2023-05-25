@@ -87,7 +87,7 @@ module chipset_impl(
     // invalid access inside packet filter
     output                                      invalid_access_o,
 
-`ifdef PITON_ALVEO
+`ifdef ALVEO_BOARD
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
