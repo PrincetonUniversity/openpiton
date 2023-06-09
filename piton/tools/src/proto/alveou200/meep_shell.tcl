@@ -203,7 +203,9 @@ proc create_root_design { parentCell } {
   set_property -dict [ list \
    CONFIG.NUM_MI {1} \
    CONFIG.NUM_SI {2} \
+   CONFIG.M00_HAS_REGSLICE {4} \
    CONFIG.S00_HAS_REGSLICE {4} \
+   CONFIG.S01_HAS_REGSLICE {4} \
  ] $axi_xbar_pcie
 
   # Create instance: chip_rstn, and set properties

@@ -113,6 +113,7 @@ set_property PACKAGE_PIN AG9              [get_ports {pci_express_x16_txp[1]} ] 
 set_property PACKAGE_PIN AF7              [get_ports {pci_express_x16_txp[0]} ]  
 
 create_clock -period 10.000 -name  pcie_refclk [get_ports pcie_refclk_clk_p]
+set_clock_groups -asynchronous -group pcie_refclk
 
 #There are other 3 DDR chips in the u200, here it is only the C0
 #300MHz DDR0 system clock
