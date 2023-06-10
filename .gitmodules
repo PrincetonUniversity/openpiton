@@ -4,3 +4,6 @@
 [submodule "aws"]
 	path = piton/design/aws
 	url = https://github.com/PrincetonUniversity/openpiton-aws.git
+[submodule "piton/design/chipset/rv64_platform/bootrom/u-boot/uboot"]
+	path = piton/design/chipset/rv64_platform/bootrom/u-boot/uboot
+	url = git@github.com:u-boot/u-boot.git

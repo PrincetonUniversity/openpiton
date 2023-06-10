@@ -12,7 +12,7 @@ parser.add_argument('filename', metavar='filename', nargs=1,
                    help='filename of input binary')
 
 args = parser.parse_args()
-file = args.filename[0];
+file = args.filename[0]
 
 # check that file exists
 if not os.path.isfile(file):
@@ -80,12 +80,12 @@ $content
 def read_bin():
 
     with open(filename + ".img", 'rb') as f:
-        rom = str(binascii.hexlify(f.read()))
-        rom = list(map(''.join, zip(rom[2::2], rom[3::2])))
-
+        rom = binascii.hexlify(f.read())
+        rom = rom.decode("utf-8")
+        rom = list(map(''.join, zip(rom[::2], rom[1::2])))
 
     # align to 64 bit
-    align = (int((len(rom) + 7) / 8 )) * 8;
+    align = (int((len(rom) + 7) / 8 )) * 8
 
     for i in range(len(rom), align):
         rom.append("00")
@@ -124,4 +124,3 @@ with open(filename + ".sv", "w") as f:
     f.write(license)
     s = Template(module)
     f.write(s.substitute(filename=filename, size=int(len(rom)/8), content=rom_str))
-
