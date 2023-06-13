@@ -34,7 +34,7 @@ module u200_shell_top (
 	// input mc_rstn                 							,
     output  chip_rstn                                           ,
 	input   chipset_clk             							,
-	output chipset_rstn	          							,
+	input chipset_rstn	          							,
     output c0_init_calib_complete,
 	
 	input   [`NOC_DATA_WIDTH-1:0]   mem_flit_in_data      ,
@@ -155,7 +155,7 @@ module u200_shell_top (
 		.c0_sysclk_clk_n           ( c0_sysclk_clk_n           ),
 		.c0_ddr4_ui_clk            ( mc_clk                    ),
 		.c0_ddr4_ui_clk_sync_rst   ( mc_rst                    ),
-		.c0_init_calib_complete    ( init_calib_complete       ),
+		.c0_init_calib_complete    ( c0_init_calib_complete    ),
 
 		// DDR4 physicall interface
 		.c0_ddr4_act_n             ( c0_ddr4_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4

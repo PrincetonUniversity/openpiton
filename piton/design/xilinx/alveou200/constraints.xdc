@@ -272,3 +272,6 @@ set_property -dict {PACKAGE_PIN BD26 IOSTANDARD DIFF_POD12_DCI } [get_ports ddr_
 set_property PACKAGE_PIN BC21             [get_ports hbm_cattrip]   		
 set_property IOSTANDARD  LVCMOS12         [get_ports hbm_cattrip]   		
 set_property PULLTYPE PULLDOWN            [get_ports hbm_cattrip]
+
+set_property strategy Performance_EarlyBlockPlacement [get_runs impl_1]
+
