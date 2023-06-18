@@ -48,35 +48,44 @@ set include_dirs {}
 set vlist            [vivado_parse_flist $BP_TOP_DIR/syn/flist.vcs]
 set vsources_list    [lindex $vlist 0]
 set vincludes_list   [lindex $vlist 1]
-lappend rtl_files    $vsources_list
-lappend include_dirs $vincludes_list
+set rtl_files        [concat $rtl_files $vsources_list]
+set include_dirs     [concat $include_dirs $vincludes_list]
 
 set vlist            [vivado_parse_flist $BLACKPARROT_ROOT/Flist.blackparrot]
 set vsources_list    [lindex $vlist 0]
 set vincludes_list   [lindex $vlist 1]
-lappend rtl_files    $vsources_list
-lappend include_dirs $vincludes_list
+set rtl_files        [concat $rtl_files $vsources_list]
+set include_dirs     [concat $include_dirs $vincludes_list]
 
+set file_obj [get_filesets sources_1]
 set BLACKPARROT_RTL_IMPL_FILES {}
 foreach v $rtl_files {
-  if {[string first bsg_mem_1rw_sync_mask_write_bit.v $v] == -1} {
+  if {[string first bsg_mem_1rw_sync_mask_write_bit.v $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_mem/bsg_mem_1rw_sync_mask_write_bit.v
-  else if {[string first bsg_mul_add_unsigned.v $v] == -1} {
+  } elseif {[string first bsg_mul_add_unsigned.v $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_misc/bsg_mul_add_unsigned.v
-  else {
+  } else {
     set f $v
   }
 
-  set file_obj [get_files -of_objects [get_filesets sources_1] [list $f]
-  set_property -name "file_type" -value "SystemVerilog" $file_obj
+  add_files -quiet -norecurse -fileset $file_obj $f
+  set_property -name "file_type" -value "SystemVerilog" -objects [get_files $f]
   lappend BLACKPARROT_RTL_IMPL_FILES $f
 }
 
 set BLACKPARROT_INCLUDE_DIRS {}
-for i $include_dirs {
+foreach i $include_dirs {
     lappend BLACKPARROT_INCLUDE_DIRS $i
 }
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/common/submodules/common_cells/include
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/corev_apu/register_interface/include
-set_property include_dirs $BLACKPARROT_INCLUDE_DIRS [get_filesets sources_1]
+
+set_property "include_dirs" "$BLACKPARROT_INCLUDE_DIRS" $file_obj
+
+puts "*************** RTL FILES ****************"
+puts $BLACKPARROT_RTL_IMPL_FILES
+puts "******************************************"
+puts "*************** INCLUDE DIRS *************"
+puts $BLACKPARROT_INCLUDE_DIRS
+puts "******************************************"
 
