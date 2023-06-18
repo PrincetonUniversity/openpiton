@@ -1,5 +1,5 @@
 proc vivado_parse_flist {flist_path} {
-    set f [exec envsubst [split [string trim [read [open $flist_path r]]] "\n"]]
+    set f [exec echo [split [string trim [read [open $flist_path r]]] "\n"] | envsubst]
     set flist [list ]
     set dir_list [list ]
     set def_list [list ]
@@ -48,14 +48,14 @@ set include_dirs {}
 set vlist            [vivado_parse_flist $BP_TOP_DIR/syn/flist.vcs]
 set vsources_list    [lindex $vlist 0]
 set vincludes_list   [lindex $vlist 1]
-lappend rtl_files    [$vsources_list]
-lappend include_dirs [$vincludes_list]
+lappend rtl_files    $vsources_list
+lappend include_dirs $vincludes_list
 
 set vlist            [vivado_parse_flist $BLACKPARROT_ROOT/Flist.blackparrot]
 set vsources_list    [lindex $vlist 0]
 set vincludes_list   [lindex $vlist 1]
-lappend rtl_files    [$vsources_list]
-lappend include_dirs [$vincludes_list]
+lappend rtl_files    $vsources_list
+lappend include_dirs $vincludes_list
 
 set BLACKPARROT_RTL_IMPL_FILES {}
 foreach v $rtl_files {
