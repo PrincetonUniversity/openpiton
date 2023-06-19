@@ -58,7 +58,6 @@ set rtl_files        [concat $rtl_files $vsources_list]
 set include_dirs     [concat $include_dirs $vincludes_list]
 
 set file_obj [get_filesets sources_1]
-set BLACKPARROT_RTL_IMPL_FILES {}
 foreach v $rtl_files {
   if {[string first bsg_mem_1rw_sync_mask_write_bit.v $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_mem/bsg_mem_1rw_sync_mask_write_bit.v
@@ -73,11 +72,10 @@ foreach v $rtl_files {
   lappend BLACKPARROT_RTL_IMPL_FILES $f
 }
 
-set BLACKPARROT_INCLUDE_DIRS {}
 foreach i $include_dirs {
     lappend BLACKPARROT_INCLUDE_DIRS $i
 }
-lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/common/submodules/common_cells/include
+lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/src/common_cells/include
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/corev_apu/register_interface/include
 
 set_property "include_dirs" "$BLACKPARROT_INCLUDE_DIRS" $file_obj

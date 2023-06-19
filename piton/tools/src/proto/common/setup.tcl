@@ -35,6 +35,13 @@ set BOARD_DIR "${DESIGN_DIR}/$BOARD"
 
 set VIVADO_VERSION [ string range [ version -short ] 0 3 ]
 source $DV_ROOT/tools/src/proto/common/rtl_setup.tcl
+
+set BLACKPARROT_RTL_IMPL_FILES {}
+set BLACKPARROT_INCLUDE_DIRS {}
+if {[info exists ::env(PITON_BLACKPARROT)]} {
+    source ${DV_ROOT}/tools/src/proto/common/blackparrot.tcl
+}
+
 source $DESIGN_DIR/design.tcl
 source $DV_ROOT/tools/src/proto/${BOARD}/board.tcl
 

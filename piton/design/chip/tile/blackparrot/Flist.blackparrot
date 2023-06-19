@@ -1,3 +1,4 @@
-+incdir+black-parrot-subsystems/openpiton/v/
-black-parrot-subsystems/openpiton/v/bp_pce.sv
-black-parrot-subsystems/openpiton/v/bp_piton_tile.sv
+$BLACKPARROT_ROOT/rtl/bp_common_piton_pkg.sv
++incdir+$BLACKPARROT_SUBSYSTEMS_DIR/openpiton/v/
+$BLACKPARROT_SUBSYSTEMS_DIR/openpiton/v/bp_pce.sv
+$BLACKPARROT_SUBSYSTEMS_DIR/openpiton/v/bp_piton_tile.sv
