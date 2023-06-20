@@ -28,7 +28,7 @@
 # Not intended to be run standalone
 #
 
-set GLOBAL_INCLUDE_DIRS "${DV_ROOT}/design/include ${DV_ROOT}/design/chipset/include ${DV_ROOT}/design/chip/tile/ariane/src/common_cells/include ${DV_ROOT}/design/chip/tile/ariane/common/local/util ${DV_ROOT}/design/chip/tile/ariane/corev_apu/register_interface/include"
+set GLOBAL_INCLUDE_DIRS "${DV_ROOT}/design/include ${DV_ROOT}/design/chipset/include ${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/include ${DV_ROOT}/design/chip/tile/ariane/common/local/util ${DV_ROOT}/design/chip/tile/ariane/corev_apu/register_interface/include"
 
 # RTL include files
 set GLOBAL_INCLUDE_FILES [list \
@@ -407,7 +407,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/core/include/axi_intf.sv"                                  \
     "${DV_ROOT}/design/chip/tile/ariane/core/fpu/src/fpnew_pkg.sv"                             \
     "${DV_ROOT}/design/chip/tile/ariane/core/include/cvxif_pkg.sv" \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/cf_math_pkg.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/cf_math_pkg.sv" \
     "${DV_ROOT}/design/chip/tile/ariane/core/cvxif_example/include/cvxif_instr_pkg.sv" \
     "${DV_ROOT}/design/chip/tile/ariane/corev_apu/rv_plic/rtl/rv_plic_reg_pkg.sv" \
     "${DV_ROOT}/design/chip/tile/ariane/common/local/util/sram.sv"                                     \
@@ -415,20 +415,20 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/common/local/util/axi_master_connect_rev.sv"                   \
     "${DV_ROOT}/design/chip/tile/ariane/common/local/util/axi_slave_connect.sv"                        \
     "${DV_ROOT}/design/chip/tile/ariane/common/local/util/axi_slave_connect_rev.sv"                    \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/rrarbiter.sv"         \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/fifo_v1.sv"           \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/deprecated/fifo_v2.sv"           \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/fifo_v3.sv"                      \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/shift_reg.sv"                    \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lfsr_8bit.sv"                    \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lfsr.sv"                         \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/lzc.sv"                          \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/exp_backoff.sv"                  \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rr_arb_tree.sv"                  \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/rstgen_bypass.sv"                \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/cdc_2phase.sv"                   \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/unread.sv"                       \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/popcount.sv"                     \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/deprecated/rrarbiter.sv"         \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/deprecated/fifo_v1.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/deprecated/fifo_v2.sv"           \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/fifo_v3.sv"                      \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/shift_reg.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lfsr_8bit.sv"                    \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lfsr.sv"                         \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/lzc.sv"                          \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/exp_backoff.sv"                  \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/rr_arb_tree.sv"                  \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/rstgen_bypass.sv"                \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/cdc_2phase.sv"                   \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/unread.sv"                       \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/popcount.sv"                     \
     "${DV_ROOT}/design/chip/tile/ariane/corev_apu/axi_mem_if/src/axi2mem.sv"                                \
     "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/fpga/tc_clk_xilinx.sv"         \
     "${DV_ROOT}/design/chip/tile/ariane/corev_apu/src/tech_cells_generic/src/fpga/tc_sram_xilinx.sv"        \
@@ -538,8 +538,8 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/ariane/core/pmp/src/pmp_entry.sv" \                                \
     "${DV_ROOT}/design/chip/tile/ariane/core/cvxif_example/cvxif_example_coprocessor.sv" \
     "${DV_ROOT}/design/chip/tile/ariane/core/cvxif_example/instr_decoder.sv" \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/counter.sv" \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/src/delta_counter.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/counter.sv" \
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/src/delta_counter.sv" \
     "${DV_ROOT}/design/chip/tile/ariane/core/cvxif_fu.sv" \
 ]
 
@@ -742,7 +742,7 @@ set CHIPSET_INCLUDE_FILES [list \
     "${DV_ROOT}/design/chipset/include/uart16550_define.vh" \
     "${DV_ROOT}/design/chipset/include/chipset_define.vh" \
     "${DV_ROOT}/design/chipset/noc_axi4_bridge/rtl/noc_axi4_bridge_define.vh" \
-    "${DV_ROOT}/design/chip/tile/ariane/src/common_cells/include/common_cells/registers.svh"
+    "${DV_ROOT}/design/chip/tile/ariane/common/submodules/common_cells/include/common_cells/registers.svh"
 ]
 
 set CHIPSET_IP_FILE_PREFIXES [list \
