@@ -72,15 +72,12 @@ foreach v $rtl_files {
   lappend BLACKPARROT_RTL_IMPL_FILES $f
 }
 add_files -quiet -norecurse -fileset $file_obj $BLACKPARROT_RTL_IMPL_FILES
-set_property -name "file_type" -value "SystemVerilog" -objects [get_files $BLACKPARROT_RTL_IMPL_FILES]
 
 foreach i $include_dirs {
     lappend BLACKPARROT_INCLUDE_DIRS $i
 }
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/src/common_cells/include
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/corev_apu/register_interface/include
-
-##set_property "include_dirs" "$BLACKPARROT_INCLUDE_DIRS" $file_obj
 
 puts "*************** RTL FILES ****************"
 puts $BLACKPARROT_RTL_IMPL_FILES
