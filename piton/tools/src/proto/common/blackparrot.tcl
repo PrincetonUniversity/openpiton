@@ -63,14 +63,16 @@ foreach v $rtl_files {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_mem/bsg_mem_1rw_sync_mask_write_bit.v
   } elseif {[string first bsg_mul_add_unsigned.v $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_misc/bsg_mul_add_unsigned.v
+  } elseif {[string first bp_common_pkg.sv $v] != -1} {
+    continue
   } else {
     set f $v
   }
 
-  add_files -quiet -norecurse -fileset $file_obj $f
-  set_property -name "file_type" -value "SystemVerilog" -objects [get_files $f]
   lappend BLACKPARROT_RTL_IMPL_FILES $f
 }
+add_files -quiet -norecurse -fileset $file_obj $BLACKPARROT_RTL_IMPL_FILES
+set_property -name "file_type" -value "SystemVerilog" -objects [get_files $BLACKPARROT_RTL_IMPL_FILES]
 
 foreach i $include_dirs {
     lappend BLACKPARROT_INCLUDE_DIRS $i
@@ -78,7 +80,7 @@ foreach i $include_dirs {
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/src/common_cells/include
 lappend BLACKPARROT_INCLUDE_DIRS $ARIANE_ROOT/corev_apu/register_interface/include
 
-set_property "include_dirs" "$BLACKPARROT_INCLUDE_DIRS" $file_obj
+##set_property "include_dirs" "$BLACKPARROT_INCLUDE_DIRS" $file_obj
 
 puts "*************** RTL FILES ****************"
 puts $BLACKPARROT_RTL_IMPL_FILES
