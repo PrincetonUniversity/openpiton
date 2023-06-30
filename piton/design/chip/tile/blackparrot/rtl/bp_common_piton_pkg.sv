@@ -29,7 +29,7 @@ package bp_common_pkg;
       ,icache_assoc         : 4
       ,icache_block_width   : 256
       ,icache_fill_width    : 256
-      ,dcache_features      : (1 << e_cfg_enabled) | (1 << e_cfg_coherent) | (1 << e_cfg_lr_sc)
+      ,dcache_features      : (1 << e_cfg_enabled) | (1 << e_cfg_coherent)
       ,dcache_sets          : 256
       ,dcache_assoc         : 2
       ,dcache_block_width   : 128

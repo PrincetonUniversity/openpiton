@@ -1270,7 +1270,8 @@ sub pre_build
   &gen_flist ();
 
 if ($opt{blackparrot}) {
-    system("sed -i 's#.*bp_common_pkg.sv#$ENV{DV_ROOT}/design/chip/tile/blackparrot/rtl/bp_common_piton_pkg.sv#g' flist");
+    system("sed -i '/.*bp_common_piton_pkg.sv/d' flist");
+    system("sed -i 's#.*bp_common_pkg.sv#$ENV{BLACKPARROT_ROOT}/rtl/bp_common_piton_pkg.sv#g' flist");
   }
 
   system("cp -f flist $cur_dir");
