@@ -136,6 +136,8 @@
     `define PITON_FPGA_RST_ACT_HIGH
 `elsif VCU118_BOARD
     `define PITON_FPGA_RST_ACT_HIGH
+`elsif ALVEO_BOARD
+    `define PITON_FPGA_RST_ACT_HIGH
 `endif
 
 `ifdef XUPP3R_BOARD

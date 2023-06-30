@@ -31,7 +31,7 @@
 
 module uart_top (
     input                                   axi_clk,
-    input                                   rst_n,
+(*mark_debug="TRUE"*)    input                                   rst_n,
    
     output                                  uart_tx,
     input                                   uart_rx,
@@ -114,23 +114,23 @@ wire  uart16550_rx;
 `endif
 
 // UART mux <-> UART
-wire  [12:0]      s_axi_awaddr;
-wire              s_axi_awvalid;
-wire              s_axi_awready;
-wire  [31:0]      s_axi_wdata;
-wire  [3:0 ]      s_axi_wstrb;
-wire              s_axi_wvalid;
-wire              s_axi_wready;
-wire  [1:0]       s_axi_bresp;
-wire              s_axi_bvalid;
-wire              s_axi_bready;
-wire  [12:0]      s_axi_araddr;
-wire              s_axi_arvalid;
-wire              s_axi_arready;
-wire  [31:0]      s_axi_rdata;
-wire  [1:0]       s_axi_rresp;
-wire              s_axi_rvalid;
-wire              s_axi_rready;
+(*mark_debug="TRUE"*)wire  [12:0]      s_axi_awaddr;
+(*mark_debug="TRUE"*)wire              s_axi_awvalid;
+(*mark_debug="TRUE"*)wire              s_axi_awready;
+(*mark_debug="TRUE"*)wire  [31:0]      s_axi_wdata;
+(*mark_debug="TRUE"*)wire  [3:0 ]      s_axi_wstrb;
+(*mark_debug="TRUE"*)wire              s_axi_wvalid;
+(*mark_debug="TRUE"*)wire              s_axi_wready;
+(*mark_debug="TRUE"*)wire  [1:0]       s_axi_bresp;
+(*mark_debug="TRUE"*)wire              s_axi_bvalid;
+(*mark_debug="TRUE"*)wire              s_axi_bready;
+(*mark_debug="TRUE"*)wire  [12:0]      s_axi_araddr;
+(*mark_debug="TRUE"*)wire              s_axi_arvalid;
+(*mark_debug="TRUE"*)wire              s_axi_arready;
+(*mark_debug="TRUE"*)wire  [31:0]      s_axi_rdata;
+(*mark_debug="TRUE"*)wire  [1:0]       s_axi_rresp;
+(*mark_debug="TRUE"*)wire              s_axi_rvalid;
+(*mark_debug="TRUE"*)wire              s_axi_rready;
 
 wire              init_done;
 wire              atg_init_done;
