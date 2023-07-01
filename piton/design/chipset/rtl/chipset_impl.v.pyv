@@ -1182,7 +1182,11 @@ fake_uart fake_uart (
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
     wire ariane_boot_sel;
 `ifdef PITON_FPGA_SYNTH
-  assign ariane_boot_sel   = uart_boot_en;
+  `ifdef ALVEO_BOARD
+    assign ariane_boot_sel   = 1'b1;
+  `else
+    assign ariane_boot_sel   = uart_boot_en;
+  `endif
 `else
   `ifdef ARIANE_SIM_LINUX_BOOT
     assign ariane_boot_sel = 1'b0;
