@@ -40,8 +40,8 @@ file delete -force ${tmp_build_dir}/${tmp_prj}
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project -force ${tmp_build_dir}/${tmp_prj} -part xcu200-fsgd2104-2-e
-   set_property BOARD_PART xilinx.com:au200:part0:1.3 [current_project]
+   create_project -force ${tmp_build_dir}/${tmp_prj} -part $FPGA_PART
+   set_property BOARD_PART $BOARD_PART [current_project]
 }
 
 
