@@ -1,10 +1,6 @@
 
 ################################################################
 # This is a generated script based on design: meep_shell
-#
-# Though there are limitations about the generated script,
-# the main purpose of this utility is to make learning
-# IP Integrator Tcl commands easier.
 ################################################################
 
 namespace eval _tcl {
@@ -22,17 +18,10 @@ set script_folder [_tcl::get_script_folder]
 # START
 ################################################################
 
-# To test this script, run the following commands from Vivado Tcl console:
-# source meep_shell_script.tcl
-
-# If there is no project opened, this script will create a
-# project, but make sure you do not have an existing project
-# <./tmp_proj/project_1.xpr> in the current working folder.
-
 set DV_ROOT $::env(DV_ROOT)
 set PITON_ROOT $::env(PITON_ROOT)
 
-set tmp_build_dir ${PITON_ROOT}/build/alveou200/bd_alveo
+set tmp_build_dir ${PITON_ROOT}/build/${BOARD}/bd_alveo
 set tmp_prj "create_bd"
 
 file delete -force ${tmp_build_dir}/${tmp_prj}
@@ -48,10 +37,6 @@ if { $list_projs eq "" } {
 # CHANGE DESIGN NAME HERE
 variable design_name
 set design_name meep_shell
-
-# If you do not already have an existing IP Integrator design open,
-# you can create a design using the following command:
-#    create_bd_design $design_name
 
 # Creating design if needed
 set errMsg ""
