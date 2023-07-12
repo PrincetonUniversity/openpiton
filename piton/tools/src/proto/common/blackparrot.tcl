@@ -59,11 +59,13 @@ set include_dirs     [concat $include_dirs $vincludes_list]
 
 set file_obj [get_filesets sources_1]
 foreach v $rtl_files {
-  if {[string first bsg_mem_1rw_sync_mask_write_bit.v $v] != -1} {
+  if {[string first bsg_mem_1rw_sync_mask_write_bit_synth $v] != -1} {
+    continue
+  } elseif {[string first bsg_mem_1rw_sync_mask_write_bit $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_mem/bsg_mem_1rw_sync_mask_write_bit.v
-  } elseif {[string first bsg_mul_add_unsigned.v $v] != -1} {
+  } elseif {[string first bsg_mul_add_unsigned $v] != -1} {
     set f $BASEJUMP_STL_DIR/hard/ultrascale_plus/bsg_misc/bsg_mul_add_unsigned.v
-  } elseif {[string first bp_common_pkg.sv $v] != -1} {
+  } elseif {[string first bp_common_pkg $v] != -1} {
     continue
   } else {
     set f $v
