@@ -1,0 +1,18 @@
+CAPI=2:
+name: openpiton::sparc_common:0.1
+description: Top-level OST1 common files
+
+filesets:
+    rtl:
+       files:
+           - m1.beh.v
+           - u1.beh.v
+           - mul64.v
+           - swrvr_dlib.v  
+           - cluster_header.v
+           - synchronizer_asr.v
+       file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]

@@ -21,8 +21,6 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////
 
-`ifndef USE_TEST_TOP // don't compile if user wants to use deprecated TOPs
-`include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
 `include "ifu.tmp.h"
@@ -567,5 +565,3 @@ system system(
         end*/
 
 endmodule // cmp_top
-
-`endif

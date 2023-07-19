@@ -6,16 +6,11 @@ filesets:
     rtl:
         files:
             - l15.v
-            - l15_cpxencoder.v
-            - l15_picoencoder.v
             - l15_wrap.v
             - noc1encoder.v
             - noc2decoder.v
             - noc3buffer.v
             - noc3encoder.v
-            - pcx_buffer.v
-            - pcx_decoder.v
-            - pico_decoder.v
             - simplenocbuffer.v
         depend:
             - openpiton::piton_include

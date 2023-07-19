@@ -32,6 +32,9 @@
 set DV_ROOT $::env(DV_ROOT)
 source $DV_ROOT/tools/src/proto/vivado/setup.tcl
 
+set OST1_ROOT $::env(OST1_ROOT)
+set ARIANE_ROOT $::env(ARIANE_ROOT)
+
 # Get additional protosyn runtime defines
 source additional_defines.tcl
 set ALL_VERILOG_MACROS [concat $ALL_DEFAULT_VERILOG_MACROS $PROTOSYN_RUNTIME_DEFINES]

@@ -43,3 +43,6 @@ sram_wrappers/sram_l1d_tag.v
 
 //lsu+tlu
 -v bw_r_rf32x80.v
+
+//fpu+flu
+bw_r_rf16x160.v

@@ -177,7 +177,7 @@ append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_out_dp.v
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_rptr_macros.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_rptr_groups.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/fpu/rtl/fpu_rptr_min_global.v "
-append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/common/srams/rtl/bw_r_rf16x160.v "
+append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/bw_r_rf16x160.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/common/rtl/mul64.v "
 
 # L1.5

@@ -4,3 +4,7 @@
 [submodule "aws"]
 	path = piton/design/aws
 	url = https://github.com/PrincetonUniversity/openpiton-aws.git
+[submodule "piton/verif/diag/sparcv9"]
+    path = piton/verif/diag/sparcv9
+    url = git@github.com:openpiton/sparcv9-ost1-tests.git
+    update = none

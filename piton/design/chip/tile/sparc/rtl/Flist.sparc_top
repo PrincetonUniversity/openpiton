@@ -19,8 +19,14 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 // 
 // ========== Copyright Header End ============================================
+sparc_tri.v
 sparc_core.v
 sparc.v
+cpx_arbitrator.v
+ccx_l15_transducer.v
+l15_cpxencoder.v
+pcx_buffer.v
+pcx_decoder.v
 // bw_clk_cl_sparc_cmp.v
 cpx_spc_rpt.v
 cpx_spc_buf.v

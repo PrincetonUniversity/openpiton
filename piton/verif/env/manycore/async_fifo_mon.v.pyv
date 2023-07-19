@@ -40,7 +40,6 @@
 
 
 
-`include "sys.h"
 `include "iop.h"
 `include "define.tmp.h"
 `include "cross_module.tmp.h"

@@ -1,0 +1,36 @@
+CAPI=2:
+name: openpiton::sparc_include:0.1
+description: SPARC Core include files
+
+filesets:
+    rtl:
+        files:
+            - tlu.h: {is_include_file: true}
+            - iop.h: {is_include_file: true}
+        depend:
+            - openpiton::preprocessor
+        file_type: verilogSource-2001
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_core]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [sparc_core]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
+
+generate:
+    pyhp_preprocess:
+        generator: pyhp_preprocess_gen
+        parameters:
+            process_me : [[ifu.h.pyv, ifu.tmp.h]]

@@ -21,7 +21,6 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////
 
-`include "sys.h"
 `include "iop.h"
 `include "define.tmp.h"
 `include "cross_module.tmp.h"
@@ -489,37 +488,35 @@ begin
     begin
         cpx = 0;
         case(`L15_PIPE0.l15_cpxencoder_returntype)
-            `LOAD_RET:
+            `CPX_RESTYPE_LOAD:
                 cpx = "LOAD_RET";
-            `INV_RET:
+            `CPX_RESTYPE_INVAL:
                 cpx = "INV_RET";
-            `ST_ACK:
+            `CPX_RESTYPE_STORE_ACK:
                 cpx = "ST_ACK";
-            `AT_ACK:
-                cpx = "AT_ACK";
-            `INT_RET:
+            `CPX_RESTYPE_INTERRUPT:
                 cpx = "INT_RET";
-            `TEST_RET:
+            `CPX_RESTYPE_TEST_RET:
                 cpx = "TEST_RET";
-            `FP_RET:
+            `CPX_RESTYPE_FP:
                 cpx = "FP_RET";
-            `IFILL_RET:
+            `CPX_RESTYPE_IFILL1:
                 cpx = "IFILL_RET";
-            `EVICT_REQ:
+            `CPX_RESTYPE_INVAL:
                 cpx = "EVICT_REQ";
-            `ERR_RET:
+            `CPX_RESTYPE_ERR_RET:
                 cpx = "ERR_RET";
-            `STRLOAD_RET:
+            `CPX_RESTYPE_STREAM_LOAD:
                 cpx = "STRLOAD_RET";
-            `STRST_ACK:
+            `CPX_RESTYPE_STREAM_STORE_ACK:
                 cpx = "STRST_ACK";
-            `FWD_RQ_RET:
+            `CPX_RESTYPE_FWD_REQ:
                 cpx = "FWD_RQ_RET";
-            `FWD_RPY_RET:
+            `CPX_RESTYPE_FWD_REPLY:
                 cpx = "FWD_RPY_RET";
-            `RSVD_RET:
+            `CPX_RESTYPE_RSVD_RET:
                 cpx = "RSVD_RET";
-            4'b1110:
+            `CPX_RESTYPE_ATOMIC_RES:
                 cpx = "ATOMIC_ACK";
             default:
                 cpx = "CPX_UNKNOWN";

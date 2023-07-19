@@ -6,7 +6,6 @@ filesets:
     rtl:
         depend:
             - openpiton::piton_tile_common
-            - openpiton::piton_tile_common_srams
             - openpiton::piton_include
             - openpiton::sparc_srams
             - openpiton::sparc_ifu

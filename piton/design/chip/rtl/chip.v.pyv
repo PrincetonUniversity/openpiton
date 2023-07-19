@@ -20,8 +20,6 @@
 //
 // ========== Copyright Header End ============================================
 
-`ifndef USE_TEST_TOP // useless for older TOPs
-
 `include "define.tmp.h"
 `include "piton_system.vh"
 `include "jtag.vh"
@@ -1181,5 +1179,3 @@ module chip(
             # print "`endif"
 %>
 endmodule
-
-`endif

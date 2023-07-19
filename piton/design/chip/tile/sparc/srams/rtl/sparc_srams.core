@@ -15,6 +15,7 @@ filesets:
             - bw_r_rf32x152b.v
             - sram_l1d_val.v
             - bw_r_rf32x80.v
+            - bw_r_rf16x160.v
         file_type: verilogSource-2001
 
 targets:

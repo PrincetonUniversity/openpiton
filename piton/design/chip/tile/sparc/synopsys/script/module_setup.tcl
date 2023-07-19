@@ -271,7 +271,7 @@ append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_l1d_val.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/bw_r_rf32x80.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/bw_r_rf32x152b.v "
-append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/common/srams/rtl/bw_r_rf16x160.v "
+append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/bw_r_rf16x160.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/FFU_SRAM_WRAPPER_HERE.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/L1I_DATA_SRAM_WRAPPER_HERE.v "
 append RTL_SOURCE_FILES        "${DV_ROOT}/design/chip/tile/sparc/srams/rtl/sram_wrappers/L1D_TAG_SRAM_WRAPPER_HERE.v"

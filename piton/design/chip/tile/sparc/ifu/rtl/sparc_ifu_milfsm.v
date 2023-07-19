@@ -254,6 +254,10 @@ module sparc_ifu_milfsm(/*AUTOARG*/
 		     // 0in <fire -message "MILSTATE, Error: SPARC/IFU/MILFSM: unknown state!"
 `ifdef DEFINE_0IN
 `else
+
+// This define was in iop.h but this is the only place it is used
+`define CMP_CLK_PERIOD   1333
+
                if ($time > (4* `CMP_CLK_PERIOD))
                  begin
 					$display ("MILSTATE", 
