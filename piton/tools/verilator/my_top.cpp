@@ -37,6 +37,9 @@ Vcmp_top* top;
 #ifdef VERILATOR_VCD
 VerilatedVcdC* tfp;
 #endif
+
+extern "C" void init_jbus_model_call(char *str, int oram);
+
 // This is a 64-bit integer to reduce wrap over issues and
 // // allow modulus. You can also use a double, if you wish.
 double sc_time_stamp () { // Called by $time in Verilog
