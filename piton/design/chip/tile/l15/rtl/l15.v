@@ -85,6 +85,7 @@ module l15 (
     output [63:0]                           l15_transducer_data_3,
     output                                  l15_transducer_inval_icache_all_way,
     output                                  l15_transducer_inval_dcache_all_way,
+    output [`L15_PADDR_MASK]                l15_transducer_address,
     output [15:4]                           l15_transducer_inval_address_15_4,
     output                                  l15_transducer_cross_invalidate,
     output [1:0]                            l15_transducer_cross_invalidate_way,
@@ -486,6 +487,7 @@ wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_readreq_mshrid_s1;
 wire [`L15_CONTROL_WIDTH-1:0] mshr_pipe_readres_control_s1;
 wire [`PACKET_HOME_ID_WIDTH-1:0] mshr_pipe_readres_homeid_s1;
 wire [(`L15_NUM_MSHRID_PER_THREAD*`L15_NUM_THREADS)-1:0] mshr_pipe_vals_s1;
+wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ifill_address;
 wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ld_address;
 wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address;
 wire [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1;
@@ -522,6 +524,7 @@ l15_mshr mshr(
     .mshr_pipe_readres_control_s1(mshr_pipe_readres_control_s1),
     .mshr_pipe_readres_homeid_s1(mshr_pipe_readres_homeid_s1),
     .mshr_pipe_vals_s1(mshr_pipe_vals_s1),
+    .mshr_pipe_ifill_address(mshr_pipe_ifill_address),
     .mshr_pipe_ld_address(mshr_pipe_ld_address),
     .mshr_pipe_st_address(mshr_pipe_st_address),
     .mshr_pipe_st_way_s1(mshr_pipe_st_way_s1),
@@ -751,6 +754,7 @@ l15_pipeline pipeline(
     .l15_cpxencoder_data_3               (l15_transducer_data_3),
     .l15_cpxencoder_inval_icache_all_way (l15_transducer_inval_icache_all_way),
     .l15_cpxencoder_inval_dcache_all_way (l15_transducer_inval_dcache_all_way),
+    .l15_cpxencoder_address              (l15_transducer_address),
     .l15_cpxencoder_inval_address_15_4   (l15_transducer_inval_address_15_4),
     .l15_cpxencoder_cross_invalidate     (l15_transducer_cross_invalidate),
     .l15_cpxencoder_cross_invalidate_way (l15_transducer_cross_invalidate_way),
@@ -834,6 +838,7 @@ l15_pipeline pipeline(
     .mshr_pipe_readres_control_s1(mshr_pipe_readres_control_s1),
     .mshr_pipe_readres_homeid_s1(mshr_pipe_readres_homeid_s1),
     .mshr_pipe_vals_s1(mshr_pipe_vals_s1),
+    .mshr_pipe_ifill_address(mshr_pipe_ifill_address),
     .mshr_pipe_ld_address(mshr_pipe_ld_address),
     .mshr_pipe_st_address(mshr_pipe_st_address),
     .mshr_pipe_st_way_s1(mshr_pipe_st_way_s1),

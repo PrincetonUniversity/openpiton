@@ -366,7 +366,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define L15_RTRN_WIDTH (16 + 4*64 + (15 - 4 + 1) + \
                         `CPX_RESTYPE_WIDTH  +      \
                         `L15_THREADID_WIDTH +      \
-                        2 * `L15_WAY_WIDTH)
+                        2 * `L15_WAY_WIDTH + `L15_PADDR_WIDTH)
 
 `define L15_FETCH_STATE_WIDTH 3
 `define L15_FETCH_STATE_NORMAL 3'd0

@@ -66,6 +66,7 @@ module l15_mshr(
 
     // s1/2/3 (address conflict checking)
     output reg [(`L15_NUM_MSHRID_PER_THREAD*`L15_NUM_THREADS)-1:0] mshr_pipe_vals_s1,
+    output reg [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ifill_address,
     output reg [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ld_address,
     output reg [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address,
     output reg [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1,
@@ -118,7 +119,7 @@ reg [`L15_CONTROL_WIDTH-1:0] ld_control [0:`L15_NUM_THREADS-1];
 reg [`L15_NUM_THREADS-1:0] ld_val;
 reg [`PACKET_HOME_ID_WIDTH-1:0] ld_homeid [0:`L15_NUM_THREADS-1];
 
-// reg [`L15_PADDR_HI:0] ifill_address [0:`L15_NUM_THREADS-1];
+reg [`L15_PADDR_HI:0] ifill_address [0:`L15_NUM_THREADS-1];
 reg [`L15_CONTROL_WIDTH-1:0] ifill_control [0:`L15_NUM_THREADS-1];
 reg [`L15_NUM_THREADS-1:0] ifill_val;
 // reg [`PACKET_HOME_ID_WIDTH-1:0] ifill_homeid [0:`L15_NUM_THREADS-1];
@@ -156,6 +157,7 @@ end
 reg [`L15_NUM_MSHRID_PER_THREAD-1:0] tmp_vals [`L15_NUM_THREADS-1:0];
 reg [`L15_PADDR_HI:0] tmp_st_address [`L15_NUM_THREADS-1:0];
 reg [`L15_PADDR_HI:0] tmp_ld_address [`L15_NUM_THREADS-1:0];
+reg [`L15_PADDR_HI:0] tmp_ifill_address [`L15_NUM_THREADS-1:0];
 reg [2-1:0] tmp_st_way [`L15_NUM_THREADS-1:0];
 reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] tmp_st_state [`L15_NUM_THREADS-1:0];
 always @ *
@@ -169,6 +171,7 @@ begin
 
         tmp_st_address[THREADID] = st_address[THREADID];
         tmp_ld_address[THREADID] = ld_address[THREADID];
+        tmp_ifill_address[THREADID] = ifill_address[THREADID];
         tmp_st_way[THREADID] = st_way[THREADID];
         tmp_st_state[THREADID] =st_state[THREADID];
         '''
@@ -178,6 +181,7 @@ begin
             print(tt)
     %>
     mshr_pipe_vals_s1 = {tmp_vals[1], tmp_vals[0]};
+    mshr_pipe_ifill_address = {tmp_ifill_address[1], tmp_ifill_address[0]};
     mshr_pipe_ld_address = {tmp_ld_address[1], tmp_ld_address[0]};
     mshr_pipe_st_address = {tmp_st_address[1], tmp_st_address[0]};
     mshr_pipe_st_way_s1 = {tmp_st_way[1], tmp_st_way[0]};
@@ -238,7 +242,7 @@ begin
         case (mshrid_s1)
             `L15_MSHR_ID_IFILL:
             begin
-                // ifill_address[threadid_s1] <= pipe_mshr_writereq_address_s1;
+                ifill_address[threadid_s1] <= pipe_mshr_writereq_address_s1;
                 ifill_control[threadid_s1] <= pipe_mshr_writereq_control_s1;
             end
             `L15_MSHR_ID_LD:
