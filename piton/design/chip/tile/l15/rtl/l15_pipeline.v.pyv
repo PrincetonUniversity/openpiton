@@ -178,6 +178,7 @@ module l15_pipeline(
     // s1/2/3 (address conflict checking)
         // tcov: 4 mshr per thread but 1 is unused
     input wire [(`L15_NUM_MSHRID_PER_THREAD*`L15_NUM_THREADS)-1:0] mshr_pipe_vals_s1,
+    input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_ifill_address,
     input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_ld_address,
     input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address,
     input wire [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1,
@@ -212,6 +213,7 @@ module l15_pipeline(
     output reg [`L15_UNPARAM_63_0] l15_cpxencoder_data_3,
     output reg l15_cpxencoder_inval_icache_all_way,
     output reg l15_cpxencoder_inval_dcache_all_way,         // tcov: to core but not utilized, inval individually
+    output reg [`L15_PADDR_MASK] l15_cpxencoder_address,
     output reg [15:4] l15_cpxencoder_inval_address_15_4,
     output reg l15_cpxencoder_cross_invalidate,             // tcov: to core but not utilized
     output reg [`L15_UNPARAM_1_0] l15_cpxencoder_cross_invalidate_way,   // tcov: to core but not utilized
@@ -392,6 +394,7 @@ reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] mshr_st_state_array [`L15_THREAD_ARRAY_MAS
 `endif
 reg [`L15_PADDR_MASK] mshr_st_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_PADDR_MASK] mshr_ld_address_array [`L15_THREAD_ARRAY_MASK];
+reg [`L15_PADDR_MASK] mshr_ifill_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_WAY_MASK] mshr_st_way_array [`L15_THREAD_ARRAY_MASK];
 always @ *
 begin
@@ -407,12 +410,14 @@ begin
     mshr_st_state_array[0] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*1 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
     mshr_st_address_array[0] = mshr_pipe_st_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
     mshr_ld_address_array[0] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
+    mshr_ifill_address_array[0] = mshr_pipe_ifill_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
     mshr_st_way_array[0] = mshr_pipe_st_way_s1[2*1 - 1 -: 2];
 
     mshr_val_array[1] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*2 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
     mshr_st_state_array[1] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*2 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
     mshr_st_address_array[1] = mshr_pipe_st_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
     mshr_ld_address_array[1] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
+    mshr_ifill_address_array[1] = mshr_pipe_ifill_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
     mshr_st_way_array[1] = mshr_pipe_st_way_s1[2*2 - 1 -: 2];
 end
 
@@ -599,8 +604,10 @@ begin
                     else
                     if (predecode_non_cacheable_s1)
                     begin
-                        if (predecode_icache_bit_s1)
+                        if (predecode_icache_bit_s1) begin
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                            predecode_address_s1 = mshr_ifill_address_array[noc2decoder_l15_threadid];
+                        end
                         else if (predecode_dcache_load_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LD_NC;
                         else if (predecode_atomic_s1)
@@ -610,8 +617,10 @@ begin
                     end
                     else
                     begin
-                        if (predecode_icache_bit_s1)
+                        if (predecode_icache_bit_s1) begin
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                            predecode_address_s1 = mshr_ifill_address_array[noc2decoder_l15_threadid];
+                        end
                         else if (predecode_atomic_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
                             // Only Load Reserve is both Cacheable and AMO 
@@ -3877,6 +3886,7 @@ reg [`L15_UNPARAM_1_0] cpx_inval_way_s3;
 reg [`L15_CPX_SOURCE_WIDTH-1:0] cpx_data_source_s3;
 reg cpx_atomic_bit_s3;
 reg cpx_icache_inval_s3;
+
 always @ *
 begin
     cpx_req_val_s3 = 0;
@@ -4039,6 +4049,7 @@ begin
     l15_cpxencoder_atomic = 0;
     l15_cpxencoder_inval_icache_all_way = 0;
     l15_cpxencoder_inval_dcache_all_way = 0;
+    l15_cpxencoder_address = address_s3;
     l15_cpxencoder_inval_address_15_4[15:4] = 0;
     l15_cpxencoder_cross_invalidate = 0;
     l15_cpxencoder_cross_invalidate_way[`L15_UNPARAM_1_0] = 0;
