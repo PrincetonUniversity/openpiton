@@ -420,7 +420,7 @@ begin
     aia_imsic_access_flatid_s3 = l15_csm_req_address_s3[`AIA_IMSIC_FLATID_POS];
 end
 
-flat_id_to_xy lhid_to_xy (
+flat_id_to_xy lhid_to_xy_imsic (
     .flat_id(aia_imsic_access_flatid_s3[`HOME_ID_WIDTH-1:0]),
     .x_coord(aia_imsic_access_x_s3),
     .y_coord(aia_imsic_access_y_s3)

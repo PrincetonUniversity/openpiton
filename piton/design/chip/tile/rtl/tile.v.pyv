@@ -1237,7 +1237,60 @@ print(str)
     wire        imsic_s_axi_rvalid;
     wire        imsic_s_axi_rready;
 
+    ariane_axi::req_t  msi_req;
+    ariane_axi::resp_t msi_resp;
+
+    assign msi_req.aw_valid    = imsic_s_axi_awvalid;
+    assign msi_req.aw.addr     = imsic_s_axi_awaddr;
+    assign imsic_s_axi_awready = msi_resp.aw_ready;
+
+    assign msi_req.w_valid    = imsic_s_axi_wvalid;
+    assign msi_req.w.data     = imsic_s_axi_wdata;
+    assign msi_req.w.strb     = imsic_s_axi_wstrb;
+    assign imsic_s_axi_wready = msi_resp.w_ready;
+
+    assign msi_req.ar_valid    = imsic_s_axi_arvalid;
+    assign msi_req.ar.addr     = imsic_s_axi_araddr;
+    assign imsic_s_axi_arready = msi_resp.ar_ready;    
+
+    assign msi_req.r_ready    = imsic_s_axi_rready;
+    assign imsic_s_axi_rvalid = msi_resp.r_valid;     
+    assign imsic_s_axi_rdata  = msi_resp.r.data;     
+    assign imsic_s_axi_rresp  = msi_resp.r.resp;   
+
+    assign msi_req.b_ready    = imsic_s_axi_bready;
+    assign imsic_s_axi_bvalid = msi_resp.b_valid;
+    assign imsic_s_axi_bresp  = msi_resp.b.resp;
+
     // INSTANTIATE IMSIC HERE and stop driving wires above
+    imsic_top # (
+        .NR_SRC            ( 32                 ),
+        .MIN_PRIO          ( 6                  ),
+        .NR_INTP_FILES     ( 2                  ),
+        .AXI_ADDR_WIDTH    ( 32                 ),
+        .AXI_DATA_WIDTH    ( 32                 ),
+        .AXI_ID_WIDTH      ( 10                 ),
+        .axi_req_t         ( ariane_axi::req_t  ),
+        .axi_resp_t        ( ariane_axi::resp_t ),   
+    ) imsic (
+        .i_clk             ( clk   ),
+        .ni_rst            ( rst_n ),
+       
+        .i_req             ( msi_req      ),
+        .o_resp            ( msi_resp     ),
+       
+        .i_priv_lvl        (       ),
+        .i_vgein           (       ),
+        .i_imsic_addr      (       ),
+        .i_imsic_data      (       ),
+        .i_imsic_we        (       ),
+        .i_imsic_claim     (       ),
+        .o_imsic_data      (       ),
+        .o_xtopei          (       ),
+        .o_Xeip_targets    (       ),
+        .o_imsic_exception (       )
+    );
+
     noc_axilite_bridge #(
         .SLAVE_RESP_BYTEWIDTH   (4),
         .SWAP_ENDIANESS         (1)
