@@ -1215,52 +1215,52 @@ print(str)
     assign src1_merger_vr_noc1_val = 1'b0;  
     assign src1_merger_vr_noc1_dat = 64'd0;
 
-    wire [11:0] imsic_s_axi_awaddr;
-    wire        imsic_s_axi_awvalid;
-    wire        imsic_s_axi_awready;
-    
-    wire [31:0] imsic_s_axi_wdata;
-    wire [3:0]  imsic_s_axi_wstrb;
-    wire        imsic_s_axi_wvalid;
-    wire        imsic_s_axi_wready;
-    
-    wire [1:0]  imsic_s_axi_bresp;
-    wire        imsic_s_axi_bvalid;
-    wire        imsic_s_axi_bready;
-    
-    wire [11:0] imsic_s_axi_araddr;
-    wire        imsic_s_axi_arvalid;
-    wire        imsic_s_axi_arready;
-    
-    wire [31:0] imsic_s_axi_rdata;
-    wire [1:0]  imsic_s_axi_rresp;
-    wire        imsic_s_axi_rvalid;
-    wire        imsic_s_axi_rready;
-
-    ariane_axi::req_t  msi_req;
-    ariane_axi::resp_t msi_resp;
-
-    assign msi_req.aw_valid    = imsic_s_axi_awvalid;
-    assign msi_req.aw.addr     = imsic_s_axi_awaddr;
-    assign imsic_s_axi_awready = msi_resp.aw_ready;
-
-    assign msi_req.w_valid    = imsic_s_axi_wvalid;
-    assign msi_req.w.data     = imsic_s_axi_wdata;
-    assign msi_req.w.strb     = imsic_s_axi_wstrb;
-    assign imsic_s_axi_wready = msi_resp.w_ready;
-
-    assign msi_req.ar_valid    = imsic_s_axi_arvalid;
-    assign msi_req.ar.addr     = imsic_s_axi_araddr;
-    assign imsic_s_axi_arready = msi_resp.ar_ready;    
-
-    assign msi_req.r_ready    = imsic_s_axi_rready;
-    assign imsic_s_axi_rvalid = msi_resp.r_valid;     
-    assign imsic_s_axi_rdata  = msi_resp.r.data;     
-    assign imsic_s_axi_rresp  = msi_resp.r.resp;   
-
-    assign msi_req.b_ready    = imsic_s_axi_bready;
-    assign imsic_s_axi_bvalid = msi_resp.b_valid;
-    assign imsic_s_axi_bresp  = msi_resp.b.resp;
+//    wire [11:0] imsic_s_axi_awaddr;
+//    wire        imsic_s_axi_awvalid;
+//    wire        imsic_s_axi_awready;
+//    
+//    wire [31:0] imsic_s_axi_wdata;
+//    wire [3:0]  imsic_s_axi_wstrb;
+//    wire        imsic_s_axi_wvalid;
+//    wire        imsic_s_axi_wready;
+//    
+//    wire [1:0]  imsic_s_axi_bresp;
+//    wire        imsic_s_axi_bvalid;
+//    wire        imsic_s_axi_bready;
+//    
+//    wire [11:0] imsic_s_axi_araddr;
+//    wire        imsic_s_axi_arvalid;
+//    wire        imsic_s_axi_arready;
+//    
+//    wire [31:0] imsic_s_axi_rdata;
+//    wire [1:0]  imsic_s_axi_rresp;
+//    wire        imsic_s_axi_rvalid;
+//    wire        imsic_s_axi_rready;
+//
+      ariane_axi::req_t  msi_req;
+      ariane_axi::resp_t msi_resp;
+//
+//    assign msi_req.aw_valid    = imsic_s_axi_awvalid;
+//    assign msi_req.aw.addr     = imsic_s_axi_awaddr;
+//    assign imsic_s_axi_awready = msi_resp.aw_ready;
+//
+//    assign msi_req.w_valid    = imsic_s_axi_wvalid;
+//    assign msi_req.w.data     = imsic_s_axi_wdata;
+//    assign msi_req.w.strb     = imsic_s_axi_wstrb;
+//    assign imsic_s_axi_wready = msi_resp.w_ready;
+//
+//    assign msi_req.ar_valid    = imsic_s_axi_arvalid;
+//    assign msi_req.ar.addr     = imsic_s_axi_araddr;
+//    assign imsic_s_axi_arready = msi_resp.ar_ready;    
+//
+//    assign msi_req.r_ready    = imsic_s_axi_rready;
+//    assign imsic_s_axi_rvalid = msi_resp.r_valid;     
+//    assign imsic_s_axi_rdata  = msi_resp.r.data;     
+//    assign imsic_s_axi_rresp  = msi_resp.r.resp;   
+//
+//    assign msi_req.b_ready    = imsic_s_axi_bready;
+//    assign imsic_s_axi_bvalid = msi_resp.b_valid;
+//    assign imsic_s_axi_bresp  = msi_resp.b.resp;
 
     // INSTANTIATE IMSIC HERE and stop driving wires above
     imsic_top # (
@@ -1269,7 +1269,6 @@ print(str)
         .NR_INTP_FILES     ( 2                  ),
         .AXI_ADDR_WIDTH    ( 32                 ),
         .AXI_DATA_WIDTH    ( 32                 ),
-        .AXI_ID_WIDTH      ( 10                 ),
         .axi_req_t         ( ariane_axi::req_t  ),
         .axi_resp_t        ( ariane_axi::resp_t ),   
     ) imsic (
@@ -1308,31 +1307,31 @@ print(str)
     
         //axi lite signals
         //write address channel
-        .m_axi_awaddr        (imsic_s_axi_awaddr),
-        .m_axi_awvalid       (imsic_s_axi_awvalid),
-        .m_axi_awready       (imsic_s_axi_awready),
+        .m_axi_awaddr        (msi_req.aw.addr),
+        .m_axi_awvalid       (msi_req.aw_valid),
+        .m_axi_awready       (msi_resp.aw_ready),
     
         //write data channel
-        .m_axi_wdata         (imsic_s_axi_wdata),
-        .m_axi_wstrb         (imsic_s_axi_wstrb),
-        .m_axi_wvalid        (imsic_s_axi_wvalid),
-        .m_axi_wready        (imsic_s_axi_wready),
+        .m_axi_wdata         (msi_req.w.data),
+        .m_axi_wstrb         (msi_req.w.strb),
+        .m_axi_wvalid        (msi_req.w_valid),
+        .m_axi_wready        (msi_resp.w_ready),
     
         //read address channelimsic
-        .m_axi_araddr        (imsic_s_axi_araddr),
-        .m_axi_arvalid       (imsic_s_axi_arvalid),
-        .m_axi_arready       (imsic_s_axi_arready),
+        .m_axi_araddr        (msi_req.ar.addr),
+        .m_axi_arvalid       (msi_req.ar_valid),
+        .m_axi_arready       (msi_resp.ar_ready),
     
         //read data channel
-        .m_axi_rdata         (imsic_s_axi_rdata),
-        .m_axi_rresp         (imsic_s_axi_rresp),
-        .m_axi_rvalid        (imsic_s_axi_rvalid),
-        .m_axi_rready        (imsic_s_axi_rready),
+        .m_axi_rdata         (msi_resp.r.data),
+        .m_axi_rresp         (msi_resp.r.resp),
+        .m_axi_rvalid        (msi_resp.r_valid),
+        .m_axi_rready        (msi_req.r_ready),
     
         //write response channel
-        .m_axi_bresp         (imsic_s_axi_bresp),
-        .m_axi_bvalid        (imsic_s_axi_bvalid),
-        .m_axi_bready        (imsic_s_axi_bready)
+        .m_axi_bresp         (msi_resp.b.resp),
+        .m_axi_bvalid        (msi_resp.b_valid),
+        .m_axi_bready        (msi_req.b_ready)
     );
 
     //////////
