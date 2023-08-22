@@ -3886,6 +3886,7 @@ reg [`L15_UNPARAM_1_0] cpx_inval_way_s3;
 reg [`L15_CPX_SOURCE_WIDTH-1:0] cpx_data_source_s3;
 reg cpx_atomic_bit_s3;
 reg cpx_icache_inval_s3;
+reg [`L15_PADDR_MASK] cpx_inval_address_s3;
 
 always @ *
 begin
@@ -3897,6 +3898,7 @@ begin
     cpx_data_source_s3 = 0;
     cpx_atomic_bit_s3 = 0;
     cpx_icache_inval_s3 = 0;
+    cpx_inval_address_s3[`L15_PADDR_MASK] = address_s3[`L15_PADDR_MASK];
     case(cpx_operation_s3)
         `L15_CPX_GEN_ICACHE_INVALIDATION:
         begin
@@ -3913,21 +3915,22 @@ begin
         end
         `L15_CPX_GEN_INVALIDATION_IF_TAGCHECK_MES_AND_WAYMAP_VALID:
         begin
-            cpx_req_val_s3 = tagcheck_state_mes_s3 && wmt_compare_match_s3;
+            cpx_req_val_s3 = tagcheck_state_mes_s3; // && wmt_compare_match_s3;
             cpx_type_s3 = `CPX_RESTYPE_INVAL;
             cpx_invalidate_l1_s3 = 1;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
         end
         `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID:
         begin
-            cpx_req_val_s3 = lru_state_mes_s3 && wmt_compare_match_s3;
+            cpx_req_val_s3 = lru_state_mes_s3; // && wmt_compare_match_s3;
             cpx_type_s3 = `CPX_RESTYPE_INVAL;
             cpx_invalidate_l1_s3 = 1;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
+            cpx_inval_address_s3[`L15_PADDR_MASK] = lru_way_address_s3[`L15_PADDR_MASK];
         end
         `L15_CPX_GEN_INVALIDATION_IF_FLUSH_MES_AND_WAYMAP_VALID:
         begin
-            cpx_req_val_s3 = flush_state_mes_s3 && wmt_compare_match_s3;
+            cpx_req_val_s3 = flush_state_mes_s3; // && wmt_compare_match_s3;
             cpx_type_s3 = `CPX_RESTYPE_INVAL;
             cpx_invalidate_l1_s3 = 1;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
@@ -3978,7 +3981,7 @@ begin
             // third, stbuffer's L1-mapped way must be valid
 
             cpx_req_val_s3 = 1'b1;
-            cpx_invalidate_l1_s3 = wmt_compare_match_s3 && stbuf_compare_match_val_s3;
+            cpx_invalidate_l1_s3 = stbuf_compare_match_val_s3; //  && wmt_compare_match_s3 ;
             cpx_type_s3 = `CPX_RESTYPE_STORE_ACK;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
         end
@@ -3986,7 +3989,7 @@ begin
         begin
             cpx_req_val_s3 = tagcheck_state_me_s3;
             cpx_type_s3 = `CPX_RESTYPE_STORE_ACK;
-            cpx_invalidate_l1_s3 = wmt_compare_match_s3;
+            cpx_invalidate_l1_s3 = 1'b1; // wmt_compare_match_s3;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
         end
         `L15_CPX_GEN_IFILL_RESPONSE_FROM_NOC2:
@@ -4049,7 +4052,7 @@ begin
     l15_cpxencoder_atomic = 0;
     l15_cpxencoder_inval_icache_all_way = 0;
     l15_cpxencoder_inval_dcache_all_way = 0;
-    l15_cpxencoder_address = address_s3;
+    l15_cpxencoder_address = '0;
     l15_cpxencoder_inval_address_15_4[15:4] = 0;
     l15_cpxencoder_cross_invalidate = 0;
     l15_cpxencoder_cross_invalidate_way[`L15_UNPARAM_1_0] = 0;
@@ -4068,6 +4071,7 @@ begin
         l15_cpxencoder_atomic = cpx_atomic_bit_s3;
         l15_cpxencoder_inval_icache_all_way = cpx_icache_inval_s3;
         // l15_cpxencoder_inval_dcache_all_way = cpx_dcache_inval_all_s3;
+        l15_cpxencoder_address[`L15_PADDR_MASK] = cpx_inval_address_s3[`L15_PADDR_MASK];
         l15_cpxencoder_inval_address_15_4[15:4] = address_s3[15:4];
         l15_cpxencoder_cross_invalidate = 0; // Don't think we will be cross invalidating
         l15_cpxencoder_cross_invalidate_way[`L15_UNPARAM_1_0] = 2'b0;
