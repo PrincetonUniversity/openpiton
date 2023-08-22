@@ -65,6 +65,7 @@ def usage():
     print("                  nexysVideo", file=sys.stderr)
     print("                  f1", file=sys.stderr)
     print("                  alveou200", file=sys.stderr)
+    print("                  alveou250", file=sys.stderr)
     print("\n       -d, --design <design>", file=sys.stderr)
     print("              Name of design module to synthesize.  The default is 'system', which", file=sys.stderr)
     print("              synthesizes a full system with chip and chipset. See", file=sys.stderr)
@@ -515,7 +516,7 @@ def makeDefList(options):
         defines.append("PITONSYS_MEM_ZEROER")    
 
     # do not use SD controller if BRAM is used for boot or a test or if board doesn't have sd
-    if (options.test_name != None) or (options.board in {"piton_board", "xupp3r", "f1", "alveou200"}):
+    if (options.test_name != None) or (options.board in {"piton_board", "xupp3r", "f1", "alveou200", "alveou250"}):
         pass
     else:   # default option
         defines.append("PITON_FPGA_SD_BOOT")

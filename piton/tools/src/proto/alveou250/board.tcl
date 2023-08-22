@@ -27,9 +27,9 @@
 # Board specific variables
 # Not intended to be run standalone
 #
-#
-set BOARD_PART "xilinx.com:au200:part0:1.3"
-set FPGA_PART "xcu200-fsgd2104-2-e"
+
+set BOARD_PART "xilinx.com:au250:part0:1.3"
+set FPGA_PART "xcu250-figd2104-2L-e"
 set VIVADO_FLOW_PERF_OPT 0
 set BOARD_DEFAULT_VERILOG_MACROS "ALVEO_BOARD"
 
@@ -39,7 +39,7 @@ set BOARD_DEFAULT_VERILOG_MACROS "ALVEO_BOARD"
 source $DV_ROOT/tools/src/proto/${BOARD}/meep_shell.tcl
 
 # Grab the file from where the above tcl script has placed it
-set DESIGN_BD_FILES [list $DV_ROOT/design/chipset/xilinx/alveou200/meep_shell/meep_shell]
+set DESIGN_BD_FILES [list $DV_ROOT/design/chipset/xilinx/alveou250/meep_shell/meep_shell]
 
 
 
