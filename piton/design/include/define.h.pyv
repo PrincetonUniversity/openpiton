@@ -576,6 +576,7 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define SPARC_TILE       0
 `define PICORV32_TILE    1
 `define ARIANE_RV64_TILE 2
+`define BLACKPARROT_RV64_TILE 3
 
 `endif
 

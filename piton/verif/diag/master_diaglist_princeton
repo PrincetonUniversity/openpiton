@@ -86,6 +86,304 @@ pico-amoxor     amoxor_w.S
 </cmp_default>
 </pico_tile1>
 
+<blackparrot_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -blackparrot>
+<cmp_default name=default>
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_asm_tests_p>
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled>
+        blackparrot-rv64ui-p-add       rv64ui-p-add.S
+        blackparrot-rv64ui-p-addi      rv64ui-p-addi.S
+        blackparrot-rv64ui-p-slli      rv64ui-p-slli.S
+        blackparrot-rv64ui-p-addiw     rv64ui-p-addiw.S
+        blackparrot-rv64ui-p-addw      rv64ui-p-addw.S
+        blackparrot-rv64ui-p-and       rv64ui-p-and.S
+        blackparrot-rv64ui-p-auipc     rv64ui-p-auipc.S
+        blackparrot-rv64ui-p-beq       rv64ui-p-beq.S
+        blackparrot-rv64ui-p-bge       rv64ui-p-bge.S
+        blackparrot-rv64ui-p-bgeu      rv64ui-p-bgeu.S
+        blackparrot-rv64ui-p-andi      rv64ui-p-andi.S
+        blackparrot-rv64ui-p-blt       rv64ui-p-blt.S
+        blackparrot-rv64ui-p-bltu      rv64ui-p-bltu.S
+        blackparrot-rv64ui-p-bne       rv64ui-p-bne.S
+        // blackparrot-rv64ui-p-simple    rv64ui-p-simple.S
+        blackparrot-rv64ui-p-jal       rv64ui-p-jal.S
+        blackparrot-rv64ui-p-jalr      rv64ui-p-jalr.S
+        blackparrot-rv64ui-p-or        rv64ui-p-or.S
+        blackparrot-rv64ui-p-ori       rv64ui-p-ori.S
+        blackparrot-rv64ui-p-sub       rv64ui-p-sub.S
+        blackparrot-rv64ui-p-subw      rv64ui-p-subw.S
+        blackparrot-rv64ui-p-xor       rv64ui-p-xor.S
+        blackparrot-rv64ui-p-xori      rv64ui-p-xori.S
+        blackparrot-rv64ui-p-slliw     rv64ui-p-slliw.S
+        blackparrot-rv64ui-p-sll       rv64ui-p-sll.S
+        blackparrot-rv64ui-p-sllw      rv64ui-p-sllw.S
+        blackparrot-rv64ui-p-slt       rv64ui-p-slt.S
+        blackparrot-rv64ui-p-slti      rv64ui-p-slti.S
+        blackparrot-rv64ui-p-sltiu     rv64ui-p-sltiu.S
+        blackparrot-rv64ui-p-sltu      rv64ui-p-sltu.S
+        blackparrot-rv64ui-p-sra       rv64ui-p-sra.S
+        blackparrot-rv64ui-p-srai      rv64ui-p-srai.S
+        blackparrot-rv64ui-p-sraiw     rv64ui-p-sraiw.S
+        blackparrot-rv64ui-p-sraw      rv64ui-p-sraw.S
+        blackparrot-rv64ui-p-srl       rv64ui-p-srl.S
+        blackparrot-rv64ui-p-srli      rv64ui-p-srli.S
+        blackparrot-rv64ui-p-srliw     rv64ui-p-srliw.S
+        blackparrot-rv64ui-p-srlw      rv64ui-p-srlw.S
+        blackparrot-rv64ui-p-lb        rv64ui-p-lb.S
+        blackparrot-rv64ui-p-lbu       rv64ui-p-lbu.S
+        blackparrot-rv64ui-p-ld        rv64ui-p-ld.S
+        blackparrot-rv64ui-p-lh        rv64ui-p-lh.S
+        blackparrot-rv64ui-p-lhu       rv64ui-p-lhu.S
+        blackparrot-rv64ui-p-lui       rv64ui-p-lui.S
+        blackparrot-rv64ui-p-lw        rv64ui-p-lw.S
+        blackparrot-rv64ui-p-lwu       rv64ui-p-lwu.S
+        // blackparrot-rv64mi-p-csr       rv64mi-p-csr.S
+        blackparrot-rv64mi-p-mcsr      rv64mi-p-mcsr.S
+        blackparrot-rv64mi-p-illegal   rv64mi-p-illegal.S
+        blackparrot-rv64mi-p-ma_addr   rv64mi-p-ma_addr.S
+        blackparrot-rv64mi-p-ma_fetch  rv64mi-p-ma_fetch.S
+        blackparrot-rv64mi-p-sbreak    rv64mi-p-sbreak.S
+        // blackparrot-rv64mi-p-scall     rv64mi-p-scall.S
+        // blackparrot-rv64si-p-csr       rv64si-p-csr.S
+        blackparrot-rv64si-p-ma_fetch  rv64si-p-ma_fetch.S
+        blackparrot-rv64si-p-scall     rv64si-p-scall.S
+        // blackparrot-rv64si-p-wfi       rv64si-p-wfi.S
+        blackparrot-rv64si-p-sbreak    rv64si-p-sbreak.S
+        blackparrot-rv64si-p-dirty     rv64si-p-dirty.S
+        blackparrot-rv64uc-p-rvc       rv64uc-p-rvc.S
+        blackparrot-rv64um-p-mul       rv64um-p-mul.S
+        blackparrot-rv64um-p-mulh      rv64um-p-mulh.S
+        blackparrot-rv64um-p-mulhsu    rv64um-p-mulhsu.S
+        blackparrot-rv64um-p-mulhu     rv64um-p-mulhu.S
+        blackparrot-rv64um-p-div       rv64um-p-div.S
+        blackparrot-rv64um-p-divu      rv64um-p-divu.S
+        blackparrot-rv64um-p-rem       rv64um-p-rem.S
+        blackparrot-rv64um-p-remu      rv64um-p-remu.S
+        blackparrot-rv64um-p-mulw      rv64um-p-mulw.S
+        blackparrot-rv64um-p-divw      rv64um-p-divw.S
+        blackparrot-rv64um-p-divuw     rv64um-p-divuw.S
+        blackparrot-rv64um-p-remw      rv64um-p-remw.S
+        blackparrot-rv64um-p-remuw     rv64um-p-remuw.S
+        </runargs>
+    </blackparrot_tile1_asm_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_asm_tests_v>
+        // note: we have to offset the trap here since the core operates in VM
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+        blackparrot-rv64ui-v-add       rv64ui-v-add.S
+        blackparrot-rv64ui-v-addi      rv64ui-v-addi.S
+        blackparrot-rv64ui-v-addiw     rv64ui-v-addiw.S
+        blackparrot-rv64ui-v-addw      rv64ui-v-addw.S
+        blackparrot-rv64ui-v-and       rv64ui-v-and.S
+        blackparrot-rv64ui-v-auipc     rv64ui-v-auipc.S
+        blackparrot-rv64ui-v-beq       rv64ui-v-beq.S
+        blackparrot-rv64ui-v-bge       rv64ui-v-bge.S
+        blackparrot-rv64ui-v-bgeu      rv64ui-v-bgeu.S
+        blackparrot-rv64ui-v-andi      rv64ui-v-andi.S
+        blackparrot-rv64ui-v-blt       rv64ui-v-blt.S
+        blackparrot-rv64ui-v-bltu      rv64ui-v-bltu.S
+        blackparrot-rv64ui-v-bne       rv64ui-v-bne.S
+        // blackparrot-rv64ui-v-simple    rv64ui-v-simple.S
+        blackparrot-rv64ui-v-jal       rv64ui-v-jal.S
+        blackparrot-rv64ui-v-jalr      rv64ui-v-jalr.S
+        blackparrot-rv64ui-v-or        rv64ui-v-or.S
+        blackparrot-rv64ui-v-ori       rv64ui-v-ori.S
+        blackparrot-rv64ui-v-sub       rv64ui-v-sub.S
+        blackparrot-rv64ui-v-subw      rv64ui-v-subw.S
+        blackparrot-rv64ui-v-xor       rv64ui-v-xor.S
+        blackparrot-rv64ui-v-xori      rv64ui-v-xori.S
+        blackparrot-rv64ui-v-sll       rv64ui-v-sll.S
+        blackparrot-rv64ui-v-slli      rv64ui-v-slli.S
+        blackparrot-rv64ui-v-slliw     rv64ui-v-slliw.S
+        blackparrot-rv64ui-v-slt       rv64ui-v-slt.S
+        blackparrot-rv64ui-v-slti      rv64ui-v-slti.S
+        blackparrot-rv64ui-v-sltiu     rv64ui-v-sltiu.S
+        blackparrot-rv64ui-v-sltu      rv64ui-v-sltu.S
+        blackparrot-rv64ui-v-sra       rv64ui-v-sra.S
+        blackparrot-rv64ui-v-srai      rv64ui-v-srai.S
+        blackparrot-rv64ui-v-sraiw     rv64ui-v-sraiw.S
+        blackparrot-rv64ui-v-sraw      rv64ui-v-sraw.S
+        blackparrot-rv64ui-v-srl       rv64ui-v-srl.S
+        blackparrot-rv64ui-v-srli      rv64ui-v-srli.S
+        blackparrot-rv64ui-v-srliw     rv64ui-v-srliw.S
+        blackparrot-rv64ui-v-srlw      rv64ui-v-srlw.S
+        blackparrot-rv64ui-v-lb        rv64ui-v-lb.S
+        blackparrot-rv64ui-v-lbu       rv64ui-v-lbu.S
+        blackparrot-rv64ui-v-ld        rv64ui-v-ld.S
+        blackparrot-rv64ui-v-lh        rv64ui-v-lh.S
+        blackparrot-rv64ui-v-lhu       rv64ui-v-lhu.S
+        blackparrot-rv64ui-v-lui       rv64ui-v-lui.S
+        blackparrot-rv64um-v-mul       rv64um-v-mul.S
+        blackparrot-rv64um-v-mulh      rv64um-v-mulh.S
+        blackparrot-rv64um-v-mulhsu    rv64um-v-mulhsu.S
+        blackparrot-rv64um-v-mulhu     rv64um-v-mulhu.S
+        blackparrot-rv64um-v-div       rv64um-v-div.S
+        blackparrot-rv64um-v-divu      rv64um-v-divu.S
+        blackparrot-rv64um-v-rem       rv64um-v-rem.S
+        blackparrot-rv64um-v-remu      rv64um-v-remu.S
+        blackparrot-rv64um-v-mulw      rv64um-v-mulw.S
+        blackparrot-rv64um-v-divw      rv64um-v-divw.S
+        blackparrot-rv64um-v-divuw     rv64um-v-divuw.S
+        blackparrot-rv64um-v-remw      rv64um-v-remw.S
+        blackparrot-rv64um-v-remuw     rv64um-v-remuw.S
+        </runargs>
+    </blackparrot_tile1_asm_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_amo_tests_p>
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -rtl_timeout=1000000>
+        blackparrot-rv64ua-p-amoadd_d  rv64ua-p-amoadd_d.S
+        blackparrot-rv64ua-p-amoadd_w  rv64ua-p-amoadd_w.S
+        blackparrot-rv64ua-p-amoor_d   rv64ua-p-amoor_d.S
+        blackparrot-rv64ua-p-amoor_w   rv64ua-p-amoor_w.S
+        blackparrot-rv64ua-p-amoand_d  rv64ua-p-amoand_d.S
+        blackparrot-rv64ua-p-amoand_w  rv64ua-p-amoand_w.S
+        blackparrot-rv64ua-p-amoswap_d rv64ua-p-amoswap_d.S
+        blackparrot-rv64ua-p-amoswap_w rv64ua-p-amoswap_w.S
+        blackparrot-rv64ua-p-amoxor_d  rv64ua-p-amoxor_d.S
+        blackparrot-rv64ua-p-amoxor_w  rv64ua-p-amoxor_w.S
+        blackparrot-rv64ua-p-amomax_d  rv64ua-p-amomax_d.S
+        blackparrot-rv64ua-p-amomaxu_d rv64ua-p-amomaxu_d.S
+        blackparrot-rv64ua-p-amomaxu_w rv64ua-p-amomaxu_w.S
+        blackparrot-rv64ua-p-amomax_w  rv64ua-p-amomax_w.S
+        blackparrot-rv64ua-p-amomin_d  rv64ua-p-amomin_d.S
+        blackparrot-rv64ua-p-amomin_w  rv64ua-p-amomin_w.S
+        blackparrot-rv64ua-p-amominu_d rv64ua-p-amominu_d.S
+        blackparrot-rv64ua-p-amominu_w rv64ua-p-amominu_w.S
+        blackparrot-rv64ua-p-lrsc      rv64ua-p-lrsc.S
+        </runargs>
+    </blackparrot_tile1_amo_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_amo_tests_v>
+        // note: we have to offset the trap here since the core operates in VM
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+        blackparrot-rv64ua-v-amoadd_d  rv64ua-v-amoadd_d.S
+        blackparrot-rv64ua-v-amoadd_w  rv64ua-v-amoadd_w.S
+        blackparrot-rv64ua-v-amoor_d   rv64ua-v-amoor_d.S
+        blackparrot-rv64ua-v-amoor_w   rv64ua-v-amoor_w.S
+        blackparrot-rv64ua-v-amoand_d  rv64ua-v-amoand_d.S
+        blackparrot-rv64ua-v-amoand_w  rv64ua-v-amoand_w.S
+        blackparrot-rv64ua-v-amoswap_d rv64ua-v-amoswap_d.S
+        blackparrot-rv64ua-v-amoswap_w rv64ua-v-amoswap_w.S
+        blackparrot-rv64ua-v-amoxor_d  rv64ua-v-amoxor_d.S
+        blackparrot-rv64ua-v-amoxor_w  rv64ua-v-amoxor_w.S
+        blackparrot-rv64ua-v-amomax_d  rv64ua-v-amomax_d.S
+        blackparrot-rv64ua-v-amomaxu_d rv64ua-v-amomaxu_d.S
+        blackparrot-rv64ua-v-amomaxu_w rv64ua-v-amomaxu_w.S
+        blackparrot-rv64ua-v-amomax_w  rv64ua-v-amomax_w.S
+        blackparrot-rv64ua-v-amomin_d  rv64ua-v-amomin_d.S
+        blackparrot-rv64ua-v-amomin_w  rv64ua-v-amomin_w.S
+        blackparrot-rv64ua-v-amominu_d rv64ua-v-amominu_d.S
+        blackparrot-rv64ua-v-amominu_w rv64ua-v-amominu_w.S
+        blackparrot-rv64ua-v-lrsc      rv64ua-v-lrsc.S
+        </runargs>
+    </blackparrot_tile1_amo_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_fp_tests_p>
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -rtl_timeout=1000000>
+        blackparrot-rv64uf-p-fadd       rv64uf-p-fadd.S
+        blackparrot-rv64uf-p-fclass     rv64uf-p-fclass.S
+        blackparrot-rv64uf-p-fcmp       rv64uf-p-fcmp.S
+        blackparrot-rv64uf-p-fcvt       rv64uf-p-fcvt.S
+        blackparrot-rv64uf-p-fcvt_w     rv64uf-p-fcvt_w.S
+        blackparrot-rv64uf-p-fdiv       rv64uf-p-fdiv.S
+        blackparrot-rv64uf-p-fmadd      rv64uf-p-fmadd.S
+        blackparrot-rv64uf-p-fmin       rv64uf-p-fmin.S
+        blackparrot-rv64uf-p-ldst       rv64uf-p-ldst.S
+        blackparrot-rv64uf-p-move       rv64uf-p-move.S
+        blackparrot-rv64uf-p-recoding   rv64uf-p-recoding.S
+        blackparrot-rv64ud-p-fadd       rv64ud-p-fadd.S
+        blackparrot-rv64ud-p-fclass     rv64ud-p-fclass.S
+        blackparrot-rv64ud-p-fcmp       rv64ud-p-fcmp.S
+        blackparrot-rv64ud-p-fcvt       rv64ud-p-fcvt.S
+        blackparrot-rv64ud-p-fcvt_w     rv64ud-p-fcvt_w.S
+        blackparrot-rv64ud-p-fdiv       rv64ud-p-fdiv.S
+        blackparrot-rv64ud-p-fmadd      rv64ud-p-fmadd.S
+        blackparrot-rv64ud-p-fmin       rv64ud-p-fmin.S
+        blackparrot-rv64ud-p-ldst       rv64ud-p-ldst.S
+        blackparrot-rv64ud-p-move       rv64ud-p-move.S
+        blackparrot-rv64ud-p-recoding   rv64ud-p-recoding.S
+        // blackparrot-rv64ud-p-structural rv64ud-p-structural.S
+        </runargs>
+    </blackparrot_tile1_fp_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_fp_tests_v>
+        // note: we have to offset the trap here since the core operates in VM
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+        blackparrot-rv64uf-v-fadd       rv64uf-v-fadd.S
+        blackparrot-rv64uf-v-fclass     rv64uf-v-fclass.S
+        blackparrot-rv64uf-v-fcmp       rv64uf-v-fcmp.S
+        blackparrot-rv64uf-v-fcvt       rv64uf-v-fcvt.S
+        blackparrot-rv64uf-v-fcvt_w     rv64uf-v-fcvt_w.S
+        blackparrot-rv64uf-v-fdiv       rv64uf-v-fdiv.S
+        blackparrot-rv64uf-v-fmadd      rv64uf-v-fmadd.S
+        blackparrot-rv64uf-v-fmin       rv64uf-v-fmin.S
+        blackparrot-rv64uf-v-ldst       rv64uf-v-ldst.S
+        blackparrot-rv64uf-v-move       rv64uf-v-move.S
+        blackparrot-rv64uf-v-recoding   rv64uf-v-recoding.S
+        blackparrot-rv64ud-v-fadd       rv64ud-v-fadd.S
+        blackparrot-rv64ud-v-fclass     rv64ud-v-fclass.S
+        blackparrot-rv64ud-v-fcmp       rv64ud-v-fcmp.S
+        blackparrot-rv64ud-v-fcvt       rv64ud-v-fcvt.S
+        blackparrot-rv64ud-v-fcvt_w     rv64ud-v-fcvt_w.S
+        blackparrot-rv64ud-v-fdiv       rv64ud-v-fdiv.S
+        blackparrot-rv64ud-v-fmadd      rv64ud-v-fmadd.S
+        blackparrot-rv64ud-v-fmin       rv64ud-v-fmin.S
+        blackparrot-rv64ud-v-ldst       rv64ud-v-ldst.S
+        blackparrot-rv64ud-v-move       rv64ud-v-move.S
+        blackparrot-rv64ud-v-recoding   rv64ud-v-recoding.S
+        // blackparrot-rv64ud-v-structural rv64ud-v-structural.S
+        </runargs>
+    </blackparrot_tile1_fp_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <blackparrot_tile1_benchmarks>
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -precompiled -rtl_timeout=1000000>
+            blackparrot-dhrystone dhrystone.riscv
+            blackparrot-median    median.riscv
+            blackparrot-multiply  multiply.riscv
+            blackparrot-pmp       pmp.riscv
+            blackparrot-qsort     qsort.riscv
+            blackparrot-rsort     rsort.riscv
+            blackparrot-towers    towers.riscv
+            blackparrot-vvadd     vvadd.riscv
+        </runargs>
+    </blackparrot_tile1_benchmarks>
+
+    <blackparrot_tile1_simple>
+        <runargs -x_tiles=1 -y_tiles=1 -blackparrot -rtl_timeout 1000000>
+            blackparrot-hello-world  hello_world.c
+            blackparrot-accu         accu_test.c
+            blackparrot-amo-align    amo_align.c
+        </runargs>
+    </blackparrot_tile1_simple>
+
+</cmp_default>
+</blackparrot_tile1>
+
+<blackparrot_tile16 sys=manycore -x_tiles=4 -y_tiles=4 -blackparrot>
+    <cmp_default name=default>
+    <blackparrot_tile16_simple>
+        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -blackparrot -finish_mask=1111111111111111 -rtl_timeout 10000000>
+            blackparrot-hello-world-many hello_world_many.c
+        </runargs>
+    </blackparrot_tile16_simple>
+    </cmp_default>
+</blackparrot_tile16>
+
+
+
 
 <ariane_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -ariane>
 <cmp_default name=default>

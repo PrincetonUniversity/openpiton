@@ -162,6 +162,20 @@ _start:
   sll sp, sp, STKSHIFT
   add sp, sp, tp
 
+//#ifdef PITON_NOC_IPI
+  li t1, 0
+  li t2, PITON_NUMTILES
+  addi t2, t2, -1
+  beq t2, t1, _init
+  li t4, 0x9800000800
+  bne a0, t1, _init
+loop:
+  addi t1, t1, 1
+  slli t5, t1, 49
+  sd t5, 0(t4)
+  bltu t1, t2, loop
+//#endif
+
   j _init
 
   .align 2

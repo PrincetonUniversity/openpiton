@@ -4,3 +4,9 @@
 [submodule "aws"]
 	path = piton/design/aws
 	url = https://github.com/PrincetonUniversity/openpiton-aws.git
+[submodule "piton/design/chip/tile/blackparrot/black-parrot"]
+    path = piton/design/chip/tile/blackparrot/black-parrot
+    url = https://github.com/black-parrot/black-parrot.git
+[submodule "piton/design/chip/tile/blackparrot/black-parrot-subsystems"]
+	path = piton/design/chip/tile/blackparrot/black-parrot-subsystems
+	url = https://github.com/black-parrot-hdk/black-parrot-subsystems

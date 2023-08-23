@@ -211,6 +211,7 @@ module l2_pipe1_dpath(
     input wire msg_from_mshr_S4,
     input wire req_recycle_S4,
     input wire inv_fwd_pending_S4,
+    input wire msg_data_8B_amo_S4,
 
     `ifndef NO_RTL_CSM
     //input from the broadcast counter
@@ -2136,6 +2137,18 @@ begin
         msg_send_data_S4 = addr_S4[3] ? {2{data_data_ecc_S4[127:64]}} : {2{data_data_ecc_S4[63:0]}};
     end
 `endif
+    else if (atomic_read_data_en_S4 == 1 && msg_data_8B_amo_S4 == 1)
+      begin
+        msg_send_data_S4 = addr_S4[3] ? {2{data_data_ecc_S4[127:64]}} : {2{data_data_ecc_S4[63:0]}};
+      end
+    else if (atomic_read_data_en_S4 == 1 && msg_data_8B_amo_S4 == 0 && addr_S4[3] == 1)
+      begin
+        msg_send_data_S4 = !addr_S4[2] ? {4{data_data_ecc_S4[127:96]}} : {4{data_data_ecc_S4[95:64]}};
+      end
+    else if (atomic_read_data_en_S4 == 1 && msg_data_8B_amo_S4 == 0 && addr_S4[3] == 0)
+      begin
+        msg_send_data_S4 = !addr_S4[2] ? {4{data_data_ecc_S4[63:32]}} : {4{data_data_ecc_S4[31:0]}};
+      end
     else
     begin
         msg_send_data_S4 = data_data_ecc_S4;

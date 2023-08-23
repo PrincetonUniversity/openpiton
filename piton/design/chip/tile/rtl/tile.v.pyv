@@ -822,6 +822,87 @@ if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
 end
 endgenerate
 generate
+if (TILE_TYPE == `BLACKPARROT_RV64_TILE) begin : g_blackparrot_core
+    //////////////////////
+    // BlackParrot Core //
+    //////////////////////
+
+    wire bp_transducer_l15_val;
+    reg got_header_ack;
+
+    bp_piton_tile
+      proc
+      (.clk_i                               (clk_gated)
+      ,.reset_i                             (~rst_n_f)
+      ,.config_coreid_flat                  (flat_tileid)
+      ,.config_coreid_x                     (config_coreid_x)
+      ,.config_coreid_y                     (config_coreid_y)
+
+      ,.timer_irq_i                         (timer_irq_i)
+      ,.software_irq_i                      (ipi_i)
+      ,.m_external_irq_i                    (irq_i[0])
+      ,.s_external_irq_i                    (irq_i[1])
+
+      ,.transducer_l15_rqtype               (transducer_l15_rqtype)
+      ,.transducer_l15_nc                   (transducer_l15_nc)
+      ,.transducer_l15_size                 (transducer_l15_size)
+      ,.transducer_l15_val                  (bp_transducer_l15_val)
+      ,.transducer_l15_address              (transducer_l15_address)
+      ,.transducer_l15_data                 (transducer_l15_data)
+      ,.transducer_l15_l1rplway             (transducer_l15_l1rplway)
+      ,.transducer_l15_threadid             (transducer_l15_threadid)
+      ,.transducer_l15_amo_op               (transducer_l15_amo_op)
+      ,.transducer_l15_prefetch             (transducer_l15_prefetch)
+      ,.transducer_l15_invalidate_cacheline (transducer_l15_invalidate_cacheline)
+      ,.transducer_l15_blockstore           (transducer_l15_blockstore)
+      ,.transducer_l15_blockinitstore       (transducer_l15_blockinitstore)
+      ,.transducer_l15_data_next_entry      (transducer_l15_data_next_entry)
+      ,.transducer_l15_csm_data             (transducer_l15_csm_data)
+      ,.l15_transducer_ack                  (l15_transducer_ack)
+
+      ,.l15_transducer_val                  (l15_transducer_val)
+      ,.l15_transducer_returntype           (l15_transducer_returntype)
+      ,.l15_transducer_data_0               (l15_transducer_data_0)
+      ,.l15_transducer_data_1               (l15_transducer_data_1)
+      ,.l15_transducer_data_2               (l15_transducer_data_2)
+      ,.l15_transducer_data_3               (l15_transducer_data_3)
+      ,.l15_transducer_noncacheable         (l15_transducer_noncacheable)
+      ,.l15_transducer_atomic               (l15_transducer_atomic)
+      ,.l15_transducer_threadid             (l15_transducer_threadid)
+      ,.l15_transducer_inval_address_15_4   (l15_transducer_inval_address_15_4)
+      ,.l15_transducer_inval_icache_inval   (l15_transducer_inval_icache_inval)
+      ,.l15_transducer_inval_dcache_inval   (l15_transducer_inval_dcache_inval)
+      ,.l15_transducer_inval_icache_all_way (l15_transducer_inval_icache_all_way)
+      ,.l15_transducer_inval_dcache_all_way (l15_transducer_inval_dcache_all_way)
+      ,.l15_transducer_inval_way            (l15_transducer_inval_way)
+      ,.transducer_l15_req_ack              (transducer_l15_req_ack)
+      );
+    
+    // Reset the L1.5. This must be flopped 4 cycles after rst_n_f 
+    reg reset_r, reset_rr, reset_rrr, reset_rrrr;
+    always @(posedge clk_gated) begin
+      reset_r <= rst_n_f;
+      reset_rr <= reset_r;
+      reset_rrr <= reset_rr;
+      reset_rrrr <= reset_rrr;
+    end
+    assign spc_grst_l = reset_rrrr;
+
+    assign transducer_l15_val = bp_transducer_l15_val & ~got_header_ack;
+
+    always @(posedge clk_gated) begin
+      if (~rst_n_f)
+        got_header_ack <= 1'b0;
+      // TODO: Confirm if this works in all cases
+      else if (l15_transducer_header_ack & ~l15_transducer_ack)
+        got_header_ack <= 1'b1;
+      else if (l15_transducer_ack)
+        got_header_ack <= 1'b0;
+    end
+
+end
+endgenerate
+generate
 if (TILE_TYPE == `PICORV32_TILE) begin : g_picorv32_core
 `ifdef PITON_PICO
     ///////////////////

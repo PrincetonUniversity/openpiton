@@ -35,6 +35,13 @@ set BOARD_DIR "${DESIGN_DIR}/$BOARD"
 
 set VIVADO_VERSION [ string range [ version -short ] 0 3 ]
 source $DV_ROOT/tools/src/proto/common/rtl_setup.tcl
+
+set BLACKPARROT_RTL_IMPL_FILES {}
+set BLACKPARROT_INCLUDE_DIRS {}
+if {[info exists ::env(PITON_BLACKPARROT)]} {
+    source ${DV_ROOT}/tools/src/proto/common/blackparrot.tcl
+}
+
 source $DESIGN_DIR/design.tcl
 source $DV_ROOT/tools/src/proto/${BOARD}/board.tcl
 
@@ -97,9 +104,16 @@ if {[info exists ::env(PITON_ARIANE)]} {
   append ALL_DEFAULT_VERILOG_MACROS " PITON_ARIANE PITON_RV64_PLATFORM PITON_RV64_DEBUGUNIT PITON_RV64_CLINT PITON_RV64_PLIC WT_DCACHE"
 }
 
+if {[info exists ::env(PITON_BLACKPARROT)]} {
+  append ALL_DEFAULT_VERILOG_MACROS " PITON_BLACKPARROT PITON_RV64_PLATFORM PITON_RV64_DEBUGUNIT PITON_RV64_CLINT PITON_RV64_PLIC"
+}
+
 for {set k 0} {$k < $::env(PITON_NUM_TILES)} {incr k} {
   if {[info exists "::env(RTL_ARIANE$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_ARIANE$k"
+  }
+  if {[info exists "::env(RTL_BLACKPARROT$k)"]} {
+    append ALL_DEFAULT_VERILOG_MACROS " RTL_BLACKPARROT$k"
   }
   if {[info exists "::env(RTL_PICO$k)"]} {
     append ALL_DEFAULT_VERILOG_MACROS " RTL_PICO$k"
@@ -120,8 +134,8 @@ set ALL_RTL_IMPL_FILES [pyhp_preprocess ${ALL_RTL_IMPL_FILES}]
 set ALL_INCLUDE_FILES [pyhp_preprocess ${ALL_INCLUDE_FILES}]
 
 
-if  {[info exists ::env(PITON_ARIANE)]} {
-  puts "INFO: compiling DTS and bootroms for Ariane (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
+if  {[info exists ::env(PITON_RV64_PLATFORM)]} {
+  puts "INFO: compiling RV64 DTS and bootroms (MAX_HARTS=$::env(PITON_NUM_TILES), UART_FREQ=$env(CONFIG_SYS_FREQ))..."
   
   
   # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 

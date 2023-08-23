@@ -81,7 +81,11 @@ add_files -norecurse -fileset $fileset_obj $files_to_add
 foreach inc_file $ALL_INCLUDE_FILES {
     if {[file exists $inc_file]} {
         set file_obj [get_files -of_objects $fileset_obj [list "$inc_file"]]
-        set_property "file_type" "Verilog Header" $file_obj
+        #if {[file extension $inc_file] == ".svh"} {
+          set_property "file_type" "SystemVerilog Header" $file_obj
+        #} else {
+        #  set_property "file_type" "Verilog Header" $file_obj
+        #}
         set_property "is_enabled" "1" $file_obj
         set_property "is_global_include" "1" $file_obj
         set_property "library" "xil_defaultlib" $file_obj
@@ -94,11 +98,11 @@ foreach inc_file $ALL_INCLUDE_FILES {
 foreach impl_file $ALL_RTL_IMPL_FILES {
     if {[file exists $impl_file]} {
         set file_obj [get_files -of_objects $fileset_obj [list "$impl_file"]]
-        if {[file extension $impl_file] == ".sv"} {
+        #if {[file extension $impl_file] == ".sv"} {
           set_property "file_type" "SystemVerilog" $file_obj
-        } else {
-          set_property "file_type" "Verilog" $file_obj
-        }
+        #} else {
+        #  set_property "file_type" "Verilog" $file_obj
+        #}
         set_property "is_enabled" "1" $file_obj
         set_property "is_global_include" "0" $file_obj
         set_property "library" "xil_defaultlib" $file_obj
