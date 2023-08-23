@@ -246,11 +246,11 @@ module system(
         output [`DDR3_CS_WIDTH-1:0]             ddr_cs_n,
     `endif // endif NEXYSVIDEO_BOARD
     `ifdef PITONSYS_DDR4
-    `ifdef XUPP3R_OR_ALVEO
+    `ifdef PITONSYS_DDR4_PARITY
     output                                      ddr_parity,
     `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-    `endif // XUPP3R_OR_ALVEO
+    `endif // PITONSYS_DDR4_PARITY
     `else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     `endif // PITONSYS_DDR4
@@ -400,13 +400,13 @@ module system(
 `ifdef VCU118_BOARD
     // we only have 4 gpio dip switches on this board
     input  [3:0]                                sw,
-`elsif XUPP3R_OR_ALVEO
+`elsif PITONSYS_NO_SWITCH
     // no switches :(
 `else
     input  [7:0]                                sw,
 `endif
 
-`ifdef XUPP3R_BOARD
+`ifdef PITONSYS_LED_4
     output [3:0]                                leds
 `elsif ALVEO_BOARD
     output                                      hbm_cattrip
@@ -1102,7 +1102,7 @@ chipset chipset(
 `ifndef NEXYSVIDEO_BOARD
     .ddr_cs_n(ddr_cs_n),
 `endif // endif NEXYSVIDEO_BOARD
-`ifdef XUPP3R_OR_ALVEO
+`ifdef PITONSYS_DDR4_PARITY
     .ddr_parity(ddr_parity),
 `else
     .ddr_dm(ddr_dm),
@@ -1243,7 +1243,7 @@ chipset chipset(
     .btnc(btnc),
 `endif
 
-`ifndef XUPP3R_OR_ALVEO
+`ifndef PITONSYS_NO_SWITCH
     .sw(sw),
 `endif
     .leds(leds)
