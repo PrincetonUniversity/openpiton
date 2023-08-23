@@ -16,8 +16,8 @@ all: $(bootrom_img)
 %.elf: %.S linker.ld $(DTB)
 	$(GCC) -Tlinker.ld $< -nostdlib -static -Wl,--no-gc-sections -o $@
 
-#rv64_platform.dts: FORCE
-#	$(PYTHON) ${DV_ROOT}/tools/bin/riscvlib.py
+rv64_platform.dts: FORCE
+	$(PYTHON) ${DV_ROOT}/tools/bin/riscvlib.py
 
 %.dtb: %.dts
 	dtc -I dts $< -O dtb -o $@
