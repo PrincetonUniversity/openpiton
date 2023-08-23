@@ -171,8 +171,11 @@
 `endif
 
 `ifdef XUPP3R_BOARD
-    `define XUPP3R_OR_ALVEO
+    `define PITONSYS_DDR4_PARITY
+    `define PITONSYS_LED_4
+    `define PITONSYS_NO_SWITCH
 `elsif ALVEO_BOARD
-    `define XUPP3R_OR_ALVEO
+    `define PITONSYS_DDR4_PARITY
+    `define PITONSYS_NO_SWITCH
+    `define PITONSYS_LED_4
 `endif
-

@@ -164,11 +164,11 @@ module chipset_impl(
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
-`ifdef XUPP3R_OR_ALVEO
+`ifdef PITONSYS_DDR4_PARITY
     output                                      ddr_parity,
 `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-`endif // XUPP3R_OR_ALVEO
+`endif // PITONSYS_DDR4_PARITY
 `else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
@@ -791,7 +791,7 @@ credit_to_valrdy noc3_xbar_to_%s(
             .ddr_ready(ddr_ready)
         );
     `elsif ALVEO_BOARD
-        u200_shell_top u200_shell_i (
+        alveo_shell_top alveo_shell_i (
 
             // PCIe 
             .pci_express_x16_rxn(pci_express_x16_rxn),
