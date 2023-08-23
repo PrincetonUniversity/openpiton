@@ -45,7 +45,7 @@ set nRet 0
 set cur_design [current_bd_design -quiet]
 set list_cells [get_bd_cells -quiet]
 
-create_bd_design $design_name -dir $DV_ROOT/design/chipset/xilinx/alveou200
+create_bd_design $design_name -dir $DV_ROOT/design/chipset/xilinx/${BOARD}
 current_bd_design $design_name
 
 

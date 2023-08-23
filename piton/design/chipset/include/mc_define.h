@@ -106,7 +106,7 @@
     `define DDR3_BG_WIDTH           2
     `define DDR3_ODT_WIDTH          2
 `elsif ALVEO_BOARD
-    `define BOARD_MEM_SIZE_MB       8192
+    `define BOARD_MEM_SIZE_MB       16384
     `define WORDS_PER_BURST         8
     `define WORD_SIZE               8 // in bytes
     `define MIG_APP_ADDR_WIDTH      32

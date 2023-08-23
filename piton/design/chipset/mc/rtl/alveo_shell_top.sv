@@ -3,7 +3,7 @@
 
 `include "noc_axi4_bridge_define.vh"
 
-module u200_shell_top (
+module alveo_shell_top (
 
     input  logic       pcie_refclk_clk_n    ,
     input  logic       pcie_refclk_clk_p    ,
@@ -62,7 +62,7 @@ module u200_shell_top (
 	logic                                fifo_trans_rdy;
 
 	logic [`AXI4_ID_WIDTH     -1:0]     m_axi_awid;
-	(*mark_debug="TRUE"*) logic [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr;
+	logic [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr;
 	logic [`AXI4_LEN_WIDTH    -1:0]     m_axi_awlen;
 	logic [`AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize;
 	logic [`AXI4_BURST_WIDTH  -1:0]     m_axi_awburst;
@@ -72,8 +72,8 @@ module u200_shell_top (
 	logic [`AXI4_QOS_WIDTH    -1:0]     m_axi_awqos;
 	logic [`AXI4_REGION_WIDTH -1:0]     m_axi_awregion;
 	logic [`AXI4_USER_WIDTH   -1:0]     m_axi_awuser;
-	(*mark_debug="TRUE"*) logic                               m_axi_awvalid;
-	(*mark_debug="TRUE"*) logic                               m_axi_awready;
+	logic                               m_axi_awvalid;
+	logic                               m_axi_awready;
 
 	logic  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid;
 	logic  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata;
@@ -84,7 +84,7 @@ module u200_shell_top (
 	logic                               m_axi_wready;
 	
 	logic  [`AXI4_ID_WIDTH     -1:0]    m_axi_arid;
-	(*mark_debug="TRUE"*) logic  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr;
+	logic  [`AXI4_ADDR_WIDTH   -1:0]    m_axi_araddr;
 	logic  [`AXI4_LEN_WIDTH    -1:0]    m_axi_arlen;
 	logic  [`AXI4_SIZE_WIDTH   -1:0]    m_axi_arsize;
 	logic  [`AXI4_BURST_WIDTH  -1:0]    m_axi_arburst;
@@ -94,22 +94,22 @@ module u200_shell_top (
 	logic  [`AXI4_QOS_WIDTH    -1:0]    m_axi_arqos;
 	logic  [`AXI4_REGION_WIDTH -1:0]    m_axi_arregion;
 	logic  [`AXI4_USER_WIDTH   -1:0]    m_axi_aruser;
-	(*mark_debug="TRUE"*) logic                               m_axi_arvalid;
-	(*mark_debug="TRUE"*) logic                               m_axi_arready;
+	logic                               m_axi_arvalid;
+	logic                               m_axi_arready;
 	
 	logic  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid;
 	logic  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata;
 	logic  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp;
 	logic                               m_axi_rlast;
 	logic  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser;
-	(*mark_debug="TRUE"*)logic                               m_axi_rvalid;
-	(*mark_debug="TRUE"*)logic                               m_axi_rready;
+	logic                               m_axi_rvalid;
+	logic                               m_axi_rready;
 	
 	logic  [`AXI4_ID_WIDTH     -1:0]    m_axi_bid;
 	logic  [`AXI4_RESP_WIDTH   -1:0]    m_axi_bresp;
 	logic  [`AXI4_USER_WIDTH   -1:0]    m_axi_buser;
-	(*mark_debug="TRUE"*)logic                               m_axi_bvalid;
-	(*mark_debug="TRUE"*)logic                               m_axi_bready;
+	logic                               m_axi_bvalid;
+	logic                               m_axi_bready;
 
 	noc_bidir_afifo  mig_afifo  (
 		.clk_1           ( chipset_clk      ),

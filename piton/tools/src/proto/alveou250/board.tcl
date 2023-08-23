@@ -35,8 +35,10 @@ set BOARD_DEFAULT_VERILOG_MACROS "ALVEO_BOARD"
 
 # Create a block design containing PCIe and GPIO using the FPGA_PART variable
 # It will produce the "meep_shell.bd" file
-
-source $DV_ROOT/tools/src/proto/${BOARD}/meep_shell.tcl
+set BD_NAME ${DV_ROOT}/design/chipset/xilinx/${BOARD}/meep_shell/meep_shell.bd
+if { ![file exists ${BD_NAME} ]} {
+    source $DV_ROOT/tools/src/proto/${BOARD}/meep_shell.tcl
+}
 
 # Grab the file from where the above tcl script has placed it
 set DESIGN_BD_FILES [list $DV_ROOT/design/chipset/xilinx/alveou250/meep_shell/meep_shell]

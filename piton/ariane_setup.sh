@@ -78,7 +78,7 @@ export CXX=g++ CC=gcc
 
 if [ "$RISCV" ==  "" ]
 then
-  export RISCV=$HOME/riscv
+  export RISCV=$HOME/scratch/riscv_install
 fi
 export VERILATOR_ROOT=$ARIANE_ROOT/tmp/verilator-4.014/
 
