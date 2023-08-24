@@ -177,5 +177,4 @@
 `elsif ALVEO_BOARD
     `define PITONSYS_DDR4_PARITY
     `define PITONSYS_NO_SWITCH
-    `define PITONSYS_LED_4
 `endif
