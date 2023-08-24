@@ -817,13 +817,8 @@ end
 
     // Test points
     assign tp[7:0] = 8'd0;
-`elsif XUPP3R_BOARD
+`elsif PITONSYS_LED_4
     assign leds[0] = ~piton_ready_n;
-    assign leds[1] = init_calib_complete;
-    assign leds[2] = processor_offchip_noc2_valid;
-    assign leds[3] = offchip_processor_noc3_valid;
-`elsif ALVEO_BOARD
-    assign leds[0] = 1'b1;
     assign leds[1] = init_calib_complete;
     assign leds[2] = processor_offchip_noc2_valid;
     assign leds[3] = offchip_processor_noc3_valid;
