@@ -53,6 +53,18 @@ module tile #(
     input [`UCB_BUS_WIDTH-1:0]          jtag_tiles_ucb_data,
     output                              tile_jtag_ucb_val,
     output [`UCB_BUS_WIDTH-1:0]         tile_jtag_ucb_data,
+    
+    `ifdef MSI_MODE
+    output wire [`NOC_CHIPID_WIDTH-1:0] src_chipid,
+    output wire [`NOC_X_WIDTH-1:0]      src_coreid_x,
+    output wire [`NOC_Y_WIDTH-1:0]      src_coreid_y, 
+    output wire [`NOC_FBITS_WIDTH-1:0]  src_fbits,
+
+    output wire [`NOC_CHIPID_WIDTH-1:0] dst_chipid,
+    output wire [`NOC_X_WIDTH-1:0]      dst_coreid_x,
+    output wire [`NOC_Y_WIDTH-1:0]      dst_coreid_y, 
+    output wire [`NOC_FBITS_WIDTH-1:0]  dst_fbits,
+    `endif //MSI_MODE
 <%
 s = '''
     // Dynamic Network Inputs 0 (User Dynamic Network)
@@ -1262,6 +1274,18 @@ print(str)
 //    assign imsic_s_axi_bvalid = msi_resp.b_valid;
 //    assign imsic_s_axi_bresp  = msi_resp.b.resp;
 
+    `ifdef MSI_MODE
+    assign src_chipid   = processor_merger_vr_noc1_dat[`MSG_SRC_CHIPID_];
+    assign src_coreid_x = processor_merger_vr_noc1_dat[`MSG_SRC_X_];
+    assign src_coreid_y = processor_merger_vr_noc1_dat[`MSG_SRC_Y_];
+    assign src_fbits    = processor_merger_vr_noc1_dat[`MSG_SRC_FBITS_];
+
+    assign dst_chipid   = processor_merger_vr_noc1_dat[`MSG_DST_CHIPID];
+    assign dst_coreid_x = processor_merger_vr_noc1_dat[`MSG_DST_X];
+    assign dst_coreid_y = processor_merger_vr_noc1_dat[`MSG_DST_Y];
+    assign dst_fbits    = processor_merger_vr_noc1_dat[`MSG_DST_FBITS];
+    `endif // MSI_MODE
+
     // INSTANTIATE IMSIC HERE and stop driving wires above
     imsic_top # (
         .NR_SRC            ( 32                 ),
@@ -1270,7 +1294,7 @@ print(str)
         .AXI_ADDR_WIDTH    ( 32                 ),
         .AXI_DATA_WIDTH    ( 32                 ),
         .axi_req_t         ( ariane_axi::req_t  ),
-        .axi_resp_t        ( ariane_axi::resp_t ),   
+        .axi_resp_t        ( ariane_axi::resp_t )
     ) imsic (
         .i_clk             ( clk   ),
         .ni_rst            ( rst_n ),

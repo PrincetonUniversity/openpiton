@@ -580,6 +580,13 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define PICORV32_TILE    1
 `define ARIANE_RV64_TILE 2
 
+`ifdef DIRECT_MODE
+`define NR_IDCs          `PITON_NUM_TILES
+`define NR_DOMAINS       2
+`else
+`define NR_IDCs          0
+`endif
+
 `endif
 
 

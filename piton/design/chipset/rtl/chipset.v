@@ -502,6 +502,34 @@ module chipset(
 `ifdef PITON_RV64_PLIC
     // PLIC
 ,    output  [`PITON_NUM_TILES*2-1:0]                       irq_o           // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+,   output [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_o   
+`else
+,   output wire [31:0]                          msi_noc1_axi_awaddr
+,   output wire                                 msi_noc1_axi_awvalid
+,   input  wire                                 noc1_msi_axi_awready
+  
+,   output wire [31:0]                          msi_noc1_axi_wdata
+,   output wire [3:0]                           msi_noc1_axi_wstrb
+,   output wire                                 msi_noc1_axi_wvalid
+,   input  wire                                 noc1_msi_axi_wready
+  
+,   input  wire [1:0]                           noc1_msi_axi_bresp
+,   input  wire                                 noc1_msi_axi_bvalid
+,   output wire                                 msi_noc1_axi_bready
+  
+,   output wire [31:0]                          msi_noc1_axi_araddr
+,   output wire                                 msi_noc1_axi_arvalid
+,   input  wire                                 noc1_msi_axi_arready
+  
+,   input  wire [31:0]                          noc1_msi_axi_rdata
+,   input  wire [1:0]                           noc1_msi_axi_rresp
+,   input  wire                                 noc1_msi_axi_rvalid
+,   output wire                                 msi_noc1_axi_rready
+`endif // DIRECT_MODE
+
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 
@@ -1443,6 +1471,32 @@ chipset_impl_noc_power_test  chipset_impl (
     
     `ifdef PITON_RV64_PLIC
         ,.irq_o                  ( irq_o         )
+    `elsif PITON_RV64_APLIC
+    `ifdef DIRECT_MODE
+        ,.irq_o                  ( irq_o         )
+    `else
+        ,.msi_noc1_axi_awaddr    ( msi_noc1_axi_awaddr  )
+        ,.msi_noc1_axi_awvalid   ( msi_noc1_axi_awvalid )
+        ,.noc1_msi_axi_awready   ( noc1_msi_axi_awready )
+        
+        ,.msi_noc1_axi_wdata     ( msi_noc1_axi_wdata   )
+        ,.msi_noc1_axi_wstrb     ( msi_noc1_axi_wstrb   )
+        ,.msi_noc1_axi_wvalid    ( msi_noc1_axi_wvalid  )
+        ,.noc1_msi_axi_wready    ( noc1_msi_axi_wready  )
+        
+        ,.noc1_msi_axi_bresp     ( noc1_msi_axi_bresp   )
+        ,.noc1_msi_axi_bvalid    ( noc1_msi_axi_bvalid  )
+        ,.msi_noc1_axi_bready    ( msi_noc1_axi_bready  )
+        
+        ,.msi_noc1_axi_araddr    ( msi_noc1_axi_araddr  )
+        ,.msi_noc1_axi_arvalid   ( msi_noc1_axi_arvalid )
+        ,.noc1_msi_axi_arready   ( noc1_msi_axi_arready )
+        
+        ,.noc1_msi_axi_rdata     ( noc1_msi_axi_rdata   )
+        ,.noc1_msi_axi_rresp     ( noc1_msi_axi_rresp   )
+        ,.noc1_msi_axi_rvalid    ( noc1_msi_axi_rvalid  )
+        ,.msi_noc1_axi_rready    ( msi_noc1_axi_rready  )
+    `endif // ifdef DIRECT_MODE
     `endif // ifdef PITON_RV64_PLIC
     `endif // ifdef PITON_RV64_PLATFORM
 );
