@@ -273,5 +273,4 @@ set_property PACKAGE_PIN BC21 [get_ports hbm_cattrip]
 set_property IOSTANDARD LVCMOS12 [get_ports hbm_cattrip]
 set_property PULLDOWN true [get_ports hbm_cattrip]
 
-set_false_path -from [get_pins chipset/chipset_impl/u200_shell_i/meep_shell_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_top/*/C] -to [get_pins chipset/chipset_impl/init_calib_complete_f_reg/D]
-
+set_false_path -from [get_pins chipset/chipset_impl/alveo_shell_i/meep_shell_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_top/*/C] -to [get_pins chipset/chipset_impl/init_calib_complete_f_reg/D]
