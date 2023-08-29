@@ -32,6 +32,8 @@ MAX_TILE = 64;
 MAX_X = 8;
 MAX_Y = 8;
 
+
+
 PITON_X_TILES = int(os.environ.get('PITON_X_TILES', '-1'))
 #print "//x_tiles:", num_tiles
 
@@ -86,6 +88,8 @@ CONFIG_L2_ASSOCIATIVITY = int(os.environ.get('CONFIG_L2_ASSOCIATIVITY', '4'))
 # constants, not configurable
 L15_LINE_SIZE = 16
 L2_LINE_SIZE = 64
+
+L15_NUM_THREADS = int(os.environ.get('L15_NUM_THREADS', '2'))
 
 #########################################################
 # BRAM configurations

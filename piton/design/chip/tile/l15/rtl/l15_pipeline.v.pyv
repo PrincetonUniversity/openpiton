@@ -393,6 +393,8 @@ reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] mshr_st_state_array [`L15_THREAD_ARRAY_MAS
 reg [`L15_PADDR_MASK] mshr_st_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_PADDR_MASK] mshr_ld_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_WAY_MASK] mshr_st_way_array [`L15_THREAD_ARRAY_MASK];
+integer i=0;
+
 always @ *
 begin
     pipe_mshr_readreq_mshrid_s1 = noc2decoder_l15_mshrid;
@@ -403,17 +405,27 @@ begin
     predecode_mshr_read_homeid_s1 = mshr_pipe_readres_homeid_s1;
 
     // mshr_val_array
-    mshr_val_array[0] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*1 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
-    mshr_st_state_array[0] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*1 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
-    mshr_st_address_array[0] = mshr_pipe_st_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
-    mshr_ld_address_array[0] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
-    mshr_st_way_array[0] = mshr_pipe_st_way_s1[2*1 - 1 -: 2];
-
-    mshr_val_array[1] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*2 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
-    mshr_st_state_array[1] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*2 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
-    mshr_st_address_array[1] = mshr_pipe_st_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
-    mshr_ld_address_array[1] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
-    mshr_st_way_array[1] = mshr_pipe_st_way_s1[2*2 - 1 -: 2];
+    //mshr_val_array[0] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*1 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
+    //mshr_st_state_array[0] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*1 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
+    //mshr_st_address_array[0] = mshr_pipe_st_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
+    //mshr_ld_address_array[0] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
+    //mshr_st_way_array[0] = mshr_pipe_st_way_s1[2*1 - 1 -: 2];
+    //
+    //mshr_val_array[1] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*2 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
+    //mshr_st_state_array[1] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*2 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
+    //mshr_st_address_array[1] = mshr_pipe_st_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
+    //mshr_ld_address_array[1] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
+    //mshr_st_way_array[1] = mshr_pipe_st_way_s1[2*2 - 1 -: 2];
+	 
+	 for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+	 begin
+	 	 mshr_val_array[i]        = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*(i+1) - 1 -: `L15_NUM_MSHRID_PER_THREAD];
+    	 mshr_st_state_array[i]   = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*(i+1) - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
+       mshr_st_address_array[i] = mshr_pipe_st_address[`L15_PADDR_WIDTH*(i+1) - 1 -: `L15_PADDR_WIDTH];
+       mshr_ld_address_array[i] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*(i+1) - 1 -: `L15_PADDR_WIDTH];
+       mshr_st_way_array[i]     = mshr_pipe_st_way_s1[`L15_WAY_WIDTH*(i+1) - 1 -: `L15_WAY_WIDTH]; 
+	 end
+	 	 
 end
 
 // match pcx address to special accesses
@@ -434,10 +446,15 @@ begin
 end
 
 // decode requests to predecode signals
-reg predecode_tagcheck_matched_t0ld_s1;
-reg predecode_tagcheck_matched_t0st_s1;
-reg predecode_tagcheck_matched_t1ld_s1;
-reg predecode_tagcheck_matched_t1st_s1;
+reg predecode_tagcheck_matched_trd_ld_s1 [`L15_THREAD_ARRAY_MASK]; // each element belongs to one thread
+reg predecode_tagcheck_matched_trd_st_s1 [`L15_THREAD_ARRAY_MASK];
+reg predecode_tagcheck_matched_lds_s1;
+reg predecode_tagcheck_matched_sts_s1;
+//reg predecode_tagcheck_matched_t0ld_s1;
+//reg predecode_tagcheck_matched_t0st_s1;
+//reg predecode_tagcheck_matched_t1ld_s1;
+//reg predecode_tagcheck_matched_t1st_s1;
+
 reg predecode_int_vec_dis_s1;
 reg predecode_tagcheck_matched_s1;
 reg [19:4] predecode_partial_tag_s1;
@@ -833,22 +850,28 @@ begin
 
     // TAG CHECKING
     predecode_partial_tag_s1[19:4] = pcxdecoder_l15_address[19:4]; // compare partial tag to save energy & timing
-    predecode_tagcheck_matched_t0ld_s1 = mshr_val_array[0][`L15_MSHR_ID_LD] 
-                                        && (predecode_partial_tag_s1[19:4] == mshr_ld_address_array[0][19:4]);
-    predecode_tagcheck_matched_t1ld_s1 = mshr_val_array[1][`L15_MSHR_ID_LD] 
-                                        && (predecode_partial_tag_s1[19:4] == mshr_ld_address_array[1][19:4]);
-    predecode_tagcheck_matched_t0st_s1 = mshr_val_array[0][`L15_MSHR_ID_ST] 
-                                        && (pcxdecoder_l15_address[39:4] == mshr_st_address_array[0][39:4]);
-    predecode_tagcheck_matched_t1st_s1 = mshr_val_array[1][`L15_MSHR_ID_ST] 
-                                        && (pcxdecoder_l15_address[39:4] == mshr_st_address_array[1][39:4]);
-
-    predecode_tagcheck_matched_s1 = predecode_tagcheck_matched_t0ld_s1 || predecode_tagcheck_matched_t1ld_s1
-                                    || predecode_tagcheck_matched_t0st_s1 || predecode_tagcheck_matched_t1st_s1;
-
-
+	 predecode_tagcheck_matched_lds_s1 = 0;
+	 predecode_tagcheck_matched_sts_s1 = 0;
+	
+	 for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+	 begin
+	 	 predecode_tagcheck_matched_trd_ld_s1[i] = mshr_val_array[i][`L15_MSHR_ID_LD] 
+                                        && (predecode_partial_tag_s1[19:4] == mshr_ld_address_array[i][19:4]);		 
+	 	 predecode_tagcheck_matched_trd_st_s1[i] = mshr_val_array[i][`L15_MSHR_ID_ST] 
+		 											 && (pcxdecoder_l15_address[39:4] == mshr_st_address_array[i][39:4]);
+	 
+    	 predecode_tagcheck_matched_lds_s1 = predecode_tagcheck_matched_trd_ld_s1[i] | predecode_tagcheck_matched_lds_s1;
+     	 predecode_tagcheck_matched_sts_s1 = predecode_tagcheck_matched_trd_st_s1[i] | predecode_tagcheck_matched_sts_s1; 
+		 
+		 if(predecode_tagcheck_matched_trd_st_s1[i] == 1)
+			 predecode_hit_stbuf_threadid_s1 = i;
+		 
+	 end
+	
+	 predecode_tagcheck_matched_s1 = predecode_tagcheck_matched_lds_s1 | predecode_tagcheck_matched_sts_s1;
     // misc
-    predecode_hit_stbuf_s1 = predecode_tagcheck_matched_t0st_s1 || predecode_tagcheck_matched_t1st_s1;
-    predecode_hit_stbuf_threadid_s1 = predecode_tagcheck_matched_t1st_s1 ? 1'b1 : 1'b0;
+    predecode_hit_stbuf_s1 = predecode_tagcheck_matched_sts_s1;
+    //predecode_hit_stbuf_threadid_s1 = predecode_tagcheck_matched_t1st_s1 ? 1'b1 : 1'b0;
     // note: only work with 2 threads for now; need to change the algo of mshr if need to increase the num of threads
 end
 
@@ -3302,31 +3325,33 @@ reg [`L15_UNPARAM_1_0] stbuf_way_s3; // wmt todo: move calculation to s2
 // STORE BUFFER STUFF
 always @ *
 begin
-`ifdef PITON_ASIC_RTL
-    stbuf_compare_address_match_s3[0] = mshr_st_address_array[0][10:4] == cache_index_s3;
-`else
-    stbuf_compare_address_match_s3[0] = mshr_st_address_array[0][39:4] == address_s3[39:4];
-`endif
-    stbuf_compare_match_s3[0] = mshr_val_array[0][`L15_MSHR_ID_ST] 
-                                && (mshr_st_state_array[0] == `L15_MESI_TRANSITION_STATE_SM) 
-                                && (stbuf_compare_address_match_s3[0] == 1'b1);
-    stbuf_compare_lru_match_s3[0] = stbuf_compare_match_s3[0] && (mshr_st_way_array[0] == lru_way_s3);
+	
+	 stbuf_compare_match_val_s3 = 0;
+	 stbuf_compare_lru_match_val_s3 = 0;
+	 for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+	 begin
+		  `ifdef PITON_ASIC_RTL
+		 		stbuf_compare_address_match_s3[i] = mshr_st_address_array[i][10:4] == cache_index_s3;
+		  `else
+		 		stbuf_compare_address_match_s3[i] = mshr_st_address_array[i][39:4] == address_s3[39:4];
+		  `endif
+		 
+		 	stbuf_compare_match_s3[i] = mshr_val_array[i][`L15_MSHR_ID_ST] 
+		 										&& (mshr_st_state_array[i] == `L15_MESI_TRANSITION_STATE_SM) 
+		 										&& (stbuf_compare_address_match_s3[i] == 1'b1);
 
-`ifdef PITON_ASIC_RTL
-    stbuf_compare_address_match_s3[1] = mshr_st_address_array[1][10:4] == cache_index_s3;
-`else
-    stbuf_compare_address_match_s3[1] = mshr_st_address_array[1][39:4] == address_s3[39:4];
-`endif
-    stbuf_compare_match_s3[1] = mshr_val_array[1][`L15_MSHR_ID_ST] 
-                                && (mshr_st_state_array[1] == `L15_MESI_TRANSITION_STATE_SM) 
-                                && (stbuf_compare_address_match_s3[1] == 1'b1);
-    stbuf_compare_lru_match_s3[1] = stbuf_compare_match_s3[1] && (mshr_st_way_array[1] == lru_way_s3);
+		 	stbuf_compare_lru_match_s3[i] = stbuf_compare_match_s3[i] && (mshr_st_way_array[i] == lru_way_s3);
 
-    stbuf_compare_threadid_s3 = stbuf_compare_match_s3[1] ? 1'b1 : 1'b0;
-    stbuf_compare_lru_threadid_s3 = stbuf_compare_lru_match_s3[1] ? 1'b1 : 1'b0;
-    stbuf_compare_match_val_s3 = stbuf_compare_match_s3[0] || stbuf_compare_match_s3[1];
-    stbuf_compare_lru_match_val_s3 = stbuf_compare_lru_match_s3[0] || stbuf_compare_lru_match_s3[1];
-
+		 	if (stbuf_compare_match_s3[i] == 1)
+            stbuf_compare_threadid_s3 = i;
+		 
+		 	if (stbuf_compare_lru_match_s3[i] == 1)
+            stbuf_compare_lru_threadid_s3 = i;
+		 
+		   stbuf_compare_match_val_s3     = stbuf_compare_match_s3[i]     | stbuf_compare_match_val_s3;
+		   stbuf_compare_lru_match_val_s3 = stbuf_compare_lru_match_s3[i] | stbuf_compare_lru_match_val_s3;
+	 end
+	
     stbuf_way_s3 = mshr_st_way_array[stbuf_compare_threadid_s3];
     // stbuf_way_wmt_data_s3 = wmt_data_s3[stbuf_way_s3];
     // stbuf_way_to_l1_s3 = stbuf_way_wmt_data_s3[`L15_UNPARAM_1_0];
@@ -3338,8 +3363,8 @@ always @ *
 begin
     // expanding some signals
     tagcheck_way_mask_s3[`L15_UNPARAM_3_0] = tagcheck_way_s3 == 2'd0 ? 4'b0001 :
-                                                  2'd1 ? 4'b0010 :
-                                                  2'd2 ? 4'b0100 :
+                                             tagcheck_way_s3 == 2'd1 ? 4'b0010 :
+                                             tagcheck_way_s3 == 2'd2 ? 4'b0100 :
                                                         4'b1000 ;
 
     tagcheck_state_me_s3 = tagcheck_state_s3 == `L15_MESI_STATE_M || tagcheck_state_s3 == `L15_MESI_STATE_E;

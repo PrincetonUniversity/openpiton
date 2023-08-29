@@ -209,10 +209,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define L15_MSHR_ID_LD 2'd2
 `define L15_MSHR_ID_ST 2'd3
 
-`define L15_NUM_THREADS 2
-`define L15_THREADID_WIDTH 1
-`define L15_THREADID_MASK 0:0
-`define L15_THREAD_ARRAY_MASK 1:0
+// if NO_RTL_CSM is defined L15_NUM_THREADS could go up to 64, otherwise 32.
+<%
+   import math
+   import pyhplib
+   from pyhplib import *
+   print("`define L15_NUM_THREADS     %d" % L15_NUM_THREADS)
+   print("`define L15_THREADID_WIDTH  %d" % int(math.log(L15_NUM_THREADS, 2)))
+%>
+`define L15_THREADID_MASK `L15_THREADID_WIDTH-1:0
+`define L15_THREAD_ARRAY_MASK `L15_NUM_THREADS-1:0
 `define L15_NUM_MSHRID_PER_THREAD 4
 
 // pipeline OPs

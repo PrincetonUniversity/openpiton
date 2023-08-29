@@ -2651,6 +2651,12 @@ sub parse_args
     }
   }
 
+  GetOptions (\%opt,"l15_num_threads=s",
+    );
+    if ($opt{l15_num_threads}) {
+        $ENV{L15_NUM_THREADS} = $opt{l15_num_threads};
+    }
+
   $ENV{PROTOSYN_RUNTIME_DESIGN_PATH} = $ENV{DV_ROOT} . "/verif/env/manycore";
   $ENV{PROTOSYN_RUNTIME_BOARD} = "";
 
