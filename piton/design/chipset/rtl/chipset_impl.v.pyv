@@ -476,8 +476,13 @@ assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
         assign uart_timeout_en = 1'b0;
     `else // ifdef PITONSYS_UART
         `ifndef PITONSYS_UART_BOOT
-            assign uart_boot_en = 1'b0;
-            assign uart_timeout_en = 1'b0;
+            `ifndef ALVEO_BOARD
+                assign uart_boot_en = 1'b0;
+                assign uart_timeout_en = 1'b0;
+            `else
+                assign uart_boot_en    = 1'b1;
+                assign uart_timeout_en = 1'b0;
+            `endif // endif ALVEO_BOARD
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
