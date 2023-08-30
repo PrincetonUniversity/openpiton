@@ -163,24 +163,24 @@ integer i=0;
 always @ *
 begin
 
-	 for(i = 0; i < `L15_NUM_THREADS; i = i+1)
-	 begin
+    for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+    begin
         tmp_vals[i] = 0;
         tmp_vals[i][`L15_MSHR_ID_IFILL] = ifill_val[i];
-	     tmp_vals[i][`L15_MSHR_ID_LD]    = ld_val[i];
-		  tmp_vals[i][`L15_MSHR_ID_ST]    = st_val[i];
+        tmp_vals[i][`L15_MSHR_ID_LD]    = ld_val[i];
+        tmp_vals[i][`L15_MSHR_ID_ST]    = st_val[i];
 
         tmp_st_address[i] = st_address[i];
         tmp_ld_address[i] = ld_address[i];
-		  tmp_st_way[i]     = st_way[i];
-		  tmp_st_state[i]   = st_state[i];
+        tmp_st_way[i]     = st_way[i];
+        tmp_st_state[i]   = st_state[i];
 	 
-		  mshr_pipe_vals_s1[(`L15_NUM_MSHRID_PER_THREAD*(i+1))-1 -: `L15_NUM_MSHRID_PER_THREAD] = tmp_vals[i];
-		  mshr_pipe_ld_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_ld_address[i];
-		  mshr_pipe_st_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_st_address[i];
-		  mshr_pipe_st_way_s1[(2*(i+1))-1 -: 2]   = tmp_st_way[i];
-    	  mshr_pipe_st_state_s1[(`L15_MESI_TRANS_STATE_WIDTH*(i+1))-1 -: `L15_MESI_TRANS_STATE_WIDTH] = tmp_st_state[i];
-	 end
+        mshr_pipe_vals_s1[(`L15_NUM_MSHRID_PER_THREAD*(i+1))-1 -: `L15_NUM_MSHRID_PER_THREAD] = tmp_vals[i];
+        mshr_pipe_ld_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_ld_address[i];
+        mshr_pipe_st_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_st_address[i];
+        mshr_pipe_st_way_s1[(2*(i+1))-1 -: 2]   = tmp_st_way[i];
+        mshr_pipe_st_state_s1[(`L15_MESI_TRANS_STATE_WIDTH*(i+1))-1 -: `L15_MESI_TRANS_STATE_WIDTH] = tmp_st_state[i];
+    end
 	
 
     // S1 read
@@ -361,11 +361,11 @@ always @ (posedge clk)
 begin
     if (!rst_n)
     begin
-	 	for(i = 0; i < `L15_NUM_THREADS; i = i+1)
-	 	begin
-		  st_homeid[i] <= '0;
-        ld_homeid[i] <= '0;
-		end
+        for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+        begin
+            st_homeid[i] <= {PACKET_HOME_ID_WIDTH{1'b0}};
+            ld_homeid[i] <= {PACKET_HOME_ID_WIDTH{1'b0}};
+        end
     end
     else
     begin

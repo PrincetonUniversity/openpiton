@@ -2637,6 +2637,7 @@ sub parse_args
     "config_l1d_associativity",
     "config_l15_size",
     "config_l15_associativity",
+    "config_l15_num_threads",
     "config_l2_size",
     "config_l2_associativity",
     );
@@ -2650,12 +2651,6 @@ sub parse_args
         $ENV{$ucn} = $opt{$config};
     }
   }
-
-  GetOptions (\%opt,"l15_num_threads=s",
-    );
-    if ($opt{l15_num_threads}) {
-        $ENV{L15_NUM_THREADS} = $opt{l15_num_threads};
-    }
 
   $ENV{PROTOSYN_RUNTIME_DESIGN_PATH} = $ENV{DV_ROOT} . "/verif/env/manycore";
   $ENV{PROTOSYN_RUNTIME_BOARD} = "";

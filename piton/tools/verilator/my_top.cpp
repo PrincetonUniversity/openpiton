@@ -38,7 +38,7 @@ Vcmp_top* top;
 VerilatedVcdC* tfp;
 #endif
 
-extern "C" void metro_mpi_init_jbus_model_call(const char *str, int oram);
+extern "C" void init_jbus_model_call(char *str, int oram);
 
 // This is a 64-bit integer to reduce wrap over issues and
 // // allow modulus. You can also use a double, if you wish.

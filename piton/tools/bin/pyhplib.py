@@ -32,8 +32,6 @@ MAX_TILE = 64;
 MAX_X = 8;
 MAX_Y = 8;
 
-
-
 PITON_X_TILES = int(os.environ.get('PITON_X_TILES', '-1'))
 #print "//x_tiles:", num_tiles
 
@@ -74,6 +72,7 @@ else:
 # cache configurations
 CONFIG_L15_SIZE = int(os.environ.get('CONFIG_L15_SIZE', '8192'))
 CONFIG_L15_ASSOCIATIVITY = int(os.environ.get('CONFIG_L15_ASSOCIATIVITY', '4'))
+CONFIG_L15_NUM_THREADS = int(os.environ.get('CONFIG_L15_NUM_THREADS', '2'))
 CONFIG_L1D_SIZE = int(os.environ.get('CONFIG_L1D_SIZE', '8192'))
 CONFIG_L1D_ASSOCIATIVITY = int(os.environ.get('CONFIG_L1D_ASSOCIATIVITY', '4'))
 CONFIG_L1I_SIZE = int(os.environ.get('CONFIG_L1I_SIZE', '16384'))
@@ -88,8 +87,6 @@ CONFIG_L2_ASSOCIATIVITY = int(os.environ.get('CONFIG_L2_ASSOCIATIVITY', '4'))
 # constants, not configurable
 L15_LINE_SIZE = 16
 L2_LINE_SIZE = 64
-
-L15_NUM_THREADS = int(os.environ.get('L15_NUM_THREADS', '2'))
 
 #########################################################
 # BRAM configurations

@@ -104,11 +104,11 @@ begin
     // the threadid is encoded in the mshrid sent to L2, is the next L15_THREADID_WIDTH bits after the first L15_MSHR_ID_WIDTH bits
     noc2decoder_l15_threadid = noc2_mshrid[`L15_MSHR_ID_WIDTH+`L15_THREADID_WIDTH -1 -: `L15_THREADID_WIDTH];
 	
-	 `ifdef NO_RTL_CSM
-    	noc2decoder_l15_hmc_fill = 1'b0; //noc2_mshrid[`MSG_MSHRID_WIDTH-1];
-	 `else
-    	noc2decoder_l15_hmc_fill = noc2_mshrid[`MSG_MSHRID_WIDTH-1];
-	 `endif
+    `ifdef NO_RTL_CSM
+        noc2decoder_l15_hmc_fill = 1'b0; //noc2_mshrid[`MSG_MSHRID_WIDTH-1];
+    `else
+        noc2decoder_l15_hmc_fill = noc2_mshrid[`MSG_MSHRID_WIDTH-1];
+    `endif
 	
     noc2decoder_l15_l2miss = noc2_data[`MSG_L2_MISS];
     noc2decoder_l15_icache_type = noc2_data[`MSG_CACHE_TYPE];
