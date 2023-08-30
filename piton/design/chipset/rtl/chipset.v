@@ -88,7 +88,8 @@ module chipset(
 
 `ifdef F1_BOARD
     input sys_clk,
-`elsif ALVEO_BOARD
+`else // ifdef F1_BOARD
+`ifdef ALVEO_BOARD
     input         pcie_refclk_clk_n    ,
     input         pcie_refclk_clk_p    ,
     input         pcie_perstn          ,		
@@ -98,6 +99,7 @@ module chipset(
     output [15:0] pci_express_x16_txp  ,
     input         resetn ,
     output        chip_rstn ,
+`endif // ifdef ALVEO_BOARD
     // Oscillator clock
 `ifdef PITON_CHIPSET_CLKS_GEN
     `ifdef PITON_CHIPSET_DIFF_CLK
