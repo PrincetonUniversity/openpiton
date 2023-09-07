@@ -66,6 +66,9 @@ module l15 (
     input [63:0]                            transducer_l15_data,
     input [63:0]                            transducer_l15_data_next_entry,
     input [`TLB_CSM_WIDTH-1:0]              transducer_l15_csm_data,
+    `ifdef WRITE_BYTE_MASK
+    input [`L15_BYTE_MASK_WIDHT-1:0]        transducer_l15_be,  
+    `endif
 
     output                                  l15_transducer_ack,
     output                                  l15_transducer_header_ack,
@@ -678,6 +681,9 @@ l15_pipeline pipeline(
     .pcxdecoder_l15_data                 (transducer_l15_data),
     .pcxdecoder_l15_data_next_entry      (transducer_l15_data_next_entry),
     .pcxdecoder_l15_csm_data             (transducer_l15_csm_data),
+    `ifdef WRITE_BYTE_MASK
+    .pcxdecoder_l15_be                   (transducer_l15_be),
+    `endif
     .noc2decoder_l15_val(noc2decoder_l15_val),
     .noc2decoder_l15_mshrid(noc2decoder_l15_mshrid),
     .noc2decoder_l15_l2miss(noc2decoder_l15_l2miss),
