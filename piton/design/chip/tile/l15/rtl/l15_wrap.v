@@ -141,7 +141,9 @@ module l15_wrap (
         .transducer_l15_csm_data            (transducer_l15_csm_data),
         .transducer_l15_data                (transducer_l15_data),
         .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
+        `ifdef WRITE_BYTE_MASK
         .transducer_l15_be                  (transducer_l15_be),
+        `endif
 
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
