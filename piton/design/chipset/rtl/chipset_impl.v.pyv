@@ -296,29 +296,33 @@ module chipset_impl(
 `else
 ,   output wire [31:0]                          msi_noc1_axi_awaddr
 ,   output wire                                 msi_noc1_axi_awvalid
-,   input  wire                                 noc1_msi_axi_awready
+,   input  wire                                 noc2_msi_axi_awready
   
 ,   output wire [31:0]                          msi_noc1_axi_wdata
 ,   output wire [3:0]                           msi_noc1_axi_wstrb
 ,   output wire                                 msi_noc1_axi_wvalid
-,   input  wire                                 noc1_msi_axi_wready
+,   input  wire                                 noc2_msi_axi_wready
   
-,   input  wire [1:0]                           noc1_msi_axi_bresp
-,   input  wire                                 noc1_msi_axi_bvalid
+,   input  wire [1:0]                           noc2_msi_axi_bresp
+,   input  wire                                 noc2_msi_axi_bvalid
 ,   output wire                                 msi_noc1_axi_bready
   
 ,   output wire [31:0]                          msi_noc1_axi_araddr
 ,   output wire                                 msi_noc1_axi_arvalid
-,   input  wire                                 noc1_msi_axi_arready
+,   input  wire                                 noc2_msi_axi_arready
   
-,   input  wire [31:0]                          noc1_msi_axi_rdata
-,   input  wire [1:0]                           noc1_msi_axi_rresp
-,   input  wire                                 noc1_msi_axi_rvalid
+,   input  wire [31:0]                          noc2_msi_axi_rdata
+,   input  wire [1:0]                           noc2_msi_axi_rresp
+,   input  wire                                 noc2_msi_axi_rvalid
 ,   output wire                                 msi_noc1_axi_rready
 `endif // DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 );
+
+`ifdef MSI_MODE
+  wire msi_noc2_rdy;
+`endif // MSI_MODE
 
 ///////////////////////
 // Type declarations //
@@ -512,7 +516,7 @@ assign chip_buf_noc2_ready = chipset_intf_rdy_noc2;
 
 assign chip_filter_noc2_valid = intf_chipset_val_noc2;
 assign chip_filter_noc2_data = intf_chipset_data_noc2;
-assign intf_chipset_rdy_noc2    = (filter_chip_noc2_ready & cpu_mem_traffic) | msi_noc2_rdy;
+assign intf_chipset_rdy_noc2    = (filter_chip_noc2_ready & cpu_mem_traffic) /* | msi_noc2_rdy*/;
 
 // NoC 3
 assign chipset_intf_val_noc3    = cpu_mem_traffic & filter_chip_noc3_valid;
@@ -1157,7 +1161,6 @@ fake_uart fake_uart (
   `endif
 `endif
 
-  wire msi_noc2_rdy;
 <%
 DmBase    = 0
 RomBase   = 0
@@ -1250,24 +1253,24 @@ str = '''
 `else
 ,       .msi_noc1_axi_awaddr             ( msi_noc1_axi_awaddr           )
 ,       .msi_noc1_axi_awvalid            ( msi_noc1_axi_awvalid          )
-,       .noc1_msi_axi_awready            ( noc1_msi_axi_awready          )
+,       .noc2_msi_axi_awready            ( noc2_msi_axi_awready          )
 
 ,       .msi_noc1_axi_wdata              ( msi_noc1_axi_wdata            )
 ,       .msi_noc1_axi_wstrb              ( msi_noc1_axi_wstrb            )
 ,       .msi_noc1_axi_wvalid             ( msi_noc1_axi_wvalid           )
-,       .noc1_msi_axi_wready             ( noc1_msi_axi_wready           )
+,       .noc2_msi_axi_wready             ( noc2_msi_axi_wready           )
 
-,       .noc1_msi_axi_bresp              ( noc1_msi_axi_bresp            )
-,       .noc1_msi_axi_bvalid             ( noc1_msi_axi_bvalid           )
+,       .noc2_msi_axi_bresp              ( noc2_msi_axi_bresp            )
+,       .noc2_msi_axi_bvalid             ( noc2_msi_axi_bvalid           )
 ,       .msi_noc1_axi_bready             ( msi_noc1_axi_bready           )
 
 ,       .msi_noc1_axi_araddr             ( msi_noc1_axi_araddr           )
 ,       .msi_noc1_axi_arvalid            ( msi_noc1_axi_arvalid          )
-,       .noc1_msi_axi_arready            ( noc1_msi_axi_arready          )
+,       .noc2_msi_axi_arready            ( noc2_msi_axi_arready          )
 
-,       .noc1_msi_axi_rdata              ( noc1_msi_axi_rdata            )
-,       .noc1_msi_axi_rresp              ( noc1_msi_axi_rresp            )
-,       .noc1_msi_axi_rvalid             ( noc1_msi_axi_rvalid           )
+,       .noc2_msi_axi_rdata              ( noc2_msi_axi_rdata            )
+,       .noc2_msi_axi_rresp              ( noc2_msi_axi_rresp            )
+,       .noc2_msi_axi_rvalid             ( noc2_msi_axi_rvalid           )
 ,       .msi_noc1_axi_rready             ( msi_noc1_axi_rready           )
 // MSI request to NoC1
 ,       .noc1_valid_out                  ( chipset_intf_val_noc1         )
