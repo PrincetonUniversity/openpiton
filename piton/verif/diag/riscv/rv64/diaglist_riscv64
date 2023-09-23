@@ -1,0 +1,84 @@
+<ariane_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -ariane>
+<cmp_default name=default>
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_asm_tests_p>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64ui-p.diaglist"
+        #include "riscv/rv64/rv64mi-p.diaglist"
+        #include "riscv/rv64/rv64si-p.diaglist"
+        #include "riscv/rv64/rv64um-p.diaglist"
+        </runargs>
+    </ariane_tile1_asm_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_asm_tests_v>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64ui-v.diaglist"
+        #include "riscv/rv64/rv64um-v.diaglist"
+        </runargs>
+    </ariane_tile1_asm_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_amo_tests_p>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64ua-p.diaglist"
+        </runargs>
+    </ariane_tile1_amo_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_amo_tests_v>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64ua-v.diaglist"
+        </runargs>
+    </ariane_tile1_amo_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_fp_tests_p>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64uf-p.diaglist"
+        #include "riscv/rv64/rv64ud-p.diaglist"
+        </runargs>
+    </ariane_tile1_fp_tests_p>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_fp_tests_v>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64uf-v.diaglist"
+        #include "riscv/rv64/rv64ud-v.diaglist"
+        </runargs>
+    </ariane_tile1_fp_tests_v>
+
+    // note: these asm tests assume that the RISCV tests have been precompiled with the
+    // correct environment
+    <ariane_tile1_benchmarks>
+        <runargs -ariane>
+        #include "riscv/rv64/rv64-benchmarks.diaglist"
+        </runargs>
+    </ariane_tile1_benchmarks>
+
+    <ariane_tile1_simple>
+        <runargs -x_tiles=1 -y_tiles=1 -ariane -rtl_timeout 1000000>
+            ariane-hello-world  hello_world.c
+            ariane-accu         accu_test.c
+            ariane-amo-align    amo_align.c
+        </runargs>
+    </ariane_tile1_simple>
+
+</cmp_default>
+</ariane_tile1>
+
+<ariane_tile16 sys=manycore -x_tiles=4 -y_tiles=4 -ariane>
+    <cmp_default name=default>
+    <ariane_tile16_simple>
+        <runargs -x_tiles=4 -y_tiles=4  hello_world.c -ariane -finish_mask=1111111111111111 -rtl_timeout 10000000>
+            ariane-hello-world-many hello_world_many.c
+        </runargs>
+    </ariane_tile16_simple>
+    </cmp_default>
+</ariane_tile16>

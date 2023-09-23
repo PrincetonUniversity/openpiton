@@ -31,11 +31,11 @@
 // ifdef SPARCV9
 #endif
 #ifdef RISCV64
-#include "riscv/rv64/master_diaglist_riscv64"
+#include "riscv/rv64/diaglist_riscv64"
 // ifdef RISCV64
 #endif
 #ifdef RISCV32
-#include "riscv/rv32/master_diaglist_riscv32"
+#include "riscv/rv32/diaglist_riscv32"
 // ifdef RISCV32
 #endif
 </all>

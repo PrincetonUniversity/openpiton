@@ -1,0 +1,7 @@
+<rv64uc-v sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled>
+    rv64uc-v-rvc       rv64uc-v-rvc.S
+    </runargs>
+</rv64uc-v>
