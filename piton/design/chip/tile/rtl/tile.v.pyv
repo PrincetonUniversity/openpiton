@@ -200,6 +200,12 @@ print(s)
 `ifdef PITON_RV64_PLIC
     // PLIC
 ,   input   [1:0]                       irq_i          // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+,   input [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_i   
+`endif // DIRECT_MODE
+
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 );
@@ -1119,7 +1125,11 @@ print(str)
         .spc_grst_l  ( spc_grst_l             ),
         .boot_addr_i ( ariane_bootaddr        ),
         .hart_id_i   ( {{64-`JTAG_FLATID_WIDTH{1'b0}}, flat_tileid} ),
+        `ifndef MSI_MODE
         .irq_i       ( irq_i                  ),
+        `else
+        .irq_i       ( xeip_targets           ),
+        `endif
         .ipi_i       ( ipi_i                  ),
         .time_irq_i  ( timer_irq_i            ),
         .debug_req_i ( debug_req_i            ),
@@ -1251,40 +1261,44 @@ print(str)
 //
       ariane_axi::req_t  msi_req;
       ariane_axi::resp_t msi_resp;
+
+//    `ifdef MSI_MODE
+//    assign msi_req.aw_valid     = msi_noc1_axi_awvalid;
+//    assign msi_req.aw.addr      = msi_noc1_axi_awaddr;
+//    assign noc2_msi_axi_awready = msi_resp.aw_ready;
 //
-//    assign msi_req.aw_valid    = imsic_s_axi_awvalid;
-//    assign msi_req.aw.addr     = imsic_s_axi_awaddr;
-//    assign imsic_s_axi_awready = msi_resp.aw_ready;
+//    assign msi_req.w_valid     = msi_noc1_axi_wvalid;
+//    assign msi_req.w.data      = msi_noc1_axi_wdata;
+//    assign msi_req.w.strb      = msi_noc1_axi_wstrb;
+//    assign noc2_msi_axi_wready = msi_resp.w_ready;
 //
-//    assign msi_req.w_valid    = imsic_s_axi_wvalid;
-//    assign msi_req.w.data     = imsic_s_axi_wdata;
-//    assign msi_req.w.strb     = imsic_s_axi_wstrb;
-//    assign imsic_s_axi_wready = msi_resp.w_ready;
+//    assign msi_req.ar_valid     = msi_noc1_axi_arvalid;
+//    assign msi_req.ar.addr      = msi_noc1_axi_araddr;
+//    assign noc2_msi_axi_arready = msi_resp.ar_ready;    
 //
-//    assign msi_req.ar_valid    = imsic_s_axi_arvalid;
-//    assign msi_req.ar.addr     = imsic_s_axi_araddr;
-//    assign imsic_s_axi_arready = msi_resp.ar_ready;    
+//    assign msi_req.r_ready     = msi_noc1_axi_rready;
+//    assign noc2_msi_axi_rvalid = msi_resp.r_valid;     
+//    assign noc2_msi_axi_rdata  = msi_resp.r.data;     
+//    assign noc2_msi_axi_rresp  = msi_resp.r.resp;   
 //
-//    assign msi_req.r_ready    = imsic_s_axi_rready;
-//    assign imsic_s_axi_rvalid = msi_resp.r_valid;     
-//    assign imsic_s_axi_rdata  = msi_resp.r.data;     
-//    assign imsic_s_axi_rresp  = msi_resp.r.resp;   
-//
-//    assign msi_req.b_ready    = imsic_s_axi_bready;
+//    assign msi_req.b_ready    = msi_noc1_axi_bready;
 //    assign imsic_s_axi_bvalid = msi_resp.b_valid;
 //    assign imsic_s_axi_bresp  = msi_resp.b.resp;
+//    `endif
+//
+//    `ifdef MSI_MODE
+//    assign src_chipid   = processor_merger_vr_noc1_dat[`MSG_SRC_CHIPID_];
+//    assign src_coreid_x = processor_merger_vr_noc1_dat[`MSG_SRC_X_];
+//    assign src_coreid_y = processor_merger_vr_noc1_dat[`MSG_SRC_Y_];
+//    assign src_fbits    = processor_merger_vr_noc1_dat[`MSG_SRC_FBITS_];
+//
+//    assign dst_chipid   = processor_merger_vr_noc1_dat[`MSG_DST_CHIPID];
+//    assign dst_coreid_x = processor_merger_vr_noc1_dat[`MSG_DST_X];
+//    assign dst_coreid_y = processor_merger_vr_noc1_dat[`MSG_DST_Y];
+//    assign dst_fbits    = processor_merger_vr_noc1_dat[`MSG_DST_FBITS];
+//    `endif // MSI_MODE
 
-    `ifdef MSI_MODE
-    assign src_chipid   = processor_merger_vr_noc1_dat[`MSG_SRC_CHIPID_];
-    assign src_coreid_x = processor_merger_vr_noc1_dat[`MSG_SRC_X_];
-    assign src_coreid_y = processor_merger_vr_noc1_dat[`MSG_SRC_Y_];
-    assign src_fbits    = processor_merger_vr_noc1_dat[`MSG_SRC_FBITS_];
-
-    assign dst_chipid   = processor_merger_vr_noc1_dat[`MSG_DST_CHIPID];
-    assign dst_coreid_x = processor_merger_vr_noc1_dat[`MSG_DST_X];
-    assign dst_coreid_y = processor_merger_vr_noc1_dat[`MSG_DST_Y];
-    assign dst_fbits    = processor_merger_vr_noc1_dat[`MSG_DST_FBITS];
-    `endif // MSI_MODE
+    logic [1:0] xeip_targets;
 
     // INSTANTIATE IMSIC HERE and stop driving wires above
     imsic_top # (
@@ -1310,7 +1324,7 @@ print(str)
         .i_imsic_claim     (       ),
         .o_imsic_data      (       ),
         .o_xtopei          (       ),
-        .o_Xeip_targets    (       ),
+        .o_Xeip_targets    ( xeip_targets      ),
         .o_imsic_exception (       )
     );
 

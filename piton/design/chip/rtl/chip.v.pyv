@@ -159,29 +159,7 @@ module chip(
 `elsif  PITON_RV64_APLIC
 // APLIC
 `ifdef DIRECT_MODE
-,   output [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_i   
-`else
-,   output wire [31:0]                          msi_noc1_axi_awaddr
-,   output wire                                 msi_noc1_axi_awvalid
-,   input  wire                                 noc1_msi_axi_awready
-  
-,   output wire [31:0]                          msi_noc1_axi_wdata
-,   output wire [3:0]                           msi_noc1_axi_wstrb
-,   output wire                                 msi_noc1_axi_wvalid
-,   input  wire                                 noc1_msi_axi_wready
-  
-,   input  wire [1:0]                           noc1_msi_axi_bresp
-,   input  wire                                 noc1_msi_axi_bvalid
-,   output wire                                 msi_noc1_axi_bready
-  
-,   output wire [31:0]                          msi_noc1_axi_araddr
-,   output wire                                 msi_noc1_axi_arvalid
-,   input  wire                                 noc1_msi_axi_arready
-  
-,   input  wire [31:0]                          noc1_msi_axi_rdata
-,   input  wire [1:0]                           noc1_msi_axi_rresp
-,   input  wire                                 noc1_msi_axi_rvalid
-,   output wire                                 msi_noc1_axi_rready
+,   input [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_i                                    
 `endif // DIRECT_MODE
 
 `endif // ifdef PITON_RV64_PLIC

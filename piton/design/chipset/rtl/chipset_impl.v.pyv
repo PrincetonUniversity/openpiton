@@ -293,28 +293,6 @@ module chipset_impl(
 // APLIC
 `ifdef DIRECT_MODE
 ,   output [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]           irq_o   
-`else
-,   output wire [31:0]                          msi_noc1_axi_awaddr
-,   output wire                                 msi_noc1_axi_awvalid
-,   input  wire                                 noc2_msi_axi_awready
-  
-,   output wire [31:0]                          msi_noc1_axi_wdata
-,   output wire [3:0]                           msi_noc1_axi_wstrb
-,   output wire                                 msi_noc1_axi_wvalid
-,   input  wire                                 noc2_msi_axi_wready
-  
-,   input  wire [1:0]                           noc2_msi_axi_bresp
-,   input  wire                                 noc2_msi_axi_bvalid
-,   output wire                                 msi_noc1_axi_bready
-  
-,   output wire [31:0]                          msi_noc1_axi_araddr
-,   output wire                                 msi_noc1_axi_arvalid
-,   input  wire                                 noc2_msi_axi_arready
-  
-,   input  wire [31:0]                          noc2_msi_axi_rdata
-,   input  wire [1:0]                           noc2_msi_axi_rresp
-,   input  wire                                 noc2_msi_axi_rvalid
-,   output wire                                 msi_noc1_axi_rready
 `endif // DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
@@ -1251,27 +1229,6 @@ str = '''
 `ifdef DIRECT_MODE
 ,       .irq_o                           ( irq_o                         )
 `else
-,       .msi_noc1_axi_awaddr             ( msi_noc1_axi_awaddr           )
-,       .msi_noc1_axi_awvalid            ( msi_noc1_axi_awvalid          )
-,       .noc2_msi_axi_awready            ( noc2_msi_axi_awready          )
-
-,       .msi_noc1_axi_wdata              ( msi_noc1_axi_wdata            )
-,       .msi_noc1_axi_wstrb              ( msi_noc1_axi_wstrb            )
-,       .msi_noc1_axi_wvalid             ( msi_noc1_axi_wvalid           )
-,       .noc2_msi_axi_wready             ( noc2_msi_axi_wready           )
-
-,       .noc2_msi_axi_bresp              ( noc2_msi_axi_bresp            )
-,       .noc2_msi_axi_bvalid             ( noc2_msi_axi_bvalid           )
-,       .msi_noc1_axi_bready             ( msi_noc1_axi_bready           )
-
-,       .msi_noc1_axi_araddr             ( msi_noc1_axi_araddr           )
-,       .msi_noc1_axi_arvalid            ( msi_noc1_axi_arvalid          )
-,       .noc2_msi_axi_arready            ( noc2_msi_axi_arready          )
-
-,       .noc2_msi_axi_rdata              ( noc2_msi_axi_rdata            )
-,       .noc2_msi_axi_rresp              ( noc2_msi_axi_rresp            )
-,       .noc2_msi_axi_rvalid             ( noc2_msi_axi_rvalid           )
-,       .msi_noc1_axi_rready             ( msi_noc1_axi_rready           )
 // MSI request to NoC1
 ,       .noc1_valid_out                  ( chipset_intf_val_noc1         )
 ,       .noc1_data_out                   ( chipset_intf_data_noc1        )
@@ -1279,7 +1236,7 @@ str = '''
 // NoC2 request to MSI
 ,       .noc2_valid_in                   ( intf_chipset_val_noc2         )
 ,       .noc2_data_in                    ( intf_chipset_data_noc2        )
-,       .noc2_ready_out                  ( msi_noc2_rdy                )
+,       .noc2_ready_out                  ( msi_noc2_rdy                  )
 `endif // `ifdef DIRECT_MODE 
 `endif // `ifdef PITON_RV64_PLIC
     );
