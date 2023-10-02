@@ -1,24 +1,28 @@
-// Modified by Princeton University on June 9th, 2015
-// ========== Copyright Header Begin ==========================================
+// Copyright (c) 2015 Princeton University
+// All rights reserved.
 //
-// OpenSPARC T1 Processor File: iop.v
-// Copyright (c) 2006 Sun Microsystems, Inc.  All Rights Reserved.
-// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of Princeton University nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
 //
-// The above named program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public
-// License version 2 as published by the Free Software Foundation.
-//
-// The above named program is distributed in the hope that it will be
-// useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-//
-// You should have received a copy of the GNU General Public
-// License along with this work; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-//
-// ========== Copyright Header End ============================================
+// THIS SOFTWARE IS PROVIDED BY PRINCETON UNIVERSITY "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL PRINCETON UNIVERSITY BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 `include "define.tmp.h"
 `include "dmbr_define.v"
 `include "l15.tmp.h"
@@ -266,23 +270,7 @@ print(s)
     wire                                router_buffer_consumed_noc3;
     wire                                thanksIn_CGNO2;
 
-    wire   [4:0]                        pcx_transducer_req;
-    wire                                pcx_transducer_atomic_req;
-    wire   [123:0]                      pcx_transducer_data;
-
-    `ifndef NO_RTL_CSM
-    wire   [`TLB_CSM]                   pcx_transducer_csm;
-    `endif
-
-    wire [4:0]                          transducer_pcx_grant;
-    // is actually cpx_data_valid
-    wire                                transducer_cpx_data_ready;
-    wire [144:0]                        transducer_cpx_data;
-
     wire                                spc_grst_l;
-    wire                                cpx_arb_spc_data_rdy;
-    wire [144:0]                        cpx_arb_spc_data;
-    wire [4:0]                          cpx_arb_spc_grant;
 
     wire [`PCX_REQTYPE_WIDTH-1:0]       transducer_l15_rqtype;
     wire [`L15_AMO_OP_WIDTH-1:0]        transducer_l15_amo_op;
@@ -329,18 +317,11 @@ print(s)
 
     wire                                transducer_l15_req_ack;
 
-
     wire [`CORE_JTAG_BUS_WIDTH-1:0] core_rtap_data;
     wire rtap_core_val;
     wire [1:0] rtap_core_threadid;
     wire [`JTAG_CORE_ID_WIDTH-1:0]  rtap_core_id;
     wire [`CORE_JTAG_BUS_WIDTH-1:0] rtap_core_data;
-
-    // the cpx arbitrator should give priority to the L1.5
-    // when communicating with the sparc core
-    wire [144:0]                        fpu_arb_data;
-    wire                                fpu_arb_data_rdy;
-    wire                                fpu_arb_grant;
 
     wire                                l15_dmbr_l1missIn;
     wire [`DMBR_TAG_WIDTH-1:0]          l15_dmbr_l1missTag;
@@ -383,10 +364,6 @@ print(s)
     wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] l15_rtap_data;
     wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] sparc_rtap_data;
     wire [`SRAM_WRAPPER_BUS_WIDTH-1:0] l2_rtap_data;
-
-    wire [3:0] rtap_lsu_ctlbits_wr_en;
-    wire [13:0] rtap_lsu_ctlbits_data;
-
 
     wire        rtap_arb_req_val;
     wire [63:0] rtap_arb_req_data;
@@ -684,138 +661,66 @@ if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
     // SPARC Core //
     ////////////////
 
-    sparc_core core(
-       .gclk(clk_gated),
-       .reset_l(rst_n_f),
-       .spc_grst_l(spc_grst_l),
-       .spc0_pcx_req_pq(pcx_transducer_req),
-       .spc0_pcx_atom_pq(pcx_transducer_atomic_req),
-       .spc0_pcx_data_pa(pcx_transducer_data),
-       `ifndef NO_RTL_CSM
-       .spc0_pcx_csm_pa(pcx_transducer_csm),
-       `endif
-       .pcx_spc0_grant_px(cpx_arb_spc_grant[0]),
-       .cpx_spc0_data_cx2(cpx_arb_spc_data),
+    sparc_tri sparc_tri(
+        .gclk                                   (clk_gated)
+        ,.reset_l                               (rst_n_f)
+        ,.spc_grst_l                            (spc_grst_l)
 
-       // sram interfaces
-       .srams_rtap_data (sparc_rtap_data),
-       .rtap_srams_bist_command (rtap_srams_bist_command),
-       .rtap_srams_bist_data (rtap_srams_bist_data),
+        ,.l15_transducer_ack                    (l15_transducer_ack)
+        ,.l15_transducer_header_ack             (l15_transducer_header_ack)
 
-       .core_rtap_data          (core_rtap_data),
-       .rtap_core_val         (rtap_core_val),
-       .rtap_core_threadid         (rtap_core_threadid),
-       .rtap_core_id         (rtap_core_id),
-       .rtap_core_data         (rtap_core_data[47:0])
+        ,.transducer_l15_rqtype                 (transducer_l15_rqtype)
+        ,.transducer_l15_amo_op                 (transducer_l15_amo_op)
+        ,.transducer_l15_size                   (transducer_l15_size)
+        ,.transducer_l15_val                    (transducer_l15_val)
+        ,.transducer_l15_address                (transducer_l15_address)
+        ,.transducer_l15_data                   (transducer_l15_data)
 
-    );
+        ,.transducer_l15_nc                     (transducer_l15_nc)
+        ,.transducer_l15_threadid               (transducer_l15_threadid)
+        ,.transducer_l15_prefetch               (transducer_l15_prefetch)
+        ,.transducer_l15_blockstore             (transducer_l15_blockstore)
+        ,.transducer_l15_blockinitstore         (transducer_l15_blockinitstore)
+        ,.transducer_l15_l1rplway               (transducer_l15_l1rplway)
+        ,.transducer_l15_invalidate_cacheline   (transducer_l15_invalidate_cacheline)
+        ,.transducer_l15_csm_data               (transducer_l15_csm_data)
+        ,.transducer_l15_data_next_entry        (transducer_l15_data_next_entry)
 
-    /////////
-    // FPU //
-    /////////
+        ,.l15_transducer_val                    (l15_transducer_val)
+        ,.l15_transducer_returntype             (l15_transducer_returntype)
+        ,.l15_transducer_l2miss                 (l15_transducer_l2miss)
+        ,.l15_transducer_error                  (l15_transducer_error)
+        ,.l15_transducer_noncacheable           (l15_transducer_noncacheable)
+        ,.l15_transducer_atomic                 (l15_transducer_atomic)
+        ,.l15_transducer_threadid               (l15_transducer_threadid)
+        ,.l15_transducer_prefetch               (l15_transducer_prefetch)
+        ,.l15_transducer_f4b                    (l15_transducer_f4b)
+        ,.l15_transducer_data_0                 (l15_transducer_data_0)
+        ,.l15_transducer_data_1                 (l15_transducer_data_1)
+        ,.l15_transducer_data_2                 (l15_transducer_data_2)
+        ,.l15_transducer_data_3                 (l15_transducer_data_3)
+        ,.l15_transducer_inval_icache_all_way   (l15_transducer_inval_icache_all_way)
+        ,.l15_transducer_inval_dcache_all_way   (l15_transducer_inval_dcache_all_way)
+        ,.l15_transducer_inval_address_15_4     (l15_transducer_inval_address_15_4)
+        ,.l15_transducer_cross_invalidate       (l15_transducer_cross_invalidate)
+        ,.l15_transducer_cross_invalidate_way   (l15_transducer_cross_invalidate_way)
+        ,.l15_transducer_inval_dcache_inval     (l15_transducer_inval_dcache_inval)
+        ,.l15_transducer_inval_icache_inval     (l15_transducer_inval_icache_inval)
+        ,.l15_transducer_inval_way              (l15_transducer_inval_way)
+        ,.l15_transducer_blockinitstore         (l15_transducer_blockinitstore)
 
-    fpu_arb_wrap fpu_arb_wrap(
-        .clk (clk_gated),
-        .rst_n (rst_n_f),
+        ,.transducer_l15_req_ack                (transducer_l15_req_ack)
 
-        .pcx_fpio_data_px2_67_0     (pcx_transducer_data[67:0]),
-        .pcx_fpio_data_px2_79_72    (pcx_transducer_data[79:72]),
-        .pcx_fpio_data_px2_116_112  (pcx_transducer_data[116:112]),
-        .pcx_fpio_data_px2_123_118  (pcx_transducer_data[123:118]),
+        // sram interfaces
+        ,.srams_rtap_data                       (sparc_rtap_data)
+        ,.rtap_srams_bist_command               (rtap_srams_bist_command)
+        ,.rtap_srams_bist_data                  (rtap_srams_bist_data)
 
-        .l15_fp_rdy(transducer_cpx_data_ready),
-
-        .fpu_arb_data_rdy(fpu_arb_data_rdy),
-        .fpu_arb_data(fpu_arb_data),
-        .fpu_arb_grant(fpu_arb_grant)
-    );
-
-    ////////////////////
-    // CPX Arbitrator //
-    ////////////////////
-
-    cpx_arbitrator cpx_arbitrator(
-        .clk(clk_gated),
-        .rst_n(rst_n_f),
-
-        .rtap_arb_req_val(rtap_arb_req_val),
-        .rtap_arb_req_data(rtap_arb_req_data),
-        .rtap_arb_req_threadid(rtap_arb_req_threadid),
-
-        .uncore_spc_data_ready(transducer_cpx_data_ready),
-        .uncore_spc_data(transducer_cpx_data),
-        .uncore_spc_grant(transducer_pcx_grant),
-
-        .fpu_arb_data_rdy(fpu_arb_data_rdy),
-        .fpu_arb_data(fpu_arb_data),
-        .fpu_arb_grant(fpu_arb_grant),
-
-        .cpx_arb_spc_data_rdy(cpx_arb_spc_data_rdy),
-        .cpx_arb_spc_data(cpx_arb_spc_data),
-        .cpx_arb_spc_grant(cpx_arb_spc_grant)
-    );
-
-    ccx_l15_transducer ccx_l15_transducer(
-        .clk                                (clk),
-        .rst_n                              (rst_n),
-
-        .pcx_transducer_req_0               (pcx_transducer_req[0]),
-        .pcx_transducer_atomic_req          (pcx_transducer_atomic_req),
-        .pcx_transducer_data_123_117        (pcx_transducer_data[123:117]),
-        .pcx_transducer_data_112_0          (pcx_transducer_data[112:0]),
-
-        `ifndef NO_RTL_CSM
-        .pcx_transducer_csm                 (pcx_transducer_csm),
-        `endif
-
-        .transducer_pcx_grant               (transducer_pcx_grant),
-        .transducer_cpx_data_ready          (transducer_cpx_data_ready),
-        .transducer_cpx_data                (transducer_cpx_data),
-
-        .l15_transducer_ack                 (l15_transducer_ack),
-        .l15_transducer_header_ack          (l15_transducer_header_ack),
-
-        .transducer_l15_rqtype              (transducer_l15_rqtype),
-        .transducer_l15_amo_op              (transducer_l15_amo_op),
-        .transducer_l15_size                (transducer_l15_size),
-        .transducer_l15_val                 (transducer_l15_val),
-        .transducer_l15_address             (transducer_l15_address),
-        .transducer_l15_data                (transducer_l15_data),
-
-        .transducer_l15_nc                  (transducer_l15_nc),
-        .transducer_l15_threadid            (transducer_l15_threadid),
-        .transducer_l15_prefetch            (transducer_l15_prefetch),
-        .transducer_l15_blockstore          (transducer_l15_blockstore),
-        .transducer_l15_blockinitstore      (transducer_l15_blockinitstore),
-        .transducer_l15_l1rplway            (transducer_l15_l1rplway),
-        .transducer_l15_invalidate_cacheline(transducer_l15_invalidate_cacheline),
-        .transducer_l15_csm_data            (transducer_l15_csm_data),
-        .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
-
-        .l15_transducer_val                 (l15_transducer_val),
-        .l15_transducer_returntype          (l15_transducer_returntype),
-        .l15_transducer_l2miss              (l15_transducer_l2miss),
-        .l15_transducer_error               (l15_transducer_error),
-        .l15_transducer_noncacheable        (l15_transducer_noncacheable),
-        .l15_transducer_atomic              (l15_transducer_atomic),
-        .l15_transducer_threadid            (l15_transducer_threadid),
-        .l15_transducer_prefetch            (l15_transducer_prefetch),
-        .l15_transducer_f4b                 (l15_transducer_f4b),
-        .l15_transducer_data_0              (l15_transducer_data_0),
-        .l15_transducer_data_1              (l15_transducer_data_1),
-        .l15_transducer_data_2              (l15_transducer_data_2),
-        .l15_transducer_data_3              (l15_transducer_data_3),
-        .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
-        .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
-        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
-        .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
-        .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
-        .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),
-        .l15_transducer_inval_icache_inval  (l15_transducer_inval_icache_inval),
-        .l15_transducer_inval_way           (l15_transducer_inval_way),
-        .l15_transducer_blockinitstore      (l15_transducer_blockinitstore),
-
-        .transducer_l15_req_ack             (transducer_l15_req_ack)
+        ,.core_rtap_data                        (core_rtap_data)
+        ,.rtap_core_val                         (rtap_core_val)
+        ,.rtap_core_threadid                    (rtap_core_threadid)
+        ,.rtap_core_id                          (rtap_core_id)
+        ,.rtap_core_data                        (rtap_core_data[47:0])
     );
 
 `endif // ifdef PITON_OST1

@@ -19,16 +19,4 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 // 
 // ========== Copyright Header End ============================================
--v cluster_header.v
--v cluster_header_sync.v
--v cluster_header_dup.v
--v cluster_header_ctu.v
-//-v ../../analog/bw_clk/rtl/bw_clk_cclk_sync.v
-//-v ../../analog/bw_clk/rtl/bw_clk_cclk_scanlasr_2x.v
-//-v dftlib.v
-//-v test_stub_bist.v
-//-v test_stub_scan.v
--v synchronizer_asr.v
--v synchronizer_asr_dup.v
--v sync_pulse_synchronizer.v
 -v clk_gating_latch.v

@@ -31,7 +31,6 @@
 
 //`include "test_infrstrct.v"
 
-`include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
 `include "ifu.tmp.h"

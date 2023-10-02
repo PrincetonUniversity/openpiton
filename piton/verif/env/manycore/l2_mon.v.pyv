@@ -47,7 +47,6 @@
 
 `include "define.tmp.h"
 `include "l2.tmp.h"
-`include "sys.h"
 `include "iop.h"
 `include "cross_module.tmp.h"
 

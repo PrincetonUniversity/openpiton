@@ -342,6 +342,7 @@ GetOptions (\%opt,
             'simslog!',
             'simslog_name=s',
             'build_id=s',
+            'sys=s',
            ) ;
 
 die ("DIE. -ariane and -pico/-pico_het cannot be set simultaneously") if ($opt{ariane} && ($opt{pico} || $opt{pico_het})) ;
@@ -349,14 +350,18 @@ die ("DIE. -pico and -pico_het cannot both be set") if ($opt{pico} && $opt{pico_
 
 # Setting ost1 by default. This works better than default to 1
 # for heterogeneous-ISA stuff
-if (!$opt{pico} && !$opt{ariane}) {
-  $opt{ost1} = 1 ;
+if ((!$opt{pico} && !$opt{ariane} && !$opt{ost1}) && ($opt{sys} eq "manycore")) {
+  die ("DIE. Calling sims without specifying a core is no longer supported (you probably want to add -ariane, -ost1, or similar to your sims command)") ;
 }
 
 push (@{$opt{config_cpp_args}}, "-DFLIST_OST1")     if ($opt{ost1} || $opt{pico_het}) ;
 push (@{$opt{config_cpp_args}}, "-DFLIST_PICO")     if ($opt{pico} || $opt{pico_het}) ;
 push (@{$opt{config_cpp_args}}, "-DFLIST_ARIANE")   if ($opt{ariane}) ;
 push (@{$opt{config_cpp_args}}, "-DFLIST_ORAM")     if ($opt{oram}) ;
+
+push (@{$opt{diaglist_cpp_args}}, "-DSPARCV9")      if ($opt{ost1} || $opt{pico_het}) ;
+push (@{$opt{diaglist_cpp_args}}, "-DRISCV32")      if ($opt{pico} || $opt{pico_het}) ;
+push (@{$opt{diaglist_cpp_args}}, "-DRISCV64")      if ($opt{ariane}) ;
 
 ################################################################################
 # define $result_dir

@@ -21,6 +21,3 @@
 // ========== Copyright Header End ============================================
 -v ucb_bus_in.v
 -v ucb_bus_out.v
--v ucb_flow_2buf.v
--v ucb_flow_spi.v
--v ucb_noflow.v

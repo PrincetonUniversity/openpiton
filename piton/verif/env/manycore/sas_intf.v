@@ -21,7 +21,6 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////
 
-`include "sys.h"
 `include "iop.h"
 `include "lsu.tmp.h"
 `include "ifu.tmp.h"
