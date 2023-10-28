@@ -373,7 +373,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                         `L15_WAY_WIDTH      + \
                         `TLB_CSM_WIDTH)
 `endif
-`define L15_RTRN_WIDTH (16 + 4*64 + (15 - 4 + 1) + \
+`define L15_RTRN_WIDTH (16 + 4*64 + \
                         `CPX_RESTYPE_WIDTH  +      \
                         `L15_THREADID_WIDTH +      \
                         2 * `L15_WAY_WIDTH + `L15_PADDR_WIDTH)

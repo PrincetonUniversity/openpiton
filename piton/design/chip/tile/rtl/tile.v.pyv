@@ -322,8 +322,7 @@ print(s)
     wire [63:0]                         l15_transducer_data_3;
     wire                                l15_transducer_inval_icache_all_way;
     wire                                l15_transducer_inval_dcache_all_way;
-    wire [`L15_PADDR_MASK]              l15_transducer_address;
-    wire [15:4]                         l15_transducer_inval_address_15_4;
+    wire [`L15_PADDR_MASK]              l15_transducer_inval_address;
     wire                                l15_transducer_cross_invalidate;
     wire [1:0]                          l15_transducer_cross_invalidate_way;
     wire                                l15_transducer_inval_dcache_inval;
@@ -811,7 +810,7 @@ if (TILE_TYPE == `SPARC_TILE) begin : g_sparc_core
         .l15_transducer_data_3              (l15_transducer_data_3),
         .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
         .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
-        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
+        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address[15:4]),
         .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
         .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
         .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),
@@ -940,8 +939,7 @@ if (TILE_TYPE == `ARIANE_RV64_TILE) begin : g_ariane_core
                         l15_transducer_data_3,
                         l15_transducer_inval_icache_all_way,
                         l15_transducer_inval_dcache_all_way,
-                        l15_transducer_address,
-                        l15_transducer_inval_address_15_4,
+                        l15_transducer_inval_address,
                         l15_transducer_cross_invalidate,
                         l15_transducer_cross_invalidate_way,
                         l15_transducer_inval_dcache_inval,
@@ -1127,8 +1125,7 @@ print(str)
         .l15_transducer_data_3              (l15_transducer_data_3),
         .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
         .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
-        .l15_transducer_address             (l15_transducer_address),
-        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
+        .l15_transducer_inval_address       (l15_transducer_inval_address),
         .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
         .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
         .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),
