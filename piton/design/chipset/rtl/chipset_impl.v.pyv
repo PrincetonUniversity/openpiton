@@ -1189,14 +1189,14 @@ str = '''
 ,       .ariane_clint_buf_noc3_valid_o   ( ariane_clint_buf_noc3_valid   )
 ,       .buf_ariane_clint_noc3_ready_i   ( buf_ariane_clint_noc3_ready   )
 `endif // ifdef PITON_RV64_CLINT
-`ifdef PITON_RV64_PLIC
+//`ifdef PITON_RV64_PLIC
 ,       .buf_ariane_plic_noc2_data_i     ( buf_ariane_plic_noc2_data     )
 ,       .buf_ariane_plic_noc2_valid_i    ( buf_ariane_plic_noc2_valid    )
 ,       .ariane_plic_buf_noc2_ready_o    ( ariane_plic_buf_noc2_ready    )
 ,       .ariane_plic_buf_noc3_data_o     ( ariane_plic_buf_noc3_data     )
 ,       .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    )
 ,       .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    )
-`endif // ifdef PITON_RV64_PLIC
+//`endif // ifdef PITON_RV64_PLIC
         // This selects either the BM or linux bootrom
 ,       .ariane_boot_sel_i               ( ariane_boot_sel               )
 `ifdef PITON_RV64_DEBUGUNIT
@@ -1234,9 +1234,9 @@ str = '''
 ,       .noc1_data_out                   ( chipset_intf_data_noc1        )
 ,       .noc1_ready_in                   ( chipset_intf_rdy_noc1         )
 // NoC2 request to MSI
-,       .noc2_valid_in                   ( intf_chipset_val_noc2         )
-,       .noc2_data_in                    ( intf_chipset_data_noc2        )
-,       .noc2_ready_out                  ( msi_noc2_rdy                  )
+,       .noc2_valid_in                   ( buf_ariane_aia_noc2_val       )
+,       .noc2_data_in                    ( buf_ariane_aia_noc2_data      )
+,       .noc2_ready_out                  ( ariane_aia_buf_noc2_ready     )
 `endif // `ifdef DIRECT_MODE 
 `endif // `ifdef PITON_RV64_PLIC
     );

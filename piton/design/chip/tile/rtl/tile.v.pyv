@@ -1332,7 +1332,7 @@ print(str)
         .SLAVE_RESP_BYTEWIDTH   (4),
         .SWAP_ENDIANESS         (1)
     ) noc_ethernet_bridge (
-        .clk                    (net_axi_clk        ),
+        .clk                    (clk        ),
         .rst                    (~rst_n             ),
     
         .splitter_bridge_val    (splitter_dst1_vr_noc1_val),
