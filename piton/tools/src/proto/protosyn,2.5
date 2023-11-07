@@ -120,6 +120,8 @@ def usage():
     print("              for debugging (requires --passthru-dec)", file=sys.stderr)
     print("\n       --define <comma separated list of defines>", file=sys.stderr)
     print("              Comma separated list of custom Verilog macro defines", file=sys.stderr)
+    print("\n       --linux_bootrom [zsbl|uboot]", file=sys.stderr)
+    print("              Choose the Linux bootrom to be used (default zsbl).", file=sys.stderr)
     print("\n       --make-mem-map", file=sys.stderr)
     print("              Create a mapping of test specified by --bram-test option to a BRAM", file=sys.stderr)
     print("\n       --from <step>", file=sys.stderr)
@@ -470,6 +472,7 @@ def setParserOptions(parser):
     parser.add_option("--passthru-dec", dest="passthru_dec", action="store_true", default=False)
     parser.add_option("--passthru-dec-uart-pkttrace", dest="passthru_dec_uart_pkttrace", action="store_true", default=False)
     parser.add_option("--define", dest="define", action="store", default=None)
+    parser.add_option("--linux_bootrom", dest="linux_bootrom", action="store", default="zsbl")
     parser.add_option("--oled", dest="oled", action="store")
     parser.add_option("-j", "--jobs", dest="jobs", action="store", default=1)
     parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
@@ -780,6 +783,9 @@ def main():
     if options.network_config not in ['2dmesh_config', 'xbar_config']:
         print_error('invalid network config ' + str(options.network_config))
         sys.exit(1)
+
+    if options.linux_bootrom == "uboot":
+        os.environ['PITON_UBOOT_SPL'] = "1"
 
     print_info("network   = " + str(options.network_config))
     os.environ['PITON_NETWORK_CONFIG'] = options.network_config

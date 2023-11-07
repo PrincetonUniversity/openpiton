@@ -137,11 +137,38 @@ if  {[info exists ::env(PITON_ARIANE)]} {
   # otherwise this command fails...
   exec make clean 2> /dev/null
   exec make all 2> /dev/null
-  cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/linux
-  # Note: dd dumps info to stderr that we do not want to interpret
-  # otherwise this command fails...
-  exec make clean 2> /dev/null
-  exec make all MAX_HARTS=$::env(PITON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
+  puts "INFO: bare metal firmware generation complete"
+  if {[info exists ::env(PITON_UBOOT_SPL)]} {
+    cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom
+    # create dts file first
+    exec python3 $::env(DV_ROOT)/tools/bin/riscvlib.py
+    # copy the dts for the bare metal bootrom first
+    exec cp $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/rv64_platform.dts $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/u-boot/uboot/arch/riscv/dts/openpiton-riscv64.dts
+    # then we generate the spl image
+    cd $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/u-boot/uboot/
+    # FIXME: find a better way to handle branches in git submodules
+    # exec git checkout dual-core
+    # Note: dd dumps info to stderr that we do not want to interpret
+    # otherwise this command fails...
+    exec make distclean 2> /dev/null
+    exec make ARCH=riscv CROSS_COMPILE=riscv-none-embed- openpiton_riscv64_spl_defconfig
+    #TODO: update riscv toochain
+    exec make CROSS_COMPILE=riscv-none-embed- -j8 2> /dev/null
+    # generate mover using the spl image
+    cd $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/u-boot/mover/
+    exec make clean
+    exec make 2> /dev/null
+    # generate the linux bootrom using mover image
+    exec cp mover.sv $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/linux/bootrom_linux.sv
+    cd $::env(PITON_ROOT)/piton/design/chipset/rv64_platform/bootrom/linux/
+    exec sed -i {s/mover/bootrom_linux/g} bootrom_linux.sv
+  } else {
+    cd $::env(DV_ROOT)/design/chipset/rv64_platform/bootrom/linux
+    # Note: dd dumps info to stderr that we do not want to interpret
+    # otherwise this command fails...
+    exec make clean 2> /dev/null
+    exec make all MAX_HARTS=$::env(PITON_NUM_TILES) UART_FREQ=$::env(CONFIG_SYS_FREQ) 2> /dev/null
+  }
   puts "INFO: done"
   # two targets per hart (M,S) and two interrupt sources (UART, Ethernet)
   set NUM_TARGETS [expr 2*$::env(PITON_NUM_TILES)]

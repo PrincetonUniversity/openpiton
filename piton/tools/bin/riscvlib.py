@@ -141,25 +141,36 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
 / {
     #address-cells = <2>;
     #size-cells = <2>;
-    compatible = "eth,ariane-bare-dev";
-    model = "eth,ariane-bare";
+    u-boot,dm-pre-reloc;
+    compatible = "openpiton,cva6platform";
+
     chosen {
-        stdout-path = "/soc/uart@%08x:115200";
+    u-boot,dm-pre-reloc;
+    stdout-path = "uart0:115200";
     };
+
+    aliases {
+        u-boot,dm-pre-reloc;
+        console = &uart0;
+        serial0 = &uart0;
+    };
+
     cpus {
         #address-cells = <1>;
         #size-cells = <0>;
+        u-boot,dm-pre-reloc;
         timebase-frequency = <%d>;
-    ''' % (timeStamp, uartBase, timeBaseFreq)
+    ''' % (timeStamp, timeBaseFreq)
 
     for k in range(nCpus):
         tmpStr += '''
         CPU%d: cpu@%d {
             clock-frequency = <%d>;
+            u-boot,dm-pre-reloc;
             device_type = "cpu";
             reg = <%d>;
             status = "okay";
-            compatible = "eth, ariane", "riscv";
+            compatible = "openhwgroup, cva6", "riscv";
             riscv,isa = "rv64imafdc";
             mmu-type = "riscv,sv39";
             tlb-split;
@@ -184,18 +195,11 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             addrLen  = devices[i]["length"]
             tmpStr += '''
     memory@%08x {
+        u-boot,dm-pre-reloc;
         device_type = "memory";
         reg = <%s>;
     };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
-
-    tmpStr += '''
-    soc {
-        #address-cells = <2>;
-        #size-cells = <2>;
-        compatible = "eth,ariane-bare-soc", "simple-bus";
-        ranges;
-    '''
 
     # TODO: this needs to be extended
     # get the number of interrupt sources
@@ -215,6 +219,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             addrLen  = devices[i]["length"]
             tmpStr += '''
         clint@%08x {
+            u-boot,dm-pre-reloc;
             compatible = "riscv,clint0";
             interrupts-extended = <''' % (addrBase)
             for k in range(nCpus):
@@ -230,6 +235,7 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             addrLen  = devices[i]["length"]
             tmpStr += '''
         PLIC0: plic@%08x {
+            u-boot,dm-pre-reloc;
             #address-cells = <0>;
             #interrupt-cells = <1>;
             compatible = "riscv,plic0";
@@ -243,12 +249,15 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             riscv,ndev = <%d>;
         };
             ''' % (_reg_fmt(addrBase, addrLen, 2, 2), numIrqs)
+
         # UART
+        # TODO: update uart sequence numbers
         if devices[i]["name"] == "uart":
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
             tmpStr += '''
-        uart@%08x {
+        uart0: uart@%08x {
+            u-boot,dm-pre-reloc;
             compatible = "ns16550";
             reg = <%s>;
             clock-frequency = <%d>;
@@ -259,6 +268,19 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
         };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), periphFreq, ioDeviceNr)
             ioDeviceNr+=1
+
+        # sd card
+        if devices[i]["name"] == "sd":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            tmpStr += '''
+        sdhci_0: sdhci@%08x {
+            u-boot,dm-pre-reloc;
+            status = "okay";
+            compatible = "openpiton,piton-mmc";
+            reg = <%s>;
+        };
+            ''' %(addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
 
         # Ethernet
         if devices[i]["name"] == "net":
@@ -294,24 +316,14 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), ioDeviceNr)
             ioDeviceNr+=1
 
-        # eth: lowrisc-eth@%08x {
-        #     compatible = "lowrisc-eth";
-        #     device_type = "network";
-        #     interrupt-parent = <&PLIC0>;
-        #     interrupts = <3 0>;
-        #     local-mac-address = [ee e1 e2 e3 e4 e5];
-        #     reg = <%s>;
-        # };
-
     tmpStr += '''
-    };
 };
     '''
 
     # this needs to match
     assert ioDeviceNr-1 == numIrqs
 
-    with open(dtsPath + '/rv64_platform.dts','w') as file:
+    with open(dtsPath + '/rv64_platform.dts','w+') as file:
         file.write(tmpStr)
 
 def main():

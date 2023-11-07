@@ -1,0 +1,6 @@
+*.elf
+*.img
+*.dtb
+*.sv
+*.h
+*.bin

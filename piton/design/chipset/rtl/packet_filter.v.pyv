@@ -363,10 +363,12 @@ print(outputstr)
             flits_sent_reg    <= flits_sent_next;
             state_reg         <= state_next;
 
+`ifndef PITON_FPGA_SYNTH
 `ifdef MONITOR_INVALID_ACCESSES
             if (invalid_access_d) begin
               $fatal(1,"Access to invalid address in packet filter: 0x%016X", noc2_filter_data[`MSG_ADDR_]);
             end
+`endif
 `endif
         end
     end
