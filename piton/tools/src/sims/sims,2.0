@@ -1557,6 +1557,21 @@ sub generic_sim_build
       $build_cmd .= "-CFLAGS -lstdc++ " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/pli/iop " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/verilator " ;
+
+      # Run the verilator --version command and capture the output
+      my $verilator_version = `verilator --version`;
+
+      # Extract the major version from the output
+      if ($verilator_version =~ /Verilator (\d)\.\d+/) {
+          # Print the major version
+          print "Verilator Major Version: $1\n";
+          if ($1 == 5) {
+            $build_cmd .= "--no-timing " ;
+          }
+      } else {
+          # Handle the case where the version format doesn't match
+          die ("Error: Unable to extract Verilator major version.\n");
+      }
     }
     if ($opt{other_sim_build}) {
       if (($opt{other_sim_build_cmd}) eq "") {
