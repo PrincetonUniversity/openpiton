@@ -62,9 +62,16 @@ foreach ip_file ${ALL_IP_FILE_PREFIXES} {
         lappend ALL_XCO_IP_FILES "${ip_file}.xco"
 }
 
+set ALL_BD_FILES [list ]
+foreach bd_file ${DESIGN_BD_FILES} {
+    lappend ALL_BD_FILES "${bd_file}.bd"
+}
+
+
 set ALL_COE_FILES [concat ${DESIGN_COE_IP_FILES}]
 
 set ALL_PRJ_IP_FILES [concat ${DESIGN_PRJ_IP_FILES}]
+
 
 # get pyhp globals
 # note that this may override some evironment vars!

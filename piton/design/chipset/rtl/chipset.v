@@ -88,7 +88,18 @@ module chipset(
 
 `ifdef F1_BOARD
     input sys_clk,
-`else
+`else // ifdef F1_BOARD
+`ifdef ALVEO_BOARD
+    input         pcie_refclk_clk_n    ,
+    input         pcie_refclk_clk_p    ,
+    input         pcie_perstn          ,		
+    input  [15:0] pci_express_x16_rxn  ,
+    input  [15:0] pci_express_x16_rxp  ,
+    output [15:0] pci_express_x16_txn  ,
+    output [15:0] pci_express_x16_txp  ,
+    input         resetn ,
+    output        chip_rstn ,
+`endif // ifdef ALVEO_BOARD
     // Oscillator clock
 `ifdef PITON_CHIPSET_CLKS_GEN
     `ifdef PITON_CHIPSET_DIFF_CLK
@@ -244,11 +255,11 @@ module chipset(
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
-`ifdef XUPP3R_BOARD
+`ifdef PITONSYS_DDR4_PARITY
     output                                      ddr_parity,
 `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-`endif // XUPP3R_BOARD
+`endif // PITONSYS_DDR4_PARITY
 `else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
@@ -462,13 +473,13 @@ module chipset(
     `ifdef VCU118_BOARD
         // we only have 4 gpio dip switches on this board
         input  [3:0]                                        sw,
-    `elsif XUPP3R_BOARD
+    `elsif PITONSYS_NO_SWITCH
         // no switches :(
     `else         
         input  [7:0]                                        sw,
     `endif
 
-    `ifdef XUPP3R_BOARD
+    `ifdef PITONSYS_LED_4
      output [3:0]                                           leds
     `else 
      output [7:0]                                           leds
@@ -755,7 +766,7 @@ end
             `ifdef VCU118_BOARD
                 assign uart_boot_en    = sw[0];
                 assign uart_timeout_en = sw[1];
-            `elsif XUPP3R_BOARD
+            `elsif PITONSYS_NO_SWITCH
                 assign uart_boot_en    = 1'b1;
                 assign uart_timeout_en = 1'b0;
             `else 
@@ -808,7 +819,7 @@ end
 
     // Test points
     assign tp[7:0] = 8'd0;
-`elsif XUPP3R_BOARD
+`elsif PITONSYS_LED_4
     assign leds[0] = ~piton_ready_n;
     assign leds[1] = init_calib_complete;
     assign leds[2] = processor_offchip_noc2_valid;
@@ -1307,11 +1318,11 @@ chipset_impl_noc_power_test  chipset_impl (
                     .ddr_cs_n(ddr_cs_n),
                 `endif // endif NEXYSVIDEO_BOARD
             
-                `ifdef XUPP3R_BOARD
+                `ifdef PITONSYS_DDR4_PARITY
                     .ddr_parity(ddr_parity),
                 `else
                     .ddr_dm(ddr_dm),
-                `endif // XUPP3R_BOARD
+                `endif // PITONSYS_DDR4_PARITY
                 .ddr_odt(ddr_odt)
             `else // ifndef F1_BOARD
                 .mc_clk(mc_clk),
@@ -1420,6 +1431,20 @@ chipset_impl_noc_power_test  chipset_impl (
 
             `endif // PITON_FPGA_ETHERNETLITE   
     `endif // endif PITONSYS_IOCTRL
+    
+    `ifdef ALVEO_BOARD
+        ,    // PCIe 
+        .pci_express_x16_rxn(pci_express_x16_rxn),
+        .pci_express_x16_rxp(pci_express_x16_rxp),
+        .pci_express_x16_txn(pci_express_x16_txn),
+        .pci_express_x16_txp(pci_express_x16_txp),
+        .pcie_perstn(pcie_perstn),
+        .pcie_refclk_clk_n(pcie_refclk_clk_n),
+        .pcie_refclk_clk_p(pcie_refclk_clk_p),
+        .resetn(resetn),
+        .chip_rstn (chip_rstn)
+    
+    `endif
 
     `ifdef PITON_RV64_PLATFORM
     `ifdef PITON_RV64_DEBUGUNIT
