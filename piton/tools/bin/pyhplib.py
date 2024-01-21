@@ -72,6 +72,7 @@ else:
 # cache configurations
 CONFIG_L15_SIZE = int(os.environ.get('CONFIG_L15_SIZE', '8192'))
 CONFIG_L15_ASSOCIATIVITY = int(os.environ.get('CONFIG_L15_ASSOCIATIVITY', '4'))
+CONFIG_L15_NUM_THREADS = int(os.environ.get('CONFIG_L15_NUM_THREADS', '2'))
 CONFIG_L1D_SIZE = int(os.environ.get('CONFIG_L1D_SIZE', '8192'))
 CONFIG_L1D_ASSOCIATIVITY = int(os.environ.get('CONFIG_L1D_ASSOCIATIVITY', '4'))
 CONFIG_L1I_SIZE = int(os.environ.get('CONFIG_L1I_SIZE', '16384'))

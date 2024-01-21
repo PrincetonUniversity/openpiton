@@ -2637,6 +2637,7 @@ sub parse_args
     "config_l1d_associativity",
     "config_l15_size",
     "config_l15_associativity",
+    "config_l15_num_threads",
     "config_l2_size",
     "config_l2_associativity",
     );
