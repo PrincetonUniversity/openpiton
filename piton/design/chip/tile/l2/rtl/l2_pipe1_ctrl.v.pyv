@@ -3624,6 +3624,7 @@ end
 
 always @ *
 begin
+	msg_send_data_size_S4 = `MSG_DATA_SIZE_0B;
     if (msg_send_valid_S4)
     begin
         case (msg_send_type_S4)
