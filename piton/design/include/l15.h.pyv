@@ -356,23 +356,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 `define L15_CONTROL_BLOCKSTORE_1B (`L15_CONTROL_NC_1B + 1)
 `define L15_CONTROL_WIDTH (`L15_CONTROL_BLOCKSTORE_1B + 1)
 
-`ifdef WRITE_BYTE_MASK
-// Byte mask
 `define L15_BYTE_MASK_WIDHT 8
-
 `define L15_REQ_WIDTH  (14 + 40 + 2*64 +      \
                         `PCX_REQTYPE_WIDTH  + \
                         `L15_THREADID_WIDTH + \
                         `L15_WAY_WIDTH      + \
                         `TLB_CSM_WIDTH + `L15_BYTE_MASK_WIDHT)
-`else
-// define the width of the flattened, native L15 interface, used for ARIANE_RV64 option
-`define L15_REQ_WIDTH  (14 + 40 + 2*64 +      \
-                        `PCX_REQTYPE_WIDTH  + \
-                        `L15_THREADID_WIDTH + \
-                        `L15_WAY_WIDTH      + \
-                        `TLB_CSM_WIDTH)
-`endif
 `define L15_RTRN_WIDTH (16 + 4*64 + \
                         `CPX_RESTYPE_WIDTH  +      \
                         `L15_THREADID_WIDTH +      \

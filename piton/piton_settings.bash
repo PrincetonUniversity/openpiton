@@ -10,7 +10,8 @@
 
 export DV_ROOT=$PITON_ROOT/piton
 export MODEL_DIR=$PITON_ROOT/build
-export HPDCACHE_DIR=$ARIANE_ROOT/cv-hpdcache
+export HPDCACHE_ROOT=$ARIANE_ROOT/cv-hpdcache
+export HPDCACHE_DIR=../
 
 if [ `uname -s` = "SunOS" ]
 then
