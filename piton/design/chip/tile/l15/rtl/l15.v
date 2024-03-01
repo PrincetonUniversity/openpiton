@@ -66,6 +66,9 @@ module l15 (
     input [63:0]                            transducer_l15_data,
     input [63:0]                            transducer_l15_data_next_entry,
     input [`TLB_CSM_WIDTH-1:0]              transducer_l15_csm_data,
+    `ifdef WRITE_BYTE_MASK
+    input [`L15_BYTE_MASK_WIDHT-1:0]        transducer_l15_be,  
+    `endif
 
     output                                  l15_transducer_ack,
     output                                  l15_transducer_header_ack,
@@ -85,7 +88,7 @@ module l15 (
     output [63:0]                           l15_transducer_data_3,
     output                                  l15_transducer_inval_icache_all_way,
     output                                  l15_transducer_inval_dcache_all_way,
-    output [15:4]                           l15_transducer_inval_address_15_4,
+    output [`L15_PADDR_MASK]                l15_transducer_inval_address,
     output                                  l15_transducer_cross_invalidate,
     output [1:0]                            l15_transducer_cross_invalidate_way,
     output                                  l15_transducer_inval_dcache_inval,
@@ -486,6 +489,7 @@ wire [`L15_MSHR_ID_WIDTH-1:0] pipe_mshr_readreq_mshrid_s1;
 wire [`L15_CONTROL_WIDTH-1:0] mshr_pipe_readres_control_s1;
 wire [`PACKET_HOME_ID_WIDTH-1:0] mshr_pipe_readres_homeid_s1;
 wire [(`L15_NUM_MSHRID_PER_THREAD*`L15_NUM_THREADS)-1:0] mshr_pipe_vals_s1;
+wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ifill_address;
 wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_ld_address;
 wire [(40*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address;
 wire [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1;
@@ -522,6 +526,7 @@ l15_mshr mshr(
     .mshr_pipe_readres_control_s1(mshr_pipe_readres_control_s1),
     .mshr_pipe_readres_homeid_s1(mshr_pipe_readres_homeid_s1),
     .mshr_pipe_vals_s1(mshr_pipe_vals_s1),
+    .mshr_pipe_ifill_address(mshr_pipe_ifill_address),
     .mshr_pipe_ld_address(mshr_pipe_ld_address),
     .mshr_pipe_st_address(mshr_pipe_st_address),
     .mshr_pipe_st_way_s1(mshr_pipe_st_way_s1),
@@ -608,7 +613,7 @@ rf_l15_lrsc_flag lrsc_flag(
 //    );
 
 
-
+`ifndef PITON_ARIANE_HPDC // L1D is NOT HPDC
 // way map table
 wire l15_wmt_read_val_s2;
 wire [`L1D_SET_IDX_MASK] l15_wmt_read_index_s2;
@@ -628,7 +633,7 @@ rf_l15_wmt wmc(
     .write_data(l15_wmt_write_data_s3),
     .read_data(wmt_l15_data_s3)
 );
-
+`endif
 // lru array, psuedo
 wire l15_lruarray_read_val_s1;
 wire [`L15_CACHE_INDEX_WIDTH-1:0] l15_lruarray_read_index_s1;
@@ -658,7 +663,6 @@ l15_pipeline pipeline(
     .mesi_l15_dout_s2(mesi_l15_dout_s2),
     .lrsc_flag_l15_dout_s2(lrsc_flag_l15_dout_s2),
     .lruarray_l15_dout_s2(lruarray_l15_dout_s2),
-    .wmt_l15_data_s3(wmt_l15_data_s3),
     .pcxdecoder_l15_rqtype               (transducer_l15_rqtype),
     .pcxdecoder_l15_amo_op               (transducer_l15_amo_op),
     .pcxdecoder_l15_nc                   (transducer_l15_nc),
@@ -675,6 +679,9 @@ l15_pipeline pipeline(
     .pcxdecoder_l15_data                 (transducer_l15_data),
     .pcxdecoder_l15_data_next_entry      (transducer_l15_data_next_entry),
     .pcxdecoder_l15_csm_data             (transducer_l15_csm_data),
+    `ifdef WRITE_BYTE_MASK
+    .pcxdecoder_l15_be                   (transducer_l15_be),
+    `endif
     .noc2decoder_l15_val(noc2decoder_l15_val),
     .noc2decoder_l15_mshrid(noc2decoder_l15_mshrid),
     .noc2decoder_l15_l2miss(noc2decoder_l15_l2miss),
@@ -724,12 +731,15 @@ l15_pipeline pipeline(
     .l15_lrsc_flag_write_index_s2(l15_lrsc_flag_write_index_s2),
     .l15_lrsc_flag_write_mask_s2(l15_lrsc_flag_write_mask_s2),
     .l15_lrsc_flag_write_data_s2(l15_lrsc_flag_write_data_s2),
+    `ifndef PITON_ARIANE_HPDC
     .l15_wmt_read_val_s2(l15_wmt_read_val_s2),
     .l15_wmt_read_index_s2(l15_wmt_read_index_s2),
+    .wmt_l15_data_s3(wmt_l15_data_s3),
     .l15_wmt_write_val_s3(l15_wmt_write_val_s3),
     .l15_wmt_write_index_s3(l15_wmt_write_index_s3),
     .l15_wmt_write_mask_s3(l15_wmt_write_mask_s3),
     .l15_wmt_write_data_s3(l15_wmt_write_data_s3),
+    `endif
     .l15_lruarray_read_val_s1(l15_lruarray_read_val_s1),
     .l15_lruarray_read_index_s1(l15_lruarray_read_index_s1),
     .l15_lruarray_write_val_s3(l15_lruarray_write_val_s3),
@@ -751,7 +761,7 @@ l15_pipeline pipeline(
     .l15_cpxencoder_data_3               (l15_transducer_data_3),
     .l15_cpxencoder_inval_icache_all_way (l15_transducer_inval_icache_all_way),
     .l15_cpxencoder_inval_dcache_all_way (l15_transducer_inval_dcache_all_way),
-    .l15_cpxencoder_inval_address_15_4   (l15_transducer_inval_address_15_4),
+    .l15_cpxencoder_inval_address        (l15_transducer_inval_address),
     .l15_cpxencoder_cross_invalidate     (l15_transducer_cross_invalidate),
     .l15_cpxencoder_cross_invalidate_way (l15_transducer_cross_invalidate_way),
     .l15_cpxencoder_inval_dcache_inval   (l15_transducer_inval_dcache_inval),
@@ -834,6 +844,7 @@ l15_pipeline pipeline(
     .mshr_pipe_readres_control_s1(mshr_pipe_readres_control_s1),
     .mshr_pipe_readres_homeid_s1(mshr_pipe_readres_homeid_s1),
     .mshr_pipe_vals_s1(mshr_pipe_vals_s1),
+    .mshr_pipe_ifill_address(mshr_pipe_ifill_address),
     .mshr_pipe_ld_address(mshr_pipe_ld_address),
     .mshr_pipe_st_address(mshr_pipe_st_address),
     .mshr_pipe_st_way_s1(mshr_pipe_st_way_s1),
