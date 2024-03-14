@@ -367,9 +367,10 @@ push (@{$opt{diaglist_cpp_args}}, "-DRISCV64")      if ($opt{ariane}) ;
 
 if ($opt{ariane}) {
   if ($opt{hpdc}) {
-    push (@{$opt{config_rtl}}, "PITON_ARIANE_HPDC")
+    push (@{$opt{config_rtl}}, "PITON_ARIANE_HPDC");
+    push (@{$opt{config_rtl}}, "HPDCACHE_OPENPITON");
   } else {
-    push (@{$opt{config_rtl}}, "WT_DCACHE")
+    push (@{$opt{config_rtl}}, "WT_DCACHE");
   }
 }
 
@@ -1117,6 +1118,7 @@ sub gen_config
   print OCONF "`timescale 1ps/1ps\n" ;
 
   foreach my $unit (@{$opt{config_rtl}}) {
+    $unit =~ tr/"//d;               # Remove " to allow preprocessing macros: config_rtl="ADDR_SIZE 50"
     print OCONF "`define $unit\n";
   }
 
