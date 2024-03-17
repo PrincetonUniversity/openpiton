@@ -173,6 +173,7 @@ assign m_axi_wid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, re
 
 wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
 wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
+wire [`PHY_ADDR_WIDTH-1:0] addr_n = uart_boot_en ? {phys_addr[`AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
 wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1])
                 || (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
 
@@ -201,47 +202,56 @@ always @(posedge clk) begin
         if (uncacheable) begin
             case (req_header_f[`MSG_DATA_SIZE])
                 `MSG_DATA_SIZE_0B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b0;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'h0000000000000000;
+                    offset <= 64 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_1B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b1;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'h8000000000000000;
+                    offset <= 56 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_2B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b11;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'hc000000000000000;
+                    offset <= 56 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_4B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hf;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'hf000000000000000;
+                    offset <= 56 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_8B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hff;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'hff00000000000000;
+                    offset <= 56 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_16B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hffff;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'hffff000000000000;
+                    offset <= 48 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_32B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hffffffff;
+                    strb_before_offset <= `AXI4_STRB_WIDTH'hffffffff00000000;
+                    offset <= 32 - {addr_n[5:3], {3'b0}} + addr_n[2:0];
                 end
                 `MSG_DATA_SIZE_64B: begin
                     strb_before_offset <= `AXI4_STRB_WIDTH'hffffffffffffffff;
+                    offset <= 0;
                 end
                 default: begin
                     // should never end up here
                     strb_before_offset <= `AXI4_STRB_WIDTH'b0;
+                    offset <= 0;
                 end
             endcase
         end
         else begin
             strb_before_offset <= `AXI4_STRB_WIDTH'hffffffffffffffff;
+            offset <= 0;
         end
 
-        offset <= uncacheable ? virt_addr[5:0] : 6'b0;
-        addr <= uart_boot_en ? {phys_addr[`AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
+        addr <= addr_n;
     end
 end
 
 assign m_axi_awaddr = {addr[`AXI4_ADDR_WIDTH-1:6], 6'b0};
-assign m_axi_wstrb = strb_before_offset << offset;
-assign m_axi_wdata = req_data_f << (8*offset);
+assign m_axi_wstrb = strb_before_offset >> offset;
+assign m_axi_wdata = req_data_f >> (8*offset);
 
 // inbound responses
 wire m_axi_bgo = m_axi_bvalid & m_axi_bready;
