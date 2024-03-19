@@ -195,7 +195,6 @@ set_property "used_in_synthesis" "1" $file_obj
 # Set 'constrs_1' fileset properties
 set_property "name" "constrs_1" $fileset_obj
 set_property "target_constrs_file" "$constraints_file" $fileset_obj
-
 # Create 'sim_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_1] ""]} {
   create_fileset -simset sim_1

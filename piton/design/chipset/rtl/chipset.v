@@ -105,16 +105,33 @@ module chipset(
     `endif // PITONSYS_DDR4
 
 `else // ifndef PITON_CHIPSET_CLKS_GEN
+`ifndef SUME_BOARD
     input                                       chipset_clk,
-
+`else
+   input					uart_boot_en,
+   input					uart_soft_reset,
+   input					chipset_clk_p,
+   input					chipset_clk_n,
+   input					qdrii_sysclk_p,
+   input					qdrii_sysclk_n,
+`endif //SUME_BOARD
     `ifndef PITONSYS_NO_MC
     `ifdef PITON_FPGA_MC_DDR3
+    `ifndef SUME_BOARD
         input                                       mc_clk,
+    `else
+        input					    mc_clk_p,
+	input					    mc_clk_n,
+	input					    clk_ref_n,
+	input					    clk_ref_p,
+    `endif //SUME_BOARD
     `endif // endif PITON_FPGA_MC_DDR3
     `endif // endif PITONSYS_NO_MC
 
     `ifdef PITONSYS_SPI
+    `ifndef SUME_BOARD
         input                                       sd_sys_clk,
+    `endif //SUME_BOARD
     `endif // endif PITONSYS_SPI
 `endif // endif PITON_CHIPSET_CLKS_GEN
 `endif // ifdef F1_BOARD
@@ -842,7 +859,21 @@ end
 //////////////////////////
 
 // Clock generation
-`ifdef PITON_BOARD
+`ifdef SUME_BOARD
+assign clk_locked = 1'b1;
+
+ chip_clk_gen  qdrii_clk_to_66 (
+	  // Clock out ports
+	  .clk_out1(chipset_clk),
+	  // Status and control signals
+	 // Clock in ports
+	 // .locked(clk_locked),
+	  .clk_in1_p(qdrii_sysclk_p),
+	  .clk_in1_n(qdrii_sysclk_n)
+	 );
+	
+`elsif PITON_BOARD
+
     clk_dcm     clk_dcm     (
         .clk_in1_P              (clk_osc_p                      ),
         .clk_in1_N              (clk_osc_n                      ),
@@ -1252,7 +1283,14 @@ chipset_impl_noc_power_test  chipset_impl (
             .mc_clk_p(mc_clk_p),
             .mc_clk_n(mc_clk_n),
         `else  // PITONSYS_DDR4                               
+	`ifndef SUME_BOARD
             .mc_clk(mc_clk),
+	`else
+	    .mc_clk_p(mc_clk_p),
+	    .mc_clk_n(mc_clk_n),
+	    .clk_ref_n(clk_ref_n),
+	    .clk_ref_p(clk_ref_p),
+	`endif
         `endif  // PITONSYS_DDR4                               
     `endif // ifndef F1_BOARD
     `endif // endif PITON_FPGA_MC_DDR3
@@ -1389,7 +1427,9 @@ chipset_impl_noc_power_test  chipset_impl (
 
         `ifdef PITONSYS_SPI
             ,
+	    `ifndef SUME_BOARD
             .sd_clk(sd_sys_clk),
+	    `endif //SUME_BOARD
             `ifndef VC707_BOARD
             .sd_cd(sd_cd),
             .sd_reset(sd_reset),
