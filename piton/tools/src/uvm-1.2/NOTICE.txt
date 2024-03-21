@@ -1,0 +1,48 @@
+=========================================================================
+==  NOTICE file corresponding to section 4(d) of the Apache License,   ==
+==  Version 2.0, in this case for the Apache Geronimo distribution.    ==
+=========================================================================
+
+
+=========================================================================
+==  UVM Mentor Graphics Notice                                         ==
+=========================================================================
+
+Portions of the UVM Reference Library were developed by
+Mentor Graphics Corporation.
+
+Copyright (c) 2007-2012, Mentor Graphics Corporation
+All rights reserved.
+
+
+=========================================================================
+==  UVM Cadence Design Systems Notice                                  ==
+=========================================================================
+
+Portions of the UVM Reference Library were developed by
+Cadence Design Systems, Inc.
+
+Copyright (c) 2007-2014, Cadence Design Systems, Inc.
+All rights reserved.
+
+
+=========================================================================
+==  UVM Synopsys Notice                                                ==
+=========================================================================
+
+Portions of the UVM Reference Library were developed by
+Synopsys, Inc.
+
+Copyright (c) 2006-2014, Synopsys, Inc.
+All rights reserved.
+
+
+=========================================================================
+==  UVM Cypress Semiconductor Notice                                   ==
+=========================================================================
+
+Portions of the UVM Reference Library were developed by
+Cypress Semiconductor Corp.
+
+Copyright (c) 2012, Cypress Semiconductor Corp.
+All rights reserved.

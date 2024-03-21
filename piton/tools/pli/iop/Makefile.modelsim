@@ -5,6 +5,10 @@ include ${DV_ROOT}/tools/env/Makefile.system
 CPPFLAGS = 
 CFLAGS += -I../ -fpermissive -fpic -DLINUX -DUSE_ACC -I${MODELSIM_HOME}/include
 
+ifdef BITS
+        CFLAGS += -m$(BITS)
+endif
+
 LIB = libiob_modelsim.a
 CSRCS = cpx.cc iob.cc iob_main.cc pcx.cc
 CSRCC = b_ary.c bw_lib.c

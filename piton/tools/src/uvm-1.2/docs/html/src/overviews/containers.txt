@@ -1,0 +1,10 @@
+
+Section: Container Classes
+
+The container classes are type parameterized data structures. The 
+<uvm_queue #(T)> class implements a queue datastructure similar to the 
+SystemVerilog queue construct. And the <uvm_pool #(KEY,T)> class implements 
+a pool datastructure similar to the SystemVerilog associative array. The 
+class based data structures allow the objects to be shared by reference; 
+for example, a copy of a <uvm_pool #(KEY,T)> object will copy just the class 
+handle instead of the entire associative array.

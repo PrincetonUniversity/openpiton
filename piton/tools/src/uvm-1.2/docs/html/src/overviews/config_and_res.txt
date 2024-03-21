@@ -1,0 +1,14 @@
+
+Section: Configuration and Resource Classes
+
+The configuration and resources classes provide access to a centralized
+database where type specific information can be stored and received.
+The <uvm_resource_db> is the low level resource database which users
+can write to or read from. The <uvm_config_db> is layered on top
+of the resoure database and provides a typed interface for configuration
+setting that is consistent with the <uvm_component::Configuration Interface>.
+
+Information can be read from or written to the database at any time during 
+simulation. A resource may be associated with a specific
+hierarchical scope of a <uvm_component> or it may be visible to all
+components regardless of their hierarchical position. 

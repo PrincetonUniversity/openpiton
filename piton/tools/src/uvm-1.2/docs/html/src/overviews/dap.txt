@@ -1,0 +1,11 @@
+// Title: Data Access Policies
+//
+// The UVM provides special objects as utility classes for applying
+// common policies to data access (such as 'locking' data, or ensuring
+// that it remains constant after being read).
+//
+// This is not intended to be a comprehensive list of all Data Access policies,
+// and the user is encouraged to write there own, and potentially contribute them
+// to the community.
+//
+

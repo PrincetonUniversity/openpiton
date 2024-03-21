@@ -27,9 +27,15 @@ include ${DV_ROOT}/tools/env/Makefile.system
 TOOL_PLI_DIR = ${DV_ROOT}/tools/pli
 
 OS = `uname -s`
-CPU = `uname -m`
+CPU ?= `uname -m`
 BIN_PATH = ${DV_ROOT}/tools/$(OS)/$(CPU)
 LIB_PATH = ${DV_ROOT}/tools/$(OS)/$(CPU)/lib
+
+ifeq ($(CPU), x86)
+	BITS = 32
+else
+	BITS = 64
+endif
 
 # VCS .a libraries
 
@@ -87,6 +93,9 @@ icaruspli: veriuser.vpi
 # Modelsim targets 
 
 modelsimpli: libmodelsimpli.so
+
+modelsim32pli:
+	make modelsimpli CPU=x86
 
 # Riviera targets 
 
@@ -146,17 +155,17 @@ $(TOOL_PLI_DIR)/iop/libiob_icarus.a:
 # Modelsim .a libraries
 
 $(TOOL_PLI_DIR)/mem/libmem_pli_modelsim.a:
-	(cd $(TOOL_PLI_DIR)/mem; make -f Makefile.modelsim)
+	(cd $(TOOL_PLI_DIR)/mem; make -f Makefile.modelsim BITS=$(BITS))
 	(rm -f $(LIB_PATH)/libmem_pli_modelsim.a)
 	cp $@ $(LIB_PATH)
 
 $(TOOL_PLI_DIR)/socket/libsocket_pli_modelsim.a:
-	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.modelsim)
+	(cd $(TOOL_PLI_DIR)/socket; make -f Makefile.modelsim BITS=$(BITS))
 	(rm -f $(LIB_PATH)/libsocket_pli_modelsim.a)
 	cp $@ $(LIB_PATH)
 
 $(TOOL_PLI_DIR)/iop/libiob_modelsim.a:
-	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.modelsim)
+	(cd $(TOOL_PLI_DIR)/iop; make -f Makefile.modelsim BITS=$(BITS))
 	(rm -f $(LIB_PATH)/libiob_modelsim.a)
 	cp $@ $(LIB_PATH)
 	
@@ -259,7 +268,7 @@ veriuser_icarus.o: veriuser.c
 
 #Icarus PLI support
 veriuser_modelsim.o: veriuser.c
-	$(CC) -fpic -c -o veriuser_modelsim.o veriuser.c \
+	$(CC) -m$(BITS) -fpic -c -o veriuser_modelsim.o veriuser.c \
 	$(MODELSIM_CC_OPTS)
 
 #Riviera PLI support
@@ -285,6 +294,7 @@ libmodelsimpli.so: $(LIB_A_MODELSIM) veriuser_modelsim.o
 	-L$(LIB_PATH) -lsocket_pli_modelsim \
 	-lmem_pli_modelsim \
 	-liob_modelsim \
+	-m$(BITS) \
         $(ADDITIONAL_ARGS)
 	(rm -f $(LIB_PATH)/$@)
 	cp $@ $(LIB_PATH)

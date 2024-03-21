@@ -1,0 +1,129 @@
+Section: TLM2 Interfaces, Ports, Exports and Transport Interfaces Subset
+
+Sockets group together all the necessary core interfaces for
+transportation and binding, allowing more generic usage models
+than just TLM core interfaces.
+
+A socket is like a port or export; in fact it is derived from the 
+same base class as ports and export, namely <uvm_port_base #(IF)>. 
+However, unlike a port or export a socket provides both a 
+forward and backward path. Thus you can enable asynchronous 
+(pipelined) bi-directional communication by connecting sockets 
+together. To enable this, a socket contains both a port and an export.
+Components that initiate transactions are called initiators, 
+and components that receive transactions sent by an initiator 
+are called targets. Initiators have initiator sockets and targets have target
+ sockets. Initiator sockets can connect to target sockets. You cannot connect
+ initiator sockets to other initiator sockets and you cannot connect target 
+sockets to target sockets.
+
+The UVM TLM2 subset provides the following two transport interfaces:
+
+ Blocking (b_transport) - completes the entire transaction
+within a single method call
+
+ Non-blocking (nb_transport) - describes the progress of a
+transaction using multiple nb_transport() method calls going
+back-and-forth between initiator and target
+
+In general, any component might modify a transaction object during
+its lifetime (subject to the rules of the protocol). Significant timing
+points during the lifetime of a transaction (for example: start of response-
+phase) are indicated by calling nb_transport() in either
+forward or backward direction, the specific timing point being given
+by the phase argument.
+Protocol-specific rules for reading or writing the attributes of a
+transaction can be expressed relative to the phase. The phase can
+be used for flow control, and for that reason might have a different
+value at each hop taken by a transaction; the phase is not an
+attribute of the transaction object.
+
+A call to nb_transport() always represents a phase transition.
+However, the return from nb_transport() might or might not do so,
+the choice being indicated by the value returned from the function
+(<UVM_TLM_ACCEPTED> versus <UVM_TLM_UPDATED>).
+Generally, you indicate the completion of a transaction over a
+particular hop using the value of the phase argument. As a shortcut,
+a target might indicate the completion of the transaction by returning
+a special value of <UVM_TLM_COMPLETED>. However, this is an option,
+not a necessity.
+
+The transaction object itself does not contain any timing information
+by design. Or even events and status information concerning the
+API. You can pass the delays as arguments to b_transport()/
+nb_transport() and push the actual realization of any delay in the
+simulator kernel downstream and defer (for simulation speed).
+
+Use Models:
+Since sockets are derived from <uvm_port_base #(IF)>
+they are created and connected 
+in the same way as port, and exports. Create them in the build phase and connect 
+them in the connect phase by calling connect().
+Initiator and target termination sockets are on the ends of any connection. 
+There can be an arbitrary number of pass-through sockets in the path between 
+initiator and target.
+Some socket types must be bound to imps  implementations of the transport 
+tasks and functions. Blocking terminator sockets must be bound to an 
+implementation of b_transport(), for example. Nonblocking initiator 
+sockets must be bound to an implementation of nb_transport_bw() and 
+nonblocking target sockets must be bound to an implementation of 
+nb_transport_fw(). Typically, the task or function is implemented in the 
+component in which the socket is instantiated and the component type and 
+instance are provided to complete the binding.
+
+Consider for example a consumer component with a blocking target socket.
+
+Example:
+| class consumer extends uvm_component;
+|    tlm2_b_target_socket #(consumer, trans) target_socket;
+|    function new(string name, uvm_component parent);
+|      super.new(name, parent);
+|    endfunction
+|    function void build();
+|      target_socket = new("target_socket", this, this);
+|    endfunction
+|    task b_transport(trans t, uvm_tlm_time delay);
+|      #5;
+|      uvm_report_info("consumer", t.convert2string());
+|    endtask
+| endclass
+| 
+The interface task b_transport() is implemented in the consumer component. 
+The consumer component type is used in the declaration of the target socket. 
+This informs the socket object the type of the object that contains the 
+interface task, in this case b_transport(). When the socket is instantiated 
+"this" is passed in twice, once as the parent just like any other component 
+instantiation and again to identify the object that holds the implementation 
+of b_transport(). Finally, in order to complete the binding, an implementation 
+of b_transport() must be present in the consumer component.
+Any component that has either a blocking termination socket, a nonblocking
+ initiator socket, or a nonblocking termination socket must provide 
+implementations of the relevant components. This includes initiator and 
+target components as well as interconnect components that have these kinds 
+of sockets. Components with pass-through sockets do not need to provide 
+implementations of any sort. Of course, they must ultimately be connected 
+to sockets that do that the necessary implementations.
+
+In summary:
+ Call to b_transport() - start-of-life of transaction
+ Return from b_transport() - end-of-life of transaction
+ Phase argument to nb_transport() - timing point within lifetime
+of transaction
+ Return value of nb_transport() - whether return path is being
+used (also shortcut to final phase)
+ Response status within transaction object - protocol-specific
+status, success/failure of transaction
+
+On top of this, TLM-2.0 defines a generic payload and base protocol
+to enhance interoperability for models with a memory-mapped bus
+interface.
+
+It is possible to use the interfaces described above with user-defined
+transaction types and protocols for the sake of interoperability.
+However, TLM-2.0 strongly recommends either using the base
+protocol off-the-shelf or creating models of specific protocols on top
+of the base protocol.
+
+The UVM 1.2 standard only defines and supports this TLM2 style interface for
+SystemVerilog to SystemVerilog communication. Mixed language TLM
+communication is saved for future extension.

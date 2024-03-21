@@ -1,0 +1,3 @@
+Title: Global Functionality
+
+UVM provides other functionality at the package scope including methods, enums, defines, and classes.  Some of these are targeted towards specific aspects of the functionality described in the UVM standard, and others are useful across multiple aspects.

@@ -1,0 +1,16 @@
+
+Section: Command Line Processor Class
+
+This class provides a general interface to the command line arguments that 
+were provided for the given simulation.  Users can retrieve the complete arguments
+using methods such as ~get_args()~ and ~get_arg_matches()~ but also retrieve the
+suffixes of arguments using ~get_arg_values()~.
+
+The uvm_cmdline_processor class also provides support for setting various UVM
+variables from the command line such as components' verbosities and configuration
+settings for integral types and strings.  Command line arguments that are in
+uppercase should only have one setting to invocation.  Command line
+arguments that in lowercase can have multiple settings per invocation.
+
+All of these capabilities are described in the <uvm_cmdline_processor> section.
+
