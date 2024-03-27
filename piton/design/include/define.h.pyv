@@ -76,6 +76,7 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define NOC_FBITS_L2        4'd0
 `define NOC_FBITS_FP        4'd0
 `define NOC_FBITS_MEM       4'd2
+`define NOC_FBITS_AIA       4'b1110
 
 `define NOC_NODEID_WIDTH    34
 `define NOC_DATACOUNT_WIDTH 5
@@ -454,6 +455,8 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
  `define ON_CHIP_DEV_Y_POS       27:24
  `define ON_CHIP_DEV_FBITS       23:20
 
+`define AIA_IMSIC_FLATID_POS     `HOME_ID_WIDTH+12-1:12
+
 // Packet format for home id
 `define PACKET_HOME_ID_WIDTH        (`NOC_CHIPID_WIDTH+`NOC_X_WIDTH+`NOC_Y_WIDTH)
 `define PACKET_HOME_ID_CHIP_MASK    (`PACKET_HOME_ID_WIDTH-1):(`NOC_X_WIDTH+`NOC_Y_WIDTH)
@@ -576,6 +579,13 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define SPARC_TILE       0
 `define PICORV32_TILE    1
 `define ARIANE_RV64_TILE 2
+
+`ifdef DIRECT_MODE
+`define NR_IDCs          `PITON_NUM_TILES
+`define NR_DOMAINS       2
+`else
+`define NR_IDCs          0
+`endif
 
 `endif
 

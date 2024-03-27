@@ -402,6 +402,10 @@ end
 reg  on_chip_dev_access_s3;
 reg [`NOC_X_WIDTH-1:0] on_chip_dev_access_x_s3;
 reg [`NOC_Y_WIDTH-1:0] on_chip_dev_access_y_s3;
+reg aia_imsic_access_s3;
+reg [`HOME_ID_WIDTH-1:0] aia_imsic_access_flatid_s3;
+wire [`NOC_X_WIDTH-1:0] aia_imsic_access_x_s3;
+wire [`NOC_Y_WIDTH-1:0] aia_imsic_access_y_s3;
 always @ *
 begin
     //on-chip device accesses start with 0xE0 or 0xE1
@@ -409,7 +413,18 @@ begin
 
     on_chip_dev_access_x_s3 = l15_csm_req_address_s3[`ON_CHIP_DEV_X_POS];
     on_chip_dev_access_y_s3 = l15_csm_req_address_s3[`ON_CHIP_DEV_Y_POS];
+
+    // AIA IMSIC device accesses start with 0xE3
+    aia_imsic_access_s3 = (l15_csm_req_address_s3[39:32] == 8'he3);
+
+    aia_imsic_access_flatid_s3 = l15_csm_req_address_s3[`AIA_IMSIC_FLATID_POS];
 end
+
+flat_id_to_xy lhid_to_xy_imsic (
+    .flat_id(aia_imsic_access_flatid_s3[`HOME_ID_WIDTH-1:0]),
+    .x_coord(aia_imsic_access_x_s3),
+    .y_coord(aia_imsic_access_y_s3)
+    );
 
 `ifndef NO_RTL_CSM
 
@@ -508,8 +523,21 @@ begin
         begin
             csm_l15_res_data_s3 = 0;
             csm_l15_res_data_s3[`PACKET_HOME_ID_CHIP_MASK] = 1'b0; // non-csm mode only has 1 chip alone
-            csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = on_chip_dev_access_s3 ? on_chip_dev_access_y_s3 : lhid_s3_y;
-            csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = on_chip_dev_access_s3 ? on_chip_dev_access_x_s3 : lhid_s3_x;
+            if (on_chip_dev_access_s3)
+            begin
+                csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = on_chip_dev_access_y_s3;
+                csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = on_chip_dev_access_x_s3;
+            end
+            else if (aia_imsic_access_s3)
+            begin
+                csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = aia_imsic_access_y_s3;
+                csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = aia_imsic_access_x_s3;
+            end
+            else
+            begin
+                csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = lhid_s3_y;
+                csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = lhid_s3_x;
+            end
         end
     end
 end
@@ -688,8 +716,21 @@ always @ *
 begin
     csm_l15_res_data_s3 = 0;
     csm_l15_res_data_s3[`PACKET_HOME_ID_CHIP_MASK] = 1'b0; // non-csm mode only has 1 chip alone
-    csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = on_chip_dev_access_s3 ? on_chip_dev_access_y_s3 : lhid_s3_y;
-    csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = on_chip_dev_access_s3 ? on_chip_dev_access_x_s3 : lhid_s3_x;
+    if (on_chip_dev_access_s3)
+    begin
+        csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = on_chip_dev_access_y_s3;
+        csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = on_chip_dev_access_x_s3;
+    end
+    else if (aia_imsic_access_s3)
+    begin
+        csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = aia_imsic_access_y_s3;
+        csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = aia_imsic_access_x_s3;
+    end
+    else
+    begin
+        csm_l15_res_data_s3[`PACKET_HOME_ID_Y_MASK] = lhid_s3_y;
+        csm_l15_res_data_s3[`PACKET_HOME_ID_X_MASK] = lhid_s3_x;
+    end
 end
 
 flat_id_to_xy lhid_to_xy (

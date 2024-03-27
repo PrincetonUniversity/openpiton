@@ -53,6 +53,18 @@ module tile #(
     input [`UCB_BUS_WIDTH-1:0]          jtag_tiles_ucb_data,
     output                              tile_jtag_ucb_val,
     output [`UCB_BUS_WIDTH-1:0]         tile_jtag_ucb_data,
+    
+    `ifdef MSI_MODE
+    output wire [`NOC_CHIPID_WIDTH-1:0] src_chipid,
+    output wire [`NOC_X_WIDTH-1:0]      src_coreid_x,
+    output wire [`NOC_Y_WIDTH-1:0]      src_coreid_y, 
+    output wire [`NOC_FBITS_WIDTH-1:0]  src_fbits,
+
+    output wire [`NOC_CHIPID_WIDTH-1:0] dst_chipid,
+    output wire [`NOC_X_WIDTH-1:0]      dst_coreid_x,
+    output wire [`NOC_Y_WIDTH-1:0]      dst_coreid_y, 
+    output wire [`NOC_FBITS_WIDTH-1:0]  dst_fbits,
+    `endif //MSI_MODE
 <%
 s = '''
     // Dynamic Network Inputs 0 (User Dynamic Network)
@@ -188,6 +200,12 @@ print(s)
 `ifdef PITON_RV64_PLIC
     // PLIC
 ,   input   [1:0]                       irq_i          // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+,   input [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_i   
+`endif // DIRECT_MODE
+
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 );
@@ -211,42 +229,87 @@ print(s)
     wire [`NOC_X_WIDTH-1:0]             config_coreid_x;
     wire [`NOC_Y_WIDTH-1:0]             config_coreid_y;
 
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc1;
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc2;
-    wire [`DATA_WIDTH-1:0]              buffer_processor_data_noc3;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc1_dat;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc2_dat;
+    wire [`DATA_WIDTH-1:0]              buffer_splitter_vr_noc3_dat;
 
-    wire                                buffer_processor_valid_noc1;
-    wire                                buffer_processor_valid_noc2;
-    wire                                buffer_processor_valid_noc3;
-    wire                                processor_router_ready_noc1;
-    wire                                processor_router_ready_noc2;
-    wire                                processor_router_ready_noc3;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc1_dat;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc2_dat;
+    wire [`NOC_DATA_WIDTH-1:0]          merger_buffer_vr_noc3_dat;
 
-    wire                                router_processor_ready_noc1;
-    wire                                router_processor_ready_noc2;
-    wire                                router_processor_ready_noc3;
+    wire                                buffer_splitter_vr_noc1_val;
+    wire                                buffer_splitter_vr_noc2_val;
+    wire                                buffer_splitter_vr_noc3_val;
+    wire                                buffer_splitter_vr_noc1_rdy;
+    wire                                buffer_splitter_vr_noc2_rdy;
+    wire                                buffer_splitter_vr_noc3_rdy;
+
+    wire                                merger_buffer_vr_noc1_val;
+    wire                                merger_buffer_vr_noc2_val;
+    wire                                merger_buffer_vr_noc3_val;
+    wire                                merger_buffer_vr_noc1_rdy;
+    wire                                merger_buffer_vr_noc2_rdy;
+    wire                                merger_buffer_vr_noc3_rdy;
+
+
+    // NoC interface for different intra-tile devices
+    // NoC1
+    wire                                splitter_processor_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc1_dat;
+    wire                                splitter_processor_vr_noc1_rdy;
+    wire                                splitter_dst1_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc1_dat;
+    wire                                splitter_dst1_vr_noc1_rdy;
+
+    wire                                processor_merger_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc1_dat;
+    wire                                processor_merger_vr_noc1_rdy;
+    wire                                src1_merger_vr_noc1_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc1_dat;
+    wire                                src1_merger_vr_noc1_rdy;
+
+    // NoC2
+    wire                                splitter_processor_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc2_dat;
+    wire                                splitter_processor_vr_noc2_rdy;
+    wire                                splitter_dst1_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc2_dat;
+    wire                                splitter_dst1_vr_noc2_rdy;
+
+    wire                                processor_merger_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc2_dat;
+    wire                                processor_merger_vr_noc2_rdy;
+    wire                                src1_merger_vr_noc2_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc2_dat;
+    wire                                src1_merger_vr_noc2_rdy;
+    
+    // NoC3
+    wire                                splitter_processor_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_processor_vr_noc3_dat;
+    wire                                splitter_processor_vr_noc3_rdy;
+    wire                                splitter_dst1_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          splitter_dst1_vr_noc3_dat;
+    wire                                splitter_dst1_vr_noc3_rdy;
+
+    wire                                processor_merger_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          processor_merger_vr_noc3_dat;
+    wire                                processor_merger_vr_noc3_rdy;
+    wire                                src1_merger_vr_noc3_val;
+    wire [`NOC_DATA_WIDTH-1:0]          src1_merger_vr_noc3_dat;
+    wire                                src1_merger_vr_noc3_rdy;
 
     // Processor val/rdy interface
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc1;
-    wire                                processor_router_valid_noc1;
     wire                                buffer_router_yummy_noc1;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc1;
     wire                                buffer_router_valid_noc1;
 
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc2;
-    wire                                processor_router_valid_noc2;
     wire                                buffer_router_yummy_noc2;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc2;
     wire                                buffer_router_valid_noc2;
 
-    wire [`NOC_DATA_WIDTH-1:0]          processor_router_data_noc3;
-    wire                                processor_router_valid_noc3;
     wire                                buffer_router_yummy_noc3;
-
     wire [`NOC_DATA_WIDTH-1:0]          buffer_router_data_noc3;
     wire                                buffer_router_valid_noc3;
 
@@ -604,9 +667,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk1(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc1),
-        .valid_in(processor_router_valid_noc1),
-        .ready_in(router_processor_ready_noc1),
+        .data_in(merger_buffer_vr_noc1_dat),
+        .valid_in(merger_buffer_vr_noc1_val),
+        .ready_in(merger_buffer_vr_noc1_rdy),
 
         .data_out(buffer_router_data_noc1),           // Data
         .valid_out(buffer_router_valid_noc1),       // Val signal
@@ -616,9 +679,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk2(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc2),
-        .valid_in(processor_router_valid_noc2),
-        .ready_in(router_processor_ready_noc2),
+        .data_in(merger_buffer_vr_noc2_dat),
+        .valid_in(merger_buffer_vr_noc2_val),
+        .ready_in(merger_buffer_vr_noc2_rdy),
 
         .data_out(buffer_router_data_noc2),           // Data
         .valid_out(buffer_router_valid_noc2),       // Val signal
@@ -628,9 +691,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
     valrdy_to_credit #(<%= NIB_SIZE%>, <%= NIB_SIZE_LOG2 + 1%>) cgno_blk3(
         .clk(clk_gated),
         .reset(~rst_n_f),
-        .data_in(processor_router_data_noc3),
-        .valid_in(processor_router_valid_noc3),
-        .ready_in(router_processor_ready_noc3),
+        .data_in(processor_merger_vr_noc3_dat),
+        .valid_in(processor_merger_vr_noc3_val),
+        .ready_in(processor_merger_vr_noc3_rdy),
 
         .data_out(buffer_router_data_noc3),           // Data
         .valid_out(buffer_router_valid_noc3),       // Val signal
@@ -645,9 +708,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc1),
         .yummy_in(buffer_router_yummy_noc1),
 
-        .data_out(buffer_processor_data_noc1),           // Data
-        .valid_out(buffer_processor_valid_noc1),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc1)    // Rdy signal from processor to dynamic network
+       .data_out(buffer_splitter_vr_noc1_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc1_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc1_rdy)    // Rdy signal from processor to dynamic network
     );
 
     credit_to_valrdy cgni_blk2(
@@ -657,9 +720,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc2),
         .yummy_in(buffer_router_yummy_noc2),
 
-        .data_out(buffer_processor_data_noc2),           // Data
-        .valid_out(buffer_processor_valid_noc2),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc2)    // Rdy signal from processor to dynamic network
+       .data_out(buffer_splitter_vr_noc2_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc2_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc2_rdy)    // Rdy signal from processor to dynamic network
     );
 
     credit_to_valrdy cgni_blk3(
@@ -669,9 +732,9 @@ NIB_SIZE = pow(2, NIB_SIZE_LOG2)
         .valid_in(router_buffer_data_val_noc3),
         .yummy_in(buffer_router_yummy_noc3),
 
-        .data_out(buffer_processor_data_noc3),           // Data
-        .valid_out(buffer_processor_valid_noc3),       // Val signal from dynamic network to processor
-        .ready_out(processor_router_ready_noc3)    // Rdy signal from processor to dynamic network
+        .data_out(buffer_splitter_vr_noc3_dat),           // Data
+        .valid_out(buffer_splitter_vr_noc3_val),       // Val signal from dynamic network to processor
+        .ready_out(buffer_splitter_vr_noc3_rdy)    // Rdy signal from processor to dynamic network
     );
 
 ///////////////////////
@@ -1038,6 +1101,11 @@ print("    assign ariane_bootaddr  =  64'h%s;" % bootAddr)
 
 
     ariane_verilog_wrap #(
+        // PMA configuration
+        // non-idempotent region: first GB of mem and the range with the bit 40 set (but the range 0xe0-0xef, used for scratchpad)
+        .NrNonIdempotentRules  (3),
+        .NonIdempotentAddrBase ({64'he100000000,64'h8000000000,64'h0000000000}),
+        .NonIdempotentLength   ({64'h1f00000000,64'h6000000000,64'h0040000000}),
 <%
 str = '''
         .NrPMPEntries           ( 4    ),
@@ -1057,7 +1125,11 @@ print(str)
         .spc_grst_l  ( spc_grst_l             ),
         .boot_addr_i ( ariane_bootaddr        ),
         .hart_id_i   ( {{64-`JTAG_FLATID_WIDTH{1'b0}}, flat_tileid} ),
+        `ifndef MSI_MODE
         .irq_i       ( irq_i                  ),
+        `else
+        .irq_i       ( xeip_targets           ),
+        `endif
         .ipi_i       ( ipi_i                  ),
         .time_irq_i  ( timer_irq_i            ),
         .debug_req_i ( debug_req_i            ),
@@ -1071,6 +1143,234 @@ print(str)
   end
   endgenerate
 
+    noc_simple_splitter noc1_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc1_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc1_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc1_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc1_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc1_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc1_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc1_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc1_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc1_rdy)
+    );
+
+
+    noc_simple_splitter noc2_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc2_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc2_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc2_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc2_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc2_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc2_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc2_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc2_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc2_rdy)
+    );
+
+
+    noc_simple_splitter noc3_splitter(
+        .clk                        (clk_gated)                     ,
+        .rst_n                      (rst_n_f)                       ,
+
+        .src_splitter_vr_noc_val       (buffer_splitter_vr_noc3_val),
+        .src_splitter_vr_noc_dat       (buffer_splitter_vr_noc3_dat),
+        .src_splitter_vr_noc_rdy       (buffer_splitter_vr_noc3_rdy),
+                                                           
+        .splitter_dst0_vr_noc_val     (splitter_processor_vr_noc3_val), // For L15 and L2
+        .splitter_dst0_vr_noc_dat     (splitter_processor_vr_noc3_dat),
+        .splitter_dst0_vr_noc_rdy     (splitter_processor_vr_noc3_rdy),
+                                                           
+        .splitter_dst1_vr_noc_val     (splitter_dst1_vr_noc3_val),
+        .splitter_dst1_vr_noc_dat     (splitter_dst1_vr_noc3_dat),
+        .splitter_dst1_vr_noc_rdy     (splitter_dst1_vr_noc3_rdy)
+    );
+
+
+    noc_simple_merger noc1_merger(   
+        .clk                        (clk_gated),
+        .rst_n                      (rst_n_f),
+                                                          
+        .src0_merger_vr_noc_val       (processor_merger_vr_noc1_val), // For L15 and L2
+        .src0_merger_vr_noc_dat       (processor_merger_vr_noc1_dat),
+        .src0_merger_vr_noc_rdy       (processor_merger_vr_noc1_rdy),
+                                                          
+        .src1_merger_vr_noc_val       (src1_merger_vr_noc1_val),
+        .src1_merger_vr_noc_dat       (src1_merger_vr_noc1_dat),
+        .src1_merger_vr_noc_rdy       (src1_merger_vr_noc1_rdy),
+                                     
+        .merger_dst_vr_noc_val         (merger_buffer_vr_noc1_val),  
+        .merger_dst_vr_noc_dat         (merger_buffer_vr_noc1_dat),
+        .merger_dst_vr_noc_rdy         (merger_buffer_vr_noc1_rdy)   
+    );
+
+
+    noc_simple_merger noc2_merger(   
+        .clk                        (clk_gated),
+        .rst_n                      (rst_n_f),
+                                                          
+        .src0_merger_vr_noc_val       (processor_merger_vr_noc2_val), // For L15 and L2
+        .src0_merger_vr_noc_dat       (processor_merger_vr_noc2_dat),
+        .src0_merger_vr_noc_rdy       (processor_merger_vr_noc2_rdy),
+                                                          
+        .src1_merger_vr_noc_val       (src1_merger_vr_noc2_val),
+        .src1_merger_vr_noc_dat       (src1_merger_vr_noc2_dat),
+        .src1_merger_vr_noc_rdy       (src1_merger_vr_noc2_rdy),
+                                     
+        .merger_dst_vr_noc_val         (merger_buffer_vr_noc2_val),  
+        .merger_dst_vr_noc_dat         (merger_buffer_vr_noc2_dat),
+        .merger_dst_vr_noc_rdy         (merger_buffer_vr_noc2_rdy)   
+    );
+
+    assign splitter_dst1_vr_noc2_rdy = 1'b0;
+    assign splitter_dst1_vr_noc3_rdy = 1'b0;
+    assign src1_merger_vr_noc1_val = 1'b0;  
+    assign src1_merger_vr_noc1_dat = 64'd0;
+
+//    wire [11:0] imsic_s_axi_awaddr;
+//    wire        imsic_s_axi_awvalid;
+//    wire        imsic_s_axi_awready;
+//    
+//    wire [31:0] imsic_s_axi_wdata;
+//    wire [3:0]  imsic_s_axi_wstrb;
+//    wire        imsic_s_axi_wvalid;
+//    wire        imsic_s_axi_wready;
+//    
+//    wire [1:0]  imsic_s_axi_bresp;
+//    wire        imsic_s_axi_bvalid;
+//    wire        imsic_s_axi_bready;
+//    
+//    wire [11:0] imsic_s_axi_araddr;
+//    wire        imsic_s_axi_arvalid;
+//    wire        imsic_s_axi_arready;
+//    
+//    wire [31:0] imsic_s_axi_rdata;
+//    wire [1:0]  imsic_s_axi_rresp;
+//    wire        imsic_s_axi_rvalid;
+//    wire        imsic_s_axi_rready;
+//
+      ariane_axi::req_t  msi_req;
+      ariane_axi::resp_t msi_resp;
+
+//    `ifdef MSI_MODE
+//    assign msi_req.aw_valid     = msi_noc1_axi_awvalid;
+//    assign msi_req.aw.addr      = msi_noc1_axi_awaddr;
+//    assign noc2_msi_axi_awready = msi_resp.aw_ready;
+//
+//    assign msi_req.w_valid     = msi_noc1_axi_wvalid;
+//    assign msi_req.w.data      = msi_noc1_axi_wdata;
+//    assign msi_req.w.strb      = msi_noc1_axi_wstrb;
+//    assign noc2_msi_axi_wready = msi_resp.w_ready;
+//
+//    assign msi_req.ar_valid     = msi_noc1_axi_arvalid;
+//    assign msi_req.ar.addr      = msi_noc1_axi_araddr;
+//    assign noc2_msi_axi_arready = msi_resp.ar_ready;    
+//
+//    assign msi_req.r_ready     = msi_noc1_axi_rready;
+//    assign noc2_msi_axi_rvalid = msi_resp.r_valid;     
+//    assign noc2_msi_axi_rdata  = msi_resp.r.data;     
+//    assign noc2_msi_axi_rresp  = msi_resp.r.resp;   
+//
+//    assign msi_req.b_ready    = msi_noc1_axi_bready;
+//    assign imsic_s_axi_bvalid = msi_resp.b_valid;
+//    assign imsic_s_axi_bresp  = msi_resp.b.resp;
+//    `endif
+//
+//    `ifdef MSI_MODE
+//    assign src_chipid   = processor_merger_vr_noc1_dat[`MSG_SRC_CHIPID_];
+//    assign src_coreid_x = processor_merger_vr_noc1_dat[`MSG_SRC_X_];
+//    assign src_coreid_y = processor_merger_vr_noc1_dat[`MSG_SRC_Y_];
+//    assign src_fbits    = processor_merger_vr_noc1_dat[`MSG_SRC_FBITS_];
+//
+//    assign dst_chipid   = processor_merger_vr_noc1_dat[`MSG_DST_CHIPID];
+//    assign dst_coreid_x = processor_merger_vr_noc1_dat[`MSG_DST_X];
+//    assign dst_coreid_y = processor_merger_vr_noc1_dat[`MSG_DST_Y];
+//    assign dst_fbits    = processor_merger_vr_noc1_dat[`MSG_DST_FBITS];
+//    `endif // MSI_MODE
+
+    logic [1:0] xeip_targets;
+
+    // INSTANTIATE IMSIC HERE and stop driving wires above
+    imsic_top # (
+        .NR_SRC            ( 32                 ),
+        .MIN_PRIO          ( 6                  ),
+        .NR_INTP_FILES     ( 2                  ),
+        .AXI_ADDR_WIDTH    ( 32                 ),
+        .AXI_DATA_WIDTH    ( 32                 ),
+        .axi_req_t         ( ariane_axi::req_t  ),
+        .axi_resp_t        ( ariane_axi::resp_t )
+    ) imsic (
+        .i_clk             ( clk   ),
+        .ni_rst            ( rst_n ),
+       
+        .i_req             ( msi_req      ),
+        .o_resp            ( msi_resp     ),
+       
+        .i_priv_lvl        (       ),
+        .i_vgein           (       ),
+        .i_imsic_addr      (       ),
+        .i_imsic_data      (       ),
+        .i_imsic_we        (       ),
+        .i_imsic_claim     (       ),
+        .o_imsic_data      (       ),
+        .o_xtopei          (       ),
+        .o_Xeip_targets    ( xeip_targets      ),
+        .o_imsic_exception (       )
+    );
+
+    noc_axilite_bridge #(
+        .SLAVE_RESP_BYTEWIDTH   (4),
+        .SWAP_ENDIANESS         (1)
+    ) noc_ethernet_bridge (
+        .clk                    (clk        ),
+        .rst                    (~rst_n             ),
+    
+        .splitter_bridge_val    (splitter_dst1_vr_noc1_val),
+        .splitter_bridge_data   (splitter_dst1_vr_noc1_dat),
+        .bridge_splitter_rdy    (splitter_dst1_vr_noc1_rdy),
+    
+        .bridge_splitter_val    (src1_merger_vr_noc2_val),
+        .bridge_splitter_data   (src1_merger_vr_noc2_dat),
+        .splitter_bridge_rdy    (src1_merger_vr_noc2_rdy),
+    
+        //axi lite signals
+        //write address channel
+        .m_axi_awaddr        (msi_req.aw.addr),
+        .m_axi_awvalid       (msi_req.aw_valid),
+        .m_axi_awready       (msi_resp.aw_ready),
+    
+        //write data channel
+        .m_axi_wdata         (msi_req.w.data),
+        .m_axi_wstrb         (msi_req.w.strb),
+        .m_axi_wvalid        (msi_req.w_valid),
+        .m_axi_wready        (msi_resp.w_ready),
+    
+        //read address channelimsic
+        .m_axi_araddr        (msi_req.ar.addr),
+        .m_axi_arvalid       (msi_req.ar_valid),
+        .m_axi_arready       (msi_resp.ar_ready),
+    
+        //read data channel
+        .m_axi_rdata         (msi_resp.r.data),
+        .m_axi_rresp         (msi_resp.r.resp),
+        .m_axi_rvalid        (msi_resp.r_valid),
+        .m_axi_rready        (msi_req.r_ready),
+    
+        //write response channel
+        .m_axi_bresp         (msi_resp.b.resp),
+        .m_axi_bvalid        (msi_resp.b_valid),
+        .m_axi_bready        (msi_req.b_ready)
+    );
 
     //////////
     // L1.5 //
@@ -1125,21 +1425,20 @@ print(str)
 
         .transducer_l15_req_ack             (transducer_l15_req_ack),
 
-
-        .noc1_out_rdy(router_processor_ready_noc1),
-        .noc2_in_val(buffer_processor_valid_noc2),
-        .noc2_in_data(buffer_processor_data_noc2),
-        .noc3_out_rdy(router_processor_ready_noc3),
         .dmbr_l15_stall(dmbr_l15_stall),
         .chipid(config_chipid),
         .coreid_x(config_coreid_x),
         .coreid_y(config_coreid_y),
 
-        .noc1_out_val(processor_router_valid_noc1),
-        .noc1_out_data(processor_router_data_noc1),
-        .noc2_in_rdy(processor_router_ready_noc2),
-        .noc3_out_val(processor_router_valid_noc3),
-        .noc3_out_data(processor_router_data_noc3),
+        .noc1_out_rdy(processor_merger_vr_noc1_rdy),
+        .noc1_out_val(processor_merger_vr_noc1_val),
+        .noc1_out_data(processor_merger_vr_noc1_dat),
+        .noc2_in_val(splitter_processor_vr_noc2_val),
+        .noc2_in_data(splitter_processor_vr_noc2_dat),
+        .noc2_in_rdy(splitter_processor_vr_noc2_rdy),
+        .noc3_out_rdy(processor_merger_vr_noc3_rdy),
+        .noc3_out_val(processor_merger_vr_noc3_val),
+        .noc3_out_data(processor_merger_vr_noc3_dat),
         .l15_dmbr_l1missIn(l15_dmbr_l1missIn),
         .l15_dmbr_l1missTag(l15_dmbr_l1missTag),
         .l15_dmbr_l2missIn(l15_dmbr_l2missIn),
@@ -1219,16 +1518,16 @@ print(str)
         .chipid(config_chipid),
         .coreid_x(config_coreid_x),
         .coreid_y(config_coreid_y),
-        .noc1_valid_in(buffer_processor_valid_noc1),
-        .noc3_valid_in(buffer_processor_valid_noc3),
-        .noc1_data_in(buffer_processor_data_noc1),
-        .noc3_data_in(buffer_processor_data_noc3),
-        .noc2_ready_out(router_processor_ready_noc2),
-
-        .noc1_ready_in(processor_router_ready_noc1),
-        .noc3_ready_in(processor_router_ready_noc3),
-        .noc2_valid_out(processor_router_valid_noc2),
-        .noc2_data_out(processor_router_data_noc2),
+        .noc1_valid_in(splitter_processor_vr_noc1_val),
+        .noc3_valid_in(splitter_processor_vr_noc3_val),
+        .noc1_data_in( splitter_processor_vr_noc1_dat),
+        .noc3_data_in( splitter_processor_vr_noc3_dat),
+        .noc2_ready_out(processor_merger_vr_noc2_rdy),
+        
+        .noc1_ready_in(splitter_processor_vr_noc1_rdy),
+        .noc3_ready_in(splitter_processor_vr_noc3_rdy),
+        .noc2_valid_out(processor_merger_vr_noc2_val),
+        .noc2_data_out(processor_merger_vr_noc2_dat),
 
         // interface to srams
         .srams_rtap_data (l2_rtap_data),
