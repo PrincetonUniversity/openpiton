@@ -353,9 +353,14 @@ reg [`L15_WMT_ENTRY_MASK] wmt_read_data_TILE0 [0:3];
 integer j_TILE0;
 reg is_csm_mshrid_TILE0;
 
+
 reg wmt_read_val_s3_TILE0;
 always @ (posedge clk)
+    `ifdef PITON_ARIANE_HPDC
+    wmt_read_val_s3_TILE0 <= 0;
+    `else
     wmt_read_val_s3_TILE0 <= `L15_PIPE0.l15_wmt_read_val_s2;
+    `endif
 
 always @ (negedge clk)
 begin
@@ -924,19 +929,27 @@ begin
                 // $display("   WMT way3: %x 0x%x", `L15_PIPE0.wmt_data_s3[3][`L15_WMT_VALID_MASK], `L15_PIPE0.wmt_data_s3[3][`L15_WMT_DATA_MASK]);
                 for (i = 0; i < `L1D_WAY_COUNT; i = i + 1)
                 begin
+                    `ifdef PITON_ARIANE_HPDC
+                    $display("   WMT way%d: %x 0x%x", i, 0, 0);
+                    `else
                     $display("   WMT way%d: %x 0x%x", i, `L15_PIPE0.wmt_data_s3[i][`L15_WMT_VALID_MASK], `L15_PIPE0.wmt_data_s3[i][`L15_WMT_DATA_MASK]);
+                    `endif
                 end
             end
-            if (`L15_PIPE0.l15_wmt_write_val_s3)
-            begin
-                $display("   TILE0 WMT write index: %x", `L15_PIPE0.cache_index_l1d_s3[`L1D_SET_IDX_MASK]);
-                // $display("   WMT write mask: %x", `L15_PIPE0.l15_wmt_write_mask_s3);
-                // $display("   WMT write data: %x", `L15_PIPE0.l15_wmt_write_data_s3);
-                // $display("   WMT way0 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_0_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_0_MASK]);
-                // $display("   WMT way1 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_1_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_1_MASK]);
-                // $display("   WMT way2 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_2_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_2_MASK]);
-                // $display("   WMT way3 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_3_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_3_MASK]);
-            end
+            `ifdef PITON_ARIANE_HPDC
+                $display("   TILE0 WMT write index: %x", 0);
+            `else
+                if (`L15_PIPE0.l15_wmt_write_val_s3)
+                begin
+                    $display("   TILE0 WMT write index: %x", `L15_PIPE0.cache_index_l1d_s3[`L1D_SET_IDX_MASK]);
+                    // $display("   WMT write mask: %x", `L15_PIPE0.l15_wmt_write_mask_s3);
+                    // $display("   WMT write data: %x", `L15_PIPE0.l15_wmt_write_data_s3);
+                    // $display("   WMT way0 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_0_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_0_MASK]);
+                    // $display("   WMT way1 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_1_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_1_MASK]);
+                    // $display("   WMT way2 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_2_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_2_MASK]);
+                    // $display("   WMT way3 m%x d0x%x", `L15_PIPE0.l15_wmt_write_mask_s3[`L15_WMT_ENTRY_3_MASK], `L15_PIPE0.wmt_write_data_s3[`L15_WMT_ENTRY_3_MASK]);
+                end
+            `endif
         end
         $display ("L15_MON_END");
         $display ("");
@@ -1178,6 +1191,7 @@ begin
     end
 
 // Monitor WMT duplicate error
+    `ifndef PITON_ARIANE_HPDC
     if (`L15_PIPE0.val_s3)
     begin
         {wmt_read_data_TILE0[3], wmt_read_data_TILE0[2], wmt_read_data_TILE0[1], wmt_read_data_TILE0[0]} = `L15_PIPE0.wmt_l15_data_s3;
@@ -1196,6 +1210,7 @@ begin
             end
         end
     end
+    `endif
 
 // Monitor tags duplication error (bug #86)
     if (`L15_PIPE0.val_s2 && `L15_PIPE0.decoder_dtag_operation_s2 == `L15_DTAG_OP_READ)

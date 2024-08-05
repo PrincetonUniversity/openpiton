@@ -48,6 +48,9 @@ module l15_wrap (
     input [63:0]                            transducer_l15_data,
     input [63:0]                            transducer_l15_data_next_entry,
     input [`TLB_CSM_WIDTH-1:0]              transducer_l15_csm_data,
+    `ifdef WRITE_BYTE_MASK
+    input [`L15_BYTE_MASK_WIDHT-1:0]        transducer_l15_be,
+    `endif
 
     output                                  l15_transducer_ack,
     output                                  l15_transducer_header_ack,
@@ -67,7 +70,7 @@ module l15_wrap (
     output [63:0]                           l15_transducer_data_3,
     output                                  l15_transducer_inval_icache_all_way,
     output                                  l15_transducer_inval_dcache_all_way,
-    output [15:4]                           l15_transducer_inval_address_15_4,
+    output [`L15_PADDR_MASK]                l15_transducer_inval_address,
     output                                  l15_transducer_cross_invalidate,
     output [1:0]                            l15_transducer_cross_invalidate_way,
     output                                  l15_transducer_inval_dcache_inval,
@@ -137,6 +140,9 @@ module l15_wrap (
         .transducer_l15_csm_data            (transducer_l15_csm_data),
         .transducer_l15_data                (transducer_l15_data),
         .transducer_l15_data_next_entry     (transducer_l15_data_next_entry),
+        `ifdef WRITE_BYTE_MASK
+        .transducer_l15_be                  (transducer_l15_be),
+        `endif
 
         .l15_transducer_ack                 (l15_transducer_ack),
         .l15_transducer_header_ack          (l15_transducer_header_ack),
@@ -156,7 +162,7 @@ module l15_wrap (
         .l15_transducer_data_3              (l15_transducer_data_3),
         .l15_transducer_inval_icache_all_way(l15_transducer_inval_icache_all_way),
         .l15_transducer_inval_dcache_all_way(l15_transducer_inval_dcache_all_way),
-        .l15_transducer_inval_address_15_4  (l15_transducer_inval_address_15_4),
+        .l15_transducer_inval_address       (l15_transducer_inval_address),
         .l15_transducer_cross_invalidate    (l15_transducer_cross_invalidate),
         .l15_transducer_cross_invalidate_way(l15_transducer_cross_invalidate_way),
         .l15_transducer_inval_dcache_inval  (l15_transducer_inval_dcache_inval),

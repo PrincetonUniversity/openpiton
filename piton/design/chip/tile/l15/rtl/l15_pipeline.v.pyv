@@ -73,6 +73,9 @@ module l15_pipeline(
     input wire [`L15_UNPARAM_63_0] pcxdecoder_l15_data,
     input wire [`L15_UNPARAM_63_0] pcxdecoder_l15_data_next_entry,
     input wire pcxdecoder_l15_invalidate_cacheline,
+    `ifdef WRITE_BYTE_MASK
+    input wire [`L15_BYTE_MASK_WIDHT-1:0] pcxdecoder_l15_be,
+    `endif
     // noc2
     input wire noc2decoder_l15_val,
     input wire [`L15_MSHR_ID_WIDTH-1:0] noc2decoder_l15_mshrid,
@@ -151,6 +154,7 @@ module l15_pipeline(
     output reg [`L15_CSM_GHID_WIDTH-1:0] l15_hmt_write_mask_s2,
     `endif
 
+    `ifndef PITON_ARIANE_HPDC
     // wmt
     output reg l15_wmt_read_val_s2,
     output reg [`L1D_SET_IDX_MASK] l15_wmt_read_index_s2,
@@ -159,7 +163,7 @@ module l15_pipeline(
     output reg [`L1D_SET_IDX_MASK] l15_wmt_write_index_s3,
     output reg [`L15_WMT_MASK] l15_wmt_write_mask_s3,
     output reg [`L15_WMT_MASK] l15_wmt_write_data_s3,
-
+    `endif
     // MSHR
     //s1 (allocating)
     output reg pipe_mshr_writereq_val_s1,
@@ -178,6 +182,7 @@ module l15_pipeline(
     // s1/2/3 (address conflict checking)
         // tcov: 4 mshr per thread but 1 is unused
     input wire [(`L15_NUM_MSHRID_PER_THREAD*`L15_NUM_THREADS)-1:0] mshr_pipe_vals_s1,
+    input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_ifill_address,
     input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_ld_address,
     input wire [(`L15_PADDR_WIDTH*`L15_NUM_THREADS)-1:0] mshr_pipe_st_address,
     input wire [(2*`L15_NUM_THREADS)-1:0] mshr_pipe_st_way_s1,
@@ -212,7 +217,7 @@ module l15_pipeline(
     output reg [`L15_UNPARAM_63_0] l15_cpxencoder_data_3,
     output reg l15_cpxencoder_inval_icache_all_way,
     output reg l15_cpxencoder_inval_dcache_all_way,         // tcov: to core but not utilized, inval individually
-    output reg [15:4] l15_cpxencoder_inval_address_15_4,
+    output reg [`L15_PADDR_MASK] l15_cpxencoder_inval_address,
     output reg l15_cpxencoder_cross_invalidate,             // tcov: to core but not utilized
     output reg [`L15_UNPARAM_1_0] l15_cpxencoder_cross_invalidate_way,   // tcov: to core but not utilized
     output reg l15_cpxencoder_inval_dcache_inval,
@@ -392,6 +397,7 @@ reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] mshr_st_state_array [`L15_THREAD_ARRAY_MAS
 `endif
 reg [`L15_PADDR_MASK] mshr_st_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_PADDR_MASK] mshr_ld_address_array [`L15_THREAD_ARRAY_MASK];
+reg [`L15_PADDR_MASK] mshr_ifill_address_array [`L15_THREAD_ARRAY_MASK];
 reg [`L15_WAY_MASK] mshr_st_way_array [`L15_THREAD_ARRAY_MASK];
 always @ *
 begin
@@ -407,12 +413,14 @@ begin
     mshr_st_state_array[0] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*1 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
     mshr_st_address_array[0] = mshr_pipe_st_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
     mshr_ld_address_array[0] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
+    mshr_ifill_address_array[0] = mshr_pipe_ifill_address[`L15_PADDR_WIDTH*1 - 1 -: `L15_PADDR_WIDTH];
     mshr_st_way_array[0] = mshr_pipe_st_way_s1[2*1 - 1 -: 2];
 
     mshr_val_array[1] = mshr_pipe_vals_s1[`L15_NUM_MSHRID_PER_THREAD*2 - 1 -: `L15_NUM_MSHRID_PER_THREAD];
     mshr_st_state_array[1] = mshr_pipe_st_state_s1[`L15_MESI_TRANS_STATE_WIDTH*2 - 1 -: `L15_MESI_TRANS_STATE_WIDTH];
     mshr_st_address_array[1] = mshr_pipe_st_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
     mshr_ld_address_array[1] = mshr_pipe_ld_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
+    mshr_ifill_address_array[1] = mshr_pipe_ifill_address[`L15_PADDR_WIDTH*2 - 1 -: `L15_PADDR_WIDTH];
     mshr_st_way_array[1] = mshr_pipe_st_way_s1[2*2 - 1 -: 2];
 end
 
@@ -599,8 +607,10 @@ begin
                     else
                     if (predecode_non_cacheable_s1)
                     begin
-                        if (predecode_icache_bit_s1)
+                        if (predecode_icache_bit_s1) begin
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                            predecode_address_s1 = mshr_ifill_address_array[noc2decoder_l15_threadid];
+                        end
                         else if (predecode_dcache_load_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LD_NC;
                         else if (predecode_atomic_s1)
@@ -610,8 +620,10 @@ begin
                     end
                     else
                     begin
-                        if (predecode_icache_bit_s1)
+                        if (predecode_icache_bit_s1) begin
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_IFILL;
+                            predecode_address_s1 = mshr_ifill_address_array[noc2decoder_l15_threadid];
+                        end
                         else if (predecode_atomic_s1)
                             predecode_reqtype_s1 = `L15_REQTYPE_ACKDT_LR;
                             // Only Load Reserve is both Cacheable and AMO 
@@ -1099,9 +1111,11 @@ reg [`L15_S2_MESI_OP_WIDTH-1:0]decoder_mesi_read_op_s1;
 reg [`L15_DCACHE_OP_WIDTH-1:0]decoder_dcache_operation_s1;
 reg [`L15_S3_MSHR_OP_WIDTH-1:0]decoder_s3_mshr_operation_s1;
 reg [`L15_S3_MESI_OP_WIDTH-1:0]decoder_mesi_write_op_s1;
+`ifndef PITON_ARIANE_HPDC
 reg [`L15_WMT_READ_OP_WIDTH-1:0]decoder_wmt_read_op_s1;
 reg [`L15_WMT_WRITE_OP_WIDTH-1:0]decoder_wmt_write_op_s1;
 reg [`L15_WMT_COMPARE_OP_WIDTH-1:0]decoder_wmt_compare_op_s1;
+`endif
 reg [`L15_LRUARRAY_WRITE_OP_WIDTH-1:0]decoder_lruarray_write_op_s1;
 reg [`L15_CPX_OP_WIDTH-1:0]decoder_cpx_operation_s1;
 `ifndef NO_RTL_CSM
@@ -1132,9 +1146,11 @@ begin
     decoder_dcache_operation_s1 = 1'b0;
     decoder_s3_mshr_operation_s1 = 1'b0;
     decoder_mesi_write_op_s1 = 1'b0;
+`ifndef PITON_ARIANE_HPDC
     decoder_wmt_read_op_s1 = 1'b0;
     decoder_wmt_write_op_s1 = 1'b0;
     decoder_wmt_compare_op_s1 = 1'b0;
+`endif
     decoder_lruarray_write_op_s1 = 1'b0;
     decoder_cpx_operation_s1 = 1'b0;
     decoder_noc1_operation_s1 = 1'b0;
@@ -1167,9 +1183,11 @@ begin
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
+                `ifndef PITON_ARIANE_HPDC
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+                `endif
 
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_TAGCHECK_WAY_IF_M;
                 // decoder_hmt_op_s1 = `L15_HMT_READ_TAGCHECK_WAY_IF_M;
@@ -1235,9 +1253,11 @@ begin
             decoder_dcache_operation_s1 = `L15_DCACHE_READ_TAGCHECK_WAY_IF_MES;
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION_IF_TAGCHECK_MES;
             decoder_cpx_operation_s1 = `L15_CPX_GEN_LD_RESPONSE_IF_TAGCHECK_MES_FROM_DCACHE;
+            `ifndef PITON_ARIANE_HPDC
             decoder_wmt_read_op_s1 = `L15_WMT_READ;
             decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_TAGCHECK_WAY_AND_DEDUP_ENTRY_IF_TAGCHECK_WAY_IS_MES;
             decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+            `endif
             decoder_csm_op_s1 = `L15_CSM_OP_READ_GHID_IF_TAGCHECK_MISS;
             decoder_lruarray_write_op_s1 = `L15_LRU_UPDATE_ACCESS_BITS_IF_TAGCHECK_WAY_IS_MES;
             decoder_noc1_operation_s1 = `L15_NOC1_GEN_DATA_LD_REQUEST_IF_TAGCHECK_MISS;
@@ -1291,10 +1311,12 @@ begin
 
                     decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
                     decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
+                    `ifndef PITON_ARIANE_HPDC
                     // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
                     decoder_wmt_read_op_s1 = `L15_WMT_READ;
                     decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
                     decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+                    `endif
                     decoder_lruarray_write_op_s1 = `L15_LRU_INVALIDATE_IF_TAGCHECK_WAY_IS_MES;
 
                     decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_TAGCHECK_MES_AND_WAYMAP_VALID;
@@ -1332,8 +1354,10 @@ begin
                 decoder_mshr_allocation_type_s1 = `L15_MSHR_ID_ST;
                 decoder_s1_mshr_operation_s1 = `L15_S1_MSHR_OP_UPDATE_WRITECACHE;
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
+                `ifndef PITON_ARIANE_HPDC
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_STBUF;
+                `endif
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_ST_ACK_WITH_POSSIBLE_INVAL;
             end
             else
@@ -1349,10 +1373,10 @@ begin
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_s2_mshr_operation_s1 = `L15_S2_MSHR_OP_READ_WRITE_CACHE;
                 decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_TAGCHECK_WAY_IF_ME_FROM_MSHR;
-
+                `ifndef PITON_ARIANE_HPDC
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
-
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_UPDATE_ACCESS_BITS_IF_TAGCHECK_WAY_IS_MES;
                 decoder_csm_op_s1 = `L15_CSM_OP_READ_GHID_IF_TAGCHECK_SI;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION_IF_TAGCHECK_M_E_ELSE_UPDATE_STATE_STMSHR;
@@ -1390,9 +1414,11 @@ begin
 
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_FLUSH_WAY_IF_MES;
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_FLUSH_WAY;
+                `ifndef PITON_ARIANE_HPDC
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_FLUSH_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_FLUSH;
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_INVALIDATE_IF_FLUSH_WAY_IS_MES;
 
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_FLUSH_MES_AND_WAYMAP_VALID;
@@ -1420,9 +1446,10 @@ begin
 
                 decoder_s2_mshr_operation_s1 = `L15_S2_MSHR_OP_READ_WRITE_CACHE;
                 decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_TAGCHECK_WAY_IF_LRSC_SET_FROM_MSHR;
-
+                `ifndef PITON_ARIANE_HPDC
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+                `endif
 
                 decoder_lruarray_write_op_s1 = `L15_LRU_UPDATE_ACCESS_BITS_IF_TAGCHECK_WAY_LRSC_SET;
                 //decoder_csm_op_s1 = `L15_CSM_OP_READ_GHID_IF_TAGCHECK_SI;
@@ -1461,10 +1488,12 @@ begin
 
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_INVALIDATE_IF_TAGCHECK_WAY_IS_MES;
 
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_TAGCHECK_MES_AND_WAYMAP_VALID;
@@ -1554,6 +1583,7 @@ begin
             decoder_pcx_ack_stage_s1 = `L15_ACK_STAGE_S1;
             decoder_stall_on_matched_bypassed_index_s1 = 1;
             decoder_dtag_operation_s1 = `L15_DTAG_OP_READ;
+            `ifndef PITON_ARIANE_HPDC
             decoder_wmt_read_op_s1 = `L15_WMT_READ;
             decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
             // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
@@ -1562,7 +1592,7 @@ begin
 `else
             decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug 3/28/16
 `endif            
-
+            `endif
             decoder_cpx_operation_s1 = `L15_CPX_GEN_DCACHE_INVALIDATION;
         end // todo
 
@@ -1592,11 +1622,12 @@ begin
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_TAGCHECK_WAY_MATCHES;
             decoder_mesi_write_op_s1 = `L15_S3_MESI_INVALIDATE_TAGCHECK_WAY_IF_MES;
             decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_TAGCHECK_WAY;
+            `ifndef PITON_ARIANE_HPDC
             // decoder_wmt_operation_s1 = `L15_WMT_READ_TAGCHECK_WAY_IF_MES_AND_DEMAP_ENTRY;
             decoder_wmt_read_op_s1 = `L15_WMT_READ;
             decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_TAGCHECK_WAY_IF_MES;
             decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK;
-
+            `endif
             decoder_lruarray_write_op_s1 = `L15_LRU_INVALIDATE_IF_TAGCHECK_WAY_IS_MES;
 
             decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_TAGCHECK_MES_AND_WAYMAP_VALID;
@@ -1649,10 +1680,12 @@ begin
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_LRU_WAY_IF_M;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_LRU_WAY_MATCHES;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_READ_LRU_WAY_IF_MES_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
@@ -1669,6 +1702,7 @@ begin
                 decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_LRU_WAY_FROM_NOC2;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_WRITE_LRU_WAY_L1_REPL_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_UPDATE_LRU_WAY_AND_DEDUP_ENTRY;
@@ -1678,6 +1712,7 @@ begin
                 // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug fix 3/28/16                
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
 `endif                
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_REPLACEMENT;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_LD_RESPONSE_FROM_NOC2;
                 `ifndef NO_RTL_CSM
@@ -1711,10 +1746,12 @@ begin
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_LRU_WAY_IF_M;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_LRU_WAY_MATCHES;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_READ_LRU_WAY_IF_MES_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_CLEAR_LRU_WAY;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
@@ -1748,8 +1785,10 @@ begin
             decoder_dcache_operation_s1 = `L15_DCACHE_WRITE_MSHR_WAY_FROM_MSHR;
             decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
             decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_MSHR_WAY_ACK_STATE;
+            `ifndef PITON_ARIANE_HPDC
             decoder_wmt_read_op_s1 = `L15_WMT_READ;
             decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_STBUF; // wmt todo // WTF
+            `endif
             decoder_cpx_operation_s1 = `L15_CPX_GEN_ST_ACK_WITH_POSSIBLE_INVAL;
             decoder_creditman_noc1_unreserve_s1 = 1'b1;
         end
@@ -1787,10 +1826,12 @@ begin
                 decoder_mesi_read_op_s1 = `L15_S2_MESI_READ;
                 decoder_dcache_operation_s1 = `L15_DCACHE_READ_LRU_WAY_IF_M;
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_UPDATE_ST_MSHR_IM_IF_INDEX_LRU_WAY_MATCHES;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_READ_LRU_WAY_IF_MES_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 decoder_wmt_write_op_s1 = `L15_WMT_DEMAP_LRU_WAY_IF_MES;
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_EVICTION;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_INVALIDATION_IF_LRU_MES_AND_WAYMAP_VALID;
                 decoder_noc1_operation_s1 = `L15_NOC1_GEN_WRITEBACK_GUARD_IF_LRU_M;
@@ -1807,6 +1848,7 @@ begin
                 decoder_s3_mshr_operation_s1 = `L15_S3_MSHR_OP_DEALLOCATION;
                 decoder_mesi_write_op_s1 = `L15_S3_MESI_WRITE_LRU_WAY_ACK_STATE; // do this for unity, it can be set to M directly.
                 decoder_lrsc_flag_write_op_s1 = `L15_S2_LRSC_FLAG_SET_LRU_WAY;
+                `ifndef PITON_ARIANE_HPDC
                 // decoder_wmt_operation_s1 = `L15_WMT_WRITE_LRU_WAY_L1_REPL_AND_DEMAP_ENTRY;
                 decoder_wmt_read_op_s1 = `L15_WMT_READ;
                 // L1 won't save the line after an LR, so L15 should not update the wmt
@@ -1817,6 +1859,7 @@ begin
                 // decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_TAGCHECK; // bug fix 3/28/16
                 decoder_wmt_compare_op_s1 = `L15_WMT_COMPARE_LRU;
 `endif
+                `endif
                 decoder_lruarray_write_op_s1 = `L15_LRU_REPLACEMENT;
                 decoder_cpx_operation_s1 = `L15_CPX_GEN_ATOMIC_ACK_FROM_NOC2;
                 `ifndef NO_RTL_CSM
@@ -2095,13 +2138,15 @@ reg [`L15_PADDR_MASK] s1_mshr_write_address_s1;
 reg [`L15_CONTROL_WIDTH-1:0] s1_mshr_write_control_s1;
 reg [`L15_MSHR_ID_WIDTH-1:0] s1_mshr_write_mshrid_s1;
 reg [`L15_THREADID_MASK] s1_mshr_write_threadid_s1;
-reg [`L15_UNPARAM_15_0] unshifted_write_mask_s1;
 reg [`L15_UNPARAM_15_0] write_mask_s1;
-reg [`L15_UNPARAM_15_0] write_mask_1B_s1;
-reg [`L15_UNPARAM_15_0] write_mask_2B_s1;
-reg [`L15_UNPARAM_15_0] write_mask_4B_s1;
-reg [`L15_UNPARAM_15_0] write_mask_8B_s1;
-reg [`L15_UNPARAM_15_0] write_mask_16B_s1;
+`ifndef WRITE_BYTE_MASK
+    reg [`L15_UNPARAM_15_0] unshifted_write_mask_s1;
+    reg [`L15_UNPARAM_15_0] write_mask_1B_s1;
+    reg [`L15_UNPARAM_15_0] write_mask_2B_s1;
+    reg [`L15_UNPARAM_15_0] write_mask_4B_s1;
+    reg [`L15_UNPARAM_15_0] write_mask_8B_s1;
+    reg [`L15_UNPARAM_15_0] write_mask_16B_s1;
+`endif
 // reg odd_extended_word_s1;
 always @ *
 begin
@@ -2133,6 +2178,12 @@ begin
             s1_mshr_write_threadid_s1 = predecode_hit_stbuf_threadid_s1;
         end
     endcase
+
+`ifdef WRITE_BYTE_MASK
+
+    write_mask_s1 = (predecode_address_s1[3]) ? {8'b0,pcxdecoder_l15_be} : {pcxdecoder_l15_be,8'b0};
+
+`else // ifndef WRITE_BYTE_MASK
 
     unshifted_write_mask_s1 =   (predecode_size_s1 == `MSG_DATA_SIZE_1B) ? 16'b1000_0000_0000_0000 :
                                 (predecode_size_s1 == `MSG_DATA_SIZE_2B) ? 16'b1100_0000_0000_0000 :
@@ -2173,8 +2224,7 @@ begin
             write_mask_s1 = write_mask_16B_s1;
         end
     endcase
-
-
+`endif 
     // s1 write
     pipe_mshr_writereq_val_s1 = s1_mshr_write_val_s1 && !stall_s1 && val_s1;
     pipe_mshr_writereq_op_s1[`L15_MSHR_WRITE_TYPE_WIDTH-1:0] = s1_mshr_write_type_s1[`L15_MSHR_WRITE_TYPE_WIDTH-1:0];
@@ -2251,12 +2301,9 @@ s2floplist = [
     ('blockstoreinit', '1'),
     ('predecode_reqtype', '`L15_REQTYPE_WIDTH'),
     ('decoder_dtag_operation', '`L15_DTAG_OP_WIDTH'),
-    ('wmt_write_op','`L15_WMT_WRITE_OP_WIDTH'),
-    ('wmt_compare_op','`L15_WMT_COMPARE_OP_WIDTH'),
     ('lruarray_write_op','`L15_LRUARRAY_WRITE_OP_WIDTH'),
     ('csm_op','`L15_CSM_OP_WIDTH'),
     ('config_op','`L15_CONFIG_OP_WIDTH'),
-    ('wmt_read_op','`L15_WMT_READ_OP_WIDTH'),
     ('noc2_src_homeid','`PACKET_HOME_ID_WIDTH'),
     ('hmt_fill_homeid','`PACKET_HOME_ID_WIDTH'),
     ('s3_mshr_operation','`L15_S3_MSHR_OP_WIDTH'),
@@ -2293,12 +2340,9 @@ s2floplist_no_rtl_csm = [
     ('blockstoreinit', '1'),
     ('predecode_reqtype', '`L15_REQTYPE_WIDTH'),
     ('decoder_dtag_operation', '`L15_DTAG_OP_WIDTH'),
-    ('wmt_write_op','`L15_WMT_WRITE_OP_WIDTH'),
-    ('wmt_compare_op','`L15_WMT_COMPARE_OP_WIDTH'),
     ('lruarray_write_op','`L15_LRUARRAY_WRITE_OP_WIDTH'),
     ('csm_op','`L15_CSM_OP_WIDTH'),
     ('config_op','`L15_CONFIG_OP_WIDTH'),
-    ('wmt_read_op','`L15_WMT_READ_OP_WIDTH'),
     ('noc2_src_homeid','`PACKET_HOME_ID_WIDTH'),
     ('s3_mshr_operation','`L15_S3_MSHR_OP_WIDTH'),
     ('cpx_operation','`L15_CPX_OP_WIDTH'),
@@ -2316,6 +2360,14 @@ s2floplist_no_rtl_csm = [
 %>
 `endif
 reg val_s2_next;
+`ifndef PITON_ARIANE_HPDC
+reg [`L15_WMT_WRITE_OP_WIDTH-1:0] wmt_write_op_s2;
+reg [`L15_WMT_WRITE_OP_WIDTH-1:0] wmt_write_op_s2_next;
+reg [`L15_WMT_COMPARE_OP_WIDTH-1:0] wmt_compare_op_s2;
+reg [`L15_WMT_COMPARE_OP_WIDTH-1:0] wmt_compare_op_s2_next;
+reg [`L15_WMT_READ_OP_WIDTH-1:0] wmt_read_op_s2;
+reg [`L15_WMT_READ_OP_WIDTH-1:0] wmt_read_op_s2_next;
+`endif
 
 <%
 for e in s2floplist:
@@ -2335,6 +2387,11 @@ begin
             name = e[0] + '_s2'
             print("%s <= 0;" % (name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s2 <= 0;
+        wmt_compare_op_s2 <= 0;
+        wmt_read_op_s2 <= 0;
+        `endif
     end
     else
     begin
@@ -2344,6 +2401,11 @@ begin
             name = e[0] + '_s2'
             print("%s <= %s_next;" % (name,name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s2 <= wmt_write_op_s2_next;
+        wmt_compare_op_s2 <= wmt_compare_op_s2_next;
+        wmt_read_op_s2 <= wmt_read_op_s2_next;
+        `endif
     end
 end
 
@@ -2367,12 +2429,22 @@ begin
             name = e[0] + '_s2'
             print("%s_next = %s;" % (name,name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s2_next = wmt_write_op_s2;
+        wmt_compare_op_s2_next = wmt_compare_op_s2;
+        wmt_read_op_s2_next = wmt_read_op_s2;
+        `endif
         `else
         <%
         for e in s2floplist_no_rtl_csm:
             name = e[0] + '_s2'
             print("%s_next = %s;" % (name,name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s2_next = wmt_write_op_s2;
+        wmt_compare_op_s2_next = wmt_compare_op_s2;
+        wmt_read_op_s2_next = wmt_read_op_s2;
+        `endif
         `endif
     end
     else
@@ -2388,8 +2460,11 @@ begin
         l2_miss_s2_next = predecode_l2_miss_s1;
         f4b_s2_next = predecode_f4b_s1;
         // atomic_s2_next = predecode_atomic_s1;
+        `ifndef PITON_ARIANE_HPDC
         wmt_write_op_s2_next = decoder_wmt_write_op_s1;
         wmt_compare_op_s2_next = decoder_wmt_compare_op_s1;
+        wmt_read_op_s2_next = decoder_wmt_read_op_s1;
+        `endif
         lruarray_write_op_s2_next = decoder_lruarray_write_op_s1;
         csm_op_s2_next = decoder_csm_op_s1;
         config_op_s2_next = decoder_config_op_s1;
@@ -2417,7 +2492,6 @@ begin
         `endif
         csm_pcx_data_s2_next = pcxdecoder_l15_csm_data;
         decoder_dtag_operation_s2_next = decoder_dtag_operation_s1;
-        wmt_read_op_s2_next = decoder_wmt_read_op_s1;
         `ifndef NO_RTL_CSM
         hmt_op_s2_next = decoder_hmt_op_s1;
         `endif
@@ -3094,7 +3168,7 @@ begin
     l15_csm_req_pcx_data_s2 = csm_pcx_data_s2;
 end
 
-
+`ifndef PITON_ARIANE_HPDC
 ///////////////////////
 // WMT read op
 ///////////////////////
@@ -3117,6 +3191,7 @@ begin
     l15_wmt_read_val_s2 = wmt_read_val_s2 && val_s2 && !stall_s2;
     l15_wmt_read_index_s2 = wmt_read_index_s2;
 end
+`endif
 
 ////////////////////////////
 // config operation
@@ -3186,8 +3261,6 @@ s3floplist = [
     ('predecode_fwd_subcacheline_vector', '4'),
     ('predecode_reqtype', '`L15_REQTYPE_WIDTH'),
     #('wmt_read_operation','`L15_WMT_READ_OP_WIDTH'),
-    ('wmt_write_op','`L15_WMT_WRITE_OP_WIDTH'),
-    ('wmt_compare_op','`L15_WMT_COMPARE_OP_WIDTH'),
     #('wmt_read_data','12'),
     ('csm_ticket','`L15_CSM_NUM_TICKETS_LOG2'),
     ('s3_mshr_operation','`L15_S3_MSHR_OP_WIDTH'),
@@ -3236,6 +3309,12 @@ reg flush_state_mes_s3;
 
 reg [`L15_PADDR_MASK] lru_way_address_s3;
 reg [`L15_PADDR_MASK] flush_way_address_s3;
+`ifndef PITON_ARIANE_HPDC
+reg [`L15_WMT_WRITE_OP_WIDTH-1:0] wmt_write_op_s3;
+reg [`L15_WMT_WRITE_OP_WIDTH-1:0] wmt_write_op_s3_next;
+reg [`L15_WMT_COMPARE_OP_WIDTH-1:0] wmt_compare_op_s3;
+reg [`L15_WMT_COMPARE_OP_WIDTH-1:0] wmt_compare_op_s3_next;
+`endif
 
 always @ (posedge clk)
 begin
@@ -3251,6 +3330,10 @@ begin
             name = e[0] + '_s3'
             print("%s <= 0;" % (name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s3 <= 0;
+        wmt_compare_op_s3 <= 0;
+        `endif
     end
     else
     begin
@@ -3264,6 +3347,10 @@ begin
             name = e[0] + '_s3'
             print("%s <= %s_next;" % (name,name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s3 <= wmt_write_op_s3_next;
+        wmt_compare_op_s3 <= wmt_compare_op_s3_next;
+        `endif
     end
 end
 
@@ -3375,6 +3462,10 @@ always @* begin
             name = e[0] + '_s3'
             print("%s_next = %s;" % (name,name))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s3_next = wmt_write_op_s3;
+        wmt_compare_op_s3_next = wmt_compare_op_s3;
+        `endif
     end
     else
     begin
@@ -3385,6 +3476,10 @@ always @* begin
             names2 = e[0] + '_s2'
             print("%s_next = %s;" % (name,names2))
         %>
+        `ifndef PITON_ARIANE_HPDC
+        wmt_write_op_s3_next = wmt_write_op_s2;
+        wmt_compare_op_s3_next = wmt_compare_op_s2;
+        `endif
     end
 end
 
@@ -3444,9 +3539,15 @@ end
 // CALCULATED INPUTS IN S3
 //      stbuf_way_s3
 // LOCAL VARIABLES
+`ifndef PITON_ARIANE_HPDC // L1D is HPDC
 reg [`L15_WMT_DATA_MASK] wmt_compare_data_s3;
 reg [`L15_WAY_MASK] wmt_compare_way_s3;
+`endif
 // OUTPUTS
+`ifdef PITON_ARIANE_HPDC // L1D is HPDC
+reg wmt_compare_match_s3 = 1'b1;
+reg [`L1D_WAY_MASK] wmt_compare_match_way_s3 = {`L1D_WAY_WIDTH{1'b0}};
+`else
 reg [`L15_WMT_ENTRY_MASK] wmt_data_s3 [0:`L1D_WAY_COUNT-1];
 reg [`L1D_WAY_COUNT-1:0] wmt_compare_mask_s3;
 reg wmt_compare_match_s3;
@@ -3519,7 +3620,7 @@ begin
         GenEncoder("wmt_compare_mask_s3[__WAY]", "wmt_compare_match_way_s3", CONFIG_L1D_ASSOCIATIVITY)
     %>
 end
-
+`endif
 //////////////////////
 // LRU write logic
 //////////////////////
@@ -3605,6 +3706,7 @@ begin
     l15_lruarray_write_index_s3 = lruarray_write_index_s3;
 end
 
+`ifndef PITON_ARIANE_HPDC
 ///////////////////////
 // WMT write op
 ///////////////////////
@@ -3778,7 +3880,7 @@ begin
     l15_wmt_write_mask_s3 = wmt_write_mask_s3;
     l15_wmt_write_data_s3 = wmt_write_data_s3;
 end
-
+`endif
 
 
 
@@ -3877,6 +3979,8 @@ reg [`L15_UNPARAM_1_0] cpx_inval_way_s3;
 reg [`L15_CPX_SOURCE_WIDTH-1:0] cpx_data_source_s3;
 reg cpx_atomic_bit_s3;
 reg cpx_icache_inval_s3;
+reg [`L15_PADDR_MASK] cpx_inval_address_s3;
+
 always @ *
 begin
     cpx_req_val_s3 = 0;
@@ -3887,6 +3991,7 @@ begin
     cpx_data_source_s3 = 0;
     cpx_atomic_bit_s3 = 0;
     cpx_icache_inval_s3 = 0;
+    cpx_inval_address_s3[`L15_PADDR_MASK] = address_s3[`L15_PADDR_MASK];
     case(cpx_operation_s3)
         `L15_CPX_GEN_ICACHE_INVALIDATION:
         begin
@@ -3914,6 +4019,7 @@ begin
             cpx_type_s3 = `CPX_RESTYPE_INVAL;
             cpx_invalidate_l1_s3 = 1;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
+            cpx_inval_address_s3[`L15_PADDR_MASK] = lru_way_address_s3[`L15_PADDR_MASK];
         end
         `L15_CPX_GEN_INVALIDATION_IF_FLUSH_MES_AND_WAYMAP_VALID:
         begin
@@ -3968,7 +4074,7 @@ begin
             // third, stbuffer's L1-mapped way must be valid
 
             cpx_req_val_s3 = 1'b1;
-            cpx_invalidate_l1_s3 = wmt_compare_match_s3 && stbuf_compare_match_val_s3;
+            cpx_invalidate_l1_s3 = stbuf_compare_match_val_s3 && wmt_compare_match_s3 ;
             cpx_type_s3 = `CPX_RESTYPE_STORE_ACK;
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
         end
@@ -3976,7 +4082,7 @@ begin
         begin
             cpx_req_val_s3 = tagcheck_state_me_s3;
             cpx_type_s3 = `CPX_RESTYPE_STORE_ACK;
-            cpx_invalidate_l1_s3 = wmt_compare_match_s3;
+            cpx_invalidate_l1_s3 = wmt_compare_match_s3; 
             cpx_inval_way_s3 = wmt_compare_match_way_s3;
         end
         `L15_CPX_GEN_IFILL_RESPONSE_FROM_NOC2:
@@ -4039,7 +4145,7 @@ begin
     l15_cpxencoder_atomic = 0;
     l15_cpxencoder_inval_icache_all_way = 0;
     l15_cpxencoder_inval_dcache_all_way = 0;
-    l15_cpxencoder_inval_address_15_4[15:4] = 0;
+    l15_cpxencoder_inval_address = 0;
     l15_cpxencoder_cross_invalidate = 0;
     l15_cpxencoder_cross_invalidate_way[`L15_UNPARAM_1_0] = 0;
     l15_cpxencoder_inval_dcache_inval = 0;
@@ -4057,7 +4163,7 @@ begin
         l15_cpxencoder_atomic = cpx_atomic_bit_s3;
         l15_cpxencoder_inval_icache_all_way = cpx_icache_inval_s3;
         // l15_cpxencoder_inval_dcache_all_way = cpx_dcache_inval_all_s3;
-        l15_cpxencoder_inval_address_15_4[15:4] = address_s3[15:4];
+        l15_cpxencoder_inval_address[`L15_PADDR_MASK] = cpx_inval_address_s3[`L15_PADDR_MASK];
         l15_cpxencoder_cross_invalidate = 0; // Don't think we will be cross invalidating
         l15_cpxencoder_cross_invalidate_way[`L15_UNPARAM_1_0] = 2'b0;
         l15_cpxencoder_inval_dcache_inval = cpx_invalidate_l1_s3; // default
