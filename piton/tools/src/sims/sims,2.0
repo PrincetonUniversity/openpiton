@@ -1558,6 +1558,16 @@ sub generic_sim_build
       $build_cmd .= "-CFLAGS -I$dv_root/tools/pli/iop " ;
       $build_cmd .= "-CFLAGS -I$dv_root/tools/verilator " ;
 
+      if ($opt{log_all}) {
+        $build_cmd .= "--trace --trace-structs --trace-params --trace-max-array 512 --trace-max-width 512 " ;
+        if ($opt{fst}) {
+          $build_cmd .= "--trace-fst --trace-threads 2 " ;
+          $build_cmd .= "-CFLAGS -DVERILATOR_FST " ;
+        } else {
+          $build_cmd .= "-CFLAGS -DVERILATOR_VCD " ;
+        }
+      }
+
       # Run the verilator --version command and capture the output
       my $verilator_version = `verilator --version`;
 
@@ -2635,6 +2645,7 @@ sub parse_args
             'dynamic_csm=s',
             'gui!',
             'log_all!',
+            'fst!',
             'debug_all!',
             'ibm!',
             'ed_enable!',
@@ -2977,6 +2988,11 @@ OPENPITON ARGUMENTS
 
     -log_all
             in a msm_run, this command logs all signals and dumps them to the "all-waves.wlf" file for later inspection with a wave viewer.
+            In a vlt_build, this command enables the tracing of all signals and dumps them to the my_top.vcd file for later inspection with a wave viewer.
+
+    -fst
+            in a vlt_build, this command enables the usage of the FST format for the waves, allowing for smaller files and faster tracing.
+            Most be used with -log_all.
 
     -slurm -sim_q_command=sbatch
             specifies simulations should be submitted with the Simple Linux
