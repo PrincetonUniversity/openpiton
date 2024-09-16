@@ -17,6 +17,7 @@ ETHERNET,yes,eth_axi,AXI4LITE-64,CLK0,100Gb,eth_irq,qsfp0,hbm,29
 JTAG,no,dbg_jtag,,CLK0,jtag
 BROM,no,sram_axi,,CLK0,0x0,initFile.mem
 BRAM,no,sram_axi,,CLK0,0x0,none
+CMS,no
 CLK0,50000000,chipset_clk
 CLK0,,eth_axi_aclk,eth_axi_arstn,LOW
 CLK0,,mc_clk,mc_rstn,LOW
