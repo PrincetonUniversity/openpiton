@@ -1,6 +1,7 @@
 EANAME=acme
-PCIE,yes,pcie_axi,,PCIE_CLK,pcie_clk,pcie_rstn,dma,0,dbg_jtag,02
-DDR4,no,mem_axi
+PCIE,yes,pcie_axi,,PCIE_CLK,pcie_clk,pcie_rstn,dma,0,dbg_jtag,hbm-02
+DDR4,no,mem_axi,AXI4-512,CLK0,0x0,mem_calib_complete,0
+DDR4,no,ncmem_axi,AXI4-512,CLK0,0x0,mem_calib_complete,0
 HBM,yes,mem_axi,AXI3-256,CLK0,0x0,mem_calib_complete,00
 HBM,yes,ncmem_axi,AXI3-256,CLK0,0x0,mem_calib_complete,01
 HBM,no,mcx_axi0,AXI3-256,CLK0,0x0,mem_calib_complete,04
@@ -11,9 +12,9 @@ HBM,no,mcx_axi4,AXI3-256,CLK0,0x0,mem_calib_complete,08
 HBM,no,mcx_axi5,AXI3-256,CLK0,0x0,mem_calib_complete,09
 HBM,no,mcx_axi6,AXI3-256,CLK0,0x0,mem_calib_complete,10
 HBM,no,mcx_axi7,AXI3-256,CLK0,0x0,mem_calib_complete,11
-AURORA,no,eth_axi,AXI4LITE-64,CLK0,dma,eth_irq,qsfp1,hbm,13
+AURORA,no,eth_axi,AXI4LITE-64,CLK0,dma,eth_irq,qsfp1,hbm-13
 UART,yes,uart_axi,,CLK0,0x0,normal,uart_irq
-ETHERNET,yes,eth_axi,AXI4LITE-64,CLK0,100Gb,eth_irq,qsfp0,hbm,29
+ETHERNET,yes,eth_axi,AXI4LITE-64,CLK0,100Gb,eth_irq,qsfp0,hbm-29
 JTAG,no,dbg_jtag,,CLK0,jtag
 BROM,no,sram_axi,,CLK0,0x0,initFile.mem
 BRAM,no,sram_axi,,CLK0,0x0,none
