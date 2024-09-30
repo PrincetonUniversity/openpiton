@@ -1,0 +1,12 @@
+diff --git a/Flist.ariane b/Flist.ariane
+--- a/Flist.ariane
++++ b/Flist.ariane
+@@ -133,8 +135,6 @@ src/riscv-dbg/src/dmi_jtag_tap.sv
+ ./src/riscv-dbg/debug_rom/debug_rom.sv
+ ./openpiton/ariane_verilog_wrap.sv
+ ./openpiton/riscv_peripherals.sv
+-./openpiton/bootrom/baremetal/bootrom.sv
+-./openpiton/bootrom/linux/bootrom_linux.sv
+ ./src/rv_plic/rtl/rv_plic_target.sv
+ ./src/rv_plic/rtl/rv_plic_gateway.sv
+ ./src/rv_plic/rtl/plic_regmap.sv
