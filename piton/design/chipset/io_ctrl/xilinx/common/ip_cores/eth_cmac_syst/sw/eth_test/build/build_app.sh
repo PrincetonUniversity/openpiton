@@ -1,4 +1,4 @@
-# The script to build test Ethernet application, last updated for Vitis/Vivado-2023.2
+# The script to build test Ethernet application, last updated for Vitis/Vivado-2024.1
 
 rm ./eth_test
 
