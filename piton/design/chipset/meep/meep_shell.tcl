@@ -163,9 +163,18 @@ current_bd_design $design_name
     set_property -dict [ list CONFIG.FREQ_HZ 100000000] $mem_refclk
   }
 
+  if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
+                  $::env(PROTOSYN_RUNTIME_HBM)=="TRUE" &&
+      [info exists ::env(PROTOSYN_RUNTIME_BOARD)] &&
+                  $::env(PROTOSYN_RUNTIME_BOARD)=="alveou280"} {
+    set DRAM_addr_width 33
+  } else {
+    set DRAM_addr_width 34
+  }
+
   set m_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {36} \
+   CONFIG.ADDR_WIDTH $DRAM_addr_width \
    CONFIG.ARUSER_WIDTH {0} \
    CONFIG.AWUSER_WIDTH {0} \
    CONFIG.BUSER_WIDTH {0} \
@@ -202,7 +211,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 
   set ncmem_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 ncmem_axi ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {36} \
+   CONFIG.ADDR_WIDTH $DRAM_addr_width \
    CONFIG.ARUSER_WIDTH {0} \
    CONFIG.AWUSER_WIDTH {0} \
    CONFIG.BUSER_WIDTH {0} \
@@ -246,7 +255,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 for {set idx 0} {$idx < $PITON_EXTRA_MEMS} {incr idx} {
   set mcx_axi$idx [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 mcx_axi$idx ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {34} \
+   CONFIG.ADDR_WIDTH $DRAM_addr_width \
    CONFIG.ARUSER_WIDTH {0} \
    CONFIG.AWUSER_WIDTH {0} \
    CONFIG.BUSER_WIDTH {0} \
@@ -280,7 +289,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
                 $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
   set pci2hbm_maxi [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 pci2hbm_maxi ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {34} \
+   CONFIG.ADDR_WIDTH $DRAM_addr_width \
    CONFIG.DATA_WIDTH {256} \
    CONFIG.FREQ_HZ {250000000} \
    CONFIG.CLK_DOMAIN {meep_shell_qdma_0_0_axi_aclk} \
@@ -292,7 +301,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 
   set pci2hbm_saxi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 pci2hbm_saxi ]
   set_property -dict [ list \
-   CONFIG.ADDR_WIDTH {34} \
+   CONFIG.ADDR_WIDTH $DRAM_addr_width \
    CONFIG.ARUSER_WIDTH {0} \
    CONFIG.AWUSER_WIDTH {0} \
    CONFIG.BUSER_WIDTH {0} \
@@ -372,12 +381,10 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   # Create instance: hbm_0, and set properties
   if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)] && $::env(PROTOSYN_RUNTIME_BOARD)=="alveou280"} {
     set hbm_density "8GB"
-    set hbm_range 0x10000000
     set hbm_axi_sfx ""
   }
   if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)] && $::env(PROTOSYN_RUNTIME_BOARD)=="alveou55c"} {
     set hbm_density "16GB"
-    set hbm_range 0x20000000
     set hbm_axi_sfx "_8HI"
   }
   set hbm_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:hbm:1.0 hbm_0 ]
@@ -497,7 +504,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   set_property -dict [ list \
    CONFIG.ADDN_UI_CLKOUT1_FREQ_HZ {100} \
    CONFIG.C0.DDR4_AUTO_AP_COL_A3 {true} \
-   CONFIG.C0.DDR4_AxiAddressWidth {34} \
+   CONFIG.C0.DDR4_AxiAddressWidth $DRAM_addr_width \
    CONFIG.C0.DDR4_AxiDataWidth {512} \
    CONFIG.C0.DDR4_CLKFBOUT_MULT {15} \
    CONFIG.C0.DDR4_CLKOUT0_DIVIDE {5} \
@@ -705,6 +712,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
                 $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
   set hbm_mems 32
+  set hbm_range [expr ((1 << $DRAM_addr_width)/$hbm_mems)]
   assign_bd_address -offset 0x0 -range [expr ($hbm_mems * $hbm_range)] -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs pci2hbm_maxi/Reg] -force
   for {set hbm_mem 0} {$hbm_mem < $hbm_mems} {incr hbm_mem} {
     assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces m_axi]        [get_bd_addr_segs hbm_0/SAXI_00$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
@@ -716,9 +724,10 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
     }
   }
 } else {
-  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
-  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces m_axi]        [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
-  assign_bd_address -offset 0x00000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces ncmem_axi]    [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  set ddr_range [expr (1 << $DRAM_addr_width)]
+  assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces m_axi]        [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces ncmem_axi]    [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
 }
 
   # Restore current instance
