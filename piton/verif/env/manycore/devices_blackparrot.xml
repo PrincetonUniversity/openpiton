@@ -1,0 +1,61 @@
+<!--
+Copyright 2018 ETH Zurich and University of Bologna.
+Copyright and related rights are licensed under the Solderpad Hardware
+License, Version 0.51 (the "License"); you may not use this file except in
+compliance with the License.  You may obtain a copy of the License at
+http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+or agreed to in writing, software, hardware and materials distributed under
+this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+Author: Michael Schaffner <schaffner@iis.ee.ethz.ch>, ETH Zurich
+Date: 26.11.2018
+Description: Peripheral address map for OpenPiton+BlackParrot configurations.
+-->
+<devices>
+    <!--The first entry should always be the filter/chip to xbar connection-->
+    <port>
+        <name>chip</name>
+        <noc2in/>
+    </port>
+    <port>
+        <name>mem</name>
+        <base>0x80000000</base>
+        <!-- 1 GB -->
+        <length>0x40000000</length>
+    </port>
+    <port>
+        <name>iob</name>
+        <base>0x9f00000000</base>
+        <length>0x10</length>
+        <noc2in/>
+    </port>
+    <port>
+        <name>uart</name>
+        <base>0xfff0c2c000</base>
+        <!-- Randomly chosen length (longer than needed) -->
+        <length>0x4000</length>
+        <noc2in/>
+    </port>
+    <!--BlackParrot specific interrupt controller address mapping -->
+    <!--Lengths kept the same as ariane but can be changed -->
+    <port>
+        <name>ariane_bootrom</name>
+        <base>0x0000010000</base>
+        <length>0x10000</length>
+        <stream_accessible/>
+    </port>
+    <port>
+        <!-- core local interrupt controller with real-time counter. this is shared among all cores -->
+        <name>ariane_clint</name>
+        <base>0x0000300000</base>
+        <length>0xc0000</length>
+    </port>
+    <!-- platform level interrupt controller -->
+    <port>
+        <name>ariane_plic</name>
+        <base>0x0000400000</base>
+        <length>0x4000000</length>
+    </port>
+</devices>

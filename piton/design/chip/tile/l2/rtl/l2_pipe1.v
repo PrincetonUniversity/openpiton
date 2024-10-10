@@ -367,6 +367,7 @@ wire stall_smc_buf_S4;
 wire msg_from_mshr_S4;
 wire req_recycle_S4;
 wire inv_fwd_pending_S4;
+wire msg_data_8B_amo_S4;
 
 wire msg_send_valid;
 wire msg_send_ready;
@@ -695,6 +696,7 @@ l2_pipe1_ctrl ctrl(
     .msg_from_mshr_S4           (msg_from_mshr_S4),
     .req_recycle_S4             (req_recycle_S4),
     .inv_fwd_pending_S4         (inv_fwd_pending_S4),
+    .msg_data_8B_amo_S4         (msg_data_8B_amo_S4),
     .dir_sharer_S4              (dir_sharer_S4),
     .dir_sharer_counter_S4      (dir_sharer_counter_S4),
     .cas_cmp_en_S4              (cas_cmp_en_S4),
@@ -862,6 +864,7 @@ l2_pipe1_dpath dpath(
     .msg_from_mshr_S4           (msg_from_mshr_S4),
     .req_recycle_S4             (req_recycle_S4),
     .inv_fwd_pending_S4         (inv_fwd_pending_S4),
+    .msg_data_8B_amo_S4         (msg_data_8B_amo_S4),
     .cas_cmp_en_S4              (cas_cmp_en_S4),
     .atomic_read_data_en_S4     (atomic_read_data_en_S4),
     .cas_cmp_data_size_S4       (cas_cmp_data_size_S4),
