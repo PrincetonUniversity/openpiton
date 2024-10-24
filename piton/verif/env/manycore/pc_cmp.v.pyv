@@ -21,7 +21,9 @@
 // ========== Copyright Header End ============================================
 
 `include "define.tmp.h"
+`ifdef INCLUDE_SAS_TASKS
 `include "ifu.tmp.h"
+`endif
 
 <%
     from pyhplib import *
@@ -51,7 +53,9 @@ input rst_l;
     reg [31:0]   active_thread;
     reg [31:0]   back_thread, good_delay;
     reg [31:0]   good, good_for;
+    `ifdef INCLUDE_SAS_TASKS
     reg [4:0]    thread_status[31:0];
+    `endif
     '''
     tt2 = r'''reg [7:0]   done;'''
     tt1 = tt1.replace("31", repr(PITON_NUM_TILES*4-1));
@@ -345,14 +349,18 @@ task check_time;
     begin
         for(ind = head; ind < tail; ind = ind + 1)begin
             if(timeout[ind] > max && (good[ind] == 0))begin
+                `ifdef INCLUDE_SAS_TASKS
                 if((max_cycle == 0 || finish_mask[ind] == 0) && (thread_status[ind] == `THRFSM_HALT)
                   )begin
                     timeout[ind] = 0;
                 end
                 else begin
+                `endif
                     $display("Info: spc(%0d) thread(%0d) -> timeout happen", ind / 4, ind % 4);
                     `MONITOR_PATH.fail("TIMEOUT");
+                `ifdef INCLUDE_SAS_TASKS
                 end
+                `endif
             end
             else if(active_thread[ind] != good[ind])begin
                 timeout[ind] = timeout[ind] + 1;

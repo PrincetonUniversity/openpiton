@@ -44,7 +44,7 @@ my %default_config =
    verbose => 1,
 
    cpp_includes => {
-		    diagroot => ['verif/diag/assembly/include'],
+		    diagroot => ['verif/diag/sparcv9/assembly/include'],
 		    startdir => ['.'],
 		    builddir => ['.'],
 		    abs      => [],
@@ -69,14 +69,14 @@ my %default_config =
 		 },
 
    csrc_includes => {
-		  diagroot => ['verif/diag/c'],
+		  diagroot => ['verif/diag/sparcv9/c'],
 		  startdir => ['.'],
 		  builddir => [],
 		  abs      => [],
 		 },
 
    c_includes => {
-		  diagroot => ['verif/diag/c/include'],
+		  diagroot => ['verif/diag/sparcv9/c/include'],
 		  startdir => ['.'],
 		  builddir => ['.'],
 		  abs      => [],

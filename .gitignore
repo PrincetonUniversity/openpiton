@@ -7,29 +7,6 @@
 build/*
 !build/.keep
 
-# Ignore generated logs from back-end
-# Good for 10 levels of hierarchy
-piton/design/*/synopsys/*
-!piton/design/*/synopsys/script
-piton/design/*/*/synopsys/*
-!piton/design/*/*/synopsys/script
-piton/design/*/*/*/synopsys/*
-!piton/design/*/*/*/synopsys/script
-piton/design/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/*/*/*/*/synopsys/script
-piton/design/*/*/*/*/*/*/*/*/*/*/synopsys/*
-!piton/design/*/*/*/*/*/*/*/*/*/*/synopsys/script
-
 # IP for FPGA designs is generated in palce
 # where .xci file is located, so need to ignore
 # these generated files.

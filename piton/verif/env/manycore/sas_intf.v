@@ -21,10 +21,7 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////
 
-`include "sys.h"
-`include "iop.h"
 `include "lsu.tmp.h"
-`include "ifu.tmp.h"
 `include "cross_module.tmp.h"
 `define INTF0_WIDTH 61
 `define INTF1_WIDTH 125

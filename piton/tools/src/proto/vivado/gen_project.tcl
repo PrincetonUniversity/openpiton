@@ -32,6 +32,9 @@
 set DV_ROOT $::env(DV_ROOT)
 source $DV_ROOT/tools/src/proto/vivado/setup.tcl
 
+set OST1_ROOT $::env(OST1_ROOT)
+set ARIANE_ROOT $::env(ARIANE_ROOT)
+
 # Create project
 create_project -force ${PROJECT_NAME} ${PROJECT_DIR}
 

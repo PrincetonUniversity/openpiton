@@ -40,8 +40,6 @@
 
 
 
-`include "sys.h"
-`include "iop.h"
 `include "cross_module.tmp.h"
 
 module iob_mon (
