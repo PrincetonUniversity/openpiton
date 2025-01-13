@@ -399,7 +399,7 @@ def runImplFlow(board, eth, design_data, work_dir, log_dir, def_list, slurm, dep
 
     # Copy sw defines for Ethernet core to proper place
     if (board == "alveou280" or board == "alveou55c" or board == "alveou250") and eth:
-      os.system('cp -rf $MODEL_DIR/%s/system/bd/Eth_CMAC_syst/ip/Eth_CMAC_syst_eth100gb_0/Eth_CMAC_syst_eth100gb_0/header_files/* $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/sw/eth_test/src/syst_hw/' % board)
+      os.system('cp -rf $MODEL_DIR/%s/system/bd/Eth_CMAC_syst/ip/Eth_CMAC_syst_eth100gb_0/Eth_CMAC_syst_eth100gb_0/header_files/* $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/app4eth_syst/cpp/syst_hw/' % board)
 
     os.chdir(prev_dir)
 

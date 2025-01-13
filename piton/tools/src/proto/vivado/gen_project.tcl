@@ -154,8 +154,25 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   source $DV_ROOT/design/chipset/meep/jtag_shell.tcl
 
   # Generating Ethernet system
-  # (to save BD: write_bd_tcl -force -no_project_wrapper ../piton/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/eth_cmac_syst.tcl)
-  source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/eth_cmac_syst.tcl
+  if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)]} {
+    set g_board_part [string map {"alveo" ""} $::env(PROTOSYN_RUNTIME_BOARD)]
+  }
+  if {[info exists ::env(PROTOSYN_RUNTIME_ETHPORT)] && $::env(PROTOSYN_RUNTIME_ETHPORT)=="1"} {
+    set g_eth_port "qsfp1"
+  } else {
+    set g_eth_port "qsfp0"
+  }
+  set g_dma_mem "sram"
+  set g_saxi_prot "AXI4-512"
+  set g_saxi_freq "split"
+  set g_max_dma_addr_width "40"
+  set g_root_dir "./"
+  puts "Generating 100GbE on port `${g_eth_port}` with AXI slave `${g_saxi_prot}` and DMA memory at `${g_dma_mem}` for board `${g_board_part}`"
+  # set argv [list $g_board_part $g_eth_port $g_dma_mem $g_saxi_freq $g_saxi_prot]
+  # set argc 5
+  # source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/gen_project.tcl
+  source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
+  cr_bd_Eth_CMAC_syst ""
 }
 
 # Set 'sources_1' fileset file properties for local files

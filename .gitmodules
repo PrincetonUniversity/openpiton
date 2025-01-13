@@ -16,3 +16,6 @@
 [submodule "piton/design/chipset/meep-memtile"]
 	path = piton/design/chipset/meep-memtile
 	url = https://gitlab.bsc.es/meep/rtl_designs/acme_components/meep-memtile.git
+[submodule "piton/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst"]
+	path = piton/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst
+	url = ../../fpga/integration-lab/100gb-ethernet.git
