@@ -9,4 +9,4 @@
 	url = https://github.com/u-boot/u-boot.git
 [submodule "piton/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst"]
 	path = piton/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst
-	url = ../../fpga/integration-lab/100gb-ethernet.git
+	url = https://github.com/bsc-loca/100gb-ethernet
