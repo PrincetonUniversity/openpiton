@@ -760,9 +760,7 @@ Eth_CMAC_syst eth_cmac_syst (
   .m_axi_sg_arburst(eth_sg_dma_arburst),
   .m_axi_sg_arcache(eth_sg_dma_arcache),
   .m_axi_sg_arlen(eth_sg_dma_arlen),
-  .m_axi_sg_arlock(eth_sg_dma_arlock),
   .m_axi_sg_arprot(eth_sg_dma_arprot),
-  .m_axi_sg_arqos(eth_sg_dma_arqos),
   .m_axi_sg_arready(eth_sg_dma_arready),
   .m_axi_sg_arsize(eth_sg_dma_arsize),
   .m_axi_sg_arvalid(eth_sg_dma_arvalid),
@@ -770,9 +768,7 @@ Eth_CMAC_syst eth_cmac_syst (
   .m_axi_sg_awburst(eth_sg_dma_awburst),
   .m_axi_sg_awcache(eth_sg_dma_awcache),
   .m_axi_sg_awlen(eth_sg_dma_awlen),
-  .m_axi_sg_awlock(eth_sg_dma_awlock),
   .m_axi_sg_awprot(eth_sg_dma_awprot),
-  .m_axi_sg_awqos(eth_sg_dma_awqos),
   .m_axi_sg_awready(eth_sg_dma_awready),
   .m_axi_sg_awsize(eth_sg_dma_awsize),
   .m_axi_sg_awvalid(eth_sg_dma_awvalid),
@@ -896,7 +892,7 @@ Eth_CMAC_syst eth_cmac_syst (
   assign eth_tx_dma_wuser     = `AXI4_USER_WIDTH'h0;
   assign eth_tx_dma_wvalid    = 1'b0;
   assign eth_tx_dma_bready    = 1'b1;
-     
+
   assign eth_rx_dma_arid      = `AXI4_ID_WIDTH'h0;
   assign eth_rx_dma_araddr    = `AXI4_ADDR_WIDTH'h0;
   assign eth_rx_dma_arlen     = `AXI4_LEN_WIDTH'h0;
@@ -910,6 +906,12 @@ Eth_CMAC_syst eth_cmac_syst (
   assign eth_rx_dma_aruser    = `AXI4_USER_WIDTH'h0;
   assign eth_rx_dma_arvalid   = 1'b0;
   assign eth_rx_dma_rready    = 1'b1;
+
+  //These signals are not drived by 100GbE if DMA buses are intended for DDR (AXI4)
+  assign eth_sg_dma_arlock    = 1'b0;
+  assign eth_sg_dma_arqos     = `AXI4_QOS_WIDTH'h0;
+  assign eth_sg_dma_awlock    = 1'b0;
+  assign eth_sg_dma_awqos     = `AXI4_QOS_WIDTH'h0;
 
 `endif
 
