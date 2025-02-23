@@ -30,9 +30,11 @@ set_property PACKAGE_PIN AB42              [get_ports "qsfp1_ref_clk_p"] ;# Bank
 #--------------------------------------------
 # Specifying the placement of QSFP clock domain modules into single SLR to facilitate routing
 # https://www.xilinx.com/support/documentation/sw_manuals/xilinx2020_1/ug912-vivado-properties.pdf#page=386
-set tx_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical eth100gb/gt_txusrclk2]]]
-set rx_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical eth100gb/gt_rxusrclk2]]]
-#As clocks are not applied to memories explicitly in BD, include them separately to SLR placement.
+#Collecting all units from correspondingly Tx and Rx domains,
+#excluding AXI register slices intended to facilitate SLR crossing on the way to/from HBM located in SLR0
+set tx_clk_units [get_cells -filter {NAME !~ *axi_reg_slice_tx && NAME !~ *tx_rst_gen} -of_objects [get_nets -of_objects [get_pins -hierarchical eth100gb/gt_txusrclk2]]]
+set rx_clk_units [get_cells -filter {NAME !~ *axi_reg_slice_rx && NAME !~ *rx_rst_gen} -of_objects [get_nets -of_objects [get_pins -hierarchical eth100gb/gt_rxusrclk2]]]
+#Since clocks are not applied to memories explicitly in BD, include them explicitly to SLR placement.
 set eth_txmem [get_cells -hierarchical eth_tx_mem]
 set eth_rxmem [get_cells -hierarchical eth_rx_mem]
 #Setting specific SLR to which QSFP are wired since placer may miss it if just "group_name" is applied
