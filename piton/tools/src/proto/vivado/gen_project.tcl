@@ -134,7 +134,12 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   } else {
     set g_eth_port "qsfp0"
   }
-  set g_dma_mem "sram"
+  if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
+                  $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
+    set g_dma_mem "hbm"
+  } else {
+    set g_dma_mem "ddr"
+  }
   set g_saxi_prot "AXI4-512"
   set g_saxi_freq "split"
   set g_max_dma_addr_width "40"
