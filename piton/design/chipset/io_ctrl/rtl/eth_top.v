@@ -76,6 +76,165 @@ module eth_top #(
 `elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
                    ,
     `ifndef PITONSYS_MEEP
+     // Eth DMA master channels
+     output [`AXI4_ID_WIDTH     -1:0]     eth_sg_dma_awid,
+     output [`AXI4_ADDR_WIDTH   -1:0]     eth_sg_dma_awaddr,
+     output [`AXI4_LEN_WIDTH    -1:0]     eth_sg_dma_awlen,
+     output [`AXI4_SIZE_WIDTH   -1:0]     eth_sg_dma_awsize,
+     output [`AXI4_BURST_WIDTH  -1:0]     eth_sg_dma_awburst,
+     output                               eth_sg_dma_awlock,
+     output [`AXI4_CACHE_WIDTH  -1:0]     eth_sg_dma_awcache,
+     output [`AXI4_PROT_WIDTH   -1:0]     eth_sg_dma_awprot,
+     output [`AXI4_QOS_WIDTH    -1:0]     eth_sg_dma_awqos,
+     output [`AXI4_REGION_WIDTH -1:0]     eth_sg_dma_awregion,
+     output [`AXI4_USER_WIDTH   -1:0]     eth_sg_dma_awuser,
+     output                               eth_sg_dma_awvalid,
+     input                                eth_sg_dma_awready,
+
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_wid,
+     output  [`AXI4_DATA_WIDTH   -1:0]    eth_sg_dma_wdata,
+     output  [`AXI4_STRB_WIDTH   -1:0]    eth_sg_dma_wstrb,
+     output                               eth_sg_dma_wlast,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_wuser,
+     output                               eth_sg_dma_wvalid,
+     input                                eth_sg_dma_wready,
+     
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_arid,
+     output  [`AXI4_ADDR_WIDTH   -1:0]    eth_sg_dma_araddr,
+     output  [`AXI4_LEN_WIDTH    -1:0]    eth_sg_dma_arlen,
+     output  [`AXI4_SIZE_WIDTH   -1:0]    eth_sg_dma_arsize,
+     output  [`AXI4_BURST_WIDTH  -1:0]    eth_sg_dma_arburst,
+     output                               eth_sg_dma_arlock,
+     output  [`AXI4_CACHE_WIDTH  -1:0]    eth_sg_dma_arcache,
+     output  [`AXI4_PROT_WIDTH   -1:0]    eth_sg_dma_arprot,
+     output  [`AXI4_QOS_WIDTH    -1:0]    eth_sg_dma_arqos,
+     output  [`AXI4_REGION_WIDTH -1:0]    eth_sg_dma_arregion,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_aruser,
+     output                               eth_sg_dma_arvalid,
+     input                                eth_sg_dma_arready,
+     
+     input   [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_rid,
+     input   [`AXI4_DATA_WIDTH   -1:0]    eth_sg_dma_rdata,
+     input   [`AXI4_RESP_WIDTH   -1:0]    eth_sg_dma_rresp,
+     input                                eth_sg_dma_rlast,
+     input   [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_ruser,
+     input                                eth_sg_dma_rvalid,
+     output                               eth_sg_dma_rready,
+     
+     input  [`AXI4_ID_WIDTH     -1:0]     eth_sg_dma_bid,
+     input  [`AXI4_RESP_WIDTH   -1:0]     eth_sg_dma_bresp,
+     input  [`AXI4_USER_WIDTH   -1:0]     eth_sg_dma_buser,
+     input                                eth_sg_dma_bvalid,
+     output                               eth_sg_dma_bready,
+
+
+     output [`AXI4_ID_WIDTH     -1:0]     eth_tx_dma_awid,
+     output [`AXI4_ADDR_WIDTH   -1:0]     eth_tx_dma_awaddr,
+     output [`AXI4_LEN_WIDTH    -1:0]     eth_tx_dma_awlen,
+     output [`AXI4_SIZE_WIDTH   -1:0]     eth_tx_dma_awsize,
+     output [`AXI4_BURST_WIDTH  -1:0]     eth_tx_dma_awburst,
+     output                               eth_tx_dma_awlock,
+     output [`AXI4_CACHE_WIDTH  -1:0]     eth_tx_dma_awcache,
+     output [`AXI4_PROT_WIDTH   -1:0]     eth_tx_dma_awprot,
+     output [`AXI4_QOS_WIDTH    -1:0]     eth_tx_dma_awqos,
+     output [`AXI4_REGION_WIDTH -1:0]     eth_tx_dma_awregion,
+     output [`AXI4_USER_WIDTH   -1:0]     eth_tx_dma_awuser,
+     output                               eth_tx_dma_awvalid,
+     input                                eth_tx_dma_awready,
+
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_wid,
+     output  [`AXI4_DATA_WIDTH   -1:0]    eth_tx_dma_wdata,
+     output  [`AXI4_STRB_WIDTH   -1:0]    eth_tx_dma_wstrb,
+     output                               eth_tx_dma_wlast,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_wuser,
+     output                               eth_tx_dma_wvalid,
+     input                                eth_tx_dma_wready,
+     
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_arid,
+     output  [`AXI4_ADDR_WIDTH   -1:0]    eth_tx_dma_araddr,
+     output  [`AXI4_LEN_WIDTH    -1:0]    eth_tx_dma_arlen,
+     output  [`AXI4_SIZE_WIDTH   -1:0]    eth_tx_dma_arsize,
+     output  [`AXI4_BURST_WIDTH  -1:0]    eth_tx_dma_arburst,
+     output                               eth_tx_dma_arlock,
+     output  [`AXI4_CACHE_WIDTH  -1:0]    eth_tx_dma_arcache,
+     output  [`AXI4_PROT_WIDTH   -1:0]    eth_tx_dma_arprot,
+     output  [`AXI4_QOS_WIDTH    -1:0]    eth_tx_dma_arqos,
+     output  [`AXI4_REGION_WIDTH -1:0]    eth_tx_dma_arregion,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_aruser,
+     output                               eth_tx_dma_arvalid,
+     input                                eth_tx_dma_arready,
+     
+     input   [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_rid,
+     input   [`AXI4_DATA_WIDTH   -1:0]    eth_tx_dma_rdata,
+     input   [`AXI4_RESP_WIDTH   -1:0]    eth_tx_dma_rresp,
+     input                                eth_tx_dma_rlast,
+     input   [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_ruser,
+     input                                eth_tx_dma_rvalid,
+     output                               eth_tx_dma_rready,
+     
+     input  [`AXI4_ID_WIDTH     -1:0]     eth_tx_dma_bid,
+     input  [`AXI4_RESP_WIDTH   -1:0]     eth_tx_dma_bresp,
+     input  [`AXI4_USER_WIDTH   -1:0]     eth_tx_dma_buser,
+     input                                eth_tx_dma_bvalid,
+     output                               eth_tx_dma_bready,
+
+     output                               eth_tx_dma_clk,
+     output                               eth_tx_dma_rstn,
+
+
+     output [`AXI4_ID_WIDTH     -1:0]     eth_rx_dma_awid,
+     output [`AXI4_ADDR_WIDTH   -1:0]     eth_rx_dma_awaddr,
+     output [`AXI4_LEN_WIDTH    -1:0]     eth_rx_dma_awlen,
+     output [`AXI4_SIZE_WIDTH   -1:0]     eth_rx_dma_awsize,
+     output [`AXI4_BURST_WIDTH  -1:0]     eth_rx_dma_awburst,
+     output                               eth_rx_dma_awlock,
+     output [`AXI4_CACHE_WIDTH  -1:0]     eth_rx_dma_awcache,
+     output [`AXI4_PROT_WIDTH   -1:0]     eth_rx_dma_awprot,
+     output [`AXI4_QOS_WIDTH    -1:0]     eth_rx_dma_awqos,
+     output [`AXI4_REGION_WIDTH -1:0]     eth_rx_dma_awregion,
+     output [`AXI4_USER_WIDTH   -1:0]     eth_rx_dma_awuser,
+     output                               eth_rx_dma_awvalid,
+     input                                eth_rx_dma_awready,
+
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_wid,
+     output  [`AXI4_DATA_WIDTH   -1:0]    eth_rx_dma_wdata,
+     output  [`AXI4_STRB_WIDTH   -1:0]    eth_rx_dma_wstrb,
+     output                               eth_rx_dma_wlast,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_wuser,
+     output                               eth_rx_dma_wvalid,
+     input                                eth_rx_dma_wready,
+     
+     output  [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_arid,
+     output  [`AXI4_ADDR_WIDTH   -1:0]    eth_rx_dma_araddr,
+     output  [`AXI4_LEN_WIDTH    -1:0]    eth_rx_dma_arlen,
+     output  [`AXI4_SIZE_WIDTH   -1:0]    eth_rx_dma_arsize,
+     output  [`AXI4_BURST_WIDTH  -1:0]    eth_rx_dma_arburst,
+     output                               eth_rx_dma_arlock,
+     output  [`AXI4_CACHE_WIDTH  -1:0]    eth_rx_dma_arcache,
+     output  [`AXI4_PROT_WIDTH   -1:0]    eth_rx_dma_arprot,
+     output  [`AXI4_QOS_WIDTH    -1:0]    eth_rx_dma_arqos,
+     output  [`AXI4_REGION_WIDTH -1:0]    eth_rx_dma_arregion,
+     output  [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_aruser,
+     output                               eth_rx_dma_arvalid,
+     input                                eth_rx_dma_arready,
+     
+     input   [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_rid,
+     input   [`AXI4_DATA_WIDTH   -1:0]    eth_rx_dma_rdata,
+     input   [`AXI4_RESP_WIDTH   -1:0]    eth_rx_dma_rresp,
+     input                                eth_rx_dma_rlast,
+     input   [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_ruser,
+     input                                eth_rx_dma_rvalid,
+     output                               eth_rx_dma_rready,
+     
+     input  [`AXI4_ID_WIDTH     -1:0]     eth_rx_dma_bid,
+     input  [`AXI4_RESP_WIDTH   -1:0]     eth_rx_dma_bresp,
+     input  [`AXI4_USER_WIDTH   -1:0]     eth_rx_dma_buser,
+     input                                eth_rx_dma_bvalid,
+     output                               eth_rx_dma_bready,
+
+     output                               eth_rx_dma_clk,
+     output                               eth_rx_dma_rstn,
+
     input          eth_init_clk,
     input          qsfp_ref_clk_n,
     input          qsfp_ref_clk_p,
@@ -100,7 +259,7 @@ module eth_top #(
      output [`AXI4_CACHE_WIDTH  -1:0]     core_axi_awcache,
      output [`AXI4_PROT_WIDTH   -1:0]     core_axi_awprot,
      output [`AXI4_QOS_WIDTH    -1:0]     core_axi_awqos,
-     output  [`AXI4_REGION_WIDTH -1:0]    core_axi_awregion,
+     output [`AXI4_REGION_WIDTH -1:0]     core_axi_awregion,
      output [`AXI4_USER_WIDTH   -1:0]     core_axi_awuser,
      output                               core_axi_awvalid,
      input                                core_axi_awready,
@@ -135,11 +294,11 @@ module eth_top #(
      input                                core_axi_rvalid,
      output                               core_axi_rready,
      
-     input  [`AXI4_ID_WIDTH     -1:0]    core_axi_bid,
-     input  [`AXI4_RESP_WIDTH   -1:0]    core_axi_bresp,
-     input  [`AXI4_USER_WIDTH   -1:0]    core_axi_buser,
-     input                               core_axi_bvalid,
-     output                              core_axi_bready
+     input  [`AXI4_ID_WIDTH     -1:0]     core_axi_bid,
+     input  [`AXI4_RESP_WIDTH   -1:0]     core_axi_bresp,
+     input  [`AXI4_USER_WIDTH   -1:0]     core_axi_buser,
+     input                                core_axi_bvalid,
+     output                               core_axi_bready
      `else
      
      output [`C_M_AXI_LITE_ADDR_WIDTH-1:0]   dma_s_axi_awaddr,
@@ -596,6 +755,109 @@ Eth_CMAC_syst eth_cmac_syst (
   // .s_axi_awregion   (core_axi_awregion),
   // .s_axi_arregion   (core_axi_arregion),
 
+  // DMA master channels
+  .m_axi_sg_araddr(eth_sg_dma_araddr),
+  .m_axi_sg_arburst(eth_sg_dma_arburst),
+  .m_axi_sg_arcache(eth_sg_dma_arcache),
+  .m_axi_sg_arlen(eth_sg_dma_arlen),
+  .m_axi_sg_arprot(eth_sg_dma_arprot),
+  .m_axi_sg_arready(eth_sg_dma_arready),
+  .m_axi_sg_arsize(eth_sg_dma_arsize),
+  .m_axi_sg_arvalid(eth_sg_dma_arvalid),
+  .m_axi_sg_awaddr(eth_sg_dma_awaddr),
+  .m_axi_sg_awburst(eth_sg_dma_awburst),
+  .m_axi_sg_awcache(eth_sg_dma_awcache),
+  .m_axi_sg_awlen(eth_sg_dma_awlen),
+  .m_axi_sg_awprot(eth_sg_dma_awprot),
+  .m_axi_sg_awready(eth_sg_dma_awready),
+  .m_axi_sg_awsize(eth_sg_dma_awsize),
+  .m_axi_sg_awvalid(eth_sg_dma_awvalid),
+  .m_axi_sg_bready(eth_sg_dma_bready),
+  .m_axi_sg_bresp(eth_sg_dma_bresp),
+  .m_axi_sg_bvalid(eth_sg_dma_bvalid),
+  .m_axi_sg_rdata(eth_sg_dma_rdata),
+  .m_axi_sg_rlast(eth_sg_dma_rlast),
+  .m_axi_sg_rready(eth_sg_dma_rready),
+  .m_axi_sg_rresp(eth_sg_dma_rresp),
+  .m_axi_sg_rvalid(eth_sg_dma_rvalid),
+  .m_axi_sg_wdata(eth_sg_dma_wdata),
+  .m_axi_sg_wlast(eth_sg_dma_wlast),
+  .m_axi_sg_wready(eth_sg_dma_wready),
+  .m_axi_sg_wstrb(eth_sg_dma_wstrb),
+  .m_axi_sg_wvalid(eth_sg_dma_wvalid),
+
+  .m_axi_tx_araddr(eth_tx_dma_araddr),
+  .m_axi_tx_arburst(eth_tx_dma_arburst),
+  .m_axi_tx_arcache(eth_tx_dma_arcache),
+  .m_axi_tx_arlen(eth_tx_dma_arlen),
+  .m_axi_tx_arlock(eth_tx_dma_arlock),
+  .m_axi_tx_arprot(eth_tx_dma_arprot),
+  .m_axi_tx_arqos(eth_tx_dma_arqos),
+  .m_axi_tx_arready(eth_tx_dma_arready),
+  .m_axi_tx_arsize(eth_tx_dma_arsize),
+  .m_axi_tx_arvalid(eth_tx_dma_arvalid),
+  // .m_axi_tx_awaddr(eth_tx_dma_awaddr),
+  // .m_axi_tx_awburst(eth_tx_dma_awburst),
+  // .m_axi_tx_awcache(eth_tx_dma_awcache),
+  // .m_axi_tx_awlen(eth_tx_dma_awlen),
+  // .m_axi_tx_awlock(eth_tx_dma_awlock),
+  // .m_axi_tx_awprot(eth_tx_dma_awprot),
+  // .m_axi_tx_awqos(eth_tx_dma_awqos),
+  // .m_axi_tx_awready(eth_tx_dma_awready),
+  // .m_axi_tx_awsize(eth_tx_dma_awsize),
+  // .m_axi_tx_awvalid(eth_tx_dma_awvalid),
+  // .m_axi_tx_bready(eth_tx_dma_bready),
+  // .m_axi_tx_bresp(eth_tx_dma_bresp),
+  // .m_axi_tx_bvalid(eth_tx_dma_bvalid),
+  .m_axi_tx_rdata(eth_tx_dma_rdata),
+  .m_axi_tx_rlast(eth_tx_dma_rlast),
+  .m_axi_tx_rready(eth_tx_dma_rready),
+  .m_axi_tx_rresp(eth_tx_dma_rresp),
+  .m_axi_tx_rvalid(eth_tx_dma_rvalid),
+  // .m_axi_tx_wdata(eth_tx_dma_wdata),
+  // .m_axi_tx_wlast(eth_tx_dma_wlast),
+  // .m_axi_tx_wready(eth_tx_dma_wready),
+  // .m_axi_tx_wstrb(eth_tx_dma_wstrb),
+  // .m_axi_tx_wvalid(eth_tx_dma_wvalid),
+  .tx_clk(eth_tx_dma_clk),
+  .tx_rstn(eth_tx_dma_rstn),
+
+  // .m_axi_rx_araddr(eth_rx_dma_araddr),
+  // .m_axi_rx_arburst(eth_rx_dma_arburst),
+  // .m_axi_rx_arcache(eth_rx_dma_arcache),
+  // .m_axi_rx_arlen(eth_rx_dma_arlen),
+  // .m_axi_rx_arlock(eth_rx_dma_arlock),
+  // .m_axi_rx_arprot(eth_rx_dma_arprot),
+  // .m_axi_rx_arqos(eth_rx_dma_arqos),
+  // .m_axi_rx_arready(eth_rx_dma_arready),
+  // .m_axi_rx_arsize(eth_rx_dma_arsize),
+  // .m_axi_rx_arvalid(eth_rx_dma_arvalid),
+  .m_axi_rx_awaddr(eth_rx_dma_awaddr),
+  .m_axi_rx_awburst(eth_rx_dma_awburst),
+  .m_axi_rx_awcache(eth_rx_dma_awcache),
+  .m_axi_rx_awlen(eth_rx_dma_awlen),
+  .m_axi_rx_awlock(eth_rx_dma_awlock),
+  .m_axi_rx_awprot(eth_rx_dma_awprot),
+  .m_axi_rx_awqos(eth_rx_dma_awqos),
+  .m_axi_rx_awready(eth_rx_dma_awready),
+  .m_axi_rx_awsize(eth_rx_dma_awsize),
+  .m_axi_rx_awvalid(eth_rx_dma_awvalid),
+  .m_axi_rx_bready(eth_rx_dma_bready),
+  .m_axi_rx_bresp(eth_rx_dma_bresp),
+  .m_axi_rx_bvalid(eth_rx_dma_bvalid),
+  // .m_axi_rx_rdata(eth_rx_dma_rdata),
+  // .m_axi_rx_rlast(eth_rx_dma_rlast),
+  // .m_axi_rx_rready(eth_rx_dma_rready),
+  // .m_axi_rx_rresp(eth_rx_dma_rresp),
+  // .m_axi_rx_rvalid(eth_rx_dma_rvalid),
+  .m_axi_rx_wdata(eth_rx_dma_wdata),
+  .m_axi_rx_wlast(eth_rx_dma_wlast),
+  .m_axi_rx_wready(eth_rx_dma_wready),
+  .m_axi_rx_wstrb(eth_rx_dma_wstrb),
+  .m_axi_rx_wvalid(eth_rx_dma_wvalid),
+  .rx_clk(eth_rx_dma_clk),
+  .rx_rstn(eth_rx_dma_rstn),
+
   .intc               (unsync_net_int), // output interrupts (0-tx, 1-rx)
 
   .init_clk           (eth_init_clk),   // free-running clock required for Xilinx CMAC initialization in range 50...250 MHz
@@ -607,8 +869,49 @@ Eth_CMAC_syst eth_cmac_syst (
   .qsfp_4x_gtx_p      (qsfp_4x_gtx_p)
 );
 
-assign core_axi_ruser  = `AXI4_USER_WIDTH'h0;
-assign core_axi_buser  = `AXI4_USER_WIDTH'h0;
+  assign core_axi_ruser       = `AXI4_USER_WIDTH'h0;
+  assign core_axi_buser       = `AXI4_USER_WIDTH'h0;
+
+  assign eth_tx_dma_awid      = `AXI4_ID_WIDTH'h0;
+  assign eth_tx_dma_awaddr    = `AXI4_ADDR_WIDTH'h0;
+  assign eth_tx_dma_awlen     = `AXI4_LEN_WIDTH'h0;
+  assign eth_tx_dma_awsize    = `AXI4_SIZE_WIDTH'h0;
+  assign eth_tx_dma_awburst   = `AXI4_BURST_WIDTH'h0;
+  assign eth_tx_dma_awlock    = 1'b0;
+  assign eth_tx_dma_awcache   = `AXI4_CACHE_WIDTH'h0;
+  assign eth_tx_dma_awprot    = `AXI4_PROT_WIDTH'h0;
+  assign eth_tx_dma_awqos     = `AXI4_QOS_WIDTH'h0;
+  assign eth_tx_dma_awregion  = `AXI4_REGION_WIDTH'h0;
+  assign eth_tx_dma_awuser    = `AXI4_USER_WIDTH'h0;
+  assign eth_tx_dma_awvalid   = 1'b0;
+
+  assign eth_tx_dma_wid       = `AXI4_ID_WIDTH'h0;
+  assign eth_tx_dma_wdata     = `AXI4_DATA_WIDTH'h0;
+  assign eth_tx_dma_wstrb     = `AXI4_STRB_WIDTH'h0;
+  assign eth_tx_dma_wlast     = 1'b0;
+  assign eth_tx_dma_wuser     = `AXI4_USER_WIDTH'h0;
+  assign eth_tx_dma_wvalid    = 1'b0;
+  assign eth_tx_dma_bready    = 1'b1;
+
+  assign eth_rx_dma_arid      = `AXI4_ID_WIDTH'h0;
+  assign eth_rx_dma_araddr    = `AXI4_ADDR_WIDTH'h0;
+  assign eth_rx_dma_arlen     = `AXI4_LEN_WIDTH'h0;
+  assign eth_rx_dma_arsize    = `AXI4_SIZE_WIDTH'h0;
+  assign eth_rx_dma_arburst   = `AXI4_BURST_WIDTH'h0;
+  assign eth_rx_dma_arlock    = 1'b0;
+  assign eth_rx_dma_arcache   = `AXI4_CACHE_WIDTH'h0;
+  assign eth_rx_dma_arprot    = `AXI4_PROT_WIDTH'h0;
+  assign eth_rx_dma_arqos     = `AXI4_QOS_WIDTH'h0;
+  assign eth_rx_dma_arregion  = `AXI4_REGION_WIDTH'h0;
+  assign eth_rx_dma_aruser    = `AXI4_USER_WIDTH'h0;
+  assign eth_rx_dma_arvalid   = 1'b0;
+  assign eth_rx_dma_rready    = 1'b1;
+
+  //These signals are not drived by 100GbE if DMA buses are intended for DDR (AXI4)
+  assign eth_sg_dma_arlock    = 1'b0;
+  assign eth_sg_dma_arqos     = `AXI4_QOS_WIDTH'h0;
+  assign eth_sg_dma_awlock    = 1'b0;
+  assign eth_sg_dma_awqos     = `AXI4_QOS_WIDTH'h0;
 
 `endif
 
