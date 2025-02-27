@@ -1,9 +1,9 @@
 EANAME=acme
-PCIE,yes,pcie_axi,,PCIE_CLK,pcie_clk,pcie_rstn,dma,0,dbg_jtag,hbm-02
+PCIE,yes,pcie_axi,,PCIE_CLK,pcie_clk,pcie_rstn,dma,0,dbg_jtag,hbm-01
 DDR4,no,mem_axi,AXI4-512,CLK0,0x0,mem_calib_complete,0
 DDR4,no,ncmem_axi,AXI4-512,CLK0,0x0,mem_calib_complete,0
 HBM,yes,mem_axi,AXI3-256,CLK0,0x0,mem_calib_complete,00
-HBM,yes,ncmem_axi,AXI3-256,CLK0,0x0,mem_calib_complete,01
+HBM,no,ncmem_axi,AXI3-256,CLK0,0x0,mem_calib_complete,02
 HBM,no,mcx_axi0,AXI3-256,CLK0,0x0,mem_calib_complete,04
 HBM,no,mcx_axi1,AXI3-256,CLK0,0x0,mem_calib_complete,05
 HBM,no,mcx_axi2,AXI3-256,CLK0,0x0,mem_calib_complete,06
