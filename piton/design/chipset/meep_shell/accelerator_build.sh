@@ -223,8 +223,8 @@ function protosyn_flags() {
  ea_conf=$1
 
 if [ x$1 == x ]; then
-    echo -e ${R}"    No added meep optional configuration arguments. Used mandatory ones --meep --eth --ncmem --hbm " ${NC}
-    PROTO_OPTIONS+="--meep --eth --ncmem --hbm"
+    echo -e ${R}"    No added meep optional configuration arguments. Used mandatory ones --meep --eth --hbm " ${NC}
+    PROTO_OPTIONS+="--meep --eth --hbm"
 elif [[ ${map1["$ea_conf"]} ]] || [[ $ea_conf =~ ^[0-9]+$ ]]; then
    ea_options $ea_conf
 else
