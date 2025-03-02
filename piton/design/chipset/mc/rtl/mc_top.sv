@@ -31,9 +31,8 @@
 `include "noc_axi4_bridge_define.vh"
 
 module mc_top (
-    input                           core_ref_clk,
-`ifdef PITON_FPGA_MC_DDR3
     output                          mc_ui_clk_sync_rst,
+    input                           core_ref_clk,
 
     input   [`NOC_DATA_WIDTH-1:0]   mc_flit_in_data,
     input                           mc_flit_in_val,
@@ -267,225 +266,8 @@ module mc_top (
     output [`DDR3_ODT_WIDTH-1:0]    ddr_odt,
 
     output                          init_calib_complete_out,
-`endif // ifdef PITON_FPGA_MC_DDR3
-
-`ifdef PITON_NONCACH_MEM
-    input   [`NOC_DATA_WIDTH-1:0]   ncmem_flit_in_data,
-    input                           ncmem_flit_in_val ,
-    output                          ncmem_flit_in_rdy ,
-
-    output  [`NOC_DATA_WIDTH-1:0]   ncmem_flit_out_data,
-    output                          ncmem_flit_out_val ,
-    input                           ncmem_flit_out_rdy ,
-`endif // `ifdef PITON_NONCACH_MEM
-
     input                           sys_rst_n
 );
-
-localparam HBM_WIDTH = 256;
-localparam HBM_SIZE_LOG2 = 33; // 8GB
-localparam HBM_MCS_LOG2  = 0;  //  0 to disable "interleaving", 5 for 32 MC channels to participate in "interleaving"
-localparam HBM_MCS_ADDR  = 9;  // "interleaving" address position of MC channels in AXI address
-
-`ifdef PITON_NONCACH_MEM 
- wire [`AXI4_ID_WIDTH     -1:0]     ncmem_axi_awid;
- wire [`AXI4_ADDR_WIDTH   -1:0]     ncmem_axi_awaddr;
- wire [`AXI4_LEN_WIDTH    -1:0]     ncmem_axi_awlen;
- wire [`AXI4_SIZE_WIDTH   -1:0]     ncmem_axi_awsize;
- wire [`AXI4_BURST_WIDTH  -1:0]     ncmem_axi_awburst;
- wire                               ncmem_axi_awlock;
- wire [`AXI4_CACHE_WIDTH  -1:0]     ncmem_axi_awcache;
- wire [`AXI4_PROT_WIDTH   -1:0]     ncmem_axi_awprot;
- wire [`AXI4_QOS_WIDTH    -1:0]     ncmem_axi_awqos;
- wire [`AXI4_REGION_WIDTH -1:0]     ncmem_axi_awregion;
- wire [`AXI4_USER_WIDTH   -1:0]     ncmem_axi_awuser;
- wire                               ncmem_axi_awvalid;
- wire                               ncmem_axi_awready;
-
- wire  [`AXI4_ID_WIDTH     -1:0]    ncmem_axi_wid;
- wire  [`AXI4_DATA_WIDTH   -1:0]    ncmem_axi_wdata;
- wire  [`AXI4_STRB_WIDTH   -1:0]    ncmem_axi_wstrb;
- wire                               ncmem_axi_wlast;
- wire  [`AXI4_USER_WIDTH   -1:0]    ncmem_axi_wuser;
- wire                               ncmem_axi_wvalid;
- wire                               ncmem_axi_wready;
-
- wire  [`AXI4_ID_WIDTH     -1:0]    ncmem_axi_arid;
- wire  [`AXI4_ADDR_WIDTH   -1:0]    ncmem_axi_araddr;
- wire  [`AXI4_LEN_WIDTH    -1:0]    ncmem_axi_arlen;
- wire  [`AXI4_SIZE_WIDTH   -1:0]    ncmem_axi_arsize;
- wire  [`AXI4_BURST_WIDTH  -1:0]    ncmem_axi_arburst;
- wire                               ncmem_axi_arlock;
- wire  [`AXI4_CACHE_WIDTH  -1:0]    ncmem_axi_arcache;
- wire  [`AXI4_PROT_WIDTH   -1:0]    ncmem_axi_arprot;
- wire  [`AXI4_QOS_WIDTH    -1:0]    ncmem_axi_arqos;
- wire  [`AXI4_REGION_WIDTH -1:0]    ncmem_axi_arregion;
- wire  [`AXI4_USER_WIDTH   -1:0]    ncmem_axi_aruser;
- wire                               ncmem_axi_arvalid;
- wire                               ncmem_axi_arready;
-
- wire  [`AXI4_ID_WIDTH     -1:0]    ncmem_axi_rid;
- wire  [`AXI4_DATA_WIDTH   -1:0]    ncmem_axi_rdata;
- wire  [`AXI4_RESP_WIDTH   -1:0]    ncmem_axi_rresp;
- wire                               ncmem_axi_rlast;
- wire  [`AXI4_USER_WIDTH   -1:0]    ncmem_axi_ruser;
- wire                               ncmem_axi_rvalid;
- wire                               ncmem_axi_rready;
-
- wire  [`AXI4_ID_WIDTH     -1:0]    ncmem_axi_bid;
- wire  [`AXI4_RESP_WIDTH   -1:0]    ncmem_axi_bresp;
- wire  [`AXI4_USER_WIDTH   -1:0]    ncmem_axi_buser;
- wire                               ncmem_axi_bvalid;
- wire                               ncmem_axi_bready;
-
- noc_axi4_bridge #(
-  `ifdef PITON_RV64_PLATFORM
-    .SWAP_ENDIANESS (1),
-  `endif
-  `ifdef PITON_FPGA_MC_HBM
-    .AXI4_DAT_WIDTH_USED (HBM_WIDTH),
-    .ADDR_SWAP_LBITS(HBM_MCS_LOG2),
-    .ADDR_SWAP_MSB  (HBM_SIZE_LOG2),
-    .ADDR_SWAP_LSB  (HBM_MCS_ADDR),
-  `endif
-  .NUM_REQ_OUTSTANDING_LOG2 ($clog2(`PITON_NUM_TILES * 4))
- ) noc_axi4_bridge_ncmem (
-    .clk                (core_ref_clk),  
-    .rst_n              (sys_rst_n), 
-    .uart_boot_en       (1'b0),
-    .phy_init_done      (sys_rst_n),
-
-    .src_bridge_vr_noc2_val(ncmem_flit_in_val),
-    .src_bridge_vr_noc2_dat(ncmem_flit_in_data),
-    .src_bridge_vr_noc2_rdy(ncmem_flit_in_rdy),
-
-    .bridge_dst_vr_noc3_val(ncmem_flit_out_val),
-    .bridge_dst_vr_noc3_dat(ncmem_flit_out_data),
-    .bridge_dst_vr_noc3_rdy(ncmem_flit_out_rdy),
-
-    .m_axi_awid(ncmem_axi_awid),
-    .m_axi_awaddr(ncmem_axi_awaddr),
-    .m_axi_awlen(ncmem_axi_awlen),
-    .m_axi_awsize(ncmem_axi_awsize),
-    .m_axi_awburst(ncmem_axi_awburst),
-    .m_axi_awlock(ncmem_axi_awlock),
-    .m_axi_awcache(ncmem_axi_awcache),
-    .m_axi_awprot(ncmem_axi_awprot),
-    .m_axi_awqos(ncmem_axi_awqos),
-    .m_axi_awregion(ncmem_axi_awregion),
-    .m_axi_awuser(ncmem_axi_awuser),
-    .m_axi_awvalid(ncmem_axi_awvalid),
-    .m_axi_awready(ncmem_axi_awready),
-
-    .m_axi_wid(ncmem_axi_wid),
-    .m_axi_wdata(ncmem_axi_wdata),
-    .m_axi_wstrb(ncmem_axi_wstrb),
-    .m_axi_wlast(ncmem_axi_wlast),
-    .m_axi_wuser(ncmem_axi_wuser),
-    .m_axi_wvalid(ncmem_axi_wvalid),
-    .m_axi_wready(ncmem_axi_wready),
-
-    .m_axi_bid(ncmem_axi_bid),
-    .m_axi_bresp(ncmem_axi_bresp),
-    .m_axi_buser(ncmem_axi_buser),
-    .m_axi_bvalid(ncmem_axi_bvalid),
-    .m_axi_bready(ncmem_axi_bready),
-
-    .m_axi_arid(ncmem_axi_arid),
-    .m_axi_araddr(ncmem_axi_araddr),
-    .m_axi_arlen(ncmem_axi_arlen),
-    .m_axi_arsize(ncmem_axi_arsize),
-    .m_axi_arburst(ncmem_axi_arburst),
-    .m_axi_arlock(ncmem_axi_arlock),
-    .m_axi_arcache(ncmem_axi_arcache),
-    .m_axi_arprot(ncmem_axi_arprot),
-    .m_axi_arqos(ncmem_axi_arqos),
-    .m_axi_arregion(ncmem_axi_arregion),
-    .m_axi_aruser(ncmem_axi_aruser),
-    .m_axi_arvalid(ncmem_axi_arvalid),
-    .m_axi_arready(ncmem_axi_arready),
-
-    .m_axi_rid(ncmem_axi_rid),
-    .m_axi_rdata(ncmem_axi_rdata),
-    .m_axi_rresp(ncmem_axi_rresp),
-    .m_axi_rlast(ncmem_axi_rlast),
-    .m_axi_ruser(ncmem_axi_ruser),
-    .m_axi_rvalid(ncmem_axi_rvalid),
-    .m_axi_rready(ncmem_axi_rready)
-);
-
-`ifndef PITON_FPGA_MC_DDR3
-  // NCMEM AXI stub for simulation
-  assign ncmem_axi_awready = 1'b1;
-  assign ncmem_axi_wready  = 1'b1;
-  assign ncmem_axi_arready = 1'b1;
-
-  localparam RVALID_DELAY_LOG = 0;
-  reg [RVALID_DELAY_LOG:0] ncmem_axi_rvalid_cnt;
-  reg ncmem_axi_rvalid_en;
-  reg [`AXI4_ID_WIDTH-1:0] ncmem_axi_rid_reg;
-  always @(posedge core_ref_clk)
-    if (~sys_rst_n) begin
-      ncmem_axi_rvalid_cnt <= {(RVALID_DELAY_LOG+1){1'b0}};
-      ncmem_axi_rvalid_en <= 1'b0;
-      ncmem_axi_rid_reg <= `AXI4_ID_WIDTH'h0;
-    end
-    else begin 
-           if (ncmem_axi_rvalid) begin
-             if (ncmem_axi_rready) begin
-               ncmem_axi_rvalid_cnt <= {(RVALID_DELAY_LOG+1){1'b0}};
-               ncmem_axi_rvalid_en <= 1'b0;
-             end
-           end
-           else if (ncmem_axi_rvalid_en) ncmem_axi_rvalid_cnt <= ncmem_axi_rvalid_cnt+1;
-           if (ncmem_axi_arvalid) begin
-             ncmem_axi_rvalid_cnt <= {{RVALID_DELAY_LOG{1'b0}}, 1'b1};
-             ncmem_axi_rvalid_en <= 1'b1;
-             ncmem_axi_rid_reg <= ncmem_axi_arid;
-           end
-    end
-  assign ncmem_axi_rvalid = ncmem_axi_rvalid_cnt[RVALID_DELAY_LOG];
-  assign ncmem_axi_rid    = ncmem_axi_rid_reg;
-  assign ncmem_axi_rdata  = {(`AXI4_DATA_WIDTH/64/2+1){64'hDEADBEEFFEEDC0DE}};
-  assign ncmem_axi_rresp  = 2'h0;
-  assign ncmem_axi_rlast  = ncmem_axi_rvalid;
-  assign ncmem_axi_ruser  = `AXI4_USER_WIDTH'h0;
-
-  localparam BVALID_DELAY_LOG = 0;
-  reg [BVALID_DELAY_LOG:0] ncmem_axi_bvalid_cnt;
-  reg ncmem_axi_bvalid_en;
-  reg [`AXI4_ID_WIDTH-1:0] ncmem_axi_bid_reg;
-  always @(posedge core_ref_clk)
-    if (~sys_rst_n) begin
-      ncmem_axi_bvalid_cnt <= {(BVALID_DELAY_LOG+1){1'b0}};
-      ncmem_axi_bvalid_en <= 1'b0;
-      ncmem_axi_bid_reg <= `AXI4_ID_WIDTH'h0;
-    end
-    else begin
-           if (ncmem_axi_bvalid) begin
-             if (ncmem_axi_bready) begin
-               ncmem_axi_bvalid_cnt <= {(BVALID_DELAY_LOG+1){1'b0}};
-               ncmem_axi_bvalid_en <= 1'b0;
-             end
-           end
-           else if (ncmem_axi_bvalid_en) ncmem_axi_bvalid_cnt <= ncmem_axi_bvalid_cnt+1;
-           if (ncmem_axi_wvalid & ncmem_axi_wlast) begin
-             ncmem_axi_bvalid_cnt <= {{BVALID_DELAY_LOG{1'b0}}, 1'b1};
-             ncmem_axi_bvalid_en <= 1'b1;
-             ncmem_axi_bid_reg <= ncmem_axi_wid;
-           end
-    end
-  assign ncmem_axi_bvalid  = ncmem_axi_bvalid_cnt[BVALID_DELAY_LOG];
-  assign ncmem_axi_bid     = ncmem_axi_bid_reg;
-  assign ncmem_axi_bresp   = 2'h0;
-  assign ncmem_axi_buser   = `AXI4_USER_WIDTH'h0;
-
-`endif // `ifndef PITON_FPGA_MC_DDR3
-`endif // `ifdef PITON_NONCACH_MEM 
-
-
-`ifdef PITON_FPGA_MC_DDR3
-
 reg     [31:0]                      delay_cnt;
 reg                                 ui_clk_syn_rst_delayed;
 wire                                init_calib_complete;
@@ -1156,6 +938,11 @@ assign noc_axi4_bridge_rst       = ui_clk_sync_rst;
 assign noc_axi4_bridge_init_done = init_calib_complete;
 assign init_calib_complete_out  = init_calib_complete & ~ui_clk_syn_rst_delayed;
 `endif // PITONSYS_MEM_ZEROER
+
+localparam HBM_WIDTH = 256;
+localparam HBM_SIZE_LOG2 = 33; // 8GB
+localparam HBM_MCS_LOG2  = 0;  //  0 to disable "interleaving", 5 for 32 MC channels to participate in "interleaving"
+localparam HBM_MCS_ADDR  = 9;  // "interleaving" address position of MC channels in AXI address
 
 // system memory base address from devices.xml, unaligned with memory size and thus is subtracted from access memory address
 //localparam MEM_BASE_UNALIGN = `AXI4_ADDR_WIDTH'h80000000;
@@ -1829,6 +1616,5 @@ mig_7series_axi4 u_mig_7series_axi4 (
 `endif  // PITONSYS_AXI4_MEM
 `endif  // PITON_PROTO_NO_MON
 `endif  // PITON_PROTO
-`endif  // PITON_FPGA_MC_DDR3
 
 endmodule 

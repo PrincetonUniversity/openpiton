@@ -1027,16 +1027,6 @@ credit_to_valrdy noc3_xbar_to_%s(
             .ddr_we_n(ddr_we_n),
         `endif // PITONSYS_DDR4
 
-        `ifdef PITON_NONCACH_MEM
-            .ncmem_flit_in_data (buf_dma_pool_noc2_data ),
-            .ncmem_flit_in_val  (buf_dma_pool_noc2_valid),
-            .ncmem_flit_in_rdy  (dma_pool_buf_noc2_ready),
-
-            .ncmem_flit_out_data(dma_pool_buf_noc3_data ),
-            .ncmem_flit_out_val (dma_pool_buf_noc3_valid),
-            .ncmem_flit_out_rdy (buf_dma_pool_noc3_ready),
-        `endif // `ifdef PITON_NONCACH_MEM
-
             .ddr_addr(ddr_addr),
             .ddr_ba(ddr_ba),
             .ddr_ck_n(ddr_ck_n),
@@ -1255,23 +1245,6 @@ for(i=0;i<`PITON_EXTRA_MEMS;i=i+1) begin: MT_
 end
 endgenerate
 `endif
-
-
-// Just instantiating NCMEM part of whole MC for simulation (SDRAM is absent)
-`ifdef PITON_NONCACH_MEM
-    mc_top mc_top(
-      .core_ref_clk(chipset_clk),
-      .sys_rst_n(chipset_rst_n),
-
-      .ncmem_flit_in_data (buf_dma_pool_noc2_data ),
-      .ncmem_flit_in_val  (buf_dma_pool_noc2_valid),
-      .ncmem_flit_in_rdy  (dma_pool_buf_noc2_ready),
-
-      .ncmem_flit_out_data(dma_pool_buf_noc3_data ),
-      .ncmem_flit_out_val (dma_pool_buf_noc3_valid),
-      .ncmem_flit_out_rdy (buf_dma_pool_noc3_ready)
-    );
-`endif // endif PITON_NONCACH_MEM
 
 `endif // endif PITON_FPGA_MC_DDR3
 

@@ -209,43 +209,6 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   set_property CONFIG.MAX_BURST_LENGTH {16}   [get_bd_intf_ports m_axi]
 }
 
-  set ncmem_axi [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 ncmem_axi ]
-  set_property -dict [ list \
-   CONFIG.ADDR_WIDTH $DRAM_addr_width \
-   CONFIG.ARUSER_WIDTH {0} \
-   CONFIG.AWUSER_WIDTH {0} \
-   CONFIG.BUSER_WIDTH {0} \
-   CONFIG.DATA_WIDTH {512} \
-   CONFIG.HAS_BRESP {1} \
-   CONFIG.HAS_BURST {1} \
-   CONFIG.HAS_CACHE {0} \
-   CONFIG.HAS_LOCK {0} \
-   CONFIG.HAS_PROT {0} \
-   CONFIG.HAS_QOS {0} \
-   CONFIG.HAS_REGION {0} \
-   CONFIG.HAS_RRESP {1} \
-   CONFIG.HAS_WSTRB {1} \
-   CONFIG.ID_WIDTH {6} \
-   CONFIG.MAX_BURST_LENGTH {256} \
-   CONFIG.NUM_READ_OUTSTANDING {256} \
-   CONFIG.NUM_READ_THREADS {16} \
-   CONFIG.NUM_WRITE_OUTSTANDING {256} \
-   CONFIG.NUM_WRITE_THREADS {16} \
-   CONFIG.PROTOCOL {AXI4} \
-   CONFIG.READ_WRITE_MODE {READ_WRITE} \
-   CONFIG.RUSER_BITS_PER_BYTE {0} \
-   CONFIG.RUSER_WIDTH {0} \
-   CONFIG.SUPPORTS_NARROW_BURST {1} \
-   CONFIG.WUSER_BITS_PER_BYTE {0} \
-   CONFIG.WUSER_WIDTH {0} \
-   ] $ncmem_axi
-if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
-                $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
-  set_property CONFIG.PROTOCOL         {AXI3} [get_bd_intf_ports ncmem_axi]
-  set_property CONFIG.DATA_WIDTH       {256}  [get_bd_intf_ports ncmem_axi]
-  set_property CONFIG.MAX_BURST_LENGTH {16}   [get_bd_intf_ports ncmem_axi]
-}
-
 if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                 $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
   set eth_sg_dma [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 eth_sg_dma ]
@@ -485,13 +448,15 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
    CONFIG.POLARITY {ACTIVE_LOW} \
  ] $pcie_perstn
 
-  set sysck_axi_ports "ncmem_axi"
+  set sysck_axi_ports ""
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                   $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
-    append sysck_axi_ports ":eth_sg_dma"
+    if {$sysck_axi_ports != ""} {append sysck_axi_ports ":"}
+    append sysck_axi_ports "eth_sg_dma"
   }
   for {set idx 0} {$idx < $PITON_EXTRA_MEMS} {incr idx} {
-    append sysck_axi_ports ":mcx_axi" $idx
+    if {$sysck_axi_ports != ""} {append sysck_axi_ports ":"}
+    append sysck_axi_ports "mcx_axi" $idx
   }
   set sys_clk [ create_bd_port -dir I -type clk sys_clk ]
   set_property -dict [ list \
@@ -565,7 +530,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
    CONFIG.USER_PHY_ENABLE_15 {TRUE} \
    CONFIG.USER_SAXI_00 {true}  \
    CONFIG.USER_SAXI_01 {true}  \
-   CONFIG.USER_SAXI_02 {true}  \
+   CONFIG.USER_SAXI_02 {false} \
    CONFIG.USER_SAXI_03 {false} \
    CONFIG.USER_SAXI_04 {false} \
    CONFIG.USER_SAXI_05 {false} \
@@ -602,7 +567,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   set_property -dict [ list \
    CONFIG.NUM_READ_THREADS {16} \
    CONFIG.NUM_WRITE_THREADS {16} \
- ] [get_bd_intf_pins /hbm_0/SAXI_02$hbm_axi_sfx]
+ ] [get_bd_intf_pins /hbm_0/SAXI_01$hbm_axi_sfx]
 
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                   $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
@@ -768,19 +733,26 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   # Create instance: smartconnect_0, and set properties
   set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
   set_property -dict [ list \
-   CONFIG.NUM_CLKS {3} \
-   CONFIG.NUM_SI {3} \
+   CONFIG.NUM_CLKS {2} \
+   CONFIG.NUM_SI {2} \
    CONFIG.NUM_MI {1} \
  ] $smartconnect_0
-if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
-                $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
-  set_property CONFIG.NUM_CLKS {5} [get_bd_cells smartconnect_0]
-  set_property CONFIG.NUM_SI   {6} [get_bd_cells smartconnect_0]
-}
 if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
                 $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
-  set_property CONFIG.NUM_CLKS {1} [get_bd_cells smartconnect_0]
   set_property CONFIG.NUM_SI   {1} [get_bd_cells smartconnect_0]
+  set_property CONFIG.NUM_CLKS {1} [get_bd_cells smartconnect_0]
+} else {
+  if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
+                  $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
+  set_property CONFIG.NUM_SI   {5} [get_bd_cells smartconnect_0]
+  set_property CONFIG.NUM_CLKS {5} [get_bd_cells smartconnect_0]
+  connect_bd_intf_net [get_bd_intf_ports eth_sg_dma] [get_bd_intf_pins smartconnect_0/S02_AXI]
+  connect_bd_intf_net [get_bd_intf_ports eth_tx_dma] [get_bd_intf_pins smartconnect_0/S03_AXI]
+  connect_bd_intf_net [get_bd_intf_ports eth_rx_dma] [get_bd_intf_pins smartconnect_0/S04_AXI]
+  connect_bd_net [get_bd_ports sys_clk]              [get_bd_pins smartconnect_0/aclk2]
+  connect_bd_net [get_bd_ports eth_tx_dma_clk]       [get_bd_pins smartconnect_0/aclk3]
+  connect_bd_net [get_bd_ports eth_rx_dma_clk]       [get_bd_pins smartconnect_0/aclk4]
+  }
 }
 
   # Create interface connections
@@ -793,8 +765,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
                 $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
   connect_bd_intf_net [get_bd_intf_ports mem_refclk] [get_bd_intf_pins mem_refclk_buf/CLK_IN_D]
   connect_bd_intf_net [get_bd_intf_ports m_axi]        [get_bd_intf_pins hbm_0/SAXI_00$hbm_axi_sfx]
-  connect_bd_intf_net [get_bd_intf_ports ncmem_axi]    [get_bd_intf_pins hbm_0/SAXI_01$hbm_axi_sfx]
-  connect_bd_intf_net [get_bd_intf_ports pci2hbm_saxi] [get_bd_intf_pins hbm_0/SAXI_02$hbm_axi_sfx]
+  connect_bd_intf_net [get_bd_intf_ports pci2hbm_saxi] [get_bd_intf_pins hbm_0/SAXI_01$hbm_axi_sfx]
   connect_bd_intf_net [get_bd_intf_ports pci2hbm_maxi] [get_bd_intf_pins smartconnect_0/M00_AXI]
   for {set idx 0} {$idx < $PITON_EXTRA_MEMS} {incr idx} {
     connect_bd_intf_net [get_bd_intf_ports mcx_axi$idx] [get_bd_intf_pins hbm_0/SAXI_[format {%02d} [expr $distHBMchan]]$hbm_axi_sfx]
@@ -809,13 +780,6 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   connect_bd_intf_net [get_bd_intf_ports mem_refclk]    [get_bd_intf_pins ddr4_0/C0_SYS_CLK]
   connect_bd_intf_net [get_bd_intf_ports ddr4_sdram_c0] [get_bd_intf_pins ddr4_0/C0_DDR4]
   connect_bd_intf_net [get_bd_intf_ports m_axi]         [get_bd_intf_pins smartconnect_0/S01_AXI]
-  connect_bd_intf_net [get_bd_intf_ports ncmem_axi]     [get_bd_intf_pins smartconnect_0/S02_AXI]
-  if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
-                  $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
-  connect_bd_intf_net [get_bd_intf_ports eth_sg_dma]    [get_bd_intf_pins smartconnect_0/S03_AXI]
-  connect_bd_intf_net [get_bd_intf_ports eth_tx_dma]    [get_bd_intf_pins smartconnect_0/S04_AXI]
-  connect_bd_intf_net [get_bd_intf_ports eth_rx_dma]    [get_bd_intf_pins smartconnect_0/S05_AXI]
-  }
   connect_bd_intf_net [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
 }
 
@@ -840,12 +804,12 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   connect_bd_net [get_bd_ports hbm_cattrip]              [get_bd_pins hbm_cattrip_comb/Res]
   connect_bd_net [get_bd_pins hbm_0/apb_complete_0] [get_bd_pins mem_calib_sync/ext_reset_in]
   connect_bd_net [get_bd_pins hbm_0/apb_complete_1] [get_bd_pins mem_calib_sync/aux_reset_in]
-  connect_bd_net [get_bd_pins qdma_0/axi_aclk]    [get_bd_pins smartconnect_0/aclk]    [get_bd_pins hbm_0/AXI_02_ACLK] 
-  connect_bd_net [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins hbm_0/AXI_02_ARESET_N]
-  connect_bd_net [get_bd_pins gndx32/dout] [get_bd_pins hbm_0/AXI_00_WDATA_PARITY] [get_bd_pins hbm_0/AXI_01_WDATA_PARITY] [get_bd_pins hbm_0/AXI_02_WDATA_PARITY]
-  connect_bd_net [get_bd_ports sys_clk] [get_bd_ports mem_clk] [get_bd_pins hbm_0/AXI_00_ACLK] [get_bd_pins hbm_0/AXI_01_ACLK]
+  connect_bd_net [get_bd_pins qdma_0/axi_aclk]    [get_bd_pins smartconnect_0/aclk]    [get_bd_pins hbm_0/AXI_01_ACLK] 
+  connect_bd_net [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins hbm_0/AXI_01_ARESET_N]
+  connect_bd_net [get_bd_pins gndx32/dout] [get_bd_pins hbm_0/AXI_00_WDATA_PARITY] [get_bd_pins hbm_0/AXI_01_WDATA_PARITY]
+  connect_bd_net [get_bd_ports sys_clk] [get_bd_ports mem_clk] [get_bd_pins hbm_0/AXI_00_ACLK]
   connect_bd_net [get_bd_ports sys_rst] [get_bd_ports mem_rst] [get_bd_pins rst_inv/Op1]
-  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins hbm_0/APB_0_PRESET_N] [get_bd_pins hbm_0/APB_1_PRESET_N] [get_bd_pins hbm_0/AXI_00_ARESET_N] [get_bd_pins hbm_0/AXI_01_ARESET_N]
+  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins hbm_0/APB_0_PRESET_N] [get_bd_pins hbm_0/APB_1_PRESET_N] [get_bd_pins hbm_0/AXI_00_ARESET_N]
   for {set idx 0} {$idx < $PITON_EXTRA_MEMS} {incr idx} {
     set hbm_port [format {%02d} [expr $distHBMchan]]
     connect_bd_net [get_bd_pins gndx32/dout] [get_bd_pins hbm_0/AXI_${hbm_port}_WDATA_PARITY]
@@ -853,7 +817,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
     connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins hbm_0/AXI_${hbm_port}_ARESET_N]
   }
   # After all connections set PCIe clock to drive HBM cross-switch-0
-  set_property CONFIG.USER_CLK_SEL_LIST0 AXI_02_ACLK [get_bd_cells hbm_0]
+  set_property CONFIG.USER_CLK_SEL_LIST0 AXI_01_ACLK [get_bd_cells hbm_0]
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                   $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
     connect_bd_net [get_bd_pins gndx32/dout] [get_bd_pins hbm_0/AXI_29_WDATA_PARITY]
@@ -876,12 +840,6 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   connect_bd_net [get_bd_pins ddr4_0/c0_ddr4_aresetn]         [get_bd_pins rst_inv/Res] [get_bd_pins smartconnect_0/aresetn]
   connect_bd_net [get_bd_pins ddr4_0/c0_init_calib_complete] [get_bd_pins mem_calib_sync/ext_reset_in] [get_bd_pins mem_calib_sync/aux_reset_in]
   connect_bd_net [get_bd_pins qdma_0/axi_aclk] [get_bd_pins smartconnect_0/aclk1]
-  connect_bd_net [get_bd_ports sys_clk]        [get_bd_pins smartconnect_0/aclk2]
-  if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
-                  $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
-  connect_bd_net [get_bd_ports eth_tx_dma_clk] [get_bd_pins smartconnect_0/aclk3]
-  connect_bd_net [get_bd_ports eth_rx_dma_clk] [get_bd_pins smartconnect_0/aclk4]
-  }
   connect_bd_net [get_bd_ports sys_rst] [get_bd_pins ddr4_0/sys_rst]
 }
 
@@ -895,8 +853,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   assign_bd_address -offset 0x0 -range [expr ($hbm_mems * $hbm_range)] -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs pci2hbm_maxi/Reg] -force
   for {set hbm_mem 0} {$hbm_mem < $hbm_mems} {incr hbm_mem} {
     assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces m_axi]        [get_bd_addr_segs hbm_0/SAXI_00$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
-    assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces ncmem_axi]    [get_bd_addr_segs hbm_0/SAXI_01$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
-    assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces pci2hbm_saxi] [get_bd_addr_segs hbm_0/SAXI_02$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
+    assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces pci2hbm_saxi] [get_bd_addr_segs hbm_0/SAXI_01$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
     for {set idx 0} {$idx < $PITON_EXTRA_MEMS} {incr idx} {
       set hbm_port [format {%02d} [expr $distHBMchan]]
       assign_bd_address -offset [expr ($hbm_mem * $hbm_range)] -range $hbm_range -target_address_space [get_bd_addr_spaces mcx_axi$idx] [get_bd_addr_segs hbm_0/SAXI_$hbm_port$hbm_axi_sfx/HBM_MEM[format {%02d} $hbm_mem]] -force
@@ -912,7 +869,6 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   set ddr_range [expr (1 << $DRAM_addr_width)]
   assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces qdma_0/M_AXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces m_axi]        [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
-  assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces ncmem_axi]    [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                   $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
   assign_bd_address -offset 0x00000000 -range $ddr_range -target_address_space [get_bd_addr_spaces eth_sg_dma]   [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force

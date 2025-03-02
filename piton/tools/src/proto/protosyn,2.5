@@ -522,8 +522,6 @@ def makeDefList(options):
 
     if (options.board == "f1"):
         print_info("design option is ignored for f1")
-    elif options.board == "alveou280" or options.board == "alveou55c" or options.board == "alveou250":
-        defines.append("PITON_NONCACH_MEM")
 
     # --no-ddr option
     if (options.no_ddr == True) or (options.board == "piton_board"):
