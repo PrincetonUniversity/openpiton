@@ -52,7 +52,7 @@ module monitor(/*AUTOARG*/
 	err_f  = 1;
 	bad    = 0;
 `ifndef VERILATOR
-	max_cycle = 30000;
+	max_cycle = 6000000;
 `else // ifndef VERILATOR
 	max_cycle = 1500000;
 `endif // ifndef VERILATOR

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright (c) 2015 Princeton University
 # All rights reserved.
 #
@@ -54,7 +55,7 @@ FLOW_STEP_OPTIONS = ["project", "impl"]
 def usage():
     print(file=sys.stderr)
     print("Usage:\nprotosyn -b <board_type> [-d <design>] [--bram-test <test_name>]", end=' ', file=sys.stderr)
-    print("[--from <FPGA flow step>] [--to <FPGA flow step>] [--no-ddr] [--uart-dmw ddr] [--eth] [--oled <string>]", file=sys.stderr)
+    print("[--from <FPGA flow step>] [--to <FPGA flow step>] [--no-ddr] [--uart-dmw ddr] [--eth] [--ethport] [--oled <string>]", file=sys.stderr)
     print(file=sys.stderr)
     print("       -b, --board  <board_type>", file=sys.stderr)
     print("              Name of a supported Xilinx's development board. Available options are:", file=sys.stderr)
@@ -64,6 +65,9 @@ def usage():
     print("                  genesys2", file=sys.stderr)
     print("                  nexysVideo", file=sys.stderr)
     print("                  f1", file=sys.stderr)
+    print("                  alveou280", file=sys.stderr)
+    print("                  alveou55c", file=sys.stderr)
+    print("                  alveou250", file=sys.stderr)
     print("\n       -d, --design <design>", file=sys.stderr)
     print("              Name of design module to synthesize.  The default is 'system', which", file=sys.stderr)
     print("              synthesizes a full system with chip and chipset. See", file=sys.stderr)
@@ -95,11 +99,21 @@ def usage():
     print("       --config_l2_associativity  <number>", file=sys.stderr)
     print("              Cache associativities, default: 4", file=sys.stderr)
     print("\n       --bram-test <test_name>", file=sys.stderr)
-    print("              Name of the test to be mapped into BRAM", file=sys.stderr)
+    print("              Name of the test to be simulated and mapped into BRAM/DRAM", file=sys.stderr)
+    print("\n       --verdi-dbg", file=sys.stderr)
+    print("              Create Verdi compliant simulation database of test specified by --bram-test option", file=sys.stderr)
     print("\n       --no-ddr", file=sys.stderr)
     print("              Implement design without DDR memory", file=sys.stderr)
+    print("\n       --hbm", file=sys.stderr)
+    print("              Implement design with HBM as system memory, enforced for Alveo U55C board", file=sys.stderr)
+    print("\n       --multimc <number of memory controller ports>", file=sys.stderr)
+    print("              Implement design with multiple connections to system memory", file=sys.stderr)
+    print("\n       --multimc_indices <comma separated list of indices connected to MCs>", file=sys.stderr)
+    print("              Comma separated list of edge routers IDs connected to MCs.", file=sys.stderr)
     print("\n       --eth", file=sys.stderr)
     print("              Add Ethernet controller to implementation", file=sys.stderr)
+    print("\n       --ethport <number>", file=sys.stderr)
+    print("              Define board-level Ethernet port number", file=sys.stderr)
     print("\n       --uart-dmw <storage type>", file=sys.stderr)
     print("              Implement design with Direct Memory Write (DMW) from UART module turned on.", file=sys.stderr)
     print("              Storage type: \"ddr\"", file=sys.stderr)
@@ -290,6 +304,7 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     proj_script = os.path.join(DV_ROOT, "tools/src/proto/" + tool + "/gen_project.tcl")
     proj_log = os.path.join(log_dir, PROJECT_BUILD_LOG)
     jname = "protosyn_mkproj_%s_%s" % (board, design_data["ID"])
+    setSysFreq(board, design_data)
     jid = None
     if (tool == "vivado"):
         jid = run_vivado(proj_log, proj_script, design_data["PATH"], board, \
@@ -303,7 +318,7 @@ def makeProject(board, design_data, work_dir, log_dir, slurm, dep_list):
     return jid
 
 
-def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list):
+def runImplFlow(board, eth, design_data, work_dir, log_dir, def_list, slurm, dep_list):
     prev_dir = os.getcwd()
 
     os.chdir(work_dir)
@@ -343,6 +358,10 @@ def runImplFlow(board, design_data, work_dir, log_dir, def_list, slurm, dep_list
     elif (tool == "ise"):
         jid = run_ise(impl_log, impl_flow, design_data["PATH"], board, \
                       slurm, 8, 64000, "6:00:00", jname, dep_list)
+
+    # Copy sw defines for Ethernet core to proper place
+    if (board == "alveou280" or board == "alveou55c" or board == "alveou250") and eth:
+      os.system('cp -rf $MODEL_DIR/%s/system/bd/Eth_CMAC_syst/ip/Eth_CMAC_syst_eth100gb_0/Eth_CMAC_syst_eth100gb_0/header_files/* $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/app4eth_syst/cpp/syst_hw/' % board)
 
     os.chdir(prev_dir)
 
@@ -460,10 +479,15 @@ def setParserOptions(parser):
     parser.add_option("--config_l15_associativity", dest="config_l15_associativity",   action="store", default=4)
     parser.add_option("--config_l2_associativity", dest="config_l2_associativity",   action="store", default=4)
     parser.add_option("--bram-test", dest="test_name", action="store")
+    parser.add_option("--verdi-dbg", dest="verdi_dbg", action="store_true", default=False)
     parser.add_option("--from", dest="from_step", action="store", default=None)
     parser.add_option("--to", dest="to_step", action="store", default=None)
     parser.add_option("--no-ddr", dest="no_ddr", action="store_true", default=False)
+    parser.add_option("--hbm", dest="hbm", action="store_true", default=False)
+    parser.add_option("--multimc", dest="multimc", action="store", default=0)
+    parser.add_option("--multimc_indices", dest="multimc_indices", action="store", default=None)
     parser.add_option("--eth", dest="eth", action="store_true", default=False)
+    parser.add_option("--ethport", dest="ethport", action="store", default=0)
     parser.add_option("--uart-dmw", dest="uart_dmw", action="store", default=None)
     parser.add_option("--uart-reset", dest="uart_reset", action="store_true", default=False)
     parser.add_option("--asic-rtl", dest="asic_rtl", action="store_true", default=False)
@@ -505,6 +529,20 @@ def makeDefList(options):
     else:   # default option
         defines.append("PITON_FPGA_MC_DDR3")
 
+    if not options.hbm and (options.board == "alveou55c"):
+        print_info("Enforcing --hbm option for %s board" % options.board)
+        options.hbm = True
+
+    if options.hbm and (options.board == "alveou250"):
+        print_info("Disabling --hbm option for %s board" % options.board)
+        options.hbm = False
+
+    # --hbm option for utilizing HBM
+    if options.hbm:
+        defines.append("PITON_FPGA_MC_HBM")
+        os.environ['PROTOSYN_RUNTIME_HBM'] = "TRUE"
+        print_info("HBM is defined as primary system SDRAM")
+
     # --axi4_mem option
     if (options.axi4_mem == True):
         if (options.board not in {"vc707", "xupp3r"}):
@@ -517,13 +555,13 @@ def makeDefList(options):
         defines.append("PITONSYS_MEM_ZEROER")    
 
     # do not use SD controller if BRAM is used for boot or a test or if board doesn't have sd
-    if (options.test_name != None) or (options.board in {"piton_board", 'xupp3r', "f1"}):
+    if (options.test_name != None) or (options.board in {"piton_board", "xupp3r", "f1", "alveou280", "alveou55c", "alveou250"}):
         pass
     else:   # default option
         defines.append("PITON_FPGA_SD_BOOT")
 
     # --bram-test option
-    if options.test_name != None:
+    if (options.test_name != None and options.uart_dmw == "bram"):
         defines.append("PITON_FPGA_BRAM_TEST")
         defines.append("PITONSYS_NO_MC")
 
@@ -586,7 +624,17 @@ def makeDefList(options):
     if options.eth or options.design == "chipset" or options.design == "system":
         # Ethernet controller is supported on Genesys2 and nexysVideo
         if options.board == "genesys2" or options.board == "nexysVideo":
+            defines.append("PITON_FPGA_ETH")
             defines.append("PITON_FPGA_ETHERNETLITE")
+        # Ethernet controller is also supported on Alveo boards
+        elif options.board == "alveou280" or options.board == "alveou55c" or options.board == "alveou250":
+          defines.append("PITON_FPGA_ETH")
+          if options.eth:
+            defines.append("PITON_FPGA_ETH_CMAC")
+            os.environ['PROTOSYN_RUNTIME_ETH'] = "TRUE"
+            if int(options.ethport) > 0:
+              defines.append("PITON_FPGA_ETH_PORT1")
+              os.environ['PROTOSYN_RUNTIME_ETHPORT'] = "1"
         else:
             print_info("--eth option is ignored for %s" % options.board)
 
@@ -643,6 +691,60 @@ def genUARTInit(board, design_data):
     print("""memory_initialization_vector=00000080 %08x 00000000 00000003 00000003 00000000 \
 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000;""" % div, file=f)
     f.close()
+
+def setSysFreq(board, design_data):
+    print_info("Passing to implementation system clock frequency: %s MHz" % design_data["BOARDS"][board]["FREQ"])
+    os.environ['SYSTEM_FREQ'] = str(design_data["BOARDS"][board]["FREQ"])
+
+
+def unique(list1):
+    unique_list = []
+    for x in list1:
+        if x not in unique_list:
+            unique_list.append(x)
+    return unique_list
+
+def get_both_xy_edge_routers_ids (piton_X, piton_Y):
+    edges=[]
+    i=0
+    j=0
+    for i in range(piton_X): # first row 
+      id = j * piton_X + i;
+      edges.append(id)
+    
+    i=piton_X-1
+    for j in range(1,piton_Y,1):  #last column 
+      id = j * piton_X + i
+      edges.append(id)
+
+    j=piton_Y-1
+    for i in reversed(list(range(1, piton_X-1))): # last row
+      id = j * piton_X + i 
+      edges.append(id)
+
+    i=0;
+    for j in reversed(list(range(1, piton_Y))): #first column
+      id = j * piton_X + i 
+      edges.append(id)  
+    return unique(edges)
+
+def distribute_mc_equal_space_on_all_edges (x_tiles, y_tiles, multimc):
+    edge_ids = get_both_xy_edge_routers_ids (x_tiles,y_tiles)
+    edges = len(edge_ids)
+    d = 0
+    if(multimc > 0) :
+      d = int(edges/multimc)
+    mc_num=0
+    mmc = ''
+    for m in range (multimc):
+      mc_num= int (d * m)
+      mc_id = edge_ids[mc_num]
+      if(m==0) :
+         mmc=str(mc_id)
+      else :
+         mmc= mmc + "," + str(mc_id)
+    return mmc
+
 
 def main():
     parser = OptionParser(add_help_option=False)
@@ -731,6 +833,57 @@ def main():
     os.environ['PITON_Y_TILES']   = str(options.y_tiles)
     os.environ['PITON_NUM_TILES'] = str(options.num_tiles)
 
+    os.environ['PITON_EXTRA_MEMS'] = "0"
+    if options.multimc:
+      options.edge_tiles = 2 * (int(options.x_tiles)-1 + int(options.y_tiles)-1)
+      if int(options.edge_tiles) > int(options.num_tiles) or int(options.edge_tiles) < 1:
+         options.edge_tiles = options.num_tiles
+      if int(options.edge_tiles) > int(options.multimc):
+         options.edge_tiles =int(options.multimc)        
+      if not options.hbm:
+        print_info("--multimc option is ignored without --hbm option")
+      elif int(options.edge_tiles) > 30:
+        print_info("Extra (" + str(options.edge_tiles) + ") connections to HBM (one per edge tile) are limited to 30.")
+        os.environ['PITON_EXTRA_MEMS'] = str(30)
+      else:
+        print_info("Extra (" + str(options.edge_tiles) + ") connections to HBM (one per edge tile) will be used.")
+        os.environ['PITON_EXTRA_MEMS'] = str(options.edge_tiles)
+     
+      if options.multimc_indices:
+        print_info ("MC indices:" + options.multimc_indices)
+        options.multimc_indices = options.multimc_indices
+        mc_tiles=[]         
+        mc_tiles.extend(options.multimc_indices.split(","))
+        l =  len(mc_tiles)
+        #check indices size be equal with multimc
+        if( l != int(options.multimc) ):
+          print_error("Error : the number of tiles in multimc_indices is " + str(l) + " which is not equal to given multimc (" + options.multimc +")" )
+          sys.exit(1)       
+        unique_list = []  
+        for x in mc_tiles:
+        #check indices are unique
+          if x not in unique_list:
+            unique_list.append(x)
+          else :
+            print_error("Error : " + str(x) + " is repeated in  " + str(mc_tiles) )
+            sys.exit(1)
+        #check indices are int
+          if ( not x.isdigit()) :
+            print_error("Error : " + str(x) + " is not a valid int number " )
+            sys.exit(1)
+        #check indices are in edge
+          x_p = int(x) % int(options.x_tiles)
+          y_p = (int(x) - x_p) / int(options.y_tiles)
+          if( x_p != 0 and y_p !=0 and x_p != int (options.x_tiles) -1 and y_p != int(options.y_tiles)-1) :
+            edge_ids = get_both_xy_edge_routers_ids (int(options.x_tiles),int(options.y_tiles))
+            print_error("Error: the tile number " + x + " (" + str(int(x_p)) +","+ str(int(y_p)) + ") in multimc_indices is not an edge router. Edge Ids are:"+str(edge_ids))
+            sys.exit(1)
+        os.environ['PITON_MC_INDICES']=options.multimc_indices		        
+      else :
+        options.multimc_indices=distribute_mc_equal_space_on_all_edges(int(options.x_tiles),int(options.y_tiles),int(os.environ['PITON_EXTRA_MEMS']))
+        print_info ("No memory controller (MC) indices are given as input. Distribute MCs with equal space on all edges:" + options.multimc_indices)
+        os.environ['PITON_MC_INDICES']=options.multimc_indices
+
     # core variant
     print_info("core      = " + str(options.core))
     for i in range(int(options.num_tiles)):
@@ -767,6 +920,8 @@ def main():
         for i in range(int(options.num_tiles)):
             os.environ['RTL_ARIANE' + str(i)] = "1"
             print_info('setenv RTL_ARIANE' + str(i))
+
+        os.system('$DV_ROOT/design/chip/tile/ariane_patch/ariane_patch.sh')
 
     elif options.core == 'sparc':
         # this is the default
@@ -852,6 +1007,27 @@ def main():
         if options.core == 'ariane':
             config += ' -ariane'
 
+        if options.board:
+            config += ' -board=' + options.board
+
+        if options.eth:
+            config += ' -eth'
+
+        if options.hbm:
+            config += ' -hbm'
+
+        if options.uart_dmw:
+            config += ' -uart_dmw'
+
+        if options.verdi_dbg:
+            config += ' -vcs_build_args=+vcs+fsdbon'                + \
+                      ' -vcs_build_args=-kdb'                       + \
+                      ' -vcs_build_args=-debug_access+all'          + \
+                      ' -vcs_build_args=-debug_region=cell+encrypt' + \
+                      ' -vcs_build_args=-LDFLAGS'                   + \
+                      ' -vcs_build_args=-Wl,--no-as-needed'         + \
+                      ' -vcs_build_args=+vcs+lic+wait'
+
         print_info("Synthesizing a test: %s" % options.test_name)
         print_info("Compilation started")
         ret_val = os.system('sims -sys=manycore' + config + ' -vcs_build -vcs_build_args=+libext+.v -vcs_build_args=-Mupdate > %s/compilation.log' % rc_dir.log)
@@ -917,7 +1093,7 @@ def main():
         if int(options.jobs)>1:
             print_info("Using %d jobs in Vivado" % int(options.jobs))
         os.environ['NUM_VIVADO_JOBS']   = str(int(options.jobs))
-        jid = runImplFlow(options.board, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
+        jid = runImplFlow(options.board, options.eth, design_data, rc_dir.work, rc_dir.log, defines, options.slurm, dep_list)
         if jid != None:
             dep_list.append(jid)
 

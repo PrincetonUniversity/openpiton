@@ -389,6 +389,8 @@ l2_encoder encoder(
     .msg_src_chipid             ({`NOC_CHIPID_WIDTH{1'b0}}),
     .msg_src_x                  ({`NOC_X_WIDTH{1'b0}}),
     .msg_src_y                  ({`NOC_Y_WIDTH{1'b0}}),
+    .msg_ini_x                  ({`NOC_X_WIDTH{1'b0}}),
+    .msg_ini_y                  ({`NOC_Y_WIDTH{1'b0}}),
     .msg_src_fbits              ({`NOC_FBITS_WIDTH{1'b0}}),
     .msg_sdid                   ({`MSG_SDID_WIDTH{1'b0}}),
     .msg_lsid                   ({`MSG_LSID_WIDTH{1'b0}}),

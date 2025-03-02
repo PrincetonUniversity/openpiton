@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 //
@@ -217,6 +218,16 @@ module chipset(
     output [2:0]                                chip_intf_credit_back,
 `endif // endif PITON_NO_CHIP_BRIDGE PITONSYS_INC_PASSTHRU
 
+  `ifdef PITON_EXTRA_MEMS
+    input   [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] processor_mcx_noc2_data,
+    input   [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_valid,
+    output  [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_yummy,
+
+    output  [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] mcx_processor_noc3_data,
+    output  [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_valid,
+    input   [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_yummy,
+  `endif
+
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
@@ -244,8 +255,21 @@ module chipset(
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
+`ifdef PITONSYS_PCIE
+    input  [15:0] pci_express_x16_rxn,
+    input  [15:0] pci_express_x16_rxp,
+    output [15:0] pci_express_x16_txn,
+    output [15:0] pci_express_x16_txp,   
+    output [4:0] pcie_gpio,     
+    input  pcie_perstn,
+    input  pcie_refclk_n,
+    input  pcie_refclk_p,
+`endif
 `ifdef XUPP3R_BOARD
     output                                      ddr_parity,
+`elsif ALVEO_BOARD
+      output                          ddr_parity,
+      output                          hbm_cattrip,
 `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
 `endif // XUPP3R_BOARD
@@ -355,7 +379,15 @@ module chipset(
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
 
-    `endif // PITON_FPGA_ETHERNETLITE    
+    `elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
+        // GTY quads connected to QSFP unit on Alveo board
+        input          qsfp_ref_clk_n,
+        input          qsfp_ref_clk_p,
+        input   [3:0]  qsfp_4x_grx_n,
+        input   [3:0]  qsfp_4x_grx_p,
+        output  [3:0]  qsfp_4x_gtx_n,
+        output  [3:0]  qsfp_4x_gtx_p,
+    `endif // PITON_FPGA_ETH_CMAC
 `else // ifndef PITONSYS_IOCTRL
 
 `endif // endif PITONSYS_IOCTRL
@@ -464,6 +496,9 @@ module chipset(
         input  [3:0]                                        sw,
     `elsif XUPP3R_BOARD
         // no switches :(
+    `elsif ALVEO_BOARD
+        input  [2:0]                                        sw,
+        // virtual switches :)
     `else         
         input  [7:0]                                        sw,
     `endif
@@ -556,8 +591,14 @@ reg                                             chipset_rst_n_ff;
 `endif
 
 // UART boot stuff
+`ifndef ALVEO_BOARD
 wire                                            uart_boot_en;
 wire                                            uart_timeout_en;
+`else
+reg                                             uart_boot_en;
+reg                                             uart_timeout_en;
+reg                                             uart_bootrom_linux_en;
+`endif
 
 // NoC power test hop count from switches if enabled
 wire  [3:0]                                     noc_power_test_hop_count;
@@ -758,6 +799,12 @@ end
             `elsif XUPP3R_BOARD
                 assign uart_boot_en    = 1'b1;
                 assign uart_timeout_en = 1'b0;
+            `elsif ALVEO_BOARD
+                always @ (posedge chipset_clk) begin
+                  uart_boot_en          <= sw[0];
+                  uart_timeout_en       <= sw[1]; 
+                  uart_bootrom_linux_en <= sw[2];
+                end
             `else 
                 assign uart_boot_en    = sw[7];
                 assign uart_timeout_en = sw[6];
@@ -768,6 +815,9 @@ end
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     `ifdef VCU118_BOARD
+        // only two switches available...
+        assign noc_power_test_hop_count = {2'b0, sw[3:2]};
+    `elsif ALVEO_BOARD
         // only two switches available...
         assign noc_power_test_hop_count = {2'b0, sw[3:2]};
     `elsif XUPP3R_BOARD
@@ -1209,6 +1259,49 @@ credit_to_valrdy processor_offchip_noc3_c2v(
     .ready_out(intf_chipset_rdy_noc3)
 );
 
+
+`ifdef PITON_EXTRA_MEMS
+  wire  [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] mcx_intf_data_noc3;
+  wire  [`PITON_EXTRA_MEMS-1:0]                    mcx_intf_val_noc3;
+  wire  [`PITON_EXTRA_MEMS-1:0]                    mcx_intf_rdy_noc3;
+
+  wire  [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] intf_mcx_data_noc2;
+  wire  [`PITON_EXTRA_MEMS-1:0]                    intf_mcx_val_noc2;
+  wire  [`PITON_EXTRA_MEMS-1:0]                    intf_mcx_rdy_noc2;
+
+  genvar idx;
+  generate
+  for(idx=0; idx<`PITON_EXTRA_MEMS; idx=idx+1) begin: ifconv
+    valrdy_to_credit #(4, 3) mcx_processor_noc3_v2c( 
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n_ff),
+
+      .data_in (mcx_intf_data_noc3[idx * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]),
+      .valid_in(mcx_intf_val_noc3 [idx]), 
+      .ready_in(mcx_intf_rdy_noc3 [idx]),
+
+      .data_out (mcx_processor_noc3_data [idx * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]),
+      .valid_out(mcx_processor_noc3_valid[idx]),
+      .yummy_out(mcx_processor_noc3_yummy[idx])
+    );
+
+    credit_to_valrdy processor_mcx_noc2_c2v(
+      .clk(chipset_clk),
+      .reset(~chipset_rst_n_ff),
+
+      .data_in (processor_mcx_noc2_data [idx * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]),
+      .valid_in(processor_mcx_noc2_valid[idx]),
+      .yummy_in(processor_mcx_noc2_yummy[idx]),
+
+      .data_out (intf_mcx_data_noc2[idx * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]),
+      .valid_out(intf_mcx_val_noc2 [idx]),
+      .ready_out(intf_mcx_rdy_noc2 [idx])
+    );
+  end
+  endgenerate
+`endif
+
+
 `ifdef PITON_BOARD
     // Bootup reset sequence
     chip_rst_seq rst_seq(
@@ -1278,6 +1371,17 @@ chipset_impl_noc_power_test  chipset_impl (
     .intf_chipset_rdy_noc2(intf_chipset_rdy_noc2),
     .intf_chipset_rdy_noc3(intf_chipset_rdy_noc3)
 
+  `ifdef PITON_EXTRA_MEMS    
+    ,
+    .mcx_intf_data_noc3(mcx_intf_data_noc3),
+    .mcx_intf_val_noc3 (mcx_intf_val_noc3),
+    .mcx_intf_rdy_noc3 (mcx_intf_rdy_noc3 ),
+
+    .intf_mcx_data_noc2(intf_mcx_data_noc2),
+    .intf_mcx_val_noc2 (intf_mcx_val_noc2),
+    .intf_mcx_rdy_noc2 (intf_mcx_rdy_noc2)
+  `endif
+
     // DRAM and I/O interfaces
     `ifndef PITONSYS_NO_MC
         `ifdef PITON_FPGA_MC_DDR3 
@@ -1285,6 +1389,16 @@ chipset_impl_noc_power_test  chipset_impl (
             .init_calib_complete(init_calib_complete),
             `ifndef F1_BOARD
                 `ifdef PITONSYS_DDR4
+                     `ifdef PITONSYS_PCIE
+                     .pci_express_x16_rxn(pci_express_x16_rxn),
+                     .pci_express_x16_rxp(pci_express_x16_rxp),
+                     .pci_express_x16_txn(pci_express_x16_txn),
+                     .pci_express_x16_txp(pci_express_x16_txp),
+                     .pcie_gpio(pcie_gpio),        
+                     .pcie_perstn(pcie_perstn),
+                     .pcie_refclk_n(pcie_refclk_n),
+                     .pcie_refclk_p(pcie_refclk_p),
+                     `endif
                     .ddr_act_n(ddr_act_n),                    
                     .ddr_bg(ddr_bg), 
                 `else // PITONSYS_DDR4
@@ -1309,6 +1423,9 @@ chipset_impl_noc_power_test  chipset_impl (
             
                 `ifdef XUPP3R_BOARD
                     .ddr_parity(ddr_parity),
+                `elsif ALVEO_BOARD
+                    .ddr_parity(ddr_parity),
+                    .hbm_cattrip(hbm_cattrip),       
                 `else
                     .ddr_dm(ddr_dm),
                 `endif // XUPP3R_BOARD
@@ -1418,7 +1535,16 @@ chipset_impl_noc_power_test  chipset_impl (
                 .net_phy_mdio_io    (net_phy_mdio_io        ),
                 .net_phy_mdc        (net_phy_mdc            )
 
-            `endif // PITON_FPGA_ETHERNETLITE   
+            `elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
+                ,
+                .eth_init_clk        (mc_clk),
+                .qsfp_ref_clk_n      (qsfp_ref_clk_n),
+                .qsfp_ref_clk_p      (qsfp_ref_clk_p),
+                .qsfp_4x_grx_n       (qsfp_4x_grx_n),
+                .qsfp_4x_grx_p       (qsfp_4x_grx_p),
+                .qsfp_4x_gtx_n       (qsfp_4x_gtx_n),
+                .qsfp_4x_gtx_p       (qsfp_4x_gtx_p)
+            `endif // PITON_FPGA_ETH_CMAC
     `endif // endif PITONSYS_IOCTRL
 
     `ifdef PITON_RV64_PLATFORM

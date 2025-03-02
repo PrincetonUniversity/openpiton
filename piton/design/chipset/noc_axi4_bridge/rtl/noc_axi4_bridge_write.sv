@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2019 Princeton University
 // All rights reserved.
@@ -28,30 +29,34 @@
 `include "mc_define.h"
 `include "define.tmp.h"
 `include "noc_axi4_bridge_define.vh"
+import noc_axi4_bridge_pkg::*;
 
 
-module noc_axi4_bridge_write (
+module noc_axi4_bridge_write #(
+    parameter AXI4_DAT_WIDTH_USED = `AXI4_DATA_WIDTH // actually used AXI Data width (down converted if needed)
+) (
     // Clock + Reset
     input  wire                                                    clk,
     input  wire                                                    rst_n,
-    input  wire                                                    uart_boot_en, 
 
     // NOC interface
     input  wire                                          req_val,
-    input  wire [`MSG_HEADER_WIDTH-1:0]                  req_header,
-    input  wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]  req_id,
+    input  wire [`AXI4_ADDR_WIDTH    -1:0]               req_addr,
+    input  wire [`MSG_DATA_SIZE_WIDTH-1:0]               req_size_log,
+    input  wire [`AXI4_ID_WIDTH      -1:0]               req_id,
     input  wire [`AXI4_DATA_WIDTH-1:0]                   req_data,
+    input  wire [`AXI4_STRB_WIDTH-1:0]                   req_strb,
     output wire                                          req_rdy,
 
     output wire                                          resp_val,
-    output wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]  resp_id,
+    output wire [`AXI4_ID_WIDTH   -1:0]                  resp_id,
     input  wire                                          resp_rdy,
 
     // AXI write interface
-    output wire [`AXI4_ID_WIDTH     -1:0]     m_axi_awid,
-    output wire [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr,
-    output wire [`AXI4_LEN_WIDTH    -1:0]     m_axi_awlen,
-    output wire [`AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize,
+    output reg  [`AXI4_ID_WIDTH     -1:0]     m_axi_awid,
+    output reg  [`AXI4_ADDR_WIDTH   -1:0]     m_axi_awaddr,
+    output reg  [`AXI4_LEN_WIDTH    -1:0]     m_axi_awlen,
+    output reg  [`AXI4_SIZE_WIDTH   -1:0]     m_axi_awsize,
     output wire [`AXI4_BURST_WIDTH  -1:0]     m_axi_awburst,
     output wire                               m_axi_awlock,
     output wire [`AXI4_CACHE_WIDTH  -1:0]     m_axi_awcache,
@@ -63,8 +68,8 @@ module noc_axi4_bridge_write (
     input  wire                               m_axi_awready,
 
     output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    output wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    output wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire  [AXI4_DAT_WIDTH_USED-1:0]    m_axi_wdata,
+    output wire  [AXI4_DAT_WIDTH_USED/8-1:0]  m_axi_wstrb,
     output wire                               m_axi_wlast,
     output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
     output wire                               m_axi_wvalid,
@@ -78,20 +83,17 @@ module noc_axi4_bridge_write (
 );
 
 
-localparam IDLE = 3'd0;
-localparam GOT_REQ = 3'd1;
-localparam PREP_REQ = 3'd2;
-localparam SENT_AW = 3'd3;
-localparam SENT_W = 3'd4;
-localparam GOT_RESP = 3'd1;
+localparam IDLE     = 2'h0;
+localparam GOT_REQ  = 2'h1;
+localparam SENT_AW  = 2'h2;
+localparam SENT_W   = 2'h3;
+localparam GOT_RESP = 2'b1;
 
 //==============================================================================
 // Tie constant outputs in axi4
 //==============================================================================
 
-    assign m_axi_awlen    = `AXI4_LEN_WIDTH'b0; // Use only length-1 bursts
-    assign m_axi_awsize   = `AXI4_SIZE_WIDTH'b110; // Always transfer 64 bytes
-    assign m_axi_awburst  = `AXI4_BURST_WIDTH'b01; // fixed address in bursts (doesn't matter cause we use length-1 bursts)
+    assign m_axi_awburst  = `AXI4_BURST_WIDTH'b01; // INCR address in bursts
     assign m_axi_awlock   = 1'b0; // Do not use locks
     assign m_axi_awcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
     assign m_axi_awprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
@@ -105,176 +107,106 @@ wire [`AXI4_ADDR_WIDTH-1:0] addr_paddings = `AXI4_ADDR_WIDTH'b0;
 // outbound requests
 wire m_axi_awgo = m_axi_awvalid & m_axi_awready;
 wire m_axi_wgo = m_axi_wvalid & m_axi_wready;
+wire m_axi_lwgo = m_axi_wgo & m_axi_wlast;
 wire req_go = req_val & req_rdy;
-assign m_axi_wlast = m_axi_wvalid;
 
-reg [2:0] req_state;
-reg [`MSG_HEADER_WIDTH-1:0] req_header_f;
-reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] req_id_f;
+reg [1:0] req_state;
 reg [`AXI4_DATA_WIDTH-1:0] req_data_f;
 
 assign req_rdy = (req_state == IDLE);
-assign m_axi_awvalid = (req_state == PREP_REQ) || (req_state == SENT_W);
-assign m_axi_wvalid = (req_state == PREP_REQ) || (req_state == SENT_AW);
+assign m_axi_awvalid = (req_state == GOT_REQ) || (req_state == SENT_W);
+assign m_axi_wvalid  = (req_state == GOT_REQ) || (req_state == SENT_AW);
+wire signed [`MSG_DATA_SIZE_WIDTH:0] burst_len_log = $signed({1'b0, req_size_log}) - $clog2(AXI4_DAT_WIDTH_USED/8);
+wire [`AXI4_LEN_WIDTH -1:0] burst_len = (1 << clip2zer(burst_len_log)) - 1;
 
-always  @(posedge clk) begin
+always @(posedge clk)
     if(~rst_n) begin
-        req_header_f <= 0;
-        req_id_f <= 0;
         req_state <= IDLE;
-        req_data_f <= 0;
-    end else begin
+    end else
         case (req_state)
-            IDLE: begin
-                req_state <= req_go ? GOT_REQ : req_state;
-                req_header_f <= req_go ? req_header : req_header_f;
-                req_id_f <= req_go ? req_id : req_id_f;
-                req_data_f <= req_data_f;
+            IDLE: if (req_go) begin
+                req_state    <= GOT_REQ;
+                m_axi_awaddr <= req_addr;
+                m_axi_awlen  <= burst_len;
+                m_axi_awsize <= (burst_len_log < 0) ? req_size_log : $clog2(AXI4_DAT_WIDTH_USED/8);
+                m_axi_awid   <= req_id;
             end
-            GOT_REQ: begin
-                req_state <= PREP_REQ;
-                req_header_f <= req_header_f;
-                req_id_f <= req_id_f;
-                req_data_f <= req_data; // get data one cycle later because of bram in buffer
-            end
-            PREP_REQ: begin
-                req_state <= (m_axi_awgo & m_axi_wgo) ? IDLE : m_axi_awgo ? SENT_AW : m_axi_wgo ? SENT_W : req_state;
-                req_header_f <= (m_axi_awgo & m_axi_wgo) ? 0 : req_header_f;
-                req_id_f <= (m_axi_awgo & m_axi_wgo) ? 0 : req_id_f;
-                req_data_f <= (m_axi_awgo & m_axi_wgo) ? 0 : req_data_f;
-            end
-            SENT_AW: begin
-                req_state <= m_axi_wgo ? IDLE : req_state;
-                req_header_f <= m_axi_wgo ? 0 : req_header_f;
-                req_id_f <= m_axi_wgo ? 0 : req_id_f;
-                req_data_f <= m_axi_wgo ? 0 : req_data_f;
-            end
-            SENT_W: begin
-                req_state <= m_axi_awgo ? IDLE : req_state;
-                req_header_f <= m_axi_awgo ? 0 : req_header_f;
-                req_id_f <= m_axi_awgo ? 0 : req_id_f;
-                req_data_f <= m_axi_awgo ? 0 : req_data_f;
-            end
-            default : begin
-                req_header_f <= 0;
-                req_id_f <= 0;
+            GOT_REQ:
+                req_state <= (m_axi_awgo & m_axi_lwgo) ? IDLE :
+                              m_axi_awgo               ? SENT_AW :
+                                           m_axi_lwgo  ? SENT_W : req_state;
+            SENT_AW: if (m_axi_lwgo)
                 req_state <= IDLE;
-                req_data_f <= 0;
+            SENT_W: if (m_axi_awgo)
+                req_state <= IDLE;
+            default : begin
+                // should never end up here
+                req_state    <= 2'bX;
+                m_axi_awaddr <= `AXI4_ADDR_WIDTH'bX;
+                m_axi_awlen  <= `AXI4_LEN_WIDTH'bX;
+                m_axi_awsize <= `AXI4_SIZE_WIDTH'bX;
+                m_axi_awid   <= `AXI4_ID_WIDTH'bX;
             end
         endcase
+
+// making a burst on data and strobe buses
+localparam MAX_BURST_LEN  = `AXI4_DATA_WIDTH / AXI4_DAT_WIDTH_USED;
+reg [clip2zer($clog2(MAX_BURST_LEN)-1) :0] burst_count;
+assign m_axi_wlast = !burst_count;
+reg [`AXI4_STRB_WIDTH-1:0] req_strb_f;
+always @(posedge clk)
+  if(~rst_n) begin
+    burst_count <= 0;
+    req_data_f  <= 0;
+    req_strb_f  <= 0;
+  end else begin
+    if (req_go) begin
+      burst_count <= burst_len;
+      req_data_f  <= req_data;
+      req_strb_f  <= req_strb;
+    end
+    else if (MAX_BURST_LEN > 1 && m_axi_wgo && ~m_axi_wlast) begin
+      burst_count <= burst_count-1;
+      // down shifting data and strobe buses every burst cycle (high part is don't care, left unchanged for optimization)
+      req_data_f <= {req_data_f[`AXI4_DATA_WIDTH -1 : `AXI4_DATA_WIDTH - AXI4_DAT_WIDTH_USED],
+                     req_data_f[`AXI4_DATA_WIDTH -1 : (MAX_BURST_LEN>1 ? AXI4_DAT_WIDTH_USED   : 0)]};
+      req_strb_f <= {req_strb_f[`AXI4_STRB_WIDTH -1 : `AXI4_STRB_WIDTH - AXI4_DAT_WIDTH_USED/8],
+                     req_strb_f[`AXI4_STRB_WIDTH -1 : (MAX_BURST_LEN>1 ? AXI4_DAT_WIDTH_USED/8 : 0)]};
     end
 end
 
-
-// Process information here
-assign m_axi_awid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
-assign m_axi_wid = {{`AXI4_ID_WIDTH-`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE{1'b0}}, req_id_f};
-
-
-wire [`PHY_ADDR_WIDTH-1:0] virt_addr = req_header_f[`MSG_ADDR];
-wire [`AXI4_ADDR_WIDTH-1:0] phys_addr;
-wire uncacheable = (virt_addr[`PHY_ADDR_WIDTH-1])
-                || (req_header_f[`MSG_TYPE] == `MSG_TYPE_NC_STORE_REQ);
-
-// If running uart tests - we need to do address translation
-`ifdef PITONSYS_UART_BOOT
-storage_addr_trans_unified   #(
-`else
-storage_addr_trans #(
-`endif
-.STORAGE_ADDR_WIDTH(`AXI4_ADDR_WIDTH)
-) cpu_mig_raddr_translator (
-    .va_byte_addr       (virt_addr  ),
-    .storage_addr_out   (phys_addr  )
-);
-
-reg [`AXI4_STRB_WIDTH-1:0] strb_before_offset;
-reg [5:0] offset;
-reg [`AXI4_ADDR_WIDTH-1:0] addr;
-always @(posedge clk) begin
-    if (~rst_n) begin
-        offset <= 6'b0;
-        strb_before_offset <= `AXI4_STRB_WIDTH'b0;
-        addr <= `AXI4_ADDR_WIDTH'b0;
-    end
-    else begin
-        if (uncacheable) begin
-            case (req_header_f[`MSG_DATA_SIZE])
-                `MSG_DATA_SIZE_0B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b0;
-                end
-                `MSG_DATA_SIZE_1B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b1;
-                end
-                `MSG_DATA_SIZE_2B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b11;
-                end
-                `MSG_DATA_SIZE_4B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hf;
-                end
-                `MSG_DATA_SIZE_8B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hff;
-                end
-                `MSG_DATA_SIZE_16B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hffff;
-                end
-                `MSG_DATA_SIZE_32B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hffffffff;
-                end
-                `MSG_DATA_SIZE_64B: begin
-                    strb_before_offset <= `AXI4_STRB_WIDTH'hffffffffffffffff;
-                end
-                default: begin
-                    // should never end up here
-                    strb_before_offset <= `AXI4_STRB_WIDTH'b0;
-                end
-            endcase
-        end
-        else begin
-            strb_before_offset <= `AXI4_STRB_WIDTH'hffffffffffffffff;
-        end
-
-        offset <= uncacheable ? virt_addr[5:0] : 6'b0;
-        addr <= uart_boot_en ? {phys_addr[`AXI4_ADDR_WIDTH-4:0], 3'b0} : virt_addr;
-    end
-end
-
-assign m_axi_awaddr = {addr[`AXI4_ADDR_WIDTH-1:6], 6'b0};
-assign m_axi_wstrb = strb_before_offset << offset;
-assign m_axi_wdata = req_data_f << (8*offset);
+assign m_axi_wid    = m_axi_awid;
+assign m_axi_wstrb  = req_strb_f;
+assign m_axi_wdata  = req_data_f;
 
 // inbound responses
 wire m_axi_bgo = m_axi_bvalid & m_axi_bready;
 wire resp_go = resp_val & resp_rdy;
 
-reg [2:0] resp_state;
-reg [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0]resp_id_f;
+reg resp_state;
+reg [`AXI4_ID_WIDTH-1:0] resp_id_f;
 
 assign resp_val = (resp_state == GOT_RESP);
 assign m_axi_bready = (resp_state == IDLE);
 
 
-always  @(posedge clk) begin
+always @(posedge clk)
     if(~rst_n) begin
         resp_id_f <= 0;
         resp_state <= IDLE;
-    end else begin
+    end else
         case (resp_state)
-            IDLE: begin
-                resp_state <= m_axi_bgo ? GOT_RESP : resp_state;
-                resp_id_f <= m_axi_bgo ? m_axi_bid : resp_id_f;
+            IDLE: if (m_axi_bgo) begin
+                resp_state <= GOT_RESP;
+                resp_id_f  <= m_axi_bid;
             end
-            GOT_RESP: begin
-                resp_state <= resp_go ? IDLE : resp_state;
-                resp_id_f <= resp_go ? 0 : resp_id_f;
-            end
+            GOT_RESP: if (resp_go)
+                resp_state <= IDLE;
             default : begin
                 resp_state <= IDLE;
                 resp_id_f <= 0;
             end
         endcase
-    end
-end
 
 // process data here
 assign resp_id = resp_id_f;

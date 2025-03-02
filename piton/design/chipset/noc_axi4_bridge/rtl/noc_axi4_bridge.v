@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2019 Princeton University
 // All rights reserved.
@@ -29,12 +30,29 @@
 `include "define.tmp.h"
 `include "noc_axi4_bridge_define.vh"
 
-module noc_axi4_bridge (
+module noc_axi4_bridge #(
+    parameter AXI4_DAT_WIDTH_USED = `AXI4_DATA_WIDTH, // actually used AXI Data width (down converted if needed)
+    parameter SWAP_ENDIANESS = 0, // swap endianess, needed when used in conjunction with a little endian core like Ariane
+    parameter ADDR_OFFSET = `AXI4_ADDR_WIDTH'h0,
+    parameter ADDR_SWAP_LBITS = 0,                  // number of moved low bits in AXI address for memory interleaving
+    parameter ADDR_SWAP_MSB   = `AXI4_ADDR_WIDTH-1, // high position to put moved bits in AXI address
+    parameter ADDR_SWAP_LSB   = 6,                  // low position of moved bits in AXI address
+    parameter RDWR_INORDER = 0, // control of Rd/Wr responses order
+    // "Outstanding requests" queue parameters
+    parameter NUM_REQ_OUTSTANDING_LOG2 = 2,
+    parameter OUTSTAND_QUEUE_BRAM = 0,
+    parameter NUM_REQ_MSHRID_LBIT = 0,
+    parameter NUM_REQ_MSHRID_BITS = 0,
+    parameter NUM_REQ_YTHREADS = 1,
+    parameter NUM_REQ_XTHREADS = 1,
+    parameter SRCXY_AS_AXIID   = 0
+) (
     // Clock + Reset
     input  wire                                   clk,
     input  wire                                   rst_n,
     input  wire                                   uart_boot_en,
     input  wire                                   phy_init_done, 
+    output                                        axi_id_deadlock,
 
     // Noc interface
     input  wire                                   src_bridge_vr_noc2_val,
@@ -60,8 +78,8 @@ module noc_axi4_bridge (
     input  wire                              m_axi_awready,
 
     output wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_wid,
-    output wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_wdata,
-    output wire  [`AXI4_STRB_WIDTH   -1:0]    m_axi_wstrb,
+    output wire  [AXI4_DAT_WIDTH_USED-1:0]    m_axi_wdata,
+    output wire  [AXI4_DAT_WIDTH_USED/8-1:0]  m_axi_wstrb,
     output wire                               m_axi_wlast,
     output wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_wuser,
     output wire                               m_axi_wvalid,
@@ -82,7 +100,7 @@ module noc_axi4_bridge (
     input  wire                               m_axi_arready,
 
     input  wire  [`AXI4_ID_WIDTH     -1:0]    m_axi_rid,
-    input  wire  [`AXI4_DATA_WIDTH   -1:0]    m_axi_rdata,
+    input  wire  [AXI4_DAT_WIDTH_USED-1:0]    m_axi_rdata,
     input  wire  [`AXI4_RESP_WIDTH   -1:0]    m_axi_rresp,
     input  wire                               m_axi_rlast,
     input  wire  [`AXI4_USER_WIDTH   -1:0]    m_axi_ruser,
@@ -101,21 +119,24 @@ wire [`AXI4_DATA_WIDTH-1:0] deser_data;
 wire deser_val;
 wire deser_rdy;
 
-wire [`MSG_HEADER_WIDTH-1:0] read_req_header;
-wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] read_req_id;
+wire [`AXI4_ADDR_WIDTH    -1:0] read_req_addr;
+wire [`MSG_DATA_SIZE_WIDTH-1:0] read_req_size_log;
+wire [`AXI4_ID_WIDTH      -1:0] read_req_id;
 wire read_req_val;
 wire read_req_rdy;
 wire [`AXI4_DATA_WIDTH-1:0] read_resp_data;
-wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] read_resp_id;
+wire [`AXI4_ID_WIDTH  -1:0] read_resp_id;
 wire read_resp_val;
 wire read_resp_rdy;
 
 wire write_req_val;
-wire [`MSG_HEADER_WIDTH-1:0] write_req_header;
-wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] write_req_id;
+wire [`AXI4_ADDR_WIDTH    -1:0] write_req_addr;
+wire [`MSG_DATA_SIZE_WIDTH-1:0] write_req_size_log;
+wire [`AXI4_ID_WIDTH      -1:0] write_req_id;
 wire [`AXI4_DATA_WIDTH-1:0] write_req_data;
+wire [`AXI4_STRB_WIDTH-1:0] write_req_strb;
 wire write_req_rdy;
-wire [`NOC_AXI4_BRIDGE_BUFFER_ADDR_SIZE-1:0] write_resp_id;
+wire [`AXI4_ID_WIDTH-1:0] write_resp_id;
 wire write_resp_val;
 wire write_resp_rdy;
 
@@ -125,16 +146,33 @@ wire ser_val;
 wire ser_rdy;
 
 
-noc_axi4_bridge_buffer noc_axi4_bridge_buffer(
+noc_axi4_bridge_buffer #(
+    .AXI4_DAT_WIDTH_USED (AXI4_DAT_WIDTH_USED),
+    .ADDR_OFFSET (ADDR_OFFSET),
+    .ADDR_SWAP_LBITS(ADDR_SWAP_LBITS),
+    .ADDR_SWAP_MSB  (ADDR_SWAP_MSB),
+    .ADDR_SWAP_LSB  (ADDR_SWAP_LSB),
+    .RDWR_INORDER (RDWR_INORDER),
+    .NUM_REQ_OUTSTANDING_LOG2 (NUM_REQ_OUTSTANDING_LOG2),
+    .OUTSTAND_QUEUE_BRAM (OUTSTAND_QUEUE_BRAM),
+    .NUM_REQ_MSHRID_LBIT (NUM_REQ_MSHRID_LBIT),
+    .NUM_REQ_MSHRID_BITS (NUM_REQ_MSHRID_BITS),
+    .NUM_REQ_YTHREADS (NUM_REQ_YTHREADS),
+    .NUM_REQ_XTHREADS (NUM_REQ_XTHREADS),
+    .SRCXY_AS_AXIID   (SRCXY_AS_AXIID  )
+) noc_axi4_bridge_buffer (
     .clk(clk),
     .rst_n(rst_n), 
+    .uart_boot_en(uart_boot_en),
+    .axi_id_deadlock(axi_id_deadlock),
 
     .deser_header(deser_header),
     .deser_data(deser_data),
     .deser_val(deser_val),
     .deser_rdy(deser_rdy),
 
-    .read_req_header(read_req_header),
+    .read_req_addr(read_req_addr),
+    .read_req_size_log(read_req_size_log),
     .read_req_id(read_req_id),
     .read_req_val(read_req_val),
     .read_req_rdy(read_req_rdy),
@@ -144,9 +182,11 @@ noc_axi4_bridge_buffer noc_axi4_bridge_buffer(
     .read_resp_val(read_resp_val),
     .read_resp_rdy(read_resp_rdy),
 
-    .write_req_header(write_req_header),
+    .write_req_addr(write_req_addr),
+    .write_req_size_log(write_req_size_log),
     .write_req_id(write_req_id),
     .write_req_data(write_req_data),
+    .write_req_strb(write_req_strb),
     .write_req_val(write_req_val), 
     .write_req_rdy(write_req_rdy),
 
@@ -160,7 +200,9 @@ noc_axi4_bridge_buffer noc_axi4_bridge_buffer(
     .ser_rdy(ser_rdy)
 );
 
-noc_axi4_bridge_deser noc_axi4_bridge_deser(
+noc_axi4_bridge_deser #(
+    .SWAP_ENDIANESS (SWAP_ENDIANESS)
+) noc_axi4_bridge_deser (
     .clk(clk), 
     .rst_n(rst_n), 
 
@@ -175,14 +217,16 @@ noc_axi4_bridge_deser noc_axi4_bridge_deser(
     .out_rdy(deser_rdy)
 );
 
-noc_axi4_bridge_read noc_axi4_bridge_read (
+noc_axi4_bridge_read #(
+    .AXI4_DAT_WIDTH_USED (AXI4_DAT_WIDTH_USED)
+) noc_axi4_bridge_read (
     .clk(clk), 
     .rst_n(rst_n), 
-    .uart_boot_en(uart_boot_en), 
 
     // NOC interface
     .req_val(read_req_val),
-    .req_header(read_req_header),
+    .req_addr(read_req_addr),
+    .req_size_log(read_req_size_log),
     .req_id(read_req_id),
     .req_rdy(read_req_rdy),
 
@@ -215,17 +259,20 @@ noc_axi4_bridge_read noc_axi4_bridge_read (
     .m_axi_rready(m_axi_rready)
 );
 
-noc_axi4_bridge_write noc_axi4_bridge_write (
+noc_axi4_bridge_write #(
+    .AXI4_DAT_WIDTH_USED (AXI4_DAT_WIDTH_USED)
+) noc_axi4_bridge_write (
     // Clock + Reset
     .clk(clk),
     .rst_n(rst_n),
-    .uart_boot_en(uart_boot_en), 
 
     // NOC interface
     .req_val(write_req_val),
-    .req_header(write_req_header),
+    .req_addr(write_req_addr),
+    .req_size_log(write_req_size_log),
     .req_id(write_req_id),
     .req_data(write_req_data),
+    .req_strb(write_req_strb),
     .req_rdy(write_req_rdy),
 
     .resp_val(write_resp_val),
@@ -262,7 +309,9 @@ noc_axi4_bridge_write noc_axi4_bridge_write (
     .m_axi_bready(m_axi_bready)
 );
 
-noc_axi4_bridge_ser noc_axi4_bridge_ser(
+noc_axi4_bridge_ser #(
+    .SWAP_ENDIANESS (SWAP_ENDIANESS)
+) noc_axi4_bridge_ser (
     .clk(clk), 
     .rst_n(rst_n), 
 

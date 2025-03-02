@@ -24,3 +24,5 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 fake_mem_ctrl.v
+hbm_delay_pck.sv
+hbm_delay.sv

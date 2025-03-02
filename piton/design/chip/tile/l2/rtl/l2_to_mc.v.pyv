@@ -1,0 +1,82 @@
+`include "define.tmp.h"
+
+
+
+module l2_to_mc (
+
+	input wire [`PHY_ADDR_WIDTH-1:0] msg_addr,
+    input wire [`NOC_X_WIDTH-1:0] coreid_x,
+    input wire [`NOC_Y_WIDTH-1:0] coreid_y,
+
+   
+	output reg [`MSG_SRC_X_WIDTH-1:0] mc_dst_x,
+	output reg [`MSG_SRC_Y_WIDTH-1:0] mc_dst_y,
+	output reg [`MSG_SRC_FBITS_WIDTH-1:0] mc_dst_fbits
+
+);
+
+   
+// The destination MC should be selected according to msg_addr or L2 id. Currently its selected based on min Manhattan distance from L2
+
+<%
+import math
+import sys
+
+import pyhplib
+from pyhplib import *
+
+mmc=PITON_EXTRA_MEMS
+if(mmc==0):
+	mmc=1
+	PITON_MC_INDICES="0"
+	
+lc_num=PITON_X_TILES*PITON_Y_TILES
+lc_per_mmc=lc_num//mmc
+if(lc_per_mmc*mmc !=lc_num):
+    lc_per_mmc+=1
+
+print("//fbit declarations\n\t`define FBIT_NONE	4'b0000\n\t`define FBIT_W	4'b0010\n\t`define FBIT_S	4'b0011\n\t`define FBIT_E	4'b0100\n\t`define FBIT_N	4'b0101\n")
+print("\t`define LC_NUM_PER_MC %d\n" %lc_per_mmc)
+
+
+
+MC_POS=get_mc_mapping(PITON_X_TILES,PITON_Y_TILES,PITON_MC_INDICES,mmc,PITON_NETWORK_CONFIG)
+edge_idx=len(MC_POS)
+
+print("/*\n\tMC mapping table:\n \tMC# \tTile# \tTile_x \tTile_y \tPort\n")    
+for k in range(edge_idx):   
+     print("\t%d \t%d \t%d \t%d \t%s" % (k, MC_POS[k]['id'], MC_POS[k]['x'], MC_POS[k]['y'],MC_POS[k]['p']  ))     
+print("*/")
+
+
+                 
+            
+
+
+
+print ("always @ (*) begin\n \tmc_dst_fbits='b000;\tmc_dst_x=0;\tmc_dst_y=0;")
+
+#take the MC with minimum manhatan distance 
+for j in range(PITON_Y_TILES): 
+    for i in range(PITON_X_TILES):
+        mind=1000000
+        min_index=100000
+        for k in range(edge_idx):
+            a = (MC_POS[k]['x'], MC_POS[k]['y'])
+            b = (i , j)
+            d = get_manhattan_distance(a, b)  
+            
+            if(MC_POS[k]['n'] < lc_per_mmc and d < mind):
+                mind=d
+                min_index=k
+             
+        MC_POS[min_index]['n']+=1
+        mc=j*PITON_X_TILES+i
+        print("//\tL2_id%d -> MC_id%d ;  L2(%d,%d) -> MC(%d,%d) manhattan_dst %d" % (mc,min_index, i, j, MC_POS[min_index]['x'], MC_POS[min_index]['y'],mind))
+        print("\tif (coreid_x == %d && coreid_y == %d) begin mc_dst_x = %d; mc_dst_y = %d; mc_dst_fbits = `FBIT_%s; end" %(i, j, MC_POS[min_index]['x'], MC_POS[min_index]['y'],  MC_POS[min_index]['p']))
+    
+%>
+
+end //always
+
+endmodule

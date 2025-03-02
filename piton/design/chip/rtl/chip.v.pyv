@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Modified by Princeton University on June 9th, 2015
 // ========== Copyright Header Begin ==========================================
 //
@@ -138,6 +139,17 @@ module chip(
    input  [`NOC_DATA_WIDTH-1:0]                 offchip_processor_noc3_data,
    output                                       offchip_processor_noc3_yummy
 `endif // endif PITON_NO_CHIP_BRIDGE
+
+  `ifdef PITON_EXTRA_MEMS
+    ,
+    output [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] processor_mcx_noc2_data,
+    output [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_valid,
+    input  [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_yummy,
+
+    input  [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] mcx_processor_noc3_data,
+    input  [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_valid,
+    output [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_yummy
+  `endif
 
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
@@ -1037,6 +1049,15 @@ module chip(
     assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
 <%
+    sub_assign = r'''
+            assign default_coreid_x [_FLAT_ID_] =COREIDX;
+            assign default_coreid_y [_FLAT_ID_] =COREIDY;
+            assign flat_tileid  [_FLAT_ID_] =   _FLAT_ID_; 
+    '''
+    assign = r'''
+    
+    
+    '''
     template = r'''
     tile #(.TILE_TYPE(TYPE_OF_TILE))
     tile0 (
@@ -1114,6 +1135,32 @@ module chip(
     template = template[:-1] + r'''
     );
     '''
+   
+    
+    edge_sub1=r'''    
+    assign default_coreid_x [ENDP] = COREIDX;
+    assign default_coreid_y [ENDP] = COREIDY;
+    assign flat_tileid [ENDP]= ENDP;
+  
+    assign dataOut_NN [ENDP] = endp_DatOut_NN;
+    assign validOut_NN[ENDP] = endp_ValidOut_NN;    
+    assign endp_YummyIn_NN = yummyIn_NN[ENDP];
+    '''
+    edge_sub2=r'''  
+    assign endp_DatIn_NN = dataIn_NN [ENDP];
+    assign endp_ValidIn_NN = validIn_NN[ENDP];
+    assign yummyOut_NN[ENDP] = endp_YummyOut_NN;
+    
+    '''
+    edge_assign=r'''
+    
+    '''   
+
+
+    MC_POS=get_mc_mapping(PITON_X_TILES,PITON_Y_TILES,PITON_MC_INDICES,PITON_EXTRA_MEMS,PITON_NETWORK_CONFIG)
+    edge_idx=len(MC_POS)
+    
+      
 
     # generate the tiles
     for i in range(PITON_X_TILES):
@@ -1122,10 +1169,67 @@ module chip(
             flatid = i + (j * PITON_X_TILES);
             # print template
             currenttile = template.replace("tile0", "tile%d" % (flatid));
+            # special case for core 0
+            if i == 0 and j == 0:
+               for k in [1,2,3]:
+                  tmp = edge_sub1 + edge_sub2;
+                  tmp = tmp.replace("endp_DatOut_NN","offchip_out_E_noc%d_data" %k);
+                  tmp = tmp.replace("endp_ValidOut_NN","offchip_out_E_noc%d_valid" %k);
+                  tmp = tmp.replace("endp_YummyOut_NN","offchip_out_E_noc%d_yummy" %k);
+                  tmp = tmp.replace("endp_DatIn_NN","tile_0_0_out_W_noc%d_data" %k);
+                  tmp = tmp.replace("endp_ValidIn_NN","tile_0_0_out_W_noc%d_valid" %k);
+                  tmp = tmp.replace("endp_YummyIn_NN","tile_0_0_out_W_noc%d_yummy" %k);                  
+                  tmp = tmp.replace("_NN", str(k))
+                  tmp = tmp.replace("ENDP","CHIP_SET_ID");
+                  tmp = tmp.replace("COREIDX", "8'd" + repr(i));
+                  tmp = tmp.replace("COREIDY", "8'd" + repr(j));
+                  
+                  edge_assign=edge_assign + tmp; 
+            # place the memory controllers           
+            for k in range(edge_idx):
+                ax = MC_POS[k]['x']
+                ay = MC_POS[k]['y']  
+                ap = MC_POS[k]['p']
+                id = MC_POS[k]['endp']                 
+                if(i==ax and j==ay):                    
+                    currenttile = currenttile.replace("out_%s_noc2_data"  % MC_POS[k]['p'], "processor_mcx_noc2_data [%d * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]" % k);
+                    currenttile = currenttile.replace("out_%s_noc2_valid" % MC_POS[k]['p'], "processor_mcx_noc2_valid[%d]" % k);
+                    currenttile = currenttile.replace("in_%s_noc2_yummy"  % MC_POS[k]['p'], "processor_mcx_noc2_yummy[%d]" % k);
+                    currenttile = currenttile.replace("in_%s_noc3_data"   % MC_POS[k]['p'], "mcx_processor_noc3_data [%d * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]" % k);
+                    currenttile = currenttile.replace("in_%s_noc3_valid"  % MC_POS[k]['p'], "mcx_processor_noc3_valid[%d]" % k);
+                    currenttile = currenttile.replace("out_%s_noc3_yummy" % MC_POS[k]['p'], "mcx_processor_noc3_yummy[%d]" % k);
+                    tmp = ("//Connect MC %d to enp %d:\n" % (k,id)) 
+                    tmp = tmp + edge_sub1;                    
+                    tmp = tmp.replace("ENDP",str(id));
+                    tmp = tmp.replace("COREIDX", "8'd" + repr(i));
+                    tmp = tmp.replace("COREIDY", "8'd" + repr(j));
+                    tmp = tmp.replace("endp_DatOut_NN","mcx_processor_noc3_data [%d * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]" % k);
+                    tmp = tmp.replace("endp_ValidOut_NN","mcx_processor_noc3_valid[%d]" % k);
+                    tmp = tmp.replace("endp_YummyIn_NN","mcx_processor_noc3_yummy[%d]" % k);
+                    tmp = tmp.replace("_NN", "3");
+                    edge_assign=edge_assign + tmp;
+                    tmp = edge_sub2 ;   
+                    tmp = tmp.replace("ENDP",str(id));
+                    tmp = tmp.replace("COREIDX", "8'd" + repr(i));
+                    tmp = tmp.replace("COREIDY", "8'd" + repr(j)); 
+                    tmp = tmp.replace("endp_DatIn_NN","processor_mcx_noc2_data [%d * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]" % k);
+                    tmp = tmp.replace("endp_ValidIn_NN","processor_mcx_noc2_valid[%d]" % k); 
+                    tmp = tmp.replace("endp_YummyOut_NN", "processor_mcx_noc2_yummy[%d]" % k); 
+                    tmp = tmp.replace("_NN", "2");
+                    edge_assign=edge_assign + tmp;
+
             currenttile = currenttile.replace("COREIDX", "8'd" + repr(i));
             currenttile = currenttile.replace("COREIDY", "8'd" + repr(j));
             currenttile = currenttile.replace("out_", "tile_%d_%d_out_" % (j,i));
             currenttile = currenttile.replace("_FLAT_ID_", repr(flatid));
+            
+            assign_tmp = sub_assign
+            assign_tmp = assign_tmp.replace("COREIDX", "8'd" + repr(i));
+            assign_tmp = assign_tmp.replace("COREIDY", "8'd" + repr(j));
+            assign_tmp = assign_tmp.replace("_FLAT_ID_", repr(flatid));
+            
+            assign = assign + assign_tmp;
+            
             currenttype = "`SPARC_TILE"
 
             if (PITON_PICO_HET):

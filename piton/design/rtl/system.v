@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 //
@@ -142,7 +143,9 @@ module system(
     input sys_clk,
 `endif
 
+`ifndef ALVEO_BOARD
     input                                       sys_rst_n,
+`endif
 
 `ifndef PITON_FPGA_SYNTH
     input                                       pll_rst_n,
@@ -181,11 +184,13 @@ module system(
 `ifndef NEXYSVIDEO_BOARD
 `ifndef XUPP3R_BOARD
 `ifndef F1_BOARD
+`ifndef ALVEO_BOARD
   input                                         tck_i,
   input                                         tms_i,
   input                                         trst_ni,
   input                                         td_i,
   output                                        td_o,
+`endif//ALVEO_BOARD
 `endif//F1_BOARD
 `endif//XUPP3R_BOARD
 `endif //NEXYSVIDEO_BOARD
@@ -208,6 +213,7 @@ module system(
 `ifndef F1_BOARD
     // Generalized interface for any FPGA board we support.
     // Not all signals will be used for all FPGA boards (see constraints)
+  `ifndef PITON_FPGA_MC_HBM
     `ifdef PITONSYS_DDR4
     output                                      ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]                 ddr_bg,
@@ -219,18 +225,30 @@ module system(
 
     output [`DDR3_ADDR_WIDTH-1:0]               ddr_addr,
     output [`DDR3_BA_WIDTH-1:0]                 ddr_ba,
+    `ifdef ALVEO_BOARD
+    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_c,
+    output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_t,
+    `else
     output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_n,
     output [`DDR3_CK_WIDTH-1:0]                 ddr_ck_p,
+    `endif
     output [`DDR3_CKE_WIDTH-1:0]                ddr_cke,
     output                                      ddr_reset_n,
     inout  [`DDR3_DQ_WIDTH-1:0]                 ddr_dq,
+    `ifdef ALVEO_BOARD
+    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_c,
+    inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_t,
+    `else
     inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_n,
     inout  [`DDR3_DQS_WIDTH-1:0]                ddr_dqs_p,
+    `endif
     `ifndef NEXYSVIDEO_BOARD
         output [`DDR3_CS_WIDTH-1:0]             ddr_cs_n,
     `endif // endif NEXYSVIDEO_BOARD
     `ifdef PITONSYS_DDR4
     `ifdef XUPP3R_BOARD
+    output                                      ddr_parity,
+    `elsif ALVEO_BOARD
     output                                      ddr_parity,
     `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
@@ -239,6 +257,7 @@ module system(
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
     `endif // PITONSYS_DDR4
     output [`DDR3_ODT_WIDTH-1:0]                ddr_odt,
+  `endif // `ifndef PITON_FPGA_MC_HBM
 `else //ifndef F1_BOARD 
     input                                        mc_clk,
     // AXI Write Address Channel Signals
@@ -346,7 +365,21 @@ module system(
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
     `endif
-`endif // PITON_FPGA_ETHERNETLITE
+`elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
+    `ifdef ALVEO_BOARD
+        // GTY quads connected to QSFP unit on Alveo board     
+        input          qsfp0_ref_clk_n,
+        input          qsfp0_ref_clk_p,
+
+        input          qsfp1_ref_clk_n,
+        input          qsfp1_ref_clk_p,
+
+        input   [3:0]  qsfp_4x_grx_n,
+        input   [3:0]  qsfp_4x_grx_p,
+        output  [3:0]  qsfp_4x_gtx_n,
+        output  [3:0]  qsfp_4x_gtx_p,
+    `endif
+`endif // PITON_FPGA_ETH_CMAC
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -386,12 +419,24 @@ module system(
     input  [3:0]                                sw,
 `elsif XUPP3R_BOARD
     // no switches :(
+`elsif ALVEO_BOARD
+    // no switches :(    
 `else
     input  [7:0]                                sw,
 `endif
 
 `ifdef XUPP3R_BOARD
     output [3:0]                                leds
+`elsif ALVEO_BOARD
+    // no leds, but HBM Catastrophic Over temperature Out, should be tied to 0 to avoid problems when HBM is not used
+    input  [15:0] pci_express_x16_rxn,
+    input  [15:0] pci_express_x16_rxp,
+    output [15:0] pci_express_x16_txn,
+    output [15:0] pci_express_x16_txp,        
+    input  pcie_perstn,
+    input  pcie_refclk_n,
+    input  pcie_refclk_p,
+    output                                      hbm_cattrip
 `else 
     output [7:0]                                leds
 `endif
@@ -473,6 +518,16 @@ wire                         offchip_processor_noc2_yummy;
 wire                         offchip_processor_noc3_valid;
 wire [`NOC_DATA_WIDTH-1:0]   offchip_processor_noc3_data;
 wire                         offchip_processor_noc3_yummy;
+
+`ifdef PITON_EXTRA_MEMS
+  wire [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] processor_mcx_noc2_data;
+  wire [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_valid;
+  wire [`PITON_EXTRA_MEMS-1:0]                    processor_mcx_noc2_yummy;
+
+  wire [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] mcx_processor_noc3_data;
+  wire [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_valid;
+  wire [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_yummy;
+`endif
 
 // Passthru<->chipset source synchronous differential clocks
 `ifdef PITON_CHIPSET_CLKS_GEN
@@ -560,10 +615,41 @@ assign rtc = rtc_div[6];
 assign uart_rts = 1'b0;
 `endif // VCU118_BOARD
 
+`ifdef ALVEO_BOARD
+wire [4:0] sw;
+wire [4:0] pcie_gpio;
+wire mem_calib_complete;
+wire [7:0] leds;  
+reg hold_start;
+//    vio_sw vio_sw_i (
+//      .clk(core_ref_clk),  
+//      .probe_out0(sw[0]), 
+//      .probe_out1(sw[1]), 
+//      .probe_out2(sw[2]),
+//      .probe_out3(sw[3]),
+//      .probe_out4(sw[4])
+//    );
+    assign sw[3] = pcie_gpio[0]; //sys_rst_n
+    assign sw[4] = pcie_gpio[1]; // chip_rst_n
+    assign sw[0] = pcie_gpio[2]; // uart_boot_en
+    assign sw[2] = pcie_gpio[3]; // bootrom_linux
+    assign sw[1] = pcie_gpio[4]; // timeout_en
+    
+    // sw[4] = 1, test_start works as usual.
+    // sw[4] = 0, tile stays on reset until going high.
+    // 0) UART_BOOT_EN set to low (sw[0]), bootrom_Ariane (sw[2]=0), timeout low sw[1]
+    // 1) reset the fpga (sw[3]).
+    // 2) Load the Linux BBL via PCIe to address 0x8000_0000 (if UART_BOOT_EN = '1', this address is 0x0)
+    // 3) Active hold_start (sw[4]='1'), letting the RISC-V boot.
+`endif  
+
+
 // Different reset active levels for different boards
 always @ *
 begin
-`ifdef PITON_FPGA_RST_ACT_HIGH
+`ifdef ALVEO_BOARD
+    sys_rst_n_rect = sw[3];
+`elsif PITON_FPGA_RST_ACT_HIGH
     sys_rst_n_rect = ~sys_rst_n;
 `else // ifndef PITON_FPGA_RST_ACT_HIGH
     sys_rst_n_rect = sys_rst_n;
@@ -577,7 +663,14 @@ always @ *
 begin
     chip_rst_n = sys_rst_n_rect & passthru_chip_rst_n;
 `ifdef PITONSYS_UART_BOOT
+  `ifndef ALVEO_BOARD
     chip_rst_n = chip_rst_n & test_start;
+  `else
+    hold_start = sw[4] & test_start;
+    chip_rst_n = chip_rst_n & hold_start;
+  `endif
+`elsif ALVEO_BOARD // PYTONSYS_UART_BOOT
+    chip_rst_n = chip_rst_n & sw[4];
 `endif
 `ifdef PITONSYS_UART_RESET
     chip_rst_n = chip_rst_n & uart_rst_out_n;
@@ -602,7 +695,11 @@ begin
     // part of system).  Current boards supported
     // for passthru only use active low, so it always
     // expects active low
+`ifndef ALVEO_BOARD
     chipset_rst_n = sys_rst_n;
+`else
+    chipset_rst_n = sw[3]; 
+`endif
 end
 
 // If there is no passthru, we need to set the resets
@@ -644,6 +741,18 @@ assign passthru_pll_rst_n = 1'b1;
 //         .TDO(td_o) // 1-bit input: Test Data Output (TDO) input for USER function.
 //     );
 // `endif
+`ifdef ALVEO_BOARD
+    wire tck_i, tms_i, td_i, td_o;
+    // hook the RISC-V JTAG TAP into the FPGA JTAG chain
+    jtag_shell jtag_shell (
+      .dbg_jtag_tck(tck_i),
+      .dbg_jtag_tms(tms_i),
+      .dbg_jtag_tdi(td_i),
+      .dbg_jtag_tdo(td_o),
+      .dbghub_clk(core_ref_clk) // Using Core clock as some free-running clock for Debug Hub
+    );
+    wire trst_ni = 1'b1;
+`endif
 `ifdef VC707_BOARD
     wire tck_i, tms_i, trst_ni, td_i, td_o;
 
@@ -810,6 +919,18 @@ chip chip(
     .offchip_processor_noc3_data    (offchip_processor_noc3_data),
     .offchip_processor_noc3_yummy   (offchip_processor_noc3_yummy)
 `endif // endif PITON_NO_CHIP_BRIDGE
+
+  `ifdef PITON_EXTRA_MEMS
+    ,
+    .processor_mcx_noc2_data (processor_mcx_noc2_data),
+    .processor_mcx_noc2_valid(processor_mcx_noc2_valid),
+    .processor_mcx_noc2_yummy(processor_mcx_noc2_yummy),
+
+    .mcx_processor_noc3_data (mcx_processor_noc3_data),
+    .mcx_processor_noc3_valid(mcx_processor_noc3_valid),
+    .mcx_processor_noc3_yummy(mcx_processor_noc3_yummy)
+  `endif
+
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
     // Debug
@@ -941,6 +1062,16 @@ chipset chipset(
 
 // 250MHz diff input ref clock for DDR4 memory controller
 `ifdef PITONSYS_DDR4
+    `ifdef PITONSYS_PCIE
+     .pci_express_x16_rxn(pci_express_x16_rxn),
+     .pci_express_x16_rxp(pci_express_x16_rxp),
+     .pci_express_x16_txn(pci_express_x16_txn),
+     .pci_express_x16_txp(pci_express_x16_txp),
+     .pcie_gpio(pcie_gpio),
+     .pcie_perstn(pcie_perstn),
+     .pcie_refclk_n(pcie_refclk_n),
+     .pcie_refclk_p(pcie_refclk_p),
+    `endif
     .mc_clk_p(mc_clk_p),
     .mc_clk_n(mc_clk_n),
 `endif // PITONSYS_DDR4
@@ -1042,10 +1173,21 @@ chipset chipset(
     .chip_intf_credit_back(chip_intf_credit_back),
 `endif // endif PITON_NO_CHIP_BRIDGE PITON_SYS_INC_PASSTHRU
 
+  `ifdef PITON_EXTRA_MEMS
+    .processor_mcx_noc2_data (processor_mcx_noc2_data),
+    .processor_mcx_noc2_valid(processor_mcx_noc2_valid),
+    .processor_mcx_noc2_yummy(processor_mcx_noc2_yummy),
+
+    .mcx_processor_noc3_data (mcx_processor_noc3_data),
+    .mcx_processor_noc3_valid(mcx_processor_noc3_valid),
+    .mcx_processor_noc3_yummy(mcx_processor_noc3_yummy),
+  `endif
+
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
 `ifndef F1_BOARD
+`ifndef PITON_FPGA_MC_HBM
 `ifdef PITONSYS_DDR4
     .ddr_act_n(ddr_act_n),
     .ddr_bg(ddr_bg),
@@ -1056,22 +1198,33 @@ chipset chipset(
 `endif // PITONSYS_DDR4
     .ddr_addr(ddr_addr),
     .ddr_ba(ddr_ba),
+`ifndef ALVEO_BOARD
     .ddr_ck_n(ddr_ck_n),
     .ddr_ck_p(ddr_ck_p),
+`endif
     .ddr_cke(ddr_cke),
     .ddr_reset_n(ddr_reset_n),
     .ddr_dq(ddr_dq),
+`ifndef ALVEO_BOARD
     .ddr_dqs_n(ddr_dqs_n),
     .ddr_dqs_p(ddr_dqs_p),
+`endif
 `ifndef NEXYSVIDEO_BOARD
     .ddr_cs_n(ddr_cs_n),
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef XUPP3R_BOARD
     .ddr_parity(ddr_parity),
+`elsif ALVEO_BOARD
+    .ddr_parity(ddr_parity),
+    .ddr_ck_n(ddr_ck_c),
+    .ddr_ck_p(ddr_ck_t),
+    .ddr_dqs_n(ddr_dqs_c),
+    .ddr_dqs_p(ddr_dqs_t),     
 `else
     .ddr_dm(ddr_dm),
 `endif
     .ddr_odt(ddr_odt),
+`endif // `ifndef PITON_FPGA_MC_HBM
 `else //ifndef F1_BOARD
     .mc_clk(mc_clk),
     // AXI Write Address Channel Signals
@@ -1167,8 +1320,20 @@ chipset chipset(
         .net_phy_rst_n      (net_phy_rst_n),
         .net_phy_mdio_io    (net_phy_mdio_io),
         .net_phy_mdc        (net_phy_mdc),
-
-    `endif // PITON_FPGA_ETHERNETLITE
+    `elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
+         // GTY quads connected to QSFP unit on Alveo board
+      `ifdef PITON_FPGA_ETH_PORT1
+        .qsfp_ref_clk_n     (qsfp1_ref_clk_n),
+        .qsfp_ref_clk_p     (qsfp1_ref_clk_p),
+      `else
+        .qsfp_ref_clk_n     (qsfp0_ref_clk_n),
+        .qsfp_ref_clk_p     (qsfp0_ref_clk_p),
+      `endif
+        .qsfp_4x_grx_n      (qsfp_4x_grx_n),
+        .qsfp_4x_grx_p      (qsfp_4x_grx_p),
+        .qsfp_4x_gtx_n      (qsfp_4x_gtx_n),
+        .qsfp_4x_gtx_p      (qsfp_4x_gtx_p),
+    `endif // PITON_FPGA_ETH_CMAC
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -1204,7 +1369,12 @@ chipset chipset(
 `endif
 
 `ifndef XUPP3R_BOARD
+`ifdef ALVEO_BOARD
+    .hbm_cattrip(hbm_cattrip),  
+    .sw(sw[2:0]),
+`else
     .sw(sw),
+`endif
 `endif
     .leds(leds)
 

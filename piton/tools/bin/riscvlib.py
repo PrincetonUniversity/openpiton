@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright 2019 ETH Zurich and University of Bologna.
 # Copyright and related rights are licensed under the Solderpad Hardware
 # License, Version 0.51 (the "License"); you may not use this file except in
@@ -201,13 +202,53 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
     };
             ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
 
+    for i in range(len(devices)):
+        if devices[i]["name"] == "dma_pool":
+            addrBase = devices[i]["base"]
+            addrLen  = devices[i]["length"]
+            # Small hack to be able to access the whole space defined in the devices.xml file
+            # but still using just a fragment (256M) for particular dma pool.
+            addrFrag  = devices[i]["fragment"]
+            addrOnic  = addrBase + addrLen - addrFrag
+            tmpStr += '''
+    reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+        
+        eth_pool: eth_pool_node {
+            reg = <%s>;
+            compatible = "shared-dma-pool";
+        }; 
+        onic_pool: onic_pool_node {
+            reg = <%s>;
+            compatible = "shared-dma-pool";
+        }; 
+    };
+            ''' % (_reg_fmt(addrBase, addrFrag, 2, 2),
+                   _reg_fmt(addrOnic, addrFrag, 2, 2))
+            #''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2))
+
+    tmpStr += '''
+    eth0_clk: eth0_clk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <156250000>;
+    };
+    '''
+
     # TODO: this needs to be extended
     # get the number of interrupt sources
+    # When using Ethernet + DMA, the number of IRQs for Ethernet is 2 instead of 1
+    # TODO: Make a difference in the devices_$(core).xml between "net" and "dma_net", as the number of interrupts is different.
+    # TODO: An alternative is to add a field in the device xml file that holds the number of interrupts.
     numIrqs = 0
     devWithIrq = ["uart", "net"];
     for i in range(len(devices)):
         if devices[i]["name"] in devWithIrq:
             numIrqs += 1
+            if devices[i]["name"] == "net":
+                numIrqs += 1
 
 
     # get the remaining periphs
@@ -286,35 +327,55 @@ def gen_riscv_dts(devices, nCpus, cpuFreq, timeBaseFreq, periphFreq, dtsPath, ti
         if devices[i]["name"] == "net":
             addrBase = devices[i]["base"]
             addrLen  = devices[i]["length"]
+            dmaChannelMM2S = addrBase + 0x0
+            dmaChannelS2MM = addrBase + 0x30
             tmpStr += '''
-        eth: ethernet@%08x {
-            compatible = "xlnx,xps-ethernetlite-1.00.a";
-            device_type = "network";
+        ethernet0 {
+            xlnx,rxmem = <0x5f2>;
+            carv,mtu = <0x5dc>;
+            carv,no-mac;
+            device_type = "network";       
+            local-mac-address = [00 0a 35 23 07 84];
+            axistream-connected = <0xfe>;
+            compatible = "xlnx,xxv-ethernet-1.0-carv";
+            memory-region = <&eth_pool>;
+        };
+        
+        dma_eth: dma@%08x {
+            xlnx,include-dre;
+            phandle = <0xfe>;
+            #dma-cells = <1>;
+            compatible = "xlnx,axi-dma-1.00.a";
+            clock-names = "s_axi_lite_aclk", "m_axi_mm2s_aclk", "m_axi_s2mm_aclk", "m_axi_sg_aclk";
+            clocks = <&eth0_clk>, <&eth0_clk>, <&eth0_clk>, <&eth0_clk>;
             reg = <%s>;
+            interrupt-names = "mm2s_introut", "s2mm_introut";
             interrupt-parent = <&PLIC0>;
-            interrupts = <%d>;
-            local-mac-address = [ 00 18 3E 02 E3 E5 ];
-            phy-handle = <&phy0>;
-            xlnx,duplex = <0x1>;
-            xlnx,include-global-buffers = <0x1>;
-            xlnx,include-internal-loopback = <0x0>;
-            xlnx,include-mdio = <0x1>;
-            xlnx,rx-ping-pong = <0x1>;
-            xlnx,s-axi-id-width = <0x1>;
-            xlnx,tx-ping-pong = <0x1>;
-            xlnx,use-internal = <0x0>;
-            axi_ethernetlite_0_mdio: mdio {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                phy0: phy@1 {
-                    compatible = "ethernet-phy-id001C.C915";
-                    device_type = "ethernet-phy";
-                    reg = <1>;
-                };
+            interrupts = <%d %d>;
+            xlnx,addrwidth = <0x28>;
+            xlnx,include-sg;
+            xlnx,sg-length-width = <0x17>;
+            
+            dma-channel@%08x {
+                compatible = "xlnx,axi-dma-mm2s-channel";
+                dma-channels = <1>;
+                interrupts = <%d>;
+                xlnx,datawidth = <0x40>;
+                xlnx,device-id = <0x00>;
+                xlnx,include-dre;                        
+            };
+            
+            dma-channel@%08x {
+                compatible = "xlnx,axi-dma-s2mm-channel";
+                dma-channels = <1>;
+                interrupts = <%d>;
+                xlnx,datawidth = <0x40>;
+                xlnx,device-id = <0x00>;
+                xlnx,include-dre;            
             };
         };
-            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), ioDeviceNr)
-            ioDeviceNr+=1
+            ''' % (addrBase, _reg_fmt(addrBase, addrLen, 2, 2), ioDeviceNr, ioDeviceNr+1, dmaChannelMM2S, ioDeviceNr, dmaChannelS2MM, ioDeviceNr+1)
+            ioDeviceNr+=2                       
 
     tmpStr += '''
 };

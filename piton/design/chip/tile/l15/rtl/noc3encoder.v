@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 /*
 Copyright (c) 2015 Princeton University
 All rights reserved.
@@ -230,6 +231,9 @@ begin
     msg_options_2[`MSG_DATA_SIZE_] = msg_data_size;
     msg_options_2[`MSG_CACHE_TYPE_] = msg_cache_type;
     msg_options_2[`MSG_SUBLINE_VECTOR_] = msg_subline_vector;
+
+    msg_options_3[`MSG_INI_X_] = coreid_x;
+    msg_options_3[`MSG_INI_Y_] = coreid_y;
 
     msg_options_4[`MSG_LAST_SUBLINE] = msg_last_subline || (l15_noc3encoder_req_type == `L15_NOC3_REQTYPE_ICACHE_INVAL_ACK);
     msg_options_4[`MSG_SUBLINE_ID] = l15_noc3encoder_req_sequenceid;

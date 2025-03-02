@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // ========== Copyright Header Begin ============================================
 // Copyright (c) 2019 Princeton University
 // All rights reserved.
@@ -28,9 +29,12 @@
 `include "mc_define.h"
 `include "define.tmp.h"
 `include "noc_axi4_bridge_define.vh"
+import noc_axi4_bridge_pkg::*;
 
 
-module noc_axi4_bridge_deser (
+module noc_axi4_bridge_deser #(
+  parameter SWAP_ENDIANESS = 0 // swap endianess, needed when used in conjunction with a little endian core like Ariane
+) (
   input clk, 
   input rst_n, 
 
@@ -40,7 +44,7 @@ module noc_axi4_bridge_deser (
   input phy_init_done,
 
   output [`MSG_HEADER_WIDTH-1:0] header_out, 
-  output [`AXI4_DATA_WIDTH-1:0] data_out, 
+  output reg [`AXI4_DATA_WIDTH-1:0] data_out, 
   output out_val, 
   input  out_rdy
 );
@@ -54,7 +58,6 @@ localparam SEND        = 3'd4;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w1;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w2;
 reg [`NOC_DATA_WIDTH-1:0]           pkt_w3; 
-reg [`NOC_DATA_WIDTH-1:0]           in_data_buf[`PAYLOAD_LEN-1:0]; //buffer for incomming packets
 reg [`MSG_LENGTH_WIDTH-1:0]         remaining_flits; //flits remaining in current packet
 reg [2:0]                           state;
 
@@ -62,29 +65,26 @@ assign flit_in_rdy = (state != SEND) & phy_init_done;
 wire flit_in_go = flit_in_val & flit_in_rdy;
 assign out_val = (state == SEND);
 
-always @(posedge clk) begin
-  if(~rst_n) begin
-    state <= ACCEPT_W1;
-    remaining_flits <= 0;
-    pkt_w1 <= 0;
-    pkt_w2 <= 0;
-    pkt_w3 <= 0;
-  end 
-  else begin
+wire [`MSG_DATA_SIZE_WIDTH -1:0] dat_size_log;
+noc_extractSize deser_extractSize(
+                .header  (header_out),
+                .size_log(dat_size_log));
+
+wire [`NOC_DATA_WIDTH -1:0] data_swapped = SWAP_ENDIANESS ? swapData(flit_in, dat_size_log) :
+                                                                     flit_in;
+reg [$clog2(`PAYLOAD_LEN)-1 :0] dat_flit;
+always @(posedge clk)
+  if(~rst_n) state <= ACCEPT_W1;
+  else
     case (state)
       ACCEPT_W1: begin
         if (flit_in_go) begin
           state <= ACCEPT_W2;
           remaining_flits <= flit_in[`MSG_LENGTH]-1;
           pkt_w1 <= flit_in;  
+          dat_flit <= 0;
+          data_out <= `AXI4_DATA_WIDTH'h0;
         end
-        else begin
-          state <= state;
-          remaining_flits <= remaining_flits;
-          pkt_w1 <= pkt_w1;
-        end
-        pkt_w2 <= pkt_w2;
-        pkt_w3 <= pkt_w3;  
       end
       ACCEPT_W2: begin
         if (flit_in_go) begin
@@ -92,92 +92,46 @@ always @(posedge clk) begin
           remaining_flits <= remaining_flits - 1;
           pkt_w2 <= flit_in;
         end
-        else begin
-          state <= state;
-          remaining_flits <= remaining_flits;
-          pkt_w2 <= pkt_w2;
-        end
-        pkt_w1 <= pkt_w1;
-        pkt_w3 <= pkt_w3;  
       end
       ACCEPT_W3: begin
         if (flit_in_go) begin
-          if (remaining_flits == 0) begin
+          if (remaining_flits == 0)
             state <= SEND;
-            remaining_flits <= 0;
-          end
           else begin
             state <= ACCEPT_DATA;
             remaining_flits <= remaining_flits - 1;
           end
           pkt_w3 <= flit_in;  
         end
-        else begin
-          state <= state;
-          remaining_flits <= remaining_flits;
-          pkt_w3 <= pkt_w3;  
-        end
-        pkt_w1 <= pkt_w1;
-        pkt_w2 <= pkt_w2;
       end
       ACCEPT_DATA: begin
         if (flit_in_go) begin
-          if (remaining_flits == 0) begin
+          if (remaining_flits == 0)
             state <= SEND;
-            remaining_flits <= 0;
-          end
           else begin
             state <= ACCEPT_DATA;
             remaining_flits <= remaining_flits - 1;
+            dat_flit <= dat_flit + 1;
           end
         end
-        else begin
-          state <= state;
-          remaining_flits <= remaining_flits;
+        if (flit_in_val) begin
+          data_out[dat_flit * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_swapped;
         end
-        pkt_w1 <= pkt_w1;
-        pkt_w2 <= pkt_w2;
-        pkt_w3 <= pkt_w3;  
       end
       SEND: begin
-        if (out_rdy) begin
+        if (out_rdy)
           state <= ACCEPT_W1;
-          remaining_flits <= 0;
-          pkt_w1 <= 0;
-          pkt_w2 <= 0;
-          pkt_w3 <= 0;
-        end
-        else begin
-          state <= state;
-          remaining_flits <= remaining_flits;
-          pkt_w1 <= pkt_w1;
-          pkt_w2 <= pkt_w2;
-          pkt_w3 <= pkt_w3;  
-        end
+      end
+      default: begin
+        // should never end up here
+        state <= 3'bX;
+        remaining_flits <= `MSG_LENGTH_WIDTH'bX;
+        pkt_w1 <= `NOC_DATA_WIDTH'bX;
+        pkt_w2 <= `NOC_DATA_WIDTH'bX;
+        pkt_w3 <= `NOC_DATA_WIDTH'bX;
       end
     endcase // state
-  end
-end
-
-genvar i;
-generate
-  for (i = 0; i < `PAYLOAD_LEN; i = i + 1) begin
-    always @(posedge clk) begin
-      if(~rst_n) begin
-        in_data_buf[i] <= 0;
-      end 
-      else begin
-        in_data_buf[i] <= (i == remaining_flits) & flit_in_val & (state == ACCEPT_DATA) ? flit_in 
-                        : (state == SEND) & out_rdy                                     ? 0
-                        :                                                                 in_data_buf[i];
-      end
-    end
-  end
-endgenerate
-
-
 
 assign header_out = {pkt_w3, pkt_w2, pkt_w1};
-assign data_out = {in_data_buf[0], in_data_buf[1], in_data_buf[2], in_data_buf[3], in_data_buf[4], in_data_buf[5], in_data_buf[6], in_data_buf[7]};
 
 endmodule

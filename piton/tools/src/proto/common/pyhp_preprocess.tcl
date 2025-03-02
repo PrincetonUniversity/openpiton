@@ -33,9 +33,15 @@ proc pyhp_preprocess {RTL_IMPL_FILES} {
     
             # Setup temporary filename for preprocessed verilog
             set RTL_IMPL_FILENAME_LEN [string length ${RTL_IMPL_FILE}]
+            set EXT [string range ${RTL_IMPL_FILE}   [expr ${RTL_IMPL_FILENAME_LEN} - 3]  [expr ${RTL_IMPL_FILENAME_LEN} ]]
+            if { $EXT == ".sv"} {  
+            set GEN_RTL_IMPL_FILE [string range ${RTL_IMPL_FILE} 0 [expr ${RTL_IMPL_FILENAME_LEN} - 3]]
+            append GEN_RTL_IMPL_FILE "tmp.sv"
+            } else {
             set GEN_RTL_IMPL_FILE [string range ${RTL_IMPL_FILE} 0 [expr ${RTL_IMPL_FILENAME_LEN} - 2]]
             append GEN_RTL_IMPL_FILE "tmp."
             append GEN_RTL_IMPL_FILE [string index ${RTL_IMPL_FILE} [expr ${RTL_IMPL_FILENAME_LEN} - 1]]
+            }
     
             # credit goes to https://github.com/PrincetonUniversity/openpiton/issues/50 
             # and https://www.xilinx.com/support/answers/72570.html

@@ -1,3 +1,4 @@
+# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
 #
@@ -40,6 +41,9 @@ PITON_Y_TILES = int(os.environ.get('PITON_Y_TILES', '-1'))
 
 PITON_NUM_TILES = int(os.environ.get('PITON_NUM_TILES', '-1'))
 #print "//num_tiles:", num_tiles
+
+PITON_EXTRA_MEMS = int(os.environ.get('PITON_EXTRA_MEMS', '-1'))
+PITON_MC_INDICES = (os.environ.get('PITON_MC_INDICES', '0'))
 
 PITON_NETWORK_CONFIG = (os.environ.get("PITON_NETWORK_CONFIG", "2dmesh_config"))
 
@@ -269,6 +273,7 @@ def ReadDevicesXMLFile():
     # go through each field of device
     base = 0
     length = 0
+    fragment = 0
     name = ""
     noc2_in = False
     virtual = False
@@ -280,6 +285,8 @@ def ReadDevicesXMLFile():
         base = int(text, 0)
       elif tag == "length":
         length = int(text, 0)
+      elif tag == "fragment":
+        fragment = int(text, 0)        
       elif tag == "name":
         name = text
       elif tag == "noc2in":
@@ -298,7 +305,7 @@ def ReadDevicesXMLFile():
     if name == "chip":
         devicesInfo.insert(0, {"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
     else:
-        devicesInfo.append({"name": name, "portnum": portnum, "base": base, "length": length, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
+        devicesInfo.append({"name": name, "portnum": portnum, "base": base, "length": length, "fragment": fragment, "noc2_in": noc2_in, "virtual": virtual, "stream_accessible":stream_accessible})
 
   return devicesInfo
 
@@ -329,3 +336,51 @@ def GenBramFPGA(depth, width):
         end
       endmodule
     """ % (depth, width, depth_log2, width, depth_log2, width, width, depth, width))
+    
+    
+def get_manhattan_distance(p, q):
+    """ 
+    Return the manhattan distance between points p and q
+    assuming both to have the same number of dimensions
+    """
+    # sum of absolute difference between coordinates
+    distance = 0
+    for p_i,q_i in zip(p,q):
+        distance += abs(p_i - q_i)    
+    return distance   
+    
+#this function in also existed in sims,2. make sure both behave the same     
+def get_mc_mapping(piton_X,piton_Y,indices,mc_num,net_conf):
+    mc_list = indices.split(",")   
+    edge_idx = 0;
+    mc_map=[]
+    for i in range(piton_X):
+        for j in range(piton_Y):
+            currentid = (i, j);
+            flatid = i + (j * piton_X);
+            exists = str(flatid) in mc_list
+            endp = piton_X * piton_Y;            
+            if (net_conf != "xbar_config" and edge_idx < mc_num and exists == True):
+                index= mc_list.index(str(flatid))
+                if (i == 0 and j != 0): # Tile 0 west port is occupied by "offchip" connection
+                    endp = endp + piton_X + piton_X + j;
+                    mc_map.insert(index,{'id':flatid,'x':i,'y':j,'n':0,'p':'W','endp':endp})
+                    edge_idx += 1
+
+                elif (j == piton_Y-1): #  and i != 0
+                    endp = endp + piton_X + i;
+                    mc_map.insert(index,{'id':flatid,'x':i,'y':j,'n':0,'p':'S','endp':endp})
+                    edge_idx += 1
+
+                elif (i == piton_X-1): # and j != PITON_Y_TILES-1
+                    endp = endp + piton_X + piton_X + piton_Y + j;
+                    mc_map.insert(index,{'id':flatid,'x':i,'y':j,'n':0,'p':'E','endp':endp})
+                    edge_idx += 1
+
+                elif (j == 0): # and i != PITON_X_TILES-1
+                    endp = endp + i;
+                    mc_map.insert(index,{'id':flatid,'x':i,'y':j,'n':0,'p':'N','endp':endp})
+                    edge_idx += 1
+                else: 
+                    sys.stderr.write("Fatal: %s is not an edge router\n" % flatid)    
+    return mc_map

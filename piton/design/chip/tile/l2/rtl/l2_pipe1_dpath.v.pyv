@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 /*
 Copyright (c) 2015 Princeton University
 All rights reserved.
@@ -115,6 +116,8 @@ module l2_pipe1_dpath(
     input wire [`MSG_SRC_CHIPID_WIDTH-1:0] msg_src_chipid_S1,
     input wire [`MSG_SRC_X_WIDTH-1:0] msg_src_x_S1,
     input wire [`MSG_SRC_Y_WIDTH-1:0] msg_src_y_S1,
+    input wire [`MSG_SRC_X_WIDTH-1:0] msg_ini_x_S1,
+    input wire [`MSG_SRC_Y_WIDTH-1:0] msg_ini_y_S1,
     input wire [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits_S1,
     input wire [`MSG_SDID_WIDTH-1:0] msg_sdid_S1,
     input wire [`MSG_LSID_WIDTH-1:0] msg_lsid_S1,
@@ -295,6 +298,8 @@ module l2_pipe1_dpath(
     output reg [`MSG_SRC_CHIPID_WIDTH-1:0] msg_send_dst_chipid_S4,
     output reg [`MSG_SRC_X_WIDTH-1:0] msg_send_dst_x_S4,
     output reg [`MSG_SRC_Y_WIDTH-1:0] msg_send_dst_y_S4,
+    output reg [`MSG_SRC_X_WIDTH-1:0] msg_send_ini_x_S4,
+    output reg [`MSG_SRC_Y_WIDTH-1:0] msg_send_ini_y_S4,
     output reg [`MSG_SRC_FBITS_WIDTH-1:0] msg_send_dst_fbits_S4,
     output reg [`L2_DATA_DATA_WIDTH-1:0] msg_send_data_S4,
 
@@ -327,6 +332,8 @@ reg [`MSG_MSHRID_WIDTH-1:0] mshrid_S1;
 reg [`MSG_SRC_CHIPID_WIDTH-1:0] src_chipid_S1;
 reg [`MSG_SRC_X_WIDTH-1:0] src_x_S1;
 reg [`MSG_SRC_Y_WIDTH-1:0] src_y_S1;
+reg [`MSG_SRC_X_WIDTH-1:0] ini_x_S1;
+reg [`MSG_SRC_Y_WIDTH-1:0] ini_y_S1;
 reg [`MSG_SRC_FBITS_WIDTH-1:0] src_fbits_S1;
 reg [`MSG_SDID_WIDTH-1:0] sdid_S1;
 reg [`MSG_LSID_WIDTH-1:0] lsid_S1;
@@ -344,6 +351,8 @@ begin
         src_chipid_S1 = mshr_src_chipid_S1;
         src_x_S1 = mshr_src_x_S1;
         src_y_S1 = mshr_src_y_S1;
+        ini_x_S1 = mshr_src_x_S1;
+        ini_y_S1 = mshr_src_y_S1;
         src_fbits_S1 = mshr_src_fbits_S1;
         sdid_S1 = mshr_sdid_S1;
         lsid_S1 = mshr_lsid_S1;
@@ -355,6 +364,8 @@ begin
         src_chipid_S1 = pending_mshr_src_chipid_S1;
         src_x_S1 = pending_mshr_src_x_S1;
         src_y_S1 = pending_mshr_src_y_S1;
+        ini_x_S1 = pending_mshr_src_x_S1;   
+        ini_y_S1 = pending_mshr_src_y_S1;   
         src_fbits_S1 = pending_mshr_src_fbits_S1;
         sdid_S1 = pending_mshr_sdid_S1;
         lsid_S1 = pending_mshr_lsid_S1;
@@ -369,6 +380,8 @@ begin
         src_chipid_S1 = msg_src_chipid_S1;
         src_x_S1 = msg_src_x_S1;
         src_y_S1 = msg_src_y_S1;
+        ini_x_S1 = msg_ini_x_S1;
+        ini_y_S1 = msg_ini_y_S1;
         src_fbits_S1 = msg_src_fbits_S1;
         sdid_S1 = msg_sdid_S1;
         lsid_S1 = msg_lsid_S1;
@@ -468,6 +481,8 @@ reg [`MSG_MSHRID_WIDTH-1:0] mshrid_S2_f;
 reg [`MSG_SRC_CHIPID_WIDTH-1:0] src_chipid_S2_f;
 reg [`MSG_SRC_X_WIDTH-1:0] src_x_S2_f;
 reg [`MSG_SRC_Y_WIDTH-1:0] src_y_S2_f;
+reg [`MSG_SRC_X_WIDTH-1:0] ini_x_S2_f;
+reg [`MSG_SRC_Y_WIDTH-1:0] ini_y_S2_f;
 reg [`MSG_SRC_FBITS_WIDTH-1:0] src_fbits_S2_f;
 reg [`MSG_SDID_WIDTH-1:0] sdid_S2_f;
 reg [`MSG_LSID_WIDTH-1:0] lsid_S2_f;
@@ -486,6 +501,8 @@ begin
         src_chipid_S2_f <= 0;
         src_x_S2_f <= 0;
         src_y_S2_f <= 0;
+        ini_x_S2_f <= 0;
+        ini_y_S2_f <= 0;
         src_fbits_S2_f <= 0;
         sdid_S2_f <= 0;
         lsid_S2_f <= 0;
@@ -502,6 +519,8 @@ begin
         src_chipid_S2_f <= src_chipid_S1;
         src_x_S2_f <= src_x_S1;
         src_y_S2_f <= src_y_S1;
+        ini_x_S2_f <= ini_x_S1;
+        ini_y_S2_f <= ini_y_S1;
         src_fbits_S2_f <= src_fbits_S1;
         sdid_S2_f <= sdid_S1;
         lsid_S2_f <= lsid_S1;
@@ -1344,6 +1363,8 @@ reg [`MSG_MSHRID_WIDTH-1:0] mshrid_S3_f;
 reg [`MSG_SRC_CHIPID_WIDTH-1:0] src_chipid_S3_f;
 reg [`MSG_SRC_X_WIDTH-1:0] src_x_S3_f;
 reg [`MSG_SRC_Y_WIDTH-1:0] src_y_S3_f;
+reg [`MSG_SRC_X_WIDTH-1:0] ini_x_S3_f;
+reg [`MSG_SRC_Y_WIDTH-1:0] ini_y_S3_f;
 reg [`MSG_SRC_FBITS_WIDTH-1:0] src_fbits_S3_f;
 reg [`MSG_SDID_WIDTH-1:0] sdid_S3_f;
 reg [`MSG_LSID_WIDTH-1:0] lsid_S3_f;
@@ -1374,6 +1395,8 @@ begin
         src_chipid_S3_f <= 0;
         src_x_S3_f <= 0;
         src_y_S3_f <= 0;
+        ini_x_S3_f <= 0;
+        ini_y_S3_f <= 0;
         src_fbits_S3_f <= 0;
         sdid_S3_f <= 0;
         lsid_S3_f <= 0;
@@ -1402,6 +1425,8 @@ begin
         src_chipid_S3_f <= src_chipid_S2_f;
         src_x_S3_f <= src_x_S2_f;
         src_y_S3_f <= src_y_S2_f;
+        ini_x_S3_f <= ini_x_S2_f;
+        ini_y_S3_f <= ini_y_S2_f;
         src_fbits_S3_f <= src_fbits_S2_f;
         sdid_S3_f <= sdid_S2_f;
         lsid_S3_f <= lsid_S2_f;
@@ -1443,6 +1468,8 @@ reg [`MSG_MSHRID_WIDTH-1:0] mshrid_S4_f;
 reg [`MSG_SRC_CHIPID_WIDTH-1:0] src_chipid_S4_f;
 reg [`MSG_SRC_X_WIDTH-1:0] src_x_S4_f;
 reg [`MSG_SRC_Y_WIDTH-1:0] src_y_S4_f;
+reg [`MSG_SRC_X_WIDTH-1:0] ini_x_S4_f;
+reg [`MSG_SRC_Y_WIDTH-1:0] ini_y_S4_f;
 reg [`MSG_SRC_FBITS_WIDTH-1:0] src_fbits_S4_f;
 reg [`MSG_SDID_WIDTH-1:0] sdid_S4_f;
 reg [`MSG_LSID_WIDTH-1:0] lsid_S4_f;
@@ -1476,6 +1503,8 @@ begin
         src_chipid_S4_f <= 0;
         src_x_S4_f <= 0;
         src_y_S4_f <= 0;
+        ini_x_S4_f <= 0;
+        ini_y_S4_f <= 0;
         src_fbits_S4_f <= 0;
         sdid_S4_f <= 0;
         lsid_S4_f <= 0;
@@ -1504,6 +1533,8 @@ begin
         src_chipid_S4_f <= src_chipid_S3_f;
         src_x_S4_f <= src_x_S3_f;
         src_y_S4_f <= src_y_S3_f;
+        ini_x_S4_f <= ini_x_S3_f;
+        ini_y_S4_f <= ini_y_S3_f;
         src_fbits_S4_f <= src_fbits_S3_f;
         sdid_S4_f <= sdid_S3_f;
         lsid_S4_f <= lsid_S3_f;
@@ -2050,6 +2081,8 @@ begin
         msg_send_dst_fbits_S4 = `NOC_FBITS_L1;
     end
     endcase
+    msg_send_ini_x_S4 = ini_x_S4_f;
+    msg_send_ini_y_S4 = ini_y_S4_f;
 end
 
 always @ *

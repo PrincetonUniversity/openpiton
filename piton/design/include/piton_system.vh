@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 //
@@ -118,6 +119,8 @@
     `define PITON_CHIPSET_DIFF_CLK
 `elsif VCU118_BOARD
     `define PITON_CHIPSET_DIFF_CLK
+`elsif ALVEO_BOARD
+    `define PITON_CHIPSET_DIFF_CLK
 `elsif XUPP3R_BOARD
     `define PITON_CHIPSET_DIFF_CLK
 `elsif GENESYS2_BOARD
@@ -143,6 +146,11 @@
     `undef PITON_FPGA_SD_BOOT
     `undef PITONSYS_SPI
     `define PITONSYS_AXI4_MEM
+`elsif ALVEO_BOARD
+    `undef PITON_FPGA_SD_BOOT
+    `undef PITONSYS_SPI
+    `define PITONSYS_AXI4_MEM
+    `define PITONSYS_PCIE
 `endif
 
 // If PITON_FPGA_SD_BOOT is set we should always include SPI
@@ -159,4 +167,6 @@
     `define PITONSYS_DDR4
 `elsif XUPP3R_BOARD
     `define PITONSYS_DDR4
+`elsif ALVEO_BOARD
+    `define PITONSYS_DDR4	
 `endif

@@ -10,3 +10,5 @@ noc_fbits_splitter.v
 noc_simple_merger.v
 noc_simple_splitter.v
 sync_fifo_vr.v
+bram_sdp_1ck.v
+bram_tdp_1ck_wrfirst.v

@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 // 
@@ -150,7 +151,7 @@ always @(posedge fpga_clk) begin
     end 
     else begin
         flit_cnt <= flit_cnt;
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
         if (pending_net_interrupt & ~uart_interrupt_in_prog) begin
             net_flit_cnt <= 2'b0; 
             pending_net_interrupt <= 1'b0;
@@ -202,7 +203,7 @@ always @(posedge fpga_clk) begin
 end
 
 assign noc2_out_val = iob_buffer_val & (((flit_cnt < FLIT_TO_SEND) && !ok_iob_sent)
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
                     || (ok_iob_sent & net_interrupt_in_prog & (net_flit_cnt < FLIT_TO_SEND))
 `endif
 `ifdef PITON_UART_INTR
@@ -222,7 +223,7 @@ always @(*) begin
         end
     end 
     else begin
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
         if (net_interrupt_in_prog) begin
             if(net_flit_cnt == 2'b0) begin
                 noc2_out_data = iob_buffer_flit1;
@@ -240,7 +241,7 @@ always @(*) begin
 `endif
 `endif
 
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
 `ifdef PITON_UART_INTR
     // Make the uart_ one an else if in the case they're both defined
         else
@@ -258,14 +259,14 @@ always @(*) begin
                 noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
             end
         end
-`ifndef PITON_FPGA_ETHERNETLITE
+`ifndef PITON_FPGA_ETH
         else begin
             noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
         end
 `endif
 `endif
 
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
 `ifdef PITON_UART_INTR
         else begin
             noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
@@ -273,7 +274,7 @@ always @(*) begin
 `endif
 `endif
 
-`ifndef PITON_FPGA_ETHERNETLITE
+`ifndef PITON_FPGA_ETH
 `ifndef PITON_UART_INTR
         noc2_out_data =  {`NOC_DATA_WIDTH{1'b0}};
 `endif

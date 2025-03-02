@@ -1,3 +1,4 @@
+# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright (c) 2017 Princeton University
 # All rights reserved.
 # 
@@ -34,11 +35,37 @@ set DESIGN_INCLUDE_DIRS ""
 
 set DESIGN_DEFAULT_VERILOG_MACROS "PITON_FULL_SYSTEM PITON_FPGA_NO_DMBR MERGE_L1_DCACHE FPGA_SYN_1THREAD FPGA_FORCE_SRAM_ICACHE_TAG FPGA_FORCE_SRAM_LSU_ICACHE FPGA_FORCE_SRAM_DCACHE_TAG FPGA_FORCE_SRAM_LSU_DCACHE FPGA_FORCE_SRAM_RF16X160 FPGA_FORCE_SRAM_RF32X80 CONFIG_DISABLE_BIST_CLEAR"
 
+set CORE_RTL_FILES ""
+
+if {[info exists ::env(PITON_ARIANE)]} {
+  set fp [open "$::env(ARIANE_ROOT)/Flist.ariane" r]
+  set file_data [read $fp]
+  set data [split $file_data "\n"]
+  set ARIANE_RTL_FILES {}
+  puts "Sources from $::env(ARIANE_ROOT)/Flist.ariane:"
+  foreach line $data {
+   set line [regsub -all  {\r} $line ""]
+   set line [regsub -all  {\+.*} $line ""]
+   set line [regsub {cpp.*} $line ""]
+   set line [regsub {//.*} $line ""]
+   set line [regsub {#.*} $line ""]
+   if  {[string trim $line] eq ""} then continue
+   lappend ARIANE_RTL_FILES "$::env(ARIANE_ROOT)/${line}"
+   puts "$::env(ARIANE_ROOT)/${line}"
+  } 
+  close $fp
+
+  set CORE_RTL_FILES [concat ${CORE_RTL_FILES} ${ARIANE_RTL_FILES}]
+  puts "Including Ariane RTL files"
+}
+
+
 set DESIGN_RTL_IMPL_FILES [concat \
     ${SYSTEM_RTL_IMPL_FILES} \
     ${CHIP_RTL_IMPL_FILES} \
     ${PASSTHRU_RTL_IMPL_FILES} \
     ${CHIPSET_RTL_IMPL_FILES} \
+    ${CORE_RTL_FILES} \
 ]
 
 set DESIGN_INCLUDE_FILES [concat \

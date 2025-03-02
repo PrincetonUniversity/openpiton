@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2019 Princeton University
 // All rights reserved.
 //
@@ -30,7 +31,7 @@ module axi4_zeroer (
     input   rst_n,
 
     input   init_calib_complete_in,
-    output  init_calib_complete_out,
+    output reg init_calib_complete_out,
 
     // AXI interface in
     input wire  [`AXI4_ID_WIDTH     -1:0]     s_axi_awid,
@@ -140,29 +141,41 @@ localparam reg [`AXI4_ADDR_WIDTH-1:0] MAX_MEM_ADDR      = (BOARD_MEM_SIZE_MB * 2
 localparam REQUESTS_NEEDED  = MAX_MEM_ADDR / `AXI4_STRB_WIDTH; // basically max addr divided by size of one request
 localparam MAX_OUTSTANDING = 16;
 
-wire zeroer_req_val;
-wire zeroer_resp_rdy;
-wire req_go;
-wire resp_go;
+wire zeroer_awval;
+wire zeroer_awrdy;
+wire zeroer_wval;
+wire zeroer_wrdy;
+reg req_go;
+reg resp_go;
 reg [`AXI4_ADDR_WIDTH-1:0] req_sent;
 reg [`AXI4_ADDR_WIDTH-1:0] resp_got;
 reg [3:0] outstanding;
 wire [`AXI4_ADDR_WIDTH-1:0] zeroer_addr;
 wire zeroer_wlast;
+wire init_calib_complete_out_i;
+wire init_calib_complete_out_r;
 
-assign zeroer_req_val = init_calib_complete_in 
+assign zeroer_awval = init_calib_complete_in 
+                      & ~init_calib_complete_out_i
                       & (req_sent < REQUESTS_NEEDED) 
                       & (outstanding != MAX_OUTSTANDING-1) 
-                      & m_axi_awready
-                      & m_axi_wready
                       & rst_n;
 
-assign zeroer_resp_rdy = init_calib_complete_in 
-                       & (resp_got < REQUESTS_NEEDED) 
-                       & rst_n;
+assign zeroer_awrdy    = m_axi_awready;
+assign zeroer_wrdy     = m_axi_wready;
 
-assign req_go = zeroer_req_val;
-assign resp_go = zeroer_resp_rdy & m_axi_bvalid;
+assign zeroer_wval = 1'b1;
+
+always @(posedge clk) begin
+    if(~rst_n) begin
+        req_go <= 0;
+        resp_go <= 0;
+    end
+    else begin
+        req_go  <= zeroer_awval & zeroer_awrdy;
+        resp_go <= zeroer_wval & zeroer_wrdy;
+    end
+end
 
 
 always @(posedge clk) begin
@@ -171,7 +184,7 @@ always @(posedge clk) begin
         resp_got <= 0;
         outstanding <= 0;
     end 
-    else begin
+    else if (~init_calib_complete_out_i) begin
         req_sent <= req_sent + req_go;
         resp_got <= resp_got + resp_go;
         outstanding <= req_go & resp_go ? outstanding 
@@ -179,16 +192,16 @@ always @(posedge clk) begin
                      : resp_go          ? outstanding - 1 
                      :                    outstanding;
     end
+    init_calib_complete_out <= init_calib_complete_out_i;
 end
 
-assign init_calib_complete_out = (req_sent == REQUESTS_NEEDED) & 
+assign init_calib_complete_out_i = (req_sent == REQUESTS_NEEDED) & 
                                  (resp_got == REQUESTS_NEEDED);
 
 assign zeroer_addr = req_sent * `AXI4_STRB_WIDTH;
-assign zeroer_wlast = zeroer_req_val;
 
 always @(*) begin
-    if (~init_calib_complete_out) begin
+    if (~init_calib_complete_out_i) begin
         m_axi_awid = `AXI4_ID_WIDTH'b0;
         m_axi_awaddr = zeroer_addr;
         m_axi_awlen = `AXI4_LEN_WIDTH'b0;
@@ -200,14 +213,14 @@ always @(*) begin
         m_axi_awqos = `AXI4_QOS_WIDTH'b0;
         m_axi_awregion = `AXI4_REGION_WIDTH'b0;
         m_axi_awuser = `AXI4_USER_WIDTH'b0;
-        m_axi_awvalid = zeroer_req_val;
+        m_axi_awvalid = zeroer_awval;
 
         m_axi_wid = `AXI4_ID_WIDTH'b0;
         m_axi_wdata = {`AXI4_DATA_WIDTH{1'b0}};
         m_axi_wstrb = {`AXI4_STRB_WIDTH{1'b1}};
-        m_axi_wlast = zeroer_wlast;
+        m_axi_wlast = 1'b1;
         m_axi_wuser = `AXI4_USER_WIDTH'b0;
-        m_axi_wvalid = zeroer_req_val;
+        m_axi_wvalid = zeroer_wval;
 
         m_axi_arid = `AXI4_ID_WIDTH'b0;
         m_axi_araddr = `AXI4_ADDR_WIDTH'b0;
@@ -223,7 +236,7 @@ always @(*) begin
         m_axi_arvalid = 1'b0;
 
         m_axi_rready = 1'b0;
-        m_axi_bready = zeroer_resp_rdy;
+        m_axi_bready = 1'b1;
 
         s_axi_awready = 1'b0;
         s_axi_wready = 1'b0;

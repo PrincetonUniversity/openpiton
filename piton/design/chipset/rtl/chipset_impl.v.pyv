@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 //
@@ -121,6 +122,17 @@ module chipset_impl(
     output                                      intf_chipset_rdy_noc2,
     output                                      intf_chipset_rdy_noc3
 
+  `ifdef PITON_EXTRA_MEMS    
+    ,
+    input  [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] intf_mcx_data_noc2,
+    input  [`PITON_EXTRA_MEMS-1:0]                    intf_mcx_val_noc2,
+    output [`PITON_EXTRA_MEMS-1:0]                    intf_mcx_rdy_noc2,
+
+    output [`PITON_EXTRA_MEMS * `NOC_DATA_WIDTH -1:0] mcx_intf_data_noc3,
+    output [`PITON_EXTRA_MEMS-1:0]                    mcx_intf_val_noc3,
+    input  [`PITON_EXTRA_MEMS-1:0]                    mcx_intf_rdy_noc3
+  `endif
+
     // DRAM and I/O interfaces
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
@@ -152,8 +164,21 @@ module chipset_impl(
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
+  `ifdef PITONSYS_PCIE
+    input  [15:0] pci_express_x16_rxn,
+    input  [15:0] pci_express_x16_rxp,
+    output [15:0] pci_express_x16_txn,
+    output [15:0] pci_express_x16_txp,  
+    output [4:0] pcie_gpio,      
+    input  pcie_perstn,
+    input  pcie_refclk_n,
+    input  pcie_refclk_p,
+ `endif
 `ifdef XUPP3R_BOARD
     output                                      ddr_parity,
+`elsif ALVEO_BOARD
+      output                                    ddr_parity,
+      output                                    hbm_cattrip,
 `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
 `endif // XUPP3R_BOARD
@@ -261,7 +286,16 @@ module chipset_impl(
 
     inout                                       net_phy_mdio_io,
     output                                      net_phy_mdc
-`endif // PITON_FPGA_ETHERNETLITE
+`elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE    
+    ,
+    input          eth_init_clk,
+    input          qsfp_ref_clk_n,
+    input          qsfp_ref_clk_p,
+    input   [3:0]  qsfp_4x_grx_n,
+    input   [3:0]  qsfp_4x_grx_p,
+    output  [3:0]  qsfp_4x_gtx_n,
+    output  [3:0]  qsfp_4x_gtx_p
+`endif // PITON_FPGA_ETH_CMAC
 `endif // endif PITONSYS_IO_CTRL
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
@@ -779,6 +813,171 @@ credit_to_valrdy noc3_xbar_to_%s(
             .ddr_ready(ddr_ready)
         );
     `else
+
+      `ifdef ALVEO_BOARD
+          `ifdef PITON_FPGA_ETH_CMAC
+            // Eth DMA master channels
+            wire [`AXI4_ID_WIDTH     -1:0]     eth_sg_dma_awid;
+            wire [`AXI4_ADDR_WIDTH   -1:0]     eth_sg_dma_awaddr;
+            wire [`AXI4_LEN_WIDTH    -1:0]     eth_sg_dma_awlen;
+            wire [`AXI4_SIZE_WIDTH   -1:0]     eth_sg_dma_awsize;
+            wire [`AXI4_BURST_WIDTH  -1:0]     eth_sg_dma_awburst;
+            wire                               eth_sg_dma_awlock;
+            wire [`AXI4_CACHE_WIDTH  -1:0]     eth_sg_dma_awcache;
+            wire [`AXI4_PROT_WIDTH   -1:0]     eth_sg_dma_awprot;
+            wire [`AXI4_QOS_WIDTH    -1:0]     eth_sg_dma_awqos;
+            wire [`AXI4_REGION_WIDTH -1:0]     eth_sg_dma_awregion;
+            wire [`AXI4_USER_WIDTH   -1:0]     eth_sg_dma_awuser;
+            wire                               eth_sg_dma_awvalid;
+            wire                               eth_sg_dma_awready;
+
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_wid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_sg_dma_wdata;
+            wire  [`AXI4_STRB_WIDTH   -1:0]    eth_sg_dma_wstrb;
+            wire                               eth_sg_dma_wlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_wuser;
+            wire                               eth_sg_dma_wvalid;
+            wire                               eth_sg_dma_wready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_arid;
+            wire  [`AXI4_ADDR_WIDTH   -1:0]    eth_sg_dma_araddr;
+            wire  [`AXI4_LEN_WIDTH    -1:0]    eth_sg_dma_arlen;
+            wire  [`AXI4_SIZE_WIDTH   -1:0]    eth_sg_dma_arsize;
+            wire  [`AXI4_BURST_WIDTH  -1:0]    eth_sg_dma_arburst;
+            wire                               eth_sg_dma_arlock;
+            wire  [`AXI4_CACHE_WIDTH  -1:0]    eth_sg_dma_arcache;
+            wire  [`AXI4_PROT_WIDTH   -1:0]    eth_sg_dma_arprot;
+            wire  [`AXI4_QOS_WIDTH    -1:0]    eth_sg_dma_arqos;
+            wire  [`AXI4_REGION_WIDTH -1:0]    eth_sg_dma_arregion;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_aruser;
+            wire                               eth_sg_dma_arvalid;
+            wire                               eth_sg_dma_arready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_rid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_sg_dma_rdata;
+            wire  [`AXI4_RESP_WIDTH   -1:0]    eth_sg_dma_rresp;
+            wire                               eth_sg_dma_rlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_ruser;
+            wire                               eth_sg_dma_rvalid;
+            wire                               eth_sg_dma_rready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_sg_dma_bid;
+            wire  [`AXI4_RESP_WIDTH   -1:0]    eth_sg_dma_bresp;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_sg_dma_buser;
+            wire                               eth_sg_dma_bvalid;
+            wire                               eth_sg_dma_bready;
+
+
+            wire [`AXI4_ID_WIDTH     -1:0]     eth_tx_dma_awid;
+            wire [`AXI4_ADDR_WIDTH   -1:0]     eth_tx_dma_awaddr;
+            wire [`AXI4_LEN_WIDTH    -1:0]     eth_tx_dma_awlen;
+            wire [`AXI4_SIZE_WIDTH   -1:0]     eth_tx_dma_awsize;
+            wire [`AXI4_BURST_WIDTH  -1:0]     eth_tx_dma_awburst;
+            wire                               eth_tx_dma_awlock;
+            wire [`AXI4_CACHE_WIDTH  -1:0]     eth_tx_dma_awcache;
+            wire [`AXI4_PROT_WIDTH   -1:0]     eth_tx_dma_awprot;
+            wire [`AXI4_QOS_WIDTH    -1:0]     eth_tx_dma_awqos;
+            wire [`AXI4_REGION_WIDTH -1:0]     eth_tx_dma_awregion;
+            wire [`AXI4_USER_WIDTH   -1:0]     eth_tx_dma_awuser;
+            wire                               eth_tx_dma_awvalid;
+            wire                               eth_tx_dma_awready;
+
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_wid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_tx_dma_wdata;
+            wire  [`AXI4_STRB_WIDTH   -1:0]    eth_tx_dma_wstrb;
+            wire                               eth_tx_dma_wlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_wuser;
+            wire                               eth_tx_dma_wvalid;
+            wire                               eth_tx_dma_wready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_arid;
+            wire  [`AXI4_ADDR_WIDTH   -1:0]    eth_tx_dma_araddr;
+            wire  [`AXI4_LEN_WIDTH    -1:0]    eth_tx_dma_arlen;
+            wire  [`AXI4_SIZE_WIDTH   -1:0]    eth_tx_dma_arsize;
+            wire  [`AXI4_BURST_WIDTH  -1:0]    eth_tx_dma_arburst;
+            wire                               eth_tx_dma_arlock;
+            wire  [`AXI4_CACHE_WIDTH  -1:0]    eth_tx_dma_arcache;
+            wire  [`AXI4_PROT_WIDTH   -1:0]    eth_tx_dma_arprot;
+            wire  [`AXI4_QOS_WIDTH    -1:0]    eth_tx_dma_arqos;
+            wire  [`AXI4_REGION_WIDTH -1:0]    eth_tx_dma_arregion;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_aruser;
+            wire                               eth_tx_dma_arvalid;
+            wire                               eth_tx_dma_arready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_tx_dma_rid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_tx_dma_rdata;
+            wire  [`AXI4_RESP_WIDTH   -1:0]    eth_tx_dma_rresp;
+            wire                               eth_tx_dma_rlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_tx_dma_ruser;
+            wire                               eth_tx_dma_rvalid;
+            wire                               eth_tx_dma_rready;
+     
+            wire [`AXI4_ID_WIDTH     -1:0]     eth_tx_dma_bid;
+            wire [`AXI4_RESP_WIDTH   -1:0]     eth_tx_dma_bresp;
+            wire [`AXI4_USER_WIDTH   -1:0]     eth_tx_dma_buser;
+            wire                               eth_tx_dma_bvalid;
+            wire                               eth_tx_dma_bready;
+
+            wire                               eth_tx_dma_clk;
+            wire                               eth_tx_dma_rstn;
+
+
+            wire [`AXI4_ID_WIDTH     -1:0]     eth_rx_dma_awid;
+            wire [`AXI4_ADDR_WIDTH   -1:0]     eth_rx_dma_awaddr;
+            wire [`AXI4_LEN_WIDTH    -1:0]     eth_rx_dma_awlen;
+            wire [`AXI4_SIZE_WIDTH   -1:0]     eth_rx_dma_awsize;
+            wire [`AXI4_BURST_WIDTH  -1:0]     eth_rx_dma_awburst;
+            wire                               eth_rx_dma_awlock;
+            wire [`AXI4_CACHE_WIDTH  -1:0]     eth_rx_dma_awcache;
+            wire [`AXI4_PROT_WIDTH   -1:0]     eth_rx_dma_awprot;
+            wire [`AXI4_QOS_WIDTH    -1:0]     eth_rx_dma_awqos;
+            wire [`AXI4_REGION_WIDTH -1:0]     eth_rx_dma_awregion;
+            wire [`AXI4_USER_WIDTH   -1:0]     eth_rx_dma_awuser;
+            wire                               eth_rx_dma_awvalid;
+            wire                               eth_rx_dma_awready;
+
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_wid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_rx_dma_wdata;
+            wire  [`AXI4_STRB_WIDTH   -1:0]    eth_rx_dma_wstrb;
+            wire                               eth_rx_dma_wlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_wuser;
+            wire                               eth_rx_dma_wvalid;
+            wire                               eth_rx_dma_wready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_arid;
+            wire  [`AXI4_ADDR_WIDTH   -1:0]    eth_rx_dma_araddr;
+            wire  [`AXI4_LEN_WIDTH    -1:0]    eth_rx_dma_arlen;
+            wire  [`AXI4_SIZE_WIDTH   -1:0]    eth_rx_dma_arsize;
+            wire  [`AXI4_BURST_WIDTH  -1:0]    eth_rx_dma_arburst;
+            wire                               eth_rx_dma_arlock;
+            wire  [`AXI4_CACHE_WIDTH  -1:0]    eth_rx_dma_arcache;
+            wire  [`AXI4_PROT_WIDTH   -1:0]    eth_rx_dma_arprot;
+            wire  [`AXI4_QOS_WIDTH    -1:0]    eth_rx_dma_arqos;
+            wire  [`AXI4_REGION_WIDTH -1:0]    eth_rx_dma_arregion;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_aruser;
+            wire                               eth_rx_dma_arvalid;
+            wire                               eth_rx_dma_arready;
+     
+            wire  [`AXI4_ID_WIDTH     -1:0]    eth_rx_dma_rid;
+            wire  [`AXI4_DATA_WIDTH   -1:0]    eth_rx_dma_rdata;
+            wire  [`AXI4_RESP_WIDTH   -1:0]    eth_rx_dma_rresp;
+            wire                               eth_rx_dma_rlast;
+            wire  [`AXI4_USER_WIDTH   -1:0]    eth_rx_dma_ruser;
+            wire                               eth_rx_dma_rvalid;
+            wire                               eth_rx_dma_rready;
+     
+            wire [`AXI4_ID_WIDTH     -1:0]     eth_rx_dma_bid;
+            wire [`AXI4_RESP_WIDTH   -1:0]     eth_rx_dma_bresp;
+            wire [`AXI4_USER_WIDTH   -1:0]     eth_rx_dma_buser;
+            wire                               eth_rx_dma_bvalid;
+            wire                               eth_rx_dma_bready;
+
+            wire                               eth_rx_dma_clk;
+            wire                               eth_rx_dma_rstn;
+
+          `endif //`ifdef PITON_FPGA_ETH_CMAC
+      `endif //`ifdef ALVEO_BOARD
+
         mc_top mc_top(
             .mc_ui_clk_sync_rst(mc_ui_clk_sync_rst),
 
@@ -793,6 +992,16 @@ credit_to_valrdy noc3_xbar_to_%s(
             .mc_flit_out_data(mem_buf_noc3_data),
             .mc_flit_out_rdy(buf_mem_noc3_ready),
 
+          `ifdef PITON_EXTRA_MEMS
+            .mcx_flit_in_val (intf_mcx_val_noc2 ),
+            .mcx_flit_in_data(intf_mcx_data_noc2),
+            .mcx_flit_in_rdy (intf_mcx_rdy_noc2 ),
+
+            .mcx_flit_out_val (mcx_intf_val_noc3 ),
+            .mcx_flit_out_data(mcx_intf_data_noc3),
+            .mcx_flit_out_rdy (mcx_intf_rdy_noc3 ),
+           `endif
+
             .uart_boot_en(uart_boot_en),
             .init_calib_complete_out(init_calib_complete),
 
@@ -801,6 +1010,16 @@ credit_to_valrdy noc3_xbar_to_%s(
             .sys_clk_n(mc_clk_n),
             .ddr_act_n(ddr_act_n),
             .ddr_bg(ddr_bg),
+        `ifdef PITONSYS_PCIE
+            .pci_express_x16_rxn(pci_express_x16_rxn),
+            .pci_express_x16_rxp(pci_express_x16_rxp),
+            .pci_express_x16_txn(pci_express_x16_txn),
+            .pci_express_x16_txp(pci_express_x16_txp),
+            .pcie_gpio(pcie_gpio),
+            .pcie_perstn(pcie_perstn),
+            .pcie_refclk_n(pcie_refclk_n),
+            .pcie_refclk_p(pcie_refclk_p),
+        `endif
         `else // PITONSYS_DDR4
             .sys_clk(mc_clk),
             .ddr_cas_n(ddr_cas_n),
@@ -822,6 +1041,168 @@ credit_to_valrdy noc3_xbar_to_%s(
         `endif // endif NEXYSVIDEO_BOARD
         `ifdef XUPP3R_BOARD
             .ddr_parity(ddr_parity),
+        `elsif ALVEO_BOARD
+          `ifdef PITON_FPGA_ETH_CMAC
+            .eth_sg_dma_awid      (eth_sg_dma_awid   ),
+            .eth_sg_dma_awaddr    (eth_sg_dma_awaddr ),
+            .eth_sg_dma_awlen     (eth_sg_dma_awlen  ),
+            .eth_sg_dma_awsize    (eth_sg_dma_awsize ),
+            .eth_sg_dma_awburst   (eth_sg_dma_awburst),
+            .eth_sg_dma_awlock    (eth_sg_dma_awlock ),
+            .eth_sg_dma_awcache   (eth_sg_dma_awcache),
+            .eth_sg_dma_awprot    (eth_sg_dma_awprot ),
+            .eth_sg_dma_awqos     (eth_sg_dma_awqos  ),
+            .eth_sg_dma_awregion  (eth_sg_dma_awregion),
+            .eth_sg_dma_awuser    (eth_sg_dma_awuser ),
+            .eth_sg_dma_awvalid   (eth_sg_dma_awvalid ),
+            .eth_sg_dma_awready   (eth_sg_dma_awready ),
+                            
+            .eth_sg_dma_wid       (eth_sg_dma_wid   ),
+            .eth_sg_dma_wdata     (eth_sg_dma_wdata ),
+            .eth_sg_dma_wstrb     (eth_sg_dma_wstrb ),
+            .eth_sg_dma_wlast     (eth_sg_dma_wlast ),
+            .eth_sg_dma_wuser     (eth_sg_dma_wuser ),
+            .eth_sg_dma_wvalid    (eth_sg_dma_wvalid),
+            .eth_sg_dma_wready    (eth_sg_dma_wready),
+                            
+            .eth_sg_dma_arid      (eth_sg_dma_arid  ),
+            .eth_sg_dma_araddr    (eth_sg_dma_araddr),
+            .eth_sg_dma_arlen     (eth_sg_dma_arlen ),
+            .eth_sg_dma_arsize    (eth_sg_dma_arsize),
+            .eth_sg_dma_arburst   (eth_sg_dma_arburst ),
+            .eth_sg_dma_arlock    (eth_sg_dma_arlock  ),
+            .eth_sg_dma_arcache   (eth_sg_dma_arcache ),
+            .eth_sg_dma_arprot    (eth_sg_dma_arprot  ),
+            .eth_sg_dma_arqos     (eth_sg_dma_arqos   ),
+            .eth_sg_dma_arregion  (eth_sg_dma_arregion),
+            .eth_sg_dma_aruser    (eth_sg_dma_aruser  ),
+            .eth_sg_dma_arvalid   (eth_sg_dma_arvalid ),
+            .eth_sg_dma_arready   (eth_sg_dma_arready ),
+                            
+            .eth_sg_dma_rid       (eth_sg_dma_rid   ),
+            .eth_sg_dma_rdata     (eth_sg_dma_rdata ),
+            .eth_sg_dma_rresp     (eth_sg_dma_rresp ),
+            .eth_sg_dma_rlast     (eth_sg_dma_rlast ),
+            .eth_sg_dma_ruser     (eth_sg_dma_ruser ),
+            .eth_sg_dma_rvalid    (eth_sg_dma_rvalid ),
+            .eth_sg_dma_rready    (eth_sg_dma_rready ),
+                            
+            .eth_sg_dma_bid       (eth_sg_dma_bid    ),
+            .eth_sg_dma_bresp     (eth_sg_dma_bresp  ),
+            .eth_sg_dma_buser     (eth_sg_dma_buser  ),
+            .eth_sg_dma_bvalid    (eth_sg_dma_bvalid ),
+            .eth_sg_dma_bready    (eth_sg_dma_bready ),	
+
+
+            .eth_tx_dma_awid      (eth_tx_dma_awid   ),
+            .eth_tx_dma_awaddr    (eth_tx_dma_awaddr ),
+            .eth_tx_dma_awlen     (eth_tx_dma_awlen  ),
+            .eth_tx_dma_awsize    (eth_tx_dma_awsize ),
+            .eth_tx_dma_awburst   (eth_tx_dma_awburst),
+            .eth_tx_dma_awlock    (eth_tx_dma_awlock ),
+            .eth_tx_dma_awcache   (eth_tx_dma_awcache),
+            .eth_tx_dma_awprot    (eth_tx_dma_awprot ),
+            .eth_tx_dma_awqos     (eth_tx_dma_awqos  ),
+            .eth_tx_dma_awregion  (eth_tx_dma_awregion),
+            .eth_tx_dma_awuser    (eth_tx_dma_awuser ),
+            .eth_tx_dma_awvalid   (eth_tx_dma_awvalid ),
+            .eth_tx_dma_awready   (eth_tx_dma_awready ),
+                            
+            .eth_tx_dma_wid       (eth_tx_dma_wid   ),
+            .eth_tx_dma_wdata     (eth_tx_dma_wdata ),
+            .eth_tx_dma_wstrb     (eth_tx_dma_wstrb ),
+            .eth_tx_dma_wlast     (eth_tx_dma_wlast ),
+            .eth_tx_dma_wuser     (eth_tx_dma_wuser ),
+            .eth_tx_dma_wvalid    (eth_tx_dma_wvalid),
+            .eth_tx_dma_wready    (eth_tx_dma_wready),
+                            
+            .eth_tx_dma_arid      (eth_tx_dma_arid  ),
+            .eth_tx_dma_araddr    (eth_tx_dma_araddr),
+            .eth_tx_dma_arlen     (eth_tx_dma_arlen ),
+            .eth_tx_dma_arsize    (eth_tx_dma_arsize),
+            .eth_tx_dma_arburst   (eth_tx_dma_arburst ),
+            .eth_tx_dma_arlock    (eth_tx_dma_arlock  ),
+            .eth_tx_dma_arcache   (eth_tx_dma_arcache ),
+            .eth_tx_dma_arprot    (eth_tx_dma_arprot  ),
+            .eth_tx_dma_arqos     (eth_tx_dma_arqos   ),
+            .eth_tx_dma_arregion  (eth_tx_dma_arregion),
+            .eth_tx_dma_aruser    (eth_tx_dma_aruser  ),
+            .eth_tx_dma_arvalid   (eth_tx_dma_arvalid ),
+            .eth_tx_dma_arready   (eth_tx_dma_arready ),
+                            
+            .eth_tx_dma_rid       (eth_tx_dma_rid   ),
+            .eth_tx_dma_rdata     (eth_tx_dma_rdata ),
+            .eth_tx_dma_rresp     (eth_tx_dma_rresp ),
+            .eth_tx_dma_rlast     (eth_tx_dma_rlast ),
+            .eth_tx_dma_ruser     (eth_tx_dma_ruser ),
+            .eth_tx_dma_rvalid    (eth_tx_dma_rvalid ),
+            .eth_tx_dma_rready    (eth_tx_dma_rready ),
+                            
+            .eth_tx_dma_bid       (eth_tx_dma_bid    ),
+            .eth_tx_dma_bresp     (eth_tx_dma_bresp  ),
+            .eth_tx_dma_buser     (eth_tx_dma_buser  ),
+            .eth_tx_dma_bvalid    (eth_tx_dma_bvalid ),
+            .eth_tx_dma_bready    (eth_tx_dma_bready ),	
+
+            .eth_tx_dma_clk       (eth_tx_dma_clk ),
+            .eth_tx_dma_rstn      (eth_tx_dma_rstn),
+
+
+            .eth_rx_dma_awid      (eth_rx_dma_awid   ),
+            .eth_rx_dma_awaddr    (eth_rx_dma_awaddr ),
+            .eth_rx_dma_awlen     (eth_rx_dma_awlen  ),
+            .eth_rx_dma_awsize    (eth_rx_dma_awsize ),
+            .eth_rx_dma_awburst   (eth_rx_dma_awburst),
+            .eth_rx_dma_awlock    (eth_rx_dma_awlock ),
+            .eth_rx_dma_awcache   (eth_rx_dma_awcache),
+            .eth_rx_dma_awprot    (eth_rx_dma_awprot ),
+            .eth_rx_dma_awqos     (eth_rx_dma_awqos  ),
+            .eth_rx_dma_awregion  (eth_rx_dma_awregion),
+            .eth_rx_dma_awuser    (eth_rx_dma_awuser ),
+            .eth_rx_dma_awvalid   (eth_rx_dma_awvalid ),
+            .eth_rx_dma_awready   (eth_rx_dma_awready ),
+                            
+            .eth_rx_dma_wid       (eth_rx_dma_wid   ),
+            .eth_rx_dma_wdata     (eth_rx_dma_wdata ),
+            .eth_rx_dma_wstrb     (eth_rx_dma_wstrb ),
+            .eth_rx_dma_wlast     (eth_rx_dma_wlast ),
+            .eth_rx_dma_wuser     (eth_rx_dma_wuser ),
+            .eth_rx_dma_wvalid    (eth_rx_dma_wvalid),
+            .eth_rx_dma_wready    (eth_rx_dma_wready),
+                            
+            .eth_rx_dma_arid      (eth_rx_dma_arid  ),
+            .eth_rx_dma_araddr    (eth_rx_dma_araddr),
+            .eth_rx_dma_arlen     (eth_rx_dma_arlen ),
+            .eth_rx_dma_arsize    (eth_rx_dma_arsize),
+            .eth_rx_dma_arburst   (eth_rx_dma_arburst ),
+            .eth_rx_dma_arlock    (eth_rx_dma_arlock  ),
+            .eth_rx_dma_arcache   (eth_rx_dma_arcache ),
+            .eth_rx_dma_arprot    (eth_rx_dma_arprot  ),
+            .eth_rx_dma_arqos     (eth_rx_dma_arqos   ),
+            .eth_rx_dma_arregion  (eth_rx_dma_arregion),
+            .eth_rx_dma_aruser    (eth_rx_dma_aruser  ),
+            .eth_rx_dma_arvalid   (eth_rx_dma_arvalid ),
+            .eth_rx_dma_arready   (eth_rx_dma_arready ),
+                            
+            .eth_rx_dma_rid       (eth_rx_dma_rid   ),
+            .eth_rx_dma_rdata     (eth_rx_dma_rdata ),
+            .eth_rx_dma_rresp     (eth_rx_dma_rresp ),
+            .eth_rx_dma_rlast     (eth_rx_dma_rlast ),
+            .eth_rx_dma_ruser     (eth_rx_dma_ruser ),
+            .eth_rx_dma_rvalid    (eth_rx_dma_rvalid ),
+            .eth_rx_dma_rready    (eth_rx_dma_rready ),
+                            
+            .eth_rx_dma_bid       (eth_rx_dma_bid    ),
+            .eth_rx_dma_bresp     (eth_rx_dma_bresp  ),
+            .eth_rx_dma_buser     (eth_rx_dma_buser  ),
+            .eth_rx_dma_bvalid    (eth_rx_dma_bvalid ),
+            .eth_rx_dma_bready    (eth_rx_dma_bready ),	
+
+            .eth_rx_dma_clk       (eth_rx_dma_clk ),
+            .eth_rx_dma_rstn      (eth_rx_dma_rstn),
+          `endif //`ifdef PITON_FPGA_ETH_CMAC
+            .ddr_parity(ddr_parity),
+            .hbm_cattrip(hbm_cattrip),       
         `else
             .ddr_dm(ddr_dm),
         `endif // XUPP3R_BOARD
@@ -844,6 +1225,26 @@ fake_mem_ctrl fake_mem_ctrl(
     .noc_data_out       ( mem_buf_noc3_data  ),
     .noc_ready_out      ( buf_mem_noc3_ready )
 );
+
+`ifdef PITON_EXTRA_MEMS
+genvar i;
+generate
+for(i=0;i<`PITON_EXTRA_MEMS;i=i+1) begin: MT_
+   fake_mem_ctrl #(
+    .HMB_CHAN_NUM(i)
+   ) fake_mt ( 
+    .clk                ( chipset_clk        ), 
+    .rst_n              ( chipset_rst_n      ), 
+    .noc_valid_in       ( intf_mcx_val_noc2 [i] ), 
+    .noc_data_in        ( intf_mcx_data_noc2[i * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]  ), 
+    .noc_ready_in       ( intf_mcx_rdy_noc2 [i] ), 
+    .noc_valid_out      ( mcx_intf_val_noc3 [i] ), 
+    .noc_data_out       ( mcx_intf_data_noc3[i * `NOC_DATA_WIDTH +: `NOC_DATA_WIDTH]  ), 
+    .noc_ready_out      ( mcx_intf_rdy_noc3 [i] ) 
+	); 
+end
+endgenerate
+`endif
 
 `endif // endif PITON_FPGA_MC_DDR3
 
@@ -883,8 +1284,16 @@ fake_mem_ctrl fake_mem_ctrl(
 
 `endif // endif PITONSYS_NO_MC
 
+ `ifdef PITON_FPGA_ETH_CMAC
+   localparam integer NUM_INTR_ETH = 2;
+ `else
+   localparam integer NUM_INTR_ETH = 1;
+ `endif
 
-wire net_interrupt;
+localparam integer NUM_INTR_UART  = 1;
+localparam integer NUM_INTR_RISCV = NUM_INTR_ETH + NUM_INTR_UART;
+
+wire [NUM_INTR_ETH-1:0] net_interrupt;
 wire uart_interrupt;
 
 `ifdef PITONSYS_IOCTRL
@@ -941,7 +1350,11 @@ uart_top        uart_top (
     .uart_lb_sw                 ( 1'b0                                  ),
 `endif // endif PITONSYS_UART_LOOBACK
 
+`ifdef PITONSYS_PCIE
+    .uart_boot_en               ( pcie_gpio[2]                          ), //uart_boot_en
+`else // PITONSYS_PCIE
     .uart_boot_en               ( uart_boot_en                          ),
+`endif // PITONSYS_PCIE
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
     .init_calib_complete        (init_calib_complete_ff                 ),
@@ -953,8 +1366,8 @@ uart_top        uart_top (
 `endif // PITONSYS_NO_MC
 
     // Uncomment to connect to the switch
-    // .uart_timeout_en(uart_timeout_en),
-    .uart_timeout_en            ( 1'b1                                  ),
+    .uart_timeout_en(uart_timeout_en),
+    //.uart_timeout_en            ( 1'b1                                  ),
 
     .test_start                 ( test_start                            ),
     .test_good_end              ( test_good_end                         ),
@@ -1019,18 +1432,20 @@ uart_top        uart_top (
 `endif
 
 
-`ifdef PITON_FPGA_ETHERNETLITE
+`ifdef PITON_FPGA_ETH
 
     eth_top #(
     `ifdef PITON_RV64_PLATFORM
-      .SWAP_ENDIANESS(1)
+      .SWAP_ENDIANESS(1),
     `else
-      .SWAP_ENDIANESS(0)
+      .SWAP_ENDIANESS(0),
     `endif
+      .NUM_INTR(NUM_INTR_ETH)
     ) eth_top (
         .chipset_clk     ( chipset_clk        ),
         .rst_n           ( chipset_rst_n      ),
 
+		// Interrupts are forwarded in the chipset_clk domain
         .net_interrupt   ( net_interrupt      ),
 
         .noc_in_val      ( buf_net_noc2_valid ),
@@ -1039,8 +1454,10 @@ uart_top        uart_top (
 
         .noc_out_val     ( net_buf_noc3_valid ),
         .noc_out_data    ( net_buf_noc3_data  ),
-        .noc_out_rdy     ( buf_net_noc3_ready ),
+        .noc_out_rdy     ( buf_net_noc3_ready )
 
+    `ifdef PITON_FPGA_ETHERNETLITE
+        ,
         .net_axi_clk     ( net_axi_clk        ),
         .net_phy_rst_n   ( net_phy_rst_n      ),
 
@@ -1055,8 +1472,176 @@ uart_top        uart_top (
 
         .net_phy_mdio_io ( net_phy_mdio_io    ),
         .net_phy_mdc     ( net_phy_mdc        )
+    `elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE        
+        ,
+        .eth_sg_dma_awid      (eth_sg_dma_awid   ),
+        .eth_sg_dma_awaddr    (eth_sg_dma_awaddr ),
+        .eth_sg_dma_awlen     (eth_sg_dma_awlen  ),
+        .eth_sg_dma_awsize    (eth_sg_dma_awsize ),
+        .eth_sg_dma_awburst   (eth_sg_dma_awburst),
+        .eth_sg_dma_awlock    (eth_sg_dma_awlock ),
+        .eth_sg_dma_awcache   (eth_sg_dma_awcache),
+        .eth_sg_dma_awprot    (eth_sg_dma_awprot ),
+        .eth_sg_dma_awqos     (eth_sg_dma_awqos  ),
+        .eth_sg_dma_awregion  (eth_sg_dma_awregion),
+        .eth_sg_dma_awuser    (eth_sg_dma_awuser ),
+        .eth_sg_dma_awvalid   (eth_sg_dma_awvalid ),
+        .eth_sg_dma_awready   (eth_sg_dma_awready ),
+                            
+        .eth_sg_dma_wid       (eth_sg_dma_wid   ),
+        .eth_sg_dma_wdata     (eth_sg_dma_wdata ),
+        .eth_sg_dma_wstrb     (eth_sg_dma_wstrb ),
+        .eth_sg_dma_wlast     (eth_sg_dma_wlast ),
+        .eth_sg_dma_wuser     (eth_sg_dma_wuser ),
+        .eth_sg_dma_wvalid    (eth_sg_dma_wvalid),
+        .eth_sg_dma_wready    (eth_sg_dma_wready),
+                            
+        .eth_sg_dma_arid      (eth_sg_dma_arid  ),
+        .eth_sg_dma_araddr    (eth_sg_dma_araddr),
+        .eth_sg_dma_arlen     (eth_sg_dma_arlen ),
+        .eth_sg_dma_arsize    (eth_sg_dma_arsize),
+        .eth_sg_dma_arburst   (eth_sg_dma_arburst ),
+        .eth_sg_dma_arlock    (eth_sg_dma_arlock  ),
+        .eth_sg_dma_arcache   (eth_sg_dma_arcache ),
+        .eth_sg_dma_arprot    (eth_sg_dma_arprot  ),
+        .eth_sg_dma_arqos     (eth_sg_dma_arqos   ),
+        .eth_sg_dma_arregion  (eth_sg_dma_arregion),
+        .eth_sg_dma_aruser    (eth_sg_dma_aruser  ),
+        .eth_sg_dma_arvalid   (eth_sg_dma_arvalid ),
+        .eth_sg_dma_arready   (eth_sg_dma_arready ),
+                            
+        .eth_sg_dma_rid       (eth_sg_dma_rid   ),
+        .eth_sg_dma_rdata     (eth_sg_dma_rdata ),
+        .eth_sg_dma_rresp     (eth_sg_dma_rresp ),
+        .eth_sg_dma_rlast     (eth_sg_dma_rlast ),
+        .eth_sg_dma_ruser     (eth_sg_dma_ruser ),
+        .eth_sg_dma_rvalid    (eth_sg_dma_rvalid ),
+        .eth_sg_dma_rready    (eth_sg_dma_rready ),
+                            
+        .eth_sg_dma_bid       (eth_sg_dma_bid    ),
+        .eth_sg_dma_bresp     (eth_sg_dma_bresp  ),
+        .eth_sg_dma_buser     (eth_sg_dma_buser  ),
+        .eth_sg_dma_bvalid    (eth_sg_dma_bvalid ),
+        .eth_sg_dma_bready    (eth_sg_dma_bready ),	
+
+
+        .eth_tx_dma_awid      (eth_tx_dma_awid   ),
+        .eth_tx_dma_awaddr    (eth_tx_dma_awaddr ),
+        .eth_tx_dma_awlen     (eth_tx_dma_awlen  ),
+        .eth_tx_dma_awsize    (eth_tx_dma_awsize ),
+        .eth_tx_dma_awburst   (eth_tx_dma_awburst),
+        .eth_tx_dma_awlock    (eth_tx_dma_awlock ),
+        .eth_tx_dma_awcache   (eth_tx_dma_awcache),
+        .eth_tx_dma_awprot    (eth_tx_dma_awprot ),
+        .eth_tx_dma_awqos     (eth_tx_dma_awqos  ),
+        .eth_tx_dma_awregion  (eth_tx_dma_awregion),
+        .eth_tx_dma_awuser    (eth_tx_dma_awuser ),
+        .eth_tx_dma_awvalid   (eth_tx_dma_awvalid ),
+        .eth_tx_dma_awready   (eth_tx_dma_awready ),
+                            
+        .eth_tx_dma_wid       (eth_tx_dma_wid   ),
+        .eth_tx_dma_wdata     (eth_tx_dma_wdata ),
+        .eth_tx_dma_wstrb     (eth_tx_dma_wstrb ),
+        .eth_tx_dma_wlast     (eth_tx_dma_wlast ),
+        .eth_tx_dma_wuser     (eth_tx_dma_wuser ),
+        .eth_tx_dma_wvalid    (eth_tx_dma_wvalid),
+        .eth_tx_dma_wready    (eth_tx_dma_wready),
+                            
+        .eth_tx_dma_arid      (eth_tx_dma_arid  ),
+        .eth_tx_dma_araddr    (eth_tx_dma_araddr),
+        .eth_tx_dma_arlen     (eth_tx_dma_arlen ),
+        .eth_tx_dma_arsize    (eth_tx_dma_arsize),
+        .eth_tx_dma_arburst   (eth_tx_dma_arburst ),
+        .eth_tx_dma_arlock    (eth_tx_dma_arlock  ),
+        .eth_tx_dma_arcache   (eth_tx_dma_arcache ),
+        .eth_tx_dma_arprot    (eth_tx_dma_arprot  ),
+        .eth_tx_dma_arqos     (eth_tx_dma_arqos   ),
+        .eth_tx_dma_arregion  (eth_tx_dma_arregion),
+        .eth_tx_dma_aruser    (eth_tx_dma_aruser  ),
+        .eth_tx_dma_arvalid   (eth_tx_dma_arvalid ),
+        .eth_tx_dma_arready   (eth_tx_dma_arready ),
+                            
+        .eth_tx_dma_rid       (eth_tx_dma_rid   ),
+        .eth_tx_dma_rdata     (eth_tx_dma_rdata ),
+        .eth_tx_dma_rresp     (eth_tx_dma_rresp ),
+        .eth_tx_dma_rlast     (eth_tx_dma_rlast ),
+        .eth_tx_dma_ruser     (eth_tx_dma_ruser ),
+        .eth_tx_dma_rvalid    (eth_tx_dma_rvalid ),
+        .eth_tx_dma_rready    (eth_tx_dma_rready ),
+                            
+        .eth_tx_dma_bid       (eth_tx_dma_bid    ),
+        .eth_tx_dma_bresp     (eth_tx_dma_bresp  ),
+        .eth_tx_dma_buser     (eth_tx_dma_buser  ),
+        .eth_tx_dma_bvalid    (eth_tx_dma_bvalid ),
+        .eth_tx_dma_bready    (eth_tx_dma_bready ),	
+
+        .eth_tx_dma_clk       (eth_tx_dma_clk ),
+        .eth_tx_dma_rstn      (eth_tx_dma_rstn),
+
+
+        .eth_rx_dma_awid      (eth_rx_dma_awid   ),
+        .eth_rx_dma_awaddr    (eth_rx_dma_awaddr ),
+        .eth_rx_dma_awlen     (eth_rx_dma_awlen  ),
+        .eth_rx_dma_awsize    (eth_rx_dma_awsize ),
+        .eth_rx_dma_awburst   (eth_rx_dma_awburst),
+        .eth_rx_dma_awlock    (eth_rx_dma_awlock ),
+        .eth_rx_dma_awcache   (eth_rx_dma_awcache),
+        .eth_rx_dma_awprot    (eth_rx_dma_awprot ),
+        .eth_rx_dma_awqos     (eth_rx_dma_awqos  ),
+        .eth_rx_dma_awregion  (eth_rx_dma_awregion),
+        .eth_rx_dma_awuser    (eth_rx_dma_awuser ),
+        .eth_rx_dma_awvalid   (eth_rx_dma_awvalid ),
+        .eth_rx_dma_awready   (eth_rx_dma_awready ),
+                            
+        .eth_rx_dma_wid       (eth_rx_dma_wid   ),
+        .eth_rx_dma_wdata     (eth_rx_dma_wdata ),
+        .eth_rx_dma_wstrb     (eth_rx_dma_wstrb ),
+        .eth_rx_dma_wlast     (eth_rx_dma_wlast ),
+        .eth_rx_dma_wuser     (eth_rx_dma_wuser ),
+        .eth_rx_dma_wvalid    (eth_rx_dma_wvalid),
+        .eth_rx_dma_wready    (eth_rx_dma_wready),
+                            
+        .eth_rx_dma_arid      (eth_rx_dma_arid  ),
+        .eth_rx_dma_araddr    (eth_rx_dma_araddr),
+        .eth_rx_dma_arlen     (eth_rx_dma_arlen ),
+        .eth_rx_dma_arsize    (eth_rx_dma_arsize),
+        .eth_rx_dma_arburst   (eth_rx_dma_arburst ),
+        .eth_rx_dma_arlock    (eth_rx_dma_arlock  ),
+        .eth_rx_dma_arcache   (eth_rx_dma_arcache ),
+        .eth_rx_dma_arprot    (eth_rx_dma_arprot  ),
+        .eth_rx_dma_arqos     (eth_rx_dma_arqos   ),
+        .eth_rx_dma_arregion  (eth_rx_dma_arregion),
+        .eth_rx_dma_aruser    (eth_rx_dma_aruser  ),
+        .eth_rx_dma_arvalid   (eth_rx_dma_arvalid ),
+        .eth_rx_dma_arready   (eth_rx_dma_arready ),
+                            
+        .eth_rx_dma_rid       (eth_rx_dma_rid   ),
+        .eth_rx_dma_rdata     (eth_rx_dma_rdata ),
+        .eth_rx_dma_rresp     (eth_rx_dma_rresp ),
+        .eth_rx_dma_rlast     (eth_rx_dma_rlast ),
+        .eth_rx_dma_ruser     (eth_rx_dma_ruser ),
+        .eth_rx_dma_rvalid    (eth_rx_dma_rvalid ),
+        .eth_rx_dma_rready    (eth_rx_dma_rready ),
+                            
+        .eth_rx_dma_bid       (eth_rx_dma_bid    ),
+        .eth_rx_dma_bresp     (eth_rx_dma_bresp  ),
+        .eth_rx_dma_buser     (eth_rx_dma_buser  ),
+        .eth_rx_dma_bvalid    (eth_rx_dma_bvalid ),
+        .eth_rx_dma_bready    (eth_rx_dma_bready ),	
+
+        .eth_rx_dma_clk       (eth_rx_dma_clk ),
+        .eth_rx_dma_rstn      (eth_rx_dma_rstn),
+
+        .eth_init_clk    (eth_init_clk),
+        .qsfp_ref_clk_n  (qsfp_ref_clk_n),
+        .qsfp_ref_clk_p  (qsfp_ref_clk_p),
+        .qsfp_4x_grx_n   (qsfp_4x_grx_n),
+        .qsfp_4x_grx_p   (qsfp_4x_grx_p),
+        .qsfp_4x_gtx_n   (qsfp_4x_gtx_n),
+        .qsfp_4x_gtx_p   (qsfp_4x_gtx_p)
+    `endif // PITON_FPGA_ETH_CMAC
     );
-`endif // PITON_FPGA_ETHERNETLITE
+`endif // PITON_FPGA_ETH
 
 `else // PITONSYS_IOCTRL
 
@@ -1112,16 +1697,26 @@ fake_uart fake_uart (
 
 `ifdef PITON_RV64_PLATFORM
 
-    wire [1:0] irq_sources, irq_le;
+    wire [NUM_INTR_RISCV-1:0] irq_sources, irq_le;
     // 0:level 1:edge
     // Eth is edge, Uart is level
-    assign irq_le      = {1'b1, 1'b0};
+    wire [NUM_INTR_ETH-1:0] irq_eth_le = 0;
+
+    assign irq_le      = {irq_eth_le, 1'b0};
     assign irq_sources = {net_interrupt, uart_interrupt};
 
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
     wire ariane_boot_sel;
 `ifdef PITON_FPGA_SYNTH
+  `ifndef ALVEO_BOARD
   assign ariane_boot_sel   = uart_boot_en;
+  `else
+    `ifdef PITONSYS_UART_BOOT
+       assign ariane_boot_sel = uart_boot_en;
+    `else
+       assign ariane_boot_sel = 1'b0;
+    `endif
+  `endif
 `else
   `ifdef ARIANE_SIM_LINUX_BOOT
     assign ariane_boot_sel = 1'b0;
@@ -1148,7 +1743,7 @@ str = '''
     riscv_peripherals #(
         .DataWidth      ( `NOC_DATA_WIDTH ),
         .NumHarts       ( `PITON_NUM_TILES),
-        .NumSources     (               2 ),
+        .NumSources     ( NUM_INTR_RISCV  ),
         .SwapEndianess  (               1 ),
         .DmBase         ( 64'h%016x ),
         .RomBase        ( 64'h%016x ),

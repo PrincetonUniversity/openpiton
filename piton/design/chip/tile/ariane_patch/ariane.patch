@@ -1,0 +1,36 @@
+diff --git a/Flist.ariane b/Flist.ariane
+--- a/Flist.ariane
++++ b/Flist.ariane
+@@ -76,6 +76,8 @@ src/axi_mem_if/src/axi2mem.sv
+ src/tech_cells_generic/src/pulp_clock_gating.sv
+ src/tech_cells_generic/src/cluster_clock_inverter.sv
+ src/tech_cells_generic/src/pulp_clock_mux2.sv
++src/pmp/src/pmp.sv
++src/pmp/src/pmp_entry.sv
+ src/axi_adapter.sv
+ src/alu.sv
+ src/fpu_wrap.sv
+@@ -133,8 +135,6 @@ src/riscv-dbg/src/dmi_jtag_tap.sv
+ src/riscv-dbg/debug_rom/debug_rom.sv
+ openpiton/ariane_verilog_wrap.sv
+ openpiton/riscv_peripherals.sv
+-openpiton/bootrom/baremetal/bootrom.sv
+-openpiton/bootrom/linux/bootrom_linux.sv
+ src/rv_plic/rtl/rv_plic_target.sv
+ src/rv_plic/rtl/rv_plic_gateway.sv
+ src/rv_plic/rtl/plic_regmap.sv
+diff --git a/src/frontend/frontend.sv b/src/frontend/frontend.sv
+--- a/src/frontend/frontend.sv
++++ b/src/frontend/frontend.sv
+@@ -343,10 +343,8 @@ module frontend #(
+           icache_data_q        <= icache_data;
+           icache_vaddr_q       <= icache_dreq_i.vaddr;
+           // Map the only three exceptions which can occur in the frontend to a two bit enum
+-          if (icache_dreq_i.ex.cause == riscv::INSTR_PAGE_FAULT) begin
++          if (icache_dreq_i.ex.valid) begin
+             icache_ex_valid_q <= ariane_pkg::FE_INSTR_PAGE_FAULT;
+-          end else if (icache_dreq_i.ex.cause == riscv::INSTR_ACCESS_FAULT) begin
+-            icache_ex_valid_q <= ariane_pkg::FE_INSTR_ACCESS_FAULT;
+           end else icache_ex_valid_q <= ariane_pkg::FE_NONE;
+           // save the uppermost prediction
+           btb_q                <= btb_prediction[INSTR_PER_FETCH-1];

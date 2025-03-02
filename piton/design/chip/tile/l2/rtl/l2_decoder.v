@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 /*
 Copyright (c) 2015 Princeton University
 All rights reserved.
@@ -59,6 +60,8 @@ module l2_decoder(
     output reg [`MSG_SRC_CHIPID_WIDTH-1:0] msg_src_chipid,
     output reg [`MSG_SRC_X_WIDTH-1:0] msg_src_x,
     output reg [`MSG_SRC_Y_WIDTH-1:0] msg_src_y,
+    output reg [`MSG_SRC_X_WIDTH-1:0] msg_ini_x,
+    output reg [`MSG_SRC_Y_WIDTH-1:0] msg_ini_y,
     output reg [`MSG_SRC_FBITS_WIDTH-1:0] msg_src_fbits,
     output reg [`MSG_SDID_WIDTH-1:0] msg_sdid,
     output reg [`MSG_LSID_WIDTH-1:0] msg_lsid,
@@ -81,6 +84,8 @@ begin
     msg_src_chipid = msg_header[`MSG_SRC_CHIPID];
     msg_src_x = msg_header[`MSG_SRC_X];
     msg_src_y = msg_header[`MSG_SRC_Y];
+    msg_ini_x = msg_header[`MSG_INI_X];
+    msg_ini_y = msg_header[`MSG_INI_Y];
     msg_src_fbits = msg_header[`MSG_SRC_FBITS];
     msg_sdid = msg_header[`MSG_SDID];
     msg_lsid = msg_header[`MSG_LSID];

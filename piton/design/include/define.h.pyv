@@ -1,3 +1,4 @@
+// Modified by Barcelona Supercomputing Center on March 3rd, 2022
 // Copyright (c) 2015 Princeton University
 // All rights reserved.
 //
@@ -57,6 +58,8 @@ from pyhplib import *
 print("`define PITON_NUM_TILES %d" % PITON_NUM_TILES)
 print("`define PITON_X_TILES %d"   % PITON_X_TILES)
 print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
+if PITON_EXTRA_MEMS > 0:
+  print("`define PITON_EXTRA_MEMS %d" % PITON_EXTRA_MEMS)
 %>
 
 // NoC interface
@@ -121,6 +124,8 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_ADDR                119:80
 
 `define MSG_AMO_MASK1           135:128
+`define MSG_INI_Y               138:136
+`define MSG_INI_X               141:139
 `define MSG_LSID                147:142
 `define MSG_SDID                157:148
 `define MSG_SRC_FBITS           161:158
@@ -141,6 +146,8 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 
 // HEADER 3
 `define MSG_AMO_MASK1_           7:0
+`define MSG_INI_Y_               10:8
+`define MSG_INI_X_               13:11
 `define MSG_LSID_                19:14 // 147-128:142-128
 `define MSG_SDID_                29:20
 `define MSG_OPTIONS_3_           29:0
@@ -310,6 +317,8 @@ print("`define PITON_Y_TILES %d"   % PITON_Y_TILES)
 `define MSG_SRC_NODEID_WIDTH    `NOC_NODEID_WIDTH
 `define MSG_MSHRID_WIDTH        8
 `define MSG_L2_MISS_BITS        1
+`define MSG_INI_X_WIDTH         3
+`define MSG_INI_Y_WIDTH         3
 //Transition data size
 
 `define MSG_DATA_SIZE_WIDTH     3

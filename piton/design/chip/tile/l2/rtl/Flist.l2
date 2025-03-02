@@ -58,6 +58,7 @@ l2_config_regs.v
 l2_priority_encoder.v
 l2_broadcast_counter.v
 l2_broadcast_counter_wrap.v
+l2_to_mc.v
 
 sram_wrappers/sram_l2_tag.v
 sram_wrappers/sram_l2_data.v

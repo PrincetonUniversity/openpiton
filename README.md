@@ -505,3 +505,64 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 8. After the synthesis is done - you can go load it in your F1 instance!
 
+### Synthesizing OpenPiton for ALVEO boards
+
+This section has been added under MEEP project. For an eventual PR to OpenPiton team, we will need to review it.
+
+The flow is very simillar to synthesizing image for any other FPGA OpenPiton supports:
+
+1. Clone OpenPiton repo (MEEP version): git clone https://gitlab.bsc.es/hwdesign/frameworks/meep_openpiton.git
+
+2. cd into repo, run these bash commands:
+
+```
+    source piton/piton_settings.bash
+    source piton/ariane_setup.sh
+    (Follow instructions in the top of the README in case this is the first time you install OpenPiton in your machine.)
+```
+
+4. Run the synthesis:
+
+```
+    protosyn --board alveou280 --design system --core ariane --x_tiles 1 --y_tiles 1 --uart-dmw ddr --zeroer_off
+
+    Extra avaialble protosyn options:
+             --eth                     # adding CMAC based Ethernet unit
+             --ethport <num>           # optional board-level Ethernet port (default=0)
+
+             --hbm                     # define HBM as primary system memory
+             --multimc <num>           # implement design with multiple <num> connections to system memory (valid only for HBM)
+             --multimc_indices <coma separated list> # optional list of particular edge tiles for above `multimc` option
+
+             --bram-test hello_world.c # compiling and runniing VCS-based simulation before synthesis
+             --verdi-dbg  # creating Verdi compliant simulation database for above test (verdi run inside ./build dir (-sx is optional): verdi -ssf ./novas.fsdb)
+```
+
+This will create a Vivado design under $ROOT_DIR/build/...
+
+5. After the synthesis is complete (takes about 2-3 hours on fast PC), you can program the FPGA via JTAG
+
+6. Probably you would need to reboot to be able to use the new QDMA PCIe interface.
+
+7. Now you can download from the intranet the bbl containing the Linux kernel, a script to load it to the SDRAM and the bitstream itself in case you want to skip steps above.
+
+```
+    /home/fpga-runnerMEEP/lagarto_sdk_deploy/rv64gc/
+```
+
+In a separated bash window, open a client for the UART:
+
+```
+    picocom -b 115200 /dev/ttyUSB2
+```
+
+8. Clone FPGA tools repo: https://gitlab.bsc.es/hwdesign/fpga/integration-lab/fpga-tools.git
+
+Issue the next commands inside the downloaded repo:
+
+```
+    ./fpga/load-bitstream-onic.sh qdma <fpga_bistream_name>.bit
+	./boot_riscv/boot_acme.sh <osbi_buildroot>.bin
+```
+
+You should be able to see Linux booting on the other terminal.

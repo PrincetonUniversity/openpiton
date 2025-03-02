@@ -659,6 +659,12 @@ l2_pipe1 pipe1(
     .smc_tag_out            (smc_tag_out),
     `endif
 
+`ifdef PITON_EXTRA_MEMS
+    .chipid                 (chipid),
+    .coreid_x               (coreid_x),
+    .coreid_y               (coreid_y),
+`endif
+
     .data_clk_en            (data_clk_en_p1),
     .data_rdw_en            (data_rdw_en_p1),
     .data_addr              (data_addr_p1),

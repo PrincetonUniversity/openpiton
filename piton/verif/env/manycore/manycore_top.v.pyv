@@ -305,7 +305,11 @@ system system(
 `endif // endif PITON_CHIPSET_DIFF_CLK
 `else // ifndef PITON_CHIPSET_CLKS_GEN
 `ifndef VERILATOR
+`ifdef PITON_EXTRA_MEMS
+    .chipset_clk(core_ref_clk),
+`else
     .chipset_clk(chipset_clk),
+`endif
 `else
     .chipset_clk(core_ref_clk),
 `endif
@@ -408,7 +412,15 @@ system system(
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     .sw({4'bz, 4'd`PITON_NOC_POWER_CHIPSET_TEST_HOP_COUNT}),
 `else // ifndef PITON_NOC_POWER_CHIPSET_TEST
-    .sw(),
+    .sw(
+`ifdef PITONSYS_IOCTRL
+    `ifdef PITONSYS_UART
+        `ifdef PITONSYS_UART_BOOT
+          {1'b1, 7'bz} // applying uart_boot_en signal
+        `endif // endif PITONSYS_UART_BOOT
+    `endif // endif PITONSYS_UART
+`endif // endif PITONSYS_IOCTRL
+    ),
 `endif // endif PITON_NOC_POWER_CHIPSET_TEST
 
     // Do not provide any functionality
@@ -516,9 +528,11 @@ system system(
         .clk (jtag_clk)
         );
 
+    `ifndef PITONSYS_IOCTRL
     iob_mon iob_mon(
         .clk (chipset_clk)
     );
+    `endif
     // sas, more debug info
 
     // turn on sas interface after a delay

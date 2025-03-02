@@ -1,3 +1,4 @@
+# Modified by Barcelona Supercomputing Center on March 3rd, 2022
 # Copyright (c) 2016 Princeton University
 # All rights reserved.
 #
@@ -76,6 +77,80 @@ foreach prj_file ${ALL_FILES} {
     }
 }
 add_files -norecurse -fileset $fileset_obj $files_to_add
+
+#Generating IP cores for Alveo boards
+if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
+
+  # Create IP of Xilix MMCM and frequency setup
+  if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)] && $::env(PROTOSYN_RUNTIME_BOARD)=="alveou250"} {
+    set BRD_FREQ 300
+  } else {
+    set BRD_FREQ 100
+  }
+  puts "Setting MMCM input frequency to ${BRD_FREQ}MHz "
+  set SYS_FREQ $env(SYSTEM_FREQ)
+  puts "Setting MMCM output frequency to ${SYS_FREQ}MHz "
+  create_ip -vendor xilinx.com -library ip -name clk_wiz -version 6.0 -module_name       clk_mmcm
+  set_property -dict [list CONFIG.PRIM_SOURCE {Differential_clock_capable_pin}] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.PRIM_IN_FREQ                     "$BRD_FREQ"] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.OPTIMIZE_CLOCKING_STRUCTURE_EN        {true}] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.CLKOUT2_USED                          {true}] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.CLK_OUT1_PORT                  {chipset_clk}] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.CLK_OUT2_PORT                   {mc_sys_clk}] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.CLKOUT1_REQUESTED_OUT_FREQ       "$SYS_FREQ"] [get_ips clk_mmcm]
+  set_property -dict [list CONFIG.CLKOUT2_REQUESTED_OUT_FREQ             {100}] [get_ips clk_mmcm]
+
+  # Create IP of Xilinx UART
+  create_ip -vendor xilinx.com -library ip -name axi_uart16550 -version 2.0 -module_name uart_16550
+
+  # Create IP of Xilinx AXI traffic generator
+  create_ip -vendor xilinx.com -library ip -name axi_traffic_gen -version 3.0 -module_name atg_uart_init
+  set_property -dict [list CONFIG.C_ATG_SYSTEM_INIT_ADDR_MIF "$DV_ROOT/design/chipset/io_ctrl/xilinx/$BOARD/ip_cores/atg_uart_init/uart_addr.coe"] [get_ips atg_uart_init]
+  set_property -dict [list CONFIG.C_ATG_SYSTEM_INIT_DATA_MIF "$DV_ROOT/design/chipset/io_ctrl/xilinx/$BOARD/ip_cores/atg_uart_init/uart_data.coe"] [get_ips atg_uart_init]
+  set_property -dict [list CONFIG.C_ATG_MODE {AXI4-Lite}]                                                                                          [get_ips atg_uart_init]
+
+  # Create IP of Xilinx async FIFO
+  create_ip -vendor xilinx.com -library ip -name fifo_generator -version 13.2 -module_name     afifo_w64_d128_std
+  set_property -dict [list CONFIG.Fifo_Implementation {Independent_Clocks_Block_RAM}] [get_ips afifo_w64_d128_std]
+  set_property -dict [list CONFIG.Input_Data_Width                              {64}] [get_ips afifo_w64_d128_std]
+  set_property -dict [list CONFIG.Input_Depth                                  {128}] [get_ips afifo_w64_d128_std]
+  set_property -dict [list CONFIG.Use_Embedded_Registers                     {false}] [get_ips afifo_w64_d128_std]
+  set_property -dict [list CONFIG.Enable_Safety_Circuit                      {false}] [get_ips afifo_w64_d128_std]
+
+  # Generating PCIe-based Shell
+  # (to save BD: write_bd_tcl -force -no_project_wrapper ../piton/design/chipset/meep/meep_shell.tcl)
+  source $DV_ROOT/design/chipset/meep/meep_shell.tcl
+
+  # Generating JTAG Shell
+  # (to save BD: write_bd_tcl -force -no_project_wrapper ../piton/design/chipset/meep/jtag_shell.tcl)
+  source $DV_ROOT/design/chipset/meep/jtag_shell.tcl
+
+  # Generating Ethernet system
+  if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)]} {
+    set g_board_part [string map {"alveo" ""} $::env(PROTOSYN_RUNTIME_BOARD)]
+  }
+  if {[info exists ::env(PROTOSYN_RUNTIME_ETHPORT)] && $::env(PROTOSYN_RUNTIME_ETHPORT)=="1"} {
+    set g_eth_port "qsfp1"
+  } else {
+    set g_eth_port "qsfp0"
+  }
+  if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
+                  $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
+    set g_dma_mem "hbm"
+  } else {
+    set g_dma_mem "ddr"
+  }
+  set g_saxi_prot "AXI4-512"
+  set g_saxi_freq "split"
+  set g_max_dma_addr_width "40"
+  set g_root_dir "./"
+  puts "Generating 100GbE on port `${g_eth_port}` with AXI slave `${g_saxi_prot}` and DMA memory at `${g_dma_mem}` for board `${g_board_part}`"
+  # set argv [list $g_board_part $g_eth_port $g_dma_mem $g_saxi_freq $g_saxi_prot]
+  # set argc 5
+  # source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/gen_project.tcl
+  source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
+  cr_bd_Eth_CMAC_syst ""
+}
 
 # Set 'sources_1' fileset file properties for local files
 foreach inc_file $ALL_INCLUDE_FILES {
@@ -191,6 +266,17 @@ set_property "used_in" "synthesis implementation" $file_obj
 set_property "used_in_implementation" "1" $file_obj
 set_property "used_in_synthesis" "1" $file_obj
 
+
+if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
+  if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
+                  $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
+    add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ethernet.xdc"
+  }
+  if {![info exists ::env(PROTOSYN_RUNTIME_HBM)] ||
+                   $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
+    add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
+  }
+}
 
 # Set 'constrs_1' fileset properties
 set_property "name" "constrs_1" $fileset_obj
