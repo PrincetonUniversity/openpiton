@@ -636,10 +636,10 @@ def makeDefList(options):
             defines.append("DEBUG_ROM")
         if (options.eth):
             defines.append("ETHERNET_DMA")
+    if (options.meep_mode == True or options.board == "alveou280" or options.board == "alveou55c" or options.board == "alveou250"):
         if (options.ncmem):
             defines.append("PITON_NONCACH_MEM")
-    elif options.board == "alveou280" or options.board == "alveou55c" or options.board == "alveou250":
-        defines.append("PITON_NONCACH_MEM")
+            os.environ['PROTOSYN_RUNTIME_NCMEM'] = "TRUE"
 
     # --no-ddr option
     if (options.no_ddr == True) or (options.board == "piton_board"):
