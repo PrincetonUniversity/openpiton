@@ -298,7 +298,7 @@ set_property "used_in_synthesis" "1" $file_obj
 if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
                   $::env(PROTOSYN_RUNTIME_ETH)=="TRUE"} {
-    add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ethernet.xdc"
+    add_files -fileset [get_filesets constrs_1] "$DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/xdc/eth_syst_$g_board_part.xdc"
   }
   if {![info exists ::env(PROTOSYN_RUNTIME_HBM)] ||
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
