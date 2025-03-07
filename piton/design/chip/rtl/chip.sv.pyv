@@ -1432,6 +1432,48 @@ module chip(
                     idW = "offchip"
                     idN = "dummy"
 
+
+                if (j != 0):
+                  currenttile = currenttile.replace("in_N_", "tile_%d_%d_inN_" % (j,i));
+                  for k in [1,2,3]:
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inN_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inN_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inN_noc%d_yummy;" % (j,i,k))
+                    print("assign tile_%d_%d_inN_noc%d_data  = " % (j,i,k) + idN + "_out_S_noc%d_data;"  % (k))
+                    print("assign tile_%d_%d_inN_noc%d_valid = " % (j,i,k) + idN + "_out_S_noc%d_valid;" % (k))
+                    print("assign tile_%d_%d_inN_noc%d_yummy = " % (j,i,k) + idN + "_out_S_noc%d_yummy;" % (k))
+
+                if (j != PITON_Y_TILES - 1):
+                  currenttile = currenttile.replace("in_S_", "tile_%d_%d_inS_" % (j,i));
+                  for k in [1,2,3]:
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inS_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inS_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inS_noc%d_yummy;" % (j,i,k))
+                    print("assign tile_%d_%d_inS_noc%d_data  = " % (j,i,k) + idS + "_out_N_noc%d_data;"  % (k))
+                    print("assign tile_%d_%d_inS_noc%d_valid = " % (j,i,k) + idS + "_out_N_noc%d_valid;" % (k))
+                    print("assign tile_%d_%d_inS_noc%d_yummy = " % (j,i,k) + idS + "_out_N_noc%d_yummy;" % (k))
+
+                if (i != 0):
+                  currenttile = currenttile.replace("in_W_", "tile_%d_%d_inW_" % (j,i));
+                  for k in [1,2,3]:
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inW_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inW_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inW_noc%d_yummy;" % (j,i,k))
+                    print("assign tile_%d_%d_inW_noc%d_data  = " % (j,i,k) + idW + "_out_E_noc%d_data;"  % (k))
+                    print("assign tile_%d_%d_inW_noc%d_valid = " % (j,i,k) + idW + "_out_E_noc%d_valid;" % (k))
+                    print("assign tile_%d_%d_inW_noc%d_yummy = " % (j,i,k) + idW + "_out_E_noc%d_yummy;" % (k))
+
+                if (i != PITON_X_TILES - 1):
+                  currenttile = currenttile.replace("in_E_", "tile_%d_%d_inE_" % (j,i));
+                  for k in [1,2,3]:
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inE_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inE_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inE_noc%d_yummy;" % (j,i,k))
+                    print("assign tile_%d_%d_inE_noc%d_data  = " % (j,i,k) + idE + "_out_W_noc%d_data;"  % (k))
+                    print("assign tile_%d_%d_inE_noc%d_valid = " % (j,i,k) + idE + "_out_W_noc%d_valid;" % (k))
+                    print("assign tile_%d_%d_inE_noc%d_yummy = " % (j,i,k) + idE + "_out_W_noc%d_yummy;" % (k))
+
+
                 currenttile = currenttile.replace("in_N", idN + "_out_S");
                 currenttile = currenttile.replace("in_S", idS + "_out_N");
                 currenttile = currenttile.replace("in_E", idE + "_out_W");
