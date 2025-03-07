@@ -1316,6 +1316,14 @@ module chip(
     edge_idx=len(MC_POS)
     
       
+    print("// declaring input yummy wires before all tiles in order to connect them interchangingly")
+    for i in range(PITON_X_TILES):
+      for j in range(PITON_Y_TILES):
+        for k in [1,2,3]:
+          print("wire tile_%d_%d_inN_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inS_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inW_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inE_noc%d_yummy;" % (j,i,k))
 
     # generate the tiles
     for i in range(PITON_X_TILES):
@@ -1438,40 +1446,100 @@ module chip(
                   for k in [1,2,3]:
                     print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inN_noc%d_data;" % (j,i,k))
                     print("wire tile_%d_%d_inN_noc%d_valid;" % (j,i,k))
-                    print("wire tile_%d_%d_inN_noc%d_yummy;" % (j,i,k))
-                    print("assign tile_%d_%d_inN_noc%d_data  = " % (j,i,k) + idN + "_out_S_noc%d_data;"  % (k))
-                    print("assign tile_%d_%d_inN_noc%d_valid = " % (j,i,k) + idN + "_out_S_noc%d_valid;" % (k))
-                    print("assign tile_%d_%d_inN_noc%d_yummy = " % (j,i,k) + idN + "_out_S_noc%d_yummy;" % (k))
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inN_valrdy_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inN_valrdy_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inN_valrdy_noc%d_ready;" % (j,i,k))
+
+                    print("credit_to_valrdy tile_%d_%d_N_noc%d_c2v(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (" + idN + "_out_S_noc%d_data )," % (k))
+                    print("  .valid_in (" + idN + "_out_S_noc%d_valid)," % (k))
+                    print("  .yummy_in (" + idN + "_inS_noc%d_yummy  )," % (k))
+                    print("  .data_out (tile_%d_%d_inN_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inN_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_out(tile_%d_%d_inN_valrdy_noc%d_ready));" % (j,i,k))
+
+                    print("valrdy_to_credit tile_%d_%d_N_noc%d_v2c(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (tile_%d_%d_inN_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_in (tile_%d_%d_inN_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_in (tile_%d_%d_inN_valrdy_noc%d_ready), " % (j,i,k))
+                    print("  .data_out (tile_%d_%d_inN_noc%d_data        ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inN_noc%d_valid       ), " % (j,i,k))
+                    print("  .yummy_out(tile_%d_%d_out_N_noc%d_yummy     ));" % (j,i,k))
 
                 if (j != PITON_Y_TILES - 1):
                   currenttile = currenttile.replace("in_S_", "tile_%d_%d_inS_" % (j,i));
                   for k in [1,2,3]:
                     print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inS_noc%d_data;" % (j,i,k))
                     print("wire tile_%d_%d_inS_noc%d_valid;" % (j,i,k))
-                    print("wire tile_%d_%d_inS_noc%d_yummy;" % (j,i,k))
-                    print("assign tile_%d_%d_inS_noc%d_data  = " % (j,i,k) + idS + "_out_N_noc%d_data;"  % (k))
-                    print("assign tile_%d_%d_inS_noc%d_valid = " % (j,i,k) + idS + "_out_N_noc%d_valid;" % (k))
-                    print("assign tile_%d_%d_inS_noc%d_yummy = " % (j,i,k) + idS + "_out_N_noc%d_yummy;" % (k))
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inS_valrdy_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inS_valrdy_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inS_valrdy_noc%d_ready;" % (j,i,k))
+
+                    print("credit_to_valrdy tile_%d_%d_S_noc%d_c2v(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (" + idS + "_out_N_noc%d_data )," % (k))
+                    print("  .valid_in (" + idS + "_out_N_noc%d_valid)," % (k))
+                    print("  .yummy_in (" + idS + "_inN_noc%d_yummy  )," % (k))
+                    print("  .data_out (tile_%d_%d_inS_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inS_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_out(tile_%d_%d_inS_valrdy_noc%d_ready));" % (j,i,k))
+
+                    print("valrdy_to_credit tile_%d_%d_S_noc%d_v2c(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (tile_%d_%d_inS_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_in (tile_%d_%d_inS_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_in (tile_%d_%d_inS_valrdy_noc%d_ready), " % (j,i,k))
+                    print("  .data_out (tile_%d_%d_inS_noc%d_data        ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inS_noc%d_valid       ), " % (j,i,k))
+                    print("  .yummy_out(tile_%d_%d_out_S_noc%d_yummy     ));" % (j,i,k))
 
                 if (i != 0):
                   currenttile = currenttile.replace("in_W_", "tile_%d_%d_inW_" % (j,i));
                   for k in [1,2,3]:
                     print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inW_noc%d_data;" % (j,i,k))
                     print("wire tile_%d_%d_inW_noc%d_valid;" % (j,i,k))
-                    print("wire tile_%d_%d_inW_noc%d_yummy;" % (j,i,k))
-                    print("assign tile_%d_%d_inW_noc%d_data  = " % (j,i,k) + idW + "_out_E_noc%d_data;"  % (k))
-                    print("assign tile_%d_%d_inW_noc%d_valid = " % (j,i,k) + idW + "_out_E_noc%d_valid;" % (k))
-                    print("assign tile_%d_%d_inW_noc%d_yummy = " % (j,i,k) + idW + "_out_E_noc%d_yummy;" % (k))
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inW_valrdy_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inW_valrdy_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inW_valrdy_noc%d_ready;" % (j,i,k))
+
+                    print("credit_to_valrdy tile_%d_%d_W_noc%d_c2v(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (" + idW + "_out_E_noc%d_data )," % (k))
+                    print("  .valid_in (" + idW + "_out_E_noc%d_valid)," % (k))
+                    print("  .yummy_in (" + idW + "_inE_noc%d_yummy  )," % (k))
+                    print("  .data_out (tile_%d_%d_inW_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inW_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_out(tile_%d_%d_inW_valrdy_noc%d_ready));" % (j,i,k))
+
+                    print("valrdy_to_credit tile_%d_%d_W_noc%d_v2c(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (tile_%d_%d_inW_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_in (tile_%d_%d_inW_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_in (tile_%d_%d_inW_valrdy_noc%d_ready), " % (j,i,k))
+                    print("  .data_out (tile_%d_%d_inW_noc%d_data        ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inW_noc%d_valid       ), " % (j,i,k))
+                    print("  .yummy_out(tile_%d_%d_out_W_noc%d_yummy     ));" % (j,i,k))
 
                 if (i != PITON_X_TILES - 1):
                   currenttile = currenttile.replace("in_E_", "tile_%d_%d_inE_" % (j,i));
                   for k in [1,2,3]:
                     print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inE_noc%d_data;" % (j,i,k))
                     print("wire tile_%d_%d_inE_noc%d_valid;" % (j,i,k))
-                    print("wire tile_%d_%d_inE_noc%d_yummy;" % (j,i,k))
-                    print("assign tile_%d_%d_inE_noc%d_data  = " % (j,i,k) + idE + "_out_W_noc%d_data;"  % (k))
-                    print("assign tile_%d_%d_inE_noc%d_valid = " % (j,i,k) + idE + "_out_W_noc%d_valid;" % (k))
-                    print("assign tile_%d_%d_inE_noc%d_yummy = " % (j,i,k) + idE + "_out_W_noc%d_yummy;" % (k))
+                    print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inE_valrdy_noc%d_data;" % (j,i,k))
+                    print("wire tile_%d_%d_inE_valrdy_noc%d_valid;" % (j,i,k))
+                    print("wire tile_%d_%d_inE_valrdy_noc%d_ready;" % (j,i,k))
+
+                    print("credit_to_valrdy tile_%d_%d_E_noc%d_c2v(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (" + idE + "_out_W_noc%d_data )," % (k))
+                    print("  .valid_in (" + idE + "_out_W_noc%d_valid)," % (k))
+                    print("  .yummy_in (" + idE + "_inW_noc%d_yummy  )," % (k))
+                    print("  .data_out (tile_%d_%d_inE_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inE_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_out(tile_%d_%d_inE_valrdy_noc%d_ready));" % (j,i,k))
+
+                    print("valrdy_to_credit tile_%d_%d_E_noc%d_v2c(.clk(clk_muxed), .reset(~rst_n_inter_sync)," % (j,i,k))
+                    print("  .data_in  (tile_%d_%d_inE_valrdy_noc%d_data ), " % (j,i,k))
+                    print("  .valid_in (tile_%d_%d_inE_valrdy_noc%d_valid), " % (j,i,k))
+                    print("  .ready_in (tile_%d_%d_inE_valrdy_noc%d_ready), " % (j,i,k))
+                    print("  .data_out (tile_%d_%d_inE_noc%d_data        ), " % (j,i,k))
+                    print("  .valid_out(tile_%d_%d_inE_noc%d_valid       ), " % (j,i,k))
+                    print("  .yummy_out(tile_%d_%d_out_E_noc%d_yummy     ));" % (j,i,k))
 
 
                 currenttile = currenttile.replace("in_N", idN + "_out_S");
