@@ -5,8 +5,6 @@ description: OpenPiton Tile
 filesets:
     rtl:
         files:
-            - cpx_arbitrator.v
-            - ccx_l15_transducer.v
         depend:
             - openpiton::rtap
             - openpiton::piton_include

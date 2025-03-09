@@ -20,8 +20,10 @@
 //
 // ========== Copyright Header End ============================================
 `include "cross_module.tmp.h"
+`ifdef PITON_OST1
 `include "iop.h"
 `include "ifu.tmp.h"
+`endif
 //define and will move all the define to cross.h later
 `define PLI_QUIT  1    /* None */
 

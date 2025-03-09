@@ -1,0 +1,19 @@
+<rv64um-v sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+    rv64um-v-div       rv64um-v-div.S
+    rv64um-v-divu      rv64um-v-divu.S
+    rv64um-v-divuw     rv64um-v-divuw.S
+    rv64um-v-divw      rv64um-v-divw.S
+    rv64um-v-mul       rv64um-v-mul.S
+    rv64um-v-mulh      rv64um-v-mulh.S
+    rv64um-v-mulhsu    rv64um-v-mulhsu.S
+    rv64um-v-mulhu     rv64um-v-mulhu.S
+    rv64um-v-mulw      rv64um-v-mulw.S
+    rv64um-v-rem       rv64um-v-rem.S
+    rv64um-v-remu      rv64um-v-remu.S
+    rv64um-v-remuw     rv64um-v-remuw.S
+    rv64um-v-remw      rv64um-v-remw.S
+    </runargs>
+</rv64um-v>

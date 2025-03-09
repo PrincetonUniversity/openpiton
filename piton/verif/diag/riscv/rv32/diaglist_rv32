@@ -1,0 +1,62 @@
+<pico_tile1 sys=manycore -x_tiles=1 -y_tiles=1 -pico>
+<cmp_default name=default>
+pico-add    add.S
+pico-addi   addi.S
+pico-and    and.S
+pico-andi   andi.S
+pico-auipc  auipc.S
+pico-beq    beq.S
+pico-bge    bge.S
+pico-bgeu   bgeu.S
+pico-blt    blt.S
+pico-bltu   bltu.S
+pico-bne    bne.S
+pico-div    div.S
+pico-divu   divu.S
+pico-j      j.S
+pico-jal    jal.S
+pico-jalr   jalr.S
+pico-lb     lb.S
+pico-lbu    lbu.S
+pico-lh     lh.S
+pico-lhu    lhu.S
+pico-lui    lui.S
+pico-lw     lw.S
+pico-mul    mul.S
+pico-mulh   mulh.S
+pico-mulhsu mulhsu.S
+pico-mulhu  mulhu.S
+pico-or     or.S
+pico-ori    ori.S
+pico-rem    rem.S
+pico-remu   remu.S
+pico-sb     sb.S
+pico-sh     sh.S
+//pico-simple simple.S
+pico-sll    sll.S
+pico-slli   slli.S
+pico-slt    slt.S
+pico-slti   slti.S
+pico-sra    sra.S
+pico-srai   srai.S
+pico-srl    srl.S
+pico-srli   srli.S
+pico-sub    sub.S
+pico-sw     sw.S
+pico-xor    xor.S
+pico-xori   xori.S
+<pico_tile1_amo>
+<runargs -pico>
+pico-amoadd     amoadd_w.S
+pico-amoand     amoand_w.S
+pico-amomax     amomax_w.S
+pico-amomaxu    amomaxu_w.S
+pico-amomin     amomin_w.S
+pico-amominu    amominu_w.S
+pico-amoor      amoor_w.S
+pico-amoswap    amoswap_w.S
+pico-amoxor     amoxor_w.S
+</runargs>
+</pico_tile1_amo>
+</cmp_default>
+</pico_tile1>

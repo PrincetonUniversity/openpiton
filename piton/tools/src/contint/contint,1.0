@@ -561,7 +561,7 @@ def build_and_run_bundle (sim_start, dv_root, model_dir, dryrun, contint_dir, bu
         # Save an assembly test for DMBR in case if it fails
         if is_dmbr_assembly_gen != None:
             os.system('mkdir -p %s' % item.model_name) # TODO: check if a directory is ALWAYS created earlier by a slurm jobs
-            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/diag/assembly/princeton/dmbr_assembly.s"), item.model_name))
+            os.system('cp %s %s/' % (os.path.join(dv_root, "verif/diag/assembly/sparcv9/princeton/dmbr_assembly.s"), item.model_name))
     
     return slurm_job_ids
  

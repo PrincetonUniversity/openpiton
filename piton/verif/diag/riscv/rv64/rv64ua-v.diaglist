@@ -1,0 +1,25 @@
+<rv64ua-v sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+    rv64ua-v-amoadd_d   rv64ua-v-amoadd_d.S
+    rv64ua-v-amoadd_w   rv64ua-v-amoadd_w.S
+    rv64ua-v-amoor_d    rv64ua-v-amoor_d.S
+    rv64ua-v-amoor_w    rv64ua-v-amoor_w.S
+    rv64ua-v-amoand_d   rv64ua-v-amoand_d.S
+    rv64ua-v-amoand_w   rv64ua-v-amoand_w.S
+    rv64ua-v-amoswap_d  rv64ua-v-amoswap_d.S
+    rv64ua-v-amoswap_w  rv64ua-v-amoswap_w.S
+    rv64ua-v-amoxor_d   rv64ua-v-amoxor_d.S
+    rv64ua-v-amoxor_w   rv64ua-v-amoxor_w.S
+    rv64ua-v-amomax_d   rv64ua-v-amomax_d.S
+    rv64ua-v-amomaxu_d  rv64ua-v-amomaxu_d.S
+    rv64ua-v-amomaxu_w  rv64ua-v-amomaxu_w.S
+    rv64ua-v-amomax_w   rv64ua-v-amomax_w.S
+    rv64ua-v-amomin_d   rv64ua-v-amomin_d.S
+    rv64ua-v-amomin_w   rv64ua-v-amomin_w.S
+    rv64ua-v-amominu_d  rv64ua-v-amominu_d.S
+    rv64ua-v-amominu_w  rv64ua-v-amominu_w.S
+    rv64ua-v-lrsc       rv64ua-v-lrsc.S
+    </runargs>
+</rv64ua-v>

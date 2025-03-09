@@ -61,7 +61,7 @@ set DESIGN_RTL_IMPL_FILES [concat \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/sm_dp_mem_dc.v \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/sm_tx_fifo_bi.v \
     ${DV_ROOT}/design/chipset/axi_sd_bridge/rtl/sm_rx_fifo_bi.v \
-    ${DV_ROOT}/design/chip/tile/sparc/ifu/rtl/sparc_ifu_esl_lfsr.v \
+    ${OST1_ROOT}/ifu/rtl/sparc_ifu_esl_lfsr.v \
     ${DV_ROOT}/design/common/rtl/alarm_counter.v \
     ${CHIPSET_RTL_IMPL_FILES} \
 ]

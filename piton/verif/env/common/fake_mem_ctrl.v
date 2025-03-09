@@ -39,7 +39,6 @@
 
 `include "l2.tmp.h"
 `include "define.tmp.h"
-`include "iop.h"
 
 `define MEM_ADDR_WIDTH      64
 

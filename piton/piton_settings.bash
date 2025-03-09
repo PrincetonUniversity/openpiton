@@ -10,6 +10,8 @@
 
 export DV_ROOT=$PITON_ROOT/piton
 export MODEL_DIR=$PITON_ROOT/build
+export OST1_ROOT=$DV_ROOT/design/chip/tile/sparc
+export ARIANE_ROOT=$DV_ROOT/design/chip/tile/ariane
 
 if [ `uname -s` = "SunOS" ]
 then

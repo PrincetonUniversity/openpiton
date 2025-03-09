@@ -5,11 +5,8 @@ description: Top-level Piton includes
 filesets:
     rtl:
         files:
-            - iop.h: {is_include_file: true}
             - network_define.v: {is_include_file: true}
             - piton_system.vh: {is_include_file: true}
-            - sys.h: {is_include_file: true}
-            - tlu.h: {is_include_file: true}
             - jtag.vh: {is_include_file: true}
             - dmbr_define.v: {is_include_file: true}
         depend:
@@ -27,6 +24,5 @@ generate:
         parameters:
             process_me : [[define.h.pyv, define.tmp.h],
                           [lsu.h.pyv, lsu.tmp.h],
-                          [ifu.h.pyv, ifu.tmp.h],
                           [l15.h.pyv, l15.tmp.h],
                           [l2.h.pyv, l2.tmp.h]]

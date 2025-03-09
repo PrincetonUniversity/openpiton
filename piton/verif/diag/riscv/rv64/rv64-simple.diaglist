@@ -1,0 +1,7 @@
+<rv64-simple sys=manycore -x_tiles=1 -y_tiles=1>
+    <runargs -x_tiles=1 -y_tiles=1 -ariane -rtl_timeout=1000000>
+    ariane-hello-world  hello_world.c
+    ariane-accu         accu_test.c
+    ariane-amo-align    amo_align.c
+    </runargs>
+</rv64-simple>

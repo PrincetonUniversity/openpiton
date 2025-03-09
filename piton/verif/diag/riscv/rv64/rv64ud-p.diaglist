@@ -1,0 +1,18 @@
+<rv64ud-p sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled -rtl_timeout=1000000>
+    rv64ud-p-fadd       rv64ud-p-fadd.S
+    rv64ud-p-fclass     rv64ud-p-fclass.S
+    rv64ud-p-fcmp       rv64ud-p-fcmp.S
+    rv64ud-p-fcvt       rv64ud-p-fcvt.S
+    rv64ud-p-fcvt_w     rv64ud-p-fcvt_w.S
+    rv64ud-p-fdiv       rv64ud-p-fdiv.S
+    rv64ud-p-fmadd      rv64ud-p-fmadd.S
+    rv64ud-p-fmin       rv64ud-p-fmin.S
+    rv64ud-p-ldst       rv64ud-p-ldst.S
+    rv64ud-p-move       rv64ud-p-move.S
+    rv64ud-p-recoding   rv64ud-p-recoding.S
+    // rv64ud-p-structural rv64ud-p-structural.S
+    </runargs>
+</rv64ud-p>

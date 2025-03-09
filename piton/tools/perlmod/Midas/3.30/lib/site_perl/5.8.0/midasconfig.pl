@@ -109,7 +109,7 @@ our %PROJ_CONFIG =
 
     cpp_includes => {
 		      # from diagroot
-		     diagroot => ['verif/diag/assembly/include'],
+		     diagroot => ['verif/diag/sparcv9/assembly/include'],
 		     # from directory where midas is run
 		     startdir => ['.'],
 		     # from build directory
@@ -135,14 +135,14 @@ our %PROJ_CONFIG =
 		  },
 
     csrc_includes => {
-		      diagroot => ['verif/diag/c'],
+		      diagroot => ['verif/diag/sparcv9/c'],
 		      startdir => ['.'],
 		      builddir => [],
 		      abs      => [],
 		     },
 
     c_includes => {
-		   diagroot => ['verif/diag/c/include'],
+		   diagroot => ['verif/diag/sparcv9/c/include'],
 		   startdir => ['.'],
 		   builddir => ['.'],
 		   abs      => [],
@@ -235,7 +235,7 @@ our %PROJ_CONFIG =
 
     cpp_includes => {
               # from diagroot
-             diagroot => ['verif/diag/assembly/include'],
+             diagroot => ['verif/diag/sparcv9/assembly/include'],
              # from directory where midas is run
              startdir => ['.'],
              # from build directory
@@ -253,7 +253,7 @@ our %PROJ_CONFIG =
             },
 
     link_paths => {
-           diagroot => ['verif/diag'],
+           diagroot => ['verif/diag/sparcv9'],
            startdir => ['.'],
            builddir => [],
            abs      => [],

@@ -21,11 +21,7 @@
 // ========== Copyright Header End ============================================
 ////////////////////////////////////////////////////////
 
-`ifndef USE_TEST_TOP // don't compile if user wants to use deprecated TOPs
-`include "sys.h"
-`include "iop.h"
 `include "cross_module.tmp.h"
-`include "ifu.tmp.h"
 `include "define.tmp.h"
 `include "piton_system.vh"
 
@@ -484,9 +480,11 @@ system system(
             print(tt)
     %>
 
+`ifdef PITON_OST1
 `ifndef VERILATOR
     // T1's TSO monitor, stripped of all L2 references
     tso_mon tso_mon(`CHIP_INT_CLK, `CHIP.rst_n_inter_sync);
+`endif
 `endif
 
     // L15 MONITORS
@@ -567,5 +565,3 @@ system system(
         end*/
 
 endmodule // cmp_top
-
-`endif
