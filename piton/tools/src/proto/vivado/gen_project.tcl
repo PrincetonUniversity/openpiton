@@ -178,6 +178,17 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/gen_project.tcl
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
   cr_bd_Eth_CMAC_syst ""
+
+  # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of NOC packets)
+  # create_ip -vendor xilinx.com -library ip -name axis_interconnect -version 2.1 -module_name axis_muxer
+  # set_property -dict [list CONFIG.NUM_MI                                       {1}] [get_ips axis_muxer]
+  # set_property -dict [list CONFIG.NUM_SI                 {$env(PITON_NUM_TILES)*3}] [get_ips axis_muxer]
+  # set_property -dict [list CONFIG.ARB_ON_TLAST                                 {1}] [get_ips axis_muxer]
+  # set_property -dict [list CONFIG.ARB_ON_MAX_XFERS                             {0}] [get_ips axis_muxer]
+  # set_property -dict [list CONFIG.ARB_ALGORITHM                                {3}] [get_ips axis_muxer]
+
+  # create_ip -vendor xilinx.com -library ip -name axis_interconnect -version 2.1 -module_name axis_demuxer
+  # set_property -dict [list CONFIG.NUM_MI                 {$env(PITON_NUM_TILES)*3}] [get_ips axis_demuxer]
 }
 
 # Set 'sources_1' fileset file properties for local files
