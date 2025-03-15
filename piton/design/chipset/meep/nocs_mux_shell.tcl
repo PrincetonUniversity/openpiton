@@ -143,15 +143,16 @@ current_bd_design $design_name
   current_bd_instance $parentObj
 
 #   set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3]
-  set NOC_CHANS 1
+  set NOC_CHANS 3
 
   # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of NOC packets)
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
     CONFIG.NUM_SI $NOC_CHANS \
+    CONFIG.ARB_ALGORITHM {3} \
+    CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
   ] [get_bd_cells axis_muxer]
-   #  CONFIG.ARB_ALGORITHM {3}
 #   set_property -dict [list CONFIG.ARB_ON_TLAST                         {1}] [get_ips axis_muxer]
 #   set_property -dict [list CONFIG.ARB_ON_MAX_XFERS                     {0}] [get_ips axis_muxer]
 
@@ -171,11 +172,11 @@ current_bd_design $design_name
   connect_bd_intf_net [get_bd_intf_pins axis_muxer/M00_AXIS] [get_bd_intf_ports m_axis]
 
   # Create instance: gndx1, and set properties
-#   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
-#   set_property -dict [ list \
-#    CONFIG.CONST_VAL {0} \
-#    CONFIG.CONST_WIDTH {1} \
-#   ] $gndx1
+  set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
+  set_property -dict [ list \
+   CONFIG.CONST_VAL {0} \
+   CONFIG.CONST_WIDTH {1} \
+  ] $gndx1
 
   for {set idx 0} {$idx < $NOC_CHANS} {incr idx} {
     if {$idx > 0} {
@@ -183,10 +184,11 @@ current_bd_design $design_name
       connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
     }
 
-    # connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                         s_axis_$idx
-    set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES 8]        [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS] [get_bd_intf_ports s_axis_$idx]
+    connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                s_axis_$idx
+    # in TCL we don't have explicit log2(), so using just $NOC_CHANS instead of sufficient its logarithm
+    set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES 8 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS] [get_bd_intf_ports                        s_axis_$idx]
 
     #  make_bd_intf_pins_external [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
     #  set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx]_AXIS_0]
