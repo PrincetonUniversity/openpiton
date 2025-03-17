@@ -152,9 +152,9 @@ current_bd_design $design_name
     CONFIG.NUM_SI $NOC_CHANS \
     CONFIG.ARB_ALGORITHM {3} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_muxer]
-#   set_property -dict [list CONFIG.ARB_ON_TLAST                         {1}] [get_ips axis_muxer]
-#   set_property -dict [list CONFIG.ARB_ON_MAX_XFERS                     {0}] [get_ips axis_muxer]
 
   make_bd_pins_external         [get_bd_pins axis_muxer/ACLK]
   set_property name "xbar_clk"  [get_bd_ports ACLK_0]
