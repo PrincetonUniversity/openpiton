@@ -142,8 +142,7 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-#   set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3]
-  set NOC_CHANS 3
+  set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3]
 
   # Create IPs of Xilix AXI-stream interconnect
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
@@ -164,7 +163,7 @@ current_bd_design $design_name
   connect_bd_net [get_bd_ports xbar_rstn] [get_bd_pins axis_demuxer/S00_AXIS_ARESETN]
 
   create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                s_axis
-  # in TCL we don't have explicit log2(), so using just $NOC_CHANS instead of sufficient its logarithm
+  # in TCL we don't have explicit log2(), so using just $NOC_CHANS instead of enough its logarithm
   set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES 8 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis]
   connect_bd_intf_net [get_bd_intf_pins axis_demuxer/S00_AXIS]                                        [get_bd_intf_ports s_axis]
 
