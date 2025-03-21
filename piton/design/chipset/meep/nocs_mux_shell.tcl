@@ -164,11 +164,21 @@ current_bd_design $design_name
   make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ARESETN]
   set_property name "noc_rstn"  [get_bd_ports S00_AXIS_ARESETN_0]
 
-  connect_bd_net [get_bd_ports xbar_clk]  [get_bd_pins axis_muxer/M00_AXIS_ACLK]
-  connect_bd_net [get_bd_ports xbar_rstn] [get_bd_pins axis_muxer/M00_AXIS_ARESETN]
+  set master_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 master_fifo]
+  set_property -dict [list \
+    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.TDATA_NUM_BYTES {32} \
+    CONFIG.HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.HAS_TKEEP {1} \
+  ] [get_bd_cells master_fifo]
 
-  create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0      m_axis
-  connect_bd_intf_net [get_bd_intf_pins axis_muxer/M00_AXIS] [get_bd_intf_ports m_axis]
+  connect_bd_net [get_bd_ports xbar_clk]  [get_bd_pins axis_muxer/M00_AXIS_ACLK]    [get_bd_pins master_fifo/s_axis_aclk]
+  connect_bd_net [get_bd_ports xbar_rstn] [get_bd_pins axis_muxer/M00_AXIS_ARESETN] [get_bd_pins master_fifo/s_axis_aresetn]
+
+  create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0     m_axis
+  connect_bd_intf_net [get_bd_intf_pins master_fifo/M_AXIS] [get_bd_intf_ports m_axis]
+  connect_bd_intf_net [get_bd_intf_pins master_fifo/S_AXIS] [get_bd_intf_pins axis_muxer/M00_AXIS]
 
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]

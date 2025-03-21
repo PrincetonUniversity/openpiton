@@ -148,6 +148,9 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $NOC_CHANS \
+    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
+    CONFIG.XBAR_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.XBAR_TDATA_NUM_BYTES {8} \
   ] [get_bd_cells axis_demuxer]
 
   make_bd_pins_external         [get_bd_pins axis_demuxer/ACLK]
@@ -162,10 +165,10 @@ current_bd_design $design_name
   connect_bd_net [get_bd_ports xbar_clk]  [get_bd_pins axis_demuxer/S00_AXIS_ACLK]
   connect_bd_net [get_bd_ports xbar_rstn] [get_bd_pins axis_demuxer/S00_AXIS_ARESETN]
 
-  create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                s_axis
+  create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                                    s_axis
   # in TCL we don't have explicit log2(), so using just $NOC_CHANS instead of enough its logarithm
-  set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES 8 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis]
-  connect_bd_intf_net [get_bd_intf_pins axis_demuxer/S00_AXIS]                                        [get_bd_intf_ports s_axis]
+  set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.HAS_TKEEP 1 CONFIG.TDATA_NUM_BYTES 32 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis]
+  connect_bd_intf_net [get_bd_intf_pins axis_demuxer/S00_AXIS]                                                            [get_bd_intf_ports s_axis]
 
   for {set idx 0} {$idx < $NOC_CHANS} {incr idx} {
     if {$idx > 0} {
