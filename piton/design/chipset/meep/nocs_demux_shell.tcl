@@ -167,7 +167,7 @@ current_bd_design $design_name
 
   create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                                    s_axis
   # in TCL we don't have explicit log2(), so using just $NOC_CHANS instead of enough its logarithm
-  set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.HAS_TKEEP 1 CONFIG.TDATA_NUM_BYTES 32 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis]
+  set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.HAS_TKEEP 1 CONFIG.TDATA_NUM_BYTES 31 CONFIG.TDEST_WIDTH $NOC_CHANS] [get_bd_intf_ports s_axis]
   connect_bd_intf_net [get_bd_intf_pins axis_demuxer/S00_AXIS]                                                            [get_bd_intf_ports s_axis]
 
   for {set idx 0} {$idx < $NOC_CHANS} {incr idx} {

@@ -168,7 +168,7 @@ current_bd_design $design_name
   set_property -dict [list \
     CONFIG.FIFO_DEPTH {16} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.TDATA_NUM_BYTES {32} \
+    CONFIG.TDATA_NUM_BYTES {31} \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
     CONFIG.HAS_TKEEP {1} \
   ] [get_bd_cells master_fifo]
