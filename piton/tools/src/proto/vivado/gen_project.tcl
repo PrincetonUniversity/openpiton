@@ -309,6 +309,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
+  add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/nocs_aur.xdc"
 }
 
 # Set 'constrs_1' fileset properties
