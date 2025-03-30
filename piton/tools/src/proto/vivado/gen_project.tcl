@@ -154,9 +154,6 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   source $DV_ROOT/design/chipset/meep/jtag_shell.tcl
 
   # Generating NOCs muxer/demuxer
-  source $DV_ROOT/design/chipset/meep/nocs_mux_shell.tcl
-  source $DV_ROOT/design/chipset/meep/nocs_demux_shell.tcl
-
   # Generating Ethernet system
   if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)]} {
     set g_board_part [string map {"alveo" ""} $::env(PROTOSYN_RUNTIME_BOARD)]
@@ -182,6 +179,10 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/gen_project.tcl
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
   cr_bd_Eth_CMAC_syst ""
+
+  source $DV_ROOT/design/chipset/meep/nocs_aurora_bridge.tcl
+  source $DV_ROOT/design/chipset/meep/nocs_mux_shell.tcl
+  source $DV_ROOT/design/chipset/meep/nocs_demux_shell.tcl
 }
 
 # Set 'sources_1' fileset file properties for local files

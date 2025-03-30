@@ -366,8 +366,7 @@ module system(
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
     `endif
-`elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
-    `ifdef ALVEO_BOARD
+`elsif ALVEO_BOARD // PITON_FPGA_ETHERNETLITE
         // GTY quads connected to QSFP unit on Alveo board     
         input          qsfp0_ref_clk_n,
         input          qsfp0_ref_clk_p,
@@ -375,12 +374,16 @@ module system(
         input          qsfp1_ref_clk_n,
         input          qsfp1_ref_clk_p,
 
-        input   [3:0]  qsfp_4x_grx_n,
-        input   [3:0]  qsfp_4x_grx_p,
-        output  [3:0]  qsfp_4x_gtx_n,
-        output  [3:0]  qsfp_4x_gtx_p,
-    `endif
-`endif // PITON_FPGA_ETH_CMAC
+        input   [3:0]  eth_qsfp_4x_grx_n,
+        input   [3:0]  eth_qsfp_4x_grx_p,
+        output  [3:0]  eth_qsfp_4x_gtx_n,
+        output  [3:0]  eth_qsfp_4x_gtx_p,
+
+        input   [3:0]  aur_qsfp_4x_grx_n,
+        input   [3:0]  aur_qsfp_4x_grx_p,
+        output  [3:0]  aur_qsfp_4x_gtx_n,
+        output  [3:0]  aur_qsfp_4x_gtx_p,
+`endif // ALVEO_BOARD
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -1282,6 +1285,14 @@ chip chip(
     .mcx_processor_noc3_yummy(mcx_processor_noc3_yummy)
   `endif
 
+    ,
+    .qsfp_ref_clk_n  (qsfp0_ref_clk_n),
+    .qsfp_ref_clk_p  (qsfp0_ref_clk_p),
+    .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
+    .qsfp_4x_grx_p   (aur_qsfp_4x_grx_p),
+    .qsfp_4x_gtx_n   (aur_qsfp_4x_gtx_n),
+    .qsfp_4x_gtx_p   (aur_qsfp_4x_gtx_p)
+
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
     // Debug
@@ -1962,10 +1973,10 @@ chipset chipset(
         .qsfp_ref_clk_n     (qsfp0_ref_clk_n),
         .qsfp_ref_clk_p     (qsfp0_ref_clk_p),
       `endif
-        .qsfp_4x_grx_n      (qsfp_4x_grx_n),
-        .qsfp_4x_grx_p      (qsfp_4x_grx_p),
-        .qsfp_4x_gtx_n      (qsfp_4x_gtx_n),
-        .qsfp_4x_gtx_p      (qsfp_4x_gtx_p),
+        .qsfp_4x_grx_n      (eth_qsfp_4x_grx_n),
+        .qsfp_4x_grx_p      (eth_qsfp_4x_grx_p),
+        .qsfp_4x_gtx_n      (eth_qsfp_4x_gtx_n),
+        .qsfp_4x_gtx_p      (eth_qsfp_4x_gtx_p),
     `endif // PITON_FPGA_ETH_CMAC
 `endif // endif PITONSYS_IOCTRL
 

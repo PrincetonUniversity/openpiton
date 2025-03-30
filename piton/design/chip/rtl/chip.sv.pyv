@@ -151,6 +151,14 @@ module chip(
     output [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_yummy
   `endif
 
+    ,
+    input          qsfp_ref_clk_n,
+    input          qsfp_ref_clk_p,
+    input   [3:0]  qsfp_4x_grx_n,
+    input   [3:0]  qsfp_4x_grx_p,
+    output  [3:0]  qsfp_4x_gtx_n,
+    output  [3:0]  qsfp_4x_gtx_p
+
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
     // Debug
@@ -1666,11 +1674,11 @@ module chip(
       for i in range(PITON_X_TILES):
         for k in [1,2,3]:
           chanid = (j * PITON_X_TILES*3) + i*3 + k-1;
-          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data), " % (chanid,j,i,k))
-          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid)," % (chanid,j,i,k))
-          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready)," % (chanid,j,i,k))
-          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) ," % (chanid,j,i,k))
-          print("      .s_axis_%d_tdest('d%d),"                                    % (chanid,chanid))
+          print("//      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data), " % (chanid,j,i,k))
+          print("//      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid)," % (chanid,j,i,k))
+          print("//      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready)," % (chanid,j,i,k))
+          print("//      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) ," % (chanid,j,i,k))
+          print("//      .s_axis_%d_tdest('d%d),"                                    % (chanid,chanid))
 %>
       .m_axis_tdata (valrdy_vert_midl_data),
       .m_axis_tkeep (valrdy_vert_midl_be),
@@ -1685,9 +1693,9 @@ module chip(
       for i in range(PITON_X_TILES):
         for k in [1,2,3]:
           chanid = (j * PITON_X_TILES*3) + i*3 + k-1;
-          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,j,i,k))
-          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,j,i,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,j,i,k))
+          print("//      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,j,i,k))
+          print("//      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,j,i,k))
+          print("//      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,j,i,k))
 %>
       .s_axis_tdata (valrdy_vert_midl_data),
       .s_axis_tkeep (valrdy_vert_midl_be),
@@ -1696,6 +1704,28 @@ module chip(
       .s_axis_tdest (valrdy_vert_midl_dest),
       .s_axis_tlast (valrdy_vert_midl_last));
 
+
+    nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn (rst_n_inter_sync),.xbar_clk(~clk_muxed),.xbar_rstn(rst_n_inter_sync),
+<%
+    for j in range(PITON_Y_TILES):
+      for i in range(PITON_X_TILES):
+        for k in [1,2,3]:
+          chanid = (j * PITON_X_TILES*3) + i*3 + k-1;
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,j,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,j,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,j,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) , " % (chanid,j,i,k))
+          print("      .s_axis_%d_tdest('d%d),"                                     % (chanid,chanid))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,j,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,j,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,j,i,k))
+%>
+      .qsfp_refck_clk_n   (qsfp_ref_clk_n),
+      .qsfp_refck_clk_p   (qsfp_ref_clk_p),
+      .qsfp_rx_4x_rxn     (qsfp_4x_grx_n),
+      .qsfp_rx_4x_rxp     (qsfp_4x_grx_p),
+      .qsfp_tx_4x_txn     (qsfp_4x_gtx_n),
+      .qsfp_tx_4x_txp     (qsfp_4x_gtx_p));
 
 endmodule
 
