@@ -1705,7 +1705,7 @@ module chip(
       .s_axis_tlast (valrdy_vert_midl_last));
 
 
-    nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn (rst_n_inter_sync),.xbar_clk(~clk_muxed),.xbar_rstn(rst_n_inter_sync),
+    nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn (rst_n_inter_sync),
 <%
     for j in range(PITON_Y_TILES):
       for i in range(PITON_X_TILES):

@@ -159,9 +159,6 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $NOC_CHANS \
-    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
-    CONFIG.XBAR_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.XBAR_TDATA_NUM_BYTES {8} \
   ] [get_bd_cells axis_demuxer]
 
   make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ARESETN]
@@ -169,12 +166,6 @@ current_bd_design $design_name
   make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ACLK]
   set_property name "noc_clk"   [get_bd_ports S00_AXIS_ACLK_0]
   set_property -dict [list CONFIG.ASSOCIATED_RESET noc_rstn CONFIG.FREQ_HZ {50000000}] [get_bd_ports noc_clk]
-
-  make_bd_pins_external         [get_bd_pins axis_muxer/ACLK]
-  set_property name "xbar_clk"  [get_bd_ports ACLK_0]
-  make_bd_pins_external         [get_bd_pins axis_muxer/ARESETN]
-  set_property name "xbar_rstn" [get_bd_ports ARESETN_0]
-  set_property -dict [list CONFIG.ASSOCIATED_RESET xbar_rstn] [get_bd_ports xbar_clk]
 
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
@@ -197,19 +188,52 @@ current_bd_design $design_name
     }
     connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
 
+    set tx_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo_$idx]
+    set_property -dict [list \
+      CONFIG.FIFO_DEPTH {16} \
+      CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+      CONFIG.TDATA_NUM_BYTES {8} \
+      CONFIG.HAS_TKEEP.VALUE_SRC USER \
+      CONFIG.HAS_TKEEP {1} \
+      CONFIG.HAS_TLAST.VALUE_SRC USER \
+      CONFIG.HAS_TLAST {1} \
+      CONFIG.TDEST_WIDTH.VALUE_SRC USER \
+      CONFIG.TDEST_WIDTH 8 \
+    ] [get_bd_cells tx_fifo_$idx]
+    connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins tx_fifo_$idx/s_axis_aclk]
+    connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins tx_fifo_$idx/s_axis_aresetn]
+
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx]_AXIS_0]
     create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                       s_axis_$idx
     set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES 8 CONFIG.TDEST_WIDTH 8] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS] [get_bd_intf_ports               s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins tx_fifo_$idx/S_AXIS] [get_bd_intf_ports                                 s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins tx_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
 
     connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ACLK]
     connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ARESETN]
 
+    set rx_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo_$idx]
+    set_property -dict [list \
+      CONFIG.FIFO_DEPTH {16} \
+      CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+      CONFIG.TDATA_NUM_BYTES {8} \
+      CONFIG.HAS_TKEEP.VALUE_SRC USER \
+      CONFIG.HAS_TKEEP {1} \
+      CONFIG.HAS_TLAST.VALUE_SRC USER \
+      CONFIG.HAS_TLAST {1} \
+      CONFIG.TDEST_WIDTH.VALUE_SRC USER \
+      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.FIFO_MODE {2} \
+    ] [get_bd_cells rx_fifo_$idx]
+    connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins rx_fifo_$idx/s_axis_aclk]
+    connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins rx_fifo_$idx/s_axis_aresetn]
+
     # make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS]
     # set_property name "m_axis${idx}" [get_bd_intf_ports M[format {%02d} $idx]_AXIS_0]
-    create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_$idx
-    connect_bd_intf_net [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS] [get_bd_intf_ports m_axis_$idx]
+    create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0      m_axis_$idx
+    connect_bd_intf_net [get_bd_intf_pins rx_fifo_$idx/M_AXIS] [get_bd_intf_ports m_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins rx_fifo_$idx/S_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS]
   }
 
   set tx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo]
@@ -318,8 +342,8 @@ current_bd_design $design_name
   connect_bd_intf_net [get_bd_intf_ports qsfp_tx_4x] [get_bd_intf_pins aurora_inst/GT_SERIAL_TX]
 
   set aur_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 aur_rst_gen ]
-  connect_bd_net [get_bd_ports noc_clk]   [get_bd_pins aur_rst_gen/slowest_sync_clk]
-  connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins aur_rst_gen/ext_reset_in] [get_bd_pins aur_rst_gen/aux_reset_in]
+  connect_bd_net [get_bd_pins qsfp_wiz/clk_out1] [get_bd_pins aur_rst_gen/slowest_sync_clk]
+  connect_bd_net [get_bd_ports noc_rstn]         [get_bd_pins aur_rst_gen/ext_reset_in] [get_bd_pins aur_rst_gen/aux_reset_in]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   # connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins aur_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
@@ -337,7 +361,8 @@ current_bd_design $design_name
   
   # connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/ARESETN] [get_bd_pins axis_demuxer/ARESETN]
   # connect_bd_net [get_bd_pins mux_rst_gen/peripheral_aresetn]
-  connect_bd_net [get_bd_ports xbar_rstn] \
+  connect_bd_net [get_bd_pins aur_rst_gen/interconnect_aresetn] \
+                 [get_bd_pins axis_muxer/ARESETN] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
@@ -346,9 +371,8 @@ current_bd_design $design_name
                  [get_bd_pins rx_fifo/s_axis_aresetn]
 
   # connect_bd_net [get_bd_pins aurora_inst/user_clk_out]
-  # connect_bd_net [get_bd_pins qsfp_wiz/clk_out1] \
-  #                [get_bd_pins axis_muxer/ACLK] 
-  connect_bd_net [get_bd_ports xbar_clk] \
+  connect_bd_net [get_bd_pins qsfp_wiz/clk_out1] \
+                 [get_bd_pins axis_muxer/ACLK] \
                  [get_bd_pins axis_muxer/M00_AXIS_ACLK] \
                  [get_bd_pins axis_demuxer/ACLK] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
