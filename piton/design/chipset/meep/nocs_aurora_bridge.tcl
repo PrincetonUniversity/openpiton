@@ -191,14 +191,6 @@ current_bd_design $design_name
     set tx_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo_$idx]
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {16} \
-      CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-      CONFIG.TDATA_NUM_BYTES {8} \
-      CONFIG.HAS_TKEEP.VALUE_SRC USER \
-      CONFIG.HAS_TKEEP {1} \
-      CONFIG.HAS_TLAST.VALUE_SRC USER \
-      CONFIG.HAS_TLAST {1} \
-      CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
     ] [get_bd_cells tx_fifo_$idx]
     connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins tx_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins tx_fifo_$idx/s_axis_aresetn]
@@ -358,7 +350,10 @@ current_bd_design $design_name
   # connect_bd_net [get_bd_pins aurora_inst/sys_reset_out] [get_bd_pins mux_rst_gen/ext_reset_in]
   connect_bd_net [get_bd_pins      qsfp_wiz/locked]        [get_bd_pins mux_rst_gen/dcm_locked] [get_bd_pins aur_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]        [get_bd_pins mux_rst_gen/ext_reset_in]
-  
+  connect_bd_net [get_bd_ports noc_clk]                    [get_bd_pins mux_rst_gen/slowest_sync_clk]
+  make_bd_pins_external                                    [get_bd_pins mux_rst_gen/mb_reset]
+  set_property name "noc_rst_long"                         [get_bd_ports mb_reset_0]
+
   # connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/ARESETN] [get_bd_pins axis_demuxer/ARESETN]
   # connect_bd_net [get_bd_pins mux_rst_gen/peripheral_aresetn]
   connect_bd_net [get_bd_pins aur_rst_gen/interconnect_aresetn] \
@@ -378,8 +373,8 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
                  [get_bd_pins aur_fifo/s_axis_aclk] \
                  [get_bd_pins tx_fifo/s_axis_aclk] \
-                 [get_bd_pins rx_fifo/s_axis_aclk] \
-                 [get_bd_pins mux_rst_gen/slowest_sync_clk]
+                 [get_bd_pins rx_fifo/s_axis_aclk]
+                #  [get_bd_pins mux_rst_gen/slowest_sync_clk]
 
 
   set concat_aur_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_hi_ok ]
