@@ -1183,6 +1183,10 @@ module chip(
     assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
     wire tile_rst;
+    reg [15:0] tile_rstn_delayed;
+    always @ (posedge clk_muxed)
+      tile_rstn_delayed <= {tile_rstn_delayed[14:0],rst_n_inter_sync};
+
 <%
     sub_assign = r'''
             assign default_coreid_x [_FLAT_ID_] =COREIDX;
@@ -1197,7 +1201,7 @@ module chip(
     tile #(.TILE_TYPE(TYPE_OF_TILE))
     tile0 (
         .clk                (clk_muxed),
-        .rst_n              (rst_n_inter_sync),
+        .rst_n              (tile_rstn_delayed[15]),
         //.rst_n              (~tile_rst),
         .clk_en             (ctap_clk_en_inter[_FLAT_ID_] && clk_en_inter),
         .default_chipid             (14'b0),    // the first chip
