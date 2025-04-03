@@ -1201,7 +1201,8 @@ module chip(
     tile #(.TILE_TYPE(TYPE_OF_TILE))
     tile0 (
         .clk                (clk_muxed),
-        .rst_n              (tile_rstn_delayed[63]),
+        .rst_n              (rst_n_inter_sync),
+        //.rst_n              (tile_rstn_delayed[63]),
         //.rst_n              (tile_rstn),
         .clk_en             (ctap_clk_en_inter[_FLAT_ID_] && clk_en_inter),
         .default_chipid             (14'b0),    // the first chip
@@ -1711,7 +1712,7 @@ module chip(
       .s_axis_tlast (valrdy_vert_midl_last));
 
 
-    nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),.noc_rstn_long(tile_rstn),
+    nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),//.noc_rstn_long(tile_rstn),
 <%
     for j in range(PITON_Y_TILES):
       for i in range(PITON_X_TILES):

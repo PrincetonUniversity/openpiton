@@ -161,8 +161,13 @@ current_bd_design $design_name
     CONFIG.NUM_MI $NOC_CHANS \
   ] [get_bd_cells axis_demuxer]
 
-  make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ARESETN]
-  set_property name "noc_rstn"  [get_bd_ports S00_AXIS_ARESETN_0]
+
+  set noc_rstn [ create_bd_port -dir I -type rst noc_rstn ]
+  set_property -dict [ list \
+   CONFIG.POLARITY {ACTIVE_LOW} \
+ ] $noc_rstn
+  # make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ARESETN]
+  # set_property name "noc_rstn"  [get_bd_ports S00_AXIS_ARESETN_0]
   make_bd_pins_external         [get_bd_pins axis_muxer/S00_AXIS_ACLK]
   set_property name "noc_clk"   [get_bd_ports S00_AXIS_ACLK_0]
   set_property -dict [list CONFIG.ASSOCIATED_RESET noc_rstn CONFIG.FREQ_HZ {50000000}] [get_bd_ports noc_clk]
@@ -181,11 +186,51 @@ current_bd_design $design_name
    CONFIG.CONST_WIDTH {1} \
   ] $vccx1
 
+  # Create instance: aurora_64b66b, and set properties
+  global g_board_part
+  set g_eth_port "qsfp0"
+  if { ${g_board_part} eq "u280" } {
+    set g_eth100gb_freq "156.25"
+    if { ${g_eth_port} eq "qsfp0" } {
+      set g_quad_loc      "Quad_X0Y10"
+      set g_lane1_loc     "X0Y40"
+    }
+    if { ${g_eth_port} eq "qsfp1" } {
+      set g_quad_loc      "Quad_X0Y11"
+      set g_lane1_loc     "X0Y44"
+    }
+  }
+  if { ${g_board_part} eq "u55c" } {
+    set g_eth100gb_freq "161.1328125"
+    if { ${g_eth_port} eq "qsfp0" } {
+      set g_quad_loc      "Quad_X0Y6"
+      set g_lane1_loc     "X0Y24"
+    }
+    if { ${g_eth_port} eq "qsfp1" } {
+      set g_quad_loc      "Quad_X0Y7"
+      set g_lane1_loc     "X0Y28"
+    }
+  }
+  set aurora_inst [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_inst ]
+  set_property -dict [ list \
+   CONFIG.C_AURORA_LANES {4} \
+   CONFIG.C_REFCLK_FREQUENCY $g_eth100gb_freq \
+   CONFIG.C_START_LANE $g_lane1_loc \
+   CONFIG.C_START_QUAD $g_quad_loc \
+   CONFIG.C_UCOLUMN_USED {left} \
+   CONFIG.SupportLevel {1} \
+   CONFIG.drp_mode {Disabled} \
+  ] $aurora_inst
+  set_property USER_COMMENTS.comment_1 "pma_init resets both serial GT and Aurora: https://docs.xilinx.com/r/en-US/pg074-aurora-64b66b/Reset"   [get_bd_pins /aurora_inst/pma_init]
+  set_property USER_COMMENTS.comment_2 "https://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-transceivers.pdf#page=88" [get_bd_pins /aurora_inst/loopback]
+  connect_bd_net [get_bd_ports noc_clk]   [get_bd_pins aurora_inst/init_clk] 
+  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aurora_inst/power_down] [get_bd_pins aurora_inst/gt_rxcdrovrden_in]
+
   for {set idx 0} {$idx < $NOC_CHANS} {incr idx} {
     if {$idx > 0} {
       connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
-      connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
     }
+    connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
     connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
 
     set tx_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo_$idx]
@@ -202,8 +247,17 @@ current_bd_design $design_name
     connect_bd_intf_net [get_bd_intf_pins tx_fifo_$idx/S_AXIS] [get_bd_intf_ports                                 s_axis_$idx]
     connect_bd_intf_net [get_bd_intf_pins tx_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
 
+    set inrdy_rst_$idx [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inrdy_rst_$idx ]
+    set_property -dict [list \
+      CONFIG.C_OPERATION {and} \
+      CONFIG.C_SIZE {1} \
+    ] [get_bd_cells inrdy_rst_$idx]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op1] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_tready]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op2] [get_bd_pins aurora_inst/gt_pll_lock]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Res] [get_bd_pins tx_fifo_$idx/m_axis_tready]
+
     connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ACLK]
-    connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ARESETN]
+    connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock] [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ARESETN]
 
     set rx_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo_$idx]
     set_property -dict [list \
@@ -219,7 +273,7 @@ current_bd_design $design_name
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells rx_fifo_$idx]
     connect_bd_net [get_bd_ports noc_clk]  [get_bd_pins rx_fifo_$idx/s_axis_aclk]
-    connect_bd_net [get_bd_ports noc_rstn] [get_bd_pins rx_fifo_$idx/s_axis_aresetn]
+    connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock] [get_bd_pins rx_fifo_$idx/s_axis_aresetn]
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS]
     # set_property name "m_axis${idx}" [get_bd_intf_ports M[format {%02d} $idx]_AXIS_0]
@@ -263,46 +317,6 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
   ] [get_bd_cells aur_fifo]
-
-  # Create instance: aurora_64b66b, and set properties
-  global g_board_part
-  set g_eth_port "qsfp0"
-  if { ${g_board_part} eq "u280" } {
-    set g_eth100gb_freq "156.25"
-    if { ${g_eth_port} eq "qsfp0" } {
-      set g_quad_loc      "Quad_X0Y10"
-      set g_lane1_loc     "X0Y40"
-    }
-    if { ${g_eth_port} eq "qsfp1" } {
-      set g_quad_loc      "Quad_X0Y11"
-      set g_lane1_loc     "X0Y44"
-    }
-  }
-  if { ${g_board_part} eq "u55c" } {
-    set g_eth100gb_freq "161.1328125"
-    if { ${g_eth_port} eq "qsfp0" } {
-      set g_quad_loc      "Quad_X0Y6"
-      set g_lane1_loc     "X0Y24"
-    }
-    if { ${g_eth_port} eq "qsfp1" } {
-      set g_quad_loc      "Quad_X0Y7"
-      set g_lane1_loc     "X0Y28"
-    }
-  }
-  set aurora_inst [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_inst ]
-  set_property -dict [ list \
-   CONFIG.C_AURORA_LANES {4} \
-   CONFIG.C_REFCLK_FREQUENCY $g_eth100gb_freq \
-   CONFIG.C_START_LANE $g_lane1_loc \
-   CONFIG.C_START_QUAD $g_quad_loc \
-   CONFIG.C_UCOLUMN_USED {left} \
-   CONFIG.SupportLevel {1} \
-   CONFIG.drp_mode {Disabled} \
-  ] $aurora_inst
-  set_property USER_COMMENTS.comment_1 "pma_init resets both serial GT and Aurora: https://docs.xilinx.com/r/en-US/pg074-aurora-64b66b/Reset"   [get_bd_pins /aurora_inst/pma_init]
-  set_property USER_COMMENTS.comment_2 "https://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-transceivers.pdf#page=88" [get_bd_pins /aurora_inst/loopback]
-  connect_bd_net [get_bd_ports noc_clk]   [get_bd_pins aurora_inst/init_clk] 
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aurora_inst/power_down] [get_bd_pins aurora_inst/gt_rxcdrovrden_in]
 
   # setting Near-End PMA Loopback mode (0x2)
   set const3h2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 const3h2 ]
@@ -362,8 +376,8 @@ current_bd_design $design_name
   connect_bd_net [get_bd_ports noc_clk]                    [get_bd_pins mux_rst_gen/slowest_sync_clk]
   # make_bd_pins_external                                    [get_bd_pins mux_rst_gen/mb_reset]
   # set_property name "noc_rst_long"                         [get_bd_ports mb_reset_0]
-  make_bd_pins_external                                    [get_bd_pins aurora_inst/gt_pll_lock]
-  set_property name "noc_rstn_long"                         [get_bd_ports gt_pll_lock_0]
+  # make_bd_pins_external                                    [get_bd_pins aurora_inst/gt_pll_lock]
+  # set_property name "noc_rstn_long"                         [get_bd_ports gt_pll_lock_0]
 
   set aur_rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 aur_rst_inv ]
   set_property -dict [list \
@@ -375,8 +389,8 @@ current_bd_design $design_name
   # connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/ARESETN] [get_bd_pins axis_demuxer/ARESETN]
   # connect_bd_net [get_bd_pins mux_rst_gen/peripheral_aresetn]
   # connect_bd_net [get_bd_pins aur_rst_gen/interconnect_aresetn]
-  # connect_bd_net [get_bd_pins aurora_inst/channel_up]
-  connect_bd_net [get_bd_pins aur_rst_inv/Res] \
+  # connect_bd_net [get_bd_pins aur_rst_inv/Res]
+  connect_bd_net [get_bd_pins aurora_inst/channel_up] \
                  [get_bd_pins axis_muxer/ARESETN] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
