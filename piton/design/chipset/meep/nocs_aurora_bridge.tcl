@@ -333,13 +333,22 @@ current_bd_design $design_name
   connect_bd_intf_net [get_bd_intf_ports qsfp_rx_4x] [get_bd_intf_pins aurora_inst/GT_SERIAL_RX]
   connect_bd_intf_net [get_bd_intf_ports qsfp_tx_4x] [get_bd_intf_pins aurora_inst/GT_SERIAL_TX]
 
+  set rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_inv ]
+  set_property -dict [list \
+    CONFIG.C_OPERATION {not} \
+    CONFIG.C_SIZE {1} \
+  ] [get_bd_cells $rst_inv]
+  connect_bd_net [get_bd_pins rst_inv/Op1] [get_bd_ports noc_rstn]
+  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins aurora_inst/pma_init]
+  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins aurora_inst/reset_pb]
+
   set aur_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 aur_rst_gen ]
   connect_bd_net [get_bd_pins qsfp_wiz/clk_out1] [get_bd_pins aur_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_ports noc_rstn]         [get_bd_pins aur_rst_gen/ext_reset_in] [get_bd_pins aur_rst_gen/aux_reset_in]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   # connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins aur_rst_gen/dcm_locked]
-  connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
-  connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
+  # connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
+  # connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
 
   set mux_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 mux_rst_gen ]
   set_property -dict [ list \
@@ -351,12 +360,23 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins      qsfp_wiz/locked]        [get_bd_pins mux_rst_gen/dcm_locked] [get_bd_pins aur_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]        [get_bd_pins mux_rst_gen/ext_reset_in]
   connect_bd_net [get_bd_ports noc_clk]                    [get_bd_pins mux_rst_gen/slowest_sync_clk]
-  make_bd_pins_external                                    [get_bd_pins mux_rst_gen/mb_reset]
-  set_property name "noc_rst_long"                         [get_bd_ports mb_reset_0]
+  # make_bd_pins_external                                    [get_bd_pins mux_rst_gen/mb_reset]
+  # set_property name "noc_rst_long"                         [get_bd_ports mb_reset_0]
+  make_bd_pins_external                                    [get_bd_pins aurora_inst/gt_pll_lock]
+  set_property name "noc_rstn_long"                         [get_bd_ports gt_pll_lock_0]
+
+  set aur_rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 aur_rst_inv ]
+  set_property -dict [list \
+    CONFIG.C_OPERATION {not} \
+    CONFIG.C_SIZE {1} \
+  ] [get_bd_cells $aur_rst_inv]
+  connect_bd_net [get_bd_pins aur_rst_inv/Op1] [get_bd_pins aurora_inst/sys_reset_out]
 
   # connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/ARESETN] [get_bd_pins axis_demuxer/ARESETN]
   # connect_bd_net [get_bd_pins mux_rst_gen/peripheral_aresetn]
-  connect_bd_net [get_bd_pins aur_rst_gen/interconnect_aresetn] \
+  # connect_bd_net [get_bd_pins aur_rst_gen/interconnect_aresetn]
+  # connect_bd_net [get_bd_pins aurora_inst/channel_up]
+  connect_bd_net [get_bd_pins aur_rst_inv/Res] \
                  [get_bd_pins axis_muxer/ARESETN] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
@@ -365,8 +385,8 @@ current_bd_design $design_name
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn]
 
-  # connect_bd_net [get_bd_pins aurora_inst/user_clk_out]
-  connect_bd_net [get_bd_pins qsfp_wiz/clk_out1] \
+  # connect_bd_net [get_bd_pins qsfp_wiz/clk_out1]
+  connect_bd_net [get_bd_pins aurora_inst/user_clk_out] \
                  [get_bd_pins axis_muxer/ACLK] \
                  [get_bd_pins axis_muxer/M00_AXIS_ACLK] \
                  [get_bd_pins axis_demuxer/ACLK] \
