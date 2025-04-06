@@ -220,7 +220,7 @@ current_bd_design $design_name
   ] $noc_rstn
   make_bd_pins_external         [get_bd_pins aurora_inst/init_clk]
   set_property name "noc_clk"   [get_bd_ports init_clk_0]
-  set_property -dict [list CONFIG.ASSOCIATED_RESET noc_rstn CONFIG.FREQ_HZ {50000000}] [get_bd_ports noc_clk]
+  set_property -dict [list CONFIG.ASSOCIATED_RESET noc_rstn CONFIG.FREQ_HZ {20000000}] [get_bd_ports noc_clk]
 
   set mux_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 mux_rst_gen ]
   set_property -dict [ list \
@@ -301,6 +301,7 @@ current_bd_design $design_name
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
   set_property -dict [list \
+    CONFIG.FIFO_DEPTH {32768} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {31} \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -424,7 +425,8 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins aur_fifo/s_axis_tready] [get_bd_pins tx_fifo/m_axis_tready]
   connect_bd_net [get_bd_pins aur_fifo/s_axis_tvalid] [get_bd_pins tx_fifo/m_axis_tvalid]
   connect_bd_net [get_bd_pins aur_fifo/s_axis_tlast]  [get_bd_pins tx_fifo/m_axis_tlast]
-  connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins rx_fifo/s_axis_tready]
+  # connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins rx_fifo/s_axis_tready]
+  connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins aur_fifo/s_axis_aresetn]
   connect_bd_net [get_bd_pins aur_fifo/m_axis_tvalid] [get_bd_pins rx_fifo/s_axis_tvalid]
   connect_bd_net [get_bd_pins aur_fifo/m_axis_tlast]  [get_bd_pins rx_fifo/s_axis_tlast]
   # connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS] [get_bd_intf_pins rx_fifo/S_AXIS]
