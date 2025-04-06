@@ -357,7 +357,8 @@ current_bd_design $design_name
   connect_bd_net [get_bd_ports noc_rstn]  [get_bd_pins aur_rst_gen/ext_reset_in] [get_bd_pins aur_rst_gen/aux_reset_in]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins aur_rst_gen/dcm_locked]
-  # connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
+  # connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/power_down]
+  # connect_bd_net [get_bd_pins aur_rst_gen/peripheral_reset] [get_bd_pins aurora_inst/pma_init]
   # connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
 
   connect_bd_net [get_bd_pins aurora_inst/channel_up] \
