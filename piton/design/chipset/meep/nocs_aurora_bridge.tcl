@@ -297,6 +297,7 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH 8 \
+    CONFIG.FIFO_MODE {2} \
   ] [get_bd_cells tx_fifo]
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
@@ -312,6 +313,28 @@ current_bd_design $design_name
     CONFIG.TDEST_WIDTH 8 \
   ] [get_bd_cells rx_fifo]
 
+  set aurtx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 aurtx_fifo]
+  set_property -dict [list \
+    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.TDATA_NUM_BYTES {32} \
+    CONFIG.HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.HAS_TKEEP {1} \
+    CONFIG.HAS_TLAST.VALUE_SRC USER \
+    CONFIG.HAS_TLAST {1} \
+  ] [get_bd_cells aurtx_fifo]
+
+  set aurrx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 aurrx_fifo]
+  set_property -dict [list \
+    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.TDATA_NUM_BYTES {32} \
+    CONFIG.HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.HAS_TKEEP {1} \
+    CONFIG.HAS_TLAST.VALUE_SRC USER \
+    CONFIG.HAS_TLAST {1} \
+  ] [get_bd_cells aurrx_fifo]
+
   set aur_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 aur_fifo]
   set_property -dict [list \
     CONFIG.FIFO_DEPTH {16} \
@@ -322,6 +345,59 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
   ] [get_bd_cells aur_fifo]
+
+  set tx_tdata_remap {tdest[7:0]}
+  for {set idx 0} {$idx < 248} {incr idx} {
+    append tx_tdata_remap {,tdata[} $idx {]}
+  }
+  set tx_tkeep_remap {1'b1}
+  for {set idx 0} {$idx < 31} {incr idx} {
+    append tx_tkeep_remap {,tkeep[} $idx {]}
+  }
+  set aur_tx_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 aur_tx_conv]
+  set_property -dict [list \
+    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.S_TDATA_NUM_BYTES {31} \
+    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.M_TDATA_NUM_BYTES {32} \
+    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.M_TDEST_WIDTH {0} \
+    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.S_HAS_TKEEP {1} \
+    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.M_HAS_TKEEP {1} \
+    CONFIG.TDATA_REMAP $tx_tdata_remap \
+    CONFIG.TKEEP_REMAP $tx_tkeep_remap \
+  ] [get_bd_cells aur_tx_conv]
+
+  set rx_tdata_remap {tdata[0]}
+  for {set idx 1} {$idx < 248} {incr idx} {
+    append rx_tdata_remap {,tdata[} $idx {]}
+  }
+  set rx_tkeep_remap {tkeep[0]}
+  for {set idx 1} {$idx < 31} {incr idx} {
+    append rx_tkeep_remap {,tkeep[} $idx {]}
+  }
+  set aur_rx_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 aur_rx_conv]
+  set_property -dict [list \
+    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.S_TDATA_NUM_BYTES {32} \
+    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.M_TDATA_NUM_BYTES {31} \
+    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.S_TDEST_WIDTH {0} \
+    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.S_HAS_TKEEP {1} \
+    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.M_HAS_TKEEP {1} \
+    CONFIG.TDATA_REMAP $rx_tdata_remap \
+    CONFIG.TKEEP_REMAP $rx_tkeep_remap \
+    CONFIG.TDEST_REMAP {tdata[255:248]} \
+  ] [get_bd_cells aur_rx_conv]
 
   # setting Near-End PMA Loopback mode (0x2)
   set const3h2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 const3h2 ]
@@ -369,6 +445,10 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
+                 [get_bd_pins aurtx_fifo/s_axis_aresetn] \
+                 [get_bd_pins aurrx_fifo/s_axis_aresetn] \
+                 [get_bd_pins aur_tx_conv/aresetn] \
+                 [get_bd_pins aur_rx_conv/aresetn] \
                  [get_bd_pins aur_fifo/s_axis_aresetn]
 
   connect_bd_net [get_bd_pins aurora_inst/user_clk_out] \
@@ -376,9 +456,13 @@ current_bd_design $design_name
                  [get_bd_pins axis_muxer/M00_AXIS_ACLK] \
                  [get_bd_pins axis_demuxer/ACLK] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
-                 [get_bd_pins aur_fifo/s_axis_aclk] \
                  [get_bd_pins tx_fifo/s_axis_aclk] \
-                 [get_bd_pins rx_fifo/s_axis_aclk]
+                 [get_bd_pins rx_fifo/s_axis_aclk] \
+                 [get_bd_pins aurtx_fifo/s_axis_aclk] \
+                 [get_bd_pins aurrx_fifo/s_axis_aclk] \
+                 [get_bd_pins aur_tx_conv/aclk] \
+                 [get_bd_pins aur_rx_conv/aclk] \
+                 [get_bd_pins aur_fifo/s_axis_aclk]
 
   set concat_aur_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_hi_ok ]
   set_property -dict [ list \
@@ -415,6 +499,16 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins or_aur_state/Res]
 
   # Connecting by wires instead of interfaces to exclude validation warnings of mismatched data widths
+  connect_bd_intf_net [get_bd_intf_pins aurtx_fifo/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
+  connect_bd_intf_net [get_bd_intf_pins aurrx_fifo/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
+  connect_bd_intf_net [get_bd_intf_pins aurtx_fifo/S_AXIS] [get_bd_intf_pins aur_tx_conv/M_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aurrx_fifo/M_AXIS] [get_bd_intf_pins aur_rx_conv/S_AXIS]
+  # connect_bd_net [get_bd_pins aurtx_fifo/s_axis_tready] [get_bd_pins tx_fifo/m_axis_tready]
+  # connect_bd_net [get_bd_pins aurtx_fifo/s_axis_tvalid] [get_bd_pins tx_fifo/m_axis_tvalid]
+  # connect_bd_net [get_bd_pins aurtx_fifo/s_axis_tlast]  [get_bd_pins tx_fifo/m_axis_tlast]
+  # connect_bd_net [get_bd_pins aurrx_fifo/m_axis_tready] [get_bd_pins rx_fifo/s_axis_tready]
+  # connect_bd_net [get_bd_pins aurrx_fifo/m_axis_tvalid] [get_bd_pins rx_fifo/s_axis_tvalid]
+  # connect_bd_net [get_bd_pins aurrx_fifo/m_axis_tlast]  [get_bd_pins rx_fifo/s_axis_tlast]
   # connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
   # connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
   # connect_bd_net [get_bd_pins aurora_inst/s_axi_tx_tready] [get_bd_pins tx_fifo/m_axis_tready]
@@ -422,65 +516,66 @@ current_bd_design $design_name
   # connect_bd_net [get_bd_pins aurora_inst/s_axi_tx_tlast]  [get_bd_pins tx_fifo/m_axis_tlast]
   # connect_bd_net [get_bd_pins aurora_inst/m_axi_rx_tvalid] [get_bd_pins rx_fifo/s_axis_tvalid]
   # connect_bd_net [get_bd_pins aurora_inst/m_axi_rx_tlast]  [get_bd_pins rx_fifo/s_axis_tlast]
-  connect_bd_net [get_bd_pins aur_fifo/s_axis_tready] [get_bd_pins tx_fifo/m_axis_tready]
-  connect_bd_net [get_bd_pins aur_fifo/s_axis_tvalid] [get_bd_pins tx_fifo/m_axis_tvalid]
-  connect_bd_net [get_bd_pins aur_fifo/s_axis_tlast]  [get_bd_pins tx_fifo/m_axis_tlast]
+  # connect_bd_net [get_bd_pins aur_fifo/s_axis_tready] [get_bd_pins tx_fifo/m_axis_tready]
+  # connect_bd_net [get_bd_pins aur_fifo/s_axis_tvalid] [get_bd_pins tx_fifo/m_axis_tvalid]
+  # connect_bd_net [get_bd_pins aur_fifo/s_axis_tlast]  [get_bd_pins tx_fifo/m_axis_tlast]
   # connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins rx_fifo/s_axis_tready]
-  connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins aur_fifo/s_axis_aresetn]
-  connect_bd_net [get_bd_pins aur_fifo/m_axis_tvalid] [get_bd_pins rx_fifo/s_axis_tvalid]
-  connect_bd_net [get_bd_pins aur_fifo/m_axis_tlast]  [get_bd_pins rx_fifo/s_axis_tlast]
-  # connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS] [get_bd_intf_pins rx_fifo/S_AXIS]
+  # connect_bd_net [get_bd_pins aur_fifo/m_axis_tready] [get_bd_pins aur_fifo/s_axis_aresetn]
+  # connect_bd_net [get_bd_pins aur_fifo/m_axis_tvalid] [get_bd_pins rx_fifo/s_axis_tvalid]
+  # connect_bd_net [get_bd_pins aur_fifo/m_axis_tlast]  [get_bd_pins rx_fifo/s_axis_tlast]
 
   connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS] [get_bd_intf_pins axis_muxer/M00_AXIS]
   connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS] [get_bd_intf_pins axis_demuxer/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS] [get_bd_intf_pins aur_tx_conv/S_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS] [get_bd_intf_pins aur_rx_conv/M_AXIS]
 
-  set concat_data_tx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_data_tx ]
-  set_property -dict [ list \
-   CONFIG.NUM_PORTS {2} \
-  ] $concat_data_tx
+  # set concat_data_tx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_data_tx ]
+  # set_property -dict [ list \
+  #  CONFIG.NUM_PORTS {2} \
+  # ] $concat_data_tx
   # connect_bd_net [get_bd_pins concat_data_tx/dout] [get_bd_pins aurora_inst/s_axi_tx_tdata]
-  connect_bd_net [get_bd_pins concat_data_tx/dout] [get_bd_pins aur_fifo/s_axis_tdata]
-  connect_bd_net [get_bd_pins concat_data_tx/In0]  [get_bd_pins tx_fifo/m_axis_tdest]
-  connect_bd_net [get_bd_pins concat_data_tx/In1]  [get_bd_pins tx_fifo/m_axis_tdata]
+  # connect_bd_net [get_bd_pins concat_data_tx/dout] [get_bd_pins aurtx_fifo/s_axis_tdata]
+  # connect_bd_net [get_bd_pins concat_data_tx/In0]  [get_bd_pins tx_fifo/m_axis_tdest]
+  # connect_bd_net [get_bd_pins concat_data_tx/In1]  [get_bd_pins tx_fifo/m_axis_tdata]
 
-  set concat_keep_tx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_keep_tx ]
-  set_property -dict [ list \
-   CONFIG.NUM_PORTS {2} \
-  ] $concat_keep_tx
+  # set concat_keep_tx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_keep_tx ]
+  # set_property -dict [ list \
+  #  CONFIG.NUM_PORTS {2} \
+  # ] $concat_keep_tx
   # connect_bd_net [get_bd_pins concat_keep_tx/dout] [get_bd_pins aurora_inst/s_axi_tx_tkeep]
-  connect_bd_net [get_bd_pins concat_keep_tx/dout] [get_bd_pins aur_fifo/s_axis_tkeep]
-  connect_bd_net [get_bd_pins concat_keep_tx/In0]  [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins concat_keep_tx/In1]  [get_bd_pins tx_fifo/m_axis_tkeep]
+  # connect_bd_net [get_bd_pins concat_keep_tx/dout] [get_bd_pins aurtx_fifo/s_axis_tkeep]
+  # connect_bd_net [get_bd_pins concat_keep_tx/In0]  [get_bd_pins vccx1/dout]
+  # connect_bd_net [get_bd_pins concat_keep_tx/In1]  [get_bd_pins tx_fifo/m_axis_tkeep]
 
-  set slice_data_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_data_rx ]
-  set_property -dict [ list \
-   CONFIG.DIN_WIDTH {256} \
-   CONFIG.DIN_FROM {255} \
-   CONFIG.DIN_TO {8} \
-  ] $slice_data_rx
+  # set slice_data_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_data_rx ]
+  # set_property -dict [ list \
+  #  CONFIG.DIN_WIDTH {256} \
+  #  CONFIG.DIN_FROM {255} \
+  #  CONFIG.DIN_TO {8} \
+  # ] $slice_data_rx
   # connect_bd_net [get_bd_pins slice_data_rx/Din]  [get_bd_pins aurora_inst/m_axi_rx_tdata]
-  connect_bd_net [get_bd_pins slice_data_rx/Din]  [get_bd_pins aur_fifo/m_axis_tdata]
-  connect_bd_net [get_bd_pins slice_data_rx/Dout] [get_bd_pins rx_fifo/s_axis_tdata]
+  # connect_bd_net [get_bd_pins slice_data_rx/Din]  [get_bd_pins aurrx_fifo/m_axis_tdata]
+  # connect_bd_net [get_bd_pins slice_data_rx/Dout] [get_bd_pins rx_fifo/s_axis_tdata]
 
-  set slice_keep_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_keep_rx ]
-  set_property -dict [ list \
-   CONFIG.DIN_WIDTH {32} \
-   CONFIG.DIN_FROM {31} \
-   CONFIG.DIN_TO {1} \
-  ] $slice_keep_rx
+  # set slice_keep_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_keep_rx ]
+  # set_property -dict [ list \
+  #  CONFIG.DIN_WIDTH {32} \
+  #  CONFIG.DIN_FROM {31} \
+  #  CONFIG.DIN_TO {1} \
+  # ] $slice_keep_rx
   # connect_bd_net [get_bd_pins slice_keep_rx/Din]  [get_bd_pins aurora_inst/m_axi_rx_tkeep]
-  connect_bd_net [get_bd_pins slice_keep_rx/Din]  [get_bd_pins aur_fifo/m_axis_tkeep]
-  connect_bd_net [get_bd_pins slice_keep_rx/Dout] [get_bd_pins rx_fifo/s_axis_tkeep]
+  # connect_bd_net [get_bd_pins slice_keep_rx/Din]  [get_bd_pins aurrx_fifo/m_axis_tkeep]
+  # connect_bd_net [get_bd_pins slice_keep_rx/Dout] [get_bd_pins rx_fifo/s_axis_tkeep]
 
-  set slice_dest_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_dest_rx ]
-  set_property -dict [ list \
-   CONFIG.DIN_WIDTH {256} \
-   CONFIG.DIN_FROM {7} \
-   CONFIG.DIN_TO {0} \
-  ] $slice_dest_rx
+  # set slice_dest_rx [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 slice_dest_rx ]
+  # set_property -dict [ list \
+  #  CONFIG.DIN_WIDTH {256} \
+  #  CONFIG.DIN_FROM {7} \
+  #  CONFIG.DIN_TO {0} \
+  # ] $slice_dest_rx
   # connect_bd_net [get_bd_pins slice_dest_rx/Din]  [get_bd_pins aurora_inst/m_axi_rx_tdata]
-  connect_bd_net [get_bd_pins slice_dest_rx/Din]  [get_bd_pins aur_fifo/m_axis_tdata]
-  connect_bd_net [get_bd_pins slice_dest_rx/Dout] [get_bd_pins rx_fifo/s_axis_tdest]
+  # connect_bd_net [get_bd_pins slice_dest_rx/Din]  [get_bd_pins aurrx_fifo/m_axis_tdata]
+  # connect_bd_net [get_bd_pins slice_dest_rx/Dout] [get_bd_pins rx_fifo/s_axis_tdest]
 
   # Restore current instance
   current_bd_instance $oldCurInst
