@@ -523,7 +523,7 @@ wire app_hi_pri;
 assign app_hi_pri = 1'b0;
   
 ddr4_0 i_ddr4_0 (
-  .sys_rst                   ( ~sys_rst_n                ),
+  .sys_rst                   ( 1'b0                ),
   .c0_sys_clk_p              ( sys_clk_p                 ),
   .c0_sys_clk_n              ( sys_clk_n                 ),
   .dbg_clk                   (                           ), // not used 
