@@ -141,7 +141,7 @@ module system(
 `else //F1_BOARD
     input sys_clk,
 `endif
-`ifdef VU19P_BOARD
+`ifdef LG19A4_BOARD
  
  `else
     input                                       sys_rst_n,
@@ -181,7 +181,7 @@ module system(
 `ifdef PITON_RV64_DEBUGUNIT
 `ifndef VC707_BOARD
 `ifndef VCU118_BOARD
-`ifndef VU19P_BOARD
+`ifndef LG19A4_BOARD
 `ifndef NEXYSVIDEO_BOARD
 `ifndef XUPP3R_BOARD
 `ifndef F1_BOARD
@@ -194,7 +194,7 @@ module system(
 `endif//XUPP3R_BOARD
 `endif //NEXYSVIDEO_BOARD
 `endif //VCU118_BOARD
-`endif //VU19P_BOARD
+`endif //LG19A4_BOARD
 `endif  //VC707_BOARD
 `endif //PITON_RV64_DEBUGUNIT
 `endif //PITON_FPGA_SYNTH
@@ -313,10 +313,10 @@ module system(
 `ifdef VCU118_BOARD
 		input                                       uart_cts,
 		output                                      uart_rts,
-`ifdef VU19P_BOARD
+`ifdef LG19A4_BOARD
 		input                                       uart_cts,
 		output                                      uart_rts,
-`endif // VU19P_BOARD
+`endif // LG19A4_BOARD
 `endif // VCU118_BOARD
 `endif // endif PITONSYS_UART
 
@@ -325,7 +325,7 @@ module system(
     input                                       sd_cd,
     `ifndef VCU118_BOARD
     //output                                      sd_reset,
-        `ifndef VU19P_BOARD
+        `ifndef LG19A4_BOARD
         output                                      sd_reset,                                                                                                                                                                                                                                 
         `endif
 	`endif
@@ -391,7 +391,7 @@ module system(
     input                                       btnu,
     input                                       btnd,
     input                                       btnc,
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     input                                       btnl,
     input                                       btnr,
     input                                       btnu,
@@ -402,7 +402,7 @@ module system(
 `ifdef VCU118_BOARD
     // we only have 4 gpio dip switches on this board
     input  [3:0]                                sw,
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     //input  [3:0]                                sw,
 `elsif XUPP3R_BOARD
     // no switches :(
@@ -420,7 +420,7 @@ module system(
 ///////////////////////
 // Type declarations //
 ///////////////////////
-`ifdef VU19P_BOARD
+`ifdef LG19A4_BOARD
 wire [3:0] sw;                                                                                                                       
 wire sys_rst_n; 
 `endif
@@ -584,10 +584,10 @@ assign rtc = rtc_div[6];
 assign uart_rts = 1'b0;
 `endif // VCU118_BOARD
 
-`ifdef VU19P_BOARD
+`ifdef LG19A4_BOARD
 // tie off   
 assign uart_rts = 1'b0;
-`endif // VU19P_BOARD
+`endif // LG19A4_BOARD
 
 
 // Different reset active levels for different boards
@@ -723,7 +723,7 @@ assign passthru_pll_rst_n = 1'b1;
 //////////////////////////
 // Sub-module Instances //
 //////////////////////////
-`ifdef VU19P_BOARD
+`ifdef LG19A4_BOARD
 vio_0 vio_inst(                                                                                                                      
           .clk(core_ref_clk),                // input wire clk                                                                               
           .probe_out0(sw[0]),  // output wire [0 : 0] probe_out0                                                                             
@@ -1190,7 +1190,7 @@ chipset chipset(
     .sd_cd(sd_cd),
     `ifndef VCU118_BOARD
     .sd_reset(sd_reset),
-    `ifndef VU19P_BOARD
+    `ifndef LG19A4_BOARD
     .sd_reset(sd_reset),
     `endif 
 	`endif
@@ -1243,7 +1243,7 @@ chipset chipset(
     .btnu(btnu),
     .btnd(btnd),
     .btnc(btnc),
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     .btnl(btnl), 
     .btnr(btnr), 
     .btnu(btnu), 

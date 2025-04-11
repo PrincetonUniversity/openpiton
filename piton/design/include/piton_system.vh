@@ -118,7 +118,7 @@
     `define PITON_CHIPSET_DIFF_CLK
 `elsif VCU118_BOARD
     `define PITON_CHIPSET_DIFF_CLK
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     `define PITON_CHIPSET_DIFF_CLK
 `elsif XUPP3R_BOARD
     `define PITON_CHIPSET_DIFF_CLK
@@ -136,7 +136,7 @@
     `define PITON_FPGA_RST_ACT_HIGH
 `elsif VCU118_BOARD
     `define PITON_FPGA_RST_ACT_HIGH
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     `define PITON_FPGA_RST_ACT_HIGH
 `endif
 
@@ -161,7 +161,7 @@
 
 `ifdef VCU118_BOARD
     `define PITONSYS_DDR4
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     `define PITONSYS_DDR4
 `elsif XUPP3R_BOARD
     `define PITONSYS_DDR4

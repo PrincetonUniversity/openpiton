@@ -456,7 +456,7 @@ module chipset(
         input                                               btnu,
         input                                               btnd,
         input                                               btnc,           
-    `elsif VU19P_BOARD
+    `elsif LG19A4_BOARD
         input                                               btnl,
         input                                               btnr,
         input                                               btnu,
@@ -468,7 +468,7 @@ module chipset(
     `ifdef VCU118_BOARD
         // we only have 4 gpio dip switches on this board
         input  [3:0]                                        sw,
-    `elsif VU19P_BOARD
+    `elsif LG19A4_BOARD
 	    input  [3:0]                                        sw,
 	`elsif XUPP3R_BOARD
         // no switches :(
@@ -763,7 +763,7 @@ end
             `ifdef VCU118_BOARD
                 assign uart_boot_en    = sw[0];
                 assign uart_timeout_en = sw[1];
-            `elsif VU19P_BOARD
+            `elsif LG19A4_BOARD
                 assign uart_boot_en    = sw[0];
                 assign uart_timeout_en = sw[1];
 			`elsif XUPP3R_BOARD
@@ -781,7 +781,7 @@ end
     `ifdef VCU118_BOARD
         // only two switches available...
         assign noc_power_test_hop_count = {2'b0, sw[3:2]};
-    `elsif VU19P_BOARD
+    `elsif LG19A4_BOARD
 	    assign noc_power_test_hop_count = {2'b0, sw[3:2]};
     `elsif XUPP3R_BOARD
         // no switches :(
@@ -1601,7 +1601,7 @@ chipset_impl_noc_power_test  chipset_impl (
             .D2(0),
             .SR(0)
             );
-    `elsif VU19P_BOARD
+    `elsif LG19A4_BOARD
         ODDRE1 sd_clk_oddr (
             .Q(sd_clk_out),
             .C(sd_clk_out_internal),

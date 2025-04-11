@@ -86,7 +86,7 @@
     `define DDR3_CS_WIDTH           1
     `define DDR3_BG_WIDTH           1
     `define DDR3_ODT_WIDTH          1
-`elsif VU19P_BOARD
+`elsif LG19A4_BOARD
     `define BOARD_MEM_SIZE_MB       2048
     `define WORDS_PER_BURST         8   
     `define WORD_SIZE               8 // in bytes
