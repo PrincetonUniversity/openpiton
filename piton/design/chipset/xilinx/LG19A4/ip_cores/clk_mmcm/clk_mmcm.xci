@@ -586,7 +586,7 @@
         "ARCHITECTURE": [ { "value": "virtexuplus" } ],
         "BASE_BOARD_PART": [ { "value": "" } ],
         "BOARD_CONNECTIONS": [ { "value": "" } ],
-        "DEVICE": [ { "value": "xcvu19p" } ],
+        "DEVICE": [ { "value": "xcLG19A4" } ],
         "PACKAGE": [ { "value": "fsva3824" } ],
         "PREFHDL": [ { "value": "VERILOG" } ],
         "SILICON_REVISION": [ { "value": "" } ],
