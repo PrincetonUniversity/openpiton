@@ -200,7 +200,7 @@ current_bd_design $design_name
       set g_lane1_loc     "X0Y28"
     }
   }
-  set aurora_inst [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_inst ]
+  set aurora_inst [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:13.0 aurora_inst ]
   set_property -dict [ list \
    CONFIG.C_AURORA_LANES {4} \
    CONFIG.C_REFCLK_FREQUENCY $g_eth100gb_freq \
@@ -406,16 +406,16 @@ current_bd_design $design_name
 
   set g_refport_freq [format {%0.0f} [expr {$g_eth100gb_freq*1000000+0.5}] ]
   puts "PORT FREQUENCY: $g_refport_freq"
-  set qsfp_refck [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 qsfp_refck ]
+  make_bd_intf_pins_external [get_bd_intf_pins aurora_inst/GT_DIFF_REFCLK1]
+  set_property name "qsfp_refck" [get_bd_intf_ports GT_DIFF_REFCLK1_0]
   set_property -dict [ list \
    CONFIG.FREQ_HZ $g_refport_freq \
-   ] $qsfp_refck
-  connect_bd_intf_net [get_bd_intf_ports qsfp_refck] [get_bd_intf_pins aurora_inst/GT_DIFF_REFCLK1]
+  ] [get_bd_intf_ports qsfp_refck]
 
-  set qsfp_rx_4x [ create_bd_intf_port -mode Slave  -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_RX_rtl:1.0 qsfp_rx_4x ]
-  set qsfp_tx_4x [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_TX_rtl:1.0 qsfp_tx_4x ]
-  connect_bd_intf_net [get_bd_intf_ports qsfp_rx_4x] [get_bd_intf_pins aurora_inst/GT_SERIAL_RX]
-  connect_bd_intf_net [get_bd_intf_ports qsfp_tx_4x] [get_bd_intf_pins aurora_inst/GT_SERIAL_TX]
+  make_bd_intf_pins_external [get_bd_intf_pins aurora_inst/GT_SERIAL_TX]
+  make_bd_intf_pins_external [get_bd_intf_pins aurora_inst/GT_SERIAL_RX]
+  set_property name "qsfp_tx_4x" [get_bd_intf_ports GT_SERIAL_TX_0]
+  set_property name "qsfp_rx_4x" [get_bd_intf_ports GT_SERIAL_RX_0]
 
   set rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_inv ]
   set_property -dict [list \
@@ -505,18 +505,17 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins concat_aur_lo_ok/dout]        [get_bd_pins or_aur_state/Op1]
   connect_bd_net [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins or_aur_state/Res]
 
-  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
-  # connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins axis_injector/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins axis_extractor/S00_AXIS]
-  # connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins axis_injector/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins aur_tx_conv/S_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins axis_extractor/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
-
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_injector/S01_AXIS_tvalid]
   connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins axis_extractor/M01_AXIS_tready]
+
+  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
+  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
+  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins axis_injector/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins axis_extractor/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins axis_extractor/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins axis_injector/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
 
   # Restore current instance
   current_bd_instance $oldCurInst
