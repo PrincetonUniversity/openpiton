@@ -311,7 +311,7 @@ current_bd_design $design_name
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH 8 \
     CONFIG.HAS_PROG_FULL {1} \
-    CONFIG.PROG_FULL_THRESH {1024} \
+    CONFIG.PROG_FULL_THRESH {16384} \
   ] [get_bd_cells rx_fifo]
 
   set suspend_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_flop]
@@ -350,7 +350,7 @@ current_bd_design $design_name
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
     CONFIG.NUM_SI {2} \
-    CONFIG.ARB_ALGORITHM {1} \
+    CONFIG.ARB_ALGORITHM {3} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
@@ -383,7 +383,7 @@ current_bd_design $design_name
   ] [get_bd_cells suspend_inject_conv]
   connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/M_AXIS] [get_bd_intf_pins suspend_injector/S00_AXIS]
   # connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins suspend_diff/Res]
-  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins gndx1/dout]
+  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins vccx1/dout]
   connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tready] [get_bd_pins suspend_wr/Op2]
   connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
 
