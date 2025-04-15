@@ -310,28 +310,91 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH 8 \
+    CONFIG.HAS_PROG_FULL {1} \
+    CONFIG.PROG_FULL_THRESH {1024} \
   ] [get_bd_cells rx_fifo]
 
-  set axis_injector [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_injector]
+  set suspend_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_flop]
+  set_property -dict [list \
+    CONFIG.CE {true} \
+    CONFIG.Load {true} \
+    CONFIG.Output_Width {1} \
+    CONFIG.SCLR {true} \
+  ] [get_bd_cells suspend_flop]
+  connect_bd_net [get_bd_pins suspend_flop/L] [get_bd_pins rx_fifo/prog_full]
+
+  set rst_aur_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_aur_inv ]
+  set_property -dict [list \
+    CONFIG.C_OPERATION {not} \
+    CONFIG.C_SIZE {1} \
+  ] [get_bd_cells rst_aur_inv]
+  connect_bd_net [get_bd_pins rst_aur_inv/Res] [get_bd_pins suspend_flop/SCLR]
+
+  set suspend_diff [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 suspend_diff ]
+    set_property -dict [list \
+      CONFIG.C_OPERATION {xor} \
+      CONFIG.C_SIZE {1} \
+  ] [get_bd_cells suspend_diff]
+  connect_bd_net [get_bd_pins suspend_diff/Op1] [get_bd_pins rx_fifo/prog_full]
+  connect_bd_net [get_bd_pins suspend_diff/Op2] [get_bd_pins suspend_flop/Q]
+
+  set suspend_wr [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 suspend_wr ]
+    set_property -dict [list \
+      CONFIG.C_OPERATION {and} \
+      CONFIG.C_SIZE {1} \
+  ] [get_bd_cells suspend_wr]
+  connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/CE] [get_bd_pins suspend_flop/LOAD]
+  connect_bd_net [get_bd_pins suspend_wr/Op1] [get_bd_pins suspend_diff/Res]
+
+  set suspend_injector [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_injector]
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
     CONFIG.NUM_SI {2} \
-    CONFIG.ARB_ALGORITHM {3} \
+    CONFIG.ARB_ALGORITHM {1} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
-  ] [get_bd_cells axis_injector]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_injector/S00_ARB_REQ_SUPPRESS]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_injector/S01_ARB_REQ_SUPPRESS]
+  ] [get_bd_cells suspend_injector]
+  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins suspend_injector/S00_ARB_REQ_SUPPRESS]
+  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins suspend_injector/S01_ARB_REQ_SUPPRESS]
 
-  set axis_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_extractor]
+  set suspend_inject_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 suspend_inject_conv]
+  set_property -dict [list \
+    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.S_TDATA_NUM_BYTES {0} \
+    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.M_TDATA_NUM_BYTES {31} \
+    CONFIG.TDATA_REMAP {248'b0} \
+    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.S_HAS_TKEEP {0} \
+    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.M_HAS_TKEEP {1} \
+    CONFIG.TKEEP_REMAP {31'b1} \
+    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.S_TDEST_WIDTH {1} \
+    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.TDEST_REMAP {7'b1000000,tdest[0:0]} \
+    CONFIG.S_HAS_TLAST.VALUE_SRC USER \
+    CONFIG.S_HAS_TLAST {0} \
+    CONFIG.M_HAS_TLAST.VALUE_SRC USER \
+    CONFIG.M_HAS_TLAST {1} \
+    CONFIG.TLAST_REMAP {1'b1} \
+  ] [get_bd_cells suspend_inject_conv]
+  connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/M_AXIS] [get_bd_intf_pins suspend_injector/S00_AXIS]
+  # connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins suspend_diff/Res]
+  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins gndx1/dout]
+  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tready] [get_bd_pins suspend_wr/Op2]
+  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
+
+  set suspend_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_extractor]
   set_property -dict [list \
     CONFIG.NUM_MI {2} \
     CONFIG.M00_AXIS_BASETDEST {0x0} \
     CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
-  ] [get_bd_cells axis_extractor]
+  ] [get_bd_cells suspend_extractor]
 
   set tx_tdata_remap {tdest[7:0]}
   for {set idx 0} {$idx < 248} {incr idx} {
@@ -436,20 +499,22 @@ current_bd_design $design_name
   # connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
 
   connect_bd_net [get_bd_pins aurora_inst/channel_up] \
+                 [get_bd_pins rst_aur_inv/Op1] \
                  [get_bd_pins axis_muxer/ARESETN] \
                  [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
-                 [get_bd_pins axis_injector/ARESETN] \
-                 [get_bd_pins axis_injector/M00_AXIS_ARESETN] \
-                 [get_bd_pins axis_injector/S00_AXIS_ARESETN] \
-                 [get_bd_pins axis_injector/S01_AXIS_ARESETN] \
-                 [get_bd_pins axis_extractor/ARESETN] \
-                 [get_bd_pins axis_extractor/S00_AXIS_ARESETN] \
-                 [get_bd_pins axis_extractor/M00_AXIS_ARESETN] \
-                 [get_bd_pins axis_extractor/M01_AXIS_ARESETN] \
+                 [get_bd_pins suspend_injector/ARESETN] \
+                 [get_bd_pins suspend_injector/M00_AXIS_ARESETN] \
+                 [get_bd_pins suspend_injector/S00_AXIS_ARESETN] \
+                 [get_bd_pins suspend_injector/S01_AXIS_ARESETN] \
+                 [get_bd_pins suspend_extractor/ARESETN] \
+                 [get_bd_pins suspend_extractor/S00_AXIS_ARESETN] \
+                 [get_bd_pins suspend_extractor/M00_AXIS_ARESETN] \
+                 [get_bd_pins suspend_extractor/M01_AXIS_ARESETN] \
+                 [get_bd_pins suspend_inject_conv/aresetn] \
                  [get_bd_pins aur_tx_conv/aresetn] \
                  [get_bd_pins aur_rx_conv/aresetn]
 
@@ -460,14 +525,16 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
                  [get_bd_pins tx_fifo/s_axis_aclk] \
                  [get_bd_pins rx_fifo/s_axis_aclk] \
-                 [get_bd_pins axis_injector/ACLK] \
-                 [get_bd_pins axis_injector/M00_AXIS_ACLK] \
-                 [get_bd_pins axis_injector/S00_AXIS_ACLK] \
-                 [get_bd_pins axis_injector/S01_AXIS_ACLK] \
-                 [get_bd_pins axis_extractor/ACLK] \
-                 [get_bd_pins axis_extractor/S00_AXIS_ACLK] \
-                 [get_bd_pins axis_extractor/M00_AXIS_ACLK] \
-                 [get_bd_pins axis_extractor/M01_AXIS_ACLK] \
+                 [get_bd_pins suspend_injector/ACLK] \
+                 [get_bd_pins suspend_injector/M00_AXIS_ACLK] \
+                 [get_bd_pins suspend_injector/S00_AXIS_ACLK] \
+                 [get_bd_pins suspend_injector/S01_AXIS_ACLK] \
+                 [get_bd_pins suspend_extractor/ACLK] \
+                 [get_bd_pins suspend_extractor/S00_AXIS_ACLK] \
+                 [get_bd_pins suspend_extractor/M00_AXIS_ACLK] \
+                 [get_bd_pins suspend_extractor/M01_AXIS_ACLK] \
+                 [get_bd_pins suspend_inject_conv/aclk] \
+                 [get_bd_pins suspend_flop/CLK] \
                  [get_bd_pins aur_tx_conv/aclk] \
                  [get_bd_pins aur_rx_conv/aclk]
 
@@ -505,16 +572,15 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins concat_aur_lo_ok/dout]        [get_bd_pins or_aur_state/Op1]
   connect_bd_net [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins or_aur_state/Res]
 
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins axis_injector/S01_AXIS_tvalid]
-  connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins axis_extractor/M01_AXIS_tready]
+  connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins suspend_extractor/M01_AXIS_tready]
 
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
   connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
-  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins axis_injector/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins axis_extractor/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins axis_extractor/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins suspend_injector/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins suspend_extractor/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins suspend_extractor/M00_AXIS]
   connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins axis_injector/S00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins suspend_injector/S01_AXIS]
   connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
 
   # Restore current instance
