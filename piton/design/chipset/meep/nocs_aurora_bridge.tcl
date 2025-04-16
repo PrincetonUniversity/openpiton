@@ -317,11 +317,11 @@ current_bd_design $design_name
   set suspend_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_flop]
   set_property -dict [list \
     CONFIG.CE {true} \
-    CONFIG.Load {true} \
+    CONFIG.Load {false} \
     CONFIG.Output_Width {1} \
     CONFIG.SCLR {true} \
   ] [get_bd_cells suspend_flop]
-  connect_bd_net [get_bd_pins suspend_flop/L] [get_bd_pins rx_fifo/prog_full]
+  # connect_bd_net [get_bd_pins suspend_flop/L] [get_bd_pins rx_fifo/prog_full]
 
   set rst_aur_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_aur_inv ]
   set_property -dict [list \
@@ -343,8 +343,21 @@ current_bd_design $design_name
       CONFIG.C_OPERATION {and} \
       CONFIG.C_SIZE {1} \
   ] [get_bd_cells suspend_wr]
-  connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/CE] [get_bd_pins suspend_flop/LOAD]
+  connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/CE]
+  # connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/LOAD]
   connect_bd_net [get_bd_pins suspend_wr/Op1] [get_bd_pins suspend_diff/Res]
+
+  set inject_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 inject_fifo]
+  set_property -dict [list \
+    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.TDATA_NUM_BYTES {0} \
+    CONFIG.TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.TDEST_WIDTH {1} \
+  ] [get_bd_cells inject_fifo]
+  connect_bd_net [get_bd_pins inject_fifo/s_axis_tvalid] [get_bd_pins suspend_diff/Res]
+  connect_bd_net [get_bd_pins inject_fifo/s_axis_tready] [get_bd_pins suspend_wr/Op2]
+  connect_bd_net [get_bd_pins inject_fifo/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
 
   set suspend_injector [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_injector]
   set_property -dict [list \
@@ -381,11 +394,8 @@ current_bd_design $design_name
     CONFIG.M_HAS_TLAST {1} \
     CONFIG.TLAST_REMAP {1'b1} \
   ] [get_bd_cells suspend_inject_conv]
+  connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/S_AXIS] [get_bd_intf_pins inject_fifo/M_AXIS]
   connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/M_AXIS] [get_bd_intf_pins suspend_injector/S00_AXIS]
-  # connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins suspend_diff/Res]
-  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tvalid] [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tready] [get_bd_pins suspend_wr/Op2]
-  connect_bd_net [get_bd_pins suspend_inject_conv/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
 
   set suspend_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_extractor]
   set_property -dict [list \
@@ -506,6 +516,7 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
+                 [get_bd_pins inject_fifo/s_axis_aresetn] \
                  [get_bd_pins suspend_injector/ARESETN] \
                  [get_bd_pins suspend_injector/M00_AXIS_ARESETN] \
                  [get_bd_pins suspend_injector/S00_AXIS_ARESETN] \
@@ -525,6 +536,7 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
                  [get_bd_pins tx_fifo/s_axis_aclk] \
                  [get_bd_pins rx_fifo/s_axis_aclk] \
+                 [get_bd_pins inject_fifo/s_axis_aclk] \
                  [get_bd_pins suspend_injector/ACLK] \
                  [get_bd_pins suspend_injector/M00_AXIS_ACLK] \
                  [get_bd_pins suspend_injector/S00_AXIS_ACLK] \
