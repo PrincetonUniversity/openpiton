@@ -363,7 +363,7 @@ current_bd_design $design_name
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
     CONFIG.NUM_SI {2} \
-    CONFIG.ARB_ALGORITHM {3} \
+    CONFIG.ARB_ALGORITHM {1} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
@@ -397,6 +397,16 @@ current_bd_design $design_name
   connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/S_AXIS] [get_bd_intf_pins inject_fifo/M_AXIS]
   connect_bd_intf_net [get_bd_intf_pins suspend_inject_conv/M_AXIS] [get_bd_intf_pins suspend_injector/S00_AXIS]
 
+  set extract_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 extract_fifo]
+  set_property -dict [list \
+    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.TDATA_NUM_BYTES {0} \
+    CONFIG.TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.TDEST_WIDTH {1} \
+  ] [get_bd_cells extract_fifo]
+  connect_bd_net [get_bd_pins extract_fifo/m_axis_tready] [get_bd_pins vccx1/dout]
+
   set suspend_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_extractor]
   set_property -dict [list \
     CONFIG.NUM_MI {2} \
@@ -405,6 +415,29 @@ current_bd_design $design_name
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
   ] [get_bd_cells suspend_extractor]
+
+  set suspend_extract_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 suspend_extract_conv]
+  set_property -dict [list \
+    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.S_TDATA_NUM_BYTES {31} \
+    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
+    CONFIG.M_TDATA_NUM_BYTES {0} \
+    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.S_HAS_TKEEP {1} \
+    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
+    CONFIG.M_HAS_TKEEP {0} \
+    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
+    CONFIG.M_TDEST_WIDTH {1} \
+    CONFIG.TDEST_REMAP {tdest[0:0]} \
+    CONFIG.S_HAS_TLAST.VALUE_SRC USER \
+    CONFIG.S_HAS_TLAST {1} \
+    CONFIG.M_HAS_TLAST.VALUE_SRC USER \
+    CONFIG.M_HAS_TLAST {0} \
+  ] [get_bd_cells suspend_extract_conv]
+  connect_bd_intf_net [get_bd_intf_pins suspend_extract_conv/S_AXIS] [get_bd_intf_pins suspend_extractor/M01_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins suspend_extract_conv/M_AXIS] [get_bd_intf_pins extract_fifo/S_AXIS]
 
   set tx_tdata_remap {tdest[7:0]}
   for {set idx 0} {$idx < 248} {incr idx} {
@@ -517,6 +550,7 @@ current_bd_design $design_name
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
                  [get_bd_pins inject_fifo/s_axis_aresetn] \
+                 [get_bd_pins extract_fifo/s_axis_aresetn] \
                  [get_bd_pins suspend_injector/ARESETN] \
                  [get_bd_pins suspend_injector/M00_AXIS_ARESETN] \
                  [get_bd_pins suspend_injector/S00_AXIS_ARESETN] \
@@ -526,6 +560,7 @@ current_bd_design $design_name
                  [get_bd_pins suspend_extractor/M00_AXIS_ARESETN] \
                  [get_bd_pins suspend_extractor/M01_AXIS_ARESETN] \
                  [get_bd_pins suspend_inject_conv/aresetn] \
+                 [get_bd_pins suspend_extract_conv/aresetn] \
                  [get_bd_pins aur_tx_conv/aresetn] \
                  [get_bd_pins aur_rx_conv/aresetn]
 
@@ -537,6 +572,7 @@ current_bd_design $design_name
                  [get_bd_pins tx_fifo/s_axis_aclk] \
                  [get_bd_pins rx_fifo/s_axis_aclk] \
                  [get_bd_pins inject_fifo/s_axis_aclk] \
+                 [get_bd_pins extract_fifo/s_axis_aclk] \
                  [get_bd_pins suspend_injector/ACLK] \
                  [get_bd_pins suspend_injector/M00_AXIS_ACLK] \
                  [get_bd_pins suspend_injector/S00_AXIS_ACLK] \
@@ -546,6 +582,7 @@ current_bd_design $design_name
                  [get_bd_pins suspend_extractor/M00_AXIS_ACLK] \
                  [get_bd_pins suspend_extractor/M01_AXIS_ACLK] \
                  [get_bd_pins suspend_inject_conv/aclk] \
+                 [get_bd_pins suspend_extract_conv/aclk] \
                  [get_bd_pins suspend_flop/CLK] \
                  [get_bd_pins aur_tx_conv/aclk] \
                  [get_bd_pins aur_rx_conv/aclk]
@@ -583,8 +620,6 @@ current_bd_design $design_name
   ] $or_aur_state
   connect_bd_net [get_bd_pins concat_aur_lo_ok/dout]        [get_bd_pins or_aur_state/Op1]
   connect_bd_net [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins or_aur_state/Res]
-
-  connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins suspend_extractor/M01_AXIS_tready]
 
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_S_AXIS_TX]
   connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins aurora_inst/USER_DATA_M_AXIS_RX]
