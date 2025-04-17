@@ -314,21 +314,29 @@ current_bd_design $design_name
     CONFIG.PROG_FULL_THRESH {16384} \
   ] [get_bd_cells rx_fifo]
 
-  set suspend_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_flop]
+  set suspend_tx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_tx_flop]
   set_property -dict [list \
     CONFIG.CE {true} \
-    CONFIG.Load {false} \
+    CONFIG.Load {true} \
     CONFIG.Output_Width {1} \
     CONFIG.SCLR {true} \
-  ] [get_bd_cells suspend_flop]
-  # connect_bd_net [get_bd_pins suspend_flop/L] [get_bd_pins rx_fifo/prog_full]
+  ] [get_bd_cells suspend_tx_flop]
+  connect_bd_net [get_bd_pins suspend_tx_flop/L] [get_bd_pins rx_fifo/prog_full]
+
+  set suspend_rx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_rx_flop]
+  set_property -dict [list \
+    CONFIG.CE {true} \
+    CONFIG.Load {true} \
+    CONFIG.Output_Width {1} \
+    CONFIG.SCLR {true} \
+  ] [get_bd_cells suspend_rx_flop]
 
   set rst_aur_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_aur_inv ]
   set_property -dict [list \
     CONFIG.C_OPERATION {not} \
     CONFIG.C_SIZE {1} \
   ] [get_bd_cells rst_aur_inv]
-  connect_bd_net [get_bd_pins rst_aur_inv/Res] [get_bd_pins suspend_flop/SCLR]
+  connect_bd_net [get_bd_pins rst_aur_inv/Res] [get_bd_pins suspend_tx_flop/SCLR] [get_bd_pins suspend_rx_flop/SCLR]
 
   set suspend_diff [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 suspend_diff ]
     set_property -dict [list \
@@ -336,15 +344,14 @@ current_bd_design $design_name
       CONFIG.C_SIZE {1} \
   ] [get_bd_cells suspend_diff]
   connect_bd_net [get_bd_pins suspend_diff/Op1] [get_bd_pins rx_fifo/prog_full]
-  connect_bd_net [get_bd_pins suspend_diff/Op2] [get_bd_pins suspend_flop/Q]
+  connect_bd_net [get_bd_pins suspend_diff/Op2] [get_bd_pins suspend_tx_flop/Q]
 
   set suspend_wr [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 suspend_wr ]
     set_property -dict [list \
       CONFIG.C_OPERATION {and} \
       CONFIG.C_SIZE {1} \
   ] [get_bd_cells suspend_wr]
-  connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/CE]
-  # connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_flop/LOAD]
+  connect_bd_net [get_bd_pins suspend_wr/Res] [get_bd_pins suspend_tx_flop/CE] [get_bd_pins suspend_tx_flop/LOAD]
   connect_bd_net [get_bd_pins suspend_wr/Op1] [get_bd_pins suspend_diff/Res]
 
   set inject_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 inject_fifo]
@@ -368,8 +375,8 @@ current_bd_design $design_name
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells suspend_injector]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins suspend_injector/S00_ARB_REQ_SUPPRESS]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins suspend_injector/S01_ARB_REQ_SUPPRESS]
+  connect_bd_net [get_bd_pins suspend_injector/S00_ARB_REQ_SUPPRESS] [get_bd_pins gndx1/dout] 
+  connect_bd_net [get_bd_pins suspend_injector/S01_ARB_REQ_SUPPRESS] [get_bd_pins suspend_rx_flop/Q]
 
   set suspend_inject_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 suspend_inject_conv]
   set_property -dict [list \
@@ -406,6 +413,8 @@ current_bd_design $design_name
     CONFIG.TDEST_WIDTH {1} \
   ] [get_bd_cells extract_fifo]
   connect_bd_net [get_bd_pins extract_fifo/m_axis_tready] [get_bd_pins vccx1/dout]
+  connect_bd_net [get_bd_pins extract_fifo/m_axis_tvalid] [get_bd_pins suspend_rx_flop/CE] [get_bd_pins suspend_rx_flop/LOAD]
+  connect_bd_net [get_bd_pins extract_fifo/m_axis_tdest]  [get_bd_pins suspend_rx_flop/L]
 
   set suspend_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 suspend_extractor]
   set_property -dict [list \
@@ -583,7 +592,8 @@ current_bd_design $design_name
                  [get_bd_pins suspend_extractor/M01_AXIS_ACLK] \
                  [get_bd_pins suspend_inject_conv/aclk] \
                  [get_bd_pins suspend_extract_conv/aclk] \
-                 [get_bd_pins suspend_flop/CLK] \
+                 [get_bd_pins suspend_tx_flop/CLK] \
+                 [get_bd_pins suspend_rx_flop/CLK] \
                  [get_bd_pins aur_tx_conv/aclk] \
                  [get_bd_pins aur_rx_conv/aclk]
 
