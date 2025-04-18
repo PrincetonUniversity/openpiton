@@ -301,7 +301,7 @@ current_bd_design $design_name
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
   set_property -dict [list \
-    CONFIG.FIFO_DEPTH {4096} \
+    CONFIG.FIFO_DEPTH {32} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {31} \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -311,7 +311,7 @@ current_bd_design $design_name
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH 8 \
     CONFIG.HAS_PROG_FULL {1} \
-    CONFIG.PROG_FULL_THRESH {2048} \
+    CONFIG.PROG_FULL_THRESH {16} \
   ] [get_bd_cells rx_fifo]
 
   set suspend_tx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 suspend_tx_flop]
