@@ -1152,6 +1152,7 @@ wire                               m_axi_bvalid;
 wire                               m_axi_bready;
 `endif
 
+wire aur_overfill;
 
 //////////////////////////
 // Sub-module Instances //
@@ -1286,6 +1287,7 @@ chip chip(
   `endif
 
     ,
+    .aur_overfill    (aur_overfill),
     .qsfp_ref_clk_n  (qsfp0_ref_clk_n),
     .qsfp_ref_clk_p  (qsfp0_ref_clk_p),
     .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
@@ -1726,6 +1728,8 @@ chipset chipset(
 
     // Chipset reset
     .rst_n(chipset_rst_n),
+    .aur_overfill (aur_overfill),
+
 
     // In the case of passthru, it should
     // tell us when Piton is ready since it

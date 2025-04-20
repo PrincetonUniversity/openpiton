@@ -86,6 +86,7 @@ module chipset_impl(
 
     output                                      test_start,
     output                                      uart_rst_out_n,
+    input                                       aur_overfill,
 
     // invalid access inside packet filter
     output                                      invalid_access_o,
@@ -2024,6 +2025,11 @@ ciop_iob ciop_iob     (
     .net_interrupt  ( net_interrupt          )
 );
 
+    reg aur_overfill_reg;
+    always @(posedge chipset_clk)
+      if (~chipset_rst_n)   aur_overfill_reg <= 1'b0;
+      else                  aur_overfill_reg <= aur_overfill;
+
 
 `ifdef PITONSYS_UART
 <%
@@ -2087,7 +2093,7 @@ uart_top        uart_top (
     .test_start                 ( test_start                            ),
     .test_good_end              ( test_good_end                         ),
     .test_bad_end               ( test_bad_end                          ),
-    .mc_axi_deadlock            ( mc_axi_deadlock                       ),
+    .mc_axi_deadlock            ( aur_overfill_reg                      ),
     .uart_rst_out_n             ( uart_rst_out_n                        ),
 
     .chip_id                    ( {1'b1, {(`NOC_CHIPID_WIDTH-1){1'b0}}} ),

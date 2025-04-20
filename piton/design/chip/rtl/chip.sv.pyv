@@ -152,6 +152,7 @@ module chip(
   `endif
 
     ,
+    output reg aur_overfill,
     input          qsfp_ref_clk_n,
     input          qsfp_ref_clk_p,
     input   [3:0]  qsfp_4x_grx_n,
@@ -1706,7 +1707,15 @@ module chip(
       .s_axis_tlast (valrdy_vert_midl_last));
 
 
+    wire aur_clk;
+    wire aur_rstn;
+    wire rx_overfill;
+    always @(posedge aur_clk)
+      if (~aur_rstn)        aur_overfill <= 1'b0;
+      else if (rx_overfill) aur_overfill <= 1'b1;
+
     nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),
+                                                .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overfill(rx_overfill),
 <%
     for j in range(PITON_Y_TILES):
       for i in range(PITON_X_TILES):
