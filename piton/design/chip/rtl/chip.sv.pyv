@@ -1709,13 +1709,13 @@ module chip(
 
     wire aur_clk;
     wire aur_rstn;
-    wire rx_overfill;
+    wire rx_overflow;
     always @(posedge aur_clk)
       if (~aur_rstn)        aur_overfill <= 1'b0;
-      else if (rx_overfill) aur_overfill <= 1'b1;
+      else if (rx_overflow) aur_overfill <= 1'b1;
 
     nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),
-                                                .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overfill(rx_overfill),
+                                                .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(rx_overflow),
 <%
     for j in range(PITON_Y_TILES):
       for i in range(PITON_X_TILES):

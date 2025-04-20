@@ -159,6 +159,8 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $NOC_CHANS \
+    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
+    CONFIG.XBAR_TDATA_NUM_BYTES {8} \
   ] [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
@@ -519,7 +521,7 @@ current_bd_design $design_name
   ] [get_bd_cells aur_rx_conv]
 
   make_bd_pins_external  [get_bd_pins aur_rx_conv/transfer_dropped]
-  set_property name "rx_overfill" [get_bd_ports transfer_dropped_0]
+  set_property name "rx_overflow" [get_bd_ports transfer_dropped_0]
 
   # setting Near-End PMA Loopback mode (0x2)
   set const3h2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 const3h2 ]
@@ -542,23 +544,20 @@ current_bd_design $design_name
   set_property name "qsfp_tx_4x" [get_bd_intf_ports GT_SERIAL_TX_0]
   set_property name "qsfp_rx_4x" [get_bd_intf_ports GT_SERIAL_RX_0]
 
-  set rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_inv ]
-  set_property -dict [list \
-    CONFIG.C_OPERATION {not} \
-    CONFIG.C_SIZE {1} \
-  ] [get_bd_cells $rst_inv]
-  connect_bd_net [get_bd_pins rst_inv/Op1] [get_bd_ports noc_rstn]
-  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins aurora_inst/pma_init]
-  connect_bd_net [get_bd_pins rst_inv/Res] [get_bd_pins aurora_inst/reset_pb]
-
   set aur_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 aur_rst_gen ]
   connect_bd_net [get_bd_ports noc_clk]   [get_bd_pins aur_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_ports noc_rstn]  [get_bd_pins aur_rst_gen/ext_reset_in] [get_bd_pins aur_rst_gen/aux_reset_in]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
-  connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins aur_rst_gen/dcm_locked]
-  # connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/power_down]
-  # connect_bd_net [get_bd_pins aur_rst_gen/peripheral_reset] [get_bd_pins aurora_inst/pma_init]
-  # connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
+  connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
+  connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
+
+  set aur_powergood [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 aur_powergood ]
+  set_property -dict [ list \
+   CONFIG.C_OPERATION {and} \
+   CONFIG.C_SIZE {4} \
+  ] $aur_powergood
+  connect_bd_net [get_bd_pins aur_powergood/Op1] [get_bd_pins aurora_inst/gt_powergood]
+  connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins aur_rst_gen/dcm_locked]
 
   connect_bd_net [get_bd_pins aurora_inst/channel_up] \
                  [get_bd_pins rst_aur_inv/Op1] \
