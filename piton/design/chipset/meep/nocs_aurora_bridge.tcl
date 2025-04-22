@@ -345,12 +345,7 @@ current_bd_design $design_name
     CONFIG.SCLR {true} \
   ] [get_bd_cells fc_rx_flop]
 
-  set rst_aur_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 rst_aur_inv ]
-  set_property -dict [list \
-    CONFIG.C_OPERATION {not} \
-    CONFIG.C_SIZE {1} \
-  ] [get_bd_cells rst_aur_inv]
-  connect_bd_net [get_bd_pins rst_aur_inv/Res] [get_bd_pins fc_tx_flop/SCLR] [get_bd_pins fc_rx_flop/SCLR]
+  connect_bd_net [get_bd_pins txrx_rst_gen/bus_struct_reset] [get_bd_pins fc_tx_flop/SCLR] [get_bd_pins fc_rx_flop/SCLR]
 
   set fc_diff [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 fc_diff ]
     set_property -dict [list \
@@ -368,17 +363,17 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins fc_wr/Res] [get_bd_pins fc_tx_flop/CE] [get_bd_pins fc_tx_flop/LOAD]
   connect_bd_net [get_bd_pins fc_wr/Op1] [get_bd_pins fc_diff/Res]
 
-  set inject_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 inject_fifo]
+  set fc_inject_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 fc_inject_fifo]
   set_property -dict [list \
     CONFIG.FIFO_DEPTH {16} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {0} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH {1} \
-  ] [get_bd_cells inject_fifo]
-  connect_bd_net [get_bd_pins inject_fifo/s_axis_tvalid] [get_bd_pins fc_diff/Res]
-  connect_bd_net [get_bd_pins inject_fifo/s_axis_tready] [get_bd_pins fc_wr/Op2]
-  connect_bd_net [get_bd_pins inject_fifo/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
+  ] [get_bd_cells fc_inject_fifo]
+  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tvalid] [get_bd_pins fc_diff/Res]
+  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tready] [get_bd_pins fc_wr/Op2]
+  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
 
   set fc_injector [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 fc_injector]
   set_property -dict [list \
@@ -415,20 +410,20 @@ current_bd_design $design_name
     CONFIG.M_HAS_TLAST {1} \
     CONFIG.TLAST_REMAP {1'b1} \
   ] [get_bd_cells fc_inject_conv]
-  connect_bd_intf_net [get_bd_intf_pins fc_inject_conv/S_AXIS] [get_bd_intf_pins inject_fifo/M_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins fc_inject_conv/S_AXIS] [get_bd_intf_pins fc_inject_fifo/M_AXIS]
   connect_bd_intf_net [get_bd_intf_pins fc_inject_conv/M_AXIS] [get_bd_intf_pins fc_injector/S00_AXIS]
 
-  set extract_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 extract_fifo]
+  set fc_extract_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 fc_extract_fifo]
   set_property -dict [list \
     CONFIG.FIFO_DEPTH {16} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {0} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH {1} \
-  ] [get_bd_cells extract_fifo]
-  connect_bd_net [get_bd_pins extract_fifo/m_axis_tready] [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins extract_fifo/m_axis_tvalid] [get_bd_pins fc_rx_flop/CE] [get_bd_pins fc_rx_flop/LOAD]
-  connect_bd_net [get_bd_pins extract_fifo/m_axis_tdest]  [get_bd_pins fc_rx_flop/L]
+  ] [get_bd_cells fc_extract_fifo]
+  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tready] [get_bd_pins vccx1/dout]
+  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tvalid] [get_bd_pins fc_rx_flop/CE] [get_bd_pins fc_rx_flop/LOAD]
+  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tdest]  [get_bd_pins fc_rx_flop/L]
 
   set fc_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 fc_extractor]
   set_property -dict [list \
@@ -460,7 +455,7 @@ current_bd_design $design_name
     CONFIG.M_HAS_TLAST {0} \
   ] [get_bd_cells fc_extract_conv]
   connect_bd_intf_net [get_bd_intf_pins fc_extract_conv/S_AXIS] [get_bd_intf_pins fc_extractor/M01_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins fc_extract_conv/M_AXIS] [get_bd_intf_pins extract_fifo/S_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins fc_extract_conv/M_AXIS] [get_bd_intf_pins fc_extract_fifo/S_AXIS]
 
   set tx_tdata_remap {tdest[7:0]}
   for {set idx 0} {$idx < 248} {incr idx} {
@@ -567,15 +562,14 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins aur_rst_gen/dcm_locked]
 
   connect_bd_net [get_bd_pins txrx_rst_gen/interconnect_aresetn] \
-                 [get_bd_pins rst_aur_inv/Op1] \
                  [get_bd_pins axis_muxer/ARESETN] \
                  [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
                  [get_bd_pins tx_fifo/s_axis_aresetn] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
-                 [get_bd_pins inject_fifo/s_axis_aresetn] \
-                 [get_bd_pins extract_fifo/s_axis_aresetn] \
+                 [get_bd_pins fc_inject_fifo/s_axis_aresetn] \
+                 [get_bd_pins fc_extract_fifo/s_axis_aresetn] \
                  [get_bd_pins fc_injector/ARESETN] \
                  [get_bd_pins fc_injector/M00_AXIS_ARESETN] \
                  [get_bd_pins fc_injector/S00_AXIS_ARESETN] \
@@ -596,8 +590,8 @@ current_bd_design $design_name
                  [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
                  [get_bd_pins tx_fifo/s_axis_aclk] \
                  [get_bd_pins rx_fifo/s_axis_aclk] \
-                 [get_bd_pins inject_fifo/s_axis_aclk] \
-                 [get_bd_pins extract_fifo/s_axis_aclk] \
+                 [get_bd_pins fc_inject_fifo/s_axis_aclk] \
+                 [get_bd_pins fc_extract_fifo/s_axis_aclk] \
                  [get_bd_pins fc_injector/ACLK] \
                  [get_bd_pins fc_injector/M00_AXIS_ACLK] \
                  [get_bd_pins fc_injector/S00_AXIS_ACLK] \
