@@ -142,7 +142,7 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-  set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3]
+  set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3 +1]
 
   # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of NOC packets)
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
