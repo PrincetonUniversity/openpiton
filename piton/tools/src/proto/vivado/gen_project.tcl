@@ -177,8 +177,12 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # set argv [list $g_board_part $g_eth_port $g_dma_mem $g_saxi_freq $g_saxi_prot]
   # set argc 5
   # source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/gen_project.tcl
+  # first adding the IP repository path of the Ehternet RX FIFO
+  set ip_repo_paths [get_property ip_repo_paths [current_project]]
+  lappend ip_repo_paths $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/ip_repo/eth_rx_fifo
+  set_property ip_repo_paths $ip_repo_paths [current_project]
+  update_ip_catalog -rebuild
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
-  cr_bd_Eth_CMAC_syst ""
 
   source $DV_ROOT/design/chipset/meep/nocs_aurora_bridge.tcl
   source $DV_ROOT/design/chipset/meep/nocs_mux_shell.tcl
