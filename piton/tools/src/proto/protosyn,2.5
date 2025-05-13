@@ -1120,6 +1120,8 @@ def main():
             os.environ['RTL_LAGARTO' + str(i)] = "1"
             print_info('setenv RTL_LAGARTO' + str(i))
 
+        os.system('$DV_ROOT/design/chip/tile/ariane_patch/lagarto_patch.sh')
+
     elif options.core == 'sparc':
         # this is the default
         os.environ['PITON_OST1'] = "1"
