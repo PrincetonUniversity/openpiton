@@ -1184,6 +1184,10 @@ module chip(
     assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
 
+    reg [`PITON_NUM_TILES-1:0]    timer_irq_tile;
+    reg [`PITON_NUM_TILES-1:0]    ipi_tile;
+    reg [`PITON_NUM_TILES*2-1:0]  irq_tile;
+
 <%
     sub_assign = r'''
             assign default_coreid_x [_FLAT_ID_] =COREIDX;
@@ -1211,16 +1215,16 @@ module chip(
         ,.unavailable_o       ( unavailable_o[_FLAT_ID_] )
     `endif // ifdef PITON_RV64_DEBUGUNIT
     `ifdef PITON_RV64_CLINT
-        ,.timer_irq_i         ( timer_irq_i[_FLAT_ID_]   )
-        ,.ipi_i               ( ipi_i[_FLAT_ID_]         )
+        ,.timer_irq_i         ( timer_irq_tile[_FLAT_ID_]   )
+        ,.ipi_i               ( ipi_tile[_FLAT_ID_]         )
     `endif // ifdef PITON_RV64_CLINT
     `ifdef PITON_RV64_PLIC
-        ,.irq_i               ( irq_i[_FLAT_ID_*2 +: 2]  )
+        ,.irq_i               ( irq_tile[_FLAT_ID_*2 +: 2]  )
     `endif // ifdef PITON_RV64_PLIC
     `endif // ifdef PITON_RV64_PLATFORM
         ,
     `ifdef PITON_LAGARTO
-        .pmu_sig_o           ( pmu_sig_o[27*_FLAT_ID_+:27]),
+        //.pmu_sig_o           ( pmu_sig_o[27*_FLAT_ID_+:27]),
     `endif
         // ucb from tiles to jtag
         .tile_jtag_ucb_val   ( tile0_jtag_ucb_val      ),
@@ -1710,19 +1714,36 @@ module chip(
     wire aur_clk;
     wire aur_rstn;
     wire rx_overflow;
-    always @(posedge aur_clk)
+    always_ff @(posedge aur_clk)
       if (~aur_rstn)        aur_overfill <= 1'b0;
       else if (rx_overflow) aur_overfill <= 1'b1;
 
+    wire [`PITON_NUM_TILES*4-1:0] free_signals = {irq_i, timer_irq_i, ipi_i};
+    reg  [`PITON_NUM_TILES*4-1:0] free_signals_reg;
+    reg                           free_signals_val;
+    always_ff @(posedge clk_muxed)
+      if (~rst_n_inter_sync) 
+        free_signals_val <= 1'b0;
+      else begin
+        free_signals_reg <= free_signals;
+        free_signals_val <= free_signals != free_signals_reg;
+      end
+
+    wire [`PITON_NUM_TILES*4-1:0] free_signals_tile;
+    wire                          free_signals_tile_val;
+    always_ff @(posedge clk_muxed)
+      if (~rst_n_inter_sync)          {irq_tile, timer_irq_tile, ipi_tile} <= 'h0;
+      else if (free_signals_tile_val) {irq_tile, timer_irq_tile, ipi_tile} <= free_signals_tile;
+
     nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),
                                                 .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(rx_overflow),
-                                                .s_axis_0_tdata ('d0),
-                                                .s_axis_0_tvalid(1'b0),
+                                                .s_axis_0_tdata (free_signals_reg),
+                                                .s_axis_0_tvalid(free_signals_val),
                                                 .s_axis_0_tready(),
                                                 .s_axis_0_tlast (1'b1),
                                                 .s_axis_0_tdest ('d0),
-                                                .m_axis_0_tdata (),
-                                                .m_axis_0_tvalid(),
+                                                .m_axis_0_tdata (free_signals_tile),
+                                                .m_axis_0_tvalid(free_signals_tile_val),
                                                 .m_axis_0_tready(1'b1),
 <%
     for j in range(PITON_Y_TILES):
