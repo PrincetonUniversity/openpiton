@@ -1288,8 +1288,8 @@ chip chip(
 
     ,
     .aur_overfill    (aur_overfill),
-    .qsfp_ref_clk_n  (qsfp0_ref_clk_n),
-    .qsfp_ref_clk_p  (qsfp0_ref_clk_p),
+    .qsfp_ref_clk_n  (qsfp1_ref_clk_n),
+    .qsfp_ref_clk_p  (qsfp1_ref_clk_p),
     .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
     .qsfp_4x_grx_p   (aur_qsfp_4x_grx_p),
     .qsfp_4x_gtx_n   (aur_qsfp_4x_gtx_n),

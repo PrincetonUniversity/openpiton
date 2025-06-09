@@ -179,7 +179,7 @@ current_bd_design $design_name
 
   # Create instance: aurora_64b66b, and set properties
   global g_board_part
-  set g_eth_port "qsfp0"
+  global g_eth_port
   if { ${g_board_part} eq "u280" } {
     set g_eth100gb_freq "156.25"
     if { ${g_eth_port} eq "qsfp0" } {
