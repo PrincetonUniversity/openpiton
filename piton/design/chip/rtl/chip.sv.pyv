@@ -1736,7 +1736,7 @@ module chip(
       else if (free_signals_tile_val) {irq_tile, timer_irq_tile, ipi_tile} <= free_signals_tile;
 
     nocs_aurora_bridge nocs_aurora_bridge_vert (.noc_clk(clk_muxed),.noc_rstn(rst_n_inter_sync),
-                                                .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(rx_overflow),
+                                                .aur_clk(aur_clk), .aur_rstn(aur_rstn), .sys_rstn_out(), .rx_overflow(rx_overflow),
                                                 .s_axis_0_tdata (free_signals_reg),
                                                 .s_axis_0_tvalid(free_signals_val),
                                                 .s_axis_0_tready(),
