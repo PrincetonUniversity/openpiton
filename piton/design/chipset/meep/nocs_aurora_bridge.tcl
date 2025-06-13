@@ -548,32 +548,38 @@ current_bd_design $design_name
   set_property name "qsfp_tx_4x" [get_bd_intf_ports GT_SERIAL_TX_0]
   set_property name "qsfp_rx_4x" [get_bd_intf_ports GT_SERIAL_RX_0]
 
-  # Generate powerup reset signal with length of 2^8/2 = 256/2 = 128 clock cycles
+  # Generate powerup reset signal
   set powerup_rst_gen [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 powerup_rst_gen]
   set_property -dict [list \
-    CONFIG.AINIT_Value {FF} \
     CONFIG.CE {true} \
-    CONFIG.Count_Mode {DOWN} \
-    CONFIG.Output_Width {8} \
+    CONFIG.Output_Width {20} \
   ] [get_bd_cells powerup_rst_gen]
   connect_bd_net [get_bd_ports noc_clk] [get_bd_pins powerup_rst_gen/CLK]
 
   set powerup_rst [create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 powerup_rst]
   set_property -dict [list \
-    CONFIG.DIN_FROM {7} \
-    CONFIG.DIN_TO {7} \
-    CONFIG.DIN_WIDTH {8} \
+    CONFIG.DIN_FROM {19} \
+    CONFIG.DIN_TO {19} \
+    CONFIG.DIN_WIDTH {20} \
   ] [get_bd_cells powerup_rst]
   connect_bd_net [get_bd_pins powerup_rst_gen/Q] [get_bd_pins powerup_rst/Din]
+
+  set powerup_rst_inv [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 powerup_rst_inv ]
+  set_property -dict [ list \
+   CONFIG.C_OPERATION {not} \
+   CONFIG.C_SIZE {1} \
+   CONFIG.LOGO_FILE {data/sym_notgate.png} \
+ ] $powerup_rst_inv
+  connect_bd_net [get_bd_pins powerup_rst_inv/Res] [get_bd_pins powerup_rst_gen/CE]
 
   set aur_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 aur_rst_gen ]
   set_property -dict [ list \
    CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
-   CONFIG.C_AUX_RESET_HIGH {1} \
+   CONFIG.C_AUX_RESET_HIGH {0} \
   ] $aur_rst_gen
   connect_bd_net [get_bd_ports noc_clk]          [get_bd_pins aur_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_ports noc_rstn]         [get_bd_pins aur_rst_gen/ext_reset_in]
-  connect_bd_net [get_bd_pins powerup_rst/Dout]  [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_gen/CE]
+  connect_bd_net [get_bd_pins powerup_rst/Dout]  [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
   connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
