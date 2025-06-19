@@ -1746,18 +1746,41 @@ module chip(
                                                 .m_axis_0_tvalid(free_signals_tile_val),
                                                 .m_axis_0_tready(1'b1),
 <%
-    for j in range(PITON_Y_TILES):
+    edges  = 0
+    chanid = 0
+    if (PITON_TO_Y != PITON_Y_TILES-1):
+      y_N_near = PITON_TO_Y
+      y_N_far  = PITON_TO_Y+1
+      y_near = y_N_near
+      y_far  = y_N_far
+      edges = edges + 1
+    if (PITON_FR_Y != 0):
+      y_S_near = PITON_FR_Y
+      y_S_far  = PITON_FR_Y-1
+      y_near = y_S_near
+      y_far  = y_S_far
+      edges = edges + 1
+    loopback_mode = 0 if (edges == 1) else 2
+    print("      .aur_loopback(3'h%x)," % (loopback_mode))
+    for edge in range(edges):
+      if (edges == 2):
+        if (edge == 0):
+          y_near = y_N_near
+          y_far  = y_N_near
+        else:
+          y_near = y_S_near
+          y_far  = y_S_near
       for i in range(PITON_X_TILES):
         for k in [1,2,3]:
-          chanid = (j * PITON_X_TILES*3) + i*3 + k;
-          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,j,i,k))
-          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,j,i,k))
-          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,j,i,k))
-          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) , " % (chanid,j,i,k))
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) , " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tdest('d%d),"                                     % (chanid,chanid))
-          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,j,i,k))
-          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,j,i,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,j,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,y_near,i,k))
 %>
       .qsfp_refck_clk_n   (qsfp_ref_clk_n),
       .qsfp_refck_clk_p   (qsfp_ref_clk_p),

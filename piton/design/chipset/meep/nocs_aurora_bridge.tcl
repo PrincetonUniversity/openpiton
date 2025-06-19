@@ -142,7 +142,19 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-  set NOC_CHANS [expr $::env(PITON_NUM_TILES) * 3 +1]
+  set NOC_CHANS 1
+  if { $::env(PITON_FR_X) != 0 } {
+    set NOC_CHANS [expr {$NOC_CHANS + $::env(PITON_Y_TILES) * 3}]
+  }
+  if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
+    set NOC_CHANS [expr {$NOC_CHANS + $::env(PITON_Y_TILES) * 3}]
+  }
+  if { $::env(PITON_FR_Y) != 0 } {
+    set NOC_CHANS [expr {$NOC_CHANS + $::env(PITON_X_TILES) * 3}]
+  }
+  if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
+    set NOC_CHANS [expr {$NOC_CHANS + $::env(PITON_X_TILES) * 3}]
+  }
 
   # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of NOC packets)
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
@@ -528,12 +540,12 @@ current_bd_design $design_name
   set_property name "rx_overflow" [get_bd_ports transfer_dropped_0]
 
   # setting Near-End PMA Loopback mode (0x2)
-  set const3h2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 const3h2 ]
-  set_property -dict [list \
-    CONFIG.CONST_WIDTH {3} \
-    CONFIG.CONST_VAL {2} \
-  ] $const3h2
-  connect_bd_net [get_bd_pins const3h2/dout] [get_bd_pins aurora_inst/loopback] 
+  # set const3h2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 const3h2 ]
+  # set_property -dict [list \
+  #   CONFIG.CONST_WIDTH {3} \
+  #   CONFIG.CONST_VAL {2} \
+  # ] $const3h2
+  # connect_bd_net [get_bd_pins const3h2/dout] [get_bd_pins aurora_inst/loopback] 
 
   set g_refport_freq [format {%0.0f} [expr {$g_eth100gb_freq*1000000+0.5}] ]
   puts "PORT FREQUENCY: $g_refport_freq"
@@ -547,6 +559,9 @@ current_bd_design $design_name
   make_bd_intf_pins_external [get_bd_intf_pins aurora_inst/GT_SERIAL_RX]
   set_property name "qsfp_tx_4x" [get_bd_intf_ports GT_SERIAL_TX_0]
   set_property name "qsfp_rx_4x" [get_bd_intf_ports GT_SERIAL_RX_0]
+
+  make_bd_pins_external [get_bd_pins aurora_inst/loopback]
+  set_property name "aur_loopback" [get_bd_ports loopback_0]
 
   # Generate powerup reset signal
   set powerup_rst_gen [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 powerup_rst_gen]
