@@ -368,21 +368,28 @@ module system(
     `endif
 `elsif ALVEO_BOARD // PITON_FPGA_ETHERNETLITE
         // GTY quads connected to QSFP unit on Alveo board     
+`ifdef PITON_FPGA_ETH_CMAC
         input          qsfp0_ref_clk_n,
         input          qsfp0_ref_clk_p,
-
-        input          qsfp1_ref_clk_n,
-        input          qsfp1_ref_clk_p,
 
         input   [3:0]  eth_qsfp_4x_grx_n,
         input   [3:0]  eth_qsfp_4x_grx_p,
         output  [3:0]  eth_qsfp_4x_gtx_n,
         output  [3:0]  eth_qsfp_4x_gtx_p,
+`endif // PITON_FPGA_ETH_CMAC
+
+        input          qsfp1_ref_clk_n,
+        input          qsfp1_ref_clk_p,
 
         input   [3:0]  aur_qsfp_4x_grx_n,
         input   [3:0]  aur_qsfp_4x_grx_p,
         output  [3:0]  aur_qsfp_4x_gtx_n,
         output  [3:0]  aur_qsfp_4x_gtx_p,
+
+        // input   [3:0]  qsfp_4x_grx_n,
+        // input   [3:0]  qsfp_4x_grx_p,
+        // output  [3:0]  qsfp_4x_gtx_n,
+        // output  [3:0]  qsfp_4x_gtx_p,
 `endif // ALVEO_BOARD
 `endif // endif PITONSYS_IOCTRL
 

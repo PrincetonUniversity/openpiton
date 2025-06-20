@@ -1599,7 +1599,9 @@ module chip(
                 currenttile = currenttile.replace("in_W", idW + "_out_E");
 
             # print "`ifdef RTL_SPARC%d" % flatid
-            print(currenttile)
+            if   (PITON_FR_X <= i and i <= PITON_TO_X) or (PITON_FR_X > PITON_TO_X):
+              if (PITON_FR_Y <= j and j <= PITON_TO_Y) or (PITON_FR_Y > PITON_TO_Y):
+                print(currenttile)
             # print "`endif"
     print ("`ifdef PITON_PRONOC");
     print(assign + edge_assign)

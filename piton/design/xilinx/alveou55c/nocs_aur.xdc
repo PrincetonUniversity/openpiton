@@ -25,7 +25,7 @@
 #create_clock is not needed in case of connecting QSFP clock to 100Gb CMAC, but needed for Aurora and 1Gb PHY (gig_ethernet_pcs_pma)
 set_property PACKAGE_PIN AB43              [get_ports "qsfp1_ref_clk_n"] ;# Bank 131 - MGTREFCLK0N_131
 set_property PACKAGE_PIN AB42              [get_ports "qsfp1_ref_clk_p"] ;# Bank 131 - MGTREFCLK0P_131
-create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp_ref_clk_p"]
+create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp1_ref_clk_p"]
 #
 
 #--------------------------------------------
