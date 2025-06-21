@@ -187,8 +187,6 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # Setting currently fixed for P2P connection QSFP-1 
   set g_eth_port "qsfp1"
   source $DV_ROOT/design/chipset/meep/nocs_aurora_bridge.tcl
-  source $DV_ROOT/design/chipset/meep/nocs_mux_shell.tcl
-  source $DV_ROOT/design/chipset/meep/nocs_demux_shell.tcl
 }
 
 # Set 'sources_1' fileset file properties for local files
