@@ -153,7 +153,6 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # (to save BD: write_bd_tcl -force -no_project_wrapper ../piton/design/chipset/meep/jtag_shell.tcl)
   source $DV_ROOT/design/chipset/meep/jtag_shell.tcl
 
-  # Generating NOCs muxer/demuxer
   # Generating Ethernet system
   if {[info exists ::env(PROTOSYN_RUNTIME_BOARD)]} {
     set g_board_part [string map {"alveo" ""} $::env(PROTOSYN_RUNTIME_BOARD)]
@@ -184,9 +183,26 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   update_ip_catalog -rebuild
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
-  # Setting currently fixed for P2P connection QSFP-1 
+  # Multi-FPGA axis-aurora bridge
+  # setting currently fixed for P2P connection QSFP-1 
   set g_eth_port "qsfp1"
-  source $DV_ROOT/design/chipset/meep/nocs_aurora_bridge.tcl
+  set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
+  # NOC_DATA_WIDTH/8 = 64/8 = 8
+  set AXIS_AUR_BYTES 8
+  set AXIS_AUR_CHANS 1
+  if { $::env(PITON_FR_X) != 0 } {
+    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+  }
+  if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
+    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+  }
+  if { $::env(PITON_FR_Y) != 0 } {
+    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+  }
+  if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
+    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+  }
+  source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
 }
 
 # Set 'sources_1' fileset file properties for local files
@@ -313,7 +329,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
-  add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/nocs_aur.xdc"
+  add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axis_aur.xdc"
 }
 
 # Set 'constrs_1' fileset properties

@@ -39,11 +39,11 @@ set aur_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierar
 
 #--------------------------------------------
 # Timing constraints for clock domains crossings (CDC), which didn't apply automatically (e.g. for GPIO)
-set noc_clk [get_clocks -of_objects [get_pins -hierarchical aurora_inst/init_clk]]
+set sys_clk [get_clocks -of_objects [get_pins -hierarchical aurora_inst/init_clk]]
 set aur_clk [get_clocks -of_objects [get_pins -hierarchical aurora_inst/user_clk_out ]]
 # set_false_path -from $xxx_clk -to $yyy_clk
 # controlling resync paths to be less than source clock period
 # (-datapath_only to exclude clock paths)
-set_max_delay -datapath_only -from $noc_clk -to $aur_clk [expr [get_property -min period $noc_clk] * 0.9]
-set_max_delay -datapath_only -from $aur_clk -to $noc_clk [expr [get_property -min period $aur_clk] * 0.9]
+set_max_delay -datapath_only -from $sys_clk -to $aur_clk [expr [get_property -min period $sys_clk] * 0.9]
+set_max_delay -datapath_only -from $aur_clk -to $sys_clk [expr [get_property -min period $aur_clk] * 0.9]
 ## ================================
