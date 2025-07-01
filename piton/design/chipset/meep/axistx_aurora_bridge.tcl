@@ -154,14 +154,14 @@ current_bd_design $design_name
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
+    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
+    CONFIG.XBAR_TDATA_NUM_BYTES {31} \
   ] [get_bd_cells axis_muxer]
 
   # Create IPs of Xilix AXI-stream interconnect
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $AXIS_AUR_CHANS \
-    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
-    CONFIG.XBAR_TDATA_NUM_BYTES $AXIS_AUR_BYTES \
   ] [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
@@ -251,6 +251,13 @@ current_bd_design $design_name
   set_property name "aur_rstn"                           [get_bd_ports peripheral_aresetn_0]
 
   for {set idx 0} {$idx < $AXIS_AUR_CHANS} {incr idx} {
+    set_property -dict [list \
+      CONFIG.S[format {%02d} $idx]_FIFO_DEPTH {16} \
+      CONFIG.S[format {%02d} $idx]_FIFO_MODE {1} \
+    ] [get_bd_cells axis_muxer]
+
+    set_property CONFIG.M[format {%02d} $idx]_FIFO_DEPTH {16} [get_bd_cells axis_demuxer]
+
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
     connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
@@ -264,9 +271,9 @@ current_bd_design $design_name
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx]_AXIS_0]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                       s_axis_$idx
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                                     s_axis_$idx
     set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES $AXIS_AUR_BYTES CONFIG.TDEST_WIDTH 8] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                                 s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                                               s_axis_$idx]
     connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
 
     set inrdy_rst_$idx [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inrdy_rst_$idx ]
@@ -387,6 +394,8 @@ current_bd_design $design_name
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
+    CONFIG.M00_FIFO_DEPTH {16} \
+    CONFIG.M00_FIFO_MODE {1} \
   ] [get_bd_cells fc_injector]
   connect_bd_net [get_bd_pins fc_injector/S00_ARB_REQ_SUPPRESS] [get_bd_pins gndx1/dout] 
   connect_bd_net [get_bd_pins fc_injector/S01_ARB_REQ_SUPPRESS] [get_bd_pins fc_rx_flop/Q]
@@ -436,6 +445,7 @@ current_bd_design $design_name
     CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
+    CONFIG.S00_FIFO_DEPTH {16} \
   ] [get_bd_cells fc_extractor]
 
   set fc_extract_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 fc_extract_conv]
