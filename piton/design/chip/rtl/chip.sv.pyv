@@ -1637,7 +1637,6 @@ module chip(
                                            .s_axis_0_tvalid(free_ctrl_tx_val & ctrl_tx),
                                            .s_axis_0_tready(),
                                            .s_axis_0_tlast (1'b1),
-                                           .s_axis_0_tdest ('d0),
                                            .m_axis_0_tdata (free_ctrl_rx),
                                            .m_axis_0_tvalid(free_ctrl_rx_val),
                                            .m_axis_0_tready(1'b1),
@@ -1704,7 +1703,6 @@ module chip(
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) , " % (chanid,y_far,i,k))
-          print("      .s_axis_%d_tdest('d%d),"                                     % (chanid,chanid))
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,y_near,i,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,y_near,i,k))
           print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,y_near,i,k))
@@ -1724,7 +1722,6 @@ module chip(
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready), " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_noc%d_last) , " % (chanid,j,x_far,k))
-          print("      .s_axis_%d_tdest('d%d),"                                     % (chanid,chanid))
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_noc%d_data), " % (chanid,j,x_near,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_noc%d_valid)," % (chanid,j,x_near,k))
           print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_noc%d_ready)," % (chanid,j,x_near,k))
