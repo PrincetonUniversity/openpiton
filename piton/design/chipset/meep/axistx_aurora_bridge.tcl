@@ -264,7 +264,7 @@ current_bd_design $design_name
 
     set in_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 in_fifo_$idx]
     set_property -dict [list \
-      CONFIG.FIFO_DEPTH {16} \
+      CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
       CONFIG.TDEST_WIDTH 8 \
     ] [get_bd_cells in_fifo_$idx]
@@ -299,7 +299,7 @@ current_bd_design $design_name
 
     set out_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 out_fifo_$idx]
     set_property -dict [list \
-      CONFIG.FIFO_DEPTH {16} \
+      CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
       CONFIG.TDATA_NUM_BYTES $AXIS_AUR_BYTES \
       CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -322,7 +322,7 @@ current_bd_design $design_name
 
   set tx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo]
   set_property -dict [list \
-    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.FIFO_DEPTH {256} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {31} \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -335,7 +335,7 @@ current_bd_design $design_name
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
   set_property -dict [list \
-    CONFIG.FIFO_DEPTH {16} \
+    CONFIG.FIFO_DEPTH {256} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES {31} \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -345,7 +345,7 @@ current_bd_design $design_name
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.TDEST_WIDTH 8 \
     CONFIG.HAS_PROG_FULL {1} \
-    CONFIG.PROG_FULL_THRESH {8} \
+    CONFIG.PROG_FULL_THRESH {128} \
   ] [get_bd_cells rx_fifo]
 
   set fc_tx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 fc_tx_flop]
