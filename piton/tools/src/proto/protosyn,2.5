@@ -976,6 +976,12 @@ def main():
     os.environ['PITON_TO_X'] = str(options.to_x)
     os.environ['PITON_TO_Y'] = str(options.to_y)
 
+    if (int(options.fr_x) != 0 or
+        int(options.fr_y) != 0 or
+        int(options.to_x) != int(options.x_tiles)-1 or
+        int(options.to_y) != int(options.y_tiles)-1):
+      defines.append("PITON_MULTI_FPGA")
+
     os.environ['PITON_EXTRA_MEMS'] = "0"
     if options.multimc:
       options.edge_tiles = 2 * (int(options.x_tiles)-1 + int(options.y_tiles)-1)

@@ -183,24 +183,28 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   update_ip_catalog -rebuild
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
-  # Multi-FPGA axis-aurora bridge
-  # setting currently fixed for P2P connection QSFP-1 
-  set g_eth_port "qsfp1"
+  # Multi-FPGA axist-aurora bridge assuming QSFP P2P connection
+  # setting currently QSFP port opposite to Ethernet
+  if {[info exists ::env(PROTOSYN_RUNTIME_ETHPORT)] && $::env(PROTOSYN_RUNTIME_ETHPORT)=="1"} {
+    set g_eth_port "qsfp0"
+  } else {
+    set g_eth_port "qsfp1"
+  }
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
   # NOC_DATA_WIDTH/8 = 64/8 = 8
   set AXIS_AUR_BYTES 8
-  set AXIS_AUR_CHANS 1
+  set AXIST_AUR_CHANS 1
   if { $::env(PITON_FR_X) != 0 } {
-    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
   }
   if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
-    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
   }
   if { $::env(PITON_FR_Y) != 0 } {
-    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
-    set AXIS_AUR_CHANS [expr {$AXIS_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
 }
@@ -329,7 +333,9 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
-  add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axis_aur.xdc"
+  if { $AXIST_AUR_CHANS != 1 } {
+    add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur.xdc"
+  }
 }
 
 # Set 'constrs_1' fileset properties

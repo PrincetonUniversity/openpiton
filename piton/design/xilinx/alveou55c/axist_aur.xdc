@@ -1,5 +1,5 @@
-## ================ Ethernet ================
-## Commented pin locations are applied automatically due to configurations inside Ethernet CMAC core (made in BD)
+## ================ Aurora ================
+## Commented pin locations are applied automatically due to configurations inside Aurora core (made in BD)
 #--------------------------------------------
 ## Input Clocks and Controls for QSFP28 Port 0
 #
@@ -10,9 +10,9 @@
 ##                             |   PINS: MGTREFCLK0P_130_AD42/MGTREFCLK0N_130_AD43
 
 #create_clock is not needed in case of connecting QSFP clock to 100Gb CMAC, but needed for Aurora and 1Gb PHY (gig_ethernet_pcs_pma)
-# set_property PACKAGE_PIN AD43              [get_ports "qsfp0_ref_clk_n"] ;# Bank 130 - MGTREFCLK0N_130
-# set_property PACKAGE_PIN AD42              [get_ports "qsfp0_ref_clk_p"] ;# Bank 130 - MGTREFCLK0P_130
-# create_clock -period 6.206 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
+set_property PACKAGE_PIN AD43              [get_ports "qsfp0_ref_clk_n"] ;# Bank 130 - MGTREFCLK0N_130
+set_property PACKAGE_PIN AD42              [get_ports "qsfp0_ref_clk_p"] ;# Bank 130 - MGTREFCLK0P_130
+create_clock -period 6.206 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
 #
 #--------------------------------------------
 # Input Clocks and Controls for QSFP28 Port 1
@@ -35,7 +35,7 @@ create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp1_ref_clk_p"]
 #excluding AXI register slices intended to facilitate SLR crossing on the way to/from HBM located in SLR0
 set aur_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical aurora_inst/user_clk_out]]]
 #Setting specific SLR to which QSFP are wired since placer may miss it if just "group_name" is applied
-# set_property USER_SLR_ASSIGNMENT SLR1 [get_cells "$aur_clk_units"]
+set_property USER_SLR_ASSIGNMENT SLR1 [get_cells "$aur_clk_units"]
 
 #--------------------------------------------
 # Timing constraints for clock domains crossings (CDC), which didn't apply automatically (e.g. for GPIO)

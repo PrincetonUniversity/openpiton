@@ -142,14 +142,14 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-  global AXIS_AUR_CHANS
+  global AXIST_AUR_CHANS
   global AXIS_AUR_BYTES
 
   # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of AXISt packets)
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
-    CONFIG.NUM_SI $AXIS_AUR_CHANS \
+    CONFIG.NUM_SI $AXIST_AUR_CHANS \
     CONFIG.ARB_ALGORITHM {3} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
@@ -161,7 +161,7 @@ current_bd_design $design_name
   # Create IPs of Xilix AXI-stream interconnect
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
-    CONFIG.NUM_MI $AXIS_AUR_CHANS \
+    CONFIG.NUM_MI $AXIST_AUR_CHANS \
   ] [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
@@ -250,7 +250,7 @@ current_bd_design $design_name
   make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/peripheral_aresetn]
   set_property name "aur_rstn"                           [get_bd_ports peripheral_aresetn_0]
 
-  for {set idx 0} {$idx < $AXIS_AUR_CHANS} {incr idx} {
+  for {set idx 0} {$idx < $AXIST_AUR_CHANS} {incr idx} {
     set_property -dict [list \
       CONFIG.S[format {%02d} $idx]_FIFO_DEPTH {16} \
       CONFIG.S[format {%02d} $idx]_FIFO_MODE {1} \
@@ -260,7 +260,9 @@ current_bd_design $design_name
 
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
+    if { $AXIST_AUR_CHANS > 1 } {
     connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
+    }
 
     set in_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 in_fifo_$idx]
     set_property -dict [list \
