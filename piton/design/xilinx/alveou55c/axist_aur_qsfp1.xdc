@@ -10,9 +10,9 @@
 ##                             |   PINS: MGTREFCLK0P_130_AD42/MGTREFCLK0N_130_AD43
 
 #create_clock is not needed in case of connecting QSFP clock to 100Gb CMAC, but needed for Aurora and 1Gb PHY (gig_ethernet_pcs_pma)
-set_property PACKAGE_PIN AD43              [get_ports "qsfp0_ref_clk_n"] ;# Bank 130 - MGTREFCLK0N_130
-set_property PACKAGE_PIN AD42              [get_ports "qsfp0_ref_clk_p"] ;# Bank 130 - MGTREFCLK0P_130
-create_clock -period 6.206 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
+# set_property PACKAGE_PIN AD43              [get_ports "qsfp0_ref_clk_n"] ;# Bank 130 - MGTREFCLK0N_130
+# set_property PACKAGE_PIN AD42              [get_ports "qsfp0_ref_clk_p"] ;# Bank 130 - MGTREFCLK0P_130
+# create_clock -period 6.206 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
 #
 #--------------------------------------------
 # Input Clocks and Controls for QSFP28 Port 1

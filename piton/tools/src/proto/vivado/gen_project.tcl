@@ -186,9 +186,9 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   # Multi-FPGA axist-aurora bridge assuming QSFP P2P connection
   # setting currently QSFP port opposite to Ethernet
   if {[info exists ::env(PROTOSYN_RUNTIME_ETHPORT)] && $::env(PROTOSYN_RUNTIME_ETHPORT)=="1"} {
-    set g_eth_port "qsfp0"
+    set g_aur_port "qsfp0"
   } else {
-    set g_eth_port "qsfp1"
+    set g_aur_port "qsfp1"
   }
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
   # NOC_DATA_WIDTH/8 = 64/8 = 8
@@ -334,7 +334,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
   if { $AXIST_AUR_CHANS != 1 } {
-    add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur.xdc"
+    add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_${g_aur_port}.xdc"
   }
 }
 

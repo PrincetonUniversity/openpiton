@@ -180,27 +180,38 @@ current_bd_design $design_name
 
   # Create instance: aurora_64b66b, and set properties
   global g_board_part
-  global g_eth_port
+  global g_aur_port
   if { ${g_board_part} eq "u280" } {
     set g_eth100gb_freq "156.25"
-    if { ${g_eth_port} eq "qsfp0" } {
+    if { ${g_aur_port} eq "qsfp0" } {
       set g_quad_loc      "Quad_X0Y10"
       set g_lane1_loc     "X0Y40"
     }
-    if { ${g_eth_port} eq "qsfp1" } {
+    if { ${g_aur_port} eq "qsfp1" } {
       set g_quad_loc      "Quad_X0Y11"
       set g_lane1_loc     "X0Y44"
     }
   }
   if { ${g_board_part} eq "u55c" } {
     set g_eth100gb_freq "161.1328125"
-    if { ${g_eth_port} eq "qsfp0" } {
+    if { ${g_aur_port} eq "qsfp0" } {
       set g_quad_loc      "Quad_X0Y6"
       set g_lane1_loc     "X0Y24"
     }
-    if { ${g_eth_port} eq "qsfp1" } {
+    if { ${g_aur_port} eq "qsfp1" } {
       set g_quad_loc      "Quad_X0Y7"
       set g_lane1_loc     "X0Y28"
+    }
+  }
+  if { ${g_board_part} eq "u250" } {
+    set g_eth100gb_freq "156.25"
+    if { ${g_aur_port} eq "qsfp0" } {
+      set g_quad_loc      "todefine"
+      set g_lane1_loc     "todefine"
+    }
+    if { ${g_aur_port} eq "qsfp1" } {
+      set g_quad_loc      "todefine"
+      set g_lane1_loc     "todefine"
     }
   }
   set aurora_inst [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:13.0 aurora_inst ]

@@ -38,10 +38,10 @@
 # MGT_SI570_CLOCK0   -> MGT Ref Clock 0 156.25MHz Default (User re-programmable)
 # QSFP0_CLOCK        -> MGT Ref Clock 1 User selectable by QSFP0_FS
 #
-set_property PACKAGE_PIN M10 [get_ports qsfp0_ref_clk_n]; # Bank 231 Net "MGT_SI570_CLOCK0_C_N" - MGTREFCLK0N_231
-set_property PACKAGE_PIN M11 [get_ports qsfp0_ref_clk_p]; # Bank 231 Net "MGT_SI570_CLOCK0_C_P" - MGTREFCLK0P_231
+# set_property PACKAGE_PIN M10 [get_ports qsfp0_ref_clk_n]; # Bank 231 Net "MGT_SI570_CLOCK0_C_N" - MGTREFCLK0N_231
+# set_property PACKAGE_PIN M11 [get_ports qsfp0_ref_clk_p]; # Bank 231 Net "MGT_SI570_CLOCK0_C_P" - MGTREFCLK0P_231
 #create_clock is not needed in case of connecting QSFP clock to 100Gb CMAC, but needed for Aurora and 1Gb PHY (gig_ethernet_pcs_pma)
-create_clock -period 6.4 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
+# create_clock -period 6.4 -name QSFP0_CLK [get_ports "qsfp0_ref_clk_p"]
 # set_property PACKAGE_PIN M10 [get_ports MGT_SI570_CLOCK0_N]; # Bank 231 Net "MGT_SI570_CLOCK0_C_N" - MGTREFCLK0N_231
 # set_property PACKAGE_PIN M11 [get_ports MGT_SI570_CLOCK0_P]; # Bank 231 Net "MGT_SI570_CLOCK0_C_P" - MGTREFCLK0P_231
 # set_property PACKAGE_PIN K10 [get_ports QSFP0_CLOCK_N     ]; # Bank 231 Net "QSFP0_CLOCK_N"        - MGTREFCLK1N_231
