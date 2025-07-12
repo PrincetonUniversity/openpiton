@@ -206,7 +206,9 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
     set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
   }
-  source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+  if { $AXIST_AUR_CHANS != 1 } {
+    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+  }
 }
 
 # Set 'sources_1' fileset file properties for local files
