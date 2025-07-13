@@ -110,6 +110,12 @@ def usage():
     print("              Implement design with multiple connections to system memory", file=sys.stderr)
     print("\n       --multimc_indices <comma separated list of indices connected to MCs>", file=sys.stderr)
     print("              Comma separated list of edge routers IDs connected to MCs.", file=sys.stderr)
+    print("\n       --fr_x <number>", file=sys.stderr)
+    print("         --fr_y <number>", file=sys.stderr)
+    print("              Tile coordinates from which FPGA partition starts. Default: 0/0", file=sys.stderr)
+    print("\n       --to_x <number>", file=sys.stderr)
+    print("         --to_y <number>", file=sys.stderr)
+    print("              Tile coordinates at which FPGA partition finishes. Default: (x_tiles-1)/(y_tiles-1)", file=sys.stderr)
     print("\n       --eth", file=sys.stderr)
     print("              Add Ethernet controller to implementation", file=sys.stderr)
     print("\n       --ethport <number>", file=sys.stderr)
@@ -469,6 +475,10 @@ def setParserOptions(parser):
     parser.add_option("--network_config", dest="network_config", action="store", default="2dmesh_config")
     parser.add_option("--x_tiles", dest="x_tiles", action="store", default=1)
     parser.add_option("--y_tiles", dest="y_tiles", action="store", default=1)
+    parser.add_option("--fr_x", dest="fr_x", action="store", default=0)
+    parser.add_option("--fr_y", dest="fr_y", action="store", default=0)
+    parser.add_option("--to_x", dest="to_x", action="store", default=-1)
+    parser.add_option("--to_y", dest="to_y", action="store", default=-1)
     parser.add_option("--num_tiles", dest="num_tiles", action="store", default=1)
     parser.add_option("--config_l1i_size", dest="config_l1i_size", action="store", default=16384)
     parser.add_option("--config_l1d_size", dest="config_l1d_size", action="store", default=8192)
@@ -832,6 +842,24 @@ def main():
     os.environ['PITON_X_TILES']   = str(options.x_tiles)
     os.environ['PITON_Y_TILES']   = str(options.y_tiles)
     os.environ['PITON_NUM_TILES'] = str(options.num_tiles)
+
+    if int(options.to_x) < 0 or int(options.to_x) >= int(options.x_tiles):
+        options.to_x = int(options.x_tiles)-1;
+    if int(options.to_y) < 0 or int(options.to_y) >= int(options.y_tiles):
+        options.to_y = int(options.y_tiles)-1;
+    print_info("Impl partition fr_x = " + str(options.fr_x) + " to_x = " + str(options.to_x))
+    print_info("Impl partition fr_y = " + str(options.fr_y) + " to_y = " + str(options.to_y))
+
+    os.environ['PITON_FR_X'] = str(options.fr_x)
+    os.environ['PITON_FR_Y'] = str(options.fr_y)
+    os.environ['PITON_TO_X'] = str(options.to_x)
+    os.environ['PITON_TO_Y'] = str(options.to_y)
+
+    if (int(options.fr_x) != 0 or
+        int(options.fr_y) != 0 or
+        int(options.to_x) != int(options.x_tiles)-1 or
+        int(options.to_y) != int(options.y_tiles)-1):
+      defines.append("PITON_MULTI_FPGA")
 
     os.environ['PITON_EXTRA_MEMS'] = "0"
     if options.multimc:

@@ -365,21 +365,37 @@ module system(
         inout                                           net_phy_mdio_io,
         output                                          net_phy_mdc,
     `endif
-`elsif PITON_FPGA_ETH_CMAC // PITON_FPGA_ETHERNETLITE
-    `ifdef ALVEO_BOARD
+`elsif ALVEO_BOARD // PITON_FPGA_ETHERNETLITE
         // GTY quads connected to QSFP unit on Alveo board     
+    `ifndef PITON_FPGA_ETH_CMAC
+    `ifndef PITON_MULTI_FPGA
+      `define NO_QSFP
+    `endif
+    `endif
+
+    `ifndef NO_QSFP
         input          qsfp0_ref_clk_n,
         input          qsfp0_ref_clk_p,
 
         input          qsfp1_ref_clk_n,
         input          qsfp1_ref_clk_p,
-
-        input   [3:0]  qsfp_4x_grx_n,
-        input   [3:0]  qsfp_4x_grx_p,
-        output  [3:0]  qsfp_4x_gtx_n,
-        output  [3:0]  qsfp_4x_gtx_p,
     `endif
-`endif // PITON_FPGA_ETH_CMAC
+
+    `ifdef PITON_FPGA_ETH_CMAC
+        input   [3:0]  eth_qsfp_4x_grx_n,
+        input   [3:0]  eth_qsfp_4x_grx_p,
+        output  [3:0]  eth_qsfp_4x_gtx_n,
+        output  [3:0]  eth_qsfp_4x_gtx_p,
+    `endif
+
+    `ifdef PITON_MULTI_FPGA
+        input   [3:0]  aur_qsfp_4x_grx_n,
+        input   [3:0]  aur_qsfp_4x_grx_p,
+        output  [3:0]  aur_qsfp_4x_gtx_n,
+        output  [3:0]  aur_qsfp_4x_gtx_p,
+    `endif
+
+`endif // ALVEO_BOARD
 `endif // endif PITONSYS_IOCTRL
 
 `ifdef GENESYS2_BOARD
@@ -798,6 +814,7 @@ assign passthru_pll_rst_n = 1'b1;
 `endif
 
 
+wire aur_overflow;
 
 //////////////////////////
 // Sub-module Instances //
@@ -929,6 +946,22 @@ chip chip(
     .mcx_processor_noc3_data (mcx_processor_noc3_data),
     .mcx_processor_noc3_valid(mcx_processor_noc3_valid),
     .mcx_processor_noc3_yummy(mcx_processor_noc3_yummy)
+  `endif
+
+  `ifdef PITON_MULTI_FPGA
+    ,
+    .aur_overflow    (aur_overflow),
+    `ifdef PITON_FPGA_ETH_PORT1
+      .qsfp_ref_clk_n(qsfp0_ref_clk_n),
+      .qsfp_ref_clk_p(qsfp0_ref_clk_p),
+    `else
+      .qsfp_ref_clk_n(qsfp1_ref_clk_n),
+      .qsfp_ref_clk_p(qsfp1_ref_clk_p),
+    `endif
+    .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
+    .qsfp_4x_grx_p   (aur_qsfp_4x_grx_p),
+    .qsfp_4x_gtx_n   (aur_qsfp_4x_gtx_n),
+    .qsfp_4x_gtx_p   (aur_qsfp_4x_gtx_p)
   `endif
 
 `ifdef PITON_RV64_PLATFORM
@@ -1103,6 +1136,8 @@ chipset chipset(
 
     // Chipset reset
     .rst_n(chipset_rst_n),
+    .aur_overflow (aur_overflow),
+
 
     // In the case of passthru, it should
     // tell us when Piton is ready since it
@@ -1329,10 +1364,10 @@ chipset chipset(
         .qsfp_ref_clk_n     (qsfp0_ref_clk_n),
         .qsfp_ref_clk_p     (qsfp0_ref_clk_p),
       `endif
-        .qsfp_4x_grx_n      (qsfp_4x_grx_n),
-        .qsfp_4x_grx_p      (qsfp_4x_grx_p),
-        .qsfp_4x_gtx_n      (qsfp_4x_gtx_n),
-        .qsfp_4x_gtx_p      (qsfp_4x_gtx_p),
+        .qsfp_4x_grx_n      (eth_qsfp_4x_grx_n),
+        .qsfp_4x_grx_p      (eth_qsfp_4x_grx_p),
+        .qsfp_4x_gtx_n      (eth_qsfp_4x_gtx_n),
+        .qsfp_4x_gtx_p      (eth_qsfp_4x_gtx_p),
     `endif // PITON_FPGA_ETH_CMAC
 `endif // endif PITONSYS_IOCTRL
 

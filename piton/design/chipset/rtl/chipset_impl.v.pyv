@@ -84,6 +84,7 @@ module chipset_impl(
 
     output                                      test_start,
     output                                      uart_rst_out_n,
+    input                                       aur_overflow,
 
     // invalid access inside packet filter
     output                                      invalid_access_o,
