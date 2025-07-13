@@ -151,6 +151,17 @@ module chip(
     output [`PITON_EXTRA_MEMS-1:0]                    mcx_processor_noc3_yummy
   `endif
 
+  `ifdef PITON_MULTI_FPGA
+    ,
+    output aur_overflow,
+    input          qsfp_ref_clk_n,
+    input          qsfp_ref_clk_p,
+    input   [3:0]  qsfp_4x_grx_n,
+    input   [3:0]  qsfp_4x_grx_p,
+    output  [3:0]  qsfp_4x_gtx_n,
+    output  [3:0]  qsfp_4x_gtx_p
+  `endif
+
 `ifdef PITON_RV64_PLATFORM
 `ifdef PITON_RV64_DEBUGUNIT
     // Debug
@@ -1174,6 +1185,12 @@ module chip(
     wire [31:0] default_total_num_tiles;
     assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
+
+    logic                          rstn_tile;
+    logic [`PITON_NUM_TILES-1:0]   timer_irq_tile;
+    logic [`PITON_NUM_TILES-1:0]   ipi_tile;
+    logic [`PITON_NUM_TILES*2-1:0] irq_tile;
+
 <%
     sub_assign = r'''
             assign default_coreid_x [_FLAT_ID_] =COREIDX;
@@ -1188,7 +1205,7 @@ module chip(
     tile #(.TILE_TYPE(TYPE_OF_TILE))
     tile0 (
         .clk                (clk_muxed),
-        .rst_n              (rst_n_inter_sync),
+        .rst_n              (rstn_tile),
         .clk_en             (ctap_clk_en_inter[_FLAT_ID_] && clk_en_inter),
         .default_chipid             (14'b0),    // the first chip
         .default_coreid_x           (COREIDX),
@@ -1201,11 +1218,11 @@ module chip(
         ,.unavailable_o       ( unavailable_o[_FLAT_ID_] )
     `endif // ifdef PITON_RV64_DEBUGUNIT
     `ifdef PITON_RV64_CLINT
-        ,.timer_irq_i         ( timer_irq_i[_FLAT_ID_]   )
-        ,.ipi_i               ( ipi_i[_FLAT_ID_]         )
+        ,.timer_irq_i         ( timer_irq_tile[_FLAT_ID_]   )
+        ,.ipi_i               ( ipi_tile[_FLAT_ID_]         )
     `endif // ifdef PITON_RV64_CLINT
     `ifdef PITON_RV64_PLIC
-        ,.irq_i               ( irq_i[_FLAT_ID_*2 +: 2]  )
+        ,.irq_i               ( irq_tile[_FLAT_ID_*2 +: 2]  )
     `endif // ifdef PITON_RV64_PLIC
     `endif // ifdef PITON_RV64_PLATFORM
         ,
@@ -1316,6 +1333,14 @@ module chip(
     edge_idx=len(MC_POS)
     
       
+    print("// Multi FPGA: declaring input yummy wires before tile instances in order to connect them interchangingly")
+    for i in range(PITON_X_TILES):
+      for j in range(PITON_Y_TILES):
+        for k in [1,2,3]:
+          print("wire tile_%d_%d_inN_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inS_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inW_noc%d_yummy;" % (j,i,k))
+          print("wire tile_%d_%d_inE_noc%d_yummy;" % (j,i,k))
 
     # generate the tiles
     for i in range(PITON_X_TILES):
@@ -1432,18 +1457,295 @@ module chip(
                     idW = "offchip"
                     idN = "dummy"
 
+
+                for k in [1,2,3]:
+                    if (PITON_TO_Y != PITON_Y_TILES-1) and (j == PITON_TO_Y+1):
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_noc%d_data;"   % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_far_noc%d_valid;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_far_noc%d_ready;"  % (j,i,k))
+                      print("credit_to_valrdy tile_%d_%d_N_noc%d_c2v(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (" + idN + "_out_S_noc%d_data )," % (k))
+                      print("  .valid_in (" + idN + "_out_S_noc%d_valid)," % (k))
+                      print("  .yummy_in (" + idN + "_inS_noc%d_yummy  )," % (k))
+                      print("  .data_out (tile_%d_%d_valrdy_vert_far_noc%d_data ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (j,i,k))
+                      print("  .ready_out(tile_%d_%d_valrdy_vert_far_noc%d_ready));" % (j,i,k))
+
+                    if (PITON_FR_Y != 0) and (j == PITON_FR_Y-1):
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_noc%d_data;"   % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_far_noc%d_valid;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_far_noc%d_ready;"  % (j,i,k))
+                      print("credit_to_valrdy tile_%d_%d_S_noc%d_c2v(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (" + idS + "_out_N_noc%d_data )," % (k))
+                      print("  .valid_in (" + idS + "_out_N_noc%d_valid)," % (k))
+                      print("  .yummy_in (" + idS + "_inN_noc%d_yummy  )," % (k))
+                      print("  .data_out (tile_%d_%d_valrdy_vert_far_noc%d_data ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (j,i,k))
+                      print("  .ready_out(tile_%d_%d_valrdy_vert_far_noc%d_ready));" % (j,i,k))
+
+                    if ((PITON_TO_Y != PITON_Y_TILES-1) and (j == PITON_TO_Y+1)) or ((PITON_FR_Y != 0) and (j == PITON_FR_Y-1)):
+                      print("wire tile_%d_%d_valrdy_vert_far_noc%d_last;" % (j,i,k))
+                      print("valrdy_last_gen tile_%d_%d_vert_noc%d_lastgen (.clk(clk_muxed), .rst(~rstn_tile),"  % (j,i,k))
+                      print("  .flit_in (tile_%d_%d_valrdy_vert_far_noc%d_data), " % (j,i,k))
+                      print("  .valid_in(tile_%d_%d_valrdy_vert_far_noc%d_valid)," % (j,i,k))
+                      print("  .ready_in(tile_%d_%d_valrdy_vert_far_noc%d_ready)," % (j,i,k))
+                      print("  .last_out(tile_%d_%d_valrdy_vert_far_noc%d_last));" % (j,i,k))
+
+                    if (PITON_TO_Y != PITON_Y_TILES-1) and (j == PITON_TO_Y):
+                      currenttile = currenttile.replace("in_S_", "tile_%d_%d_inS_" % (j,i));
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_near_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_near_noc%d_valid;" % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_near_noc%d_ready;" % (j,i,k))
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inS_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_inS_noc%d_valid;" % (j,i,k))
+                      print("valrdy_to_credit tile_%d_%d_S_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (tile_%d_%d_valrdy_vert_near_noc%d_data ), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_noc%d_valid), " % (j,i,k))
+                      print("  .ready_in (tile_%d_%d_valrdy_vert_near_noc%d_ready), " % (j,i,k))
+                      print("  .data_out (tile_%d_%d_inS_noc%d_data        ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_inS_noc%d_valid       ), " % (j,i,k))
+                      print("  .yummy_out(tile_%d_%d_out_S_noc%d_yummy     ));" % (j,i,k))
+
+                    if (PITON_FR_Y != 0) and (j == PITON_FR_Y):
+                      currenttile = currenttile.replace("in_N_", "tile_%d_%d_inN_" % (j,i));
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_near_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_near_noc%d_valid;" % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_vert_near_noc%d_ready;" % (j,i,k))
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inN_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_inN_noc%d_valid;" % (j,i,k))
+                      print("valrdy_to_credit tile_%d_%d_N_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (tile_%d_%d_valrdy_vert_near_noc%d_data ), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_noc%d_valid), " % (j,i,k))
+                      print("  .ready_in (tile_%d_%d_valrdy_vert_near_noc%d_ready), " % (j,i,k))
+                      print("  .data_out (tile_%d_%d_inN_noc%d_data        ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_inN_noc%d_valid       ), " % (j,i,k))
+                      print("  .yummy_out(tile_%d_%d_out_N_noc%d_yummy     ));" % (j,i,k))
+
+
+                    if (PITON_TO_X != PITON_X_TILES-1) and (i == PITON_TO_X+1):
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_noc%d_data;"   % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_far_noc%d_valid;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_far_noc%d_ready;"  % (j,i,k))
+                      print("credit_to_valrdy tile_%d_%d_W_noc%d_c2v(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (" + idW + "_out_E_noc%d_data )," % (k))
+                      print("  .valid_in (" + idW + "_out_E_noc%d_valid)," % (k))
+                      print("  .yummy_in (" + idW + "_inE_noc%d_yummy  )," % (k))
+                      print("  .data_out (tile_%d_%d_valrdy_horz_far_noc%d_data ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (j,i,k))
+                      print("  .ready_out(tile_%d_%d_valrdy_horz_far_noc%d_ready));" % (j,i,k))
+
+                    if (PITON_FR_X != 0) and (i == PITON_FR_X-1):
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_noc%d_data;"   % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_far_noc%d_valid;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_far_noc%d_ready;"  % (j,i,k))
+                      print("credit_to_valrdy tile_%d_%d_E_noc%d_c2v(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (" + idE + "_out_W_noc%d_data )," % (k))
+                      print("  .valid_in (" + idE + "_out_W_noc%d_valid)," % (k))
+                      print("  .yummy_in (" + idE + "_inW_noc%d_yummy  )," % (k))
+                      print("  .data_out (tile_%d_%d_valrdy_horz_far_noc%d_data ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (j,i,k))
+                      print("  .ready_out(tile_%d_%d_valrdy_horz_far_noc%d_ready));" % (j,i,k))
+
+                    if ((PITON_TO_X != PITON_X_TILES-1) and (i == PITON_TO_X+1)) or ((PITON_FR_X != 0) and (i == PITON_FR_X-1)):
+                      print("wire tile_%d_%d_valrdy_horz_far_noc%d_last;" % (j,i,k))
+                      print("valrdy_last_gen tile_%d_%d_horz_noc%d_lastgen (.clk(clk_muxed), .rst(~rstn_tile),"  % (j,i,k))
+                      print("  .flit_in (tile_%d_%d_valrdy_horz_far_noc%d_data), " % (j,i,k))
+                      print("  .valid_in(tile_%d_%d_valrdy_horz_far_noc%d_valid)," % (j,i,k))
+                      print("  .ready_in(tile_%d_%d_valrdy_horz_far_noc%d_ready)," % (j,i,k))
+                      print("  .last_out(tile_%d_%d_valrdy_horz_far_noc%d_last));" % (j,i,k))
+
+                    if (PITON_TO_X != PITON_X_TILES-1) and (i == PITON_TO_X):
+                      currenttile = currenttile.replace("in_E_", "tile_%d_%d_inE_" % (j,i));
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_near_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_near_noc%d_valid;" % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_near_noc%d_ready;" % (j,i,k))
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inE_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_inE_noc%d_valid;" % (j,i,k))
+                      print("valrdy_to_credit tile_%d_%d_E_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (tile_%d_%d_valrdy_horz_near_noc%d_data ), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_noc%d_valid), " % (j,i,k))
+                      print("  .ready_in (tile_%d_%d_valrdy_horz_near_noc%d_ready), " % (j,i,k))
+                      print("  .data_out (tile_%d_%d_inE_noc%d_data        ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_inE_noc%d_valid       ), " % (j,i,k))
+                      print("  .yummy_out(tile_%d_%d_out_E_noc%d_yummy     ));" % (j,i,k))
+
+                    if (PITON_FR_X != 0) and (i == PITON_FR_X):
+                      currenttile = currenttile.replace("in_W_", "tile_%d_%d_inW_" % (j,i));
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_near_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_near_noc%d_valid;" % (j,i,k))
+                      print("wire                   tile_%d_%d_valrdy_horz_near_noc%d_ready;" % (j,i,k))
+                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_inW_noc%d_data;"  % (j,i,k))
+                      print("wire                   tile_%d_%d_inW_noc%d_valid;" % (j,i,k))
+                      print("valrdy_to_credit tile_%d_%d_W_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
+                      print("  .data_in  (tile_%d_%d_valrdy_horz_near_noc%d_data ), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_noc%d_valid), " % (j,i,k))
+                      print("  .ready_in (tile_%d_%d_valrdy_horz_near_noc%d_ready), " % (j,i,k))
+                      print("  .data_out (tile_%d_%d_inW_noc%d_data        ), " % (j,i,k))
+                      print("  .valid_out(tile_%d_%d_inW_noc%d_valid       ), " % (j,i,k))
+                      print("  .yummy_out(tile_%d_%d_out_W_noc%d_yummy     ));" % (j,i,k))
+
+
                 currenttile = currenttile.replace("in_N", idN + "_out_S");
                 currenttile = currenttile.replace("in_S", idS + "_out_N");
                 currenttile = currenttile.replace("in_E", idE + "_out_W");
                 currenttile = currenttile.replace("in_W", idW + "_out_E");
 
             # print "`ifdef RTL_SPARC%d" % flatid
-            print(currenttile)
+            if   (PITON_FR_X <= i and i <= PITON_TO_X) or (PITON_FR_X > PITON_TO_X):
+              if (PITON_FR_Y <= j and j <= PITON_TO_Y) or (PITON_FR_Y > PITON_TO_Y):
+                print(currenttile)
             # print "`endif"
     print ("`ifdef PITON_PRONOC");
     print(assign + edge_assign)
     print("`endif")    
 %>
+
+
+`ifdef PITON_MULTI_FPGA
+    wire aur_clk;
+    wire aur_rstn;
+    wire aur_rx_overflow;
+    reg [2:0] aur_overflow_sync;
+    always_ff @(posedge aur_clk)
+      if (~aur_rstn)            aur_overflow_sync[0] <= 1'b0;
+      else if (aur_rx_overflow) aur_overflow_sync[0] <= 1'b1;
+
+    always @(posedge clk_muxed)
+      if (~rstn_tile) aur_overflow_sync[2:1] <= 2'b0;
+      else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
+    assign aur_overflow = aur_overflow_sync[2];
+
+    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = {irq_i, timer_irq_i, ipi_i};
+    reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_tx_reg;
+    reg                           free_ctrl_tx_val;
+    always_ff @(posedge clk_muxed)
+      if (~rstn_tile) 
+        free_ctrl_tx_val <= 1'b0;
+      else begin
+        free_ctrl_tx_reg <= free_ctrl_tx;
+        free_ctrl_tx_val <= free_ctrl_tx != free_ctrl_tx_reg;
+      end
+
+    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_rx;
+    reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_reg;
+    wire                          free_ctrl_rx_val;
+    always_ff @(posedge clk_muxed)
+      if (~rstn_tile)            free_ctrl_rx_reg <= 'h0;
+      else if (free_ctrl_rx_val) free_ctrl_rx_reg <= free_ctrl_rx;
+
+    wire ctrl_rx;
+    wire rstn_rx;
+    assign {irq_tile, timer_irq_tile, ipi_tile} = ctrl_rx ? free_ctrl_rx_reg : free_ctrl_tx;
+    assign rstn_tile                            = ctrl_rx ? rstn_rx          : rst_n_inter_sync;
+
+    wire ctrl_tx;
+    axistx_aurora_bridge nocs_aurora_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync | ~ctrl_tx), .sys_rstn_out(rstn_rx),
+                                             .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(aur_rx_overflow),
+
+                                           .s_axis_0_tdata (free_ctrl_tx_reg),
+                                           .s_axis_0_tvalid(free_ctrl_tx_val & ctrl_tx),
+                                           .s_axis_0_tready(),
+                                           .s_axis_0_tlast (1'b1),
+                                           .m_axis_0_tdata (free_ctrl_rx),
+                                           .m_axis_0_tvalid(free_ctrl_rx_val),
+                                           .m_axis_0_tready(1'b1),
+
+                                           .qsfp_refck_clk_n   (qsfp_ref_clk_n),
+                                           .qsfp_refck_clk_p   (qsfp_ref_clk_p),
+                                           .qsfp_rx_4x_rxn     (qsfp_4x_grx_n),
+                                           .qsfp_rx_4x_rxp     (qsfp_4x_grx_p),
+                                           .qsfp_tx_4x_txn     (qsfp_4x_gtx_n),
+                                           .qsfp_tx_4x_txp     (qsfp_4x_gtx_p),
+<%
+    ctrl_tx = 0
+    ctrl_rx = 0
+    horz_edges  = 0
+    y_near = 0
+    if (PITON_TO_Y != PITON_Y_TILES-1):
+      y_near = PITON_TO_Y
+      y_far  = PITON_TO_Y+1
+      ctrl_tx = 1
+      ctrl_rx = 0
+      horz_edges = horz_edges + 1
+    if (PITON_FR_Y != 0):
+      y_near = PITON_FR_Y
+      y_far  = PITON_FR_Y-1
+      ctrl_tx = 0
+      ctrl_rx = 1
+      horz_edges = horz_edges + 1
+
+    vert_edges  = 0
+    x_near = 0
+    if (PITON_TO_X != PITON_X_TILES-1):
+      x_near = PITON_TO_X
+      x_far  = PITON_TO_X+1
+      ctrl_tx = 1
+      ctrl_rx = 0
+      vert_edges = vert_edges + 1
+    if (PITON_FR_X != 0):
+      x_near = PITON_FR_X
+      x_far  = PITON_FR_X-1
+      ctrl_tx = 0
+      ctrl_rx = 1
+      vert_edges = vert_edges + 1
+
+    edges = horz_edges + vert_edges
+    loopback_mode = 0
+    if (edges > 1):
+      loopback_mode = 2
+      ctrl_tx = 1
+      ctrl_rx = 1
+      y_far = y_near
+      x_far = x_near
+
+    chanid = 0
+    for edge in range(horz_edges):
+      if (horz_edges > 1):
+        if (edge == 0):
+          y_near = PITON_TO_Y
+          y_far  = PITON_TO_Y
+        else:
+          y_near = PITON_FR_Y
+          y_far  = PITON_FR_Y
+      for i in range(PITON_X_TILES):
+        for k in [1,2,3]:
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last) , " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_noc%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_noc%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_noc%d_ready)," % (chanid,y_near,i,k))
+
+    for edge in range(vert_edges):
+      if (vert_edges > 1):
+        if (edge == 0):
+          x_near = PITON_TO_X
+          x_far  = PITON_TO_X
+        else:
+          x_near = PITON_FR_X
+          x_far  = PITON_FR_X
+      for j in range(PITON_Y_TILES):
+        for k in [1,2,3]:
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),  " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_noc%d_last) , " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_noc%d_data), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_noc%d_valid)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_noc%d_ready)," % (chanid,j,x_near,k))
+
+    print("      .aur_loopback(3'h%x));" % (loopback_mode))
+    print("assign ctrl_tx = 1'b%d;" % (ctrl_tx))
+    print("assign ctrl_rx = 1'b%d;" % (ctrl_rx))
+%>
+`else
+    assign {irq_tile, timer_irq_tile, ipi_tile} = {irq_i, timer_irq_i, ipi_i};
+    assign rstn_tile                            = rst_n_inter_sync;
+`endif //`ifdef PITON_MULTI_FPGA
+
 endmodule
 
 `endif

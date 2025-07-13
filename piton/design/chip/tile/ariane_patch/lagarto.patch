@@ -1,0 +1,11 @@
+diff --git a/rtl/top_drac.sv b/rtl/top_drac.sv
+--- a/rtl/top_drac.sv
++++ b/rtl/top_drac.sv
+@@ -1380,6 +1380,7 @@ always_comb begin
+     velem_store_int.data[47:40] = vstore_buffer[st_buff_rd_ptr+5];
+     velem_store_int.data[55:48] = vstore_buffer[st_buff_rd_ptr+6];
+     velem_store_int.data[63:56] = vstore_buffer[st_buff_rd_ptr+7];
++    velem_store_int.data = 'h0;
+ end
+ assign velem_store_int.valid = ~st_buff_empty && (vpu_state_int == VSTORE_INFLIGHT || (vpu_state_int == VSCATTER_INFLIGHT && ~item_buff_empty));
+

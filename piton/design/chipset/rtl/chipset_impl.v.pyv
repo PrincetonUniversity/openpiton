@@ -86,6 +86,7 @@ module chipset_impl(
 
     output                                      test_start,
     output                                      uart_rst_out_n,
+    input                                       aur_overflow,
 
     // invalid access inside packet filter
     output                                      invalid_access_o,
@@ -2087,7 +2088,12 @@ uart_top        uart_top (
     .test_start                 ( test_start                            ),
     .test_good_end              ( test_good_end                         ),
     .test_bad_end               ( test_bad_end                          ),
+
+`ifdef PITON_MULTI_FPGA
+    .mc_axi_deadlock            ( aur_overflow                          ),
+`else
     .mc_axi_deadlock            ( mc_axi_deadlock                       ),
+`endif // PITON_MULTI_FPGA
     .uart_rst_out_n             ( uart_rst_out_n                        ),
 
     .chip_id                    ( {1'b1, {(`NOC_CHIPID_WIDTH-1){1'b0}}} ),

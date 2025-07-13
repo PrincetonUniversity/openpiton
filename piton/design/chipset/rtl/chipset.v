@@ -148,6 +148,7 @@ module chipset(
 
     // reset
     input                                       rst_n,
+    input                                       aur_overflow,
 `ifdef PITON_BOARD
     // to chip
     output                                      chip_rst_n,
@@ -1628,6 +1629,7 @@ chipset_impl_noc_power_test  chipset_impl (
     .test_start         (test_start         ),
     .uart_rst_out_n     (uart_rst_out_n     ),
     .invalid_access_o   (invalid_access     ),
+    .aur_overflow       (aur_overflow),
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     .noc_power_test_hop_count (noc_power_test_hop_count),
