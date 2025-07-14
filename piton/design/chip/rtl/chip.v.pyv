@@ -1060,10 +1060,10 @@ module chip(
     assign default_total_num_tiles = `PITON_NUM_TILES;
     // Generate tile instances
 
-    logic                          rstn_tile;
-    logic [`PITON_NUM_TILES-1:0]   timer_irq_tile;
-    logic [`PITON_NUM_TILES-1:0]   ipi_tile;
-    logic [`PITON_NUM_TILES*2-1:0] irq_tile;
+    wire                          rstn_tile;
+    wire [`PITON_NUM_TILES-1:0]   timer_irq_tile;
+    wire [`PITON_NUM_TILES-1:0]   ipi_tile;
+    wire [`PITON_NUM_TILES*2-1:0] irq_tile;
 
 <%
     sub_assign = r'''
@@ -1446,7 +1446,7 @@ module chip(
     wire aur_rstn;
     wire aur_rx_overflow;
     reg [2:0] aur_overflow_sync;
-    always_ff @(posedge aur_clk)
+    always @(posedge aur_clk)
       if (~aur_rstn)            aur_overflow_sync[0] <= 1'b0;
       else if (aur_rx_overflow) aur_overflow_sync[0] <= 1'b1;
 
@@ -1458,7 +1458,7 @@ module chip(
     wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = {irq_i, timer_irq_i, ipi_i};
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_tx_reg;
     reg                           free_ctrl_tx_val;
-    always_ff @(posedge clk_muxed)
+    always @(posedge clk_muxed)
       if (~rstn_tile) 
         free_ctrl_tx_val <= 1'b0;
       else begin
@@ -1469,7 +1469,7 @@ module chip(
     wire [`PITON_NUM_TILES*4-1:0] free_ctrl_rx;
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_reg;
     wire                          free_ctrl_rx_val;
-    always_ff @(posedge clk_muxed)
+    always @(posedge clk_muxed)
       if (~rstn_tile)            free_ctrl_rx_reg <= 'h0;
       else if (free_ctrl_rx_val) free_ctrl_rx_reg <= free_ctrl_rx;
 
