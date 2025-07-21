@@ -174,7 +174,7 @@ current_bd_design $design_name
   # Create instance: vccx1, and set properties
   set vccx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 vccx1 ]
   set_property -dict [ list \
-   CONFIG.CONST_VAL {0} \
+   CONFIG.CONST_VAL {1} \
    CONFIG.CONST_WIDTH {1} \
   ] $vccx1
 
