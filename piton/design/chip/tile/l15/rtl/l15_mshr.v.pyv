@@ -158,30 +158,30 @@ reg [`L15_PADDR_HI:0] tmp_st_address [`L15_NUM_THREADS-1:0];
 reg [`L15_PADDR_HI:0] tmp_ld_address [`L15_NUM_THREADS-1:0];
 reg [2-1:0] tmp_st_way [`L15_NUM_THREADS-1:0];
 reg [`L15_MESI_TRANS_STATE_WIDTH-1:0] tmp_st_state [`L15_NUM_THREADS-1:0];
+integer i=0;
+
 always @ *
 begin
-    <%
-        t = '''
-        tmp_vals[THREADID] = 0;
-        tmp_vals[THREADID][`L15_MSHR_ID_IFILL] = ifill_val[THREADID];
-        tmp_vals[THREADID][`L15_MSHR_ID_LD] = ld_val[THREADID];
-        tmp_vals[THREADID][`L15_MSHR_ID_ST] = st_val[THREADID];
 
-        tmp_st_address[THREADID] = st_address[THREADID];
-        tmp_ld_address[THREADID] = ld_address[THREADID];
-        tmp_st_way[THREADID] = st_way[THREADID];
-        tmp_st_state[THREADID] =st_state[THREADID];
-        '''
+    for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+    begin
+        tmp_vals[i] = 0;
+        tmp_vals[i][`L15_MSHR_ID_IFILL] = ifill_val[i];
+        tmp_vals[i][`L15_MSHR_ID_LD]    = ld_val[i];
+        tmp_vals[i][`L15_MSHR_ID_ST]    = st_val[i];
 
-        for i in range (2):
-            tt = t.replace('THREADID', repr(i))
-            print(tt)
-    %>
-    mshr_pipe_vals_s1 = {tmp_vals[1], tmp_vals[0]};
-    mshr_pipe_ld_address = {tmp_ld_address[1], tmp_ld_address[0]};
-    mshr_pipe_st_address = {tmp_st_address[1], tmp_st_address[0]};
-    mshr_pipe_st_way_s1 = {tmp_st_way[1], tmp_st_way[0]};
-    mshr_pipe_st_state_s1 = {tmp_st_state[1], tmp_st_state[0]};
+        tmp_st_address[i] = st_address[i];
+        tmp_ld_address[i] = ld_address[i];
+        tmp_st_way[i]     = st_way[i];
+        tmp_st_state[i]   = st_state[i];
+	 
+        mshr_pipe_vals_s1[(`L15_NUM_MSHRID_PER_THREAD*(i+1))-1 -: `L15_NUM_MSHRID_PER_THREAD] = tmp_vals[i];
+        mshr_pipe_ld_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_ld_address[i];
+        mshr_pipe_st_address[(`L15_PADDR_WIDTH*(i+1))-1 -: `L15_PADDR_WIDTH]  = tmp_st_address[i];
+        mshr_pipe_st_way_s1[(2*(i+1))-1 -: 2]   = tmp_st_way[i];
+        mshr_pipe_st_state_s1[(`L15_MESI_TRANS_STATE_WIDTH*(i+1))-1 -: `L15_MESI_TRANS_STATE_WIDTH] = tmp_st_state[i];
+    end
+	
 
     // S1 read
     mshr_pipe_readres_homeid_s1[`PACKET_HOME_ID_WIDTH-1:0] = 0;
@@ -361,10 +361,11 @@ always @ (posedge clk)
 begin
     if (!rst_n)
     begin
-        st_homeid[0] <= 0;
-        st_homeid[1] <= 0;
-        ld_homeid[0] <= 0;
-        ld_homeid[1] <= 0;
+        for(i = 0; i < `L15_NUM_THREADS; i = i+1)
+        begin
+            st_homeid[i] <= {PACKET_HOME_ID_WIDTH{1'b0}};
+            ld_homeid[i] <= {PACKET_HOME_ID_WIDTH{1'b0}};
+        end
     end
     else
     begin
