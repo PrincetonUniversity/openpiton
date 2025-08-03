@@ -208,6 +208,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   }
   if { $AXIST_AUR_CHANS != 1 } {
     source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+    source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
   }
 }
 
