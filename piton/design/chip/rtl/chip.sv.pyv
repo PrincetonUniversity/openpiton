@@ -1700,7 +1700,7 @@ module chip(
     if (edges > 1):
       loopback_mode = 2
       ctrl_tx = 1
-      ctrl_rx = 0
+      ctrl_rx = 1
       y_far = y_near
       x_far = x_near
 
