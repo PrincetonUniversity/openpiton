@@ -331,14 +331,14 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   make_bd_pins_external                                  [get_bd_pins mux_rst_gen/peripheral_aresetn]
   set_property name "sys_rstn_out"                       [get_bd_ports peripheral_aresetn_0]
 
-  set txrx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 txrx_rst_gen ]
+  set rx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rx_rst_gen ]
   set_property -dict [ list \
    CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
    CONFIG.C_AUX_RESET_HIGH {0} \
-  ] $txrx_rst_gen
-  connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2]     [get_bd_pins txrx_rst_gen/slowest_sync_clk]
-  connect_bd_net [get_bd_pins eth_cmac/usr_tx_reset]     [get_bd_pins txrx_rst_gen/ext_reset_in]
-  make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/peripheral_aresetn]
+  ] $rx_rst_gen
+  connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2]     [get_bd_pins rx_rst_gen/slowest_sync_clk]
+  connect_bd_net [get_bd_pins eth_cmac/usr_tx_reset]     [get_bd_pins rx_rst_gen/ext_reset_in]
+  make_bd_pins_external                                  [get_bd_pins rx_rst_gen/peripheral_aresetn]
   set_property name "aur_rstn"                           [get_bd_ports peripheral_aresetn_0]
 
   set tx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 tx_rst_gen ]
@@ -348,8 +348,18 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   ] $tx_rst_gen
   connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2]     [get_bd_pins tx_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_pins eth_cmac/usr_tx_reset]     [get_bd_pins tx_rst_gen/ext_reset_in]
-  connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
 
+  set tx_rfi_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 tx_rfi_gen ]
+  set_property -dict [ list \
+   CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
+   CONFIG.C_AUX_RESET_HIGH {0} \
+  ] $tx_rfi_gen
+  connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2]     [get_bd_pins tx_rfi_gen/slowest_sync_clk]
+  connect_bd_net [get_bd_pins eth_cmac/stat_rx_aligned]  [get_bd_pins tx_rfi_gen/ext_reset_in] \
+                                                         [get_bd_pins tx_rfi_gen/aux_reset_in]
+  connect_bd_net [get_bd_pins gndx1/dout]                [get_bd_pins tx_rfi_gen/mb_debug_sys_rst]
+  connect_bd_net [get_bd_pins tx_rfi_gen/bus_struct_reset]     [get_bd_pins eth_cmac/ctl_tx_send_rfi]
+  connect_bd_net [get_bd_pins tx_rfi_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
 
   for {set idx 0} {$idx < $AXIST_AUR_CHANS} {incr idx} {
     set_property -dict [list \
@@ -468,7 +478,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.SCLR {true} \
   ] [get_bd_cells fc_rx_flop]
 
-  connect_bd_net [get_bd_pins txrx_rst_gen/bus_struct_reset] [get_bd_pins fc_tx_flop/SCLR]
+  connect_bd_net [get_bd_pins rx_rst_gen/bus_struct_reset] [get_bd_pins fc_tx_flop/SCLR]
   connect_bd_net [get_bd_pins tx_rst_gen/bus_struct_reset]   [get_bd_pins fc_rx_flop/SCLR]
 
   set fc_diff [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 fc_diff ]
@@ -691,15 +701,12 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
    CONFIG.C_AUX_RESET_HIGH {0} \
   ] $aur_rst_gen
-  # connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] [get_bd_pins aur_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_ports sys_clk] [get_bd_pins aur_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_ports sys_rstn]         [get_bd_pins aur_rst_gen/ext_reset_in]
   connect_bd_net [get_bd_pins powerup_rst/Dout]  [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins eth_cmac/sys_reset] [get_bd_pins eth_cmac/gtwiz_reset_tx_datapath] [get_bd_pins eth_cmac/gtwiz_reset_rx_datapath] [get_bd_pins eth_cmac/core_drp_reset] [get_bd_pins eth_cmac/core_tx_reset] [get_bd_pins eth_cmac/core_rx_reset]
-  # connect_bd_net [get_bd_pins aur_rst_gen/peripheral_reset] [get_bd_pins eth_cmac/ctl_rx_force_resync]
-  # connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins eth_cmac/ctl_tx_send_rfi]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins eth_cmac/ctl_tx_send_rfi] [get_bd_pins eth_cmac/ctl_rx_force_resync]
+  connect_bd_net [get_bd_pins aur_rst_gen/peripheral_reset] [get_bd_pins eth_cmac/ctl_rx_force_resync]
 
   set aur_powergood [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 aur_powergood ]
   set_property -dict [ list \
@@ -707,9 +714,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_SIZE {4} \
   ] $aur_powergood
   connect_bd_net [get_bd_pins aur_powergood/Op1] [get_bd_pins eth_cmac/gt_powergoodout]
-  connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins aur_rst_gen/dcm_locked] [get_bd_pins mux_rst_gen/dcm_locked] [get_bd_pins txrx_rst_gen/dcm_locked] [get_bd_pins tx_rst_gen/dcm_locked]
+  connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins aur_rst_gen/dcm_locked] [get_bd_pins mux_rst_gen/dcm_locked] [get_bd_pins rx_rst_gen/dcm_locked] [get_bd_pins tx_rst_gen/dcm_locked] [get_bd_pins tx_rfi_gen/dcm_locked]
 
-  connect_bd_net [get_bd_pins txrx_rst_gen/interconnect_aresetn] \
+  connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn] \
                  [get_bd_pins axis_demuxer/ARESETN] \
                  [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
                  [get_bd_pins rx_fifo/s_axis_aresetn] \
@@ -775,7 +782,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_SIZE {2} \
   ] $and_aur_state
   connect_bd_net [get_bd_pins and_aur_state/Op1] [get_bd_pins concat_aur_hi_ok/dout]
-  connect_bd_net [get_bd_pins and_aur_state/Res] [get_bd_pins mux_rst_gen/aux_reset_in] [get_bd_pins txrx_rst_gen/aux_reset_in] [get_bd_pins tx_rst_gen/aux_reset_in]
+  connect_bd_net [get_bd_pins and_aur_state/Res] [get_bd_pins mux_rst_gen/aux_reset_in] [get_bd_pins rx_rst_gen/aux_reset_in] [get_bd_pins tx_rst_gen/aux_reset_in]
 
   set concat_aur_lo_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_lo_ok ]
   set_property -dict [ list \
@@ -797,7 +804,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_SIZE {9} \
   ] $or_aur_state
   connect_bd_net [get_bd_pins or_aur_state/Op1] [get_bd_pins concat_aur_lo_ok/dout]
-  connect_bd_net [get_bd_pins or_aur_state/Res] [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins txrx_rst_gen/mb_debug_sys_rst] [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
+  connect_bd_net [get_bd_pins or_aur_state/Res] [get_bd_pins mux_rst_gen/mb_debug_sys_rst] [get_bd_pins rx_rst_gen/mb_debug_sys_rst] [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
 
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
   connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
