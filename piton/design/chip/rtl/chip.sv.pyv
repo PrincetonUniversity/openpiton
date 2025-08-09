@@ -1641,7 +1641,7 @@ module chip(
     wire ctrl_tx;
     //axistx_aurora_bridge nocs_aurora_bridge (
     axistx_cmac_bridge nocs_aurora_bridge (
-                                           .sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync | ~ctrl_tx), .sys_rstn_out(rstn_rx),
+                                           .sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync | ~ctrl_tx), .sys_rstn_out(rstn_rx), .sys_rstn_in(rstn_tile),
                                            .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(aur_rx_overflow),
 
                                            .s_axis_0_tdata (free_ctrl_tx_reg),
