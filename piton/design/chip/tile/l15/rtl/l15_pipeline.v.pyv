@@ -3338,9 +3338,9 @@ always @ *
 begin
     // expanding some signals
     tagcheck_way_mask_s3[`L15_UNPARAM_3_0] = tagcheck_way_s3 == 2'd0 ? 4'b0001 :
-                                                  2'd1 ? 4'b0010 :
-                                                  2'd2 ? 4'b0100 :
-                                                        4'b1000 ;
+                                             tagcheck_way_s3 == 2'd1 ? 4'b0010 :
+                                             tagcheck_way_s3 == 2'd2 ? 4'b0100 :
+                                                                       4'b1000 ;
 
     tagcheck_state_me_s3 = tagcheck_state_s3 == `L15_MESI_STATE_M || tagcheck_state_s3 == `L15_MESI_STATE_E;
     tagcheck_state_mes_s3 = tagcheck_state_s3 == `L15_MESI_STATE_M || tagcheck_state_s3 == `L15_MESI_STATE_E
