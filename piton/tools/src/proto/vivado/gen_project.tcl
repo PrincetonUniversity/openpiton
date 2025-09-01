@@ -337,7 +337,12 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
   if { $AXIST_AUR_CHANS != 1 } {
-    add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_${g_aur_port}.xdc"
+    if {[info exists ::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)] &&
+                    $::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)=="TRUE"} {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_${g_aur_port}.xdc"
+    } else {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_${g_aur_port}.xdc"
+    }
   }
 }
 

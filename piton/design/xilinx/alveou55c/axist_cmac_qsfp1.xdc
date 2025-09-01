@@ -25,7 +25,7 @@
 #create_clock is not needed in case of connecting QSFP clock to 100Gb CMAC, but needed for Aurora and 1Gb PHY (gig_ethernet_pcs_pma)
 set_property PACKAGE_PIN AB43              [get_ports "qsfp1_ref_clk_n"] ;# Bank 131 - MGTREFCLK0N_131
 set_property PACKAGE_PIN AB42              [get_ports "qsfp1_ref_clk_p"] ;# Bank 131 - MGTREFCLK0P_131
-create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp1_ref_clk_p"]
+# create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp1_ref_clk_p"]
 #
 
 #--------------------------------------------
@@ -33,17 +33,23 @@ create_clock -period 6.206 -name QSFP1_CLK [get_ports "qsfp1_ref_clk_p"]
 # https://www.xilinx.com/support/documentation/sw_manuals/xilinx2020_1/ug912-vivado-properties.pdf#page=386
 #Collecting all units from correspondingly Tx and Rx domains,
 #excluding AXI register slices intended to facilitate SLR crossing on the way to/from HBM located in SLR0
-set aur_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical aurora_inst/user_clk_out]]]
+set tx_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical eth_cmac/gt_txusrclk2]]]
+set rx_clk_units [get_cells -of_objects [get_nets -of_objects [get_pins -hierarchical eth_cmac/gt_rxusrclk2]]]
 #Setting specific SLR to which QSFP are wired since placer may miss it if just "group_name" is applied
-set_property USER_SLR_ASSIGNMENT SLR1 [get_cells "$aur_clk_units"]
+set_property USER_SLR_ASSIGNMENT SLR1 [get_cells "$tx_clk_units $rx_clk_units"]
 
 #--------------------------------------------
 # Timing constraints for clock domains crossings (CDC), which didn't apply automatically (e.g. for GPIO)
-set sys_clk [get_clocks -of_objects [get_pins -hierarchical aurora_inst/init_clk]]
-set aur_clk [get_clocks -of_objects [get_pins -hierarchical aurora_inst/user_clk_out ]]
+set sys_clk [get_clocks -of_objects [get_pins -hierarchical eth_cmac/init_clk]]
+set tx_clk  [get_clocks -of_objects [get_pins -hierarchical eth_cmac/gt_txusrclk2  ]]
+set rx_clk  [get_clocks -of_objects [get_pins -hierarchical eth_cmac/gt_rxusrclk2  ]]
 # set_false_path -from $xxx_clk -to $yyy_clk
 # controlling resync paths to be less than source clock period
 # (-datapath_only to exclude clock paths)
-set_max_delay -datapath_only -from $sys_clk -to $aur_clk [expr [get_property -min period $sys_clk] * 0.9]
-set_max_delay -datapath_only -from $aur_clk -to $sys_clk [expr [get_property -min period $aur_clk] * 0.9]
+set_max_delay -datapath_only -from $sys_clk -to $tx_clk  [expr [get_property -min period $sys_clk] * 0.9]
+set_max_delay -datapath_only -from $sys_clk -to $rx_clk  [expr [get_property -min period $sys_clk] * 0.9]
+set_max_delay -datapath_only -from $tx_clk  -to $sys_clk [expr [get_property -min period $tx_clk ] * 0.9]
+set_max_delay -datapath_only -from $tx_clk  -to $rx_clk  [expr [get_property -min period $tx_clk ] * 0.9]
+set_max_delay -datapath_only -from $rx_clk  -to $sys_clk [expr [get_property -min period $rx_clk ] * 0.9]
+set_max_delay -datapath_only -from $rx_clk  -to $tx_clk  [expr [get_property -min period $rx_clk ] * 0.9]
 ## ================================

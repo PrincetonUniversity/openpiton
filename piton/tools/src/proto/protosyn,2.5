@@ -985,7 +985,8 @@ def main():
         int(options.to_y) != int(options.y_tiles)-1):
       defines.append("PITON_MULTI_FPGA")
       if options.fpart_aur:
-          defines.append("PITON_MULTI_FPGA_AUR")
+        defines.append("PITON_MULTI_FPGA_AUR")
+        os.environ['PROTOSYN_RUNTIME_MULTI_FPGA_AUR'] = "TRUE"
 
     os.environ['PITON_EXTRA_MEMS'] = "0"
     if options.multimc:
