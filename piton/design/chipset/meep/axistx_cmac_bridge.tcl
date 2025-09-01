@@ -358,8 +358,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_AUX_RESET_HIGH {0} \
   ] $tx_rfi_gen
   connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2]     [get_bd_pins tx_rfi_gen/slowest_sync_clk]
-  connect_bd_net [get_bd_pins eth_cmac/stat_rx_aligned]  [get_bd_pins tx_rfi_gen/ext_reset_in] \
-                                                         [get_bd_pins tx_rfi_gen/aux_reset_in]
+  connect_bd_net [get_bd_pins eth_cmac/stat_rx_aligned]  [get_bd_pins tx_rfi_gen/aux_reset_in]
   connect_bd_net [get_bd_pins gndx1/dout]                [get_bd_pins tx_rfi_gen/mb_debug_sys_rst]
   connect_bd_net [get_bd_pins tx_rfi_gen/bus_struct_reset]     [get_bd_pins eth_cmac/ctl_tx_send_rfi]
   connect_bd_net [get_bd_pins tx_rfi_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
@@ -717,7 +716,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins eth_cmac/ctl_rx_force_resync] \
                                                             [get_bd_pins mux_rst_gen/ext_reset_in] \
                                                             [get_bd_pins rx_rst_gen/ext_reset_in] \
-                                                            [get_bd_pins tx_rst_gen/ext_reset_in]
+                                                            [get_bd_pins tx_rst_gen/ext_reset_in] \
+                                                            [get_bd_pins tx_rfi_gen/ext_reset_in]
 
   set aur_powergood [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 aur_powergood ]
   set_property -dict [ list \

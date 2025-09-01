@@ -235,9 +235,15 @@ current_bd_design $design_name
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_LOW} \
   ] $sys_rstn
+
+  set sys_rstn_in [ create_bd_port -dir I -type rst sys_rstn_in ]
+  set_property -dict [ list \
+   CONFIG.POLARITY {ACTIVE_LOW} \
+  ] $sys_rstn_in
+
   make_bd_pins_external         [get_bd_pins aurora_inst/init_clk]
   set_property name "sys_clk"   [get_bd_ports init_clk_0]
-  set_property -dict [list CONFIG.ASSOCIATED_RESET sys_rstn CONFIG.FREQ_HZ $sys_clk_freq] [get_bd_ports sys_clk]
+  set_property -dict [list CONFIG.ASSOCIATED_RESET "sys_rstn:sys_rstn_in" CONFIG.FREQ_HZ $sys_clk_freq] [get_bd_ports sys_clk]
 
   set mux_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 mux_rst_gen ]
   set_property -dict [ list \
@@ -281,8 +287,8 @@ current_bd_design $design_name
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
       CONFIG.TDEST_WIDTH 8 \
     ] [get_bd_cells in_fifo_$idx]
-    connect_bd_net [get_bd_ports sys_clk]  [get_bd_pins in_fifo_$idx/s_axis_aclk]
-    connect_bd_net [get_bd_ports sys_rstn] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
+    connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
+    connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx]_AXIS_0]
@@ -614,10 +620,10 @@ current_bd_design $design_name
    CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
    CONFIG.C_AUX_RESET_HIGH {0} \
   ] $aur_rst_gen
-  connect_bd_net [get_bd_ports sys_clk]          [get_bd_pins aur_rst_gen/slowest_sync_clk]
-  connect_bd_net [get_bd_ports sys_rstn]         [get_bd_pins aur_rst_gen/ext_reset_in]
-  connect_bd_net [get_bd_pins powerup_rst/Dout]  [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
-  connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
+  connect_bd_net [get_bd_ports sys_clk]         [get_bd_pins aur_rst_gen/slowest_sync_clk]
+  connect_bd_net [get_bd_ports sys_rstn]        [get_bd_pins aur_rst_gen/ext_reset_in]
+  connect_bd_net [get_bd_pins powerup_rst/Dout] [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
+  connect_bd_net [get_bd_pins gndx1/dout]       [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
   connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins aurora_inst/pma_init]
   connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins aurora_inst/reset_pb]
 
