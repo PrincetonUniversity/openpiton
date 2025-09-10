@@ -35,7 +35,7 @@
 
 <%
     def ReplicatePatternSpecial(text, patterns):
-        regex = " ([^\.:]+)0"
+        regex = r" ([^\.:]+)0"
         newtext = ''
         for i in range(PITON_NUM_TILES):
             t = text
