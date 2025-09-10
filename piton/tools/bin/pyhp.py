@@ -137,7 +137,7 @@ class PyHPInterp(code.InteractiveInterpreter):
         #     so.write(line)
         #     so.write("\n")
         # get the indentation of the first line
-        ws = re.compile("^(\s*)(.*)")
+        ws = re.compile(r"^(\s*)(.*)")
         match = ws.match(lines[0])
         ws = match.group(1)
         nws = match.group(2)
