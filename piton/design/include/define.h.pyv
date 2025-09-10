@@ -97,6 +97,10 @@ if PITON_EXTRA_MEMS > 0:
 `define NOC_NODEID_Y            11:4
 `define NOC_NODEID_FBITS        3:0
 
+localparam MAC_ADDR_WIDTH = 48;
+localparam ETH_PAYLD_LEN_WIDTH = 16;
+localparam ETH_HDR_WIDTH = 2*MAC_ADDR_WIDTH + ETH_PAYLD_LEN_WIDTH;
+localparam NOC_ETHHDR_RATIO = (ETH_HDR_WIDTH + `NOC_DATA_WIDTH-1) / `NOC_DATA_WIDTH;
 
 //========================
 //Packet format

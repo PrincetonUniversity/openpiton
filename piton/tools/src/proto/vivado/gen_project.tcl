@@ -192,21 +192,21 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   }
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
   # NOC_DATA_WIDTH/8 = 64/8 = 8
-  set AXIS_AUR_BYTES 8
-  set AXIST_AUR_CHANS 1
+  set QSFP_BRDG_CHAN_BYTES 8
+  set QSFP_BRDG_CHANS 1
   if { $::env(PITON_FR_X) != 0 } {
-    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
   }
   if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
-    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_Y_TILES) * 3}]
+    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
   }
   if { $::env(PITON_FR_Y) != 0 } {
-    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
-    set AXIST_AUR_CHANS [expr {$AXIST_AUR_CHANS + $::env(PITON_X_TILES) * 3}]
+    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
   }
-  if { $AXIST_AUR_CHANS != 1 } {
+  if { $QSFP_BRDG_CHANS != 1 } {
     source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
     source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
   }
@@ -336,7 +336,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
-  if { $AXIST_AUR_CHANS != 1 } {
+  if { $QSFP_BRDG_CHANS != 1 } {
     if {[info exists ::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)] &&
                     $::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)=="TRUE"} {
       add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_${g_aur_port}.xdc"
