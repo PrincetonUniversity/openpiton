@@ -48,10 +48,10 @@ assign flit_out = flit_in;
 
 reg [$clog2(NOC_ETHHDR_RATIO):0] hdr_cnt;
 always @(posedge clk)
-  if(rst) hdr_cnt <= NOC_ETHHDR_RATIO;
+  if(rst) hdr_cnt <= 'h0; //NOC_ETHHDR_RATIO;
   else if (valid_in && ready_in) begin
     if (hdr_cnt) hdr_cnt <= hdr_cnt - 'h1;
-    if (last_in) hdr_cnt <= NOC_ETHHDR_RATIO;
+    // if (last_in) hdr_cnt <= NOC_ETHHDR_RATIO;
   end
 
 assign valid_out = valid_in && !hdr_cnt;

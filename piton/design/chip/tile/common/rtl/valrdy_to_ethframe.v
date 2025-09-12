@@ -60,10 +60,10 @@ wire [NOC_HDR_WIDTH-1:0] header = {'h0, payload_len, dst_src_mac};
 
 reg [$clog2(NOC_ETHHDR_RATIO):0] hdr_cnt;
 always @(posedge clk)
-  if(rst) hdr_cnt <= NOC_ETHHDR_RATIO;
+  if(rst) hdr_cnt <= 'h0; //NOC_ETHHDR_RATIO;
   else if (valid_out && ready_out) begin
     if (hdr_cnt)  hdr_cnt <= hdr_cnt - 'h1;
-    if (last_out) hdr_cnt <= NOC_ETHHDR_RATIO;
+    // if (last_out) hdr_cnt <= NOC_ETHHDR_RATIO;
   end
 
 assign ready_in = ready_out && !hdr_cnt;
