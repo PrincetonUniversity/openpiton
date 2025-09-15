@@ -46,12 +46,15 @@ module valrdy_to_ethframe (
        input  ready_out
 );
 
+parameter SINGLE_INFLIT = 0;
+
 localparam NOC_HDR_WIDTH = NOC_ETHHDR_RATIO * `NOC_DATA_WIDTH;
 localparam CMAC_FULL_DAT_BYTES = 64;
 localparam CMAC_DATA_OVERHD_BYTES = 8;
 localparam CMAC_USE_DAT_BYTES = CMAC_FULL_DAT_BYTES - CMAC_DATA_OVERHD_BYTES;
 
-wire [ETH_PAYLD_LEN_WIDTH-1:0] noc_pack_len = ((flit_in[`MSG_LENGTH]+1) << $clog2(`NOC_DATA_WIDTH/8)) + NOC_HDR_WIDTH/8;
+wire [`MSG_LENGTH_WIDTH-1:0] noc_msg_len = SINGLE_INFLIT ? `MSG_LENGTH_WIDTH'h0 : flit_in[`MSG_LENGTH];
+wire [ETH_PAYLD_LEN_WIDTH-1:0] noc_pack_len = ((noc_msg_len +1) << $clog2(`NOC_DATA_WIDTH/8)) + NOC_HDR_WIDTH/8;
 //wire [ETH_PAYLD_LEN_WIDTH-1:0] cmac_pack_beats = (noc_pack_len + CMAC_USE_DAT_BYTES-1) / CMAC_USE_DAT_BYTES; // true division with ceiling
 wire [ETH_PAYLD_LEN_WIDTH-1:0] cmac_pack_beats = CMAC_USE_DAT_BYTES   >= noc_pack_len ? 1 :
                                                  CMAC_USE_DAT_BYTES*2 >= noc_pack_len ? 2 : 3; // substitution of division assuming maximum 3 beats
@@ -73,13 +76,13 @@ reg [`MSG_LENGTH_WIDTH-1:0] remaining_flits;
 always @(posedge clk)
   if(rst) remaining_flits <= `MSG_LENGTH_WIDTH'h0;
   else if (valid_in & ready_in) begin
-    if (remaining_flits == `MSG_LENGTH_WIDTH'h0) remaining_flits <= flit_in[`MSG_LENGTH];
+    if (remaining_flits == `MSG_LENGTH_WIDTH'h0) remaining_flits <= noc_msg_len;
     else remaining_flits <= remaining_flits - `MSG_LENGTH_WIDTH'h1;
   end
 
 assign last_out = ((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                   ((remaining_flits == `MSG_LENGTH_WIDTH'h0) &&
-              (flit_in[`MSG_LENGTH] == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_cnt;
+                       (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_cnt;
 
 assign flit_out = hdr_cnt ? header[(NOC_ETHHDR_RATIO - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
 
