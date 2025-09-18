@@ -34,6 +34,8 @@ module ethframe_to_valrdy (
        input clk,
        input rst,
 
+       output [ETH_HDR_WIDTH-1:0] eth_hdr_out,
+
        input  [`NOC_DATA_WIDTH-1:0] flit_in,
        input  last_in,
        input  valid_in,
@@ -47,13 +49,22 @@ module ethframe_to_valrdy (
 assign flit_out = flit_in;
 
 reg [$clog2(NOC_ETHHDR_RATIO):0] hdr_cnt;
+reg [NOC_ETHHDR_RATIO * `NOC_DATA_WIDTH -1:0] header;
 always @(posedge clk)
-  if(rst) hdr_cnt <= NOC_ETHHDR_RATIO;
+  if(rst) begin
+    hdr_cnt <= NOC_ETHHDR_RATIO;
+    header  <= 'h0;
+  end
   else if (valid_in && ready_in) begin
-    if (hdr_cnt) hdr_cnt <= hdr_cnt - 'h1;
+    if (hdr_cnt) begin
+      hdr_cnt <= hdr_cnt - 'h1;
+      header[(NOC_ETHHDR_RATIO - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= flit_in;
+      // header <= {flit_in, header[NOC_ETHHDR_RATIO * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
+    end
     if (last_in) hdr_cnt <= NOC_ETHHDR_RATIO;
   end
 
+assign eth_hdr_out = header[ETH_HDR_WIDTH-1:0];
 assign valid_out = valid_in && !hdr_cnt;
 assign ready_in  = ready_out || hdr_cnt;
 

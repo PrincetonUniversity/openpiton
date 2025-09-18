@@ -148,7 +148,7 @@ module chipset(
 
     // reset
     input                                       rst_n,
-    input                                       aur_overflow,
+    input                                       qsfp_noc_overflow,
 `ifdef PITON_BOARD
     // to chip
     output                                      chip_rst_n,
@@ -268,6 +268,9 @@ module chipset(
     output [15:0] pci_express_x16_txn,
     output [15:0] pci_express_x16_txp,   
     output [4:0] pcie_gpio,     
+    output [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx,
+    input  [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx,
+    input  [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx,
     input  pcie_perstn,
     input  pcie_refclk_n,
     input  pcie_refclk_p,
@@ -1629,7 +1632,7 @@ chipset_impl_noc_power_test  chipset_impl (
     .test_start         (test_start         ),
     .uart_rst_out_n     (uart_rst_out_n     ),
     .invalid_access_o   (invalid_access     ),
-    .aur_overflow       (aur_overflow),
+    .qsfp_noc_overflow  (qsfp_noc_overflow  ),
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     .noc_power_test_hop_count (noc_power_test_hop_count),
@@ -1698,6 +1701,9 @@ chipset_impl_noc_power_test  chipset_impl (
                      .pci_express_x16_txn(pci_express_x16_txn),
                      .pci_express_x16_txp(pci_express_x16_txp),
                      .pcie_gpio(pcie_gpio),        
+                     .dst_src_mac_tx (dst_src_mac_tx),
+                     .dst_src_mac_rx (dst_src_mac_rx),
+                     .eth_payl_len_rx(eth_payl_len_rx),
                      .pcie_perstn(pcie_perstn),
                      .pcie_refclk_n(pcie_refclk_n),
                      .pcie_refclk_p(pcie_refclk_p),

@@ -153,7 +153,10 @@ module chip(
 
   `ifdef PITON_MULTI_FPGA
     ,
-    output aur_overflow,
+    input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
+    output [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_rx,
+    output [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx,
+    output qsfp_noc_overflow,
     input          qsfp_ref_clk_n,
     input          qsfp_ref_clk_p,
     input   [3:0]  qsfp_4x_grx_n,
@@ -1491,7 +1494,7 @@ module chip(
                         print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_eth%d_data;"  % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_ready;" % (j,i,k))
-                        print("valrdy_to_ethframe tile_%d_%d_vert_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac('h0),"  % (j,i,k))
+                        print("valrdy_to_ethframe tile_%d_%d_vert_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac(dst_src_mac_tx),"  % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_vert_far_eth%d_data), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_vert_far_eth%d_valid)," % (j,i,k))
                         print("  .ready_out(tile_%d_%d_valrdy_vert_far_eth%d_ready)," % (j,i,k))
@@ -1589,7 +1592,7 @@ module chip(
                         print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_eth%d_data;"  % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_ready;" % (j,i,k))
-                        print("valrdy_to_ethframe tile_%d_%d_horz_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac('h0),"  % (j,i,k))
+                        print("valrdy_to_ethframe tile_%d_%d_horz_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac(dst_src_mac_tx),"  % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_horz_far_eth%d_data), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_horz_far_eth%d_valid)," % (j,i,k))
                         print("  .ready_out(tile_%d_%d_valrdy_horz_far_eth%d_ready)," % (j,i,k))
@@ -1683,7 +1686,7 @@ module chip(
     always @(posedge clk_muxed)
       if (~rstn_tile) aur_overflow_sync[2:1] <= 2'b0;
       else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
-    assign aur_overflow = aur_overflow_sync[2];
+    assign qsfp_noc_overflow = aur_overflow_sync[2];
 
     wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = {irq_i, timer_irq_i, ipi_i};
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_tx_reg;
@@ -1712,6 +1715,8 @@ module chip(
 
     wire ctrl_tx;
    `ifdef PITON_MULTI_FPGA_AUR
+     assign dst_src_mac_rx  = 'h0;
+     assign eth_payl_len_rx = 'h0;
      axistx_aurora_bridge
    `else
      wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_eth_data;
@@ -1719,7 +1724,7 @@ module chip(
      wire                       freectrl_tx_eth_ready;
      wire                       freectrl_tx_eth_last;
      valrdy_to_ethframe #(.SINGLE_INFLIT(1))
-                        freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac('h0),
+                        freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac(dst_src_mac_tx),
                                          .flit_in (free_ctrl_tx_reg),
                                          .valid_in(free_ctrl_tx_val & ctrl_tx),
                                          .ready_in(free_ctrl_tx_rdy),
@@ -1732,7 +1737,7 @@ module chip(
      wire                       freectrl_rx_eth_valid;
      wire                       freectrl_rx_eth_ready;
      wire                       freectrl_rx_eth_last;
-     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile),
+     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .eth_hdr_out({eth_payl_len_rx, dst_src_mac_rx}),
                                           .flit_in (freectrl_rx_eth_data),
                                           .valid_in(freectrl_rx_eth_valid),
                                           .ready_in(freectrl_rx_eth_ready),
