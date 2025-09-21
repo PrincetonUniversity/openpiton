@@ -1715,8 +1715,8 @@ module chip(
 
     wire ctrl_tx;
    `ifdef PITON_MULTI_FPGA_AUR
-     assign dst_src_mac_rx  = 'h0;
-     assign eth_payl_len_rx = 'h0;
+     assign dst_src_mac_rx  = 'hFEEDFACEDEADBEEF8BADF00D;
+     assign eth_payl_len_rx = 'hCAFE;
      axistx_aurora_bridge
    `else
      wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_eth_data;

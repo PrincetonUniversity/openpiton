@@ -1722,8 +1722,8 @@ chipset chipset(
      .eth_payl_len_rx(eth_payl_len_rx),
     `else // `ifdef PITON_MULTI_FPGA
      .dst_src_mac_tx (),
-     .dst_src_mac_rx ('h0),
-     .eth_payl_len_rx('h0),
+     .dst_src_mac_rx ('hFEEDFACEDEADBEEF8BADF00D),
+     .eth_payl_len_rx('hCAFE),
     `endif // `ifdef PITON_MULTI_FPGA
      .pcie_perstn(pcie_perstn),
      .pcie_refclk_n(pcie_refclk_n),
