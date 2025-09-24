@@ -1802,7 +1802,7 @@ axi4_zeroer axi4_zeroer(
         .pci_express_x16_txn(pci_express_x16_txn),
         .pci_express_x16_txp(pci_express_x16_txp),
         .pcie_gp0_out(pcie_gpio),
-        .pcie_gp0_in({eth_payl_len_rx,16'h0}),
+        .pcie_gp0_in({eth_payl_len_rx,11'h0,pcie_gpio}),
         .pcie_gp1_out(dst_src_mac_tx[31:0]),
         .pcie_gp2_out(dst_src_mac_tx[63:32]),
         .pcie_gp3_out(dst_src_mac_tx[95:64]),

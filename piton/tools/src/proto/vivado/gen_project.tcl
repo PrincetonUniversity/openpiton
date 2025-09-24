@@ -171,6 +171,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   set g_saxi_prot "AXI4-512"
   set g_saxi_freq "split"
   set g_max_dma_addr_width "40"
+  # set g_en_eth_loopback 16
   set g_root_dir "./"
   puts "Generating 100GbE on port `${g_eth_port}` with AXI slave `${g_saxi_prot}` and DMA memory at `${g_dma_mem}` for board `${g_board_part}`"
   # set argv [list $g_board_part $g_eth_port $g_dma_mem $g_saxi_freq $g_saxi_prot]
