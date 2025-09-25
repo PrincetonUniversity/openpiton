@@ -1345,6 +1345,13 @@ module chip(
           print("wire tile_%d_%d_inW_noc%d_yummy;" % (j,i,k))
           print("wire tile_%d_%d_inE_noc%d_yummy;" % (j,i,k))
 
+    always_eth_hdr_rx = '''
+      reg [ETH_HDR_WIDTH-1:0] eth_hdr_rx;
+      always @(posedge clk_muxed)
+        if(~rstn_tile) eth_hdr_rx <= 'h0;
+        else begin 
+    '''
+
     # generate the tiles
     for i in range(PITON_X_TILES):
         for j in range(PITON_Y_TILES):
@@ -1522,14 +1529,21 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_last;"  % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile)," % (j,i,k))
+                        print("wire [ETH_HDR_WIDTH-1:0] tile_%d_%d_vert_noc%d_eth_hdr_rx;"      % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile)," % (j,i,k)),
                         print("  .flit_in  (tile_%d_%d_valrdy_vert_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_vert_near_eth%d_ready), " % (j,i,k))
                         print("  .last_in  (tile_%d_%d_valrdy_vert_near_eth%d_last),  " % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_vert_near_noc%d_data ), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_vert_near_noc%d_valid), " % (j,i,k))
-                        print("  .ready_out(tile_%d_%d_valrdy_vert_near_noc%d_ready));" % (j,i,k))
+                        print("  .ready_out(tile_%d_%d_valrdy_vert_near_noc%d_ready), " % (j,i,k))
+                        print("  .eth_hdr_out(tile_%d_%d_vert_noc%d_eth_hdr_rx     ));" % (j,i,k))
+
+                        always_eth_hdr_rx += '''
+                          if (tile_%d_%d_valrdy_vert_near_noc%d_valid) eth_hdr_rx <= tile_%d_%d_vert_noc%d_eth_hdr_rx;
+                        ''' % (j,i,k,j,i,k)
+
 
                     if (PITON_FR_Y != 0) and (j == PITON_FR_Y):
                       currenttile = currenttile.replace("in_N_", "tile_%d_%d_inN_" % (j,i));
@@ -1550,6 +1564,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_eth%d_last;"  % (j,i,k))
+                        print("wire [ETH_HDR_WIDTH-1:0] tile_%d_%d_vert_noc%d_eth_hdr_rx;"      % (j,i,k))
                         print("ethframe_to_valrdy tile_%d_%d_N_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile)," % (j,i,k))
                         print("  .flit_in  (tile_%d_%d_valrdy_vert_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_eth%d_valid), " % (j,i,k))
@@ -1557,7 +1572,12 @@ module chip(
                         print("  .last_in  (tile_%d_%d_valrdy_vert_near_eth%d_last),  " % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_vert_near_noc%d_data ), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_vert_near_noc%d_valid), " % (j,i,k))
-                        print("  .ready_out(tile_%d_%d_valrdy_vert_near_noc%d_ready));" % (j,i,k))
+                        print("  .ready_out(tile_%d_%d_valrdy_vert_near_noc%d_ready), " % (j,i,k))
+                        print("  .eth_hdr_out(tile_%d_%d_vert_noc%d_eth_hdr_rx     ));" % (j,i,k))
+
+                        always_eth_hdr_rx += '''
+                          if (tile_%d_%d_valrdy_vert_near_noc%d_valid) eth_hdr_rx <= tile_%d_%d_vert_noc%d_eth_hdr_rx;
+                        ''' % (j,i,k,j,i,k)
 
 
                     if (PITON_TO_X != PITON_X_TILES-1) and (i == PITON_TO_X+1):
@@ -1620,6 +1640,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_last;"  % (j,i,k))
+                        print("wire [ETH_HDR_WIDTH-1:0] tile_%d_%d_horz_noc%d_eth_hdr_rx;"      % (j,i,k))
                         print("ethframe_to_valrdy tile_%d_%d_E_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile)," % (j,i,k))
                         print("  .flit_in  (tile_%d_%d_valrdy_horz_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_eth%d_valid), " % (j,i,k))
@@ -1627,7 +1648,12 @@ module chip(
                         print("  .last_in  (tile_%d_%d_valrdy_horz_near_eth%d_last),  " % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_horz_near_noc%d_data ), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_horz_near_noc%d_valid), " % (j,i,k))
-                        print("  .ready_out(tile_%d_%d_valrdy_horz_near_noc%d_ready));" % (j,i,k))
+                        print("  .ready_out(tile_%d_%d_valrdy_horz_near_noc%d_ready), " % (j,i,k))
+                        print("  .eth_hdr_out(tile_%d_%d_horz_noc%d_eth_hdr_rx     ));" % (j,i,k))
+
+                        always_eth_hdr_rx += '''
+                          if (tile_%d_%d_valrdy_horz_near_noc%d_valid) eth_hdr_rx <= tile_%d_%d_horz_noc%d_eth_hdr_rx;
+                        ''' % (j,i,k,j,i,k)
 
                     if (PITON_FR_X != 0) and (i == PITON_FR_X):
                       currenttile = currenttile.replace("in_W_", "tile_%d_%d_inW_" % (j,i));
@@ -1648,6 +1674,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_eth%d_last;"  % (j,i,k))
+                        print("wire [ETH_HDR_WIDTH-1:0] tile_%d_%d_horz_noc%d_eth_hdr_rx;"      % (j,i,k))
                         print("ethframe_to_valrdy tile_%d_%d_W_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile)," % (j,i,k))
                         print("  .flit_in  (tile_%d_%d_valrdy_horz_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_eth%d_valid), " % (j,i,k))
@@ -1655,7 +1682,12 @@ module chip(
                         print("  .last_in  (tile_%d_%d_valrdy_horz_near_eth%d_last),  " % (j,i,k))
                         print("  .flit_out (tile_%d_%d_valrdy_horz_near_noc%d_data ), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_horz_near_noc%d_valid), " % (j,i,k))
-                        print("  .ready_out(tile_%d_%d_valrdy_horz_near_noc%d_ready));" % (j,i,k))
+                        print("  .ready_out(tile_%d_%d_valrdy_horz_near_noc%d_ready), " % (j,i,k))
+                        print("  .eth_hdr_out(tile_%d_%d_horz_noc%d_eth_hdr_rx     ));" % (j,i,k))
+
+                        always_eth_hdr_rx += '''
+                          if (tile_%d_%d_valrdy_horz_near_noc%d_valid) eth_hdr_rx <= tile_%d_%d_horz_noc%d_eth_hdr_rx;
+                        ''' % (j,i,k,j,i,k)
 
 
                 currenttile = currenttile.replace("in_N", idN + "_out_S");
@@ -1671,6 +1703,10 @@ module chip(
     print ("`ifdef PITON_PRONOC");
     print(assign + edge_assign)
     print("`endif")    
+
+    if (not PITON_MULTI_FPGA_AUR):
+      print(always_eth_hdr_rx)
+      print("    end")
 %>
 
 
@@ -1737,7 +1773,7 @@ module chip(
      wire                       freectrl_rx_eth_valid;
      wire                       freectrl_rx_eth_ready;
      wire                       freectrl_rx_eth_last;
-     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .eth_hdr_out({eth_payl_len_rx, dst_src_mac_rx}),
+     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile),
                                           .flit_in (freectrl_rx_eth_data),
                                           .valid_in(freectrl_rx_eth_valid),
                                           .ready_in(freectrl_rx_eth_ready),
@@ -1745,6 +1781,8 @@ module chip(
                                           .flit_out (free_ctrl_rx),
                                           .valid_out(free_ctrl_rx_val),
                                           .ready_out(1'b1));
+
+     assign {eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
 
      axistx_cmac_bridge
    `endif
