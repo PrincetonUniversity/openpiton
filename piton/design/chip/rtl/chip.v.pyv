@@ -1548,7 +1548,6 @@ module chip(
       print(always_eth_hdr_rx)
       print("    end")
 %>
-%>
 
 
 `ifdef PITON_MULTI_FPGA
