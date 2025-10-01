@@ -1165,7 +1165,10 @@ wire                               m_axi_bvalid;
 wire                               m_axi_bready;
 `endif
 
-wire aur_overflow;
+wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx;
+wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx;
+wire [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx;
+wire qsfp_noc_overflow;
 
 //////////////////////////
 // Sub-module Instances //
@@ -1301,7 +1304,10 @@ chip chip(
 
   `ifdef PITON_MULTI_FPGA
     ,
-    .aur_overflow    (aur_overflow),
+    .dst_src_mac_tx (dst_src_mac_tx),
+    .dst_src_mac_rx (dst_src_mac_rx),
+    .eth_payl_len_rx(eth_payl_len_rx),
+    .qsfp_noc_overflow(qsfp_noc_overflow),
     `ifdef PITON_FPGA_ETH_PORT1
       .qsfp_ref_clk_n(qsfp0_ref_clk_n),
       .qsfp_ref_clk_p(qsfp0_ref_clk_p),
@@ -1710,6 +1716,15 @@ chipset chipset(
      .pci_express_x16_txn(pci_express_x16_txn),
      .pci_express_x16_txp(pci_express_x16_txp),
      .pcie_gpio(pcie_gpio),
+    `ifdef PITON_MULTI_FPGA
+     .dst_src_mac_tx (dst_src_mac_tx),
+     .dst_src_mac_rx (dst_src_mac_rx),
+     .eth_payl_len_rx(eth_payl_len_rx),
+    `else // `ifdef PITON_MULTI_FPGA
+     .dst_src_mac_tx (),
+     .dst_src_mac_rx ('hFEEDFACEDEADBEEF8BADF00D),
+     .eth_payl_len_rx('hCAFE),
+    `endif // `ifdef PITON_MULTI_FPGA
      .pcie_perstn(pcie_perstn),
      .pcie_refclk_n(pcie_refclk_n),
      .pcie_refclk_p(pcie_refclk_p),
@@ -1748,7 +1763,7 @@ chipset chipset(
 
     // Chipset reset
     .rst_n(chipset_rst_n),
-    .aur_overflow (aur_overflow),
+    .qsfp_noc_overflow(qsfp_noc_overflow),
 
 
     // In the case of passthru, it should

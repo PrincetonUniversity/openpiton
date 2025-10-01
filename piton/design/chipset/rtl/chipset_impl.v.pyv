@@ -86,7 +86,7 @@ module chipset_impl(
 
     output                                      test_start,
     output                                      uart_rst_out_n,
-    input                                       aur_overflow,
+    input                                       qsfp_noc_overflow,
 
     // invalid access inside packet filter
     output                                      invalid_access_o,
@@ -178,6 +178,9 @@ module chipset_impl(
     output [15:0] pci_express_x16_txn,
     output [15:0] pci_express_x16_txp,  
     output [4:0] pcie_gpio,      
+    output [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx,
+    input  [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx,
+    input  [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx,
     input  pcie_perstn,
     input  pcie_refclk_n,
     input  pcie_refclk_p,
@@ -1313,6 +1316,9 @@ credit_to_valrdy noc3_xbar_to_%s(
             .pci_express_x16_txn(pci_express_x16_txn),
             .pci_express_x16_txp(pci_express_x16_txp),
             .pcie_gpio(pcie_gpio),
+            .dst_src_mac_tx (dst_src_mac_tx),
+            .dst_src_mac_rx (dst_src_mac_rx),
+            .eth_payl_len_rx(eth_payl_len_rx),
             .pcie_perstn(pcie_perstn),
             .pcie_refclk_n(pcie_refclk_n),
             .pcie_refclk_p(pcie_refclk_p),
@@ -2090,7 +2096,7 @@ uart_top        uart_top (
     .test_bad_end               ( test_bad_end                          ),
 
 `ifdef PITON_MULTI_FPGA
-    .mc_axi_deadlock            ( aur_overflow                          ),
+    .mc_axi_deadlock            ( qsfp_noc_overflow                     ),
 `else
     .mc_axi_deadlock            ( mc_axi_deadlock                       ),
 `endif // PITON_MULTI_FPGA
