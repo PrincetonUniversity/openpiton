@@ -1,0 +1,3 @@
+axilite_noc_bridge.sv
+noc_response_axilite.sv
+sync_fifo.v

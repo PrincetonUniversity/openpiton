@@ -525,6 +525,11 @@ wire  [`PITON_NUM_TILES-1:0]   ipi;         // software interrupt (a.k.a inter-p
 `ifdef PITON_RV64_PLIC
 // PLIC
 wire  [`PITON_NUM_TILES*2-1:0] irq;         // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+wire [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq;   
+`endif // DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 
@@ -827,6 +832,10 @@ chip chip(
 `ifdef PITON_RV64_PLIC
     // PLIC
     ,.irq_i                         ( irq                        )  // level sensitive IR lines, mip & sip (async)
+`elsif PITON_RV64_APLIC
+`ifdef DIRECT_MODE
+    ,.irq_i                         ( irq                        )
+`endif // ifdef DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 );
@@ -1234,6 +1243,10 @@ chipset chipset(
 `ifdef PITON_RV64_PLIC
     // PLIC
     ,.irq_o                         ( irq                        ) // level sensitive IR lines, mip & sip (async)
+`elsif PITON_RV64_APLIC
+`ifdef DIRECT_MODE
+    ,.irq_o                         ( irq                        )
+`endif // ifdef DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 

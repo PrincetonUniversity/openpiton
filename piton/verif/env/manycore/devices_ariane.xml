@@ -62,6 +62,12 @@ Description: Peripheral address map for OpenPiton+Ariane configurations.
         <base>0xfff1020000</base>
         <length>0xc0000</length>
     </port>
+    <port>
+        <!-- Advanced platform level interrupt controller -->
+        <name>ariane_aia</name>
+        <base>0xe300000000</base>
+        <length>0x4000000</length>
+    </port>
     <!-- platform level interrupt controller -->
     <port>
         <name>ariane_plic</name>

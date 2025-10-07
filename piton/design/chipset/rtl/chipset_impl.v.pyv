@@ -289,9 +289,18 @@ module chipset_impl(
 `ifdef PITON_RV64_PLIC
     // PLIC
 ,   output [`PITON_NUM_TILES*2-1:0]             irq_o           // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+,   output [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]           irq_o   
+`endif // DIRECT_MODE
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 );
+
+`ifdef MSI_MODE
+  wire msi_noc2_rdy;
+`endif // MSI_MODE
 
 ///////////////////////
 // Type declarations //
@@ -419,8 +428,8 @@ end
 
 // Currently NoC 1 from chipset to interface is not used
 // by any chipset implementation
-assign chipset_intf_data_noc1 = {`NOC_DATA_WIDTH{1'b0}};
-assign chipset_intf_val_noc1 = 1'b0;
+//assign chipset_intf_data_noc1 = {`NOC_DATA_WIDTH{1'b0}};
+//assign chipset_intf_val_noc1 = 1'b0;
 
 // Currently NoC 3 from interface to chipset is not used
 // by any chipset implementation
@@ -485,7 +494,7 @@ assign chip_buf_noc2_ready = chipset_intf_rdy_noc2;
 
 assign chip_filter_noc2_valid = intf_chipset_val_noc2;
 assign chip_filter_noc2_data = intf_chipset_data_noc2;
-assign intf_chipset_rdy_noc2    = filter_chip_noc2_ready & cpu_mem_traffic;
+assign intf_chipset_rdy_noc2    = (filter_chip_noc2_ready & cpu_mem_traffic) /* | msi_noc2_rdy*/;
 
 // NoC 3
 assign chipset_intf_val_noc3    = cpu_mem_traffic & filter_chip_noc3_valid;
@@ -1065,7 +1074,7 @@ assign uart_interrupt = 1'b0;
 
 // Fake iobridge
 // Tie noc1 input low because it's unused
-assign intf_chipset_rdy_noc1 = 1'b0;
+//assign intf_chipset_rdy_noc1 = 1'b0;
 ciop_fake_iob ciop_fake_iob(
     .noc_out_val       ( iob_filter_noc2_valid ),
     .noc_out_rdy       ( filter_iob_noc2_ready ),
@@ -1180,14 +1189,14 @@ str = '''
 ,       .ariane_clint_buf_noc3_valid_o   ( ariane_clint_buf_noc3_valid   )
 ,       .buf_ariane_clint_noc3_ready_i   ( buf_ariane_clint_noc3_ready   )
 `endif // ifdef PITON_RV64_CLINT
-`ifdef PITON_RV64_PLIC
+//`ifdef PITON_RV64_PLIC
 ,       .buf_ariane_plic_noc2_data_i     ( buf_ariane_plic_noc2_data     )
 ,       .buf_ariane_plic_noc2_valid_i    ( buf_ariane_plic_noc2_valid    )
 ,       .ariane_plic_buf_noc2_ready_o    ( ariane_plic_buf_noc2_ready    )
 ,       .ariane_plic_buf_noc3_data_o     ( ariane_plic_buf_noc3_data     )
 ,       .ariane_plic_buf_noc3_valid_o    ( ariane_plic_buf_noc3_valid    )
 ,       .buf_ariane_plic_noc3_ready_i    ( buf_ariane_plic_noc3_ready    )
-`endif // ifdef PITON_RV64_PLIC
+//`endif // ifdef PITON_RV64_PLIC
         // This selects either the BM or linux bootrom
 ,       .ariane_boot_sel_i               ( ariane_boot_sel               )
 `ifdef PITON_RV64_DEBUGUNIT
@@ -1215,7 +1224,21 @@ str = '''
 ,       .irq_le_i                        ( irq_le                        ) // 0:level 1:edge
 ,       .irq_sources_i                   ( irq_sources                   )
 ,       .irq_o                           ( irq_o                         )
-`endif // ifdef PITON_RV64_PLIC
+`elsif PITON_RV64_APLIC
+,       .irq_sources_i                   ( irq_sources                   )
+`ifdef DIRECT_MODE
+,       .irq_o                           ( irq_o                         )
+`else
+// MSI request to NoC1
+,       .noc1_valid_out                  ( chipset_intf_val_noc1         )
+,       .noc1_data_out                   ( chipset_intf_data_noc1        )
+,       .noc1_ready_in                   ( chipset_intf_rdy_noc1         )
+// NoC2 request to MSI
+,       .noc2_valid_in                   ( buf_ariane_aia_noc2_val       )
+,       .noc2_data_in                    ( buf_ariane_aia_noc2_data      )
+,       .noc2_ready_out                  ( ariane_aia_buf_noc2_ready     )
+`endif // `ifdef DIRECT_MODE 
+`endif // `ifdef PITON_RV64_PLIC
     );
 ''' % (int(DmBase), int(RomBase), int(ClintBase), int(PlicBase))
 print(str)

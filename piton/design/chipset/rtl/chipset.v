@@ -502,6 +502,12 @@ module chipset(
 `ifdef PITON_RV64_PLIC
     // PLIC
 ,    output  [`PITON_NUM_TILES*2-1:0]                       irq_o           // level sensitive IR lines, mip & sip (async)
+`elsif  PITON_RV64_APLIC
+// APLIC
+`ifdef DIRECT_MODE
+,   output [`PITON_NUM_TILES-1:0][(`NR_DOMAINS*`NR_IDCs)-1:0]   irq_o   
+`endif // DIRECT_MODE
+
 `endif // ifdef PITON_RV64_PLIC
 `endif // ifdef PITON_RV64_PLATFORM
 
@@ -1443,6 +1449,10 @@ chipset_impl_noc_power_test  chipset_impl (
     
     `ifdef PITON_RV64_PLIC
         ,.irq_o                  ( irq_o         )
+    `elsif PITON_RV64_APLIC
+    `ifdef DIRECT_MODE
+        ,.irq_o                  ( irq_o         )
+    `endif // ifdef DIRECT_MODE
     `endif // ifdef PITON_RV64_PLIC
     `endif // ifdef PITON_RV64_PLATFORM
 );
