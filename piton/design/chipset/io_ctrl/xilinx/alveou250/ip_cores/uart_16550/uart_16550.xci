@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spirit:design xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <spirit:vendor>xilinx.com</spirit:vendor>
+  <spirit:library>xci</spirit:library>
+  <spirit:name>unknown</spirit:name>
+  <spirit:version>1.0</spirit:version>
+  <spirit:componentInstances>
+    <spirit:componentInstance>
+      <spirit:instanceName>uart_16550</spirit:instanceName>
+      <spirit:componentRef spirit:vendor="xilinx.com" spirit:library="ip" spirit:name="axi_uart16550" spirit:version="2.0"/>
+      <spirit:configurableElementValues>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.ASSOCIATED_PORT"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.CLK_DOMAIN"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.FREQ_HZ">100000000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.FREQ_TOLERANCE_HZ">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.INSERT_VIP">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK.PHASE">0.0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ARESETN.INSERT_VIP">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.INTERRUPT.PortWidth">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ADDR_WIDTH">13</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ARUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.AWUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.BUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.CLK_DOMAIN"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.DATA_WIDTH">32</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.FREQ_HZ">100000000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BRESP">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BURST">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_CACHE">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_LOCK">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_PROT">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_QOS">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_REGION">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_RRESP">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_WSTRB">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.ID_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.INSERT_VIP">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.MAX_BURST_LENGTH">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_OUTSTANDING">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_READ_THREADS">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_OUTSTANDING">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.NUM_WRITE_THREADS">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.PHASE">0.0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.PROTOCOL">AXI4LITE</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.READ_WRITE_MODE">READ_WRITE</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.SUPPORTS_NARROW_BURST">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_BITS_PER_BYTE">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_EXTERNAL_XIN_CLK_HZ">25000000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FAMILY">virtexuplus</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_EXTERNAL_RCLK">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_EXTERNAL_XIN">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_IS_A_16550">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SIM_DEVICE">VERSAL_AI_CORE_ES1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXI_ACLK_FREQ_HZ">66667000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BASE_USER">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_EXTERNAL_XIN_CLK_HZ">25000000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_EXTERNAL_XIN_CLK_HZ_d">25</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_HAS_EXTERNAL_RCLK">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_HAS_EXTERNAL_XIN">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_IS_A_16550">16550</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_S_AXI_ACLK_FREQ_HZ">66667000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_S_AXI_ACLK_FREQ_HZ_d">66.667</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_USE_MODEM_PORTS">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.C_USE_USER_PORTS">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Component_Name">uart_16550</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.UART_BOARD_INTERFACE">Custom</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USE_BOARD_FLOW">false</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.ARCHITECTURE">virtexuplus</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BASE_BOARD_PART">xilinx.com:au250:part0:1.3</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BOARD_CONNECTIONS"/>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.DEVICE">xcu250</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PACKAGE">figd2104</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PREFHDL">VERILOG</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SILICON_REVISION"/>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SIMULATOR_LANGUAGE">MIXED</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SPEEDGRADE">-2L</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.STATIC_POWER"/>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.TEMPERATURE_GRADE">E</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_CUSTOMIZATION">TRUE</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_GENERATION">TRUE</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.IPCONTEXT">IP_Flow</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.IPREVISION">28</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.MANAGED">TRUE</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.OUTPUTDIR">.</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SELECTEDSIMMODEL"/>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SHAREDDIR">.</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SWVERSION">2022.1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SYNTHESISFLOW">OUT_OF_CONTEXT</spirit:configurableElementValue>
+      </spirit:configurableElementValues>
+      <spirit:vendorExtensions>
+        <xilinx:componentInstanceExtensions>
+          <xilinx:configElementInfos>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ADDR_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ARUSER_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.AWUSER_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.BUSER_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.DATA_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BRESP" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_BURST" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_CACHE" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_LOCK" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_PROT" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_QOS" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_REGION" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_RRESP" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.HAS_WSTRB" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ID_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.PROTOCOL" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.READ_WRITE_MODE" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.RUSER_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.WUSER_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.C_S_AXI_ACLK_FREQ_HZ" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.C_S_AXI_ACLK_FREQ_HZ_d" xilinx:valueSource="user"/>
+          </xilinx:configElementInfos>
+          <xilinx:boundaryDescriptionInfo>
+            <xilinx:boundaryDescription xilinx:boundaryDescriptionJSON="{
+              &quot;schema&quot;: &quot;xilinx.com:schema:json_boundary:1.0&quot;,
+              &quot;boundary&quot;: {
+                &quot;ports&quot;: {
+                  &quot;s_axi_aclk&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_aresetn&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;1&quot; } ],
+                  &quot;ip2intc_irpt&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;freeze&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0x0&quot; } ],
+                  &quot;s_axi_awaddr&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;size_left&quot;: &quot;12&quot;, &quot;size_right&quot;: &quot;0&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_awvalid&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_awready&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;s_axi_wdata&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;size_left&quot;: &quot;31&quot;, &quot;size_right&quot;: &quot;0&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_wstrb&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;size_left&quot;: &quot;3&quot;, &quot;size_right&quot;: &quot;0&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_wvalid&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_wready&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;s_axi_bresp&quot;: [ { &quot;direction&quot;: &quot;out&quot;, &quot;size_left&quot;: &quot;1&quot;, &quot;size_right&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_bvalid&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;s_axi_bready&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_araddr&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;size_left&quot;: &quot;12&quot;, &quot;size_right&quot;: &quot;0&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_arvalid&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_arready&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;s_axi_rdata&quot;: [ { &quot;direction&quot;: &quot;out&quot;, &quot;size_left&quot;: &quot;31&quot;, &quot;size_right&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_rresp&quot;: [ { &quot;direction&quot;: &quot;out&quot;, &quot;size_left&quot;: &quot;1&quot;, &quot;size_right&quot;: &quot;0&quot; } ],
+                  &quot;s_axi_rvalid&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;s_axi_rready&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;baudoutn&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;ctsn&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0x1&quot; } ],
+                  &quot;dcdn&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0x1&quot; } ],
+                  &quot;ddis&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;dsrn&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0x1&quot; } ],
+                  &quot;dtrn&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;out1n&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;out2n&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;rin&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0x1&quot; } ],
+                  &quot;rtsn&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;rxrdyn&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;sin&quot;: [ { &quot;direction&quot;: &quot;in&quot;, &quot;driver_value&quot;: &quot;0&quot; } ],
+                  &quot;sout&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ],
+                  &quot;txrdyn&quot;: [ { &quot;direction&quot;: &quot;out&quot; } ]
+                },
+                &quot;interfaces&quot;: {
+                  &quot;INTERRUPT&quot;: {
+                    &quot;vlnv&quot;: &quot;xilinx.com:signal:interrupt:1.0&quot;,
+                    &quot;abstraction_type&quot;: &quot;xilinx.com:signal:interrupt_rtl:1.0&quot;,
+                    &quot;mode&quot;: &quot;master&quot;,
+                    &quot;parameters&quot;: {
+                      &quot;SENSITIVITY&quot;: [ { &quot;value&quot;: &quot;LEVEL_HIGH&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;usage&quot;: &quot;all&quot; } ],
+                      &quot;PortWidth&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ]
+                    },
+                    &quot;port_maps&quot;: {
+                      &quot;INTERRUPT&quot;: [ { &quot;physical_name&quot;: &quot;ip2intc_irpt&quot; } ]
+                    }
+                  },
+                  &quot;ACLK&quot;: {
+                    &quot;vlnv&quot;: &quot;xilinx.com:signal:clock:1.0&quot;,
+                    &quot;abstraction_type&quot;: &quot;xilinx.com:signal:clock_rtl:1.0&quot;,
+                    &quot;mode&quot;: &quot;slave&quot;,
+                    &quot;parameters&quot;: {
+                      &quot;ASSOCIATED_BUSIF&quot;: [ { &quot;value&quot;: &quot;S_AXI&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;usage&quot;: &quot;all&quot; } ],
+                      &quot;ASSOCIATED_RESET&quot;: [ { &quot;value&quot;: &quot;s_axi_aresetn&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;usage&quot;: &quot;all&quot; } ],
+                      &quot;FREQ_HZ&quot;: [ { &quot;value&quot;: &quot;100000000&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;FREQ_TOLERANCE_HZ&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;PHASE&quot;: [ { &quot;value&quot;: &quot;0.0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;float&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;CLK_DOMAIN&quot;: [ { &quot;value&quot;: &quot;&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;ASSOCIATED_PORT&quot;: [ { &quot;value&quot;: &quot;&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;INSERT_VIP&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;user&quot;, &quot;format&quot;: &quot;long&quot;, &quot;usage&quot;: &quot;simulation.rtl&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ]
+                    },
+                    &quot;port_maps&quot;: {
+                      &quot;CLK&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_aclk&quot; } ]
+                    }
+                  },
+                  &quot;ARESETN&quot;: {
+                    &quot;vlnv&quot;: &quot;xilinx.com:signal:reset:1.0&quot;,
+                    &quot;abstraction_type&quot;: &quot;xilinx.com:signal:reset_rtl:1.0&quot;,
+                    &quot;mode&quot;: &quot;slave&quot;,
+                    &quot;parameters&quot;: {
+                      &quot;POLARITY&quot;: [ { &quot;value&quot;: &quot;ACTIVE_LOW&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;usage&quot;: &quot;all&quot; } ],
+                      &quot;INSERT_VIP&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;user&quot;, &quot;format&quot;: &quot;long&quot;, &quot;usage&quot;: &quot;simulation.rtl&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ]
+                    },
+                    &quot;port_maps&quot;: {
+                      &quot;RST&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_aresetn&quot; } ]
+                    }
+                  },
+                  &quot;S_AXI&quot;: {
+                    &quot;vlnv&quot;: &quot;xilinx.com:interface:aximm:1.0&quot;,
+                    &quot;abstraction_type&quot;: &quot;xilinx.com:interface:aximm_rtl:1.0&quot;,
+                    &quot;mode&quot;: &quot;slave&quot;,
+                    &quot;memory_map_ref&quot;: &quot;S_AXI&quot;,
+                    &quot;parameters&quot;: {
+                      &quot;DATA_WIDTH&quot;: [ { &quot;value&quot;: &quot;32&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;PROTOCOL&quot;: [ { &quot;value&quot;: &quot;AXI4LITE&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;FREQ_HZ&quot;: [ { &quot;value&quot;: &quot;100000000&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;ID_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;ADDR_WIDTH&quot;: [ { &quot;value&quot;: &quot;13&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;AWUSER_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;ARUSER_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;WUSER_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;RUSER_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;BUSER_WIDTH&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;READ_WRITE_MODE&quot;: [ { &quot;value&quot;: &quot;READ_WRITE&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_BURST&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_LOCK&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_PROT&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_CACHE&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_QOS&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_REGION&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_WSTRB&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_BRESP&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;HAS_RRESP&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;SUPPORTS_NARROW_BURST&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;NUM_READ_OUTSTANDING&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;NUM_WRITE_OUTSTANDING&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;MAX_BURST_LENGTH&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;PHASE&quot;: [ { &quot;value&quot;: &quot;0.0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;float&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;CLK_DOMAIN&quot;: [ { &quot;value&quot;: &quot;&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;NUM_READ_THREADS&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;NUM_WRITE_THREADS&quot;: [ { &quot;value&quot;: &quot;1&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;RUSER_BITS_PER_BYTE&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;WUSER_BITS_PER_BYTE&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;generated&quot;, &quot;format&quot;: &quot;long&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ],
+                      &quot;INSERT_VIP&quot;: [ { &quot;value&quot;: &quot;0&quot;, &quot;resolve_type&quot;: &quot;user&quot;, &quot;format&quot;: &quot;long&quot;, &quot;usage&quot;: &quot;simulation.rtl&quot;, &quot;is_ips_inferred&quot;: true, &quot;is_static_object&quot;: false } ]
+                    },
+                    &quot;port_maps&quot;: {
+                      &quot;ARADDR&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_araddr&quot; } ],
+                      &quot;ARREADY&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_arready&quot; } ],
+                      &quot;ARVALID&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_arvalid&quot; } ],
+                      &quot;AWADDR&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_awaddr&quot; } ],
+                      &quot;AWREADY&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_awready&quot; } ],
+                      &quot;AWVALID&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_awvalid&quot; } ],
+                      &quot;BREADY&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_bready&quot; } ],
+                      &quot;BRESP&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_bresp&quot; } ],
+                      &quot;BVALID&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_bvalid&quot; } ],
+                      &quot;RDATA&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_rdata&quot; } ],
+                      &quot;RREADY&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_rready&quot; } ],
+                      &quot;RRESP&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_rresp&quot; } ],
+                      &quot;RVALID&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_rvalid&quot; } ],
+                      &quot;WDATA&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_wdata&quot; } ],
+                      &quot;WREADY&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_wready&quot; } ],
+                      &quot;WSTRB&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_wstrb&quot; } ],
+                      &quot;WVALID&quot;: [ { &quot;physical_name&quot;: &quot;s_axi_wvalid&quot; } ]
+                    }
+                  },
+                  &quot;UART&quot;: {
+                    &quot;vlnv&quot;: &quot;xilinx.com:interface:uart:1.0&quot;,
+                    &quot;abstraction_type&quot;: &quot;xilinx.com:interface:uart_rtl:1.0&quot;,
+                    &quot;mode&quot;: &quot;master&quot;,
+                    &quot;parameters&quot;: {
+                      &quot;BOARD.ASSOCIATED_PARAM&quot;: [ { &quot;value&quot;: &quot;UART_BOARD_INTERFACE&quot;, &quot;value_src&quot;: &quot;constant&quot;, &quot;usage&quot;: &quot;all&quot; } ]
+                    },
+                    &quot;port_maps&quot;: {
+                      &quot;BAUDOUTn&quot;: [ { &quot;physical_name&quot;: &quot;baudoutn&quot; } ],
+                      &quot;CTSn&quot;: [ { &quot;physical_name&quot;: &quot;ctsn&quot; } ],
+                      &quot;DCDn&quot;: [ { &quot;physical_name&quot;: &quot;dcdn&quot; } ],
+                      &quot;DDIS&quot;: [ { &quot;physical_name&quot;: &quot;ddis&quot; } ],
+                      &quot;DSRn&quot;: [ { &quot;physical_name&quot;: &quot;dsrn&quot; } ],
+                      &quot;DTRn&quot;: [ { &quot;physical_name&quot;: &quot;dtrn&quot; } ],
+                      &quot;OUT1n&quot;: [ { &quot;physical_name&quot;: &quot;out1n&quot; } ],
+                      &quot;OUT2n&quot;: [ { &quot;physical_name&quot;: &quot;out2n&quot; } ],
+                      &quot;RI&quot;: [ { &quot;physical_name&quot;: &quot;rin&quot; } ],
+                      &quot;RTSn&quot;: [ { &quot;physical_name&quot;: &quot;rtsn&quot; } ],
+                      &quot;RxD&quot;: [ { &quot;physical_name&quot;: &quot;sin&quot; } ],
+                      &quot;RXRDYn&quot;: [ { &quot;physical_name&quot;: &quot;rxrdyn&quot; } ],
+                      &quot;TxD&quot;: [ { &quot;physical_name&quot;: &quot;sout&quot; } ],
+                      &quot;TXRDYn&quot;: [ { &quot;physical_name&quot;: &quot;txrdyn&quot; } ]
+                    }
+                  }
+                },
+                &quot;memory_maps&quot;: {
+                  &quot;S_AXI&quot;: {
+                    &quot;display_name&quot;: &quot;S_AXI_MEM&quot;,
+                    &quot;description&quot;: &quot;Memory Map for S_AXI&quot;,
+                    &quot;address_blocks&quot;: {
+                      &quot;Reg&quot;: {
+                        &quot;base_address&quot;: &quot;0&quot;,
+                        &quot;range&quot;: &quot;65536&quot;,
+                        &quot;display_name&quot;: &quot;Reg&quot;,
+                        &quot;description&quot;: &quot;Register Block&quot;,
+                        &quot;usage&quot;: &quot;register&quot;,
+                        &quot;access&quot;: &quot;read-write&quot;,
+                        &quot;registers&quot;: {
+                          &quot;RBR_THR_DLL&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1000&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Receiver Buffer Register or Transmitter Holding Register or Divisor Latch (LSB) Register&quot;,
+                            &quot;description&quot;: &quot;Receiver Buffer Register or Transmitter Holding Register or Divisor Latch (LSB) Register.\nBased on DLAB bit in LCR register following register is selected.\nDLAB = 0 then Read is from RBR register.\nDLAB = 0 then Write in to  THR register.\nDLAB = 1 then DLL register is selected.\n&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;RBR&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 8,
+                                &quot;display_name&quot;: &quot;Receiver Buffer Register&quot;,
+                                &quot;description&quot;: &quot;Last received character\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-only&quot;
+                              },
+                              &quot;THR&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 8,
+                                &quot;display_name&quot;: &quot;Transmitter Holding Register&quot;,
+                                &quot;description&quot;: &quot;Holds the character to be transmitted next\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;write-only&quot;
+                              },
+                              &quot;DLL&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 8,
+                                &quot;display_name&quot;: &quot;Divisor Latch Least Significant Byte&quot;,
+                                &quot;description&quot;: &quot;Divisor Latch Least Significant Byte\nNote: On reset, the DLL gets configured for 9600 Baud.\nThe DLL reset value, [LSB(divisor)] is calculated from the formula, divisor = AXI CLK frequency/(16 x 9600)).\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;IER_DLM&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1004&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Interrupt Enable Register or Divisor Latch (MSB) Register&quot;,
+                            &quot;description&quot;: &quot;Interrupt Enable Register or Divisor Latch (MSB) Register.\nBased on DLAB bit in LCR register following register is selected.\nDLAB = 0 then IER register is selected.\nDLAB = 1 then DLM register is selected.\n&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;IER_ERBFI&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Enable Received Data Available Interrupt&quot;,
+                                &quot;description&quot;: &quot;0 - Disables Received Data Available Interrupts.\n1 - Enables Received Data Available Interrupts.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;IER_ETBEI&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Enable Transmitter Holding Register Empty Interrupt&quot;,
+                                &quot;description&quot;: &quot;0 - Disables Transmitter Holding Register Empty Interrupts.\n1 - Enables Transmitter Holding Register Interrupts.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;IER_ELSI&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Enable Receiver Line Status Interrupt&quot;,
+                                &quot;description&quot;: &quot;0 - Disables Receiver Line Status Interrupts.\n1 - Enables Receiver Line Status Interrupts.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;IER_EDSSI&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Enable Modem Status Interrupt&quot;,
+                                &quot;description&quot;: &quot;0 - Disables Modem Status Interrupts.\n1 - Enables Modem Status Interrupts.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DLM&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 8,
+                                &quot;display_name&quot;: &quot;Divisor Latch Most Significant Byte&quot;,
+                                &quot;description&quot;: &quot;Divisor Latch Most Significant Byte\nNote: On reset, the DLM gets configured for 9600 Baud.\nThe DLM reset value, [MSB(divisor)] is calculated from the formula, divisor = (AXI CLK frequency/(16 x 9600)).\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;IIR_FCR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1008&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Interrupt Identification Register or FIFO Control Register&quot;,
+                            &quot;description&quot;: &quot;Interrupt Identification Register or FIFO Control Register.\nBased on DLAB bit in LCR register following register is selected.\nDLAB = 0 then Read is from IIR register.\nDLAB = 0 then Write in to  FCR register.\nDLAB = 1 then FCR register is selected.\n&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x1&quot;,
+                            &quot;fields&quot;: {
+                              &quot;IIR_INTPEND&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Interrupt Pending&quot;,
+                                &quot;description&quot;: &quot;0 - Interrupt is pending\n1 - No interrupt is pending\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-only&quot;
+                              },
+                              &quot;IIR_INTID2&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 3,
+                                &quot;display_name&quot;: &quot;Interrupt ID&quot;,
+                                &quot;description&quot;: &quot;011 - Receiver Line Status (Highest)\n010 - Received Data Available (Second)\n110 - Character Timeout (Second)\n001 - Transmitter Holding Register Empty (Third)\n000 - Modem Status (Fourth)\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-only&quot;
+                              },
+                              &quot;IIR_FIFOEN&quot;: {
+                                &quot;bit_offset&quot;: 6,
+                                &quot;bit_width&quot;: 2,
+                                &quot;display_name&quot;: &quot;FIFOs Enabled&quot;,
+                                &quot;description&quot;: &quot;Always zero if not in FIFO mode.\n0 - 16450 mode\n1 - 16550 mode\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-only&quot;
+                              },
+                              &quot;FCR_FIFOEN&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;FIFO Enable&quot;,
+                                &quot;description&quot;: &quot;1 - Enables FIFOs.\n0 - Disables FIFOs\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;FCR_RCVR_FIFO_Reset&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Receiver FIFO Reset&quot;,
+                                &quot;description&quot;: &quot;1 - Resets RCVR FIFO\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;FCR_XMIT_FIFO_Reset&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Transmitter FIFO Reset&quot;,
+                                &quot;description&quot;: &quot;1 - Resets XMIT FIFO\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;FCR_DMA_MODE_Select&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;DMA Mode Select&quot;,
+                                &quot;description&quot;: &quot;0 - Mode 0.\n1 - Mode 1\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;FCR_RCVR_FIFO_Trigger_Level&quot;: {
+                                &quot;bit_offset&quot;: 6,
+                                &quot;bit_width&quot;: 2,
+                                &quot;display_name&quot;: &quot;RCVR FIFO Trigger Level&quot;,
+                                &quot;description&quot;: &quot;RCVR FIFO Trigger Level.\n00 - 1 byte.\n01 - 4 bytes.\n10 - 8 bytes.\n11 - 14 bytes.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;LCR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x100C&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Line Control Register&quot;,
+                            &quot;description&quot;: &quot;Line Control Register&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;WLS&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 2,
+                                &quot;display_name&quot;: &quot;Word Length Select&quot;,
+                                &quot;description&quot;: &quot;00 - 5 bits/character\n01 - 6 bits/character\n10 - 7 bits/character\n11 - 8 bits/character\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;STB&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Number of Stop Bits&quot;,
+                                &quot;description&quot;: &quot;0 - 1 Stop bit.\n1 - 2 Stop bits or 1.5, if 5 bits/character selected.\nThe receiver checks for 1 stop bit only regardless of the number of stop bits selected.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;PEN&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Parity Enable&quot;,
+                                &quot;description&quot;: &quot;1 - Enables parity.\n0 - Disables parity\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;EPS&quot;: {
+                                &quot;bit_offset&quot;: 4,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Even Parity Select&quot;,
+                                &quot;description&quot;: &quot;1 - Selects Even parity.\n0 - Selects Odd parity.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Stick_Parity&quot;: {
+                                &quot;bit_offset&quot;: 5,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Stick Parity&quot;,
+                                &quot;description&quot;: &quot;1 - When bits 3, 4 are logic 1 the Parity bit is transmitted and checked as a logic 0. \nIf bit 4 is a logic 0 and bit 3 is logic 1 then the Parity bit is transmitted and checked as a logic 1.\n0 - Stick Parity is disabled.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Set_Break&quot;: {
+                                &quot;bit_offset&quot;: 6,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Set_Break&quot;,
+                                &quot;description&quot;: &quot;1 = Enables break condition. Sets SOUT to 0 and cause break condition.\n0 = Disables break condition\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DLAB&quot;: {
+                                &quot;bit_offset&quot;: 7,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Divisor Latch Access Bit&quot;,
+                                &quot;description&quot;: &quot;1 - Allows access to the Divisor Latch Registers and reading of the FIFO Control Register.\n0 - Allows access to RBR, THR, IER and IIR registers.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;MCR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1010&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Modem Control Register&quot;,
+                            &quot;description&quot;: &quot;Modem Control Register&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;DTR&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Data Terminal Ready&quot;,
+                                &quot;description&quot;: &quot;1 - Drives DTRN Low.\n0 - Drives DTRN High\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;RTS&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Request To Send&quot;,
+                                &quot;description&quot;: &quot;1 - Drives RTSN Low.\n0 - Drives RTSN High.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Out1&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;User Output 1&quot;,
+                                &quot;description&quot;: &quot;1 - Drives OUT1N Low.\n0 - Drives OUT1N High\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Out2&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;User Output 2&quot;,
+                                &quot;description&quot;: &quot;1 - Drives OUT2N Low.\n0 - Drives OUT2N High.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Loop&quot;: {
+                                &quot;bit_offset&quot;: 4,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Loop Back&quot;,
+                                &quot;description&quot;: &quot;1 - Enables loopback\n0 - Disables loopback\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;LSR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1014&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Line Status Register&quot;,
+                            &quot;description&quot;: &quot;Line Status Register&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x60&quot;,
+                            &quot;fields&quot;: {
+                              &quot;DR&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Data Ready&quot;,
+                                &quot;description&quot;: &quot;0 - All the data in RBR or FIFO is read.\n1 - Complete incoming character has been received and transferred into the RBR of FIFO.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;OE&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Overrun Error&quot;,
+                                &quot;description&quot;: &quot;RBR not read before next character is received, thereby destroying the previous character. \nIn FIFO mode, data continues to fill the FIFO beyond the trigger level, an overrun error \noccurs only after the FIFO is full and the next character has been completely received in \nthe shift register. The character in the shift register is overwritten but it is not \ntransferred to the FIFO.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;PE&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Parity Error&quot;,
+                                &quot;description&quot;: &quot;Indicates that the received data character does not have correct even or odd parity as \nselected by the Even parity select bit. In FIFO mode, this error is associated with a \nparticular character in the FIFO.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;FE&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Framing Error&quot;,
+                                &quot;description&quot;: &quot;Character missing a stop bit. In framing error, the UART attempts to re-synchronize by \nassuming that the framing error was due to next character start bit, so it samples start \nbit twice and then takes in following data. In FIFO mode, this error is associated with a \nparticular character in the FIFO.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;BI&quot;: {
+                                &quot;bit_offset&quot;: 4,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Break Interrupt&quot;,
+                                &quot;description&quot;: &quot;Set when SIN is held Low for an entire character time. (Start + data bits + Parity + Stop bits).\nIn FIFO mode, this error is associated with a particular character in FIFO. The next character \ntransfer is enabled if the Sin goes to marking state and receives the next valid start bit.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;THRE&quot;: {
+                                &quot;bit_offset&quot;: 5,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Transmitter Holding Register Empty&quot;,
+                                &quot;description&quot;: &quot;0 - THR or Transmitter FIFO has data to transmit.\n1 - THR is empty. In FIFO mode, Transmitter FIFO is empty.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;TEMT&quot;: {
+                                &quot;bit_offset&quot;: 6,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Transmitter Empty&quot;,
+                                &quot;description&quot;: &quot;0 - THR or Transmitter shift register contains data.\n1 - THR and Transmitter shift register empty\nIn FIFO mode, Transmitter FIFO and shift register are both empty.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;Error_in_RCVR_FIFO&quot;: {
+                                &quot;bit_offset&quot;: 7,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Error in RCVR FIFO&quot;,
+                                &quot;description&quot;: &quot;RCVR FIFO contains at least one receiver error (Parity, Framing, Break condition).\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;MSR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x1018&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Modem Status Register&quot;,
+                            &quot;description&quot;: &quot;Modem Status Register&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;DCTS&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Delta Clear To Send&quot;,
+                                &quot;description&quot;: &quot;Change in CTSN after last MSR read.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DDSR&quot;: {
+                                &quot;bit_offset&quot;: 1,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Delta Data Set Ready&quot;,
+                                &quot;description&quot;: &quot;Change in DSRN after last MSR read.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;TERI&quot;: {
+                                &quot;bit_offset&quot;: 2,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Trailing Edge Ring Indicator&quot;,
+                                &quot;description&quot;: &quot;RIN has changed from a Low to a High.\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DDCD&quot;: {
+                                &quot;bit_offset&quot;: 3,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Delta Data Carrier Detect&quot;,
+                                &quot;description&quot;: &quot;Change in DCDN after last MSR read\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;CTS&quot;: {
+                                &quot;bit_offset&quot;: 4,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Clear To Send&quot;,
+                                &quot;description&quot;: &quot;Complement of CTSN input\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DSR&quot;: {
+                                &quot;bit_offset&quot;: 5,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Data Set Ready&quot;,
+                                &quot;description&quot;: &quot;Complement of DSRN input\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;RI&quot;: {
+                                &quot;bit_offset&quot;: 6,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Ring Indicator&quot;,
+                                &quot;description&quot;: &quot;Complement of RIN input\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              },
+                              &quot;DCD&quot;: {
+                                &quot;bit_offset&quot;: 7,
+                                &quot;bit_width&quot;: 1,
+                                &quot;display_name&quot;: &quot;Data Carrier Detect&quot;,
+                                &quot;description&quot;: &quot;Complement of DCDN input\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          },
+                          &quot;SCR&quot;: {
+                            &quot;address_offset&quot;: &quot;0x101C&quot;,
+                            &quot;size&quot;: 32,
+                            &quot;display_name&quot;: &quot;Scratch Register&quot;,
+                            &quot;description&quot;: &quot;Scratch Register&quot;,
+                            &quot;is_volatile&quot;: true,
+                            &quot;access&quot;: &quot;read-write&quot;,
+                            &quot;reset_value&quot;: &quot;0x0&quot;,
+                            &quot;fields&quot;: {
+                              &quot;Scratch&quot;: {
+                                &quot;bit_offset&quot;: 0,
+                                &quot;bit_width&quot;: 8,
+                                &quot;display_name&quot;: &quot;Scratch&quot;,
+                                &quot;description&quot;: &quot;Hold user data\n&quot;,
+                                &quot;is_volatile&quot;: true,
+                                &quot;access&quot;: &quot;read-write&quot;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }"/>
+          </xilinx:boundaryDescriptionInfo>
+        </xilinx:componentInstanceExtensions>
+      </spirit:vendorExtensions>
+    </spirit:componentInstance>
+  </spirit:componentInstances>
+</spirit:design>

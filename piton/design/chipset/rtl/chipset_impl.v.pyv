@@ -87,6 +87,18 @@ module chipset_impl(
     // invalid access inside packet filter
     output                                      invalid_access_o,
 
+`ifdef ALVEO_BOARD
+    input         pcie_refclk_clk_n    ,
+    input         pcie_refclk_clk_p    ,
+    input         pcie_perstn          ,		
+    input  [15:0] pci_express_x16_rxn  ,
+    input  [15:0] pci_express_x16_rxp  ,
+    output [15:0] pci_express_x16_txn  ,
+    output [15:0] pci_express_x16_txp  ,
+    input         resetn ,
+    output        chip_rstn            ,
+`endif
+
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
 `ifndef F1_BOARD
@@ -152,11 +164,11 @@ module chipset_impl(
     output [`DDR3_CS_WIDTH-1:0]                 ddr_cs_n,
 `endif // endif NEXYSVIDEO_BOARD
 `ifdef PITONSYS_DDR4
-`ifdef XUPP3R_BOARD
+`ifdef PITONSYS_DDR4_PARITY
     output                                      ddr_parity,
 `else
     inout [`DDR3_DM_WIDTH-1:0]                  ddr_dm,
-`endif // XUPP3R_BOARD
+`endif // PITONSYS_DDR4_PARITY
 `else // PITONSYS_DDR4
     output [`DDR3_DM_WIDTH-1:0]                 ddr_dm,
 `endif // PITONSYS_DDR4
@@ -464,8 +476,13 @@ assign chip_buf_noc3_data = {`NOC_DATA_WIDTH{1'b0}};
         assign uart_timeout_en = 1'b0;
     `else // ifdef PITONSYS_UART
         `ifndef PITONSYS_UART_BOOT
-            assign uart_boot_en = 1'b0;
-            assign uart_timeout_en = 1'b0;
+            `ifndef ALVEO_BOARD
+                assign uart_boot_en = 1'b0;
+                assign uart_timeout_en = 1'b0;
+            `else
+                assign uart_boot_en    = 1'b1;
+                assign uart_timeout_en = 1'b0;
+            `endif // endif ALVEO_BOARD
         `endif // endif PITONSYS_UART_BOOT
     `endif // endif PITONSYS_UART
 `endif // endif PITONSYS_IOCTRL
@@ -778,6 +795,55 @@ credit_to_valrdy noc3_xbar_to_%s(
             .m_axi_bready(m_axi_bready), 
             .ddr_ready(ddr_ready)
         );
+    `elsif ALVEO_BOARD
+        alveo_shell_top alveo_shell_i (
+
+            // PCIe 
+            .pci_express_x16_rxn(pci_express_x16_rxn),
+            .pci_express_x16_rxp(pci_express_x16_rxp),
+            .pci_express_x16_txn(pci_express_x16_txn),
+            .pci_express_x16_txp(pci_express_x16_txp),
+            .pcie_perstn(pcie_perstn),
+            .pcie_refclk_clk_n(pcie_refclk_clk_n),
+            .pcie_refclk_clk_p(pcie_refclk_clk_p),
+            .resetn(resetn),
+
+            // DDR4 physicall interface
+            .c0_ddr4_act_n             ( ddr_act_n                 ), // cas_n, ras_n and we_n are multiplexed in ddr4
+            .c0_ddr4_adr               ( ddr_addr                  ),
+            .c0_ddr4_ba                ( ddr_ba                    ),
+            .c0_ddr4_bg                ( ddr_bg                    ), // bank group address
+            .c0_ddr4_ck_t              ( ddr_ck_p                  ),
+            .c0_ddr4_ck_c              ( ddr_ck_n                  ),
+            .c0_ddr4_cke               ( ddr_cke                   ),
+            .c0_ddr4_cs_n              ( ddr_cs_n                  ),
+            .c0_ddr4_dq                ( ddr_dq                    ), 
+            .c0_ddr4_dqs_c             ( ddr_dqs_n                 ), 
+            .c0_ddr4_dqs_t             ( ddr_dqs_p                 ), 
+            .c0_ddr4_odt               ( ddr_odt                   ),
+            .c0_ddr4_par               ( ddr_parity                ),                        // output wire c0_ddr4_parity
+            .c0_ddr4_reset_n           ( ddr_reset_n               ),
+
+            // DDR4 clock & reset
+            .c0_sysclk_clk_p           ( mc_clk_p                 ),
+            .c0_sysclk_clk_n           ( mc_clk_n                 ),
+
+            .c0_init_calib_complete    ( init_calib_complete       ),
+
+            .chip_rstn                 (chip_rstn             ),
+            .chipset_clk               (chipset_clk           ),
+            .chipset_rstn              (chipset_rst_n          ),
+
+
+            .mem_flit_in_val(buf_mem_noc2_valid),
+            .mem_flit_in_data(buf_mem_noc2_data),
+            .mem_flit_in_rdy(mem_buf_noc2_ready),
+
+            .mem_flit_out_val(mem_buf_noc3_valid),
+            .mem_flit_out_data(mem_buf_noc3_data),
+            .mem_flit_out_rdy(buf_mem_noc3_ready)
+            
+            );
     `else
         mc_top mc_top(
             .mc_ui_clk_sync_rst(mc_ui_clk_sync_rst),
@@ -1121,7 +1187,7 @@ fake_uart fake_uart (
     // this is for selecting the right bootrom (1: baremetal, 0: linux)
     wire ariane_boot_sel;
 `ifdef PITON_FPGA_SYNTH
-  assign ariane_boot_sel   = uart_boot_en;
+    assign ariane_boot_sel   = uart_boot_en;
 `else
   `ifdef ARIANE_SIM_LINUX_BOOT
     assign ariane_boot_sel = 1'b0;
