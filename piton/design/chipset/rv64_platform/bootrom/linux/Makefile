@@ -44,7 +44,7 @@ $(MAIN): rv64_platform.dtb $(OBJS_C) $(OBJS_S) linker.lds
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@ 
 	@echo "CC    <= $<"
 
-%.o: %.S
+%.o: %.S rv64_platform.dtb
 	@echo "MAX_HARTS = $(MAX_HARTS)"
 	@$(CC) $(CFLAGS) $(CCASFLAGS) $(INCLUDES) -c $<  -o $@ 
 	@echo "CC    <= $<"
