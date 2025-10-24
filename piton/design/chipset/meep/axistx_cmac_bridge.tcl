@@ -166,6 +166,8 @@ current_bd_design $design_name
   set_property -dict [list \
     CONFIG.NUM_MI $QSFP_BRDG_CHANS \
   ] [get_bd_cells axis_demuxer]
+  # For last channel set all rest decode address space
+  set_property CONFIG.M[format {%02d} [expr {$QSFP_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
