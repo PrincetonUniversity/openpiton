@@ -1160,7 +1160,7 @@ sub gen_flist
         next ;
       }
 
-      $line =~ s/\$(\w+)/$ENV{$1}/g ;
+      $line =~ s/\${?(\w+)}?/$ENV{$1}/g ;
 
       if ($line =~ /^\+incdir\+\//)
       { }
