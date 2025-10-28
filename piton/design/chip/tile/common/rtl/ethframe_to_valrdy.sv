@@ -65,8 +65,10 @@ always @(posedge clk)
     if (last_in) hdr_cnt <= ETHHDR_NOC_FLITS;
   end
 
-wire header_ok = (header[ETHHDR_WIDTH-1 : 2*MAC_ADDR_WIDTH     ] <= MAX_ETHFR_PAYLD_LEN) &&
-                 (header[                 2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac);
+// swap of bytes in payload length from big-end network byte order
+wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header[2*MAC_ADDR_WIDTH+7 : 2*MAC_ADDR_WIDTH],
+                                                  header[ETHHDR_WIDTH-1     : ETHHDR_WIDTH-8]};
+wire header_ok = (ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN) && (header[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac);
 
 assign eth_hdr_out = header[ETHHDR_WIDTH-1:0];
 assign valid_out = valid_in && !hdr_cnt && header_ok;
