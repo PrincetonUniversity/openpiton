@@ -165,6 +165,8 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $QSFP_BRDG_CHANS \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_demuxer]
   # For last channel set all rest decode address space
   set_property CONFIG.M[format {%02d} [expr {$QSFP_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
@@ -577,6 +579,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
     CONFIG.S00_FIFO_DEPTH {16} \
   ] [get_bd_cells fc_extractor]
 
@@ -833,27 +837,23 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
   connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
-  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins fc_injector/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins fc_extractor/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins fc_extractor/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins tx_fifo/M_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins rx_fifo/S_AXIS]
   connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins fc_injector/S01_AXIS]
   connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
 
 
   create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 rx_axis_ila
   set_property -dict [list \
     CONFIG.C_DATA_DEPTH {4096} \
-    CONFIG.C_NUM_MONITOR_SLOTS {3} \
+    CONFIG.C_NUM_MONITOR_SLOTS {2} \
+    CONFIG.C_SLOT {0} \
     CONFIG.C_SLOT {1} \
     CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
     CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
-    CONFIG.C_SLOT {2} \
-    CONFIG.C_SLOT_2_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
   ] [get_bd_cells rx_axis_ila]
   connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
   connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins aur_rx_conv/M_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_2_AXIS] [get_bd_intf_pins rx_fifo/S_AXIS]
   connect_bd_net [get_bd_pins rx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_rxusrclk2]
   connect_bd_net [get_bd_pins rx_axis_ila/resetn] [get_bd_pins rx_rst_gen/interconnect_aresetn]
 

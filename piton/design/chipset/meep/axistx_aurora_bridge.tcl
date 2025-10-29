@@ -165,6 +165,8 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $QSFP_BRDG_CHANS \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
@@ -476,6 +478,8 @@ current_bd_design $design_name
     CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
     CONFIG.S00_FIFO_DEPTH {16} \
   ] [get_bd_cells fc_extractor]
 
