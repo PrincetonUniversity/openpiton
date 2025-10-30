@@ -70,7 +70,8 @@ fi
 
 # set root directory
 export PITON_ROOT=`pwd`
-export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane/
+export ARIANE_ROOT=${PITON_ROOT}/piton/design/chip/tile/ariane
+export HPDCACHE_DIR=$ARIANE_ROOT/core/cache_subsystem/hpdcache
 
 ## GCC and RISCV GCC setup
 export CXX=g++ CC=gcc
