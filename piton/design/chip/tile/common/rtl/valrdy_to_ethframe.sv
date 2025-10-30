@@ -60,8 +60,9 @@ if (ETHHDR_NOC_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
          ETHHDR_NOC_WIDTH/8, CMAC_USE_DAT_BYTES);
 end
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
-// swapping bytes in payload length for big-end network byte order
-wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac};
+// swapping bytes in payload length for big-end network byte order (old IEEE802.3 usage of the Ethertype field as Eth payload length)
+// wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac};
+wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac};
 
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
 always @(posedge clk)

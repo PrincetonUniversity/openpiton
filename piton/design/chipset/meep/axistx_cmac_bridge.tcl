@@ -845,7 +845,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 rx_axis_ila
   set_property -dict [list \
-    CONFIG.C_DATA_DEPTH {4096} \
+    CONFIG.C_DATA_DEPTH {2048} \
     CONFIG.C_NUM_MONITOR_SLOTS {2} \
     CONFIG.C_SLOT {0} \
     CONFIG.C_SLOT {1} \
@@ -855,7 +855,22 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
   connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins aur_rx_conv/M_AXIS]
   connect_bd_net [get_bd_pins rx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_rxusrclk2]
-  connect_bd_net [get_bd_pins rx_axis_ila/resetn] [get_bd_pins rx_rst_gen/interconnect_aresetn]
+  connect_bd_net [get_bd_pins rx_axis_ila/resetn] [get_bd_pins aur_rx_conv/aresetn]
+
+  create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 tx_axis_ila
+  set_property -dict [list \
+    CONFIG.C_DATA_DEPTH {2048} \
+    CONFIG.C_NUM_MONITOR_SLOTS {2} \
+    CONFIG.C_SLOT {0} \
+    CONFIG.C_SLOT {1} \
+    CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+    CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+  ] [get_bd_cells tx_axis_ila]
+  connect_bd_intf_net [get_bd_intf_pins tx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
+  connect_bd_intf_net [get_bd_intf_pins tx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins aur_tx_conv/S_AXIS]
+  connect_bd_net [get_bd_pins tx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_txusrclk2]
+  connect_bd_net [get_bd_pins tx_axis_ila/resetn] [get_bd_pins aur_tx_conv/aresetn]
+
 
   # Restore current instance
   current_bd_instance $oldCurInst
