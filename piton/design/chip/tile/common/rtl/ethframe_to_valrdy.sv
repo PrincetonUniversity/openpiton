@@ -34,20 +34,26 @@ module ethframe_to_valrdy (
        input clk,
        input rst,
 
-       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac,
+       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref,
+       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
        output [ETHHDR_WIDTH-1:0] eth_hdr_out,
 
-       input  [`NOC_DATA_WIDTH-1:0] flit_in,
+       input  [`NOC_DATA_WIDTH-1:0] data_in,
        input  last_in,
        input  valid_in,
        output ready_in,
 
        output [`NOC_DATA_WIDTH-1:0] flit_out,
        output valid_out,
-       input  ready_out
+       input  ready_out,
+
+       output [`NOC_DATA_WIDTH-1:0] data_ack,
+       output valid_ack,
+       output last_ack,
+       input  ready_ack
 );
 
-assign flit_out = flit_in;
+assign flit_out = data_in;
 
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
 reg [ETHHDR_NOC_WIDTH-1:0] header;
@@ -59,8 +65,8 @@ always @(posedge clk)
   else if (valid_in && ready_in) begin
     if (hdr_cnt) begin
       hdr_cnt <= hdr_cnt - 'h1;
-      header[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= flit_in;
-      // header <= {flit_in, header[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
+      header[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_in;
+      // header <= {data_in, header[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
     end
     if (last_in) hdr_cnt <= ETHHDR_NOC_FLITS;
   end
@@ -68,12 +74,16 @@ always @(posedge clk)
 // swap of bytes in payload length from big-end network byte order
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header[2*MAC_ADDR_WIDTH+7 : 2*MAC_ADDR_WIDTH],
                                                   header[ETHHDR_WIDTH-1     : ETHHDR_WIDTH-8]};
-wire header_ok = (header[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac) &&
+wire header_ok = (header[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
                  (header[ETHHDR_WIDTH-1 : 2*MAC_ADDR_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}); // checking the custom Ethertype
                  //(ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN); // for old IEEE802.3 usage of Ethertype field as Eth payload length
 
 assign eth_hdr_out = header[ETHHDR_WIDTH-1:0];
 assign valid_out = valid_in && !hdr_cnt && header_ok;
 assign ready_in  = hdr_cnt || (ready_out && header_ok) || !header_ok;
+
+assign data_ack = 'h0;
+assign valid_ack = 1'b0;
+assign last_ack  = 1'b1;
 
 endmodule

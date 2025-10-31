@@ -34,16 +34,22 @@ module valrdy_to_ethframe (
        input clk,
        input rst,
 
-       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac,
+       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
+       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref,
 
        input  [`NOC_DATA_WIDTH-1:0] flit_in,
        input  valid_in,
        output ready_in,
 
-       output [`NOC_DATA_WIDTH-1:0] flit_out,
+       output [`NOC_DATA_WIDTH-1:0] data_out,
        output valid_out,
        output last_out,
-       input  ready_out
+       input  ready_out,
+
+       input  [`NOC_DATA_WIDTH-1:0] data_ack,
+       input  valid_ack,
+       input  last_ack,
+       output ready_ack
 );
 
 parameter SINGLE_INFLIT = 0;
@@ -61,8 +67,8 @@ if (ETHHDR_NOC_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
 end
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
 // swapping bytes in payload length for big-end network byte order (old IEEE802.3 usage of the Ethertype field as Eth payload length)
-// wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac};
-wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac};
+// wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
+wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
 
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
 always @(posedge clk)
@@ -91,6 +97,8 @@ assign last_out = ((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                   ((remaining_flits == `MSG_LENGTH_WIDTH'h0) &&
                        (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_cnt;
 
-assign flit_out = hdr_cnt ? header[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
+assign data_out = hdr_cnt ? header[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
+
+assign ready_ack = 1'b1;
 
 endmodule

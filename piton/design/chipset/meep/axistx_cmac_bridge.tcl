@@ -143,6 +143,7 @@ current_bd_design $design_name
   current_bd_instance $parentObj
 
   global QSFP_BRDG_CHANS
+  set CMAC_BRDG_CHANS  [expr ($QSFP_BRDG_CHANS * 2)]
   global QSFP_BRDG_CHAN_BYTES
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
@@ -152,7 +153,7 @@ current_bd_design $design_name
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
-    CONFIG.NUM_SI $QSFP_BRDG_CHANS \
+    CONFIG.NUM_SI $CMAC_BRDG_CHANS \
     CONFIG.ARB_ALGORITHM {3} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
@@ -164,12 +165,12 @@ current_bd_design $design_name
   # Create IPs of Xilix AXI-stream interconnect
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
-    CONFIG.NUM_MI $QSFP_BRDG_CHANS \
+    CONFIG.NUM_MI $CMAC_BRDG_CHANS \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_demuxer]
   # For last channel set all rest decode address space
-  set_property CONFIG.M[format {%02d} [expr {$QSFP_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
+  set_property CONFIG.M[format {%02d} [expr {$CMAC_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
@@ -370,7 +371,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   connect_bd_net [get_bd_pins tx_rfi_gen/bus_struct_reset]     [get_bd_pins eth_cmac/ctl_tx_send_rfi]
   connect_bd_net [get_bd_pins tx_rfi_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
 
-  for {set idx 0} {$idx < $QSFP_BRDG_CHANS} {incr idx} {
+  for {set idx 0} {$idx < $CMAC_BRDG_CHANS} {incr idx} {
     set_property -dict [list \
       CONFIG.S[format {%02d} $idx]_FIFO_DEPTH {16} \
       CONFIG.S[format {%02d} $idx]_FIFO_MODE {1} \
@@ -380,7 +381,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
-    if { $QSFP_BRDG_CHANS > 1 } {
+    if { $CMAC_BRDG_CHANS > 1 } {
     connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
     }
 

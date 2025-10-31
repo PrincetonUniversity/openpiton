@@ -208,8 +208,12 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   if { $QSFP_BRDG_CHANS != 1 } {
-    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
-    source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
+    if {[info exists ::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)] &&
+                    $::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)=="TRUE"} {
+      source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+    } else {
+      source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
+    }
   }
 }
 
