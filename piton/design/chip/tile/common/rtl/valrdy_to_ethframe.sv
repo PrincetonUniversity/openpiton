@@ -61,14 +61,21 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] noc_pack_len = ((noc_msg_len +1) << $clog2(`NOC_D
 wire [ETH_PAYLD_LEN_WIDTH-1:0] cmac_pack_beats = CMAC_USE_DAT_BYTES   >= noc_pack_len ? 1 : // substitution of division taking into accoount maximum possible beats
                                                  CMAC_USE_DAT_BYTES*2 >= noc_pack_len ? 2 : MAX_CMAC_PACK_BEATS;
 
+reg [ETHFR_ID_WIDTH-1 :0] ethfr_id;
+always @(posedge clk)
+  if(rst) ethfr_id <= 'h0;
+  else if (valid_out && ready_out) begin
+    if (last_out) ethfr_id <= ethfr_id + 'h1;
+  end
+
 if (ETHHDR_NOC_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
   $fatal("Ethernet header with length %d does not fit into single CMAC AXI data beat with length %d as a condition of feasible further Eth frame payload length",
          ETHHDR_NOC_WIDTH/8, CMAC_USE_DAT_BYTES);
 end
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
-// swapping bytes in payload length for big-end network byte order (old IEEE802.3 usage of the Ethertype field as Eth payload length)
-// wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
-wire [ETHHDR_NOC_WIDTH-1:0] header = {'h0, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
+// swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
+// wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'h0, ethfr_id, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
+wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'h0, ethfr_id, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
 
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
 always @(posedge clk)
@@ -97,7 +104,7 @@ assign last_out = ((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                   ((remaining_flits == `MSG_LENGTH_WIDTH'h0) &&
                        (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_cnt;
 
-assign data_out = hdr_cnt ? header[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
+assign data_out = hdr_cnt ? header_tx[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
 
 assign ready_ack = 1'b1;
 
