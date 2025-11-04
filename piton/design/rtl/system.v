@@ -1168,7 +1168,7 @@ wire                               m_axi_bready;
 wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx;
 wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx;
 wire [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx;
-wire [ETHFR_ID_WIDTH     -1:0] etfr_id;
+wire [ETHFR_ID_WIDTH     -1:0] ethfr_id;
 wire qsfp_noc_overflow;
 
 //////////////////////////

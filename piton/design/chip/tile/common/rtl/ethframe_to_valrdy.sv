@@ -55,50 +55,65 @@ module ethframe_to_valrdy (
 
 assign flit_out = data_in;
 
-reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
+reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
 reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
 reg [ETHHDR_NOC_WIDTH-1 :0] header_tx;
 reg [ETHFR_ID_WIDTH  -1 :0] ethfr_id_exp;
+reg valid_ack;
 
 // swap bytes in payload length because of big-end network byte order
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header_rx[2*MAC_ADDR_WIDTH   +: 7],
                                                   header_rx[2*MAC_ADDR_WIDTH+7 +: 7]};
 wire header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
-                 (header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
                  //(ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
-                 (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id_exp);
+                 (header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}); // checking the custom Ethertype
+wire ethpack_exp  = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id_exp);
+wire ethpack_ack  = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] <= ethfr_id_exp);
 
 wire [ETH_PAYLD_LEN_WIDTH-1:0] min_ethfr_payld_len = CMAC_FULL_DAT_BYTES - ETHHDR_WIDTH/8; // 64-14=50
 
 always @(posedge clk)
   if(rst) begin
-    hdr_cnt <= ETHHDR_NOC_FLITS;
+    hdr_rx_cnt <= ETHHDR_NOC_FLITS;
     header_rx    <= 'h0;
     ethfr_id_exp <= 'h0;
+    valid_ack    <= 1'b0;
   end
-  else if (valid_in && ready_in) begin
-    if (hdr_cnt) begin
-      hdr_cnt <= hdr_cnt - 'h1;
-      header_rx[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_in;
-      // header_rx <= {data_in, header_rx[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
-    end
-    if (last_in) begin 
-      hdr_cnt <= ETHHDR_NOC_FLITS;
-      if (header_ok) begin
-        ethfr_id_exp <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'h1;
-        // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
-        // header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], min_ethfr_payld_len[7:0], min_ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
-        header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
+  else begin 
+    if (valid_in && ready_in) begin
+      if (hdr_rx_cnt) begin
+        hdr_rx_cnt <= hdr_rx_cnt - 'h1;
+        header_rx[(ETHHDR_NOC_FLITS - hdr_rx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_in;
+        // header_rx <= {data_in, header_rx[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
+      end
+      if (last_in) begin 
+        hdr_rx_cnt <= ETHHDR_NOC_FLITS;
+        if (ethpack_exp) ethfr_id_exp <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'h1;
+        if (ethpack_ack) begin
+          // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
+          // header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], min_ethfr_payld_len[7:0], min_ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
+          header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
+          valid_ack <= 1'b1;
+        end
       end
     end
+    if (ready_ack && last_ack) valid_ack <= 1'b0;
   end
 
 assign eth_hdr_out = header_rx;
-assign valid_out = valid_in && !hdr_cnt && header_ok;
-assign ready_in  = hdr_cnt || (ready_out && header_ok) || !header_ok;
+assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp;
+assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack;
 
-assign data_ack = 'h0;
-assign valid_ack = 1'b0;
-assign last_ack  = 1'b1;
+
+reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_tx_cnt;
+always @(posedge clk)
+  if(rst) hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+  else if (valid_ack && ready_ack) begin
+    if (last_ack) hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+    else          hdr_tx_cnt <= hdr_tx_cnt - 'h1;
+  end
+
+assign data_ack = header_tx[(ETHHDR_NOC_FLITS - hdr_tx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH];
+assign last_ack = (hdr_tx_cnt == 'h1);
 
 endmodule

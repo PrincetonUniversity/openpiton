@@ -1886,14 +1886,14 @@ module chip(
                                            .m_axis_0_tvalid(freectrl_rx_eth_valid),
                                            .m_axis_0_tready(freectrl_rx_eth_ready),
                                            .m_axis_0_tlast (freectrl_rx_eth_last),
-                                           .m_axis_1_tdata (freectrl_tx_ack_data),
-                                           .m_axis_1_tvalid(freectrl_tx_ack_valid),
-                                           .m_axis_1_tready(freectrl_tx_ack_ready),
-                                           .m_axis_1_tlast (freectrl_tx_ack_last),
                                            .s_axis_1_tdata (freectrl_rx_ack_data),
                                            .s_axis_1_tvalid(freectrl_rx_ack_valid),
                                            .s_axis_1_tready(freectrl_rx_ack_ready),
                                            .s_axis_1_tlast (freectrl_rx_ack_last),
+                                           .m_axis_1_tdata (freectrl_tx_ack_data),
+                                           .m_axis_1_tvalid(freectrl_tx_ack_valid),
+                                           .m_axis_1_tready(freectrl_tx_ack_ready),
+                                           .m_axis_1_tlast (freectrl_tx_ack_last),
 
                                            .qsfp_4x_grx_n     (qsfp_4x_grx_n),
                                            .qsfp_4x_grx_p     (qsfp_4x_grx_p),
@@ -1976,14 +1976,14 @@ module chip(
             print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_eth%d_ready)," % (chanid,y_near,i,k))
             print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_eth%d_last),"  % (chanid,y_near,i,k))
             chanid = chanid + 1
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_ack%d_data),  " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_ack%d_valid), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_ack%d_ready), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_ack%d_data), " % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_ack%d_valid)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_ack%d_ready)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_ack%d_last),"  % (chanid,y_near,i,k))
+            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_ack%d_data), " % (chanid,y_near,i,k))
+            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_ack%d_valid)," % (chanid,y_near,i,k))
+            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_near_ack%d_ready)," % (chanid,y_near,i,k))
+            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_ack%d_last),"  % (chanid,y_near,i,k))
+            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_ack%d_data),  " % (chanid,y_far,i,k))
+            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_ack%d_valid), " % (chanid,y_far,i,k))
+            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_far_ack%d_ready), " % (chanid,y_far,i,k))
+            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
 
     for edge in range(vert_edges):
       if (vert_edges > 1):
@@ -2015,14 +2015,14 @@ module chip(
             print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_eth%d_ready)," % (chanid,j,x_near,k))
             print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_eth%d_last), " % (chanid,j,x_near,k))
             chanid = chanid + 1
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_ack%d_data),  " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_ack%d_valid), " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_far_ack%d_ready), " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_ack%d_last),  " % (chanid,j,x_far,k))
             print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_ack%d_data), " % (chanid,j,x_near,k))
             print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_ack%d_valid)," % (chanid,j,x_near,k))
             print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_near_ack%d_ready)," % (chanid,j,x_near,k))
             print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_ack%d_last), " % (chanid,j,x_near,k))
+            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_ack%d_data),  " % (chanid,j,x_far,k))
+            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_ack%d_valid), " % (chanid,j,x_far,k))
+            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_far_ack%d_ready), " % (chanid,j,x_far,k))
+            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_ack%d_last),  " % (chanid,j,x_far,k))
 
     print("      .aur_loopback(loopback_mode));")
     print("assign loopback_mode = 3'h%x;" % (loopback_mode))
