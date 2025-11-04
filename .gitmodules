@@ -12,4 +12,4 @@
     url = git@github.com:openpiton/ost1-core.git
 [submodule "piton/design/chip/tile/ariane"]
 	path = piton/design/chip/tile/ariane
-	url = https://github.com/AileonN/cva6_openpiton_noliete.git
+	url = https://github.com/bsc-loca/cva6.git
