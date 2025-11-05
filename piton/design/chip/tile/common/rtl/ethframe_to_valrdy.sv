@@ -58,7 +58,7 @@ assign flit_out = data_in;
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
 reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
 reg [ETHHDR_NOC_WIDTH-1 :0] header_tx;
-reg [ETHFR_ID_WIDTH  -1 :0] ethfr_id_exp;
+reg [ETHFR_ID_WIDTH  -1 :0] ethfr_id;
 reg valid_ack;
 
 // swap bytes in payload length because of big-end network byte order
@@ -67,17 +67,18 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header_rx[2*MAC_ADDR_WIDTH   +
 wire header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
                  //(ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
                  (header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}); // checking the custom Ethertype
-wire ethpack_exp  = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id_exp);
-wire ethpack_ack  = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] <= ethfr_id_exp);
+wire ethpack_exp = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] ==  ethfr_id);
+wire ethpack_prv = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == (ethfr_id-'h1));
 
-wire [ETH_PAYLD_LEN_WIDTH-1:0] min_ethfr_payld_len = CMAC_FULL_DAT_BYTES - ETHHDR_WIDTH/8; // 64-14=50
+wire [ETH_PAYLD_LEN_WIDTH-1:0] min_ethfr_payld_len = MIN_ETHFR_PAYLD_LEN;
 
 always @(posedge clk)
   if(rst) begin
     hdr_rx_cnt <= ETHHDR_NOC_FLITS;
-    header_rx    <= 'h0;
-    ethfr_id_exp <= 'h0;
-    valid_ack    <= 1'b0;
+    header_rx <= 'h0;
+    header_tx <= 'h0;
+    ethfr_id  <= 'h0;
+    valid_ack <= 1'b0;
   end
   else begin 
     if (valid_in && ready_in) begin
@@ -88,8 +89,8 @@ always @(posedge clk)
       end
       if (last_in) begin 
         hdr_rx_cnt <= ETHHDR_NOC_FLITS;
-        if (ethpack_exp) ethfr_id_exp <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'h1;
-        if (ethpack_ack) begin
+        if (ethpack_exp) ethfr_id <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'h1;
+        if (ethpack_exp || ethpack_prv) begin
           // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
           // header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], min_ethfr_payld_len[7:0], min_ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
           header_tx <= {header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH], ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
@@ -101,6 +102,8 @@ always @(posedge clk)
   end
 
 assign eth_hdr_out = header_rx;
+// assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp && !valid_ack;
+// assign ready_in  = hdr_rx_cnt || (ready_out && ethpack_exp && !valid_ack) || (ethpack_prv && !valid_ack) || (!ethpack_exp && !ethpack_prv);
 assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp;
 assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack;
 

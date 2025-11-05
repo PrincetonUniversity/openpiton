@@ -61,36 +61,53 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] noc_pack_len = ((noc_msg_len +1) << $clog2(`NOC_D
 wire [ETH_PAYLD_LEN_WIDTH-1:0] cmac_pack_beats = CMAC_USE_DAT_BYTES   >= noc_pack_len ? 1 : // substitution of division taking into accoount maximum possible beats
                                                  CMAC_USE_DAT_BYTES*2 >= noc_pack_len ? 2 : MAX_CMAC_PACK_BEATS;
 
-reg [ETHFR_ID_WIDTH-1 :0] ethfr_id;
-always @(posedge clk)
-  if(rst) ethfr_id <= 'h0;
-  else if (valid_out && ready_out) begin
-    if (last_out) ethfr_id <= ethfr_id + 'h1;
-  end
-
 if (ETHHDR_NOC_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
   $fatal("Ethernet header with length %d does not fit into single CMAC AXI data beat with length %d as a condition of feasible further Eth frame payload length",
          ETHHDR_NOC_WIDTH/8, CMAC_USE_DAT_BYTES);
 end
-wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
+reg  [ETHFR_ID_WIDTH-1 :0] ethfr_id;
+wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_tx = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
 // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
-// wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'h0, ethfr_id, ethfr_payld_len[7:0], ethfr_payld_len[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
+// wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'h0, ethfr_id, ethfr_payld_len_tx[7:0], ethfr_payld_len_tx[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
 wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'h0, ethfr_id, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
 
-reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_cnt;
+reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_tx_cnt;
+reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
+reg [`NOC_DATA_WIDTH-1:0] pack_stor[MAX_NOC_PACK_FLITS];
+reg [$clog2(MAX_NOC_PACK_FLITS):0] stor_cnt;
+reg wait_ack;
+wire header_ok;
 always @(posedge clk)
-  if(rst) hdr_cnt <= ETHHDR_NOC_FLITS;
-  else if (valid_out && ready_out) begin
-    if (hdr_cnt) begin 
-                  hdr_cnt <= hdr_cnt - 'h1;
-                  assert(ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN) else $error("Eth frame payload length %d exceeds maximum possible value %d",
-                         ethfr_payld_len,   MAX_ETHFR_PAYLD_LEN);
-                 end
-    if (last_out) hdr_cnt <= ETHHDR_NOC_FLITS;
+  if(rst) begin 
+    ethfr_id <= 'h0;
+    hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+    stor_cnt <= 'h0;
+    wait_ack <= 1'b0;
+  end
+  else begin 
+    if (valid_out && ready_out) begin
+      if (hdr_tx_cnt) begin 
+        hdr_tx_cnt <= hdr_tx_cnt - 'h1;
+        assert(ethfr_payld_len_tx <= MAX_ETHFR_PAYLD_LEN) else $error("Eth frame payload length %d exceeds maximum possible value %d",
+               ethfr_payld_len_tx,   MAX_ETHFR_PAYLD_LEN);
+      end
+      if (last_out) begin 
+        ethfr_id <= ethfr_id + 'h1;
+        hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+        wait_ack <= 1'b1;
+      end
+      pack_stor[stor_cnt] <= data_out;
+      stor_cnt <= stor_cnt + 'h1;
+    end
+    else if (hdr_tx_cnt == ETHHDR_NOC_FLITS &&
+             hdr_rx_cnt == ETHHDR_NOC_FLITS && header_ok) begin
+      stor_cnt <= 'h0;
+      wait_ack <= 1'b0;
+    end
   end
 
-assign ready_in = ready_out && !hdr_cnt;
-assign valid_out = valid_in;
+assign ready_in = ready_out && !hdr_tx_cnt;
+assign valid_out = valid_in; // && !wait_ack;
 
 reg [`MSG_LENGTH_WIDTH-1:0] remaining_flits;
 always @(posedge clk)
@@ -102,10 +119,35 @@ always @(posedge clk)
 
 assign last_out = ((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                   ((remaining_flits == `MSG_LENGTH_WIDTH'h0) &&
-                       (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_cnt;
+                       (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_tx_cnt;
 
-assign data_out = hdr_cnt ? header_tx[(ETHHDR_NOC_FLITS - hdr_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
+assign data_out = hdr_tx_cnt ? header_tx[(ETHHDR_NOC_FLITS - hdr_tx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in;
 
+
+reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
+// swap bytes in payload length because of big-end network byte order
+wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_rx = {header_rx[2*MAC_ADDR_WIDTH   +: 7],
+                                                     header_rx[2*MAC_ADDR_WIDTH+7 +: 7]};
+assign header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
+                   //(ethfr_payld_len_rx == MIN_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
+                   (header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
+                   (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == (ethfr_id-'h1));
 assign ready_ack = 1'b1;
+
+always @(posedge clk)
+  if(rst) begin
+    hdr_rx_cnt <= ETHHDR_NOC_FLITS;
+    header_rx  <= 'h0;
+  end
+  else begin 
+    if (valid_ack && ready_ack) begin
+      if (hdr_rx_cnt) begin
+        hdr_rx_cnt <= hdr_rx_cnt - 'h1;
+        header_rx[(ETHHDR_NOC_FLITS - hdr_rx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_ack;
+        // header_rx <= {data_in, header_rx[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
+      end
+      if (last_ack) hdr_rx_cnt <= ETHHDR_NOC_FLITS;
+    end
+  end
 
 endmodule
