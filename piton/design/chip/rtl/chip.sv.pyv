@@ -157,6 +157,8 @@ module chip(
     output [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_rx,
     output [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx,
     output [ETHFR_ID_WIDTH     -1:0] ethfr_id,
+    output [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time,
+    output [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries,
     output qsfp_noc_overflow,
     input          qsfp_ref_clk_n,
     input          qsfp_ref_clk_p,
@@ -1352,8 +1354,18 @@ module chip(
     always_eth_hdr_rx = '''
       reg [ETHHDR_NOC_WIDTH-1:0] eth_hdr_rx;
       always @(posedge clk_muxed)
-        if(~rstn_tile) eth_hdr_rx <= 'h0;
+        if(~rstn_tile) eth_hdr_rx <= '0;
         else begin 
+    '''
+
+    always_eth_retry_tx = '''
+      reg [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time;
+      reg [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries;
+      always @(posedge clk_muxed)
+        if(~rstn_tile) begin 
+          ethack_wait_time <= '0;
+          ethfr_retries    <= '0;
+        end else begin 
     '''
 
     # generate the tiles
@@ -1503,23 +1515,33 @@ module chip(
                         print("valrdy_last_gen tile_%d_%d_vert_noc%d_lastgen (.clk(clk_muxed), .rst(~rstn_tile),"  % (j,i,k))
                         print("  .last_out(tile_%d_%d_valrdy_vert_far_noc%d_last)," % (j,i,k))
                       else:
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_eth%d_data;"  % (j,i,k))
+                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_eth%d_data; " % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_ready;" % (j,i,k))
-                        print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_ack%d_data;"  % (j,i,k))
+                        print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_last; " % (j,i,k))
+                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_ack%d_data; " % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_ready;" % (j,i,k))
-                        print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_last;"  % (j,i,k))
+                        print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_last; " % (j,i,k))
+                        print("wire [ETHFR_RETRY_TIME_WIDTH-1 :0] tile_%d_%d_vert_ack%d_wait_time;" %(j,i,k))
+                        print("wire [ETHFR_RETRIES_WIDTH   -1 :0] tile_%d_%d_vert_eth%d_retries;  " %(j,i,k))
                         print("valrdy_to_ethframe tile_%d_%d_vert_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),"  % (j,i,k))
                         print("  .data_out (tile_%d_%d_valrdy_vert_far_eth%d_data), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_vert_far_eth%d_valid)," % (j,i,k))
                         print("  .ready_out(tile_%d_%d_valrdy_vert_far_eth%d_ready)," % (j,i,k))
-                        print("  .last_out (tile_%d_%d_valrdy_vert_far_eth%d_last),"  % (j,i,k))
+                        print("  .last_out (tile_%d_%d_valrdy_vert_far_eth%d_last), " % (j,i,k))
                         print("  .data_ack (tile_%d_%d_valrdy_vert_far_ack%d_data), " % (j,i,k))
                         print("  .valid_ack(tile_%d_%d_valrdy_vert_far_ack%d_valid)," % (j,i,k))
                         print("  .ready_ack(tile_%d_%d_valrdy_vert_far_ack%d_ready)," % (j,i,k))
-                        print("  .last_ack (tile_%d_%d_valrdy_vert_far_ack%d_last),"  % (j,i,k))
+                        print("  .last_ack (tile_%d_%d_valrdy_vert_far_ack%d_last), " % (j,i,k))
+                        print("  .wait_time(tile_%d_%d_vert_ack%d_wait_time),       " % (j,i,k))
+                        print("  .retries  (tile_%d_%d_vert_eth%d_retries),         " % (j,i,k))
+                        always_eth_retry_tx += '''
+                          if (tile_%d_%d_valrdy_vert_far_eth%d_valid & tile_%d_%d_valrdy_vert_far_eth%d_last) begin
+                            ethack_wait_time <= tile_%d_%d_vert_ack%d_wait_time;
+                            ethfr_retries    <= tile_%d_%d_vert_eth%d_retries;
+                          end
+                        ''' % (j,i,k,j,i,k,j,i,k,j,i,k)
                       print("  .flit_in (tile_%d_%d_valrdy_vert_far_noc%d_data), "  % (j,i,k))
                       print("  .valid_in(tile_%d_%d_valrdy_vert_far_noc%d_valid),"  % (j,i,k))
                       print("  .ready_in(tile_%d_%d_valrdy_vert_far_noc%d_ready));" % (j,i,k))
@@ -1640,23 +1662,33 @@ module chip(
                         print("valrdy_last_gen tile_%d_%d_horz_noc%d_lastgen (.clk(clk_muxed), .rst(~rstn_tile),"  % (j,i,k))
                         print("  .last_out(tile_%d_%d_valrdy_horz_far_noc%d_last)," % (j,i,k))
                       else:
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_eth%d_data;"  % (j,i,k))
+                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_eth%d_data; " % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_ready;" % (j,i,k))
-                        print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_ack%d_data;"  % (j,i,k))
+                        print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_last; " % (j,i,k))
+                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_ack%d_data; " % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_ready;" % (j,i,k))
-                        print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_last;"  % (j,i,k))
+                        print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_last; " % (j,i,k))
+                        print("wire [ETHFR_RETRY_TIME_WIDTH-1 :0] tile_%d_%d_horz_ack%d_wait_time;" %(j,i,k))
+                        print("wire [ETHFR_RETRIES_WIDTH   -1 :0] tile_%d_%d_horz_eth%d_retries;  " %(j,i,k))
                         print("valrdy_to_ethframe tile_%d_%d_horz_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),"  % (j,i,k))
                         print("  .data_out (tile_%d_%d_valrdy_horz_far_eth%d_data), " % (j,i,k))
                         print("  .valid_out(tile_%d_%d_valrdy_horz_far_eth%d_valid)," % (j,i,k))
                         print("  .ready_out(tile_%d_%d_valrdy_horz_far_eth%d_ready)," % (j,i,k))
-                        print("  .last_out (tile_%d_%d_valrdy_horz_far_eth%d_last),"  % (j,i,k))
+                        print("  .last_out (tile_%d_%d_valrdy_horz_far_eth%d_last), " % (j,i,k))
                         print("  .data_ack (tile_%d_%d_valrdy_horz_far_ack%d_data), " % (j,i,k))
                         print("  .valid_ack(tile_%d_%d_valrdy_horz_far_ack%d_valid)," % (j,i,k))
                         print("  .ready_ack(tile_%d_%d_valrdy_horz_far_ack%d_ready)," % (j,i,k))
-                        print("  .last_ack (tile_%d_%d_valrdy_horz_far_ack%d_last),"  % (j,i,k))
+                        print("  .last_ack (tile_%d_%d_valrdy_horz_far_ack%d_last), " % (j,i,k))
+                        print("  .wait_time(tile_%d_%d_horz_ack%d_wait_time),       " % (j,i,k))
+                        print("  .retries  (tile_%d_%d_horz_eth%d_retries),         " % (j,i,k))
+                        always_eth_retry_tx += '''
+                          if (tile_%d_%d_valrdy_horz_far_eth%d_valid & tile_%d_%d_valrdy_horz_far_eth%d_last) begin
+                            ethack_wait_time <= tile_%d_%d_horz_ack%d_wait_time;
+                            ethfr_retries    <= tile_%d_%d_horz_eth%d_retries;
+                          end
+                        ''' % (j,i,k,j,i,k,j,i,k,j,i,k)
                       print("  .flit_in (tile_%d_%d_valrdy_horz_far_noc%d_data), "  % (j,i,k))
                       print("  .valid_in(tile_%d_%d_valrdy_horz_far_noc%d_valid),"  % (j,i,k))
                       print("  .ready_in(tile_%d_%d_valrdy_horz_far_noc%d_ready));" % (j,i,k))
@@ -1763,6 +1795,8 @@ module chip(
     if (not PITON_MULTI_FPGA_AUR):
       print(always_eth_hdr_rx)
       print("    end")
+      print(always_eth_retry_tx)
+      print("    end")
 %>
 
 
@@ -1797,7 +1831,7 @@ module chip(
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_reg;
     wire                          free_ctrl_rx_val;
     always @(posedge clk_muxed)
-      if (~rstn_tile)            free_ctrl_rx_reg <= 'h0;
+      if (~rstn_tile)            free_ctrl_rx_reg <= '0;
       else if (free_ctrl_rx_val) free_ctrl_rx_reg <= free_ctrl_rx;
 
     wire ctrl_rx;
@@ -1810,7 +1844,7 @@ module chip(
    `ifdef PITON_MULTI_FPGA_AUR
      assign dst_src_mac_rx  = 'hFEEDFACEDEADBEEF8BADF00D;
      assign eth_payl_len_rx = 'hCAFE;
-     assign ethfr_id = 'hC0DE;
+     assign ethfr_id        = 'hC0DE;
      axistx_aurora_bridge
    `else
      wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_eth_data;

@@ -36,6 +36,8 @@ module valrdy_to_ethframe (
 
        input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
        input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref,
+       output [ETHFR_RETRY_TIME_WIDTH-1 :0] wait_time,
+       output [ETHFR_RETRIES_WIDTH   -1 :0] retries,
 
        input  [`NOC_DATA_WIDTH-1:0] flit_in,
        input  valid_in,
@@ -74,17 +76,21 @@ wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'0, ethfr_id, ETHTYPE_BYTE0, ETHTYPE_BY
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_tx_cnt;
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
 reg [`NOC_DATA_WIDTH-1:0] pack_buf[MAX_NOC_PACK_FLITS];
-reg [$clog2(MAX_NOC_PACK_FLITS):0] buf_cnt;
-reg [$clog2(MAX_NOC_PACK_FLITS):0] buf_flits;
-reg [ETHNOC_RETRY_TIME_WIDTH-1 :0] wait_ack;
+reg [$clog2(MAX_NOC_PACK_FLITS):0] pack_cnt;
+reg [$clog2(MAX_NOC_PACK_FLITS):0] pack_flits;
+reg [ETHFR_RETRY_TIME_WIDTH-1  :0] wait_ack;
+reg [ETHFR_RETRY_TIME_WIDTH-1  :0] wait_time;
+reg [ETHFR_RETRIES_WIDTH   -1  :0] retries;
 wire header_ok;
 always @(posedge clk)
   if(rst) begin 
     hdr_tx_cnt <= ETHHDR_NOC_FLITS;
-    ethfr_id  <= '0;
-    wait_ack  <= '0;
-    buf_flits <= '0;
-    buf_cnt   <= '0;
+    ethfr_id   <= '0;
+    wait_ack   <= '0;
+    wait_time  <= '0;
+    pack_cnt   <= '0;
+    pack_flits <= '0;
+    retries    <= '0;
   end
   else begin 
     if (valid_out && ready_out) begin
@@ -93,20 +99,26 @@ always @(posedge clk)
         assert(ethfr_payld_len_tx <= MAX_ETHFR_PAYLD_LEN) else $error("Eth frame payload length %d exceeds maximum possible value %d",
                ethfr_payld_len_tx,   MAX_ETHFR_PAYLD_LEN);
       end
-      pack_buf[buf_cnt] <= data_out;
-      buf_cnt <= buf_cnt + 'b1;
-      if (last_out) begin 
+      pack_buf[pack_cnt] <= data_out;
+      pack_cnt <= pack_cnt + 'b1;
+      if (last_out) begin
         hdr_tx_cnt <= ETHHDR_NOC_FLITS;
-        wait_ack <= '1; // all ones to retry timeout counter
-        buf_flits <= buf_cnt;
-        buf_cnt <= '0;
+        wait_ack  <= '1; // all ones to retry timeout counter
+        pack_flits <= pack_cnt; // due to eth header, here pack_cnt is above zero
+        pack_cnt <= '0;
+        if (!pack_flits) retries <= '0;
+        else retries <= retries + 'b1;
       end
     end
-    if (hdr_rx_cnt == ETHHDR_NOC_FLITS && header_ok && (wait_ack >> 1)) begin
-      ethfr_id <= ethfr_id + 'b1;
-      wait_ack <= '0;
+    if (wait_ack >> 1) begin
+      wait_ack <= wait_ack - 'b1; // countdown untill one, one means that retry should start
+      if (hdr_rx_cnt == ETHHDR_NOC_FLITS && header_ok) begin // correct Eth frame ACK is received during wait time
+        ethfr_id <= ethfr_id + 'b1;
+        wait_time <= ~wait_ack;
+        wait_ack   <= '0;
+        pack_flits <= '0;
+      end
     end
-    //if (wait_ack >> 1) wait_ack <= wait_ack - 'b1; // countdown to one, one means that retry should start
   end
 
 assign ready_in = ready_out && !hdr_tx_cnt;
@@ -123,9 +135,9 @@ always @(posedge clk)
 assign last_out = (((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                    ((remaining_flits == `MSG_LENGTH_WIDTH'h0) &&
                         (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_tx_cnt) ||
-                   (wait_ack && buf_cnt == buf_flits); // last flit of retry transmission
+                   (pack_flits && pack_cnt == pack_flits); // last flit of retry transmission
 
-assign data_out = wait_ack   ? pack_buf[buf_cnt] : // retry transmission from the buffer
+assign data_out = pack_flits  ? pack_buf[pack_cnt] : // retry transmission from the buffer
                  (hdr_tx_cnt ? header_tx[(ETHHDR_NOC_FLITS - hdr_tx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in); // primary tramsmission
 
 
