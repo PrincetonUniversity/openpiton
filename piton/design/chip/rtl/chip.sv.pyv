@@ -1892,7 +1892,7 @@ module chip(
 
      wire [CMAC_FULL_DAT_BYTES*8-1 :0] ethcmac_data;
      wire [CMAC_FULL_DAT_BYTES  -1 :0] ethcmac_keep;
-     wire                              ethcmac_badp;
+     wire                              ethcmac_badpack;
      wire                              ethcmac_last;
      wire                              ethcmac_valid;
      wire [CMAC_USE_DAT_BYTES*8 -1 :0] nocsdemux_data;
@@ -1902,10 +1902,10 @@ module chip(
      wire                              nocsdemux_ready;
      wire                              nocsdemux_valid;
      ethcmac_to_demux ethcmac_to_demux_inst(.clk(aur_clk), .rst(~aur_rstn),
-       .data_in(ethcmac_data),
-       .keep_in(ethcmac_keep),
-       .badp_in(ethcmac_badp),
-       .last_in(ethcmac_last),
+       .data_in   (ethcmac_data),
+       .keep_in   (ethcmac_keep),
+       .badpack_in(ethcmac_badpack),
+       .last_in   (ethcmac_last),
        .valid_in (ethcmac_valid),
        .data_out (nocsdemux_data),
        .keep_out (nocsdemux_keep),
@@ -1958,7 +1958,7 @@ module chip(
 
                                            .m_axis_cmac_rx_tdata (ethcmac_data),
                                            .m_axis_cmac_rx_tkeep (ethcmac_keep),
-                                           .m_axis_cmac_rx_tuser (ethcmac_badp),
+                                           .m_axis_cmac_rx_tuser (ethcmac_badpack),
                                            .m_axis_cmac_rx_tlast (ethcmac_last),
                                            .m_axis_cmac_rx_tvalid(ethcmac_valid),
                                            .s_axis_demux_rx_tdata (nocsdemux_data),
