@@ -147,6 +147,7 @@ current_bd_design $design_name
   global QSFP_BRDG_CHAN_BYTES
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
+  set AXIS_TDEST_WIDTH 8
   set CMAC_USE_DAT_BYTES [expr ($CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES)]
 
   # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of AXISt packets)
@@ -168,9 +169,11 @@ current_bd_design $design_name
     CONFIG.NUM_MI $CMAC_BRDG_CHANS \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
+    CONFIG.S00_FIFO_DEPTH {128} \
   ] [get_bd_cells axis_demuxer]
-  # For last channel set all rest decode address space
-  set_property CONFIG.M[format {%02d} [expr {$CMAC_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
+  # For last channel set all rest decode address space,
+  # but not needed because "Unmapped TDEST transfers will drop the transfer" according to https://docs.amd.com/v/u/en-US/pg035_axis_interconnect#page=9
+  # set_property CONFIG.M[format {%02d} [expr {$CMAC_BRDG_CHANS-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
@@ -389,7 +392,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     ] [get_bd_cells in_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
@@ -430,7 +433,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.HAS_TLAST.VALUE_SRC USER \
       CONFIG.HAS_TLAST {1} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
@@ -453,7 +456,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
   ] [get_bd_cells tx_fifo]
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
@@ -466,7 +469,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.HAS_PROG_FULL {1} \
     CONFIG.PROG_FULL_THRESH {128} \
   ] [get_bd_cells rx_fifo]
@@ -549,7 +552,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.S_TDEST_WIDTH {1} \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.TDEST_REMAP {7'b1000000,tdest[0:0]} \
     CONFIG.S_HAS_TLAST.VALUE_SRC USER \
     CONFIG.S_HAS_TLAST {0} \
@@ -596,7 +599,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
     CONFIG.M_HAS_TKEEP {0} \
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.S_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.M_TDEST_WIDTH {1} \
     CONFIG.TDEST_REMAP {tdest[0:0]} \
@@ -615,7 +618,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.M_TDATA_NUM_BYTES $CMAC_FULL_DAT_BYTES \
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.S_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.M_TDEST_WIDTH {0} \
     CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
@@ -642,7 +645,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.S_TDEST_WIDTH {0} \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
     CONFIG.S_HAS_TKEEP {1} \
     CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
@@ -837,12 +840,26 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
                                                 [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
 
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
   connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins tx_fifo/M_AXIS]
   connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins rx_fifo/S_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
   connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
 
+  make_bd_intf_pins_external [get_bd_intf_pins eth_cmac/axis_rx]
+  set_property name m_axis_cmac_rx [get_bd_intf_ports axis_rx_0]
+
+  make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer/S00_AXIS]
+  set_property name s_axis_demux_rx [get_bd_intf_ports S00_AXIS_0]
+  set_property -dict [list \
+    CONFIG.TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES \
+    CONFIG.HAS_TKEEP {1} \
+    CONFIG.HAS_TLAST {1} \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
+  ] [get_bd_intf_ports s_axis_demux_rx]
+
+  set_property -dict [list \
+    CONFIG.ASSOCIATED_RESET "aur_rstn" \
+    CONFIG.ASSOCIATED_BUSIF "m_axis_cmac_rx:s_axis_demux_rx" \
+  ] [get_bd_ports aur_clk]
 
   create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 rx_axis_ila
   set_property -dict [list \
@@ -854,7 +871,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
   ] [get_bd_cells rx_axis_ila]
   connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
-  connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins aur_rx_conv/M_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins axis_demuxer/S00_AXIS]
   connect_bd_net [get_bd_pins rx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_rxusrclk2]
   connect_bd_net [get_bd_pins rx_axis_ila/resetn] [get_bd_pins aur_rx_conv/aresetn]
 

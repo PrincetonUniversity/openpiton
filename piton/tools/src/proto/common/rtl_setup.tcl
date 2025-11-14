@@ -235,6 +235,7 @@ set CHIP_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chip/tile/common/rtl/valrdy_last_gen.sv" \
     "${DV_ROOT}/design/chip/tile/common/rtl/valrdy_to_ethframe.sv" \
     "${DV_ROOT}/design/chip/tile/common/rtl/ethframe_to_valrdy.sv" \
+    "${DV_ROOT}/design/chip/tile/common/rtl/ethcmac_to_demux.sv" \
     "${DV_ROOT}/design/chip/tile/common/rtl/flat_id_to_xy.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/xy_to_flat_id.v" \
     "${DV_ROOT}/design/chip/tile/common/rtl/clk_gating_latch.v" \

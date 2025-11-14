@@ -1890,13 +1890,40 @@ module chip(
                                           .ready_ack(freectrl_rx_ack_ready),
                                           .last_ack (freectrl_rx_ack_last));
 
+     wire [CMAC_FULL_DAT_BYTES*8-1 :0] ethcmac_data;
+     wire [CMAC_FULL_DAT_BYTES  -1 :0] ethcmac_keep;
+     wire                              ethcmac_badp;
+     wire                              ethcmac_last;
+     wire                              ethcmac_valid;
+     wire [CMAC_USE_DAT_BYTES*8 -1 :0] nocsdemux_data;
+     wire [CMAC_USE_DAT_BYTES   -1 :0] nocsdemux_keep;
+     wire [AXIS_TDEST_BYTES  *8 -1 :0] nocsdemux_dest;
+     wire                              nocsdemux_last;
+     wire                              nocsdemux_ready;
+     wire                              nocsdemux_valid;
+     ethcmac_to_demux ethcmac_to_demux_inst(.clk(aur_clk), .rst(~aur_rstn),
+       .data_in(ethcmac_data),
+       .keep_in(ethcmac_keep),
+       .badp_in(ethcmac_badp),
+       .last_in(ethcmac_last),
+       .valid_in (ethcmac_valid),
+       .data_out (nocsdemux_data),
+       .keep_out (nocsdemux_keep),
+       .dest_out (nocsdemux_dest),
+       .last_out (nocsdemux_last),
+       .ready_out(nocsdemux_ready),
+       .valid_out(nocsdemux_valid)
+     );
+
      assign {ethfr_id, eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
+     assign aur_rx_overflow = '0;
 
      axistx_cmac_bridge
    `endif
                          nocs_qsfp_bridge (.sys_clk(clk_muxed), .sys_rstn_out(rstn_rx), .sys_rstn_in(rstn_tile),
-                                           .aur_clk(aur_clk), .aur_rstn(aur_rstn), .rx_overflow(aur_rx_overflow),
+                                           .aur_clk(aur_clk), .aur_rstn(aur_rstn),
    `ifdef PITON_MULTI_FPGA_AUR
+                                           .rx_overflow(aur_rx_overflow),
                                            .sys_rstn(rst_n_inter_sync | ~ctrl_tx),
                                            .s_axis_0_tdata (free_ctrl_tx_reg),
                                            .s_axis_0_tvalid(free_ctrl_tx_val & ctrl_tx),
@@ -1928,6 +1955,18 @@ module chip(
                                            .m_axis_1_tvalid(freectrl_tx_ack_valid),
                                            .m_axis_1_tready(freectrl_tx_ack_ready),
                                            .m_axis_1_tlast (freectrl_tx_ack_last),
+
+                                           .m_axis_cmac_rx_tdata (ethcmac_data),
+                                           .m_axis_cmac_rx_tkeep (ethcmac_keep),
+                                           .m_axis_cmac_rx_tuser (ethcmac_badp),
+                                           .m_axis_cmac_rx_tlast (ethcmac_last),
+                                           .m_axis_cmac_rx_tvalid(ethcmac_valid),
+                                           .s_axis_demux_rx_tdata (nocsdemux_data),
+                                           .s_axis_demux_rx_tkeep (nocsdemux_keep),
+                                           .s_axis_demux_rx_tdest (nocsdemux_dest),
+                                           .s_axis_demux_rx_tlast (nocsdemux_last),
+                                           .s_axis_demux_rx_tvalid(nocsdemux_valid),
+                                           .s_axis_demux_rx_tready(nocsdemux_ready),
 
                                            .qsfp_4x_grx_n     (qsfp_4x_grx_n),
                                            .qsfp_4x_grx_p     (qsfp_4x_grx_p),
