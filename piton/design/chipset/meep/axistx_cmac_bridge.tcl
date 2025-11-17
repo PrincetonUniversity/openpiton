@@ -320,7 +320,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
                                           [get_bd_pins eth_cmac/ctl_rsfec_ieee_error_indication_mode]
   connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins eth_cmac/ctl_rx_enable]
   make_bd_pins_external         [get_bd_pins eth_cmac/gt_rxusrclk2]
-  set_property name "aur_clk"   [get_bd_ports gt_rxusrclk2_0]
+  set_property name "qsfp_clk"  [get_bd_ports gt_rxusrclk2_0]
 
   global sys_clk_freq
   set sys_rstn [ create_bd_port -dir I -type rst sys_rstn ]
@@ -354,7 +354,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   ] $rx_rst_gen
   connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] [get_bd_pins rx_rst_gen/slowest_sync_clk]
   make_bd_pins_external                              [get_bd_pins rx_rst_gen/peripheral_aresetn]
-  set_property name "aur_rstn"                       [get_bd_ports peripheral_aresetn_0]
+  set_property name "qsfp_rstn"                      [get_bd_ports peripheral_aresetn_0]
 
   set tx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 tx_rst_gen ]
   set_property -dict [ list \
@@ -857,9 +857,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   ] [get_bd_intf_ports s_axis_demux_rx]
 
   set_property -dict [list \
-    CONFIG.ASSOCIATED_RESET "aur_rstn" \
+    CONFIG.ASSOCIATED_RESET "qsfp_rstn" \
     CONFIG.ASSOCIATED_BUSIF "m_axis_cmac_rx:s_axis_demux_rx" \
-  ] [get_bd_ports aur_clk]
+  ] [get_bd_ports qsfp_clk]
 
   create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 rx_axis_ila
   set_property -dict [list \

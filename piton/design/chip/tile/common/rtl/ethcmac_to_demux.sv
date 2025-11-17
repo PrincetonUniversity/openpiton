@@ -47,51 +47,76 @@ module ethcmac_to_demux (
   input  ready_out,
   output valid_out
 );
-  parameter FIFO_DEPTH_LOG = 5;
 
+  parameter IN_REGS = 1; // register inputs to improve timing
+  logic [CMAC_FULL_DAT_BYTES*8-1 :0] data;
+  logic [CMAC_FULL_DAT_BYTES  -1 :0] keep;
+  logic badpack;
+  logic last;
+  logic valid;
+  if (IN_REGS) begin
+    always_ff @(posedge clk) begin
+      data    <= data_in;
+      keep    <= keep_in;
+      badpack <= badpack_in;
+      last    <= last_in;
+      valid   <= valid_in;
+    end
+  end else begin
+    assign data    = data_in;
+    assign keep    = keep_in;
+    assign badpack = badpack_in;
+    assign last    = last_in;
+    assign valid   = valid_in;
+  end
+
+  parameter FIFO_DEPTH_LOG = 5;
   reg  [CMAC_FULL_DAT_BYTES*8 :0] fifo[2**FIFO_DEPTH_LOG];
   reg  [FIFO_DEPTH_LOG        :0] rd_ptr;
   reg  [FIFO_DEPTH_LOG        :0] wr_ptr;
   wire [FIFO_DEPTH_LOG        :0] wr_ptr_inc = wr_ptr + 'b1;
   reg  [FIFO_DEPTH_LOG        :0] wr_ptr_pack;
 
-  assign valid_out =  (rd_ptr != wr_ptr_pack); // fifo is not empty with packets
-  wire full        = ((rd_ptr ^  wr_ptr) == (2**FIFO_DEPTH_LOG)); // fifo is full
+  wire [CMAC_USE_DAT_BYTES-1 :0] mask_used = data[CMAC_USE_DAT_BYTES*8 +: CMAC_USE_DAT_BYTES];
+  wire [AXIS_TDEST_BYTES*8-1 :0] chan_curr = data[CMAC_USE_DAT_BYTES*8 +  CMAC_USE_DAT_BYTES +: AXIS_TDEST_BYTES*8];
+  reg  [AXIS_TDEST_BYTES*8-1 :0] chan_prev;
+  reg  start_pack;
+  reg  discrd_pack;
 
-  wire [CMAC_USE_DAT_BYTES-1 :0] keep_extr = data_in[CMAC_USE_DAT_BYTES*8 +: CMAC_USE_DAT_BYTES];
-  wire [AXIS_TDEST_BYTES*8-1 :0] dest_extr = data_in[CMAC_USE_DAT_BYTES*8 +  CMAC_USE_DAT_BYTES +: AXIS_TDEST_BYTES*8];
-  reg  [AXIS_TDEST_BYTES*8-1 :0] dest_prev;
-  reg  last_prev;
-  wire good_cur = (keep_in == '1) && // all bytes of CMAC are utilized
-                  (last_prev || (dest_prev == dest_extr)) && // channel number should stay the same along the packet
-                  (last_in ? !badpack_in : keep_extr == '1); // correct CRC in the end OR all valid data bytes in the middle
-  reg  dropped;
-
+  // FIFO write logic with packet filtering
   always_ff @(posedge clk)
     if (rst) begin
       wr_ptr      <= '0;
       wr_ptr_pack <= '0;
-      last_prev   <= '1;
-      dropped     <= '0;
-      dest_prev   <= '0;
-    end else if (valid_in) begin
-      if (!full && good_cur && !dropped) begin
-        fifo[wr_ptr[FIFO_DEPTH_LOG-1:0]] <= {last_in, data_in};
+      start_pack  <= '1;
+      discrd_pack <= '0;
+      chan_prev   <= '0;
+    end else if (valid) begin
+      if ( // Accept packet word if:
+          ((rd_ptr ^  wr_ptr) != (2**FIFO_DEPTH_LOG)) && // fifo is not full,
+          (keep == '1)                                && // all bytes of CMAC word are utilized,
+          (start_pack || (chan_prev == chan_curr))    && // channel number stays the same along the packet,
+          (last ? !badpack : mask_used == '1)         && // correct CRC in the end of OR all data bytes are valid inside the packet,
+          !discrd_pack)                                  // the packet is not discarded yet.
+      begin
+        fifo[wr_ptr[FIFO_DEPTH_LOG-1:0]] <= {last, data};
         wr_ptr <= wr_ptr_inc;
-        if (last_in) wr_ptr_pack <= wr_ptr_inc; // good packet is finished, advance packet pointer
-      end else begin
-        wr_ptr <= wr_ptr_pack; // drop bad or missed packet
-        dropped <= '1; // packet is dropped upto the end
+        if (last) wr_ptr_pack <= wr_ptr_inc; // good packet is finished, advance the packet pointer
+      end else begin // Otherwise:
+        wr_ptr <= wr_ptr_pack; // discard bad or missed packet,
+        discrd_pack <= '1;     // discard such packet upto the end.
       end
-      dest_prev <= dest_extr;
-      last_prev <= last_in;
-      if (last_in) dropped <= '0; // restore reception at the end
+      chan_prev  <= chan_curr;
+      start_pack <= last;
+      if (last) discrd_pack <= '0; // restore reception at the end
     end
 
+  // FIFO read logic
   always_ff @(posedge clk)
     if (rst) rd_ptr <= '0;
     else if (valid_out && ready_out) rd_ptr <= rd_ptr + 1;
 
+  assign valid_out = (rd_ptr != wr_ptr_pack); // fifo is not empty with whole packets
   wire [CMAC_FULL_DAT_BYTES*8 :0] fifo_rd = fifo[rd_ptr[FIFO_DEPTH_LOG-1:0]];
   assign data_out  = fifo_rd[CMAC_USE_DAT_BYTES*8-1 :0];
   assign keep_out  = fifo_rd[CMAC_USE_DAT_BYTES*8 +: CMAC_USE_DAT_BYTES];

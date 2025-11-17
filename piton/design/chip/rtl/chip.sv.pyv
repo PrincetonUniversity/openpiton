@@ -1538,10 +1538,10 @@ module chip(
                         print("  .retries  (tile_%d_%d_vert_eth%d_retries),         " % (j,i,k))
                         always_eth_retry_tx += '''
                           if (tile_%d_%d_valrdy_vert_far_eth%d_valid & tile_%d_%d_valrdy_vert_far_eth%d_last) begin
-                            ethack_wait_time <= tile_%d_%d_vert_ack%d_wait_time;
-                            ethfr_retries    <= tile_%d_%d_vert_eth%d_retries;
+                            if (ethack_wait_time < tile_%d_%d_vert_ack%d_wait_time) ethack_wait_time <= tile_%d_%d_vert_ack%d_wait_time;
+                            if (ethfr_retries    < tile_%d_%d_vert_eth%d_retries  ) ethfr_retries    <= tile_%d_%d_vert_eth%d_retries;
                           end
-                        ''' % (j,i,k,j,i,k,j,i,k,j,i,k)
+                        ''' % (j,i,k, j,i,k, j,i,k, j,i,k, j,i,k, j,i,k)
                       print("  .flit_in (tile_%d_%d_valrdy_vert_far_noc%d_data), "  % (j,i,k))
                       print("  .valid_in(tile_%d_%d_valrdy_vert_far_noc%d_valid),"  % (j,i,k))
                       print("  .ready_in(tile_%d_%d_valrdy_vert_far_noc%d_ready));" % (j,i,k))
@@ -1685,10 +1685,10 @@ module chip(
                         print("  .retries  (tile_%d_%d_horz_eth%d_retries),         " % (j,i,k))
                         always_eth_retry_tx += '''
                           if (tile_%d_%d_valrdy_horz_far_eth%d_valid & tile_%d_%d_valrdy_horz_far_eth%d_last) begin
-                            ethack_wait_time <= tile_%d_%d_horz_ack%d_wait_time;
-                            ethfr_retries    <= tile_%d_%d_horz_eth%d_retries;
+                            if (ethack_wait_time < tile_%d_%d_horz_ack%d_wait_time) ethack_wait_time <= tile_%d_%d_horz_ack%d_wait_time;
+                            if (ethfr_retries    < tile_%d_%d_horz_eth%d_retries  ) ethfr_retries    <= tile_%d_%d_horz_eth%d_retries;
                           end
-                        ''' % (j,i,k,j,i,k,j,i,k,j,i,k)
+                        ''' % (j,i,k, j,i,k, j,i,k, j,i,k, j,i,k, j,i,k)
                       print("  .flit_in (tile_%d_%d_valrdy_horz_far_noc%d_data), "  % (j,i,k))
                       print("  .valid_in(tile_%d_%d_valrdy_horz_far_noc%d_valid),"  % (j,i,k))
                       print("  .ready_in(tile_%d_%d_valrdy_horz_far_noc%d_ready));" % (j,i,k))
@@ -1801,18 +1801,8 @@ module chip(
 
 
 `ifdef PITON_MULTI_FPGA
-    wire aur_clk;
-    wire aur_rstn;
-    wire aur_rx_overflow;
-    reg [2:0] aur_overflow_sync;
-    always @(posedge aur_clk)
-      if (~aur_rstn)            aur_overflow_sync[0] <= 1'b0;
-      else if (aur_rx_overflow) aur_overflow_sync[0] <= 1'b1;
-
-    always @(posedge clk_muxed)
-      if (~rstn_tile) aur_overflow_sync[2:1] <= 2'b0;
-      else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
-    assign qsfp_noc_overflow = aur_overflow_sync[2];
+    wire qsfp_clk;
+    wire qsfp_rstn;
 
     wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = {irq_i, timer_irq_i, ipi_i};
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_tx_reg;
@@ -1842,11 +1832,25 @@ module chip(
 
     wire ctrl_tx;
    `ifdef PITON_MULTI_FPGA_AUR
+     wire aur_rx_overflow;
+     reg [2:0] aur_overflow_sync;
+     always @(posedge qsfp_clk)
+       if (~qsfp_rstn)           aur_overflow_sync[0] <= 1'b0;
+       else if (aur_rx_overflow) aur_overflow_sync[0] <= 1'b1;
+
+     always @(posedge clk_muxed)
+       if (~rstn_tile) aur_overflow_sync[2:1] <= 2'b0;
+       else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
+     assign qsfp_noc_overflow = aur_overflow_sync[2];
+
      assign dst_src_mac_rx  = 'hFEEDFACEDEADBEEF8BADF00D;
      assign eth_payl_len_rx = 'hCAFE;
      assign ethfr_id        = 'hC0DE;
      axistx_aurora_bridge
    `else
+     assign {ethfr_id, eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
+     assign qsfp_noc_overflow = '0;
+
      wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_eth_data;
      wire                       freectrl_tx_eth_valid;
      wire                       freectrl_tx_eth_ready;
@@ -1901,7 +1905,7 @@ module chip(
      wire                              nocsdemux_last;
      wire                              nocsdemux_ready;
      wire                              nocsdemux_valid;
-     ethcmac_to_demux ethcmac_to_demux_inst(.clk(aur_clk), .rst(~aur_rstn),
+     ethcmac_to_demux ethcmac_to_demux_inst(.clk(qsfp_clk), .rst(~qsfp_rstn),
        .data_in   (ethcmac_data),
        .keep_in   (ethcmac_keep),
        .badpack_in(ethcmac_badpack),
@@ -1915,13 +1919,10 @@ module chip(
        .valid_out(nocsdemux_valid)
      );
 
-     assign {ethfr_id, eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
-     assign aur_rx_overflow = '0;
-
      axistx_cmac_bridge
    `endif
                          nocs_qsfp_bridge (.sys_clk(clk_muxed), .sys_rstn_out(rstn_rx), .sys_rstn_in(rstn_tile),
-                                           .aur_clk(aur_clk), .aur_rstn(aur_rstn),
+                                           .qsfp_clk(qsfp_clk), .qsfp_rstn(qsfp_rstn),
    `ifdef PITON_MULTI_FPGA_AUR
                                            .rx_overflow(aur_rx_overflow),
                                            .sys_rstn(rst_n_inter_sync | ~ctrl_tx),

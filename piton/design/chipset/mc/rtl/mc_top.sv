@@ -1808,7 +1808,7 @@ axi4_zeroer axi4_zeroer(
         .pcie_gp1_out(dst_src_mac_tx[31:0]),
         .pcie_gp2_out(dst_src_mac_tx[63:32]),
         .pcie_gp3_out(dst_src_mac_tx[95:64]),
-        .pcie_gp0_in ({eth_payl_len_rx, ethfr_retries[3:0], ethack_wait_time[ETHFR_RETRY_TIME_WIDTH-1 -:12]}),
+        .pcie_gp0_in ({eth_payl_len_rx, ethfr_retries[3:0], ethack_wait_time[11:0]}), //ethack_wait_time[ETHFR_RETRY_TIME_WIDTH-1 -:12]}),
         .pcie_gp1_in (dst_src_mac_rx[31:0]),
         .pcie_gp2_in (dst_src_mac_rx[63:32]),
         .pcie_gp3_in (dst_src_mac_rx[95:64]),
