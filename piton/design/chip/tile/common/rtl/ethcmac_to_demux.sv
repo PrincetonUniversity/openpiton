@@ -48,7 +48,7 @@ module ethcmac_to_demux (
   output valid_out
 );
 
-  parameter IN_REGS = 1; // register inputs to improve timing
+  parameter IN_REGS = 0; // register inputs to improve timing
   logic [CMAC_FULL_DAT_BYTES*8-1 :0] data;
   logic [CMAC_FULL_DAT_BYTES  -1 :0] keep;
   logic badpack;
@@ -93,11 +93,11 @@ module ethcmac_to_demux (
       chan_prev   <= '0;
     end else if (valid) begin
       if ( // Accept packet word if:
-          ((rd_ptr ^  wr_ptr) != (2**FIFO_DEPTH_LOG)) && // fifo is not full,
-          (keep == '1)                                && // all bytes of CMAC word are utilized,
-          (start_pack || (chan_prev == chan_curr))    && // channel number stays the same along the packet,
-          (last ? !badpack : mask_used == '1)         && // correct CRC in the end of OR all data bytes are valid inside the packet,
-          !discrd_pack)                                  // the packet is not discarded yet.
+          ((rd_ptr ^ wr_ptr) != (2**FIFO_DEPTH_LOG)) && // fifo is not full,
+          (keep == '1)                               && // all bytes of CMAC word are utilized,
+          (start_pack || (chan_prev == chan_curr))   && // channel number stays the same along the packet,
+          (last ? !badpack : mask_used == '1)        && // correct CRC in the end of packet OR all data bytes are valid inside the packet,
+          !discrd_pack)                                 // the packet is not discarded yet.
       begin
         fifo[wr_ptr[FIFO_DEPTH_LOG-1:0]] <= {last, data};
         wr_ptr <= wr_ptr_inc;
