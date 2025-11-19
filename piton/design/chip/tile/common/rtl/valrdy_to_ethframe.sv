@@ -70,8 +70,8 @@ end
 reg  [ETHFR_ID_WIDTH-1 :0] ethfr_id;
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_tx = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8;
 // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
-// wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'0, ethfr_id, ethfr_payld_len_tx[7:0], ethfr_payld_len_tx[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
-wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'0, ethfr_id, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
+wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'0, ethfr_id, ethfr_payld_len_tx[7:0], ethfr_payld_len_tx[ETH_PAYLD_LEN_WIDTH-1:8], dst_src_mac_tx};
+// wire [ETHHDR_NOC_WIDTH-1:0] header_tx = {'0, ethfr_id, ETHTYPE_BYTE0, ETHTYPE_BYTE1, dst_src_mac_tx};
 
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_tx_cnt;
 reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
@@ -143,11 +143,11 @@ assign data_out = pack_flits  ? pack_buf[pack_cnt] : // retry transmission from 
 
 reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
 // swap bytes in payload length because of big-end network byte order
-wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_rx = {header_rx[2*MAC_ADDR_WIDTH   +: 7],
-                                                     header_rx[2*MAC_ADDR_WIDTH+7 +: 7]};
+wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_rx = {header_rx[2*MAC_ADDR_WIDTH   +: 8],
+                                                     header_rx[2*MAC_ADDR_WIDTH+8 +: 8]};
 assign header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
-                   //(ethfr_payld_len_rx == MIN_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
-                   (header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
+                   (ethfr_payld_len_rx == MIN_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
+                   //(header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
                    (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id);
 assign ready_ack = 'b1;
 
