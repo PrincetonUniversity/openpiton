@@ -1,6 +1,6 @@
 [submodule "piton/design/chip/tile/ariane"]
 	path = piton/design/chip/tile/ariane
-	url = https://gitlab.bsc.es/meep/FPGA_implementations/AlveoU280/meep_ariane.git
+	url = https://github.com/pulp-platform/ariane.git
 [submodule "aws"]
 	path = piton/design/aws
 	url = https://github.com/PrincetonUniversity/openpiton-aws.git
