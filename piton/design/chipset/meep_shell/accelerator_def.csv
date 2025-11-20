@@ -23,5 +23,5 @@ CLK0,50000000,chipset_clk
 CLK0,,eth_axi_aclk,eth_axi_arstn,LOW
 CLK0,,mc_clk,mc_rstn,LOW
 CLK1,100000000,vpu_clk
-GPIO,5,pcie_gpio,0x00
+GPIO,yes,5,pcie_gpio,0x00
 ARST,LOW,ExtArstn
