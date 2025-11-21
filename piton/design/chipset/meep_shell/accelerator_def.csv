@@ -13,7 +13,7 @@ HBM,no,mcx_axi5,AXI3-256,CLK0,0x0,mem_calib_complete,09
 HBM,no,mcx_axi6,AXI3-256,CLK0,0x0,mem_calib_complete,10
 HBM,no,mcx_axi7,AXI3-256,CLK0,0x0,mem_calib_complete,11
 AURORA,no,eth_axi,AXI4LITE-64,CLK0,dma,eth_irq,qsfp1,hbm-13
-UART,yes,uart_axi,,CLK0,0x0,normal,uart_irq
+UART,yes,m_axi_uart,,CLK0,0x0,normal,uart_irq,1
 ETHERNET,yes,eth_axi,AXI4LITE-64,CLK0,100Gb,eth_irq,qsfp0,hbm-29
 JTAG,no,dbg_jtag,,CLK0,jtag
 BROM,no,sram_axi,,CLK0,0x0,initFile.mem
