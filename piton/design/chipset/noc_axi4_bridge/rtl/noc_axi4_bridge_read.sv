@@ -33,7 +33,8 @@ import noc_axi4_bridge_pkg::*;
 
 
 module noc_axi4_bridge_read #(
-    parameter AXI4_DAT_WIDTH_USED = `AXI4_DATA_WIDTH // actually used AXI Data width (down converted if needed)
+    parameter AXI4_DAT_WIDTH_USED = `AXI4_DATA_WIDTH, // actually used AXI Data width (down converted if needed)
+    parameter AXI4_ARCACHE_VAL    = `AXI4_CACHE_WIDTH'b11 // AXI4 AxCACHE field value, by defualt non-cacheable bufferable requests
 ) (
     // Clock + Reset
     input  wire                                          clk,
@@ -88,7 +89,7 @@ wire [`AXI4_ADDR_WIDTH-1:0]addr_paddings = `AXI4_ADDR_WIDTH'b0;
 
     assign m_axi_arburst  = `AXI4_BURST_WIDTH'b01; // INCR address in bursts
     assign m_axi_arlock   = 1'b0; // Do not use locks
-    assign m_axi_arcache  = `AXI4_CACHE_WIDTH'b11; // Non-cacheable bufferable requests
+    assign m_axi_arcache  = AXI4_ARCACHE_VAL;
     assign m_axi_arprot   = `AXI4_PROT_WIDTH'b0; // Data access, non-secure access, unpriveleged access
     assign m_axi_arqos    = `AXI4_QOS_WIDTH'b0; // Do not use qos
     assign m_axi_arregion = `AXI4_REGION_WIDTH'b0; // Do not use regions
