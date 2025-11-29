@@ -11,29 +11,58 @@ uint8_t read_reg_u8(uintptr_t addr)
     return *(volatile uint8_t *)addr;
 }
 
-int is_transmit_empty()
-{
-    return read_reg_u8(UART_LINE_STATUS) & 0x20;
-}
+#ifdef V80
+    int is_transmit_empty()
+    {
+        return read_reg_u8(UART_LINE_STATUS) & 0x8;
+    }
 
-void write_serial(char a)
-{
-    while (is_transmit_empty() == 0) {};
+    void write_serial(char a)
+    {
+        while (is_transmit_empty() == 0x8) {};
 
-    write_reg_u8(UART_THR, a);
-}
+        write_reg_u8(UART_THR, a);
+    }
 
-void init_uart(uint32_t freq, uint32_t baud)
-{
-    uint32_t divisor = (freq + (baud << 3))/ (baud << 4);
+    void init_uart(uint32_t freq, uint32_t baud)
+    {
+        uint32_t divisor = (freq + (baud << 3))/ (baud << 4);
 
-    write_reg_u8(UART_INTERRUPT_ENABLE, 0x00); // Disable all interrupts
-    write_reg_u8(UART_LINE_CONTROL, 0x80);     // Enable DLAB (set baud rate divisor)
-    write_reg_u8(UART_DLAB_LSB, divisor);         // divisor (lo byte)
-    write_reg_u8(UART_DLAB_MSB, (divisor >> 8) & 0xFF);  // divisor (hi byte)
-    write_reg_u8(UART_LINE_CONTROL, 0x03);     // 8 bits, no parity, one stop bit
-    write_reg_u8(UART_MODEM_CONTROL, 0x20);    // Autoflow mode
-}
+        //write_reg_u8(UART_INTERRUPT_ENABLE, 0x00); // Disable all interrupts
+        //write_reg_u8(UART_LINE_CONTROL, 0x80);     // Enable DLAB (set baud rate divisor)
+        //write_reg_u8(UART_DLAB_LSB, divisor);         // divisor (lo byte)
+        //write_reg_u8(UART_DLAB_MSB, (divisor >> 8) & 0xFF);  // divisor (hi byte)
+        //write_reg_u8(UART_LINE_CONTROL, 0x03);     // 8 bits, no parity, one stop bit
+        //write_reg_u8(UART_MODEM_CONTROL, 0x20);    // Autoflow mode
+    }
+
+#else
+
+    int is_transmit_empty()
+    {
+        return read_reg_u8(UART_LINE_STATUS) & 0x20;
+    }
+    
+    void write_serial(char a)
+    {
+        while (is_transmit_empty() == 0) {};
+    
+        write_reg_u8(UART_THR, a);
+    }
+    
+    void init_uart(uint32_t freq, uint32_t baud)
+    {
+        uint32_t divisor = (freq + (baud << 3))/ (baud << 4);
+    
+        write_reg_u8(UART_INTERRUPT_ENABLE, 0x00); // Disable all interrupts
+        write_reg_u8(UART_LINE_CONTROL, 0x80);     // Enable DLAB (set baud rate divisor)
+        write_reg_u8(UART_DLAB_LSB, divisor);         // divisor (lo byte)
+        write_reg_u8(UART_DLAB_MSB, (divisor >> 8) & 0xFF);  // divisor (hi byte)
+        write_reg_u8(UART_LINE_CONTROL, 0x03);     // 8 bits, no parity, one stop bit
+        write_reg_u8(UART_MODEM_CONTROL, 0x20);    // Autoflow mode
+    }
+
+#endif
 
 // returns number of characters printed
 int print_uart(const char *str)
