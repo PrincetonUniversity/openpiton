@@ -1056,6 +1056,7 @@ assign passthru_pll_rst_n = 1'b1;
 //         .TDO(td_o) // 1-bit input: Test Data Output (TDO) input for USER function.
 //     );
 // `endif
+`ifndef ALVEO_V80
 `ifdef ALVEO_BOARD
     wire tck_i, tms_i, td_i, td_o;
     // hook the RISC-V JTAG TAP into the FPGA JTAG chain
@@ -1110,6 +1111,13 @@ assign passthru_pll_rst_n = 1'b1;
         .TDO(td_o) // 1-bit input: Test Data Output (TDO) input for USER function.
     );
 `endif
+`else
+  wire tck_i, tms_i, trst_ni, td_i, td_o;
+  assign tck_i   = 1'b0;
+  assign tms_i   = 1'b0;
+  assign trst_ni = 1'b0;
+  assign td_i    = 1'b0;
+`endif // ALVEO_V80
 `endif //`ifndef PITONSYS_MEEP
 `endif
 
