@@ -14,7 +14,7 @@ uint8_t read_reg_u8(uintptr_t addr)
 int is_transmit_empty()
 {
     #ifdef V80
-    return read_reg_u8(UART_LINE_STATUS) & 0x8;
+    return read_reg_u8(UART_LINE_STATUS_V80) & 0x8;
     #else
     return read_reg_u8(UART_LINE_STATUS) & 0x20;
     #endif
