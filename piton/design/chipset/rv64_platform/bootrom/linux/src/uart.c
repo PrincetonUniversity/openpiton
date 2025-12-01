@@ -43,7 +43,6 @@ void init_uart(uint32_t freq, uint32_t baud)
     #endif
 }
 
-
 // returns number of characters printed
 int print_uart(const char *str)
 {
