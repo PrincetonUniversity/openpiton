@@ -8,6 +8,10 @@ CFLAGS = -DMAX_HARTS=$(MAX_HARTS) -DUART_FREQ=$(UART_FREQ) -Os -ggdb -march=rv64
 CCASFLAGS = -mcmodel=medany -mexplicit-relocs
 LDFLAGS = -nostdlib -nodefaultlibs -nostartfiles
 
+ifeq ($(BOARD),alveov80)
+CFLAGS += -DV80
+endif
+
 INCLUDES = -I./ -I./src
 
 SRCS_C = src/main.c src/uart.c src/spi.c src/sd.c src/gpt.c
