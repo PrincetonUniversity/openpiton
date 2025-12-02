@@ -1058,7 +1058,7 @@ assign passthru_pll_rst_n = 1'b1;
 // `endif
 `ifdef ALVEO_BOARD
     wire tck_i, tms_i, td_i, td_o;
-`ifndef ALVEO_V80
+  `ifndef ALVEO_V80
     // hook the RISC-V JTAG TAP into the FPGA JTAG chain
     jtag_shell jtag_shell (
       .dbg_jtag_tck(tck_i),
@@ -1068,12 +1068,12 @@ assign passthru_pll_rst_n = 1'b1;
       .dbghub_clk(core_ref_clk) // Using Core clock as some free-running clock for Debug Hub
     );
     wire trst_ni = 1'b1;
-`else
+  `else
     assign tck_i   = 1'b0;
     assign tms_i   = 1'b0;
     assign trst_ni = 1'b0;
     assign td_i    = 1'b0;
-`endif // ALVEO_V80
+  `endif // ALVEO_V80
 `endif
 `ifdef VC707_BOARD
     wire tck_i, tms_i, trst_ni, td_i, td_o;
