@@ -817,6 +817,9 @@ assign passthru_pll_rst_n = 1'b1;
 wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx;
 wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx;
 wire [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx;
+wire [ETHFR_ID_WIDTH     -1:0] ethfr_id;
+wire [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time;
+wire [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries;
 wire qsfp_noc_overflow;
 
 //////////////////////////
@@ -956,6 +959,9 @@ chip chip(
     .dst_src_mac_tx (dst_src_mac_tx),
     .dst_src_mac_rx (dst_src_mac_rx),
     .eth_payl_len_rx(eth_payl_len_rx),
+    .ethfr_id       (ethfr_id),
+    .ethack_wait_time(ethack_wait_time),
+    .ethfr_retries   (ethfr_retries),
     .qsfp_noc_overflow(qsfp_noc_overflow),
     `ifdef PITON_FPGA_ETH_PORT1
       .qsfp_ref_clk_n(qsfp0_ref_clk_n),
@@ -1111,10 +1117,16 @@ chipset chipset(
      .dst_src_mac_tx (dst_src_mac_tx),
      .dst_src_mac_rx (dst_src_mac_rx),
      .eth_payl_len_rx(eth_payl_len_rx),
+     .ethfr_id       (ethfr_id),
+     .ethack_wait_time(ethack_wait_time),
+     .ethfr_retries   (ethfr_retries),
     `else // `ifdef PITON_MULTI_FPGA
      .dst_src_mac_tx (),
      .dst_src_mac_rx ('hFEEDFACEDEADBEEF8BADF00D),
      .eth_payl_len_rx('hCAFE),
+     .ethfr_id       ('hC0DE),
+     .ethack_wait_time('hDEAD),
+     .ethfr_retries   ('hBEEF),
     `endif // `ifdef PITON_MULTI_FPGA
      .pcie_perstn(pcie_perstn),
      .pcie_refclk_n(pcie_refclk_n),

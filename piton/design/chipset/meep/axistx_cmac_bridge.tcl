@@ -142,31 +142,6 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-  global QSFP_BRDG_CHANS
-  global QSFP_BRDG_CHAN_BYTES
-  set CMAC_FULL_DAT_BYTES 64
-  set CMAC_DATA_OVERHD_BYTES 8
-  set CMAC_USE_DAT_BYTES [expr ($CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES)]
-
-  # Create IPs of Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of AXISt packets)
-  set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
-  set_property -dict [list \
-    CONFIG.NUM_MI {1} \
-    CONFIG.NUM_SI $QSFP_BRDG_CHANS \
-    CONFIG.ARB_ALGORITHM {3} \
-    CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
-    CONFIG.ARB_ON_TLAST {1} \
-    CONFIG.ARB_ON_MAX_XFERS {0} \
-    CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
-    CONFIG.XBAR_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES \
-  ] [get_bd_cells axis_muxer]
-
-  # Create IPs of Xilix AXI-stream interconnect
-  set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
-  set_property -dict [list \
-    CONFIG.NUM_MI $QSFP_BRDG_CHANS \
-  ] [get_bd_cells axis_demuxer]
-
   # Create instance: gndx1, and set properties
   set gndx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gndx1 ]
   set_property -dict [ list \
@@ -312,7 +287,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
                                           [get_bd_pins eth_cmac/ctl_rsfec_ieee_error_indication_mode]
   connect_bd_net [get_bd_pins vccx1/dout] [get_bd_pins eth_cmac/ctl_rx_enable]
   make_bd_pins_external         [get_bd_pins eth_cmac/gt_rxusrclk2]
-  set_property name "aur_clk"   [get_bd_ports gt_rxusrclk2_0]
+  set_property name "qsfp_clk"  [get_bd_ports gt_rxusrclk2_0]
+  connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] [get_bd_pins eth_cmac/rx_clk]
 
   global sys_clk_freq
   set sys_rstn [ create_bd_port -dir I -type rst sys_rstn ]
@@ -346,7 +322,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   ] $rx_rst_gen
   connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] [get_bd_pins rx_rst_gen/slowest_sync_clk]
   make_bd_pins_external                              [get_bd_pins rx_rst_gen/peripheral_aresetn]
-  set_property name "aur_rstn"                       [get_bd_ports peripheral_aresetn_0]
+  set_property name "qsfp_rstn"                      [get_bd_ports peripheral_aresetn_0]
 
   set tx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 tx_rst_gen ]
   set_property -dict [ list \
@@ -366,56 +342,179 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   connect_bd_net [get_bd_pins tx_rfi_gen/bus_struct_reset]     [get_bd_pins eth_cmac/ctl_tx_send_rfi]
   connect_bd_net [get_bd_pins tx_rfi_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
 
-  for {set idx 0} {$idx < $QSFP_BRDG_CHANS} {incr idx} {
+
+  global QSFP_BRDG_CHANS
+  set CMAC_BRDG_CHANS [expr {$QSFP_BRDG_CHANS * 2}]
+  set AXIS_INTERCON_MAXCHANS 16
+
+  global QSFP_BRDG_CHAN_BYTES
+  set CMAC_FULL_DAT_BYTES 64
+  set CMAC_DATA_OVERHD_BYTES 8
+  set AXIS_TDEST_WIDTH 8
+  set CMAC_USE_DAT_BYTES [expr {$CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES}]
+
+  set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
+  set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
+  if {$AXIS_INTERCON_PARTS > 1} {
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer
     set_property -dict [list \
-      CONFIG.S[format {%02d} $idx]_FIFO_DEPTH {16} \
-      CONFIG.S[format {%02d} $idx]_FIFO_MODE {1} \
+      CONFIG.NUM_MI {1} \
+      CONFIG.NUM_SI $AXIS_INTERCON_PARTS \
+      CONFIG.ARB_ALGORITHM {3} \
+      CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
+      CONFIG.ARB_ON_TLAST {1} \
+      CONFIG.ARB_ON_MAX_XFERS {0} \
     ] [get_bd_cells axis_muxer]
 
-    set_property CONFIG.M[format {%02d} $idx]_FIFO_DEPTH {16} [get_bd_cells axis_demuxer]
+    connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
+                   [get_bd_pins axis_muxer/ARESETN] \
+                   [get_bd_pins axis_muxer/M00_AXIS_ARESETN]
 
-    connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
-    connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
-    if { $QSFP_BRDG_CHANS > 1 } {
-    connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
+    connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] \
+                   [get_bd_pins axis_muxer/ACLK] \
+                   [get_bd_pins axis_muxer/M00_AXIS_ACLK]
+
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer
+    set_property -dict [list \
+      CONFIG.NUM_MI $AXIS_INTERCON_PARTS \
+      CONFIG.ARB_ON_TLAST {1} \
+      CONFIG.ARB_ON_MAX_XFERS {0} \
+    ] [get_bd_cells axis_demuxer]
+
+    # initialize address map to exclude further conflicts
+    for {set idx 0} {$idx < $AXIS_INTERCON_PARTS} {incr idx} {
+      set_property -dict [list \
+        CONFIG.M[format {%02d} [expr {$AXIS_INTERCON_PARTS-1-$idx}]]_AXIS_HIGHTDEST [format {0x%02x} [expr {0xFFFFFFFF-$idx}]] \
+        CONFIG.M[format {%02d} [expr {$AXIS_INTERCON_PARTS-1-$idx}]]_AXIS_BASETDEST [format {0x%02x} [expr {0xFFFFFFFF-$idx}]] \
+      ] [get_bd_cells axis_demuxer]
     }
 
-    set in_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 in_fifo_$idx]
+    connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn] \
+                   [get_bd_pins axis_demuxer/ARESETN] \
+                   [get_bd_pins axis_demuxer/S00_AXIS_ARESETN]
+
+    connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] \
+                   [get_bd_pins axis_demuxer/ACLK] \
+                   [get_bd_pins axis_demuxer/S00_AXIS_ACLK]
+  }
+
+
+  for {set idx 0} {$idx < $CMAC_BRDG_CHANS} {incr idx} {
+    set idx_hi [expr {int($idx / $AXIS_INTERCON_PARTCHANS)}]
+    set idx_lo [expr {    $idx % $AXIS_INTERCON_PARTCHANS }]
+
+    # creation of few instances of interconnect for cascading because of limitation of number of channels
+    if {$idx_lo == 0} {
+      if {$idx_hi < ($AXIS_INTERCON_PARTS-1)} {
+        set intercon_chans $AXIS_INTERCON_PARTCHANS
+      } else {
+        set intercon_chans [expr {$CMAC_BRDG_CHANS - $idx}]
+      }
+      create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer_$idx_hi
+      set_property -dict [list \
+        CONFIG.NUM_MI {1} \
+        CONFIG.NUM_SI $intercon_chans \
+        CONFIG.ARB_ALGORITHM {3} \
+        CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
+        CONFIG.ARB_ON_TLAST {1} \
+        CONFIG.ARB_ON_MAX_XFERS {0} \
+      ] [get_bd_cells axis_muxer_$idx_hi]
+      # CONFIG.ENABLE_ADVANCED_OPTIONS {1}
+      # CONFIG.XBAR_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES
+
+      connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
+                     [get_bd_pins axis_muxer_$idx_hi/ARESETN] \
+                     [get_bd_pins axis_muxer_$idx_hi/M00_AXIS_ARESETN]
+
+      connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] \
+                     [get_bd_pins axis_muxer_$idx_hi/ACLK] \
+                     [get_bd_pins axis_muxer_$idx_hi/M00_AXIS_ACLK]
+
+      create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer_$idx_hi
+      set_property -dict [list \
+        CONFIG.NUM_MI $intercon_chans \
+        CONFIG.ARB_ON_TLAST {1} \
+        CONFIG.ARB_ON_MAX_XFERS {0} \
+      ] [get_bd_cells axis_demuxer_$idx_hi]
+      # For last channel set all rest decode address space,
+      # but not needed because "Unmapped TDEST transfers will drop the transfer" according to https://docs.amd.com/v/u/en-US/pg035_axis_interconnect#page=9
+      # set_property CONFIG.M[format {%02d} [expr {$intercon_chans-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer_$idx_hi]
+
+      connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn] \
+                     [get_bd_pins axis_demuxer_$idx_hi/ARESETN] \
+                     [get_bd_pins axis_demuxer_$idx_hi/S00_AXIS_ARESETN]
+
+      connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] \
+                     [get_bd_pins axis_demuxer_$idx_hi/ACLK] \
+                     [get_bd_pins axis_demuxer_$idx_hi/S00_AXIS_ACLK]
+
+      if {$AXIS_INTERCON_PARTS > 1} {
+        connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2]            [get_bd_pins axis_muxer/S[format {%02d} $idx_hi]_AXIS_ACLK]
+        connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn]  [get_bd_pins axis_muxer/S[format {%02d} $idx_hi]_AXIS_ARESETN]
+        connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx_hi]_ARB_REQ_SUPPRESS]
+
+        connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2]            [get_bd_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS_ACLK]
+        connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn]  [get_bd_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS_ARESETN]
+
+        connect_bd_intf_net [get_bd_intf_pins axis_muxer_$idx_hi/M00_AXIS]   [get_bd_intf_pins axis_muxer/S[format {%02d} $idx_hi]_AXIS]
+        connect_bd_intf_net [get_bd_intf_pins axis_demuxer_$idx_hi/S00_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS]
+
+        set_property -dict [list \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x}        $idx                    ] \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} [expr {$idx+$intercon_chans-1}]] \
+        ] [get_bd_cells axis_demuxer]
+      }
+    }
+
+    # Extra FIFOs in NOC channels of muxers/demuxers
+    # set_property -dict [list \
+    #   CONFIG.S[format {%02d} $idx_lo]_FIFO_DEPTH {16} \
+    #   CONFIG.S[format {%02d} $idx_lo]_FIFO_MODE {1} \
+    # ] [get_bd_cells axis_muxer_$idx_hi]
+    # set_property CONFIG.M[format {%02d} $idx_lo]_FIFO_DEPTH {16} [get_bd_cells axis_demuxer_$idx_hi]
+
+    connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_ACLK]
+    connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_ARESETN]
+    if { $CMAC_BRDG_CHANS > 1 } {
+    connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_ARB_REQ_SUPPRESS]
+    }
+
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 in_fifo_$idx
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     ] [get_bd_cells in_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
 
-    # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
-    # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx]_AXIS_0]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                s_axis_$idx
+    # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
+    # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx_lo]_AXIS_0]
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                      s_axis_$idx
     set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                          s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer/S[format {%02d} $idx]_AXIS]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                                s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
 
-    set in_dest_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx]
+    create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
     set_property -dict [ list \
       CONFIG.CONST_WIDTH {8} \
       CONFIG.CONST_VAL $idx \
     ] [get_bd_cells in_dest_$idx]
     connect_bd_net [get_bd_pins in_dest_$idx/dout] [get_bd_pins in_fifo_$idx/s_axis_tdest]
 
-    set inrdy_rst_$idx [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inrdy_rst_$idx ]
+    create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inrdy_rst_$idx
     set_property -dict [list \
       CONFIG.C_OPERATION {and} \
       CONFIG.C_SIZE {1} \
     ] [get_bd_cells inrdy_rst_$idx]
-    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op1] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_tready]
-    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op2] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op1] [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_tready]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op2] [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_ARESETN]
     connect_bd_net [get_bd_pins inrdy_rst_$idx/Res] [get_bd_pins in_fifo_$idx/m_axis_tready]
 
-    connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ACLK]
-    connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_demuxer/M[format {%02d} $idx]_AXIS_ARESETN]
+    connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS_ACLK]
+    connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS_ARESETN]
 
-    set out_fifo_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 out_fifo_$idx]
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 out_fifo_$idx
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
@@ -425,20 +524,24 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.HAS_TLAST.VALUE_SRC USER \
       CONFIG.HAS_TLAST {1} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins out_fifo_$idx/s_axis_aresetn]
 
-    # make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS]
-    # set_property name "m_axis${idx}" [get_bd_intf_ports M[format {%02d} $idx]_AXIS_0]
+    # make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS]
+    # set_property name "m_axis${idx}" [get_bd_intf_ports M[format {%02d} $idx_lo]_AXIS_0]
     create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0       m_axis_$idx
     connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/M_AXIS] [get_bd_intf_ports m_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/S_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx]_AXIS]
+    connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/S_AXIS] [get_bd_intf_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS]
+    set_property -dict [list \
+      CONFIG.M[format {%02d} $idx_lo]_AXIS_BASETDEST [format {0x%02x} $idx] \
+      CONFIG.M[format {%02d} $idx_lo]_AXIS_HIGHTDEST [format {0x%02x} $idx] \
+    ] [get_bd_cells axis_demuxer_$idx_hi]
   }
 
-  set tx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo]
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo
   set_property -dict [list \
     CONFIG.FIFO_DEPTH {256} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
@@ -448,167 +551,18 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
+    CONFIG.FIFO_MODE {2} \
   ] [get_bd_cells tx_fifo]
 
-  set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
-  set_property -dict [list \
-    CONFIG.FIFO_DEPTH {256} \
-    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES  \
-    CONFIG.HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.HAS_TKEEP {1} \
-    CONFIG.HAS_TLAST.VALUE_SRC USER \
-    CONFIG.HAS_TLAST {1} \
-    CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
-    CONFIG.HAS_PROG_FULL {1} \
-    CONFIG.PROG_FULL_THRESH {128} \
-  ] [get_bd_cells rx_fifo]
-
-  set fc_tx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 fc_tx_flop]
-  set_property -dict [list \
-    CONFIG.CE {true} \
-    CONFIG.Load {true} \
-    CONFIG.Output_Width {1} \
-    CONFIG.SCLR {true} \
-  ] [get_bd_cells fc_tx_flop]
-  connect_bd_net [get_bd_pins fc_tx_flop/L] [get_bd_pins rx_fifo/prog_full]
-
-  set fc_rx_flop [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 fc_rx_flop]
-  set_property -dict [list \
-    CONFIG.CE {true} \
-    CONFIG.Load {true} \
-    CONFIG.Output_Width {1} \
-    CONFIG.SCLR {true} \
-  ] [get_bd_cells fc_rx_flop]
-
-  connect_bd_net [get_bd_pins rx_rst_gen/bus_struct_reset] [get_bd_pins fc_tx_flop/SCLR]
-  connect_bd_net [get_bd_pins tx_rst_gen/bus_struct_reset] [get_bd_pins fc_rx_flop/SCLR]
-
-  set fc_diff [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 fc_diff ]
-    set_property -dict [list \
-      CONFIG.C_OPERATION {xor} \
-      CONFIG.C_SIZE {1} \
-  ] [get_bd_cells fc_diff]
-  connect_bd_net [get_bd_pins fc_diff/Op1] [get_bd_pins rx_fifo/prog_full]
-  connect_bd_net [get_bd_pins fc_diff/Op2] [get_bd_pins fc_tx_flop/Q]
-
-  set fc_wr [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 fc_wr ]
-    set_property -dict [list \
-      CONFIG.C_OPERATION {and} \
-      CONFIG.C_SIZE {1} \
-  ] [get_bd_cells fc_wr]
-  connect_bd_net [get_bd_pins fc_wr/Res] [get_bd_pins fc_tx_flop/CE] [get_bd_pins fc_tx_flop/LOAD]
-  connect_bd_net [get_bd_pins fc_wr/Op1] [get_bd_pins fc_diff/Res]
-
-  set fc_inject_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 fc_inject_fifo]
-  set_property -dict [list \
-    CONFIG.FIFO_DEPTH {16} \
-    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.TDATA_NUM_BYTES {0} \
-    CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH {1} \
-    CONFIG.IS_ACLK_ASYNC {1} \
-  ] [get_bd_cells fc_inject_fifo]
-  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tvalid] [get_bd_pins fc_diff/Res]
-  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tready] [get_bd_pins fc_wr/Op2]
-  connect_bd_net [get_bd_pins fc_inject_fifo/s_axis_tdest]  [get_bd_pins rx_fifo/prog_full]
-
-  set fc_injector [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 fc_injector]
-  set_property -dict [list \
-    CONFIG.NUM_MI {1} \
-    CONFIG.NUM_SI {2} \
-    CONFIG.ARB_ALGORITHM {1} \
-    CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
-    CONFIG.ARB_ON_TLAST {1} \
-    CONFIG.ARB_ON_MAX_XFERS {0} \
-    CONFIG.M00_FIFO_DEPTH {16} \
-    CONFIG.M00_FIFO_MODE {1} \
-  ] [get_bd_cells fc_injector]
-  connect_bd_net [get_bd_pins fc_injector/S00_ARB_REQ_SUPPRESS] [get_bd_pins gndx1/dout] 
-  connect_bd_net [get_bd_pins fc_injector/S01_ARB_REQ_SUPPRESS] [get_bd_pins fc_rx_flop/Q]
-
-  set fc_inject_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 fc_inject_conv]
-  set_property -dict [list \
-    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.S_TDATA_NUM_BYTES {0} \
-    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.M_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES  \
-    CONFIG.TDATA_REMAP {448'b0} \
-    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.S_HAS_TKEEP {0} \
-    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.M_HAS_TKEEP {1} \
-    CONFIG.TKEEP_REMAP {56'b0} \
-    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {1} \
-    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
-    CONFIG.TDEST_REMAP {7'b1000000,tdest[0:0]} \
-    CONFIG.S_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.S_HAS_TLAST {0} \
-    CONFIG.M_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.M_HAS_TLAST {1} \
-    CONFIG.TLAST_REMAP {1'b1} \
-  ] [get_bd_cells fc_inject_conv]
-  connect_bd_intf_net [get_bd_intf_pins fc_inject_conv/S_AXIS] [get_bd_intf_pins fc_inject_fifo/M_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins fc_inject_conv/M_AXIS] [get_bd_intf_pins fc_injector/S00_AXIS]
-
-  set fc_extract_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 fc_extract_fifo]
-  set_property -dict [list \
-    CONFIG.FIFO_DEPTH {16} \
-    CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.TDATA_NUM_BYTES {0} \
-    CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH {1} \
-    CONFIG.IS_ACLK_ASYNC {1} \
-  ] [get_bd_cells fc_extract_fifo]
-  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tready] [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tvalid] [get_bd_pins fc_rx_flop/CE] [get_bd_pins fc_rx_flop/LOAD]
-  connect_bd_net [get_bd_pins fc_extract_fifo/m_axis_tdest]  [get_bd_pins fc_rx_flop/L]
-
-  set fc_extractor [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 fc_extractor]
-  set_property -dict [list \
-    CONFIG.NUM_MI {2} \
-    CONFIG.M00_AXIS_BASETDEST {0x0} \
-    CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
-    CONFIG.M01_AXIS_BASETDEST {0x80} \
-    CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
-    CONFIG.S00_FIFO_DEPTH {16} \
-  ] [get_bd_cells fc_extractor]
-
-  set fc_extract_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 fc_extract_conv]
-  set_property -dict [list \
-    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.S_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES  \
-    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.M_TDATA_NUM_BYTES {0} \
-    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.S_HAS_TKEEP {1} \
-    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.M_HAS_TKEEP {0} \
-    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
-    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {1} \
-    CONFIG.TDEST_REMAP {tdest[0:0]} \
-    CONFIG.S_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.S_HAS_TLAST {1} \
-    CONFIG.M_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.M_HAS_TLAST {0} \
-  ] [get_bd_cells fc_extract_conv]
-  connect_bd_intf_net [get_bd_intf_pins fc_extract_conv/S_AXIS] [get_bd_intf_pins fc_extractor/M01_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins fc_extract_conv/M_AXIS] [get_bd_intf_pins fc_extract_fifo/S_AXIS]
-
-  set aur_tx_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 aur_tx_conv]
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 cmac_tx_conv
   set_property -dict [list \
     CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.S_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES \
     CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.M_TDATA_NUM_BYTES $CMAC_FULL_DAT_BYTES \
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.S_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.M_TDEST_WIDTH {0} \
     CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
@@ -624,39 +578,17 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.TDATA_REMAP {tdest[7:0],tkeep[55:0],tdata[447:0]} \
     CONFIG.TKEEP_REMAP {64'b1111111111111111111111111111111111111111111111111111111111111111} \
     CONFIG.TUSER_REMAP {1'b0} \
-  ] [get_bd_cells aur_tx_conv]
+  ] [get_bd_cells cmac_tx_conv]
+  # CONFIG.TDATA_REMAP {tdest[ [expr {$AXIS_TDEST_WIDTH-1}] :0],tkeep[ [expr {$CMAC_USE_DAT_BYTES-1}] :0],tdata[ [expr {$CMAC_USE_DAT_BYTES*8-1}] :0]}
+  # CONFIG.TKEEP_REMAP {${CMAC_FULL_DAT_BYTES}'b1111111111111111111111111111111111111111111111111111111111111111}
 
-  set aur_rx_conv [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 aur_rx_conv]
-  set_property -dict [list \
-    CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.S_TDATA_NUM_BYTES $CMAC_FULL_DAT_BYTES \
-    CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
-    CONFIG.M_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES \
-    CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {0} \
-    CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
-    CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.S_HAS_TKEEP {1} \
-    CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
-    CONFIG.M_HAS_TKEEP {1} \
-    CONFIG.S_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.S_HAS_TLAST {1} \
-    CONFIG.M_HAS_TLAST.VALUE_SRC USER \
-    CONFIG.M_HAS_TLAST {1} \
-    CONFIG.S_HAS_TREADY.VALUE_SRC USER \
-    CONFIG.S_HAS_TREADY {0} \
-    CONFIG.M_HAS_TREADY.VALUE_SRC USER \
-    CONFIG.M_HAS_TREADY {1} \
-    CONFIG.M_TUSER_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TUSER_WIDTH {0} \
-    CONFIG.TDATA_REMAP {tdata[447:0]} \
-    CONFIG.TKEEP_REMAP {tdata[503:448]} \
-    CONFIG.TDEST_REMAP {tdata[511:504]} \
-  ] [get_bd_cells aur_rx_conv]
+  connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
+                 [get_bd_pins tx_fifo/s_axis_aresetn] \
+                 [get_bd_pins cmac_tx_conv/aresetn]
 
-  make_bd_pins_external  [get_bd_pins aur_rx_conv/transfer_dropped]
-  set_property name "rx_overflow" [get_bd_ports transfer_dropped_0]
+  connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] \
+                 [get_bd_pins tx_fifo/s_axis_aclk] \
+                 [get_bd_pins cmac_tx_conv/aclk]
 
   # set g_refport_freq [format {%0.0f} [expr {$g_eth100gb_freq*1000000+0.5}] ]
   # puts "PORT FREQUENCY: $g_refport_freq"
@@ -734,59 +666,6 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
                                                  [get_bd_pins tx_rst_gen/dcm_locked] \
                                                  [get_bd_pins tx_rfi_gen/dcm_locked]
 
-  connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn] \
-                 [get_bd_pins axis_demuxer/ARESETN] \
-                 [get_bd_pins axis_demuxer/S00_AXIS_ARESETN] \
-                 [get_bd_pins rx_fifo/s_axis_aresetn] \
-                 [get_bd_pins fc_inject_fifo/s_axis_aresetn] \
-                 [get_bd_pins fc_extract_fifo/s_axis_aresetn] \
-                 [get_bd_pins fc_extractor/ARESETN] \
-                 [get_bd_pins fc_extractor/S00_AXIS_ARESETN] \
-                 [get_bd_pins fc_extractor/M00_AXIS_ARESETN] \
-                 [get_bd_pins fc_extractor/M01_AXIS_ARESETN] \
-                 [get_bd_pins fc_extract_conv/aresetn] \
-                 [get_bd_pins aur_rx_conv/aresetn]
-
-  connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] [get_bd_pins eth_cmac/rx_clk] \
-                 [get_bd_pins axis_demuxer/ACLK] \
-                 [get_bd_pins axis_demuxer/S00_AXIS_ACLK] \
-                 [get_bd_pins rx_fifo/s_axis_aclk] \
-                 [get_bd_pins fc_inject_fifo/s_axis_aclk] \
-                 [get_bd_pins fc_extract_fifo/s_axis_aclk] \
-                 [get_bd_pins fc_extractor/ACLK] \
-                 [get_bd_pins fc_extractor/S00_AXIS_ACLK] \
-                 [get_bd_pins fc_extractor/M00_AXIS_ACLK] \
-                 [get_bd_pins fc_extractor/M01_AXIS_ACLK] \
-                 [get_bd_pins fc_extract_conv/aclk] \
-                 [get_bd_pins fc_tx_flop/CLK] \
-                 [get_bd_pins aur_rx_conv/aclk]
-
-
-  connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
-                 [get_bd_pins axis_muxer/ARESETN] \
-                 [get_bd_pins axis_muxer/M00_AXIS_ARESETN] \
-                 [get_bd_pins tx_fifo/s_axis_aresetn] \
-                 [get_bd_pins fc_injector/ARESETN] \
-                 [get_bd_pins fc_injector/M00_AXIS_ARESETN] \
-                 [get_bd_pins fc_injector/S00_AXIS_ARESETN] \
-                 [get_bd_pins fc_injector/S01_AXIS_ARESETN] \
-                 [get_bd_pins fc_inject_conv/aresetn] \
-                 [get_bd_pins aur_tx_conv/aresetn]
-
-  connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] \
-                 [get_bd_pins axis_muxer/ACLK] \
-                 [get_bd_pins axis_muxer/M00_AXIS_ACLK] \
-                 [get_bd_pins tx_fifo/s_axis_aclk] \
-                 [get_bd_pins fc_inject_fifo/m_axis_aclk] \
-                 [get_bd_pins fc_extract_fifo/m_axis_aclk] \
-                 [get_bd_pins fc_injector/ACLK] \
-                 [get_bd_pins fc_injector/M00_AXIS_ACLK] \
-                 [get_bd_pins fc_injector/S00_AXIS_ACLK] \
-                 [get_bd_pins fc_injector/S01_AXIS_ACLK] \
-                 [get_bd_pins fc_inject_conv/aclk] \
-                 [get_bd_pins fc_rx_flop/CLK] \
-                 [get_bd_pins aur_tx_conv/aclk]
-
   set concat_aur_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_hi_ok ]
   set_property -dict [ list \
    CONFIG.NUM_PORTS {2} \
@@ -829,14 +708,63 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
                                                 [get_bd_pins rx_rst_gen/mb_debug_sys_rst] \
                                                 [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
 
-  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/S_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
-  connect_bd_intf_net [get_bd_intf_pins aur_tx_conv/S_AXIS] [get_bd_intf_pins fc_injector/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins aur_rx_conv/M_AXIS] [get_bd_intf_pins fc_extractor/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/S_AXIS]     [get_bd_intf_pins fc_extractor/M00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins rx_fifo/M_AXIS]     [get_bd_intf_pins axis_demuxer/S00_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/M_AXIS]     [get_bd_intf_pins fc_injector/S01_AXIS]
-  connect_bd_intf_net [get_bd_intf_pins tx_fifo/S_AXIS]     [get_bd_intf_pins axis_muxer/M00_AXIS]
+  connect_bd_intf_net [get_bd_intf_pins cmac_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
+  connect_bd_intf_net [get_bd_intf_pins cmac_tx_conv/S_AXIS] [get_bd_intf_pins tx_fifo/M_AXIS]
+
+  make_bd_intf_pins_external [get_bd_intf_pins eth_cmac/axis_rx]
+  set_property name m_axis_cmac_rx [get_bd_intf_ports axis_rx_0]
+
+  if {$AXIS_INTERCON_PARTS > 1} {
+    connect_bd_intf_net        [get_bd_intf_pins axis_muxer/M00_AXIS]   [get_bd_intf_pins tx_fifo/S_AXIS]     
+    make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer/S00_AXIS]
+  } else {
+    connect_bd_intf_net        [get_bd_intf_pins axis_muxer_0/M00_AXIS] [get_bd_intf_pins tx_fifo/S_AXIS]     
+    make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer_0/S00_AXIS]
+  }
+
+  set_property name s_axis_demux_rx [get_bd_intf_ports S00_AXIS_0]
+  set_property -dict [list \
+    CONFIG.TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES \
+    CONFIG.HAS_TKEEP {1} \
+    CONFIG.HAS_TLAST {1} \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
+  ] [get_bd_intf_ports s_axis_demux_rx]
+
+  set_property -dict [list \
+    CONFIG.ASSOCIATED_RESET "qsfp_rstn" \
+    CONFIG.ASSOCIATED_BUSIF "m_axis_cmac_rx:s_axis_demux_rx" \
+  ] [get_bd_ports qsfp_clk]
+
+if {[info exists g_cmac_ila] &&
+                $g_cmac_ila != "0"} {
+  create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 rx_axis_ila
+  set_property -dict [list \
+    CONFIG.C_DATA_DEPTH {2048} \
+    CONFIG.C_NUM_MONITOR_SLOTS {2} \
+    CONFIG.C_SLOT {0} \
+    CONFIG.C_SLOT {1} \
+    CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+    CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+  ] [get_bd_cells rx_axis_ila]
+  connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_rx]
+  connect_bd_intf_net [get_bd_intf_pins rx_axis_ila/SLOT_1_AXIS] [get_bd_intf_ports s_axis_demux_rx]
+  connect_bd_net [get_bd_pins rx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_rxusrclk2]
+  connect_bd_net [get_bd_pins rx_axis_ila/resetn] [get_bd_pins rx_rst_gen/interconnect_aresetn]
+
+  create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 tx_axis_ila
+  set_property -dict [list \
+    CONFIG.C_DATA_DEPTH {2048} \
+    CONFIG.C_NUM_MONITOR_SLOTS {2} \
+    CONFIG.C_SLOT {0} \
+    CONFIG.C_SLOT {1} \
+    CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+    CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+  ] [get_bd_cells tx_axis_ila]
+  connect_bd_intf_net [get_bd_intf_pins tx_axis_ila/SLOT_0_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
+  connect_bd_intf_net [get_bd_intf_pins tx_axis_ila/SLOT_1_AXIS] [get_bd_intf_pins cmac_tx_conv/S_AXIS]
+  connect_bd_net [get_bd_pins tx_axis_ila/clk]    [get_bd_pins eth_cmac/gt_txusrclk2]
+  connect_bd_net [get_bd_pins tx_axis_ila/resetn] [get_bd_pins tx_rst_gen/interconnect_aresetn]
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst

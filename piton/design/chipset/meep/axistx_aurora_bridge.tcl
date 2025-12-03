@@ -165,6 +165,8 @@ current_bd_design $design_name
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
     CONFIG.NUM_MI $QSFP_BRDG_CHANS \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_demuxer]
 
   # Create instance: gndx1, and set properties
@@ -231,7 +233,7 @@ current_bd_design $design_name
   set_property USER_COMMENTS.comment_2 "https://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-transceivers.pdf#page=88" [get_bd_pins /aurora_inst/loopback]
   connect_bd_net [get_bd_pins gndx1/dout] [get_bd_pins aurora_inst/power_down] [get_bd_pins aurora_inst/gt_rxcdrovrden_in]
   make_bd_pins_external         [get_bd_pins aurora_inst/user_clk_out]
-  set_property name "aur_clk"   [get_bd_ports user_clk_out_0]
+  set_property name "qsfp_clk"  [get_bd_ports user_clk_out_0]
 
   global sys_clk_freq
   set sys_rstn [ create_bd_port -dir I -type rst sys_rstn ]
@@ -268,7 +270,7 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock]   [get_bd_pins txrx_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aurora_inst/sys_reset_out] [get_bd_pins txrx_rst_gen/ext_reset_in]
   make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/peripheral_aresetn]
-  set_property name "aur_rstn"                           [get_bd_ports peripheral_aresetn_0]
+  set_property name "qsfp_rstn"                          [get_bd_ports peripheral_aresetn_0]
 
   for {set idx 0} {$idx < $QSFP_BRDG_CHANS} {incr idx} {
     set_property -dict [list \
@@ -476,6 +478,8 @@ current_bd_design $design_name
     CONFIG.M00_AXIS_HIGHTDEST {0x7F} \
     CONFIG.M01_AXIS_BASETDEST {0x80} \
     CONFIG.M01_AXIS_HIGHTDEST {0x0FF} \
+    CONFIG.ARB_ON_TLAST {1} \
+    CONFIG.ARB_ON_MAX_XFERS {0} \
     CONFIG.S00_FIFO_DEPTH {16} \
   ] [get_bd_cells fc_extractor]
 
