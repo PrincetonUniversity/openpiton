@@ -1199,7 +1199,7 @@ module chip(
     always_eth_hdr_rx = '''
       reg [ETHHDR_NOC_WIDTH-1:0] eth_hdr_rx;
       always @(posedge clk_muxed)
-        if(~rstn_tile) eth_hdr_rx <= '0;
+        if(~rstn_tile) eth_hdr_rx <= 0;
         else begin 
     '''
 
@@ -1208,8 +1208,8 @@ module chip(
       reg [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries;
       always @(posedge clk_muxed)
         if(~rstn_tile) begin 
-          ethack_wait_time <= '0;
-          ethfr_retries    <= '0;
+          ethack_wait_time <= 0;
+          ethfr_retries    <= 0;
         end else begin 
     '''
 
@@ -1661,7 +1661,7 @@ module chip(
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_reg;
     wire                          free_ctrl_rx_val;
     always @(posedge clk_muxed)
-      if (~rstn_tile)            free_ctrl_rx_reg <= '0;
+      if (~rstn_tile)            free_ctrl_rx_reg <= 0;
       else if (free_ctrl_rx_val) free_ctrl_rx_reg <= free_ctrl_rx;
 
     wire ctrl_rx;
@@ -1683,13 +1683,13 @@ module chip(
        else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
      assign qsfp_noc_overflow = aur_overflow_sync[2];
 
-     assign dst_src_mac_rx  = 'hFEEDFACEDEADBEEF8BADF00D;
-     assign eth_payl_len_rx = 'hCAFE;
-     assign ethfr_id        = 'hC0DE;
+     assign dst_src_mac_rx  = 96'hFEEDFACEDEADBEEF8BADF00D;
+     assign eth_payl_len_rx = 16'hCAFE;
+     assign ethfr_id        = 16'hC0DE;
      axistx_aurora_bridge
    `else
      assign {ethfr_id, eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
-     assign qsfp_noc_overflow = '0;
+     assign qsfp_noc_overflow = 0;
 
      wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_eth_data;
      wire                       freectrl_tx_eth_valid;
