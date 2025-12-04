@@ -103,11 +103,10 @@ always @(posedge clk)
       pack_cnt <= pack_cnt + 'b1;
       if (last_out) begin
         hdr_tx_cnt <= ETHHDR_NOC_FLITS;
-        wait_ack  <= '1; // all ones to retry timeout counter
+        wait_ack   <= '1; // all ones to retry timeout counter
         pack_flits <= pack_cnt; // due to eth header, here pack_cnt is above zero
-        pack_cnt <= '0;
-        if (!pack_flits) retries <= '0;
-        else retries <= retries + 'b1;
+        pack_cnt   <= '0;
+        retries    <= retries + 'b1; // counting retries in advance, in case of got ack it will be cleared
       end
     end
     if (wait_ack >> 1) begin
@@ -117,6 +116,7 @@ always @(posedge clk)
         wait_time <= ~wait_ack;
         wait_ack   <= '0;
         pack_flits <= '0;
+        retries    <= '0;
       end
     end
   end
@@ -137,7 +137,7 @@ assign last_out = (((remaining_flits == `MSG_LENGTH_WIDTH'h1) ||
                         (noc_msg_len == `MSG_LENGTH_WIDTH'h0) && valid_in)) && !hdr_tx_cnt) ||
                    (pack_flits && pack_cnt == pack_flits); // last flit of retry transmission
 
-assign data_out = pack_flits  ? pack_buf[pack_cnt] : // retry transmission from the buffer
+assign data_out = pack_flits ? pack_buf[pack_cnt] : // retry transmission from the buffer
                  (hdr_tx_cnt ? header_tx[(ETHHDR_NOC_FLITS - hdr_tx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] : flit_in); // primary tramsmission
 
 
