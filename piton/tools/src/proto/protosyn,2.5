@@ -121,8 +121,11 @@ def usage():
     print("\n       --to_x <number>", file=sys.stderr)
     print("         --to_y <number>", file=sys.stderr)
     print("              Tile coordinates at which FPGA partition finishes. Default: (x_tiles-1)/(y_tiles-1)", file=sys.stderr)
-    print("\n       --fpart_aur", file=sys.stderr)
-    print("              FPGA partitioning using Aurora IP, otherwise CMAC Eth IP", file=sys.stderr)
+    print("\n       --frx_port <number>", file=sys.stderr)
+    print("         --fry_port <number>", file=sys.stderr)
+    print("         --tox_port <number>", file=sys.stderr)
+    print("         --toy_port <number>", file=sys.stderr)
+    print("              QSFP port (0/1) to be used for corresponding FPGA partitioning border. Default: 0", file=sys.stderr)
     print("\n       --eth", file=sys.stderr)
     print("              Add Ethernet controller to implementation", file=sys.stderr)
     print("\n       --ethport <number>", file=sys.stderr)
@@ -552,7 +555,10 @@ def setParserOptions(parser):
     parser.add_option("--fr_y", dest="fr_y", action="store", default=0)
     parser.add_option("--to_x", dest="to_x", action="store", default=-1)
     parser.add_option("--to_y", dest="to_y", action="store", default=-1)
-    parser.add_option("--fpart_aur", dest="fpart_aur", action="store_true", default=False)
+    parser.add_option("--frx_port", dest="frx_port", action="store", default=0)
+    parser.add_option("--fry_port", dest="fry_port", action="store", default=0)
+    parser.add_option("--tox_port", dest="tox_port", action="store", default=0)
+    parser.add_option("--toy_port", dest="toy_port", action="store", default=0)
     parser.add_option("--num_tiles", dest="num_tiles", action="store", default=1)
     parser.add_option("--config_l1i_size", dest="config_l1i_size", action="store", default=16384)
     parser.add_option("--config_l1d_size", dest="config_l1d_size", action="store", default=8192)
@@ -967,26 +973,43 @@ def main():
     os.environ['PITON_Y_TILES']   = str(options.y_tiles)
     os.environ['PITON_NUM_TILES'] = str(options.num_tiles)
 
+    if int(options.fr_x) < 0 or int(options.fr_x) >= int(options.x_tiles):
+        options.fr_x = 0;
+    if int(options.fr_y) < 0 or int(options.fr_y) >= int(options.y_tiles):
+        options.fr_y = 0;
     if int(options.to_x) < 0 or int(options.to_x) >= int(options.x_tiles):
         options.to_x = int(options.x_tiles)-1;
     if int(options.to_y) < 0 or int(options.to_y) >= int(options.y_tiles):
         options.to_y = int(options.y_tiles)-1;
-    print_info("Impl partition fr_x = " + str(options.fr_x) + " to_x = " + str(options.to_x))
-    print_info("Impl partition fr_y = " + str(options.fr_y) + " to_y = " + str(options.to_y))
+    print_info("Impl partition fr_x=" + str(options.fr_x) + "(port" + str(options.frx_port) + ") to_x=" + str(options.to_x) + "(port" + str(options.tox_port) + ")")
+    print_info("Impl partition fr_y=" + str(options.fr_y) + "(port" + str(options.fry_port) + ") to_y=" + str(options.to_y) + "(port" + str(options.toy_port) + ")")
 
     os.environ['PITON_FR_X'] = str(options.fr_x)
     os.environ['PITON_FR_Y'] = str(options.fr_y)
     os.environ['PITON_TO_X'] = str(options.to_x)
     os.environ['PITON_TO_Y'] = str(options.to_y)
+    os.environ['PITON_FRX_PORT'] = str(options.frx_port)
+    os.environ['PITON_FRY_PORT'] = str(options.fry_port)
+    os.environ['PITON_TOX_PORT'] = str(options.tox_port)
+    os.environ['PITON_TOY_PORT'] = str(options.toy_port)
 
-    if (int(options.fr_x) != 0 or
-        int(options.fr_y) != 0 or
-        int(options.to_x) != int(options.x_tiles)-1 or
-        int(options.to_y) != int(options.y_tiles)-1):
+    if ((int(options.fr_x) != 0                      and int(options.frx_port) == 0) or
+        (int(options.fr_y) != 0                      and int(options.fry_port) == 0) or
+        (int(options.to_x) != int(options.x_tiles)-1 and int(options.tox_port) == 0) or
+        (int(options.to_y) != int(options.y_tiles)-1 and int(options.toy_port) == 0)
+    ):
       defines.append("PITON_MULTI_FPGA")
-      if options.fpart_aur:
-        defines.append("PITON_MULTI_FPGA_AUR")
-        os.environ['PROTOSYN_RUNTIME_MULTI_FPGA_AUR'] = "TRUE"
+      defines.append("PITON_MULTI_FPGA_CMAC")
+      os.environ['PROTOSYN_MULTI_FPGA_CMAC'] = "TRUE"
+
+    if ((int(options.fr_x) != 0                      and int(options.frx_port) == 1) or
+        (int(options.fr_y) != 0                      and int(options.fry_port) == 1) or
+        (int(options.to_x) != int(options.x_tiles)-1 and int(options.tox_port) == 1) or
+        (int(options.to_y) != int(options.y_tiles)-1 and int(options.toy_port) == 1)
+    ):
+      defines.append("PITON_MULTI_FPGA")
+      defines.append("PITON_MULTI_FPGA_AUR")
+      os.environ['PROTOSYN_MULTI_FPGA_AUR'] = "TRUE"
 
     os.environ['PITON_EXTRA_MEMS'] = "0"
     if options.multimc:

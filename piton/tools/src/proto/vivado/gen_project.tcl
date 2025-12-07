@@ -185,13 +185,6 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   update_ip_catalog -rebuild
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
-  # Multi-FPGA axist-aurora bridge assuming QSFP P2P connection
-  # setting currently QSFP port opposite to Ethernet
-  if {[info exists ::env(PROTOSYN_RUNTIME_ETHPORT)] && $::env(PROTOSYN_RUNTIME_ETHPORT)=="1"} {
-    set g_aur_port "qsfp0"
-  } else {
-    set g_aur_port "qsfp1"
-  }
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
   # NOC_DATA_WIDTH/8 = 64/8 = 8
   set QSFP_BRDG_CHAN_BYTES 8
@@ -209,12 +202,10 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   if { $QSFP_BRDG_CHANS != 1 } {
-    if {[info exists ::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)] &&
-                    $::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)=="TRUE"} {
-      source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
-    } else {
-      source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
-    }
+    set g_cmac_port "qsfp0"
+    set g_aur_port  "qsfp1"
+    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+    source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
   }
 }
 
@@ -343,11 +334,13 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
   if { $QSFP_BRDG_CHANS != 1 } {
-    if {[info exists ::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)] &&
-                    $::env(PROTOSYN_RUNTIME_MULTI_FPGA_AUR)=="TRUE"} {
-      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_${g_aur_port}.xdc"
-    } else {
-      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_${g_aur_port}.xdc"
+    if {[info exists ::env(PROTOSYN_MULTI_FPGA_AUR)] &&
+                    $::env(PROTOSYN_MULTI_FPGA_AUR)=="TRUE"} {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_qsfp.xdc"
+    }
+    if {[info exists ::env(PROTOSYN_MULTI_FPGA_CMAC)] &&
+                    $::env(PROTOSYN_MULTI_FPGA_CMAC)=="TRUE"} {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_qsfp.xdc"
     }
   }
 }

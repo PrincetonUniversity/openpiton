@@ -158,10 +158,10 @@ current_bd_design $design_name
 
   # Create instance: eth_cmac, and set properties
   global g_board_part
-  global g_aur_port
+  global g_cmac_port
   if { ${g_board_part} eq "u280" } {
     set g_eth100gb_freq "156.25"
-    if { ${g_aur_port} eq "qsfp0" } {
+    if { ${g_cmac_port} eq "qsfp0" } {
       set g_cmac_loc      "CMACE4_X0Y6"
       set g_gt_grp_loc    "X0Y40~X0Y43"
       set g_lane1_loc     "X0Y40"
@@ -169,7 +169,7 @@ current_bd_design $design_name
       set g_lane3_loc     "X0Y42"
       set g_lane4_loc     "X0Y43"
     }
-    if { ${g_aur_port} eq "qsfp1" } {
+    if { ${g_cmac_port} eq "qsfp1" } {
       # set g_cmac_loc      "CMACE4_X0Y7"
       # using non defualt for QSFP1 CMAC provides better timing
       set g_cmac_loc      "CMACE4_X0Y6"
@@ -182,7 +182,7 @@ current_bd_design $design_name
   }
   if { ${g_board_part} eq "u250" } {
     set g_eth100gb_freq "156.25"
-    if { ${g_aur_port} eq "qsfp0" } {
+    if { ${g_cmac_port} eq "qsfp0" } {
       # set g_cmac_loc      "CMACE4_X0Y7"
       set g_cmac_loc      "CMACE4_X0Y8"
       set g_gt_grp_loc    "X1Y44~X1Y47"
@@ -191,7 +191,7 @@ current_bd_design $design_name
       set g_lane3_loc     "X1Y46"
       set g_lane4_loc     "X1Y47"
     }
-    if { ${g_aur_port} eq "qsfp1" } {
+    if { ${g_cmac_port} eq "qsfp1" } {
       # set g_cmac_loc      "CMACE4_X0Y6"
       set g_cmac_loc      "CMACE4_X0Y7"
       set g_gt_grp_loc    "X1Y40~X1Y43"
@@ -203,7 +203,7 @@ current_bd_design $design_name
   }
   if { ${g_board_part} eq "u55c" } {
     set g_eth100gb_freq "161.1328125"
-    if { ${g_aur_port} eq "qsfp0" } {
+    if { ${g_cmac_port} eq "qsfp0" } {
       set g_cmac_loc      "CMACE4_X0Y3"
       set g_gt_grp_loc    "X0Y24~X0Y27"
       set g_lane1_loc     "X0Y24"
@@ -211,7 +211,7 @@ current_bd_design $design_name
       set g_lane3_loc     "X0Y26"
       set g_lane4_loc     "X0Y27"
     }
-    if { ${g_aur_port} eq "qsfp1" } {
+    if { ${g_cmac_port} eq "qsfp1" } {
       set g_cmac_loc      "CMACE4_X0Y4"
       set g_gt_grp_loc    "X0Y28~X0Y31"
       set g_lane1_loc     "X0Y28"

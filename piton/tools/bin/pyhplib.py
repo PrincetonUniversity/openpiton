@@ -43,7 +43,10 @@ PITON_FR_X = int(os.environ.get('PITON_FR_X', '-1'))
 PITON_FR_Y = int(os.environ.get('PITON_FR_Y', '-1'))
 PITON_TO_X = int(os.environ.get('PITON_TO_X', '-1'))
 PITON_TO_Y = int(os.environ.get('PITON_TO_Y', '-1'))
-PITON_MULTI_FPGA_AUR = os.environ.get('PROTOSYN_RUNTIME_MULTI_FPGA_AUR', 'FALSE') == 'TRUE'
+PITON_FRX_PORT = int(os.environ.get('PITON_FRX_PORT', '-1'))
+PITON_FRY_PORT = int(os.environ.get('PITON_FRY_PORT', '-1'))
+PITON_TOX_PORT = int(os.environ.get('PITON_TOX_PORT', '-1'))
+PITON_TOY_PORT = int(os.environ.get('PITON_TOY_PORT', '-1'))
 
 PITON_NUM_TILES = int(os.environ.get('PITON_NUM_TILES', '-1'))
 #print "//num_tiles:", num_tiles

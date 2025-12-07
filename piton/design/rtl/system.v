@@ -368,19 +368,11 @@ module system(
     `endif
 `elsif ALVEO_BOARD // PITON_FPGA_ETHERNETLITE
         // GTY quads connected to QSFP unit on Alveo board     
-    `ifndef PITON_FPGA_ETH_CMAC
-    `ifndef PITON_MULTI_FPGA
-      `define NO_QSFP
-    `endif
-    `endif
-
-    `ifndef NO_QSFP
         input          qsfp0_ref_clk_n,
         input          qsfp0_ref_clk_p,
 
         input          qsfp1_ref_clk_n,
         input          qsfp1_ref_clk_p,
-    `endif
 
     `ifdef PITON_FPGA_ETH_CMAC
         input   [3:0]  eth_qsfp_4x_grx_n,
@@ -389,11 +381,18 @@ module system(
         output  [3:0]  eth_qsfp_4x_gtx_p,
     `endif
 
-    `ifdef PITON_MULTI_FPGA
+        // For FPGA partitioning
+    `ifdef PITON_MULTI_FPGA_AUR
         input   [3:0]  aur_qsfp_4x_grx_n,
         input   [3:0]  aur_qsfp_4x_grx_p,
         output  [3:0]  aur_qsfp_4x_gtx_n,
         output  [3:0]  aur_qsfp_4x_gtx_p,
+    `endif
+    `ifdef PITON_MULTI_FPGA_CMAC
+        input   [3:0]  cmac_qsfp_4x_grx_n,
+        input   [3:0]  cmac_qsfp_4x_grx_p,
+        output  [3:0]  cmac_qsfp_4x_gtx_n,
+        output  [3:0]  cmac_qsfp_4x_gtx_p,
     `endif
 
 `endif // ALVEO_BOARD
@@ -1321,17 +1320,24 @@ chip chip(
     .ethack_wait_time(ethack_wait_time),
     .ethfr_retries   (ethfr_retries),
     .qsfp_noc_overflow(qsfp_noc_overflow),
-    `ifdef PITON_FPGA_ETH_PORT1
-      .qsfp_ref_clk_n(qsfp0_ref_clk_n),
-      .qsfp_ref_clk_p(qsfp0_ref_clk_p),
-    `else
-      .qsfp_ref_clk_n(qsfp1_ref_clk_n),
-      .qsfp_ref_clk_p(qsfp1_ref_clk_p),
-    `endif
-    .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
-    .qsfp_4x_grx_p   (aur_qsfp_4x_grx_p),
-    .qsfp_4x_gtx_n   (aur_qsfp_4x_gtx_n),
-    .qsfp_4x_gtx_p   (aur_qsfp_4x_gtx_p)
+
+   `ifdef PITON_MULTI_FPGA_AUR
+    .aur_qsfp_4x_grx_n (aur_qsfp_4x_grx_n),
+    .aur_qsfp_4x_grx_p (aur_qsfp_4x_grx_p),
+    .aur_qsfp_4x_gtx_n (aur_qsfp_4x_gtx_n),
+    .aur_qsfp_4x_gtx_p (aur_qsfp_4x_gtx_p),
+   `endif
+    .aur_qsfp_ref_clk_n(qsfp1_ref_clk_n),
+    .aur_qsfp_ref_clk_p(qsfp1_ref_clk_p),
+
+   `ifdef PITON_MULTI_FPGA_CMAC
+    .cmac_qsfp_4x_grx_n (cmac_qsfp_4x_grx_n),
+    .cmac_qsfp_4x_grx_p (cmac_qsfp_4x_grx_p),
+    .cmac_qsfp_4x_gtx_n (cmac_qsfp_4x_gtx_n),
+    .cmac_qsfp_4x_gtx_p (cmac_qsfp_4x_gtx_p),
+   `endif
+    .cmac_qsfp_ref_clk_n(qsfp0_ref_clk_n),
+    .cmac_qsfp_ref_clk_p(qsfp0_ref_clk_p)
   `endif
 
 `ifdef PITON_RV64_PLATFORM

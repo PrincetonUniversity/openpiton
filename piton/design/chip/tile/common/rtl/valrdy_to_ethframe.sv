@@ -113,7 +113,7 @@ always @(posedge clk)
       wait_ack <= wait_ack - 'b1; // countdown untill one, one means that retry should start
       if (hdr_rx_cnt == ETHHDR_NOC_FLITS && header_ok) begin // correct Eth frame ACK is received during wait time
         ethfr_id <= ethfr_id + 'b1;
-        wait_time <= ~wait_ack;
+        if (ethfr_id || wait_time) wait_time <= ~wait_ack; // ignore reporting the wait time for the very first confirmed Eth frame
         wait_ack   <= '0;
         pack_flits <= '0;
         retries    <= '0;
