@@ -1933,7 +1933,7 @@ module chip(
     loopback_mode = 0
     chanid = 1
     for edge in range(horz_edges):
-      if (horz_edges > 1):
+      if (horz_edges > 1) and (PITON_FR_Y >= PITON_TO_Y):
         loopback_mode = 2
         ctrl_tx = 1
         ctrl_rx = 1
@@ -1959,7 +1959,7 @@ module chip(
             chanid = chanid + 1
 
     for edge in range(vert_edges):
-      if (vert_edges > 1):
+      if (vert_edges > 1) and (PITON_FR_X >= PITON_TO_X):
         loopback_mode = 2
         ctrl_tx = 1
         ctrl_rx = 1
@@ -2141,7 +2141,7 @@ module chip(
     loopback_mode = 0
     chanid = 1
     for edge in range(horz_edges):
-      if (horz_edges > 1):
+      if (horz_edges > 1) and (PITON_FR_Y >= PITON_TO_Y):
         loopback_mode = 2
         ctrl_tx = 1
         ctrl_rx = 1
@@ -2177,7 +2177,7 @@ module chip(
             print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
 
     for edge in range(vert_edges):
-      if (vert_edges > 1):
+      if (vert_edges > 1) and (PITON_FR_X >= PITON_TO_X):
         loopback_mode = 2
         ctrl_tx = 1
         ctrl_rx = 1
