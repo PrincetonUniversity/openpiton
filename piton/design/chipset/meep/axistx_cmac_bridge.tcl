@@ -343,18 +343,22 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   connect_bd_net [get_bd_pins tx_rfi_gen/interconnect_aresetn] [get_bd_pins eth_cmac/ctl_tx_enable]
 
 
-  global QSFP_BRDG_CHANS
-  set CMAC_BRDG_CHANS [expr {$QSFP_BRDG_CHANS * 2}]
-  set AXIS_INTERCON_MAXCHANS 16
-
   global QSFP_BRDG_CHAN_BYTES
+  global AXIS_INTERCON_MAXCHANS
+  global CMAC_BRDG_CHANS
+  global AXIS_TDEST_WIDTH
+
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
-  set AXIS_TDEST_WIDTH 8
   set CMAC_USE_DAT_BYTES [expr {$CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES}]
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
   set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
+  
+  puts "CMAC_BRDG_CHANS: $CMAC_BRDG_CHANS"
+  puts "AXIS_INTERCON_PARTS: $AXIS_INTERCON_PARTS"
+  puts "AXIS_INTERCON_PARTCHANS: $AXIS_INTERCON_PARTCHANS"
+  
   if {$AXIS_INTERCON_PARTS > 1} {
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer
     set_property -dict [list \
@@ -497,7 +501,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
     create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
     set_property -dict [ list \
-      CONFIG.CONST_WIDTH {8} \
+      CONFIG.CONST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.CONST_VAL $idx \
     ] [get_bd_cells in_dest_$idx]
     connect_bd_net [get_bd_pins in_dest_$idx/dout] [get_bd_pins in_fifo_$idx/s_axis_tdest]
@@ -605,8 +609,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   set_property -dict [ list \
    CONFIG.NUM_PORTS {4} \
   ] $gt_loopback
-  create_bd_port -dir I -from 2 -to 0 aur_loopback
-  connect_bd_net [get_bd_ports aur_loopback] [get_bd_pins gt_loopback/In0]  [get_bd_pins gt_loopback/In1]  [get_bd_pins gt_loopback/In2]  [get_bd_pins gt_loopback/In3]
+  create_bd_port -dir I -from 2 -to 0 loopback_mode
+  connect_bd_net [get_bd_ports loopback_mode] [get_bd_pins gt_loopback/In0]  [get_bd_pins gt_loopback/In1]  [get_bd_pins gt_loopback/In2]  [get_bd_pins gt_loopback/In3]
   connect_bd_net [get_bd_pins gt_loopback/dout] [get_bd_pins eth_cmac/gt_loopback_in]
 
   # Generate powerup reset signal

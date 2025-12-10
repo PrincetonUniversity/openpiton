@@ -142,8 +142,11 @@ current_bd_design $design_name
   # Set parent object as current
   current_bd_instance $parentObj
 
-  global QSFP_BRDG_CHANS
   global QSFP_BRDG_CHAN_BYTES
+  global AXIS_INTERCON_MAXCHANS
+  global AUR_BRDG_CHANS
+  global AXIS_TDEST_WIDTH
+
   set AUR_FULL_DAT_BYTES 32
   set AUR_DATA_OVERHD_BYTES 1
   set AUR_USE_DAT_BYTES [expr ($AUR_FULL_DAT_BYTES - $AUR_DATA_OVERHD_BYTES)]
@@ -152,7 +155,7 @@ current_bd_design $design_name
   set axis_muxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer]
   set_property -dict [list \
     CONFIG.NUM_MI {1} \
-    CONFIG.NUM_SI $QSFP_BRDG_CHANS \
+    CONFIG.NUM_SI $AUR_BRDG_CHANS \
     CONFIG.ARB_ALGORITHM {3} \
     CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
     CONFIG.ARB_ON_TLAST {1} \
@@ -164,7 +167,7 @@ current_bd_design $design_name
   # Create IPs of Xilix AXI-stream interconnect
   set axis_demuxer [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer]
   set_property -dict [list \
-    CONFIG.NUM_MI $QSFP_BRDG_CHANS \
+    CONFIG.NUM_MI $AUR_BRDG_CHANS \
     CONFIG.ARB_ON_TLAST {1} \
     CONFIG.ARB_ON_MAX_XFERS {0} \
   ] [get_bd_cells axis_demuxer]
@@ -272,7 +275,7 @@ current_bd_design $design_name
   make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/peripheral_aresetn]
   set_property name "qsfp_rstn"                          [get_bd_ports peripheral_aresetn_0]
 
-  for {set idx 0} {$idx < $QSFP_BRDG_CHANS} {incr idx} {
+  for {set idx 0} {$idx < $AUR_BRDG_CHANS} {incr idx} {
     set_property -dict [list \
       CONFIG.S[format {%02d} $idx]_FIFO_DEPTH {16} \
       CONFIG.S[format {%02d} $idx]_FIFO_MODE {1} \
@@ -282,7 +285,7 @@ current_bd_design $design_name
 
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ACLK]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins axis_muxer/S[format {%02d} $idx]_AXIS_ARESETN]
-    if { $QSFP_BRDG_CHANS > 1 } {
+    if { $AUR_BRDG_CHANS > 1 } {
     connect_bd_net [get_bd_pins gndx1/dout]                       [get_bd_pins axis_muxer/S[format {%02d} $idx]_ARB_REQ_SUPPRESS]
     }
 
@@ -290,7 +293,7 @@ current_bd_design $design_name
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     ] [get_bd_cells in_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
@@ -304,7 +307,7 @@ current_bd_design $design_name
 
     set in_dest_$idx [create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx]
     set_property -dict [ list \
-      CONFIG.CONST_WIDTH {8} \
+      CONFIG.CONST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.CONST_VAL $idx \
     ] [get_bd_cells in_dest_$idx]
     connect_bd_net [get_bd_pins in_dest_$idx/dout] [get_bd_pins in_fifo_$idx/s_axis_tdest]
@@ -331,7 +334,7 @@ current_bd_design $design_name
       CONFIG.HAS_TLAST.VALUE_SRC USER \
       CONFIG.HAS_TLAST {1} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH 8 \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
@@ -354,7 +357,7 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
   ] [get_bd_cells tx_fifo]
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
@@ -367,7 +370,7 @@ current_bd_design $design_name
     CONFIG.HAS_TLAST.VALUE_SRC USER \
     CONFIG.HAS_TLAST {1} \
     CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.TDEST_WIDTH 8 \
+    CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.HAS_PROG_FULL {1} \
     CONFIG.PROG_FULL_THRESH {128} \
   ] [get_bd_cells rx_fifo]
@@ -448,7 +451,7 @@ current_bd_design $design_name
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.S_TDEST_WIDTH {1} \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.TDEST_REMAP {7'b1000000,tdest[0:0]} \
     CONFIG.S_HAS_TLAST.VALUE_SRC USER \
     CONFIG.S_HAS_TLAST {0} \
@@ -494,7 +497,7 @@ current_bd_design $design_name
     CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
     CONFIG.M_HAS_TKEEP {0} \
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.S_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.M_TDEST_WIDTH {1} \
     CONFIG.TDEST_REMAP {tdest[0:0]} \
@@ -521,7 +524,7 @@ current_bd_design $design_name
     CONFIG.M_TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.M_TDATA_NUM_BYTES $AUR_FULL_DAT_BYTES \
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.S_TDEST_WIDTH {8} \
+    CONFIG.S_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.M_TDEST_WIDTH {0} \
     CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
@@ -553,7 +556,7 @@ current_bd_design $design_name
     CONFIG.S_TDEST_WIDTH.VALUE_SRC USER \
     CONFIG.S_TDEST_WIDTH {0} \
     CONFIG.M_TDEST_WIDTH.VALUE_SRC USER \
-    CONFIG.M_TDEST_WIDTH {8} \
+    CONFIG.M_TDEST_WIDTH $AXIS_TDEST_WIDTH \
     CONFIG.S_HAS_TKEEP.VALUE_SRC USER \
     CONFIG.S_HAS_TKEEP {1} \
     CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
@@ -596,7 +599,7 @@ current_bd_design $design_name
   set_property name "qsfp_rx_4x" [get_bd_intf_ports GT_SERIAL_RX_0]
 
   make_bd_pins_external [get_bd_pins aurora_inst/loopback]
-  set_property name "aur_loopback" [get_bd_ports loopback_0]
+  set_property name "loopback_mode" [get_bd_ports loopback_0]
 
   # Generate powerup reset signal
   set powerup_rst_gen [create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 powerup_rst_gen]

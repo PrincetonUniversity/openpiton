@@ -186,8 +186,6 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
-  # NOC_DATA_WIDTH/8 = 64/8 = 8
-  set QSFP_BRDG_CHAN_BYTES 8
   set QSFP_BRDG_CHANS 1
   if { $::env(PITON_FR_X) != 0 } {
     set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
@@ -202,10 +200,21 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
   }
   if { $QSFP_BRDG_CHANS != 1 } {
+    # NOC_DATA_WIDTH/8 = 64/8 = 8
+    set QSFP_BRDG_CHAN_BYTES 8
+    set AXIS_INTERCON_MAXCHANS 16
+    set CMAC_BRDG_CHANS [expr {$QSFP_BRDG_CHANS * 2}]
+    set AUR_BRDG_CHANS         $QSFP_BRDG_CHANS
+    set AXIS_TDEST_WIDTH 8
     set g_cmac_port "qsfp0"
     set g_aur_port  "qsfp1"
-    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+
     source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
+    if { $AUR_BRDG_CHANS <= $AXIS_INTERCON_MAXCHANS } {
+    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
+    } else {
+      puts "WARNING: AXI-Stream Aurora bridge supports so far up to ${AXIS_INTERCON_MAXCHANS} channels only."
+    }
   }
 }
 

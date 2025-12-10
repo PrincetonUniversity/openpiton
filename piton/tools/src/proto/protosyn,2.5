@@ -981,8 +981,8 @@ def main():
         options.to_x = int(options.x_tiles)-1;
     if int(options.to_y) < 0 or int(options.to_y) >= int(options.y_tiles):
         options.to_y = int(options.y_tiles)-1;
-    print_info("Impl partition fr_x=" + str(options.fr_x) + "(port" + str(options.frx_port) + ") to_x=" + str(options.to_x) + "(port" + str(options.tox_port) + ")")
-    print_info("Impl partition fr_y=" + str(options.fr_y) + "(port" + str(options.fry_port) + ") to_y=" + str(options.to_y) + "(port" + str(options.toy_port) + ")")
+    print_info("Impl partition fr_x=" + str(options.fr_x) + "(qsfp" + str(options.frx_port) + ") to_x=" + str(options.to_x) + "(qsfp" + str(options.tox_port) + ")")
+    print_info("Impl partition fr_y=" + str(options.fr_y) + "(qsfp" + str(options.fry_port) + ") to_y=" + str(options.to_y) + "(qsfp" + str(options.toy_port) + ")")
 
     os.environ['PITON_FR_X'] = str(options.fr_x)
     os.environ['PITON_FR_Y'] = str(options.fr_y)
