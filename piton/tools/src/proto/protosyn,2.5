@@ -1000,7 +1000,6 @@ def main():
     ):
       defines.append("PITON_MULTI_FPGA")
       defines.append("PITON_MULTI_FPGA_CMAC")
-      os.environ['PROTOSYN_MULTI_FPGA_CMAC'] = "TRUE"
 
     if ((int(options.fr_x) != 0                      and int(options.frx_port) == 1) or
         (int(options.fr_y) != 0                      and int(options.fry_port) == 1) or
@@ -1009,7 +1008,6 @@ def main():
     ):
       defines.append("PITON_MULTI_FPGA")
       defines.append("PITON_MULTI_FPGA_AUR")
-      os.environ['PROTOSYN_MULTI_FPGA_AUR'] = "TRUE"
 
     os.environ['PITON_EXTRA_MEMS'] = "0"
     if options.multimc:

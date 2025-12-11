@@ -186,25 +186,30 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
-  set QSFP_BRDG_CHANS 1
+  set CMAC_BRDG_CHANS 1
+  set AUR_BRDG_CHANS  1
   if { $::env(PITON_FR_X) != 0 } {
-    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
+    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_FRX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
   }
   if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
-    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
+    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_TOX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
   }
   if { $::env(PITON_FR_Y) != 0 } {
-    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
+    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_FRY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
   }
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
-    set QSFP_BRDG_CHANS [expr {$QSFP_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
+    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_TOY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
   }
-  if { $QSFP_BRDG_CHANS != 1 } {
+  if { $CMAC_BRDG_CHANS != 1 || $AUR_BRDG_CHANS != 1 } {
     # NOC_DATA_WIDTH/8 = 64/8 = 8
     set QSFP_BRDG_CHAN_BYTES 8
     set AXIS_INTERCON_MAXCHANS 16
-    set CMAC_BRDG_CHANS [expr {$QSFP_BRDG_CHANS * 2}]
-    set AUR_BRDG_CHANS         $QSFP_BRDG_CHANS
+    # doubling number of channels for CMAC bridge due to acknowledgement channels
+    set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS * 2}]
     set AXIS_TDEST_WIDTH 8
     set g_cmac_port "qsfp0"
     set g_aur_port  "qsfp1"
@@ -342,15 +347,11 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
-  if { $QSFP_BRDG_CHANS != 1 } {
-    if {[info exists ::env(PROTOSYN_MULTI_FPGA_AUR)] &&
-                    $::env(PROTOSYN_MULTI_FPGA_AUR)=="TRUE"} {
+  if { $AUR_BRDG_CHANS > 1 } {
       add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_qsfp.xdc"
-    }
-    if {[info exists ::env(PROTOSYN_MULTI_FPGA_CMAC)] &&
-                    $::env(PROTOSYN_MULTI_FPGA_CMAC)=="TRUE"} {
+  }
+  if { $CMAC_BRDG_CHANS > 2 } {
       add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_qsfp.xdc"
-    }
   }
 }
 

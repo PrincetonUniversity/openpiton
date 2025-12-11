@@ -1833,29 +1833,45 @@ module chip(
 
 
 `ifdef PITON_MULTI_FPGA
-    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = {irq_i, timer_irq_i, ipi_i};
+    wire ctrl_rx_aur;
+    wire ctrl_rx_cmac;
+    wire [2:0] loopback_aur;
+    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = ((ctrl_rx_aur  && !loopback_aur) ||
+                                                  (ctrl_rx_cmac && !loopback_cmac)) ? {irq_tile, timer_irq_tile, ipi_tile} :
+                                                                                      {irq_i, timer_irq_i, ipi_i};
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_tx_reg;
-    reg                           free_ctrl_tx_val;
-    wire                          free_ctrl_tx_rdy;
+    reg                           free_ctrl_tx_val_aur;
+    reg                           free_ctrl_tx_val_cmac;
+    wire                          free_ctrl_tx_rdy_aur;
+    wire                          free_ctrl_tx_rdy_cmac;
     always @(posedge clk_muxed)
-      if (~rstn_tile) 
-        free_ctrl_tx_val <= 1'b0;
-      else begin
+      if (~rstn_tile) begin
+        free_ctrl_tx_val_aur  <= 1'b0;
+        free_ctrl_tx_val_cmac <= 1'b0;
+      end else begin
         free_ctrl_tx_reg <= free_ctrl_tx;
-        if (free_ctrl_tx != free_ctrl_tx_reg) free_ctrl_tx_val <= 1'b1;
-        else if (free_ctrl_tx_rdy)            free_ctrl_tx_val <= 1'b0;
+        if (free_ctrl_tx != free_ctrl_tx_reg) begin
+          free_ctrl_tx_val_aur  <= 1'b1;
+          free_ctrl_tx_val_cmac <= 1'b1;
+        end else begin 
+          if (free_ctrl_tx_rdy_aur)  free_ctrl_tx_val_aur  <= 1'b0;
+          if (free_ctrl_tx_rdy_cmac) free_ctrl_tx_val_cmac <= 1'b0;
+        end
       end
 
-    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_rx;
+    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_aur;
+    wire [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_cmac;
     reg  [`PITON_NUM_TILES*4-1:0] free_ctrl_rx_reg;
-    wire                          free_ctrl_rx_val;
+    wire                          free_ctrl_rx_val_aur;
+    wire                          free_ctrl_rx_val_cmac;
     always @(posedge clk_muxed)
-      if (~rstn_tile)            free_ctrl_rx_reg <= 0;
-      else if (free_ctrl_rx_val) free_ctrl_rx_reg <= free_ctrl_rx;
+      if (~rstn_tile)              free_ctrl_rx_reg <= 0;
+      else begin 
+        if (free_ctrl_rx_val_aur)  free_ctrl_rx_reg <= free_ctrl_rx_aur;
+        if (free_ctrl_rx_val_cmac) free_ctrl_rx_reg <= free_ctrl_rx_cmac;
+    end
 
-    wire ctrl_rx;
-    wire ctrl_tx;
-    assign {irq_tile, timer_irq_tile, ipi_tile} = ctrl_rx ? free_ctrl_rx_reg : free_ctrl_tx;
+    assign {irq_tile, timer_irq_tile, ipi_tile} = (ctrl_rx_aur || ctrl_rx_cmac) ? free_ctrl_rx_reg : {irq_i, timer_irq_i, ipi_i};
 
     wire sys_rstn_aur;
     wire sys_rstn_cmac;
@@ -1877,18 +1893,18 @@ module chip(
        else            aur_overflow_sync[2:1] <= {aur_overflow_sync[1:0]};
      assign qsfp_noc_overflow = aur_overflow_sync[2];
 
-     wire [2:0] loopback_aur;
-     axistx_aurora_bridge  nocs_qsfp_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
+     wire ctrl_tx_aur;
+     axistx_aurora_bridge  nocs_aur_bridge  (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
                                              .sys_rstn_out(sys_rstn_aur), .sys_rstn_in(rstn_tile),
                                              .qsfp_clk(aur_clk), .qsfp_rstn(aur_rstn),
                                              .rx_overflow(aur_rx_overflow),
 
                                              .s_axis_0_tdata (free_ctrl_tx_reg),
-                                             .s_axis_0_tvalid(free_ctrl_tx_val & ctrl_tx),
-                                             .s_axis_0_tready(free_ctrl_tx_rdy),
+                                             .s_axis_0_tvalid(free_ctrl_tx_val_aur & ctrl_tx_aur),
+                                             .s_axis_0_tready(free_ctrl_tx_rdy_aur),
                                              .s_axis_0_tlast (1'b1),
-                                             .m_axis_0_tdata (free_ctrl_rx),
-                                             .m_axis_0_tvalid(free_ctrl_rx_val),
+                                             .m_axis_0_tdata (free_ctrl_rx_aur),
+                                             .m_axis_0_tvalid(free_ctrl_rx_val_aur),
                                              .m_axis_0_tready(1'b1),
 
                                              .qsfp_rx_4x_rxn   (aur_qsfp_4x_grx_n),
@@ -1901,32 +1917,26 @@ module chip(
     ctrl_tx = 0
     ctrl_rx = 0
     horz_edges  = 0
-    y_near = 0
     if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 1):
       y_near = PITON_TO_Y
       y_far  = PITON_TO_Y+1
       ctrl_tx = 1
-      ctrl_rx = 0
       horz_edges = horz_edges + 1
     if (PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 1):
       y_near = PITON_FR_Y
       y_far  = PITON_FR_Y-1
-      ctrl_tx = 0
       ctrl_rx = 1
       horz_edges = horz_edges + 1
 
     vert_edges  = 0
-    x_near = 0
     if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 1):
       x_near = PITON_TO_X
       x_far  = PITON_TO_X+1
       ctrl_tx = 1
-      ctrl_rx = 0
       vert_edges = vert_edges + 1
     if (PITON_FR_X != 0              ) and (PITON_FRX_PORT == 1):
       x_near = PITON_FR_X
       x_far  = PITON_FR_X-1
-      ctrl_tx = 0
       ctrl_rx = 1
       vert_edges = vert_edges + 1
 
@@ -1935,8 +1945,6 @@ module chip(
     for edge in range(horz_edges):
       if (horz_edges > 1) and (PITON_FR_Y >= PITON_TO_Y):
         loopback_mode = 2
-        ctrl_tx = 1
-        ctrl_rx = 1
         if (edge == 0):
           y_near = PITON_TO_Y
           y_far  = PITON_TO_Y
@@ -1961,8 +1969,6 @@ module chip(
     for edge in range(vert_edges):
       if (vert_edges > 1) and (PITON_FR_X >= PITON_TO_X):
         loopback_mode = 2
-        ctrl_tx = 1
-        ctrl_rx = 1
         if (edge == 0):
           x_near = PITON_TO_X
           x_far  = PITON_TO_X
@@ -1986,11 +1992,12 @@ module chip(
 
     print("      .loopback_mode(loopback_aur));")
     print("assign loopback_aur = 3'h%x;" % (loopback_mode))
-    print("assign ctrl_tx = 1'b%d;" % (ctrl_tx))
-    print("assign ctrl_rx = 1'b%d;" % (ctrl_rx))
+    print("assign ctrl_tx_aur = 1'b%d;" % (ctrl_tx))
+    print("assign ctrl_rx_aur = 1'b%d;" % (ctrl_rx))
 %>
    `else                                             
      assign sys_rstn_aur      = 1;
+     assign loopback_aur      = 0;
      assign qsfp_noc_overflow = 0;
    `endif // `ifdef PITON_MULTI_FPGA_AUR
 
@@ -2004,11 +2011,12 @@ module chip(
      wire                       freectrl_tx_ack_valid;
      wire                       freectrl_tx_ack_ready;
      wire                       freectrl_tx_ack_last;
+     wire ctrl_tx_cmac;
      valrdy_to_ethframe #(.SINGLE_INFLIT(1))
                         freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),
                                          .flit_in (free_ctrl_tx_reg),
-                                         .valid_in(free_ctrl_tx_val & ctrl_tx),
-                                         .ready_in(free_ctrl_tx_rdy),
+                                         .valid_in(free_ctrl_tx_val_cmac & ctrl_tx_cmac),
+                                         .ready_in(free_ctrl_tx_rdy_cmac),
                                          .data_out (freectrl_tx_eth_data),
                                          .valid_out(freectrl_tx_eth_valid),
                                          .ready_out(freectrl_tx_eth_ready),
@@ -2031,8 +2039,8 @@ module chip(
                                           .valid_in(freectrl_rx_eth_valid),
                                           .ready_in(freectrl_rx_eth_ready),
                                           .last_in (freectrl_rx_eth_last),
-                                          .flit_out (free_ctrl_rx),
-                                          .valid_out(free_ctrl_rx_val),
+                                          .flit_out (free_ctrl_rx_cmac),
+                                          .valid_out(free_ctrl_rx_val_cmac),
                                           .ready_out(1'b1),
                                           .data_ack (freectrl_rx_ack_data),
                                           .valid_ack(freectrl_rx_ack_valid),
@@ -2066,7 +2074,7 @@ module chip(
        .valid_out(nocsdemux_valid)
      );
 
-     axistx_cmac_bridge  nocs_qsfp_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
+     axistx_cmac_bridge  nocs_cmac_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
                                            .sys_rstn_out(sys_rstn_cmac), .sys_rstn_in(rstn_tile),
                                            .qsfp_clk(cmac_clk), .qsfp_rstn(cmac_rstn),
 
@@ -2109,32 +2117,26 @@ module chip(
     ctrl_tx = 0
     ctrl_rx = 0
     horz_edges  = 0
-    y_near = 0
     if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 0):
       y_near = PITON_TO_Y
       y_far  = PITON_TO_Y+1
       ctrl_tx = 1
-      ctrl_rx = 0
       horz_edges = horz_edges + 1
     if (PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 0):
       y_near = PITON_FR_Y
       y_far  = PITON_FR_Y-1
-      ctrl_tx = 0
       ctrl_rx = 1
       horz_edges = horz_edges + 1
 
     vert_edges  = 0
-    x_near = 0
     if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 0):
       x_near = PITON_TO_X
       x_far  = PITON_TO_X+1
       ctrl_tx = 1
-      ctrl_rx = 0
       vert_edges = vert_edges + 1
     if (PITON_FR_X != 0              ) and (PITON_FRX_PORT == 0):
       x_near = PITON_FR_X
       x_far  = PITON_FR_X-1
-      ctrl_tx = 0
       ctrl_rx = 1
       vert_edges = vert_edges + 1
 
@@ -2143,8 +2145,6 @@ module chip(
     for edge in range(horz_edges):
       if (horz_edges > 1) and (PITON_FR_Y >= PITON_TO_Y):
         loopback_mode = 2
-        ctrl_tx = 1
-        ctrl_rx = 1
         if (edge == 0):
           y_near = PITON_TO_Y
           y_far  = PITON_TO_Y
@@ -2179,8 +2179,6 @@ module chip(
     for edge in range(vert_edges):
       if (vert_edges > 1) and (PITON_FR_X >= PITON_TO_X):
         loopback_mode = 2
-        ctrl_tx = 1
-        ctrl_rx = 1
         if (edge == 0):
           x_near = PITON_TO_X
           x_far  = PITON_TO_X
@@ -2214,8 +2212,8 @@ module chip(
 
     print("      .loopback_mode(loopback_cmac));")
     print("assign loopback_cmac = 3'h%x;" % (loopback_mode))
-    print("assign ctrl_tx = 1'b%d;" % (ctrl_tx))
-    print("assign ctrl_rx = 1'b%d;" % (ctrl_rx))
+    print("assign ctrl_tx_cmac = 1'b%d;" % (ctrl_tx))
+    print("assign ctrl_rx_cmac = 1'b%d;" % (ctrl_rx))
 %>
    `else                                             
      assign sys_rstn_cmac = 1;
