@@ -354,11 +354,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
   set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
-  
-  puts "CMAC_BRDG_CHANS: $CMAC_BRDG_CHANS"
-  puts "AXIS_INTERCON_PARTS: $AXIS_INTERCON_PARTS"
-  puts "AXIS_INTERCON_PARTCHANS: $AXIS_INTERCON_PARTCHANS"
-  
+
   if {$AXIS_INTERCON_PARTS > 1} {
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer
     set_property -dict [list \
@@ -407,6 +403,14 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set idx_hi [expr {int($idx / $AXIS_INTERCON_PARTCHANS)}]
     set idx_lo [expr {    $idx % $AXIS_INTERCON_PARTCHANS }]
 
+    # If number of channels is not aligned with max limit, for last cascade part with more than estimated even number of channels per part:
+    if {$idx_hi > ($AXIS_INTERCON_PARTS-1)} {
+      set idx_hi [expr {$AXIS_INTERCON_PARTS-1}]
+      set idx_lo [expr {$idx - ($idx_hi * $AXIS_INTERCON_PARTCHANS)}]
+    }
+
+    puts "Iteration $idx to cascade AXIS interconnect over $CMAC_BRDG_CHANS channels (chan $idx_lo in cascade part $idx_hi of $AXIS_INTERCON_PARTS)"
+
     # creation of few instances of interconnect for cascading because of limitation of number of channels
     if {$idx_lo == 0} {
       if {$idx_hi < ($AXIS_INTERCON_PARTS-1)} {
@@ -414,6 +418,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       } else {
         set intercon_chans [expr {$CMAC_BRDG_CHANS - $idx}]
       }
+      puts "  At lower cascade: set muxer/demuxer $idx_hi of $AXIS_INTERCON_PARTS with $intercon_chans channels"
+      puts "  of evenly distributed $AXIS_INTERCON_PARTCHANS and of max limit $AXIS_INTERCON_MAXCHANS channels per muxer/demuxer"
+
       create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer_$idx_hi
       set_property -dict [list \
         CONFIG.NUM_MI {1} \
@@ -463,9 +470,11 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         connect_bd_intf_net [get_bd_intf_pins axis_muxer_$idx_hi/M00_AXIS]   [get_bd_intf_pins axis_muxer/S[format {%02d} $idx_hi]_AXIS]
         connect_bd_intf_net [get_bd_intf_pins axis_demuxer_$idx_hi/S00_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS]
 
+        set demux_high_dest [expr {$idx+$intercon_chans-1}]
+        puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $idx to $demux_high_dest"
         set_property -dict [list \
-          CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x}        $idx                    ] \
-          CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} [expr {$idx+$intercon_chans-1}]] \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x} $idx            ] \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} $demux_high_dest] \
         ] [get_bd_cells axis_demuxer]
       }
     }

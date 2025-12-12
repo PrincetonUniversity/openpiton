@@ -186,6 +186,7 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
 
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
+
   set CMAC_BRDG_CHANS 1
   set AUR_BRDG_CHANS  1
   if { $::env(PITON_FR_X) != 0 } {
@@ -204,23 +205,16 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
     if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
     if {$::env(PITON_TOY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
   }
-  if { $CMAC_BRDG_CHANS != 1 || $AUR_BRDG_CHANS != 1 } {
-    # NOC_DATA_WIDTH/8 = 64/8 = 8
-    set QSFP_BRDG_CHAN_BYTES 8
-    set AXIS_INTERCON_MAXCHANS 16
-    # doubling number of channels for CMAC bridge due to acknowledgement channels
-    set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS * 2}]
-    set AXIS_TDEST_WIDTH 8
-    set g_cmac_port "qsfp0"
-    set g_aur_port  "qsfp1"
-
-    source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
-    if { $AUR_BRDG_CHANS <= $AXIS_INTERCON_MAXCHANS } {
-    source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
-    } else {
-      puts "WARNING: AXI-Stream Aurora bridge supports so far up to ${AXIS_INTERCON_MAXCHANS} channels only."
-    }
-  }
+  # NOC_DATA_WIDTH/8 = 64/8 = 8
+  set QSFP_BRDG_CHAN_BYTES 8
+  set AXIS_INTERCON_MAXCHANS 16
+  # doubling number of channels for CMAC bridge due to acknowledgement channels
+  set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS * 2}]
+  set AXIS_TDEST_WIDTH 8
+  set g_cmac_port "qsfp0"
+  set g_aur_port  "qsfp1"
+  source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
+  source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
 }
 
 # Set 'sources_1' fileset file properties for local files
@@ -347,11 +341,11 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
   }
-  if { $AUR_BRDG_CHANS > 1 } {
-      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_qsfp.xdc"
-  }
   if { $CMAC_BRDG_CHANS > 2 } {
       add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_qsfp.xdc"
+  }
+  if { $AUR_BRDG_CHANS > 1 } {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_qsfp.xdc"
   }
 }
 

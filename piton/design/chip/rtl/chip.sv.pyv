@@ -1206,9 +1206,8 @@ module chip(
     wire [`PITON_NUM_TILES*2-1:0] irq_tile;
 
   `ifdef PITON_MULTI_FPGA
-    wire [2:0] loopback_cmac;
-    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref = loopback_cmac ? dst_src_mac_tx :
-                                                                 {dst_src_mac_tx[MAC_ADDR_WIDTH-1:0],dst_src_mac_tx[2*MAC_ADDR_WIDTH-1:MAC_ADDR_WIDTH]};
+    // exchanging destination and source MACs to check headers of incoming Eth frames
+    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref = {dst_src_mac_tx[MAC_ADDR_WIDTH-1:0],dst_src_mac_tx[2*MAC_ADDR_WIDTH-1:MAC_ADDR_WIDTH]};
   `endif
 
 <%
@@ -1836,6 +1835,7 @@ module chip(
     wire ctrl_rx_aur;
     wire ctrl_rx_cmac;
     wire [2:0] loopback_aur;
+    wire [2:0] loopback_cmac;
     wire [`PITON_NUM_TILES*4-1:0] free_ctrl_tx = ((ctrl_rx_aur  && !loopback_aur) ||
                                                   (ctrl_rx_cmac && !loopback_cmac)) ? {irq_tile, timer_irq_tile, ipi_tile} :
                                                                                       {irq_i, timer_irq_i, ipi_i};
