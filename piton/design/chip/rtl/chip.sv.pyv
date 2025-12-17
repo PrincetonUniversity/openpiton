@@ -1916,89 +1916,72 @@ module chip(
 <%
     ctrl_tx = 0
     ctrl_rx = 0
-    horz_edges  = 0
-    if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 1):
-      y_near = PITON_TO_Y
-      y_far  = PITON_TO_Y+1
-      ctrl_tx = 1
-      horz_edges = horz_edges + 1
-    if (PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 1):
-      y_near = PITON_FR_Y
-      y_far  = PITON_FR_Y-1
-      ctrl_rx = 1
-      horz_edges = horz_edges + 1
-
-    vert_edges  = 0
-    if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 1):
-      x_near = PITON_TO_X
-      x_far  = PITON_TO_X+1
-      ctrl_tx = 1
-      vert_edges = vert_edges + 1
-    if (PITON_FR_X != 0              ) and (PITON_FRX_PORT == 1):
-      x_near = PITON_FR_X
-      x_far  = PITON_FR_X-1
-      ctrl_rx = 1
-      vert_edges = vert_edges + 1
-
-    loopback_mode = 0
     chanid = 1
-    for edge in range(horz_edges):
-      if (horz_edges > 1) and (PITON_FR_Y > PITON_TO_Y):
-        loopback_mode = 2
-        if (edge == 0):
-          y_near = PITON_TO_Y
-          y_far  = PITON_TO_Y
-        else:
-          y_near = PITON_FR_Y
-          y_far  = PITON_FR_Y
-      for i in range(PITON_X_TILES):
-        for k in [1,2,3]:
-          # Vertical partitioning through Aurora
-          if ((PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 1) and (y_near == PITON_TO_Y)):
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_S_noc%d_data), " % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_S_noc%d_valid)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_S_noc%d_ready)," % (chanid,y_near,i,k))
-          if ((PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 1) and (y_near == PITON_FR_Y)):
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_N_noc%d_data), " % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_N_noc%d_valid)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_N_noc%d_ready)," % (chanid,y_near,i,k))
-          if (((PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 1)) or
-              ((PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 1))
-          ):
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last),  " % (chanid,y_far,i,k))
-            chanid = chanid + 1
+    loopback_mode = 0
 
-    for edge in range(vert_edges):
-      if (vert_edges > 1) and (PITON_FR_X > PITON_TO_X):
-        loopback_mode = 2
-        if (edge == 0):
-          x_near = PITON_TO_X
-          x_far  = PITON_TO_X
-        else:
-          x_near = PITON_FR_X
-          x_far  = PITON_FR_X
+    if (((PITON_FR_Y > PITON_TO_Y) and (PITON_FRY_PORT == 1) and (PITON_TOY_PORT == 1)) or
+        ((PITON_FR_X > PITON_TO_X) and (PITON_FRX_PORT == 1) and (PITON_TOX_PORT == 1))):
+      loopback_mode = 2
+
+    for k in [1,2,3]:
+
+      # Vertical partitioning through Aurora
+      for i in range(PITON_X_TILES):
+        if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 1):
+          ctrl_tx = 1
+          y_near = PITON_TO_Y
+          if (loopback_mode == 0): y_far = PITON_TO_Y+1
+          else:                    y_far = PITON_TO_Y
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_S_noc%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_S_noc%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_S_noc%d_ready)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last),  " % (chanid,y_far,i,k))
+          chanid = chanid + 1
+        if (PITON_FR_Y != 0) and (PITON_FRY_PORT == 1):
+          ctrl_rx = 1
+          y_near = PITON_FR_Y
+          if (loopback_mode == 0): y_far = PITON_FR_Y-1
+          else:                    y_far = PITON_FR_Y
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_N_noc%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_N_noc%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_N_noc%d_ready)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_noc%d_last),  " % (chanid,y_far,i,k))
+          chanid = chanid + 1
+
+      # Horizontal partitioning through Aurora
       for j in range(PITON_Y_TILES):
-        for k in [1,2,3]:
-          # Horizontal partitioning through Aurora
-          if ((PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 1) and (x_near == PITON_TO_X)):
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_E_noc%d_data), " % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_E_noc%d_valid)," % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_E_noc%d_ready)," % (chanid,j,x_near,k))
-          if ((PITON_FR_X != 0              ) and (PITON_FRX_PORT == 1) and (x_near == PITON_FR_X)):
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_W_noc%d_data), " % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_W_noc%d_valid)," % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_W_noc%d_ready)," % (chanid,j,x_near,k))
-          if (((PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 1)) or
-              ((PITON_FR_X != 0              ) and (PITON_FRX_PORT == 1))
-          ):
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),  " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready), " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_noc%d_last) , " % (chanid,j,x_far,k))
-            chanid = chanid + 1
+        if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 1):
+          ctrl_tx = 1
+          x_near = PITON_TO_X
+          if (loopback_mode == 0): x_far = PITON_TO_X+1
+          else:                    x_far = PITON_TO_X
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_E_noc%d_data), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_E_noc%d_valid)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_E_noc%d_ready)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),  " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_noc%d_last) , " % (chanid,j,x_far,k))
+          chanid = chanid + 1
+        if (PITON_FR_X != 0) and (PITON_FRX_PORT == 1):
+          ctrl_rx = 1
+          x_near = PITON_FR_X
+          if (loopback_mode == 0): x_far = PITON_FR_X-1
+          else:                    x_far = PITON_FR_X
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_W_noc%d_data), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_W_noc%d_valid)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_W_noc%d_ready)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),  " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_noc%d_last) , " % (chanid,j,x_far,k))
+          chanid = chanid + 1
 
     print("      .loopback_mode(loopback_aur));")
     print("assign loopback_aur = 3'h%x;" % (loopback_mode))
@@ -2084,8 +2067,7 @@ module chip(
        .valid_out(nocsdemux_valid)
      );
 
-                                                                 // additionally reset CMAC by Aurora since such reset may come from adjacent FPGA through P2P QSFP
-     axistx_cmac_bridge  nocs_cmac_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync & sys_rstn_aur),
+     axistx_cmac_bridge  nocs_cmac_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
                                            .sys_rstn_out(sys_rstn_cmac), .sys_rstn_in(rstn_tile),
                                            .qsfp_clk(cmac_clk), .qsfp_rstn(cmac_rstn),
 
@@ -2127,99 +2109,112 @@ module chip(
 <%
     ctrl_tx = 0
     ctrl_rx = 0
-    horz_edges  = 0
-    if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 0):
-      y_near = PITON_TO_Y
-      y_far  = PITON_TO_Y+1
-      ctrl_tx = 1
-      horz_edges = horz_edges + 1
-    if (PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 0):
-      y_near = PITON_FR_Y
-      y_far  = PITON_FR_Y-1
-      ctrl_rx = 1
-      horz_edges = horz_edges + 1
-
-    vert_edges  = 0
-    if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 0):
-      x_near = PITON_TO_X
-      x_far  = PITON_TO_X+1
-      ctrl_tx = 1
-      vert_edges = vert_edges + 1
-    if (PITON_FR_X != 0              ) and (PITON_FRX_PORT == 0):
-      x_near = PITON_FR_X
-      x_far  = PITON_FR_X-1
-      ctrl_rx = 1
-      vert_edges = vert_edges + 1
-
+    chanid = 2
     loopback_mode = 0
-    chanid = 1
-    for edge in range(horz_edges):
-      if (horz_edges > 1) and (PITON_FR_Y > PITON_TO_Y):
-        loopback_mode = 2
-        if (edge == 0):
-          y_near = PITON_TO_Y
-          y_far  = PITON_TO_Y
-        else:
-          y_near = PITON_FR_Y
-          y_far  = PITON_FR_Y
-      for i in range(PITON_X_TILES):
-        for k in [1,2,3]:
-          # Vertical partitioning through CMAC
-          if (((PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 0)) or
-              ((PITON_FR_Y != 0              ) and (PITON_FRY_PORT == 0))
-          ):
-            chanid = chanid + 1
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_eth%d_data),  " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_eth%d_valid), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_eth%d_ready), " % (chanid,y_far,i,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_eth%d_last),  " % (chanid,y_far,i,k))
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_eth%d_data), " % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_eth%d_valid)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_eth%d_ready)," % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_eth%d_last),"  % (chanid,y_near,i,k))
-            chanid = chanid + 1
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_ack%d_data), " % (chanid,y_near,i,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_ack%d_valid)," % (chanid,y_near,i,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_near_ack%d_ready)," % (chanid,y_near,i,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_ack%d_last),"  % (chanid,y_near,i,k))
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_ack%d_data),  " % (chanid,y_far,i,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_ack%d_valid), " % (chanid,y_far,i,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_far_ack%d_ready), " % (chanid,y_far,i,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
 
-    for edge in range(vert_edges):
-      if (vert_edges > 1) and (PITON_FR_X > PITON_TO_X):
-        loopback_mode = 2
-        if (edge == 0):
-          x_near = PITON_TO_X
-          x_far  = PITON_TO_X
-        else:
-          x_near = PITON_FR_X
-          x_far  = PITON_FR_X
+    if (((PITON_FR_Y > PITON_TO_Y) and (PITON_FRY_PORT == 0) and (PITON_TOY_PORT == 0)) or
+        ((PITON_FR_X > PITON_TO_X) and (PITON_FRX_PORT == 0) and (PITON_TOX_PORT == 0))):
+      loopback_mode = 2
+
+    for k in [1,2,3]:
+
+      # Vertical partitioning through CMAC
+      for i in range(PITON_X_TILES):
+        if (PITON_TO_Y != PITON_Y_TILES-1) and (PITON_TOY_PORT == 0):
+          ctrl_tx = 1
+          y_near = PITON_TO_Y
+          if (loopback_mode == 0): y_far = PITON_TO_Y+1
+          else:                    y_far = PITON_TO_Y
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_eth%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_eth%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_eth%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_eth%d_last),  " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_eth%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_eth%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_eth%d_ready)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_eth%d_last),"  % (chanid,y_near,i,k))
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_ack%d_data), " % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_ack%d_valid)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_near_ack%d_ready)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_ack%d_last),"  % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_ack%d_data),  " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_ack%d_valid), " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_far_ack%d_ready), " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
+          chanid = chanid + 1
+        if (PITON_FR_Y != 0) and (PITON_FRY_PORT == 0):
+          ctrl_rx = 1
+          y_near = PITON_FR_Y
+          if (loopback_mode == 0): y_far = PITON_FR_Y-1
+          else:                    y_far = PITON_FR_Y
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_eth%d_data),  " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_eth%d_valid), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_eth%d_ready), " % (chanid,y_far,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_eth%d_last),  " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_eth%d_data), " % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_eth%d_valid)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_eth%d_ready)," % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_eth%d_last),"  % (chanid,y_near,i,k))
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_ack%d_data), " % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_ack%d_valid)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_near_ack%d_ready)," % (chanid,y_near,i,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_vert_near_ack%d_last),"  % (chanid,y_near,i,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_ack%d_data),  " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_ack%d_valid), " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_far_ack%d_ready), " % (chanid,y_far,i,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_vert_far_ack%d_last),  " % (chanid,y_far,i,k))
+          chanid = chanid + 1
+
+      # Horizontal partitioning through CMAC
       for j in range(PITON_Y_TILES):
-        for k in [1,2,3]:
-          # Horizontal partitioning through CMAC
-          if (((PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 0)) or
-              ((PITON_FR_X != 0              ) and (PITON_FRX_PORT == 0))
-          ):
-            chanid = chanid + 1
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_eth%d_data),  " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_eth%d_valid), " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_eth%d_ready), " % (chanid,j,x_far,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_eth%d_last),  " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_eth%d_data), " % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_eth%d_valid)," % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_eth%d_ready)," % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_eth%d_last), " % (chanid,j,x_near,k))
-            chanid = chanid + 1
-            print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_ack%d_data), " % (chanid,j,x_near,k))
-            print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_ack%d_valid)," % (chanid,j,x_near,k))
-            print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_near_ack%d_ready)," % (chanid,j,x_near,k))
-            print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_ack%d_last), " % (chanid,j,x_near,k))
-            print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_ack%d_data),  " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_ack%d_valid), " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_far_ack%d_ready), " % (chanid,j,x_far,k))
-            print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_ack%d_last),  " % (chanid,j,x_far,k))
+        if (PITON_TO_X != PITON_X_TILES-1) and (PITON_TOX_PORT == 0):
+          ctrl_tx = 1
+          x_near = PITON_TO_X
+          if (loopback_mode == 0): x_far = PITON_TO_X+1
+          else:                    x_far = PITON_TO_X
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_eth%d_data),  " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_eth%d_valid), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_eth%d_ready), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_eth%d_last),  " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_eth%d_data), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_eth%d_valid)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_eth%d_ready)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_eth%d_last), " % (chanid,j,x_near,k))
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_ack%d_data), " % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_ack%d_valid)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_near_ack%d_ready)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_ack%d_last), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_ack%d_data),  " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_ack%d_valid), " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_far_ack%d_ready), " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_ack%d_last),  " % (chanid,j,x_far,k))
+          chanid = chanid + 1
+        if (PITON_FR_X != 0) and (PITON_FRX_PORT == 0):
+          ctrl_rx = 1
+          x_near = PITON_FR_X
+          if (loopback_mode == 0): x_far = PITON_FR_X-1
+          else:                    x_far = PITON_FR_X
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_eth%d_data),  " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_eth%d_valid), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_eth%d_ready), " % (chanid,j,x_far,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_eth%d_last),  " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_eth%d_data), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_eth%d_valid)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_eth%d_ready)," % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_eth%d_last), " % (chanid,j,x_near,k))
+          chanid = chanid + 1
+          print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_ack%d_data), " % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_ack%d_valid)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_near_ack%d_ready)," % (chanid,j,x_near,k))
+          print("      .s_axis_%d_tlast (tile_%d_%d_valrdy_horz_near_ack%d_last), " % (chanid,j,x_near,k))
+          print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_ack%d_data),  " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_ack%d_valid), " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_far_ack%d_ready), " % (chanid,j,x_far,k))
+          print("      .m_axis_%d_tlast (tile_%d_%d_valrdy_horz_far_ack%d_last),  " % (chanid,j,x_far,k))
+          chanid = chanid + 1
 
     print("      .loopback_mode(loopback_cmac));")
     print("assign loopback_cmac = 3'h%x;" % (loopback_mode))
