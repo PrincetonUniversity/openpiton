@@ -409,7 +409,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       set idx_lo [expr {$idx - ($idx_hi * $AXIS_INTERCON_PARTCHANS)}]
     }
 
-    puts "Iteration $idx to cascade AXIS interconnect over $CMAC_BRDG_CHANS channels (chan $idx_lo in cascade part $idx_hi of $AXIS_INTERCON_PARTS)"
+    puts "AXISt-CMAC bridge: Iteration $idx to cascade Interconnect over $CMAC_BRDG_CHANS channels (chan $idx_lo in cascade part $idx_hi of $AXIS_INTERCON_PARTS)"
 
     # creation of few instances of interconnect for cascading because of limitation of number of channels
     if {$idx_lo == 0} {
@@ -450,6 +450,14 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       # For last channel set all rest decode address space,
       # but not needed because "Unmapped TDEST transfers will drop the transfer" according to https://docs.amd.com/v/u/en-US/pg035_axis_interconnect#page=9
       # set_property CONFIG.M[format {%02d} [expr {$intercon_chans-1}]]_AXIS_HIGHTDEST {0xFF} [get_bd_cells axis_demuxer_$idx_hi]
+
+      # initialize address map to exclude further conflicts
+      for {set jdx 0} {$jdx < $intercon_chans} {incr jdx} {
+        set_property -dict [list \
+          CONFIG.M[format {%02d} [expr {$intercon_chans-1-$jdx}]]_AXIS_HIGHTDEST [format {0x%02x} [expr {0xFFFFFFFF-$jdx}]] \
+          CONFIG.M[format {%02d} [expr {$intercon_chans-1-$jdx}]]_AXIS_BASETDEST [format {0x%02x} [expr {0xFFFFFFFF-$jdx}]] \
+        ] [get_bd_cells axis_demuxer_$idx_hi]
+      }
 
       connect_bd_net [get_bd_pins rx_rst_gen/interconnect_aresetn] \
                      [get_bd_pins axis_demuxer_$idx_hi/ARESETN] \
