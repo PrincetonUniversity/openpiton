@@ -153,10 +153,8 @@ module chip(
 
   `ifdef PITON_MULTI_FPGA
     ,
-    input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
-    output [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_rx,
-    output [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx,
-    output [ETHFR_ID_WIDTH     -1:0] ethfr_id,
+    input  [3*MAC_ADDR_WIDTH      -1 :0] dst_src_mac_tx,
+    output [ETHHDR_NOC_WIDTH      -1 :0] eth_hdr_rx,
     output [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time,
     output [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries,
     output qsfp_noc_overflow,
@@ -1206,8 +1204,9 @@ module chip(
     wire [`PITON_NUM_TILES*2-1:0] irq_tile;
 
   `ifdef PITON_MULTI_FPGA
-    // exchanging destination and source MACs to check headers of incoming Eth frames
-    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref = {dst_src_mac_tx[MAC_ADDR_WIDTH-1:0],dst_src_mac_tx[2*MAC_ADDR_WIDTH-1:MAC_ADDR_WIDTH]};
+    // Source/Dest MAC address pairs separately for "FROM" and "TO" borders
+    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_fr = {dst_src_mac_tx[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_tx[  MAC_ADDR_WIDTH-1 :              0]};
+    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_to = {dst_src_mac_tx[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_tx[2*MAC_ADDR_WIDTH-1 : MAC_ADDR_WIDTH]};
   `endif
 
 <%
@@ -1545,7 +1544,9 @@ module chip(
                       print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_last; " % (j,i,k))
                       print("wire [ETHFR_RETRY_TIME_WIDTH-1 :0] tile_%d_%d_vert_ack%d_wait_time;" %(j,i,k))
                       print("wire [ETHFR_RETRIES_WIDTH   -1 :0] tile_%d_%d_vert_eth%d_retries;  " %(j,i,k))
-                      print("valrdy_to_ethframe tile_%d_%d_vert_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),"  % (j,i,k))
+                      print("valrdy_to_ethframe tile_%d_%d_vert_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx"  % (j,i,k))
+                      if ((PITON_TO_Y != PITON_Y_TILES-1) and (j == PITON_TO_Y+1) and (PITON_TOY_PORT == 0)): print("(dst_src_mac_to),")
+                      if ((PITON_FR_Y != 0              ) and (j == PITON_FR_Y-1) and (PITON_FRY_PORT == 0)): print("(dst_src_mac_fr),")
                       print("  .data_out (tile_%d_%d_valrdy_vert_far_eth%d_data), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_valrdy_vert_far_eth%d_valid)," % (j,i,k))
                       print("  .ready_out(tile_%d_%d_valrdy_vert_far_eth%d_ready)," % (j,i,k))
@@ -1592,7 +1593,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_vert_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_ref(dst_src_mac_ref), .dst_src_mac_tx(dst_src_mac_tx)," % (j,i,k)),
+                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k)),
                         print("  .data_in  (tile_%d_%d_valrdy_vert_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_vert_near_eth%d_ready), " % (j,i,k))
@@ -1635,7 +1636,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_vert_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_N_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_ref(dst_src_mac_ref), .dst_src_mac_tx(dst_src_mac_tx)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_N_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_vert_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_vert_near_eth%d_ready), " % (j,i,k))
@@ -1702,7 +1703,9 @@ module chip(
                       print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_last; " % (j,i,k))
                       print("wire [ETHFR_RETRY_TIME_WIDTH-1 :0] tile_%d_%d_horz_ack%d_wait_time;" %(j,i,k))
                       print("wire [ETHFR_RETRIES_WIDTH   -1 :0] tile_%d_%d_horz_eth%d_retries;  " %(j,i,k))
-                      print("valrdy_to_ethframe tile_%d_%d_horz_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),"  % (j,i,k))
+                      print("valrdy_to_ethframe tile_%d_%d_horz_noc%d_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx"  % (j,i,k))
+                      if ((PITON_TO_X != PITON_X_TILES-1) and (i == PITON_TO_X+1) and (PITON_TOX_PORT == 0)): print("(dst_src_mac_to),")
+                      if ((PITON_FR_X != 0              ) and (i == PITON_FR_X-1) and (PITON_FRX_PORT == 0)): print("(dst_src_mac_fr),")
                       print("  .data_out (tile_%d_%d_valrdy_horz_far_eth%d_data), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_valrdy_horz_far_eth%d_valid)," % (j,i,k))
                       print("  .ready_out(tile_%d_%d_valrdy_horz_far_eth%d_ready)," % (j,i,k))
@@ -1749,7 +1752,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_horz_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_E_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_ref(dst_src_mac_ref), .dst_src_mac_tx(dst_src_mac_tx)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_E_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_horz_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_horz_near_eth%d_ready), " % (j,i,k))
@@ -1792,7 +1795,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_horz_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_W_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_ref(dst_src_mac_ref), .dst_src_mac_tx(dst_src_mac_tx)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_W_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_horz_near_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_horz_near_eth%d_ready), " % (j,i,k))
@@ -1876,8 +1879,6 @@ module chip(
     wire sys_rstn_aur;
     wire sys_rstn_cmac;
     assign rstn_tile = rst_n_inter_sync & sys_rstn_aur & sys_rstn_cmac;
-
-    assign {ethfr_id, eth_payl_len_rx, dst_src_mac_rx} = eth_hdr_rx;
 
    `ifdef PITON_MULTI_FPGA_AUR
      wire aur_clk;
@@ -2006,7 +2007,7 @@ module chip(
      wire                       freectrl_tx_ack_last;
      wire ctrl_tx_cmac;
      valrdy_to_ethframe #(.SINGLE_INFLIT(1))
-                        freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_tx), .dst_src_mac_ref(dst_src_mac_ref),
+                        freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to),
                                          .flit_in (free_ctrl_tx_reg),
                                          .valid_in(free_ctrl_tx_val_cmac & ctrl_tx_cmac),
                                          .ready_in(free_ctrl_tx_rdy_cmac),
@@ -2027,7 +2028,7 @@ module chip(
      wire                       freectrl_rx_ack_valid;
      wire                       freectrl_rx_ack_ready;
      wire                       freectrl_rx_ack_last;
-     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_ref(dst_src_mac_ref), .dst_src_mac_tx(dst_src_mac_tx),
+     ethframe_to_valrdy freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr),
                                           .data_in (freectrl_rx_eth_data),
                                           .valid_in(freectrl_rx_eth_valid),
                                           .ready_in(freectrl_rx_eth_ready),

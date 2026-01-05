@@ -35,7 +35,6 @@ module valrdy_to_ethframe (
        input rst,
 
        input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
-       input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_ref,
        output [ETHFR_RETRY_TIME_WIDTH-1 :0] wait_time,
        output [ETHFR_RETRIES_WIDTH   -1 :0] retries,
 
@@ -145,7 +144,8 @@ reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
 // swap bytes in payload length because of big-end network byte order
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_rx = {header_rx[2*MAC_ADDR_WIDTH   +: 8],
                                                      header_rx[2*MAC_ADDR_WIDTH+8 +: 8]};
-assign header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == dst_src_mac_ref) &&
+                                                        // exchanging destination and source MACs to check headers of incoming Eth frames
+assign header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == {dst_src_mac_tx[MAC_ADDR_WIDTH-1:0],dst_src_mac_tx[2*MAC_ADDR_WIDTH-1:MAC_ADDR_WIDTH]}) &&
                    (ethfr_payld_len_rx == MIN_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
                    //(header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
                    (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id);

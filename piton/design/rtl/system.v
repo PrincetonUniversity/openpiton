@@ -1171,10 +1171,8 @@ wire                               m_axi_bvalid;
 wire                               m_axi_bready;
 `endif
 
-wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx;
-wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx;
-wire [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx;
-wire [ETHFR_ID_WIDTH     -1:0] ethfr_id;
+wire [3*MAC_ADDR_WIDTH      -1 :0] dst_src_mac_tx;
+wire [ETHHDR_NOC_WIDTH      -1 :0] eth_hdr_rx;
 wire [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time;
 wire [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries;
 wire qsfp_noc_overflow;
@@ -1313,10 +1311,8 @@ chip chip(
 
   `ifdef PITON_MULTI_FPGA
     ,
-    .dst_src_mac_tx (dst_src_mac_tx),
-    .dst_src_mac_rx (dst_src_mac_rx),
-    .eth_payl_len_rx(eth_payl_len_rx),
-    .ethfr_id       (ethfr_id),
+    .dst_src_mac_tx  (dst_src_mac_tx),
+    .eth_hdr_rx      (eth_hdr_rx),
     .ethack_wait_time(ethack_wait_time),
     .ethfr_retries   (ethfr_retries),
     .qsfp_noc_overflow(qsfp_noc_overflow),
@@ -1736,17 +1732,13 @@ chipset chipset(
      .pci_express_x16_txp(pci_express_x16_txp),
      .pcie_gpio(pcie_gpio),
     `ifdef PITON_MULTI_FPGA
-     .dst_src_mac_tx (dst_src_mac_tx),
-     .dst_src_mac_rx (dst_src_mac_rx),
-     .eth_payl_len_rx(eth_payl_len_rx),
-     .ethfr_id       (ethfr_id),
+     .dst_src_mac_tx  (dst_src_mac_tx),
+     .eth_hdr_rx      (eth_hdr_rx),
      .ethack_wait_time(ethack_wait_time),
      .ethfr_retries   (ethfr_retries),
     `else // `ifdef PITON_MULTI_FPGA
-     .dst_src_mac_tx (),
-     .dst_src_mac_rx ('hFEEDFACEDEADBEEF8BADF00D),
-     .eth_payl_len_rx('hCAFE),
-     .ethfr_id       ('hC0DE),
+     .dst_src_mac_tx  (),
+     .eth_hdr_rx      ('hC0DECAFEFEEDFACEDEADBEEF8BADF00D),
      .ethack_wait_time('hDEAD),
      .ethfr_retries   ('hBEEF),
     `endif // `ifdef PITON_MULTI_FPGA
