@@ -503,25 +503,28 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 in_fifo_$idx
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
-      CONFIG.TDEST_WIDTH.VALUE_SRC USER \
-      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     ] [get_bd_cells in_fifo_$idx]
     connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx_lo]_AXIS_0]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                      s_axis_$idx
-    set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                                s_axis_$idx]
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_$idx
+    set_property -dict [list \
+      CONFIG.HAS_TLAST 1 \
+      CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
+      CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
+    ] [get_bd_intf_ports s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports s_axis_$idx]
     connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
 
-    create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
-    set_property -dict [ list \
-      CONFIG.CONST_WIDTH $AXIS_TDEST_WIDTH \
-      CONFIG.CONST_VAL $idx \
-    ] [get_bd_cells in_dest_$idx]
-    connect_bd_net [get_bd_pins in_dest_$idx/dout] [get_bd_pins in_fifo_$idx/s_axis_tdest]
+    # Delegation of TDEST value to upper level instead of constant assignment because of possibly different number of channels at recieving side
+    # create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
+    # set_property -dict [ list \
+    #   CONFIG.CONST_WIDTH $AXIS_TDEST_WIDTH \
+    #   CONFIG.CONST_VAL $idx \
+    # ] [get_bd_cells in_dest_$idx]
+    # connect_bd_net [get_bd_pins in_dest_$idx/dout] [get_bd_pins in_fifo_$idx/s_axis_tdest]
 
     create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inrdy_rst_$idx
     set_property -dict [list \
