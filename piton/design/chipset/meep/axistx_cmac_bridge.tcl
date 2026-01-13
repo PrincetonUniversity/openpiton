@@ -346,6 +346,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   global QSFP_BRDG_CHAN_BYTES
   global AXIS_INTERCON_MAXCHANS
   global CMAC_BRDG_CHANS
+  global CMAC_BRDG_CHAN_OFFS
+  global CMAC_BRDG_PRTS_EV
+  global CMAC_BRDG_PRTS_OD
   global AXIS_TDEST_WIDTH
 
   set CMAC_FULL_DAT_BYTES 64
@@ -403,13 +406,22 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set idx_hi [expr {int($idx / $AXIS_INTERCON_PARTCHANS)}]
     set idx_lo [expr {    $idx % $AXIS_INTERCON_PARTCHANS }]
 
+    # Labeling external ports with doubled index to designate ports for FR-only or TO-only cases
+    if {$idx < $CMAC_BRDG_CHAN_OFFS || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
+      set idx_port $idx
+    } elseif {$CMAC_BRDG_PRTS_EV == 1} {
+      set idx_port [expr {($idx - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS    }]
+    } elseif {$CMAC_BRDG_PRTS_OD == 1} {
+      set idx_port [expr {($idx - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS + 1}]
+    }
+
     # If number of channels is not aligned with max limit, for last cascade part with more than estimated even number of channels per part:
     if {$idx_hi > ($AXIS_INTERCON_PARTS-1)} {
       set idx_hi [expr {$AXIS_INTERCON_PARTS-1}]
       set idx_lo [expr {$idx - ($idx_hi * $AXIS_INTERCON_PARTCHANS)}]
     }
 
-    puts "AXISt-CMAC bridge: Iteration $idx to cascade Interconnect over $CMAC_BRDG_CHANS channels (chan $idx_lo in cascade part $idx_hi of $AXIS_INTERCON_PARTS)"
+    puts "AXISt-CMAC bridge: Iteration $idx (port $idx_port) to cascade Interconnect over $CMAC_BRDG_CHANS channels (chan $idx_lo in cascade part $idx_hi of $AXIS_INTERCON_PARTS)"
 
     # creation of few instances of interconnect for cascading because of limitation of number of channels
     if {$idx_lo == 0} {
@@ -479,10 +491,17 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         connect_bd_intf_net [get_bd_intf_pins axis_demuxer_$idx_hi/S00_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS]
 
         set demux_high_dest [expr {$idx+$intercon_chans-1}]
-        puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $idx to $demux_high_dest"
+        if {$demux_high_dest < $CMAC_BRDG_CHAN_OFFS || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
+          set demux_high_port $demux_high_dest
+        } elseif {$CMAC_BRDG_PRTS_EV == 1} {
+          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS    }]
+        } elseif {$CMAC_BRDG_PRTS_OD == 1} {
+          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS + 1}]
+        }
+        puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $idx_port (chan $idx) to $demux_high_port (chan $demux_high_dest)"
         set_property -dict [list \
-          CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x} $idx            ] \
-          CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} $demux_high_dest] \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x} $idx_port       ] \
+          CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} $demux_high_port] \
         ] [get_bd_cells axis_demuxer]
       }
     }
@@ -509,13 +528,13 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx_lo]_AXIS_0]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_$idx
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_$idx_port
     set_property -dict [list \
       CONFIG.HAS_TLAST 1 \
       CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
-    ] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports s_axis_$idx]
+    ] [get_bd_intf_ports s_axis_$idx_port]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports s_axis_$idx_port]
     connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
 
     # Delegation of TDEST value to upper level instead of constant assignment because of possibly different number of channels at recieving side
@@ -556,12 +575,12 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS]
     # set_property name "m_axis${idx}" [get_bd_intf_ports M[format {%02d} $idx_lo]_AXIS_0]
-    create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0       m_axis_$idx
-    connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/M_AXIS] [get_bd_intf_ports m_axis_$idx]
+    create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0       m_axis_$idx_port
+    connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/M_AXIS] [get_bd_intf_ports m_axis_$idx_port]
     connect_bd_intf_net [get_bd_intf_pins out_fifo_$idx/S_AXIS] [get_bd_intf_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS]
     set_property -dict [list \
-      CONFIG.M[format {%02d} $idx_lo]_AXIS_BASETDEST [format {0x%02x} $idx] \
-      CONFIG.M[format {%02d} $idx_lo]_AXIS_HIGHTDEST [format {0x%02x} $idx] \
+      CONFIG.M[format {%02d} $idx_lo]_AXIS_BASETDEST [format {0x%02x} $idx_port] \
+      CONFIG.M[format {%02d} $idx_lo]_AXIS_HIGHTDEST [format {0x%02x} $idx_port] \
     ] [get_bd_cells axis_demuxer_$idx_hi]
   }
 

@@ -187,29 +187,37 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
 
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
 
-  set CMAC_BRDG_CHANS 1
-  set AUR_BRDG_CHANS  1
+  set QSFP_BRDG_CHAN_OFFS 1
+  set AUR_BRDG_CHANS  $QSFP_BRDG_CHAN_OFFS
+  set CMAC_BRDG_CHANS $QSFP_BRDG_CHAN_OFFS
+  set CMAC_BRDG_PRTS_EV 0
+  set CMAC_BRDG_PRTS_OD 0
   if { $::env(PITON_FR_X) != 0 } {
-    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
     if {$::env(PITON_FRX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
+                                      set CMAC_BRDG_PRTS_EV 1}
   }
   if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
-    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
     if {$::env(PITON_TOX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
+                                      set CMAC_BRDG_PRTS_OD 1}
   }
   if { $::env(PITON_FR_Y) != 0 } {
-    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
     if {$::env(PITON_FRY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
+                                      set CMAC_BRDG_PRTS_EV 1}
   }
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
-    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
     if {$::env(PITON_TOY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
+                                      set CMAC_BRDG_PRTS_OD 1}
   }
   # NOC_DATA_WIDTH/8 = 64/8 = 8
   set QSFP_BRDG_CHAN_BYTES 8
   set AXIS_INTERCON_MAXCHANS 16
   # doubling number of channels for CMAC bridge due to acknowledgement channels
-  set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS * 2}]
+  set CMAC_BRDG_CHANS     [expr {$CMAC_BRDG_CHANS     * 2}]
+  set CMAC_BRDG_CHAN_OFFS [expr {$QSFP_BRDG_CHAN_OFFS * 2}]
   set AXIS_TDEST_WIDTH 8
   set g_cmac_port "qsfp0"
   set g_aur_port  "qsfp1"
