@@ -30,23 +30,28 @@
 
 `include "define.tmp.h"
 
-module ethframe_to_valrdy (
+module ethframe_to_valrdy #(
+  parameter DAT_WIDTH = `NOC_DATA_WIDTH,
+  parameter ACK_WIDTH = `NOC_DATA_WIDTH,
+  localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
+  localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH // 2*`NOC_DATA_WIDTH = 2*64 = 128
+)(
        input clk,
        input rst,
 
        input  [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_tx,
-       output [ETHHDR_NOC_WIDTH-1:0] eth_hdr_out,
+       output [ETHHDR_DAT_WIDTH-1:0] eth_hdr_out,
 
-       input  [`NOC_DATA_WIDTH-1:0] data_in,
+       input  [DAT_WIDTH-1:0] data_in,
        input  last_in,
        input  valid_in,
        output ready_in,
 
-       output [`NOC_DATA_WIDTH-1:0] flit_out,
+       output [DAT_WIDTH-1:0] flit_out,
        output valid_out,
        input  ready_out,
 
-       output [`NOC_DATA_WIDTH-1:0] data_ack,
+       output [ACK_WIDTH-1:0] data_ack,
        output valid_ack,
        output last_ack,
        input  ready_ack
@@ -54,9 +59,12 @@ module ethframe_to_valrdy (
 
 assign flit_out = data_in;
 
-reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_rx_cnt;
-reg [ETHHDR_NOC_WIDTH-1 :0] header_rx;
-reg [ETHHDR_NOC_WIDTH-1 :0] header_tx;
+localparam ETHHDR_ACK_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
+localparam ETHHDR_ACK_WIDTH = ETHHDR_ACK_FLITS * ACK_WIDTH;
+
+reg [$clog2(ETHHDR_DAT_FLITS):0] hdr_rx_cnt;
+reg [ETHHDR_DAT_WIDTH-1 :0] header_rx;
+reg [ETHHDR_ACK_WIDTH-1 :0] header_tx;
 reg [ETHFR_ID_WIDTH  -1 :0] ethfr_id;
 reg valid_ack;
 
@@ -74,7 +82,7 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] min_ethfr_payld_len = MIN_ETHFR_PAYLD_LEN;
 
 always @(posedge clk)
   if(rst) begin
-    hdr_rx_cnt <= ETHHDR_NOC_FLITS;
+    hdr_rx_cnt <= ETHHDR_DAT_FLITS;
     header_rx <= '0;
     header_tx <= '0;
     ethfr_id  <= '0;
@@ -84,11 +92,11 @@ always @(posedge clk)
     if (valid_in && ready_in) begin
       if (hdr_rx_cnt) begin
         hdr_rx_cnt <= hdr_rx_cnt - 'b1;
-        header_rx[(ETHHDR_NOC_FLITS - hdr_rx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH] <= data_in;
-        // header_rx <= {data_in, header_rx[ETHHDR_NOC_FLITS * `NOC_DATA_WIDTH -1 : `NOC_DATA_WIDTH]};
+        header_rx[(ETHHDR_DAT_FLITS - hdr_rx_cnt)*DAT_WIDTH +: DAT_WIDTH] <= data_in;
+        // header_rx <= {data_in, header_rx[ETHHDR_DAT_WIDTH -1 : DAT_WIDTH]};
       end
       if (last_in) begin 
-        hdr_rx_cnt <= ETHHDR_NOC_FLITS;
+        hdr_rx_cnt <= ETHHDR_DAT_FLITS;
         if (ethpack_exp) ethfr_id <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'b1;
         if (ethpack_exp || ethpack_prv) begin
           // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
@@ -108,15 +116,15 @@ assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp;
 assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack;
 
 
-reg [$clog2(ETHHDR_NOC_FLITS):0] hdr_tx_cnt;
+reg [$clog2(ETHHDR_ACK_FLITS):0] hdr_tx_cnt;
 always @(posedge clk)
-  if(rst) hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+  if(rst) hdr_tx_cnt <= ETHHDR_ACK_FLITS;
   else if (valid_ack && ready_ack) begin
-    if (last_ack) hdr_tx_cnt <= ETHHDR_NOC_FLITS;
+    if (last_ack) hdr_tx_cnt <= ETHHDR_ACK_FLITS;
     else          hdr_tx_cnt <= hdr_tx_cnt - 'b1;
   end
 
-assign data_ack = header_tx[(ETHHDR_NOC_FLITS - hdr_tx_cnt)*`NOC_DATA_WIDTH +: `NOC_DATA_WIDTH];
+assign data_ack = header_tx[(ETHHDR_ACK_FLITS - hdr_tx_cnt)*ACK_WIDTH +: ACK_WIDTH];
 assign last_ack = (hdr_tx_cnt == 'b1);
 
 endmodule

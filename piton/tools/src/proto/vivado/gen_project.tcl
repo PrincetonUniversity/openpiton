@@ -187,9 +187,9 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
 
   set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
 
-  set QSFP_BRDG_CHAN_OFFS 1
-  set AUR_BRDG_CHANS  $QSFP_BRDG_CHAN_OFFS
-  set CMAC_BRDG_CHANS $QSFP_BRDG_CHAN_OFFS
+  set QSFP_BRDG_CHANS_SGNL 1
+  set AUR_BRDG_CHANS  $QSFP_BRDG_CHANS_SGNL
+  set CMAC_BRDG_CHANS $QSFP_BRDG_CHANS_SGNL
   set CMAC_BRDG_PRTS_EV 0
   set CMAC_BRDG_PRTS_OD 0
   if { $::env(PITON_FR_X) != 0 } {
@@ -214,10 +214,11 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   }
   # NOC_DATA_WIDTH/8 = 64/8 = 8
   set QSFP_BRDG_CHAN_BYTES 8
+  set QSFP_BRDG_SGNL_BYTES [expr {$::env(PITON_NUM_TILES) * 4 /8}]
   set AXIS_INTERCON_MAXCHANS 16
   # doubling number of channels for CMAC bridge due to acknowledgement channels
-  set CMAC_BRDG_CHANS     [expr {$CMAC_BRDG_CHANS     * 2}]
-  set CMAC_BRDG_CHAN_OFFS [expr {$QSFP_BRDG_CHAN_OFFS * 2}]
+  set CMAC_BRDG_CHANS      [expr {$CMAC_BRDG_CHANS      * 2}]
+  set CMAC_BRDG_CHANS_SGNL [expr {$QSFP_BRDG_CHANS_SGNL * 2}]
   set AXIS_TDEST_WIDTH 8
   set g_cmac_port "qsfp0"
   set g_aur_port  "qsfp1"

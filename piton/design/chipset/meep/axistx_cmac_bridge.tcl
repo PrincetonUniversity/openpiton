@@ -344,9 +344,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
 
   global QSFP_BRDG_CHAN_BYTES
+  global QSFP_BRDG_SGNL_BYTES
   global AXIS_INTERCON_MAXCHANS
   global CMAC_BRDG_CHANS
-  global CMAC_BRDG_CHAN_OFFS
+  global CMAC_BRDG_CHANS_SGNL
   global CMAC_BRDG_PRTS_EV
   global CMAC_BRDG_PRTS_OD
   global AXIS_TDEST_WIDTH
@@ -407,12 +408,12 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set idx_lo [expr {    $idx % $AXIS_INTERCON_PARTCHANS }]
 
     # Labeling external ports with doubled index to designate ports for FR-only or TO-only cases
-    if {$idx < $CMAC_BRDG_CHAN_OFFS || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
+    if {$idx < $CMAC_BRDG_CHANS_SGNL || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
       set idx_port $idx
     } elseif {$CMAC_BRDG_PRTS_EV == 1} {
-      set idx_port [expr {($idx - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS    }]
+      set idx_port [expr {($idx - $CMAC_BRDG_CHANS_SGNL)*2 + $CMAC_BRDG_CHANS_SGNL    }]
     } elseif {$CMAC_BRDG_PRTS_OD == 1} {
-      set idx_port [expr {($idx - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS + 1}]
+      set idx_port [expr {($idx - $CMAC_BRDG_CHANS_SGNL)*2 + $CMAC_BRDG_CHANS_SGNL + 1}]
     }
 
     # If number of channels is not aligned with max limit, for last cascade part with more than estimated even number of channels per part:
@@ -491,12 +492,12 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         connect_bd_intf_net [get_bd_intf_pins axis_demuxer_$idx_hi/S00_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS]
 
         set demux_high_dest [expr {$idx+$intercon_chans-1}]
-        if {$demux_high_dest < $CMAC_BRDG_CHAN_OFFS || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
+        if {$demux_high_dest < $CMAC_BRDG_CHANS_SGNL || ($CMAC_BRDG_PRTS_EV == 1 && $CMAC_BRDG_PRTS_OD == 1)} {
           set demux_high_port $demux_high_dest
         } elseif {$CMAC_BRDG_PRTS_EV == 1} {
-          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS    }]
+          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHANS_SGNL)*2 + $CMAC_BRDG_CHANS_SGNL    }]
         } elseif {$CMAC_BRDG_PRTS_OD == 1} {
-          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHAN_OFFS)*2 + $CMAC_BRDG_CHAN_OFFS + 1}]
+          set demux_high_port [expr {($demux_high_dest - $CMAC_BRDG_CHANS_SGNL)*2 + $CMAC_BRDG_CHANS_SGNL + 1}]
         }
         puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $idx_port (chan $idx) to $demux_high_port (chan $demux_high_dest)"
         set_property -dict [list \
@@ -531,11 +532,15 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_$idx_port
     set_property -dict [list \
       CONFIG.HAS_TLAST 1 \
-      CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
     ] [get_bd_intf_ports s_axis_$idx_port]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports s_axis_$idx_port]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
+    if {$idx < $CMAC_BRDG_CHANS_SGNL} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_SGNL_BYTES [get_bd_intf_ports s_axis_$idx_port]
+    } else {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_intf_ports s_axis_$idx_port]
+    }
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS]  [get_bd_intf_ports s_axis_$idx_port]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS]  [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
 
     # Delegation of TDEST value to upper level instead of constant assignment because of possibly different number of channels at recieving side
     # create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
@@ -561,7 +566,6 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-      CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       CONFIG.HAS_TKEEP.VALUE_SRC USER \
       CONFIG.HAS_TKEEP {1} \
       CONFIG.HAS_TLAST.VALUE_SRC USER \
@@ -570,6 +574,11 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
+    if {$idx < $CMAC_BRDG_CHANS_SGNL} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_SGNL_BYTES [get_bd_cells out_fifo_$idx]
+    } else {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_cells out_fifo_$idx]
+    }
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins out_fifo_$idx/s_axis_aresetn]
 
@@ -598,6 +607,11 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.FIFO_MODE {2} \
   ] [get_bd_cells tx_fifo]
 
+  set tx_tdata_remap "tdest\[[expr {$AXIS_TDEST_WIDTH-1}]:0\],tkeep\[[expr {$CMAC_USE_DAT_BYTES-1}]:0\],tdata\[[expr {$CMAC_USE_DAT_BYTES*8-1}]:0\]"
+  set tx_tkeep_remap ${CMAC_FULL_DAT_BYTES}'b
+  for {set idx 0} {$idx < $CMAC_FULL_DAT_BYTES} {incr idx} {
+    append tx_tkeep_remap {1}
+  }
   create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 cmac_tx_conv
   set_property -dict [list \
     CONFIG.S_TDATA_NUM_BYTES.VALUE_SRC USER \
@@ -618,12 +632,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     CONFIG.M_HAS_TLAST {1} \
     CONFIG.M_TUSER_WIDTH.VALUE_SRC USER \
     CONFIG.M_TUSER_WIDTH {1} \
-    CONFIG.TDATA_REMAP {tdest[7:0],tkeep[55:0],tdata[447:0]} \
-    CONFIG.TKEEP_REMAP {64'b1111111111111111111111111111111111111111111111111111111111111111} \
+    CONFIG.TDATA_REMAP $tx_tdata_remap \
+    CONFIG.TKEEP_REMAP $tx_tkeep_remap \
     CONFIG.TUSER_REMAP {1'b0} \
   ] [get_bd_cells cmac_tx_conv]
-  # CONFIG.TDATA_REMAP {tdest[ [expr {$AXIS_TDEST_WIDTH-1}] :0],tkeep[ [expr {$CMAC_USE_DAT_BYTES-1}] :0],tdata[ [expr {$CMAC_USE_DAT_BYTES*8-1}] :0]}
-  # CONFIG.TKEEP_REMAP {${CMAC_FULL_DAT_BYTES}'b1111111111111111111111111111111111111111111111111111111111111111}
 
   connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
                  [get_bd_pins tx_fifo/s_axis_aresetn] \

@@ -247,8 +247,10 @@ current_bd_design $design_name
 
 
   global QSFP_BRDG_CHAN_BYTES
+  global QSFP_BRDG_SGNL_BYTES
   global AXIS_INTERCON_MAXCHANS
   global AUR_BRDG_CHANS
+  global QSFP_BRDG_CHANS_SGNL
   global AXIS_TDEST_WIDTH
 
   set AUR_FULL_DAT_BYTES 32
@@ -408,10 +410,15 @@ current_bd_design $design_name
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx_lo]_AXIS_0]
-    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0                                      s_axis_$idx
-    set_property -dict [list CONFIG.HAS_TLAST 1 CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES] [get_bd_intf_ports s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS] [get_bd_intf_ports                                s_axis_$idx]
-    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
+    create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0        s_axis_$idx
+    set_property CONFIG.HAS_TLAST 1                             [get_bd_intf_ports s_axis_$idx]
+    if {$idx < $QSFP_BRDG_CHANS_SGNL} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_SGNL_BYTES [get_bd_intf_ports s_axis_$idx]
+    } else {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_intf_ports s_axis_$idx]
+    }
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS]  [get_bd_intf_ports s_axis_$idx]
+    connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS]  [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
 
     create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 in_dest_$idx
     set_property -dict [ list \
@@ -436,7 +443,6 @@ current_bd_design $design_name
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
-      CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       CONFIG.HAS_TKEEP.VALUE_SRC USER \
       CONFIG.HAS_TKEEP {1} \
       CONFIG.HAS_TLAST.VALUE_SRC USER \
@@ -445,6 +451,11 @@ current_bd_design $design_name
       CONFIG.TDEST_WIDTH $AXIS_TDEST_WIDTH \
       CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
+    if {$idx < $QSFP_BRDG_CHANS_SGNL} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_SGNL_BYTES [get_bd_cells out_fifo_$idx]
+    } else {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_cells out_fifo_$idx]
+    }
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins out_fifo_$idx/s_axis_aresetn]
 
