@@ -2003,8 +2003,7 @@ module chip(
      wire                       freectrl_tx_ack_last;
      wire ctrl_tx_cmac;
      valrdy_to_ethframe #(.SINGLE_INFLIT(1),
-                          .DAT_WIDTH(`PITON_NUM_TILES*4),
-                          .ACK_WIDTH(`PITON_NUM_TILES*4)
+                          .DAT_WIDTH(`PITON_NUM_TILES*4)
                          )
                         freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to),
                                          .flit_in (free_ctrl_tx_reg),
@@ -2027,9 +2026,7 @@ module chip(
      wire                       freectrl_rx_ack_valid;
      wire                       freectrl_rx_ack_ready;
      wire                       freectrl_rx_ack_last;
-     ethframe_to_valrdy #(.DAT_WIDTH(`PITON_NUM_TILES*4),
-                          .ACK_WIDTH(`PITON_NUM_TILES*4)
-                         )
+     ethframe_to_valrdy #(.DAT_WIDTH(`PITON_NUM_TILES*4))
                         freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr),
                                           .data_in (freectrl_rx_eth_data),
                                           .valid_in(freectrl_rx_eth_valid),
