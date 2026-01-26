@@ -190,27 +190,31 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   set QSFP_BRDG_CHANS_SGNL 1
   set AUR_BRDG_CHANS  $QSFP_BRDG_CHANS_SGNL
   set CMAC_BRDG_CHANS $QSFP_BRDG_CHANS_SGNL
-  set CMAC_BRDG_PRTS_EV 0
-  set CMAC_BRDG_PRTS_OD 0
+  set CMAC_BRDG_DEST_OFFS 0
   if { $::env(PITON_FR_X) != 0 } {
     if {$::env(PITON_FRX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
-    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
-                                      set CMAC_BRDG_PRTS_EV 1}
+    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
   }
   if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
     if {$::env(PITON_TOX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
-    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]
-                                      set CMAC_BRDG_PRTS_OD 1}
+    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
   }
   if { $::env(PITON_FR_Y) != 0 } {
     if {$::env(PITON_FRY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
-    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
-                                      set CMAC_BRDG_PRTS_EV 1}
+    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
   }
   if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
     if {$::env(PITON_TOY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
-    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]
-                                      set CMAC_BRDG_PRTS_OD 1}
+    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
+  }
+  # Setting destination offset for "TO"-only partition borders
+  if { ($::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 && $::env(PITON_TOX_PORT) == 0) &&
+       ($::env(PITON_FR_X) == 0                       || $::env(PITON_FRX_PORT) != 0) } {
+    set CMAC_BRDG_DEST_OFFS [expr {$::env(PITON_Y_TILES) * 2}]
+  }
+  if { ($::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 && $::env(PITON_TOY_PORT) == 0) &&
+       ($::env(PITON_FR_Y) == 0                       || $::env(PITON_FRY_PORT) != 0) } {
+    set CMAC_BRDG_DEST_OFFS [expr {$::env(PITON_X_TILES) * 2}]
   }
   # NOC_DATA_WIDTH/8 = 64/8 = 8
   set QSFP_BRDG_CHAN_BYTES 8
