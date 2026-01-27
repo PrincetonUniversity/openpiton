@@ -32,7 +32,7 @@
 
 module ethframe_to_valrdy #(
   parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-  parameter ACK_WIDTH = DAT_WIDTH,
+  parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
   localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
   localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH // 2*`NOC_DATA_WIDTH = 2*64 = 128
 )(
@@ -61,6 +61,11 @@ assign flit_out = data_in;
 
 localparam ETHHDR_ACK_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
 localparam ETHHDR_ACK_WIDTH = ETHHDR_ACK_FLITS * ACK_WIDTH;
+
+if (ETHHDR_ACK_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
+  $fatal("Ack Eth frame: Aligned to %d width Ethernet header with length %d does not fit into single CMAC AXI data beat with length %d as a condition of feasible further Eth frame payload length",
+         ACK_WIDTH, ETHHDR_ACK_WIDTH/8, CMAC_USE_DAT_BYTES);
+end
 
 reg [$clog2(ETHHDR_DAT_FLITS):0] hdr_rx_cnt;
 reg [ETHHDR_DAT_WIDTH-1 :0] header_rx;

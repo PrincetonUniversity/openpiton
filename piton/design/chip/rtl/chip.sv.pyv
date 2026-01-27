@@ -1538,7 +1538,7 @@ module chip(
                       print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_valid;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_ready;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_vert_far_eth%d_last; " % (j,i,k))
-                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_far_ack%d_data; " % (j,i,k))
+                      print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_vert_far_ack%d_data;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_valid;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_ready;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_vert_far_ack%d_last; " % (j,i,k))
@@ -1588,7 +1588,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_near_S_ack%d_data;"  % (j,i,k))
+                        print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_vert_near_S_ack%d_data;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_ack%d_last;"  % (j,i,k))
@@ -1631,7 +1631,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_vert_near_N_ack%d_data;"  % (j,i,k))
+                        print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_vert_near_N_ack%d_data;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_ack%d_last;"  % (j,i,k))
@@ -1697,7 +1697,7 @@ module chip(
                       print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_valid;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_ready;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_horz_far_eth%d_last; " % (j,i,k))
-                      print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_far_ack%d_data; " % (j,i,k))
+                      print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_horz_far_ack%d_data;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_valid;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_ready;" % (j,i,k))
                       print("wire                   tile_%d_%d_valrdy_horz_far_ack%d_last; " % (j,i,k))
@@ -1747,7 +1747,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_near_E_ack%d_data;"  % (j,i,k))
+                        print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_horz_near_E_ack%d_data;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_ack%d_last;"  % (j,i,k))
@@ -1790,7 +1790,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_eth%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_eth%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_eth%d_last;"  % (j,i,k))
-                        print("wire [`DATA_WIDTH-1:0] tile_%d_%d_valrdy_horz_near_W_ack%d_data;"  % (j,i,k))
+                        print("wire [CMAC_USE_DAT_BYTES*8-1:0] tile_%d_%d_valrdy_horz_near_W_ack%d_data;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_ack%d_valid;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_ack%d_last;"  % (j,i,k))
@@ -1997,14 +1997,13 @@ module chip(
      wire                       freectrl_tx_eth_valid;
      wire                       freectrl_tx_eth_ready;
      wire                       freectrl_tx_eth_last;
-     wire [`NOC_DATA_WIDTH-1:0] freectrl_tx_ack_data;
+     wire [CMAC_USE_DAT_BYTES*8-1:0] freectrl_tx_ack_data;
      wire                       freectrl_tx_ack_valid;
      wire                       freectrl_tx_ack_ready;
      wire                       freectrl_tx_ack_last;
      wire ctrl_tx_cmac;
      valrdy_to_ethframe #(.SINGLE_INFLIT(1),
-                          .DAT_WIDTH(`PITON_NUM_TILES*4),
-                          .ACK_WIDTH(`NOC_DATA_WIDTH)
+                          .DAT_WIDTH(`PITON_NUM_TILES*4)
                          )
                         freectrl_ethgen (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to),
                                          .flit_in (free_ctrl_tx_reg),
@@ -2023,12 +2022,11 @@ module chip(
      wire                       freectrl_rx_eth_valid;
      wire                       freectrl_rx_eth_ready;
      wire                       freectrl_rx_eth_last;
-     wire [`NOC_DATA_WIDTH-1:0] freectrl_rx_ack_data;
+     wire [CMAC_USE_DAT_BYTES*8-1:0] freectrl_rx_ack_data;
      wire                       freectrl_rx_ack_valid;
      wire                       freectrl_rx_ack_ready;
      wire                       freectrl_rx_ack_last;
-     ethframe_to_valrdy #(.DAT_WIDTH(`PITON_NUM_TILES*4),
-                          .ACK_WIDTH(`NOC_DATA_WIDTH)
+     ethframe_to_valrdy #(.DAT_WIDTH(`PITON_NUM_TILES*4)
                          )
                         freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr),
                                           .data_in (freectrl_rx_eth_data),

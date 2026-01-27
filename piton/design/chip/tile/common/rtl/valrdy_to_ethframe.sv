@@ -32,7 +32,7 @@
 
 module valrdy_to_ethframe #(
        parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-       parameter ACK_WIDTH = DAT_WIDTH,
+       parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
        parameter SINGLE_INFLIT = 0
 )(
        input clk,
@@ -71,9 +71,10 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] cmac_pack_beats = CMAC_USE_DAT_BYTES   >= noc_pac
                                                  CMAC_USE_DAT_BYTES*2 >= noc_pack_len ? 2 : MAX_CMAC_PACK_BEATS;
 
 if (ETHHDR_DAT_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
-  $fatal("Aligned to %d width Ethernet header with length %d does not fit into single CMAC AXI data beat with length %d as a condition of feasible further Eth frame payload length",
+  $fatal("Data Eth frame: Aligned to %d width Ethernet header with length %d does not fit into single CMAC AXI data beat with length %d as a condition of feasible further Eth frame payload length",
          DAT_WIDTH, ETHHDR_DAT_WIDTH/8, CMAC_USE_DAT_BYTES);
 end
+
 reg  [ETHFR_ID_WIDTH-1 :0] ethfr_id;
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len_tx = (cmac_pack_beats << $clog2(CMAC_FULL_DAT_BYTES)) - ETHHDR_WIDTH/8; //shift to exclude true multiplier
 // swapping bytes in payload length for big-end network byte order (IEEE802.3 usage of the Ethertype field as Eth payload length)
