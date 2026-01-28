@@ -32,7 +32,8 @@
 
 module ethframe_to_valrdy #(
   parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-  parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
+  parameter ACK_WIDTH = DAT_WIDTH,
+  // parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
   localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
   localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH // 2*`NOC_DATA_WIDTH = 2*64 = 128
 )(
