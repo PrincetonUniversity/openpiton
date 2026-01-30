@@ -354,10 +354,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
   set CMAC_USE_DAT_BYTES [expr {$CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES}]
-  # set QSFP_BRDG_ODCHI_BYTES $CMAC_USE_DAT_BYTES
-  # set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
   set QSFP_BRDG_ODCHI_BYTES $QSFP_BRDG_CHAN_BYTES
-  set QSFP_BRDG_ODCHO_BYTES $QSFP_BRDG_CHAN_BYTES
+  set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
   set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
@@ -519,6 +517,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     set_property -dict [list \
       CONFIG.FIFO_DEPTH {32} \
     ] [get_bd_cells in_fifo_$idx]
+    connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]
+    connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn]
 
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.1 in_tx_conv_$idx
     set_property -dict [list \
@@ -527,8 +527,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.M_HAS_TKEEP.VALUE_SRC USER \
       CONFIG.M_HAS_TKEEP {1} \
     ] [get_bd_cells in_tx_conv_$idx]
-    connect_bd_net [get_bd_ports sys_clk]     [get_bd_pins in_fifo_$idx/s_axis_aclk]    [get_bd_pins in_tx_conv_$idx/aclk]
-    connect_bd_net [get_bd_ports sys_rstn_in] [get_bd_pins in_fifo_$idx/s_axis_aresetn] [get_bd_pins in_tx_conv_$idx/aresetn]
+    connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins in_tx_conv_$idx/aclk]
+    connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins in_tx_conv_$idx/aresetn]
 
     # make_bd_intf_pins_external [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
     # set_property name "s_axis${idx}" [get_bd_intf_ports S[format {%02d} $idx_lo]_AXIS_0]
@@ -564,8 +564,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.C_OPERATION {and} \
       CONFIG.C_SIZE {1} \
     ] [get_bd_cells inrdy_rst_$idx]
-    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op1] [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_tready]
-    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op2] [get_bd_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS_ARESETN]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op1] [get_bd_pins in_tx_conv_$idx/s_axis_tready]
+    connect_bd_net [get_bd_pins inrdy_rst_$idx/Op2] [get_bd_pins in_tx_conv_$idx/aresetn]
     connect_bd_net [get_bd_pins inrdy_rst_$idx/Res] [get_bd_pins in_fifo_$idx/m_axis_tready]
 
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins axis_demuxer_$idx_hi/M[format {%02d} $idx_lo]_AXIS_ACLK]

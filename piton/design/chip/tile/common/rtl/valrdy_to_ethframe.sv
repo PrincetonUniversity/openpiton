@@ -32,8 +32,8 @@
 
 module valrdy_to_ethframe #(
        parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-       parameter ACK_WIDTH = `NOC_DATA_WIDTH,
-       // parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
+       //  parameter ACK_WIDTH = `NOC_DATA_WIDTH,
+       parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
        parameter SINGLE_INFLIT = 0
 )(
        input clk,
