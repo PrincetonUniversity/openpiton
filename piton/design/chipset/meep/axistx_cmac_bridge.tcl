@@ -354,8 +354,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
   set CMAC_USE_DAT_BYTES [expr {$CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES}]
-  set QSFP_BRDG_ODCHI_BYTES $CMAC_USE_DAT_BYTES
-  set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
+  # set QSFP_BRDG_ODCHI_BYTES $CMAC_USE_DAT_BYTES
+  # set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
+  set QSFP_BRDG_ODCHI_BYTES $QSFP_BRDG_CHAN_BYTES
+  set QSFP_BRDG_ODCHO_BYTES $QSFP_BRDG_CHAN_BYTES
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
   set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
@@ -539,9 +541,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
     } else {
       set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_intf_ports s_axis_$idx]
     }
-    # if {$idx % 2 != 0} {
-    #   set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_ODCHI_BYTES [get_bd_intf_ports s_axis_$idx]
-    # }
+    # special width for odd channels (intended for delivery acknoledgement on even channels) if needed
+    if {$idx % 2 != 0} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_ODCHI_BYTES [get_bd_intf_ports s_axis_$idx]
+    }
     connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/S_AXIS]    [get_bd_intf_ports s_axis_$idx]
     connect_bd_intf_net [get_bd_intf_pins in_fifo_$idx/M_AXIS]    [get_bd_intf_pins  in_tx_conv_$idx/S_AXIS]
     connect_bd_intf_net [get_bd_intf_pins in_tx_conv_$idx/M_AXIS] [get_bd_intf_pins axis_muxer_$idx_hi/S[format {%02d} $idx_lo]_AXIS]
@@ -587,9 +590,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES [get_bd_cells out_fifo_$idx]
       set idx_dest [expr {$idx + $CMAC_BRDG_DEST_OFFS}]
     }
-    # if {$idx % 2 != 0} {
-    #   set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_ODCHO_BYTES [get_bd_cells out_fifo_$idx]
-    # }
+    # special width for odd channels (intended for delivery acknoledgement on even channels) if needed
+    if {$idx % 2 != 0} {
+      set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_ODCHO_BYTES [get_bd_cells out_fifo_$idx]
+    }
     connect_bd_net [get_bd_ports sys_clk]                         [get_bd_pins out_fifo_$idx/s_axis_aclk]
     connect_bd_net [get_bd_pins mux_rst_gen/interconnect_aresetn] [get_bd_pins out_fifo_$idx/s_axis_aresetn]
 
