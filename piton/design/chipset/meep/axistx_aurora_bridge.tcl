@@ -258,7 +258,8 @@ current_bd_design $design_name
   set AUR_USE_DAT_BYTES [expr ($AUR_FULL_DAT_BYTES - $AUR_DATA_OVERHD_BYTES)]
 
   set AXIS_INTERCON_PARTS     [expr {int(($AUR_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
-  set AXIS_INTERCON_PARTCHANS [expr {int( $AUR_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
+  # recalculating number of channels per part versus AXIS_INTERCON_MAXCHANS for more even distribution
+  set AXIS_INTERCON_PARTCHANS [expr {int(($AUR_BRDG_CHANS + $AXIS_INTERCON_PARTS    - 1)/$AXIS_INTERCON_PARTS   )}]
 
   if {$AXIS_INTERCON_PARTS > 1} {
     # Create Xilix AXI-stream interconnect (axis_muxer with True Round-Robin arbitration of AXISt packets)
@@ -378,7 +379,7 @@ current_bd_design $design_name
         connect_bd_intf_net [get_bd_intf_pins axis_demuxer_$idx_hi/S00_AXIS] [get_bd_intf_pins axis_demuxer/M[format {%02d} $idx_hi]_AXIS]
 
         set demux_high_dest [expr {$idx+$intercon_chans-1}]
-        puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $idx to $demux_high_dest"
+        puts "  At higher cascade: set demuxer $idx_hi of $AXIS_INTERCON_PARTS dest addr range: from $idx to $demux_high_dest"
         set_property -dict [list \
           CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x} $idx            ] \
           CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} $demux_high_dest] \

@@ -358,7 +358,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
-  set AXIS_INTERCON_PARTCHANS [expr {int( $CMAC_BRDG_CHANS / $AXIS_INTERCON_PARTS)}]
+  # recalculating number of channels per part versus AXIS_INTERCON_MAXCHANS for more even distribution
+  set AXIS_INTERCON_PARTCHANS [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_PARTS    - 1)/$AXIS_INTERCON_PARTS   )}]
 
   if {$AXIS_INTERCON_PARTS > 1} {
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer
@@ -492,7 +493,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         if {$demux_high_dest >= $CMAC_BRDG_CHANS_SGNL} {
           set demux_high_dest [expr {$demux_high_dest + $CMAC_BRDG_DEST_OFFS}]
         }
-        puts "  At higher cascade: set demuxer dest $idx_hi of $AXIS_INTERCON_PARTS addr range: from $demux_low_dest (chan $idx) to $demux_high_dest (chan $idx_up)"
+        puts "  At higher cascade: set demuxer $idx_hi of $AXIS_INTERCON_PARTS dest addr range: from $demux_low_dest (chan $idx) to $demux_high_dest (chan $idx_up)"
         set_property -dict [list \
           CONFIG.M[format {%02d} $idx_hi]_AXIS_BASETDEST [format {0x%02x} $demux_low_dest ] \
           CONFIG.M[format {%02d} $idx_hi]_AXIS_HIGHTDEST [format {0x%02x} $demux_high_dest] \
