@@ -32,8 +32,8 @@
 
 module ethframe_to_valrdy #(
   parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-  parameter ACK_WIDTH = `NOC_DATA_WIDTH,
-  // parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
+  // parameter ACK_WIDTH = `NOC_DATA_WIDTH,
+  parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
   localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
   localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH // 2*`NOC_DATA_WIDTH = 2*64 = 128
 )(
@@ -112,7 +112,7 @@ always @(posedge clk)
         end
       end
     end
-    if (ready_ack && last_ack) valid_ack <= '0;
+    if (valid_ack && ready_ack && last_ack) valid_ack <= '0;
   end
 
 assign eth_hdr_out = header_rx;

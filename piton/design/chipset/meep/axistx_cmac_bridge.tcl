@@ -354,7 +354,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
   set CMAC_FULL_DAT_BYTES 64
   set CMAC_DATA_OVERHD_BYTES 8
   set CMAC_USE_DAT_BYTES [expr {$CMAC_FULL_DAT_BYTES - $CMAC_DATA_OVERHD_BYTES}]
-  set QSFP_BRDG_ODCHI_BYTES $QSFP_BRDG_CHAN_BYTES
+  # set QSFP_BRDG_ODCHI_BYTES $QSFP_BRDG_CHAN_BYTES
+  # set QSFP_BRDG_ODCHO_BYTES $QSFP_BRDG_CHAN_BYTES
+  set QSFP_BRDG_ODCHI_BYTES $CMAC_USE_DAT_BYTES
   set QSFP_BRDG_ODCHO_BYTES $CMAC_USE_DAT_BYTES
 
   set AXIS_INTERCON_PARTS     [expr {int(($CMAC_BRDG_CHANS + $AXIS_INTERCON_MAXCHANS - 1)/$AXIS_INTERCON_MAXCHANS)}]
@@ -427,6 +429,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       puts "  At lower cascade: set muxer/demuxer $idx_hi of $AXIS_INTERCON_PARTS with $intercon_chans channels"
       puts "  of evenly distributed $AXIS_INTERCON_PARTCHANS and of max limit $AXIS_INTERCON_MAXCHANS channels per muxer/demuxer"
 
+      # enforcing XBAR width to QSFP_BRDG_CHAN_BYTES to avoid routing congestion for possibly rather wider QSFP_BRDG_SGNL_BYTES
       create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_muxer_$idx_hi
       set_property -dict [list \
         CONFIG.NUM_MI {1} \
@@ -435,9 +438,9 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         CONFIG.M00_AXIS_HIGHTDEST {0xFFFFFFFF} \
         CONFIG.ARB_ON_TLAST {1} \
         CONFIG.ARB_ON_MAX_XFERS {0} \
+        CONFIG.ENABLE_ADVANCED_OPTIONS {1} \
+        CONFIG.XBAR_TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       ] [get_bd_cells axis_muxer_$idx_hi]
-      # CONFIG.ENABLE_ADVANCED_OPTIONS {1}
-      # CONFIG.XBAR_TDATA_NUM_BYTES $CMAC_USE_DAT_BYTES
 
       connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
                      [get_bd_pins axis_muxer_$idx_hi/ARESETN] \
