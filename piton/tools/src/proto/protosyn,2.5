@@ -454,7 +454,7 @@ def find_board_tool(board):
     fp = open(BOARD_TOOL_LIST, 'r')
     for line in fp:
         # Check for comments
-        if not re.match('\s*#.*', line) :
+        if not re.match(r'\s*#.*', line) :
             # Process board line
             line_split = line.split()
             if line_split[0] == board:

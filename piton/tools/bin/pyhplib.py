@@ -177,7 +177,7 @@ def Replicate(text):
 #    return newtext;
 
 def ReplicatePattern(text, patterns):
-  regex = " ([^\.:]+)0"
+  regex = r" ([^\.:]+)0"
   newtext = ''
   for i in range(PITON_NUM_TILES):
     t = text
@@ -189,7 +189,7 @@ def ReplicatePattern(text, patterns):
 
 # only difference is that this looks for patterns start with 1 not 0
 def ReplicatePattern1(text, patterns):
-  regex = " ([^\.:]+)1"
+  regex = r" ([^\.:]+)1"
   newtext = ''
   for i in range(PITON_NUM_TILES):
     t = text

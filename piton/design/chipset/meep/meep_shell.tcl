@@ -85,48 +85,6 @@ if { $run_remote_bd_flow == 1 } {
 
 current_bd_design $design_name
 
-  set bCheckIPsPassed 1
-  ##################################################################
-  # CHECK IPs
-  ##################################################################
-  set bCheckIPs 1
-  if { $bCheckIPs == 1 } {
-     set list_check_ips "\ 
-  xilinx.com:ip:axi_gpio:2.0\
-  xilinx.com:ip:ddr4:2.2\
-  xilinx.com:ip:util_vector_logic:2.0\
-  xilinx.com:ip:axi_bram_ctrl:4.1\
-  xilinx.com:ip:xlconstant:1.1\
-  xilinx.com:ip:hbm:1.0\
-  xilinx.com:ip:proc_sys_reset:5.0\
-  xilinx.com:ip:qdma:5.0\
-  xilinx.com:ip:smartconnect:1.0\
-  xilinx.com:ip:util_ds_buf:2.2\
-  xilinx.com:ip:blk_mem_gen:8.4\
-  "
-
-   set list_ips_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
-
-   foreach ip_vlnv $list_check_ips {
-      set ip_obj [get_ipdefs -all $ip_vlnv]
-      if { $ip_obj eq "" } {
-         lappend list_ips_missing $ip_vlnv
-      }
-   }
-
-   if { $list_ips_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
-      set bCheckIPsPassed 0
-   }
-
-  }
-
-  if { $bCheckIPsPassed != 1 } {
-    common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
-    return 3
-  }
-
   variable script_folder
 
   if { $parentCell eq "" } {
@@ -734,7 +692,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   } else {
     set pcie_blk_locn "PCIE4C_X1Y0"
   }
-  set qdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:qdma:5.0 qdma_0 ]
+  set qdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:qdma:5.* qdma_0 ]
   set_property -dict [ list \
    CONFIG.MAILBOX_ENABLE {true} \
    CONFIG.PF0_SRIOV_CAP_INITIAL_VF {4} \
