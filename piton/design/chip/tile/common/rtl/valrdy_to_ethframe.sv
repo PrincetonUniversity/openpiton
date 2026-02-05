@@ -32,7 +32,7 @@
 
 module valrdy_to_ethframe #(
        parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-       //  parameter ACK_WIDTH = `NOC_DATA_WIDTH,
+       // parameter ACK_WIDTH = `NOC_DATA_WIDTH,
        parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
        parameter SINGLE_INFLIT = 0
 )(
@@ -58,9 +58,9 @@ module valrdy_to_ethframe #(
        output ready_ack
 );
 
-localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH; // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
+localparam ETHHDR_DAT_FLITS = (ETHFR_MIN_WIDTH + DAT_WIDTH-1) / DAT_WIDTH; // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
 localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH; // 2*`NOC_DATA_WIDTH = 2*64 = 128
-localparam ETHHDR_ACK_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
+localparam ETHHDR_ACK_FLITS = (ETHFR_MIN_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
 localparam ETHHDR_ACK_WIDTH = ETHHDR_ACK_FLITS * ACK_WIDTH;
 localparam MAX_PACK_FLITS   = (SINGLE_INFLIT ? 1 : (MAX_NOC_PACK_LEN*8 / `NOC_DATA_WIDTH)) + ETHHDR_DAT_FLITS; // 88*8/64+2=11+2=13
 

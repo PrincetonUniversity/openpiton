@@ -32,9 +32,9 @@
 
 module ethframe_to_valrdy #(
   parameter DAT_WIDTH = `NOC_DATA_WIDTH,
-  // parameter ACK_WIDTH = `NOC_DATA_WIDTH,
-  parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
-  localparam ETHHDR_DAT_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
+  parameter ACK_WIDTH = `NOC_DATA_WIDTH,
+  // parameter ACK_WIDTH = CMAC_USE_DAT_BYTES*8,
+  localparam ETHHDR_DAT_FLITS = (ETHFR_MIN_WIDTH + DAT_WIDTH-1) / DAT_WIDTH, // ceil division: (112+8)/`NOC_DATA_WIDTH = 120/64 = 2
   localparam ETHHDR_DAT_WIDTH = ETHHDR_DAT_FLITS * DAT_WIDTH // 2*`NOC_DATA_WIDTH = 2*64 = 128
 )(
        input clk,
@@ -60,7 +60,7 @@ module ethframe_to_valrdy #(
 
 assign flit_out = data_in;
 
-localparam ETHHDR_ACK_FLITS = (ETHHDR_WIDTH + ETHFR_ID_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
+localparam ETHHDR_ACK_FLITS = (ETHFR_MIN_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
 localparam ETHHDR_ACK_WIDTH = ETHHDR_ACK_FLITS * ACK_WIDTH;
 
 if (ETHHDR_ACK_WIDTH/8 > CMAC_USE_DAT_BYTES) begin
