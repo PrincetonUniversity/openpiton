@@ -444,12 +444,13 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
         CONFIG.XBAR_TDATA_NUM_BYTES $QSFP_BRDG_CHAN_BYTES \
       ] [get_bd_cells axis_muxer_$idx_hi]
 
+      connect_bd_net [get_bd_ports sys_clk] [get_bd_pins axis_muxer_$idx_hi/ACLK]
+
       connect_bd_net [get_bd_pins tx_rst_gen/interconnect_aresetn] \
                      [get_bd_pins axis_muxer_$idx_hi/ARESETN] \
                      [get_bd_pins axis_muxer_$idx_hi/M00_AXIS_ARESETN]
 
       connect_bd_net [get_bd_pins eth_cmac/gt_txusrclk2] \
-                     [get_bd_pins axis_muxer_$idx_hi/ACLK] \
                      [get_bd_pins axis_muxer_$idx_hi/M00_AXIS_ACLK]
 
       create_bd_cell -type ip -vlnv xilinx.com:ip:axis_interconnect:2.1 axis_demuxer_$idx_hi
