@@ -43,7 +43,8 @@ set qdma_clk [get_clocks -of_objects [get_pins -hierarchical qdma_0/axi_aclk]]
 # set_false_path -from $xxx_clk -to $yyy_clk
 # controlling resync paths to be less than source clock period
 # (-datapath_only to exclude clock paths)
-set_max_delay -datapath_only -from $qdma_clk -to $chip_clk [expr [get_property -min period $qdma_clk] * 0.9]
+set_max_delay -datapath_only -from $qdma_clk -to $chip_clk [expr [get_property -min period $qdma_clk] * 0.99]
+set_max_delay -datapath_only -from $chip_clk -to $qdma_clk [expr [get_property -min period $chip_clk] * 0.9 ]
 
 # Specifying the placement of PCIe clock domain modules into single SLR to facilitate routing
 # https://www.xilinx.com/support/documentation/sw_manuals/xilinx2020_1/ug912-vivado-properties.pdf#page=386

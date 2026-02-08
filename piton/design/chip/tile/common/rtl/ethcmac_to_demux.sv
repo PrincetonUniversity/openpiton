@@ -70,7 +70,7 @@ module ethcmac_to_demux (
     assign valid   = valid_in;
   end
 
-  parameter FIFO_DEPTH_LOG = 5;
+  parameter FIFO_DEPTH_LOG = 8;
   reg  [CMAC_FULL_DAT_BYTES*8 :0] fifo[2**FIFO_DEPTH_LOG];
   reg  [FIFO_DEPTH_LOG        :0] rd_ptr;
   reg  [FIFO_DEPTH_LOG        :0] wr_ptr;
