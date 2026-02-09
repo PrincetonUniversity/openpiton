@@ -1204,9 +1204,12 @@ module chip(
     wire [`PITON_NUM_TILES*2-1:0] irq_tile;
 
   `ifdef PITON_MULTI_FPGA
+    // Register MAC addresses for better inter-clock routing
+    reg [3*MAC_ADDR_WIDTH-1:0]  dst_src_mac_reg;
+    always @(posedge clk_muxed) dst_src_mac_reg <= dst_src_mac_tx;
     // Source/Dest MAC address pairs separately for "FROM" and "TO" borders
-    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_fr = {dst_src_mac_tx[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_tx[  MAC_ADDR_WIDTH-1 :              0]};
-    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_to = {dst_src_mac_tx[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_tx[2*MAC_ADDR_WIDTH-1 : MAC_ADDR_WIDTH]};
+    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_fr  = {dst_src_mac_reg[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_reg[  MAC_ADDR_WIDTH-1 :              0]};
+    wire [2*MAC_ADDR_WIDTH-1:0] dst_src_mac_to  = {dst_src_mac_reg[3*MAC_ADDR_WIDTH-1 : 2*MAC_ADDR_WIDTH], dst_src_mac_reg[2*MAC_ADDR_WIDTH-1 : MAC_ADDR_WIDTH]};
   `endif
 
 <%
