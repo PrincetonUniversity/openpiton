@@ -1881,7 +1881,7 @@ module chip(
 
     wire sys_rstn_aur;
     wire sys_rstn_cmac;
-    assign rstn_tile = rst_n_inter_sync & sys_rstn_aur; // & sys_rstn_cmac;
+    assign rstn_tile = rst_n_inter_sync & sys_rstn_aur & sys_rstn_cmac;
 
    `ifdef PITON_MULTI_FPGA_AUR
      wire aur_clk;

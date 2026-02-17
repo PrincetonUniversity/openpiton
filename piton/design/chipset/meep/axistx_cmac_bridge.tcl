@@ -709,26 +709,26 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
  ] $powerup_rst_inv
   connect_bd_net [get_bd_pins powerup_rst_inv/Res] [get_bd_pins powerup_rst_gen/CE]
 
-  set aur_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 aur_rst_gen ]
+  set cmac_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 cmac_rst_gen ]
   set_property -dict [ list \
    CONFIG.C_AUX_RESET_HIGH.VALUE_SRC USER \
    CONFIG.C_AUX_RESET_HIGH {0} \
-  ] $aur_rst_gen
-  connect_bd_net [get_bd_ports sys_clk]         [get_bd_pins aur_rst_gen/slowest_sync_clk]
-  connect_bd_net [get_bd_ports sys_rstn]        [get_bd_pins aur_rst_gen/ext_reset_in]
-  connect_bd_net [get_bd_pins powerup_rst/Dout] [get_bd_pins aur_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
-  connect_bd_net [get_bd_pins gndx1/dout]       [get_bd_pins aur_rst_gen/mb_debug_sys_rst]
-  connect_bd_net [get_bd_pins aur_rst_gen/bus_struct_reset] [get_bd_pins eth_cmac/sys_reset] \
-                                                            [get_bd_pins eth_cmac/gtwiz_reset_tx_datapath] \
-                                                            [get_bd_pins eth_cmac/gtwiz_reset_rx_datapath] 
-  connect_bd_net [get_bd_pins aur_rst_gen/peripheral_reset] [get_bd_pins eth_cmac/core_drp_reset] \
-                                                            [get_bd_pins eth_cmac/core_tx_reset] \
-                                                            [get_bd_pins eth_cmac/core_rx_reset]
-  connect_bd_net [get_bd_pins aur_rst_gen/mb_reset]         [get_bd_pins eth_cmac/ctl_rx_force_resync] \
-                                                            [get_bd_pins mux_rst_gen/ext_reset_in] \
-                                                            [get_bd_pins rx_rst_gen/ext_reset_in] \
-                                                            [get_bd_pins tx_rst_gen/ext_reset_in] \
-                                                            [get_bd_pins tx_rfi_gen/ext_reset_in]
+  ] $cmac_rst_gen
+  connect_bd_net [get_bd_ports sys_clk]         [get_bd_pins cmac_rst_gen/slowest_sync_clk]
+  connect_bd_net [get_bd_ports sys_rstn]        [get_bd_pins cmac_rst_gen/ext_reset_in]
+  connect_bd_net [get_bd_pins powerup_rst/Dout] [get_bd_pins cmac_rst_gen/aux_reset_in] [get_bd_pins powerup_rst_inv/Op1]
+  connect_bd_net [get_bd_pins gndx1/dout]       [get_bd_pins cmac_rst_gen/mb_debug_sys_rst]
+  connect_bd_net [get_bd_pins cmac_rst_gen/bus_struct_reset] [get_bd_pins eth_cmac/sys_reset] \
+                                                             [get_bd_pins eth_cmac/gtwiz_reset_tx_datapath] \
+                                                             [get_bd_pins eth_cmac/gtwiz_reset_rx_datapath] 
+  connect_bd_net [get_bd_pins cmac_rst_gen/peripheral_reset] [get_bd_pins eth_cmac/core_drp_reset] \
+                                                             [get_bd_pins eth_cmac/core_tx_reset] \
+                                                             [get_bd_pins eth_cmac/core_rx_reset]
+  connect_bd_net [get_bd_pins cmac_rst_gen/mb_reset]         [get_bd_pins eth_cmac/ctl_rx_force_resync] \
+                                                             [get_bd_pins mux_rst_gen/ext_reset_in] \
+                                                             [get_bd_pins rx_rst_gen/ext_reset_in] \
+                                                             [get_bd_pins tx_rst_gen/ext_reset_in] \
+                                                             [get_bd_pins tx_rfi_gen/ext_reset_in]
 
   set aur_powergood [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 aur_powergood ]
   set_property -dict [ list \
@@ -736,53 +736,53 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_SIZE {4} \
   ] $aur_powergood
   connect_bd_net [get_bd_pins aur_powergood/Op1] [get_bd_pins eth_cmac/gt_powergoodout]
-  connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins aur_rst_gen/dcm_locked] \
+  connect_bd_net [get_bd_pins aur_powergood/Res] [get_bd_pins cmac_rst_gen/dcm_locked] \
                                                  [get_bd_pins mux_rst_gen/dcm_locked] \
                                                  [get_bd_pins rx_rst_gen/dcm_locked] \
                                                  [get_bd_pins tx_rst_gen/dcm_locked] \
                                                  [get_bd_pins tx_rfi_gen/dcm_locked]
 
-  set concat_aur_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_hi_ok ]
+  set concat_cmac_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_hi_ok ]
   set_property -dict [ list \
    CONFIG.NUM_PORTS {2} \
-  ] $concat_aur_hi_ok
-  connect_bd_net [get_bd_pins concat_aur_hi_ok/In0] [get_bd_pins eth_cmac/stat_rx_status]
-  connect_bd_net [get_bd_pins concat_aur_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
+  ] $concat_cmac_hi_ok
+  connect_bd_net [get_bd_pins concat_cmac_hi_ok/In0] [get_bd_pins vccx1/dout]
+  connect_bd_net [get_bd_pins concat_cmac_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
 
-  set and_aur_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 and_aur_state ]
+  set and_cmac_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 and_cmac_state ]
   set_property -dict [ list \
    CONFIG.C_OPERATION {and} \
    CONFIG.C_SIZE {2} \
-  ] $and_aur_state
-  connect_bd_net [get_bd_pins and_aur_state/Op1] [get_bd_pins concat_aur_hi_ok/dout]
-  connect_bd_net [get_bd_pins and_aur_state/Res] [get_bd_pins mux_rst_gen/aux_reset_in] \
-                                                 [get_bd_pins rx_rst_gen/aux_reset_in] \
-                                                 [get_bd_pins tx_rst_gen/aux_reset_in]
+  ] $and_cmac_state
+  connect_bd_net [get_bd_pins and_cmac_state/Op1] [get_bd_pins concat_cmac_hi_ok/dout]
+  connect_bd_net [get_bd_pins and_cmac_state/Res] [get_bd_pins mux_rst_gen/aux_reset_in] \
+                                                  [get_bd_pins rx_rst_gen/aux_reset_in] \
+                                                  [get_bd_pins tx_rst_gen/aux_reset_in]
 
-  set concat_aur_lo_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_aur_lo_ok ]
+  set concat_cmac_lo_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_lo_ok ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {10} \
-  ] $concat_aur_lo_ok
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In0] [get_bd_pins eth_cmac/stat_rx_hi_ber]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned_err]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In2] [get_bd_pins eth_cmac/stat_rx_misaligned]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In3] [get_bd_pins eth_cmac/stat_rx_local_fault]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In4] [get_bd_pins eth_cmac/stat_rx_internal_local_fault]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In5] [get_bd_pins eth_cmac/stat_rx_received_local_fault]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In6] [get_bd_pins eth_cmac/stat_rx_remote_fault]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In7] [get_bd_pins eth_cmac/stat_tx_local_fault]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In8] [get_bd_pins eth_cmac/usr_rx_reset]
-  connect_bd_net [get_bd_pins concat_aur_lo_ok/In9] [get_bd_pins eth_cmac/usr_tx_reset]
+   CONFIG.NUM_PORTS {4} \
+  ] $concat_cmac_lo_ok
+  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In0] [get_bd_pins eth_cmac/usr_tx_reset]
+  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In1] [get_bd_pins eth_cmac/usr_rx_reset]
+  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In2] [get_bd_pins eth_cmac/stat_tx_local_fault]
+  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In3] [get_bd_pins eth_cmac/stat_rx_aligned_err]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In4] [get_bd_pins eth_cmac/stat_rx_hi_ber]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In5] [get_bd_pins eth_cmac/stat_rx_misaligned]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In6] [get_bd_pins eth_cmac/stat_rx_local_fault]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In7] [get_bd_pins eth_cmac/stat_rx_internal_local_fault]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In8] [get_bd_pins eth_cmac/stat_rx_received_local_fault]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In9] [get_bd_pins eth_cmac/stat_rx_remote_fault]
 
-  set or_aur_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 or_aur_state ]
+  set or_cmac_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 or_cmac_state ]
   set_property -dict [ list \
    CONFIG.C_OPERATION {or} \
-   CONFIG.C_SIZE {10} \
-  ] $or_aur_state
-  connect_bd_net [get_bd_pins or_aur_state/Op1] [get_bd_pins concat_aur_lo_ok/dout]
-  connect_bd_net [get_bd_pins or_aur_state/Res] [get_bd_pins mux_rst_gen/mb_debug_sys_rst] \
-                                                [get_bd_pins rx_rst_gen/mb_debug_sys_rst] \
-                                                [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
+   CONFIG.C_SIZE {4} \
+  ] $or_cmac_state
+  connect_bd_net [get_bd_pins or_cmac_state/Op1] [get_bd_pins concat_cmac_lo_ok/dout]
+  connect_bd_net [get_bd_pins or_cmac_state/Res] [get_bd_pins mux_rst_gen/mb_debug_sys_rst] \
+                                                 [get_bd_pins rx_rst_gen/mb_debug_sys_rst] \
+                                                 [get_bd_pins tx_rst_gen/mb_debug_sys_rst]
 
   connect_bd_intf_net [get_bd_intf_pins cmac_tx_conv/M_AXIS] [get_bd_intf_pins eth_cmac/axis_tx]
   connect_bd_intf_net [get_bd_intf_pins cmac_tx_conv/S_AXIS] [get_bd_intf_pins tx_fifo/M_AXIS]
