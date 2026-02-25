@@ -286,6 +286,59 @@ pico-amoxor     amoxor_w.S
         </runargs>
     </ariane_tile1_amo_tests_v>
 
+    // note: these PM (physical memory, multi-core) tests require multiple cores to be active
+    // and test atomic operations across cores. The number of cores specified by x_tiles and
+    // y_tiles must match the number of harts expected by the PM tests (typically 2 or 4).
+    // finish_mask specifies which cores must complete for the test to pass.
+    <ariane_tile2_amo_tests_pm>
+        <runargs -x_tiles=2 -y_tiles=1 -ariane -precompiled -finish_mask=0x3 -rtl_timeout=2000000>
+        ariane-rv64ua-pm-amoadd_d  rv64ua-pm-amoadd_d.S
+        ariane-rv64ua-pm-amoadd_w  rv64ua-pm-amoadd_w.S
+        ariane-rv64ua-pm-amoor_d   rv64ua-pm-amoor_d.S
+        ariane-rv64ua-pm-amoor_w   rv64ua-pm-amoor_w.S
+        ariane-rv64ua-pm-amoand_d  rv64ua-pm-amoand_d.S
+        ariane-rv64ua-pm-amoand_w  rv64ua-pm-amoand_w.S
+        ariane-rv64ua-pm-amoswap_d rv64ua-pm-amoswap_d.S
+        ariane-rv64ua-pm-amoswap_w rv64ua-pm-amoswap_w.S
+        ariane-rv64ua-pm-amoxor_d  rv64ua-pm-amoxor_d.S
+        ariane-rv64ua-pm-amoxor_w  rv64ua-pm-amoxor_w.S
+        ariane-rv64ua-pm-amomax_d  rv64ua-pm-amomax_d.S
+        ariane-rv64ua-pm-amomaxu_d rv64ua-pm-amomaxu_d.S
+        ariane-rv64ua-pm-amomaxu_w rv64ua-pm-amomaxu_w.S
+        ariane-rv64ua-pm-amomax_w  rv64ua-pm-amomax_w.S
+        ariane-rv64ua-pm-amomin_d  rv64ua-pm-amomin_d.S
+        ariane-rv64ua-pm-amomin_w  rv64ua-pm-amomin_w.S
+        ariane-rv64ua-pm-amominu_d rv64ua-pm-amominu_d.S
+        ariane-rv64ua-pm-amominu_w rv64ua-pm-amominu_w.S
+        ariane-rv64ua-pm-lrsc      rv64ua-pm-lrsc.S
+        </runargs>
+    </ariane_tile2_amo_tests_pm>
+
+    // note: 4-core PM tests for 2x2 tile configuration
+    <ariane_tile4_amo_tests_pm>
+        <runargs -x_tiles=2 -y_tiles=2 -ariane -precompiled -finish_mask=0xf -rtl_timeout=2000000>
+        ariane-rv64ua-pm-amoadd_d  rv64ua-pm-amoadd_d.S
+        ariane-rv64ua-pm-amoadd_w  rv64ua-pm-amoadd_w.S
+        ariane-rv64ua-pm-amoor_d   rv64ua-pm-amoor_d.S
+        ariane-rv64ua-pm-amoor_w   rv64ua-pm-amoor_w.S
+        ariane-rv64ua-pm-amoand_d  rv64ua-pm-amoand_d.S
+        ariane-rv64ua-pm-amoand_w  rv64ua-pm-amoand_w.S
+        ariane-rv64ua-pm-amoswap_d rv64ua-pm-amoswap_d.S
+        ariane-rv64ua-pm-amoswap_w rv64ua-pm-amoswap_w.S
+        ariane-rv64ua-pm-amoxor_d  rv64ua-pm-amoxor_d.S
+        ariane-rv64ua-pm-amoxor_w  rv64ua-pm-amoxor_w.S
+        ariane-rv64ua-pm-amomax_d  rv64ua-pm-amomax_d.S
+        ariane-rv64ua-pm-amomaxu_d rv64ua-pm-amomaxu_d.S
+        ariane-rv64ua-pm-amomaxu_w rv64ua-pm-amomaxu_w.S
+        ariane-rv64ua-pm-amomax_w  rv64ua-pm-amomax_w.S
+        ariane-rv64ua-pm-amomin_d  rv64ua-pm-amomin_d.S
+        ariane-rv64ua-pm-amomin_w  rv64ua-pm-amomin_w.S
+        ariane-rv64ua-pm-amominu_d rv64ua-pm-amominu_d.S
+        ariane-rv64ua-pm-amominu_w rv64ua-pm-amominu_w.S
+        ariane-rv64ua-pm-lrsc      rv64ua-pm-lrsc.S
+        </runargs>
+    </ariane_tile4_amo_tests_pm>
+
     // note: these asm tests assume that the RISCV tests have been precompiled with the
     // correct environment
     <ariane_tile1_fp_tests_p>
