@@ -242,8 +242,8 @@ current_bd_design $design_name
   connect_bd_net [get_bd_pins aurora_inst/user_clk_out]  [get_bd_pins txrx_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock]   [get_bd_pins txrx_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aurora_inst/sys_reset_out] [get_bd_pins txrx_rst_gen/ext_reset_in]
-  make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/peripheral_aresetn]
-  set_property name "qsfp_rstn"                          [get_bd_ports peripheral_aresetn_0]
+  make_bd_pins_external                                  [get_bd_pins txrx_rst_gen/interconnect_aresetn]
+  set_property name "qsfp_rstn"                          [get_bd_ports interconnect_aresetn_0]
 
 
   global QSFP_BRDG_CHAN_BYTES

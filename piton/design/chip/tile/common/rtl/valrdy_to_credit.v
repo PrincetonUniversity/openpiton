@@ -93,7 +93,7 @@ assign valid_out = valid_temp;
 
 assign count_plus_1 = count_f + 1'b1;
 assign count_minus_1 = count_f - 1'b1;
-assign ready_in = is_two_or_more_f;
+assign ready_in = is_two_or_more_f & ~reset; // masking readyness by reset for earlier reseted external source
 assign up = yummy_out_f & ~valid_temp_f;
 assign down = ~yummy_out_f & valid_temp_f;
 

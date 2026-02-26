@@ -321,8 +321,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_AUX_RESET_HIGH {0} \
   ] $rx_rst_gen
   connect_bd_net [get_bd_pins eth_cmac/gt_rxusrclk2] [get_bd_pins rx_rst_gen/slowest_sync_clk]
-  make_bd_pins_external                              [get_bd_pins rx_rst_gen/peripheral_aresetn]
-  set_property name "qsfp_rstn"                      [get_bd_ports peripheral_aresetn_0]
+  make_bd_pins_external                              [get_bd_pins rx_rst_gen/interconnect_aresetn]
+  set_property name "qsfp_rstn"                      [get_bd_ports interconnect_aresetn_0]
 
   set tx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 tx_rst_gen ]
   set_property -dict [ list \
@@ -744,10 +744,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   set concat_cmac_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_hi_ok ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {2} \
+   CONFIG.NUM_PORTS {1} \
   ] $concat_cmac_hi_ok
   connect_bd_net [get_bd_pins concat_cmac_hi_ok/In0] [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins concat_cmac_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
+  # connect_bd_net [get_bd_pins concat_cmac_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
 
   set and_cmac_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 and_cmac_state ]
   set_property -dict [ list \
@@ -761,12 +761,12 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   set concat_cmac_lo_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_lo_ok ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {4} \
+   CONFIG.NUM_PORTS {2} \
   ] $concat_cmac_lo_ok
   connect_bd_net [get_bd_pins concat_cmac_lo_ok/In0] [get_bd_pins eth_cmac/usr_tx_reset]
   connect_bd_net [get_bd_pins concat_cmac_lo_ok/In1] [get_bd_pins eth_cmac/usr_rx_reset]
-  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In2] [get_bd_pins eth_cmac/stat_tx_local_fault]
-  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In3] [get_bd_pins eth_cmac/stat_rx_aligned_err]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In2] [get_bd_pins eth_cmac/stat_tx_local_fault]
+  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In3] [get_bd_pins eth_cmac/stat_rx_aligned_err]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In4] [get_bd_pins eth_cmac/stat_rx_hi_ber]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In5] [get_bd_pins eth_cmac/stat_rx_misaligned]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In6] [get_bd_pins eth_cmac/stat_rx_local_fault]

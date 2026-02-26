@@ -117,9 +117,9 @@ always @(posedge clk)
 
 assign eth_hdr_out = header_rx;
 // assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp && !valid_ack;
-// assign ready_in  = hdr_rx_cnt || (ready_out && ethpack_exp && !valid_ack) || (ethpack_prv && !valid_ack) || (!ethpack_exp && !ethpack_prv);
+// assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp && !valid_ack) || (ethpack_prv && !valid_ack) || (!ethpack_exp && !ethpack_prv)) && !rst ;
 assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp;
-assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack;
+assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack && !rst;
 
 
 reg [$clog2(ETHHDR_ACK_FLITS):0] hdr_tx_cnt;
