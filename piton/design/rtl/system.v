@@ -124,10 +124,22 @@ module system(
 `endif // PITONSYS_DDR4
 
 `else // ifndef PITON_CHIPSET_CLKS_GEN
+`ifndef SUME_BOARD
     input                                       chipset_clk,
+`else
+    input					fpga_sysclk_p,
+    input					fpga_sysclk_n,
+    input					qdrii_sysclk_p,
+    input					qdrii_sysclk_n,
+`endif //SUME_BOARD
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
+`ifndef SUME_BOARD
     input                                       mc_clk,
+`else
+    input					ddr_clk_p,
+    input					ddr_clk_n,
+`endif
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 `ifdef PITONSYS_SPI
@@ -141,9 +153,9 @@ module system(
 `else //F1_BOARD
     input sys_clk,
 `endif
-
+`ifndef SUME_BOARD
     input                                       sys_rst_n,
-
+`endif
 `ifndef PITON_FPGA_SYNTH
     input                                       pll_rst_n,
 `endif // endif PITON_FPGA_SYNTH
@@ -181,11 +193,13 @@ module system(
 `ifndef NEXYSVIDEO_BOARD
 `ifndef XUPP3R_BOARD
 `ifndef F1_BOARD
+`ifndef SUME_BOARD
   input                                         tck_i,
   input                                         tms_i,
   input                                         trst_ni,
   input                                         td_i,
   output                                        td_o,
+`endif //SUME_BOARD
 `endif//F1_BOARD
 `endif//XUPP3R_BOARD
 `endif //NEXYSVIDEO_BOARD
@@ -308,14 +322,26 @@ module system(
 `ifdef VCU118_BOARD
 		input                                       uart_cts,
 		output                                      uart_rts,
-`endif // VCU118_BOARD
+`endif // VCU119_BOARD
+
+`ifdef SUME_BOARD
+		input                                       uart_cts,
+		output                                      uart_rts,
+`endif // SUME_BOARD
+
+
+
 `endif // endif PITONSYS_UART
 
 `ifdef PITONSYS_SPI
     `ifndef VC707_BOARD
+    `ifndef SUME_BOARD
     input                                       sd_cd,
+    `endif //SUME_BOARD
     `ifndef VCU118_BOARD
+    `ifndef SUME_BOARD
     output                                      sd_reset,
+    `endif //SUME_BOARD
     `endif
     `endif
     output                                      sd_clk_out,
@@ -390,7 +416,9 @@ module system(
     input  [7:0]                                sw,
 `endif
 
-`ifdef XUPP3R_BOARD
+`ifdef SUME_BOARD
+    output [1:0] 				leds
+`elsif XUPP3R_BOARD
     output [3:0]                                leds
 `else 
     output [7:0]                                leds
@@ -400,6 +428,25 @@ module system(
 ///////////////////////
 // Type declarations //
 ///////////////////////
+
+`ifdef SUME_BOARD
+wire clk_ref_n;
+wire clk_ref_p;
+wire core_ref_clk;
+//assign clk_ref_p = chipset_clk_osc_p;
+//assign clk_ref_n = chipset_clk_osc_n;
+wire chipset_clk_osc_p;
+wire chipset_clk_osc_n;
+//assign chipset_clk_osc_p = fpga_sysclk_p;
+assign clk_ref_p = fpga_sysclk_p;
+assign clk_ref_n = fpga_sysclk_n;
+//assign uart_rxd_out = uart_tx;
+//assign uart_rx = uart_txd_in;
+assign	mc_clk_p = ddr_clk_p;
+assign mc_clk_n=ddr_clk_n;
+
+`endif
+
 
 `ifndef PITON_CLKS_SIM
 // If these are not provided from
@@ -414,6 +461,58 @@ wire                io_clk;
 wire                io_clk_loopback;
 
 // Rectified sys_rst_n, some boards
+`ifdef SUME_BOARD
+
+wire reset;
+//wire uart_boot_en;
+wire uart_soft_reset;
+
+wire sd_cd;
+
+vio_0 virtual_buttons (
+  .clk(io_clk),                // input wire clk
+ // .probe_in0(mmcm_locked),
+  .probe_out0(reset),  // output wire [0 : 0] probe_out0
+  .probe_out1(sd_cd)  // output wire [0 : 0] probe_out0
+);
+
+
+wire sys_rst_n;
+reg internall_reset = 1;
+assign sys_rst_n = internall_reset & reset; 
+reg [15:0] reset_cnt =0;
+
+always @(posedge core_ref_clk)
+begin 
+if (reset_cnt < 16'h7fff)
+	reset_cnt <= reset_cnt + 1'b1;
+else if (reset_cnt < 16'hffff) 
+begin
+	reset_cnt <= reset_cnt + 1'b1;
+	internall_reset <= 1'b0;
+end
+else 
+	internall_reset <= 1'b1;
+
+end
+
+(* dont_touch = "true" *) reg reset_neg_edge =0;
+(* dont_touch = "true" *) reg reset_pos_edge = 0;
+
+always @(posedge internall_reset)
+	reset_pos_edge = 1;
+
+always @(negedge internall_reset)
+	reset_neg_edge = 1;
+
+//clock tst
+(* marke_debug = "true" *)reg [2:0] core_clk_cntr =0;
+
+always @(posedge core_ref_clk)
+	core_clk_cntr <= core_clk_cntr + 1'b1;
+
+
+`endif
 // have inverted sense
 reg                 sys_rst_n_rect;
 
@@ -559,6 +658,13 @@ assign rtc = rtc_div[6];
 // tie off
 assign uart_rts = 1'b0;
 `endif // VCU118_BOARD
+
+
+`ifdef SUME_BOARD
+// tie off
+	assign uart_rts = 1'b0;
+`endif // VCU118_BOARD
+
 
 // Different reset active levels for different boards
 always @ *
@@ -946,14 +1052,32 @@ chipset chipset(
 `endif // PITONSYS_DDR4
 
 `else // ifndef PITON_CHIPSET_CLKS_GEN
+`ifndef SUME_BOARD
     .chipset_clk(chipset_clk),
+`else
+   .chipset_clk_p(chipset_clk_osc_p),
+   .chipset_clk_n(chipset_clk_osc_n),
+`endif
 `ifndef PITONSYS_NO_MC
 `ifdef PITON_FPGA_MC_DDR3
+`ifndef SUME_BOARD    
     .mc_clk(mc_clk),
+`else
+    .uart_boot_en(uart_boot_en),
+    .uart_soft_reset(uart_soft_reset),
+    .mc_clk_p(mc_clk_p),
+    .mc_clk_n(mc_clk_n),
+    .clk_ref_p(clk_ref_p),
+    .clk_ref_n(clk_ref_n),
+    .qdrii_sysclk_p(qdrii_sysclk_p),
+    .qdrii_sysclk_n(qdrii_sysclk_n),
+`endif // sUME_BOARD
 `endif // endif PITON_FPGA_MC_DDR3
 `endif // endif PITONSYS_NO_MC
 `ifdef PITONSYS_SPI
+`ifndef SUME_BOARD
     .sd_sys_clk(sd_sys_clk),
+`endif //SUME_BOARD
 `endif // endif PITONSYS_SPI
 `endif // endif PITON_CHIPSET_CLKS_GEN
 `endif // ifdef F1_BOARD
@@ -1054,6 +1178,11 @@ chipset chipset(
     .ddr_ras_n(ddr_ras_n),
     .ddr_we_n(ddr_we_n),
 `endif // PITONSYS_DDR4
+`ifdef BOARD_SUME
+    .ddr_cas_n(ddr_cas_n),
+    .ddr_ras_n(dr_ras_n),
+    .ddr_we_n(ddr_we_n),
+`endif
     .ddr_addr(ddr_addr),
     .ddr_ba(ddr_ba),
     .ddr_ck_n(ddr_ck_n),
@@ -1150,7 +1279,9 @@ chipset chipset(
     `ifndef VC707_BOARD
     .sd_cd(sd_cd),
     `ifndef VCU118_BOARD
+    `ifndef SUME_BOARD
     .sd_reset(sd_reset),
+    `endif
     `endif
     `endif
     .sd_clk_out(sd_clk_out),
@@ -1204,7 +1335,9 @@ chipset chipset(
 `endif
 
 `ifndef XUPP3R_BOARD
-    .sw(sw),
+    `ifndef SUME_BOARD
+    	.sw(sw),
+    `endif
 `endif
     .leds(leds)
 

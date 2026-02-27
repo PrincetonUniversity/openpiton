@@ -51,8 +51,15 @@ module mc_top (
     output                          ddr_act_n,
     output [`DDR3_BG_WIDTH-1:0]     ddr_bg,
 `else // PITONSYS_DDR4
+`ifndef SUME_BOARD
     input                           sys_clk,
-
+`else
+    input 			    sys_clk_n,
+    input 			    sys_clk_p,
+    input 			    clk_ref_n,
+    input			    clk_ref_p,
+    output 			    ui_clk,
+`endif
     output                          ddr_cas_n,
     output                          ddr_ras_n,
     output                          ddr_we_n,
@@ -82,7 +89,8 @@ module mc_top (
     output [`DDR3_ODT_WIDTH-1:0]    ddr_odt,
 
     output                          init_calib_complete_out,
-    input                           sys_rst_n
+    input                           sys_rst_n,
+    output                          mmcm_locked
 );
 reg     [31:0]                      delay_cnt;
 reg                                 ui_clk_syn_rst_delayed;
@@ -626,6 +634,14 @@ mig_7series_0   mig_7series_0 (
     .app_rd_data_valid              (app_rd_data_valid),
     .app_rdy                        (app_rdy),
     .app_wdf_rdy                    (app_wdf_rdy),
+    .app_wdf_mask                   (app_wdf_mask),
+    // System Clock Ports
+`ifndef SUME_BOARD
+    .sys_clk_i                      (sys_clk),
+`else
+    .sys_clk_p			    (sys_clk_p),
+    .sys_clk_n			    (sys_clk_n),
+`endif
     .app_sr_req                     (app_sr_req),
     .app_ref_req                    (app_ref_req),
     .app_zq_req                     (app_zq_req),
@@ -633,6 +649,10 @@ mig_7series_0   mig_7series_0 (
     .app_ref_ack                    (app_ref_ack),
     .app_zq_ack                     (app_zq_ack),
     .ui_clk                         (ui_clk),
+`ifdef SUME_BOARD
+    .clk_ref_p                      (clk_ref_p),  // input				clk_ref_p
+    .clk_ref_n                      (clk_ref_n),  // input				clk_ref_n
+`endif 
     .ui_clk_sync_rst                (ui_clk_sync_rst),
     .app_wdf_mask                   (app_wdf_mask),
 
@@ -1049,7 +1069,7 @@ mig_7series_axi4 u_mig_7series_axi4 (
     // Application interface ports
     .ui_clk                         (ui_clk),  // output            ui_clk
     .ui_clk_sync_rst                (ui_clk_sync_rst),  // output           ui_clk_sync_rst
-    .mmcm_locked                    (),  // output           mmcm_locked
+    .mmcm_locked                    (mmcm_locked),  // output           mmcm_locked
     .aresetn                        (sys_rst_n),  // input            aresetn
     .app_sr_req                     (app_sr_req),  // input         app_sr_req
     .app_ref_req                    (app_ref_req),  // input            app_ref_req
@@ -1102,7 +1122,18 @@ mig_7series_axi4 u_mig_7series_axi4 (
     .s_axi_rready                   (m_axi_rready),  // input           s_axi_rready
 
     // System Clock Ports
+   // .sys_clk_i                      (sys_clk),
+`ifndef SUME_BOARD
     .sys_clk_i                      (sys_clk),
+`else
+    .sys_clk_p			    (sys_clk_p),
+    .sys_clk_n			    (sys_clk_n),
+`endif
+
+`ifdef SUME_BOARD
+    .clk_ref_p                      (clk_ref_p),  // input				clk_ref_p
+    .clk_ref_n                      (clk_ref_n),  // input				clk_ref_n
+`endif 
     .sys_rst                        (sys_rst_n) // input sys_rst
 );
 
