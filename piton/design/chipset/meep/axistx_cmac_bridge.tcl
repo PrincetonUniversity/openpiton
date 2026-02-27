@@ -744,10 +744,10 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   set concat_cmac_hi_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_hi_ok ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {1} \
+   CONFIG.NUM_PORTS {2} \
   ] $concat_cmac_hi_ok
   connect_bd_net [get_bd_pins concat_cmac_hi_ok/In0] [get_bd_pins vccx1/dout]
-  # connect_bd_net [get_bd_pins concat_cmac_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
+  connect_bd_net [get_bd_pins concat_cmac_hi_ok/In1] [get_bd_pins eth_cmac/stat_rx_aligned]
 
   set and_cmac_state [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 and_cmac_state ]
   set_property -dict [ list \
