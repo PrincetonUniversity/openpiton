@@ -761,11 +761,11 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
   set concat_cmac_lo_ok [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_cmac_lo_ok ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {2} \
+   CONFIG.NUM_PORTS {3} \
   ] $concat_cmac_lo_ok
   connect_bd_net [get_bd_pins concat_cmac_lo_ok/In0] [get_bd_pins eth_cmac/usr_tx_reset]
   connect_bd_net [get_bd_pins concat_cmac_lo_ok/In1] [get_bd_pins eth_cmac/usr_rx_reset]
-  # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In2] [get_bd_pins eth_cmac/stat_tx_local_fault]
+  connect_bd_net [get_bd_pins concat_cmac_lo_ok/In2] [get_bd_pins eth_cmac/stat_tx_local_fault]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In3] [get_bd_pins eth_cmac/stat_rx_aligned_err]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In4] [get_bd_pins eth_cmac/stat_rx_hi_ber]
   # connect_bd_net [get_bd_pins concat_cmac_lo_ok/In5] [get_bd_pins eth_cmac/stat_rx_misaligned]
