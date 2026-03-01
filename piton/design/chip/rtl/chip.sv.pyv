@@ -1881,7 +1881,12 @@ module chip(
 
     wire sys_rstn_aur;
     wire sys_rstn_cmac;
-    assign rstn_tile = rst_n_inter_sync & sys_rstn_aur & sys_rstn_cmac;
+    wire rstn_w_aur_cmac = rst_n_inter_sync & sys_rstn_aur & sys_rstn_cmac;
+    reg [8:0] rstn_tile_delay;
+    always @(posedge clk_muxed)
+      if (~rstn_w_aur_cmac) rstn_tile_delay <= 0;
+      else if (!rstn_tile_delay[8]) rstn_tile_delay <= rstn_tile_delay + 1;
+    assign rstn_tile = rstn_tile_delay[8];
 
    `ifdef PITON_MULTI_FPGA_AUR
      wire aur_clk;
