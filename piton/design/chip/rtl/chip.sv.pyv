@@ -1881,7 +1881,8 @@ module chip(
 
     wire sys_rstn_aur;
     wire sys_rstn_cmac;
-    wire rstn_w_aur_cmac = rst_n_inter_sync & sys_rstn_aur & sys_rstn_cmac;
+    wire rstn_w_aur      = rst_n_inter_sync & sys_rstn_aur;
+    wire rstn_w_aur_cmac = rstn_w_aur       & sys_rstn_cmac;
     reg [8:0] rstn_tile_delay;
     always @(posedge clk_muxed)
       if (~rstn_w_aur_cmac) rstn_tile_delay <= 0;
@@ -2076,7 +2077,8 @@ module chip(
        .valid_out(nocsdemux_valid)
      );
 
-     axistx_cmac_bridge  nocs_cmac_bridge (.sys_clk(clk_muxed), .sys_rstn(rst_n_inter_sync),
+                                                                 // additionally reset CMAC by Aurora since such reset may come from adjacent FPGA through P2P QSFP
+     axistx_cmac_bridge  nocs_cmac_bridge (.sys_clk(clk_muxed), .sys_rstn(rstn_w_aur),
                                            .sys_rstn_out(sys_rstn_cmac), .sys_rstn_in(rstn_tile),
                                            .qsfp_clk(cmac_clk), .qsfp_rstn(cmac_rstn),
 
