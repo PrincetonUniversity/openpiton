@@ -1,1 +1,113 @@
-../rv64_platform.dts
+// DTS generated with gen_riscv_dts(...)
+// OpenPiton + Ariane framework
+// Date: Jan 20 2025 11:31:19
+
+/dts-v1/;
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    u-boot,dm-pre-reloc;
+    compatible = "openpiton,cva6platform";
+
+    chosen {
+    u-boot,dm-pre-reloc;
+    stdout-path = "uart0:115200";
+    };
+
+    aliases {
+        u-boot,dm-pre-reloc;
+        console = &uart0;
+        serial0 = &uart0;
+    };
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        u-boot,dm-pre-reloc;
+        timebase-frequency = <78125>;
+    
+        CPU0: cpu@0 {
+            clock-frequency = <10000000>;
+            u-boot,dm-pre-reloc;
+            device_type = "cpu";
+            reg = <0>;
+            status = "okay";
+            compatible = "openhwgroup, cva6", "riscv";
+            riscv,isa = "rv64imafdc";
+            mmu-type = "riscv,sv39";
+            tlb-split;
+            // HLIC - hart local interrupt controller
+            CPU0_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+        
+        CPU1: cpu@1 {
+            clock-frequency = <10000000>;
+            u-boot,dm-pre-reloc;
+            device_type = "cpu";
+            reg = <1>;
+            status = "okay";
+            compatible = "openhwgroup, cva6", "riscv";
+            riscv,isa = "rv64imafdc";
+            mmu-type = "riscv,sv39";
+            tlb-split;
+            // HLIC - hart local interrupt controller
+            CPU1_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+        
+    };
+    
+    memory@80000000 {
+        u-boot,dm-pre-reloc;
+        device_type = "memory";
+        reg = < 0x00000000 0x80000000 0x00000000 0x80000000 >;
+    };
+            
+        sdhci_0: sdhci@f000000000 {
+            u-boot,dm-pre-reloc;
+            status = "okay";
+            compatible = "openpiton,piton-mmc";
+            reg = < 0x000000f0 0x00000000 0x0000000f 0xf0300000 >;
+        };
+            
+        uart0: uart@fff0c2c000 {
+            u-boot,dm-pre-reloc;
+            compatible = "ns16550";
+            reg = < 0x000000ff 0xf0c2c000 0x00000000 0x000d4000 >;
+            clock-frequency = <100000000>;
+            current-speed = <115200>;
+            interrupt-parent = <&PLIC0>;
+            interrupts = <1>;
+            reg-shift = <0>; // regs are spaced on 8 bit boundary (modified from Xilinx UART16550 to be ns16550 compatible)
+        };
+            
+        clint@fff1020000 {
+            u-boot,dm-pre-reloc;
+            compatible = "riscv,clint0";
+            interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 &CPU1_intc 3 &CPU1_intc 7 >;
+            reg = < 0x000000ff 0xf1020000 0x00000000 0x000c0000 >;
+            reg-names = "control";
+        };
+            
+        PLIC0: plic@fff1100000 {
+            u-boot,dm-pre-reloc;
+            #address-cells = <0>;
+            #interrupt-cells = <1>;
+            compatible = "riscv,plic0";
+            interrupt-controller;
+            interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9 &CPU1_intc 11 &CPU1_intc 9 >;
+            reg = < 0x000000ff 0xf1100000 0x00000000 0x04000000 >;
+            riscv,max-priority = <7>;
+            riscv,ndev = <1>;
+        };
+            
+};
+    

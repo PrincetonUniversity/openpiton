@@ -456,13 +456,21 @@ module chipset(
         input                                               btnu,
         input                                               btnd,
         input                                               btnc,           
-    `endif
+    `elsif LG19A4_BOARD
+        input                                               btnl,
+        input                                               btnr,
+        input                                               btnu,
+        input                                               btnd,
+        input                                               btnc,
+	`endif
 
     // Switches
     `ifdef VCU118_BOARD
         // we only have 4 gpio dip switches on this board
         input  [3:0]                                        sw,
-    `elsif XUPP3R_BOARD
+    `elsif LG19A4_BOARD
+	    input  [3:0]                                        sw,
+	`elsif XUPP3R_BOARD
         // no switches :(
     `else         
         input  [7:0]                                        sw,
@@ -755,7 +763,10 @@ end
             `ifdef VCU118_BOARD
                 assign uart_boot_en    = sw[0];
                 assign uart_timeout_en = sw[1];
-            `elsif XUPP3R_BOARD
+            `elsif LG19A4_BOARD
+                assign uart_boot_en    = sw[0];
+                assign uart_timeout_en = sw[1];
+			`elsif XUPP3R_BOARD
                 assign uart_boot_en    = 1'b1;
                 assign uart_timeout_en = 1'b0;
             `else 
@@ -770,6 +781,8 @@ end
     `ifdef VCU118_BOARD
         // only two switches available...
         assign noc_power_test_hop_count = {2'b0, sw[3:2]};
+    `elsif LG19A4_BOARD
+	    assign noc_power_test_hop_count = {2'b0, sw[3:2]};
     `elsif XUPP3R_BOARD
         // no switches :(
         assign noc_power_test_hop_count = 4'b0;
@@ -886,10 +899,10 @@ end
             `endif // endif PITON_FPGA_MC_DDR3
             `endif // endif PITONSYS_NO_MC
 
-            `ifdef PITONSYS_SPI
+            //`ifdef PITONSYS_SPI
                 // SPI system clock
                 , .sd_sys_clk(sd_sys_clk)
-            `endif // endif PITONSYS_SPI
+            //`endif // endif PITONSYS_SPI
 
             // Chipset<->passthru clocks
             `ifdef PITONSYS_INC_PASSTHRU
@@ -1581,6 +1594,14 @@ chipset_impl_noc_power_test  chipset_impl (
 
     `ifdef PITONSYS_SPI
     `ifdef VCU118_BOARD
+        ODDRE1 sd_clk_oddr (
+            .Q(sd_clk_out),
+            .C(sd_clk_out_internal),
+            .D1(1),
+            .D2(0),
+            .SR(0)
+            );
+    `elsif LG19A4_BOARD
         ODDRE1 sd_clk_oddr (
             .Q(sd_clk_out),
             .C(sd_clk_out_internal),

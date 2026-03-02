@@ -1,0 +1,19 @@
+; Address file for UART initialization
+;
+memory_initialization_radix = 16;
+memory_initialization_vector =
+0000100C,
+00001000,
+00001004,
+0000100C,
+00001004,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000,
+00000000;
