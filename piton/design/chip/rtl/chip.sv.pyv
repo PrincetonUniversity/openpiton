@@ -1199,6 +1199,7 @@ module chip(
     // Generate tile instances
 
     wire                          rstn_tile;
+    wire                          rstn_guard;
     wire [`PITON_NUM_TILES-1:0]   timer_irq_tile;
     wire [`PITON_NUM_TILES-1:0]   ipi_tile;
     wire [`PITON_NUM_TILES*2-1:0] irq_tile;
@@ -1580,7 +1581,7 @@ module chip(
                       print("wire                   tile_%d_%d_inS_noc%d_valid;" % (j,i,k))
                       print("valrdy_to_credit tile_%d_%d_S_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
                       print("  .data_in  (tile_%d_%d_valrdy_vert_near_S_noc%d_data ), " % (j,i,k))
-                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_S_noc%d_valid & rstn_tile), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_S_noc%d_valid & rstn_guard), " % (j,i,k))
                       print("  .ready_in (tile_%d_%d_valrdy_vert_near_S_noc%d_ready), " % (j,i,k))
                       print("  .data_out (tile_%d_%d_inS_noc%d_data        ), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_inS_noc%d_valid       ), " % (j,i,k))
@@ -1596,7 +1597,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_S_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_vert_S_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k)),
+                        print("ethframe_to_valrdy tile_%d_%d_S_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_guard), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k)),
                         print("  .data_in  (tile_%d_%d_valrdy_vert_near_S_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_S_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_vert_near_S_eth%d_ready), " % (j,i,k))
@@ -1623,7 +1624,7 @@ module chip(
                       print("wire                   tile_%d_%d_inN_noc%d_valid;" % (j,i,k))
                       print("valrdy_to_credit tile_%d_%d_N_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
                       print("  .data_in  (tile_%d_%d_valrdy_vert_near_N_noc%d_data ), " % (j,i,k))
-                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_N_noc%d_valid & rstn_tile), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_vert_near_N_noc%d_valid & rstn_guard), " % (j,i,k))
                       print("  .ready_in (tile_%d_%d_valrdy_vert_near_N_noc%d_ready), " % (j,i,k))
                       print("  .data_out (tile_%d_%d_inN_noc%d_data        ), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_inN_noc%d_valid       ), " % (j,i,k))
@@ -1639,7 +1640,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_vert_near_N_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_vert_N_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_N_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_N_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_guard), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_vert_near_N_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_vert_near_N_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_vert_near_N_eth%d_ready), " % (j,i,k))
@@ -1739,7 +1740,7 @@ module chip(
                       print("wire                   tile_%d_%d_inE_noc%d_valid;" % (j,i,k))
                       print("valrdy_to_credit tile_%d_%d_E_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
                       print("  .data_in  (tile_%d_%d_valrdy_horz_near_E_noc%d_data ), " % (j,i,k))
-                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_E_noc%d_valid & rstn_tile), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_E_noc%d_valid & rstn_guard), " % (j,i,k))
                       print("  .ready_in (tile_%d_%d_valrdy_horz_near_E_noc%d_ready), " % (j,i,k))
                       print("  .data_out (tile_%d_%d_inE_noc%d_data        ), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_inE_noc%d_valid       ), " % (j,i,k))
@@ -1755,7 +1756,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_E_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_horz_E_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_E_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_E_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_guard), .dst_src_mac_tx(dst_src_mac_to)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_horz_near_E_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_E_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_horz_near_E_eth%d_ready), " % (j,i,k))
@@ -1782,7 +1783,7 @@ module chip(
                       print("wire                   tile_%d_%d_inW_noc%d_valid;" % (j,i,k))
                       print("valrdy_to_credit tile_%d_%d_W_noc%d_v2c(.clk(clk_muxed), .reset(~rstn_tile)," % (j,i,k))
                       print("  .data_in  (tile_%d_%d_valrdy_horz_near_W_noc%d_data ), " % (j,i,k))
-                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_W_noc%d_valid & rstn_tile), " % (j,i,k))
+                      print("  .valid_in (tile_%d_%d_valrdy_horz_near_W_noc%d_valid & rstn_guard), " % (j,i,k))
                       print("  .ready_in (tile_%d_%d_valrdy_horz_near_W_noc%d_ready), " % (j,i,k))
                       print("  .data_out (tile_%d_%d_inW_noc%d_data        ), " % (j,i,k))
                       print("  .valid_out(tile_%d_%d_inW_noc%d_valid       ), " % (j,i,k))
@@ -1798,7 +1799,7 @@ module chip(
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_ack%d_ready;" % (j,i,k))
                         print("wire                   tile_%d_%d_valrdy_horz_near_W_ack%d_last;"  % (j,i,k))
                         print("wire [ETHHDR_NOC_WIDTH-1:0] tile_%d_%d_horz_W_noc%d_eth_hdr_rx;"   % (j,i,k))
-                        print("ethframe_to_valrdy tile_%d_%d_W_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
+                        print("ethframe_to_valrdy tile_%d_%d_W_noc%d_ethextr(.clk(clk_muxed), .rst(~rstn_guard), .dst_src_mac_tx(dst_src_mac_fr)," % (j,i,k))
                         print("  .data_in  (tile_%d_%d_valrdy_horz_near_W_eth%d_data ), " % (j,i,k))
                         print("  .valid_in (tile_%d_%d_valrdy_horz_near_W_eth%d_valid), " % (j,i,k))
                         print("  .ready_in (tile_%d_%d_valrdy_horz_near_W_eth%d_ready), " % (j,i,k))
@@ -1883,11 +1884,12 @@ module chip(
     wire sys_rstn_cmac;
     wire rstn_w_aur      = rst_n_inter_sync & sys_rstn_aur;
     wire rstn_w_aur_cmac = rstn_w_aur       & sys_rstn_cmac;
-    reg [8:0] rstn_tile_delay;
+    reg [9:0] rstn_tile_delay;
     always @(posedge clk_muxed)
       if (~rstn_w_aur_cmac) rstn_tile_delay <= 0;
-      else if (!rstn_tile_delay[8]) rstn_tile_delay <= rstn_tile_delay + 1;
-    assign rstn_tile = rstn_tile_delay[8];
+      else if (!rstn_tile_delay[9]) rstn_tile_delay <= rstn_tile_delay + 1;
+    assign rstn_tile = |rstn_tile_delay[9:8];
+    assign rstn_guard = rstn_tile_delay[9];
 
    `ifdef PITON_MULTI_FPGA_AUR
      wire aur_clk;
@@ -1915,7 +1917,7 @@ module chip(
                                              .s_axis_0_tlast (1'b1),
                                              .m_axis_0_tdata (free_ctrl_rx_aur),
                                              .m_axis_0_tvalid(free_ctrl_rx_val_aur),
-                                             .m_axis_0_tready(rstn_tile),
+                                             .m_axis_0_tready(rstn_guard),
 
                                              .qsfp_rx_4x_rxn   (aur_qsfp_4x_grx_n),
                                              .qsfp_rx_4x_rxp   (aur_qsfp_4x_grx_p),
@@ -1943,7 +1945,7 @@ module chip(
           else:                    y_far = PITON_FR_Y
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_N_noc%d_data), " % (chanid,PITON_FR_Y,i,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_N_noc%d_valid)," % (chanid,PITON_FR_Y,i,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_N_noc%d_ready & rstn_tile)," % (chanid,PITON_FR_Y,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_N_noc%d_ready & rstn_guard)," % (chanid,PITON_FR_Y,i,k))
           print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),    " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid),   " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready),   " % (chanid,y_far,i,k))
@@ -1955,7 +1957,7 @@ module chip(
           else:                    y_far = PITON_TO_Y
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_vert_near_S_noc%d_data), " % (chanid,PITON_TO_Y,i,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_vert_near_S_noc%d_valid)," % (chanid,PITON_TO_Y,i,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_S_noc%d_ready & rstn_tile)," % (chanid,PITON_TO_Y,i,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_vert_near_S_noc%d_ready & rstn_guard)," % (chanid,PITON_TO_Y,i,k))
           print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_vert_far_noc%d_data),    " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_vert_far_noc%d_valid),   " % (chanid,y_far,i,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_vert_far_noc%d_ready),   " % (chanid,y_far,i,k))
@@ -1970,7 +1972,7 @@ module chip(
           else:                    x_far = PITON_FR_X
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_W_noc%d_data), " % (chanid,j,PITON_FR_X,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_W_noc%d_valid)," % (chanid,j,PITON_FR_X,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_W_noc%d_ready & rstn_tile)," % (chanid,j,PITON_FR_X,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_W_noc%d_ready & rstn_guard)," % (chanid,j,PITON_FR_X,k))
           print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),    " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid),   " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready),   " % (chanid,j,x_far,k))
@@ -1982,7 +1984,7 @@ module chip(
           else:                    x_far = PITON_TO_X
           print("      .m_axis_%d_tdata (tile_%d_%d_valrdy_horz_near_E_noc%d_data), " % (chanid,j,PITON_TO_X,k))
           print("      .m_axis_%d_tvalid(tile_%d_%d_valrdy_horz_near_E_noc%d_valid)," % (chanid,j,PITON_TO_X,k))
-          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_E_noc%d_ready & rstn_tile)," % (chanid,j,PITON_TO_X,k))
+          print("      .m_axis_%d_tready(tile_%d_%d_valrdy_horz_near_E_noc%d_ready & rstn_guard)," % (chanid,j,PITON_TO_X,k))
           print("      .s_axis_%d_tdata (tile_%d_%d_valrdy_horz_far_noc%d_data),    " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tvalid(tile_%d_%d_valrdy_horz_far_noc%d_valid),   " % (chanid,j,x_far,k))
           print("      .s_axis_%d_tready(tile_%d_%d_valrdy_horz_far_noc%d_ready),   " % (chanid,j,x_far,k))
@@ -2037,7 +2039,7 @@ module chip(
      wire                            freectrl_rx_ack_last;
      ethframe_to_valrdy #(.DAT_WIDTH(`PITON_NUM_TILES*4)
                          )
-                        freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_tile), .dst_src_mac_tx(dst_src_mac_fr),
+                        freectrl_ethextr (.clk(clk_muxed), .rst(~rstn_guard), .dst_src_mac_tx(dst_src_mac_fr),
                                           .data_in (freectrl_rx_eth_data),
                                           .valid_in(freectrl_rx_eth_valid),
                                           .ready_in(freectrl_rx_eth_ready),
@@ -2245,6 +2247,7 @@ module chip(
 `else
     assign {irq_tile, timer_irq_tile, ipi_tile} = {irq_i, timer_irq_i, ipi_i};
     assign rstn_tile                            = rst_n_inter_sync;
+    assign rstn_guard                           = rst_n_inter_sync;
 `endif //`ifdef PITON_MULTI_FPGA
 
 endmodule
