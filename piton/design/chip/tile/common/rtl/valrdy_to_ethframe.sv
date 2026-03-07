@@ -159,7 +159,7 @@ assign header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == {dst_src_mac_tx[MAC_ADDR
                    (ethfr_payld_len_rx == MIN_ETHFR_PAYLD_LEN) && // for IEEE802.3 usage of Ethertype field as Eth payload length
                    //(header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}) && // checking the custom Ethertype
                    (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ethfr_id);
-assign ready_ack = ~rst;
+assign ready_ack = 'b1; // ~rst;
 
 always @(posedge clk)
   if(rst) begin
