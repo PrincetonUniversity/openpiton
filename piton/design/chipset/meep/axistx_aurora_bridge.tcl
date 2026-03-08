@@ -483,7 +483,7 @@ current_bd_design $design_name
 
   set tx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 tx_fifo]
   set_property -dict [list \
-    CONFIG.FIFO_DEPTH {256} \
+    CONFIG.FIFO_DEPTH {1024} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES $AUR_USE_DAT_BYTES \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
@@ -496,7 +496,7 @@ current_bd_design $design_name
 
   set rx_fifo [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 rx_fifo]
   set_property -dict [list \
-    CONFIG.FIFO_DEPTH {256} \
+    CONFIG.FIFO_DEPTH {512} \
     CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
     CONFIG.TDATA_NUM_BYTES $AUR_USE_DAT_BYTES \
     CONFIG.HAS_TKEEP.VALUE_SRC USER \
