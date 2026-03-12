@@ -58,8 +58,6 @@ module ethframe_to_valrdy #(
        input  ready_ack
 );
 
-assign flit_out = data_in;
-
 localparam ETHHDR_ACK_FLITS = (ETHFR_MIN_WIDTH + ACK_WIDTH-1) / ACK_WIDTH; // ceil division
 localparam ETHHDR_ACK_WIDTH = ETHHDR_ACK_FLITS * ACK_WIDTH;
 
@@ -74,6 +72,15 @@ reg [ETHHDR_ACK_WIDTH-1 :0] header_tx;
 reg [ETHFR_ID_WIDTH  -1 :0] ethfr_id;
 reg valid_ack;
 
+localparam LOG_NOC_PACK_FLITS = $clog2(MAX_NOC_PACK_LEN*8 / `NOC_DATA_WIDTH); // log(88*8/64)=log(11)=4
+reg [DAT_WIDTH-1:0] pack_buf[2**LOG_NOC_PACK_FLITS];
+reg [LOG_NOC_PACK_FLITS-1 :0] pack_wrptr;
+reg [LOG_NOC_PACK_FLITS-1 :0] pack_rdptr;
+reg skip_ethpack; // signal to skip packet transfer to NOC since previous packet is still in process from the buffer
+
+wire pack_buf_empt = (pack_wrptr == pack_rdptr);
+assign flit_out = pack_buf_empt ? data_in : pack_buf[pack_rdptr];
+
 // swap bytes in payload length because of big-end network byte order
 wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header_rx[2*MAC_ADDR_WIDTH   +: 8],
                                                   header_rx[2*MAC_ADDR_WIDTH+8 +: 8]};
@@ -81,27 +88,35 @@ wire [ETH_PAYLD_LEN_WIDTH-1:0] ethfr_payld_len = {header_rx[2*MAC_ADDR_WIDTH   +
 wire header_ok = (header_rx[2*MAC_ADDR_WIDTH-1 :0] == {dst_src_mac_tx[MAC_ADDR_WIDTH-1:0],dst_src_mac_tx[2*MAC_ADDR_WIDTH-1:MAC_ADDR_WIDTH]}) &&
                  (ethfr_payld_len <= MAX_ETHFR_PAYLD_LEN); // for IEEE802.3 usage of Ethertype field as Eth payload length
                  //(header_rx[2*MAC_ADDR_WIDTH +: ETH_PAYLD_LEN_WIDTH] == {ETHTYPE_BYTE0,ETHTYPE_BYTE1}); // checking the custom Ethertype
-wire ethpack_exp = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] ==                 ethfr_id     );
+wire ethpack_exp = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] ==                 ethfr_id     ) && !skip_ethpack;
 wire ethpack_prv = header_ok && (header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] == ETHFR_ID_WIDTH'(ethfr_id-'b1));
 
 wire [ETH_PAYLD_LEN_WIDTH-1:0] min_ethfr_payld_len = MIN_ETHFR_PAYLD_LEN;
 
 always @(posedge clk)
   if(rst) begin
-    hdr_rx_cnt <= ETHHDR_DAT_FLITS;
-    header_rx <= '0;
-    header_tx <= '0;
-    ethfr_id  <= '0;
-    valid_ack <= '0;
+    hdr_rx_cnt   <= ETHHDR_DAT_FLITS;
+    header_rx    <= '0;
+    header_tx    <= '0;
+    ethfr_id     <= '0;
+    valid_ack    <= '0;
+    pack_wrptr   <= '0;
+    skip_ethpack <= '0;
   end
   else begin 
     if (valid_in && ready_in) begin
       if (hdr_rx_cnt) begin
+        skip_ethpack <= !pack_buf_empt;
         hdr_rx_cnt <= hdr_rx_cnt - 'b1;
         header_rx[(ETHHDR_DAT_FLITS - hdr_rx_cnt)*DAT_WIDTH +: DAT_WIDTH] <= data_in;
         // header_rx <= {data_in, header_rx[ETHHDR_DAT_WIDTH -1 : DAT_WIDTH]};
       end
-      if (last_in) begin 
+      else if (ethpack_exp) begin // saving NOC packet for a case if NOC readyness drops
+        pack_buf[pack_wrptr] <= data_in;
+        pack_wrptr <= pack_wrptr + 'b1;
+      end
+
+      if (last_in) begin
         hdr_rx_cnt <= ETHHDR_DAT_FLITS;
         if (ethpack_exp) ethfr_id <= header_rx[ETHHDR_WIDTH +: ETHFR_ID_WIDTH] + 'b1;
         if (ethpack_exp || ethpack_prv) begin
@@ -116,11 +131,15 @@ always @(posedge clk)
   end
 
 assign eth_hdr_out = header_rx;
-// assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp && !valid_ack;
-// assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp && !valid_ack) || (ethpack_prv && !valid_ack) || (!ethpack_exp && !ethpack_prv)); // && !rst;
-assign valid_out = valid_in && !hdr_rx_cnt && ethpack_exp;
-assign ready_in  = (hdr_rx_cnt || (ready_out && ethpack_exp) || !ethpack_exp) && !valid_ack; // && !rst;
+assign valid_out = (valid_in && !hdr_rx_cnt && ethpack_exp) || !pack_buf_empt;
+// we want never to stuck input Eth frames since they are retransmitted infinitely until acknowledged and
+// thus might fill-up the pipeline in the bridge when NOC side is not ready causing the deadlock
+assign ready_in  = !valid_ack; // && !rst;
 
+always @(posedge clk)
+  if(rst) pack_rdptr <= '0;
+  else if (valid_out && ready_out)
+    pack_rdptr <= pack_rdptr + 'b1;
 
 reg [$clog2(ETHHDR_ACK_FLITS):0] hdr_tx_cnt;
 always @(posedge clk)
