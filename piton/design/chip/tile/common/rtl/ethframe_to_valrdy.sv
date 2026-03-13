@@ -132,8 +132,8 @@ always @(posedge clk)
 
 assign eth_hdr_out = header_rx;
 assign valid_out = (valid_in && !hdr_rx_cnt && ethpack_exp) || !pack_buf_empt;
-// we want never to stuck input Eth frames since they are retransmitted infinitely until acknowledged and
-// thus might fill-up the pipeline in the bridge when NOC side is not ready causing the deadlock
+// we never stuck input Eth frames since they are retransmitted infinitely until acknowledged and thus might
+// fill-up the pipeline in the bridge when NOC side is not ready and causing the deadlock for rest channels
 assign ready_in  = !valid_ack; // && !rst;
 
 always @(posedge clk)
