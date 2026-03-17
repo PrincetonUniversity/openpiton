@@ -231,8 +231,8 @@ current_bd_design $design_name
   connect_bd_net [get_bd_ports sys_clk]                  [get_bd_pins mux_rst_gen/slowest_sync_clk]
   connect_bd_net [get_bd_pins aurora_inst/gt_pll_lock]   [get_bd_pins mux_rst_gen/dcm_locked]
   connect_bd_net [get_bd_pins aurora_inst/sys_reset_out] [get_bd_pins mux_rst_gen/ext_reset_in]
-  make_bd_pins_external                                  [get_bd_pins mux_rst_gen/peripheral_aresetn]
-  set_property name "sys_rstn_out"                       [get_bd_ports peripheral_aresetn_0]
+  make_bd_pins_external                                  [get_bd_pins mux_rst_gen/interconnect_aresetn]
+  set_property name "sys_rstn_out"                       [get_bd_ports interconnect_aresetn_0]
 
   set txrx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 txrx_rst_gen ]
   set_property -dict [ list \

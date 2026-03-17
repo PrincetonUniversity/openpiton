@@ -312,8 +312,8 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
    CONFIG.C_AUX_RESET_HIGH {0} \
   ] $mux_rst_gen
   connect_bd_net [get_bd_ports sys_clk] [get_bd_pins mux_rst_gen/slowest_sync_clk]
-  make_bd_pins_external                 [get_bd_pins mux_rst_gen/peripheral_aresetn]
-  set_property name "sys_rstn_out" [get_bd_ports peripheral_aresetn_0]
+  make_bd_pins_external                 [get_bd_pins mux_rst_gen/interconnect_aresetn]
+  set_property name "sys_rstn_out"      [get_bd_ports interconnect_aresetn_0]
 
   set rx_rst_gen [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rx_rst_gen ]
   set_property -dict [ list \
