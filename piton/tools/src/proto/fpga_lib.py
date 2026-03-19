@@ -182,7 +182,7 @@ def find_design_block(design_block):
     fp = open(DESIGN_BLOCK_LIST, 'r')
     for line in fp:
         # Check for comments
-        if not re.match('\s*#.*', line) :
+        if not re.match(r'\s*#.*', line) :
             # Process the block line
             line_split = line.split()
             block_data = dict()
@@ -271,7 +271,7 @@ def getTestList(fname, flog, ustr_files=False):
     test_list = list()
     suff = "ustr" if ustr_files else "([s|S|c]|riscv)"
     for line in f:
-        mstr = "([0-9a-zA-Z_-]+\.%s)" % suff
+        mstr = r"([0-9a-zA-Z_-]+\.%s)" % suff
         m = re.search(mstr, line)
         if m != None:
             tname = m.group(1)

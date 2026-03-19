@@ -367,19 +367,11 @@ module system(
     `endif
 `elsif ALVEO_BOARD // PITON_FPGA_ETHERNETLITE
         // GTY quads connected to QSFP unit on Alveo board     
-    `ifndef PITON_FPGA_ETH_CMAC
-    `ifndef PITON_MULTI_FPGA
-      `define NO_QSFP
-    `endif
-    `endif
-
-    `ifndef NO_QSFP
         input          qsfp0_ref_clk_n,
         input          qsfp0_ref_clk_p,
 
         input          qsfp1_ref_clk_n,
         input          qsfp1_ref_clk_p,
-    `endif
 
     `ifdef PITON_FPGA_ETH_CMAC
         input   [3:0]  eth_qsfp_4x_grx_n,
@@ -388,11 +380,18 @@ module system(
         output  [3:0]  eth_qsfp_4x_gtx_p,
     `endif
 
-    `ifdef PITON_MULTI_FPGA
+        // For FPGA partitioning
+    `ifdef PITON_MULTI_FPGA_AUR
         input   [3:0]  aur_qsfp_4x_grx_n,
         input   [3:0]  aur_qsfp_4x_grx_p,
         output  [3:0]  aur_qsfp_4x_gtx_n,
         output  [3:0]  aur_qsfp_4x_gtx_p,
+    `endif
+    `ifdef PITON_MULTI_FPGA_CMAC
+        input   [3:0]  cmac_qsfp_4x_grx_n,
+        input   [3:0]  cmac_qsfp_4x_grx_p,
+        output  [3:0]  cmac_qsfp_4x_gtx_n,
+        output  [3:0]  cmac_qsfp_4x_gtx_p,
     `endif
 
 `endif // ALVEO_BOARD
@@ -814,10 +813,8 @@ assign passthru_pll_rst_n = 1'b1;
 `endif
 
 
-wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_tx;
-wire [2*MAC_ADDR_WIDTH   -1:0] dst_src_mac_rx;
-wire [ETH_PAYLD_LEN_WIDTH-1:0] eth_payl_len_rx;
-wire [ETHFR_ID_WIDTH     -1:0] ethfr_id;
+wire [3*MAC_ADDR_WIDTH      -1 :0] dst_src_mac_tx;
+wire [ETHHDR_NOC_WIDTH      -1 :0] eth_hdr_rx;
 wire [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time;
 wire [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries;
 wire qsfp_noc_overflow;
@@ -956,24 +953,29 @@ chip chip(
 
   `ifdef PITON_MULTI_FPGA
     ,
-    .dst_src_mac_tx (dst_src_mac_tx),
-    .dst_src_mac_rx (dst_src_mac_rx),
-    .eth_payl_len_rx(eth_payl_len_rx),
-    .ethfr_id       (ethfr_id),
+    .dst_src_mac_tx  (dst_src_mac_tx),
+    .eth_hdr_rx      (eth_hdr_rx),
     .ethack_wait_time(ethack_wait_time),
     .ethfr_retries   (ethfr_retries),
     .qsfp_noc_overflow(qsfp_noc_overflow),
-    `ifdef PITON_FPGA_ETH_PORT1
-      .qsfp_ref_clk_n(qsfp0_ref_clk_n),
-      .qsfp_ref_clk_p(qsfp0_ref_clk_p),
-    `else
-      .qsfp_ref_clk_n(qsfp1_ref_clk_n),
-      .qsfp_ref_clk_p(qsfp1_ref_clk_p),
-    `endif
-    .qsfp_4x_grx_n   (aur_qsfp_4x_grx_n),
-    .qsfp_4x_grx_p   (aur_qsfp_4x_grx_p),
-    .qsfp_4x_gtx_n   (aur_qsfp_4x_gtx_n),
-    .qsfp_4x_gtx_p   (aur_qsfp_4x_gtx_p)
+
+   `ifdef PITON_MULTI_FPGA_AUR
+    .aur_qsfp_4x_grx_n (aur_qsfp_4x_grx_n),
+    .aur_qsfp_4x_grx_p (aur_qsfp_4x_grx_p),
+    .aur_qsfp_4x_gtx_n (aur_qsfp_4x_gtx_n),
+    .aur_qsfp_4x_gtx_p (aur_qsfp_4x_gtx_p),
+   `endif
+    .aur_qsfp_ref_clk_n(qsfp1_ref_clk_n),
+    .aur_qsfp_ref_clk_p(qsfp1_ref_clk_p),
+
+   `ifdef PITON_MULTI_FPGA_CMAC
+    .cmac_qsfp_4x_grx_n (cmac_qsfp_4x_grx_n),
+    .cmac_qsfp_4x_grx_p (cmac_qsfp_4x_grx_p),
+    .cmac_qsfp_4x_gtx_n (cmac_qsfp_4x_gtx_n),
+    .cmac_qsfp_4x_gtx_p (cmac_qsfp_4x_gtx_p),
+   `endif
+    .cmac_qsfp_ref_clk_n(qsfp0_ref_clk_n),
+    .cmac_qsfp_ref_clk_p(qsfp0_ref_clk_p)
   `endif
 
 `ifdef PITON_RV64_PLATFORM
@@ -1114,17 +1116,13 @@ chipset chipset(
      .pci_express_x16_txp(pci_express_x16_txp),
      .pcie_gpio(pcie_gpio),
     `ifdef PITON_MULTI_FPGA
-     .dst_src_mac_tx (dst_src_mac_tx),
-     .dst_src_mac_rx (dst_src_mac_rx),
-     .eth_payl_len_rx(eth_payl_len_rx),
-     .ethfr_id       (ethfr_id),
+     .dst_src_mac_tx  (dst_src_mac_tx),
+     .eth_hdr_rx      (eth_hdr_rx),
      .ethack_wait_time(ethack_wait_time),
      .ethfr_retries   (ethfr_retries),
     `else // `ifdef PITON_MULTI_FPGA
-     .dst_src_mac_tx (),
-     .dst_src_mac_rx ('hFEEDFACEDEADBEEF8BADF00D),
-     .eth_payl_len_rx('hCAFE),
-     .ethfr_id       ('hC0DE),
+     .dst_src_mac_tx  (),
+     .eth_hdr_rx      ('hC0DECAFEFEEDFACEDEADBEEF8BADF00D),
      .ethack_wait_time('hDEAD),
      .ethfr_retries   ('hBEEF),
     `endif // `ifdef PITON_MULTI_FPGA
