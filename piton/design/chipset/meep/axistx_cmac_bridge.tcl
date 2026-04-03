@@ -579,7 +579,7 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
 
     create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 out_fifo_$idx
     set_property -dict [list \
-      CONFIG.FIFO_DEPTH {32} \
+      CONFIG.FIFO_DEPTH {64} \
       CONFIG.TDATA_NUM_BYTES.VALUE_SRC USER \
       CONFIG.HAS_TKEEP.VALUE_SRC USER \
       CONFIG.HAS_TKEEP {0} \
@@ -587,7 +587,6 @@ http://www.xilinx.com/support/documentation/user_guides/ug578-ultrascale-gty-tra
       CONFIG.HAS_TLAST {1} \
       CONFIG.TDEST_WIDTH.VALUE_SRC USER \
       CONFIG.TDEST_WIDTH {0} \
-      CONFIG.FIFO_MODE {2} \
     ] [get_bd_cells out_fifo_$idx]
     if {$idx < $CMAC_BRDG_CHANS_SGNL} {
       set_property CONFIG.TDATA_NUM_BYTES $QSFP_BRDG_SGNL_BYTES [get_bd_cells out_fifo_$idx]
