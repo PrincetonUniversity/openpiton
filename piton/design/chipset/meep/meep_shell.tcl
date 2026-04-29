@@ -85,48 +85,6 @@ if { $run_remote_bd_flow == 1 } {
 
 current_bd_design $design_name
 
-  set bCheckIPsPassed 1
-  ##################################################################
-  # CHECK IPs
-  ##################################################################
-  set bCheckIPs 1
-  if { $bCheckIPs == 1 } {
-     set list_check_ips "\ 
-  xilinx.com:ip:axi_gpio:2.0\
-  xilinx.com:ip:ddr4:2.2\
-  xilinx.com:ip:util_vector_logic:2.0\
-  xilinx.com:ip:axi_bram_ctrl:4.1\
-  xilinx.com:ip:xlconstant:1.1\
-  xilinx.com:ip:hbm:1.0\
-  xilinx.com:ip:proc_sys_reset:5.0\
-  xilinx.com:ip:qdma:5.0\
-  xilinx.com:ip:smartconnect:1.0\
-  xilinx.com:ip:util_ds_buf:2.2\
-  xilinx.com:ip:blk_mem_gen:8.4\
-  "
-
-   set list_ips_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
-
-   foreach ip_vlnv $list_check_ips {
-      set ip_obj [get_ipdefs -all $ip_vlnv]
-      if { $ip_obj eq "" } {
-         lappend list_ips_missing $ip_vlnv
-      }
-   }
-
-   if { $list_ips_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
-      set bCheckIPsPassed 0
-   }
-
-  }
-
-  if { $bCheckIPsPassed != 1 } {
-    common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
-    return 3
-  }
-
   variable script_folder
 
   if { $parentCell eq "" } {
@@ -441,12 +399,23 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 
 
   # Create ports
-  set mem_calib_complete [ create_bd_port -dir O -from 0 -to 0 -type rst mem_calib_complete ]
-  set pcie_gpio [ create_bd_port -dir O -from 4 -to 0 pcie_gpio ]
-  set pcie_perstn [ create_bd_port -dir I -type rst pcie_perstn ]
+  create_bd_port -dir O -from 0 -to 0 -type rst mem_calib_complete
+  create_bd_port -dir O -from 31 -to 0 pcie_gp0_out
+  create_bd_port -dir O -from 31 -to 0 pcie_gp1_out
+  create_bd_port -dir O -from 31 -to 0 pcie_gp2_out
+  create_bd_port -dir O -from 31 -to 0 pcie_gp3_out
+  create_bd_port -dir O -from 31 -to 0 pcie_gp4_out
+  create_bd_port -dir O -from 31 -to 0 pcie_gp5_out
+  create_bd_port -dir I -from 31 -to 0 pcie_gp0_in
+  create_bd_port -dir I -from 31 -to 0 pcie_gp1_in
+  create_bd_port -dir I -from 31 -to 0 pcie_gp2_in
+  create_bd_port -dir I -from 31 -to 0 pcie_gp3_in
+  create_bd_port -dir I -from 31 -to 0 pcie_gp4_in
+  create_bd_port -dir I -from 31 -to 0 pcie_gp5_in
+  create_bd_port -dir I -type rst pcie_perstn
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_LOW} \
- ] $pcie_perstn
+ ] [get_bd_ports pcie_perstn]
 
   set sysck_axi_ports ""
   if {[info exists ::env(PROTOSYN_RUNTIME_ETH)] &&
@@ -674,7 +643,7 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   } else {
     set pcie_blk_locn "PCIE4C_X1Y0"
   }
-  set qdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:qdma:5.0 qdma_0 ]
+  set qdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:qdma:5.* qdma_0 ]
   set_property -dict [ list \
    CONFIG.MAILBOX_ENABLE {true} \
    CONFIG.PF0_SRIOV_CAP_INITIAL_VF {4} \
@@ -723,12 +692,26 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   # Create instance: vccx1, and set properties
   set vccx1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 vccx1 ]
 
-  # Create instance: axi_gpio_0, and set properties
-  set axi_gpio_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0 ]
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
   set_property -dict [ list \
-   CONFIG.C_ALL_OUTPUTS {1} \
-   CONFIG.C_GPIO_WIDTH {5} \
- ] $axi_gpio_0
+   CONFIG.C_IS_DUAL {1} \
+  ] [get_bd_cells axi_gpio_0]
+
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_1
+  set_property -dict [ list \
+   CONFIG.C_IS_DUAL {1} \
+  ] [get_bd_cells axi_gpio_1]
+
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_2
+  set_property -dict [ list \
+   CONFIG.C_IS_DUAL {1} \
+  ] [get_bd_cells axi_gpio_2]
+
+  create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_1
+  set_property -dict [ list \
+  CONFIG.NUM_MI {3} \
+  CONFIG.NUM_SI {1} \
+  ] [get_bd_cells smartconnect_1]
 
   # Create instance: smartconnect_0, and set properties
   set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
@@ -758,7 +741,10 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   # Create interface connections
   connect_bd_intf_net [get_bd_intf_ports pcie_refclk]      [get_bd_intf_pins pcie_refclk_buf/CLK_IN_D]
   connect_bd_intf_net [get_bd_intf_pins qdma_0/M_AXI]      [get_bd_intf_pins smartconnect_0/S00_AXI]
-  connect_bd_intf_net [get_bd_intf_pins qdma_0/M_AXI_LITE] [get_bd_intf_pins axi_gpio_0/S_AXI]
+  connect_bd_intf_net [get_bd_intf_pins qdma_0/M_AXI_LITE] [get_bd_intf_pins smartconnect_1/S00_AXI]
+  connect_bd_intf_net [get_bd_intf_pins axi_gpio_0/S_AXI]  [get_bd_intf_pins smartconnect_1/M00_AXI]
+  connect_bd_intf_net [get_bd_intf_pins axi_gpio_1/S_AXI]  [get_bd_intf_pins smartconnect_1/M01_AXI]
+  connect_bd_intf_net [get_bd_intf_pins axi_gpio_2/S_AXI]  [get_bd_intf_pins smartconnect_1/M02_AXI]
   connect_bd_intf_net [get_bd_intf_pins qdma_0/pcie_mgt]   [get_bd_intf_ports pci_express_x16]
 
 if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
@@ -788,9 +774,26 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
   connect_bd_net [get_bd_pins qdma_0/sys_clk]    [get_bd_pins pcie_refclk_buf/IBUF_DS_ODIV2]
   connect_bd_net [get_bd_pins qdma_0/sys_clk_gt] [get_bd_pins pcie_refclk_buf/IBUF_OUT]
   connect_bd_net [get_bd_pins qdma_0/qsts_out_rdy] [get_bd_pins qdma_0/tm_dsc_sts_rdy] [get_bd_pins vccx1/dout]
-  connect_bd_net [get_bd_pins qdma_0/axi_aclk]    [get_bd_pins axi_gpio_0/s_axi_aclk]
-  connect_bd_net [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins axi_gpio_0/s_axi_aresetn]
-  connect_bd_net [get_bd_ports pcie_gpio]         [get_bd_pins axi_gpio_0/gpio_io_o]
+  connect_bd_net [get_bd_pins qdma_0/axi_aclk]    [get_bd_pins axi_gpio_0/s_axi_aclk] \
+                                                  [get_bd_pins axi_gpio_1/s_axi_aclk] \
+                                                  [get_bd_pins axi_gpio_2/s_axi_aclk] \
+                                                  [get_bd_pins smartconnect_1/aclk]
+  connect_bd_net [get_bd_pins qdma_0/axi_aresetn] [get_bd_pins axi_gpio_0/s_axi_aresetn] \
+                                                  [get_bd_pins axi_gpio_1/s_axi_aresetn] \
+                                                  [get_bd_pins axi_gpio_2/s_axi_aresetn] \
+                                                  [get_bd_pins smartconnect_1/aresetn]
+  connect_bd_net [get_bd_ports pcie_gp0_out]      [get_bd_pins axi_gpio_0/gpio_io_o]
+  connect_bd_net [get_bd_ports pcie_gp1_out]      [get_bd_pins axi_gpio_0/gpio2_io_o]
+  connect_bd_net [get_bd_ports pcie_gp2_out]      [get_bd_pins axi_gpio_1/gpio_io_o]
+  connect_bd_net [get_bd_ports pcie_gp3_out]      [get_bd_pins axi_gpio_1/gpio2_io_o]
+  connect_bd_net [get_bd_ports pcie_gp4_out]      [get_bd_pins axi_gpio_2/gpio_io_o]
+  connect_bd_net [get_bd_ports pcie_gp5_out]      [get_bd_pins axi_gpio_2/gpio2_io_o]
+  connect_bd_net [get_bd_ports pcie_gp0_in]       [get_bd_pins axi_gpio_0/gpio_io_i]
+  connect_bd_net [get_bd_ports pcie_gp1_in]       [get_bd_pins axi_gpio_0/gpio2_io_i]
+  connect_bd_net [get_bd_ports pcie_gp2_in]       [get_bd_pins axi_gpio_1/gpio_io_i]
+  connect_bd_net [get_bd_ports pcie_gp3_in]       [get_bd_pins axi_gpio_1/gpio2_io_i]
+  connect_bd_net [get_bd_ports pcie_gp4_in]       [get_bd_pins axi_gpio_2/gpio_io_i]
+  connect_bd_net [get_bd_ports pcie_gp5_in]       [get_bd_pins axi_gpio_2/gpio2_io_i]
   connect_bd_net [get_bd_pins mem_calib_sync/slowest_sync_clk]   [get_bd_ports mem_clk]
   connect_bd_net [get_bd_pins mem_calib_sync/mb_debug_sys_rst]   [get_bd_pins rst_inv/Op1]
   connect_bd_net [get_bd_pins mem_calib_sync/dcm_locked]         [get_bd_pins rst_inv/Res]
@@ -845,7 +848,9 @@ if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
 
 
   # Create address segments
-  assign_bd_address -offset 0x00000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x00000000 -range 0x00000200 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x00000200 -range 0x00000200 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_1/S_AXI/Reg] -force
+  assign_bd_address -offset 0x00000400 -range 0x00000200 -target_address_space [get_bd_addr_spaces qdma_0/M_AXI_LITE] [get_bd_addr_segs axi_gpio_2/S_AXI/Reg] -force
 if {[info exists ::env(PROTOSYN_RUNTIME_HBM)] &&
                 $::env(PROTOSYN_RUNTIME_HBM)=="TRUE"} {
   set hbm_mems 32

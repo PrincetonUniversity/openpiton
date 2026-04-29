@@ -39,6 +39,15 @@ PITON_X_TILES = int(os.environ.get('PITON_X_TILES', '-1'))
 PITON_Y_TILES = int(os.environ.get('PITON_Y_TILES', '-1'))
 #print "//y_tiles:", num_tiles
 
+PITON_FR_X = int(os.environ.get('PITON_FR_X', '-1'))
+PITON_FR_Y = int(os.environ.get('PITON_FR_Y', '-1'))
+PITON_TO_X = int(os.environ.get('PITON_TO_X', '-1'))
+PITON_TO_Y = int(os.environ.get('PITON_TO_Y', '-1'))
+PITON_FRX_PORT = int(os.environ.get('PITON_FRX_PORT', '-1'))
+PITON_FRY_PORT = int(os.environ.get('PITON_FRY_PORT', '-1'))
+PITON_TOX_PORT = int(os.environ.get('PITON_TOX_PORT', '-1'))
+PITON_TOY_PORT = int(os.environ.get('PITON_TOY_PORT', '-1'))
+
 PITON_NUM_TILES = int(os.environ.get('PITON_NUM_TILES', '-1'))
 #print "//num_tiles:", num_tiles
 
@@ -163,7 +172,7 @@ def Replicate(text):
 #    return newtext;
 
 def ReplicatePattern(text, patterns):
-  regex = " ([^\.:]+)0"
+  regex = r" ([^\.:]+)0"
   newtext = ''
   for i in range(PITON_NUM_TILES):
     t = text
@@ -175,7 +184,7 @@ def ReplicatePattern(text, patterns):
 
 # only difference is that this looks for patterns start with 1 not 0
 def ReplicatePattern1(text, patterns):
-  regex = " ([^\.:]+)1"
+  regex = r" ([^\.:]+)1"
   newtext = ''
   for i in range(PITON_NUM_TILES):
     t = text

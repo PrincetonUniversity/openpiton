@@ -142,6 +142,7 @@ module chipset(
 
     // reset
     input                                       rst_n,
+    input                                       qsfp_noc_overflow,
 `ifdef PITON_BOARD
     // to chip
     output                                      chip_rst_n,
@@ -261,6 +262,10 @@ module chipset(
     output [15:0] pci_express_x16_txn,
     output [15:0] pci_express_x16_txp,   
     output [4:0] pcie_gpio,     
+    output [3*MAC_ADDR_WIDTH      -1 :0] dst_src_mac_tx,
+    input  [ETHHDR_NOC_WIDTH      -1 :0] eth_hdr_rx,
+    input  [ETHFR_RETRY_TIME_WIDTH-1 :0] ethack_wait_time,
+    input  [ETHFR_RETRIES_WIDTH   -1 :0] ethfr_retries,
     input  pcie_perstn,
     input  pcie_refclk_n,
     input  pcie_refclk_p,
@@ -1332,6 +1337,7 @@ chipset_impl_noc_power_test  chipset_impl (
     .test_start         (test_start         ),
     .uart_rst_out_n     (uart_rst_out_n     ),
     .invalid_access_o   (invalid_access     ),
+    .qsfp_noc_overflow  (qsfp_noc_overflow  ),
 
 `ifdef PITON_NOC_POWER_CHIPSET_TEST
     .noc_power_test_hop_count (noc_power_test_hop_count),
@@ -1395,6 +1401,10 @@ chipset_impl_noc_power_test  chipset_impl (
                      .pci_express_x16_txn(pci_express_x16_txn),
                      .pci_express_x16_txp(pci_express_x16_txp),
                      .pcie_gpio(pcie_gpio),        
+                     .dst_src_mac_tx  (dst_src_mac_tx),
+                     .eth_hdr_rx      (eth_hdr_rx),
+                     .ethack_wait_time(ethack_wait_time),
+                     .ethfr_retries   (ethfr_retries),
                      .pcie_perstn(pcie_perstn),
                      .pcie_refclk_n(pcie_refclk_n),
                      .pcie_refclk_p(pcie_refclk_p),

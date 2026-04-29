@@ -143,6 +143,8 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   set g_saxi_prot "AXI4-512"
   set g_saxi_freq "split"
   set g_max_dma_addr_width "40"
+  set g_dma_axi_clk "s_axi_clk"
+  # set g_en_eth_loopback 16
   set g_root_dir "./"
   puts "Generating 100GbE on port `${g_eth_port}` with AXI slave `${g_saxi_prot}` and DMA memory at `${g_dma_mem}` for board `${g_board_part}`"
   # set argv [list $g_board_part $g_eth_port $g_dma_mem $g_saxi_freq $g_saxi_prot]
@@ -154,6 +156,50 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   set_property ip_repo_paths $ip_repo_paths [current_project]
   update_ip_catalog -rebuild
   source $DV_ROOT/design/chipset/io_ctrl/xilinx/common/ip_cores/eth_cmac_syst/tcl/eth_cmac_syst.tcl
+
+  set sys_clk_freq [expr {$env(SYSTEM_FREQ)*1000000}]
+
+  set QSFP_BRDG_CHANS_SGNL 1
+  set AUR_BRDG_CHANS  $QSFP_BRDG_CHANS_SGNL
+  set CMAC_BRDG_CHANS $QSFP_BRDG_CHANS_SGNL
+  set CMAC_BRDG_DEST_OFFS 0
+  if { $::env(PITON_FR_X) != 0 } {
+    if {$::env(PITON_FRX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_FRX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
+  }
+  if { $::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 } {
+    if {$::env(PITON_TOX_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_Y_TILES) * 3}]}
+    if {$::env(PITON_TOX_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_Y_TILES) * 3}]}
+  }
+  if { $::env(PITON_FR_Y) != 0 } {
+    if {$::env(PITON_FRY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_FRY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
+  }
+  if { $::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 } {
+    if {$::env(PITON_TOY_PORT) == 1} {set AUR_BRDG_CHANS  [expr {$AUR_BRDG_CHANS  + $::env(PITON_X_TILES) * 3}]}
+    if {$::env(PITON_TOY_PORT) == 0} {set CMAC_BRDG_CHANS [expr {$CMAC_BRDG_CHANS + $::env(PITON_X_TILES) * 3}]}
+  }
+  # Setting destination offset for "TO"-only partition borders
+  if { ($::env(PITON_TO_X) != $::env(PITON_X_TILES)-1 && $::env(PITON_TOX_PORT) == 0) &&
+       ($::env(PITON_FR_X) == 0                       || $::env(PITON_FRX_PORT) != 0) } {
+    set CMAC_BRDG_DEST_OFFS [expr {$::env(PITON_Y_TILES) * 3 * 2}]
+  }
+  if { ($::env(PITON_TO_Y) != $::env(PITON_Y_TILES)-1 && $::env(PITON_TOY_PORT) == 0) &&
+       ($::env(PITON_FR_Y) == 0                       || $::env(PITON_FRY_PORT) != 0) } {
+    set CMAC_BRDG_DEST_OFFS [expr {$::env(PITON_X_TILES) * 3 * 2}]
+  }
+  # NOC_DATA_WIDTH/8 = 64/8 = 8
+  set QSFP_BRDG_CHAN_BYTES 8
+  set QSFP_BRDG_SGNL_BYTES [expr {$::env(PITON_NUM_TILES) * 4 /8}]
+  set AXIS_INTERCON_MAXCHANS 16
+  # doubling number of channels for CMAC bridge due to acknowledgement channels
+  set CMAC_BRDG_CHANS      [expr {$CMAC_BRDG_CHANS      * 2}]
+  set CMAC_BRDG_CHANS_SGNL [expr {$QSFP_BRDG_CHANS_SGNL * 2}]
+  set AXIS_TDEST_WIDTH 8
+  set g_cmac_port "qsfp0"
+  set g_aur_port  "qsfp1"
+  source $DV_ROOT/design/chipset/meep/axistx_cmac_bridge.tcl
+  source $DV_ROOT/design/chipset/meep/axistx_aurora_bridge.tcl
 }
 
 # Set 'sources_1' fileset file properties for local files
@@ -279,6 +325,12 @@ if { $BOARD_DEFAULT_VERILOG_MACROS == "ALVEO_BOARD" } {
   if {![info exists ::env(PROTOSYN_RUNTIME_HBM)] ||
                    $::env(PROTOSYN_RUNTIME_HBM)!="TRUE"} {
     add_files -fileset [get_filesets constrs_1] "$BOARD_DIR/ddr4.xdc"
+  }
+  if { $CMAC_BRDG_CHANS > 2 } {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_cmac_qsfp.xdc"
+  }
+  if { $AUR_BRDG_CHANS > 1 } {
+      add_files -fileset [get_filesets constrs_1] "${BOARD_DIR}/axist_aur_qsfp.xdc"
   }
 }
 
