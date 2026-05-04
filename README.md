@@ -741,6 +741,17 @@ The flow is very simillar to synthesizing image for any other FPGA OpenPiton sup
              --bram-test hello_world.c # compiling and runniing VCS-based simulation before synthesis
              --verdi-dbg  # creating Verdi compliant simulation database for above test (verdi run inside ./build dir (-sx is optional): verdi -ssf ./novas.fsdb)
              --mgui                    # run ManyGUI traffic visualizer while simulating above test
+
+             # Options to define Multi-FPGA partioning borders:
+             --fr_x <num>  # Tile X coordinate from which FPGA partition starts in horizontal direction, by default it is 0 meaning no partitioning
+             --fr_y <num>  # Tile Y coordinate from which FPGA partition starts in vertical direction, by default it is 0 meaning no partitioning
+             --to_x <num>  # Tile X coordinate at which FPGA partition finishes in horizontal direction, by default it is (x_tiles-1) meaning no partitioning
+             --to_y <num>  # Tile Y coordinate at which FPGA partition finishes in vertical direction, by default it is (y_tiles-1) meaning no partitioning
+             # Options to define physical ports utilized for Multi-FPGA partioning borders (0 means connection through Ethernet switch, 1 means P2P connection): 
+             --frx_port <num>  # QSFP port (0/1) to be used for start X FPGA partitioning border, by default: 0.
+             --fry_port <num>  # QSFP port (0/1) to be used for start Y FPGA partitioning border, by default: 0.
+             --tox_port <num>  # QSFP port (0/1) to be used for finish X FPGA partitioning border, by default: 0.
+             --toy_port <num>  # QSFP port (0/1) to be used for finish Y FPGA partitioning border, by default: 0.
 ```
 
 This will create a Vivado design under $ROOT_DIR/build/...
