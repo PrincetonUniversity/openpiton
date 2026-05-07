@@ -49,7 +49,7 @@ module l15_wrap (
     input [63:0]                            transducer_l15_data_next_entry,
     input [`TLB_CSM_WIDTH-1:0]              transducer_l15_csm_data,
     `ifdef WRITE_BYTE_MASK
-    input [`L15_BYTE_MASK_WIDHT-1:0]        transducer_l15_be,
+    input [`L15_BYTE_MASK_WIDTH-1:0]        transducer_l15_be,
     `endif
 
     output                                  l15_transducer_ack,

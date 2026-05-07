@@ -274,7 +274,7 @@ print(s)
 
     wire [`PCX_REQTYPE_WIDTH-1:0]       transducer_l15_rqtype;
     wire [`L15_AMO_OP_WIDTH-1:0]        transducer_l15_amo_op;
-    wire [`L15_BYTE_MASK_WIDHT-1:0]     transducer_l15_be;
+    wire [`L15_BYTE_MASK_WIDTH-1:0]     transducer_l15_be;
 
     wire                                transducer_l15_nc;
     wire [`PCX_SIZE_FIELD_WIDTH-1:0]    transducer_l15_size;
@@ -946,6 +946,11 @@ str = '''
         `ifdef WRITE_BYTE_MASK
         .WriteCoalescingEn      (1'b1),
         .WriteCoalescingTh      (32'd2),
+        `endif
+        `ifdef HPDCACHE_OPENPITON
+        .UseHPDcache(1'b1),
+        `else
+        .UseHPDcache(1'b0),
         `endif
         .CachedRegionAddrBase   ( {64'h%s} ),
         .CachedRegionLength     ( {64'h%s} )''' % (dmBase, numRules, execBase, execLength, cacheBase, cacheLength)
