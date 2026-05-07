@@ -1,3 +1,6 @@
+[submodule "piton/design/chip/tile/ariane"]
+	path = piton/design/chip/tile/ariane
+	url = https://github.com/openhwgroup/cva6.git
 [submodule "aws"]
 	path = piton/design/aws
 	url = https://github.com/PrincetonUniversity/openpiton-aws.git
@@ -10,6 +13,3 @@
 [submodule "piton/design/chip/tile/sparc"]
     path = piton/design/chip/tile/sparc
     url = git@github.com:openpiton/ost1-core.git
-[submodule "piton/design/chip/tile/ariane"]
-	path = piton/design/chip/tile/ariane
-	url = https://github.com/bsc-loca/cva6.git
