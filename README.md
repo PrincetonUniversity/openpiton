@@ -711,7 +711,7 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 This section contains a description of extensions to OpenPiton developed by Barcelona Supercomputing Center (Copyright 2026 - BSC):
 
-> *They are licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use these extensions except in compliance with the License, or, at your option, the Apache License version 2.0. You may obtain a copy of the License at
+> *These BSC extensions are licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use these extensions except in compliance with the License, or, at your option, the Apache License version 2.0. You may obtain a copy of the License at
 > https://solderpad.org/licenses/SHL-2.1/
 > Unless required by applicable law or agreed to in writing, any work distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.*
 
@@ -719,7 +719,7 @@ This section contains a description of extensions to OpenPiton developed by Barc
 The flow is very simillar to synthesizing image for any other FPGA OpenPiton supports:
 
 1. Clone OpenPiton repo (BSC version):
-  - from BSC GitLab: git clone https://gitlab.bsc.es/hwdesign/frameworks/meep_openpiton/-/tree/production
+  - from BSC GitLab: git clone https://gitlab.bsc.es/hwdesign/frameworks/meep_openpiton/-/tree/merge/openpiton-dev_upstr
   - from public GitHub: git clone https://github.com/bsc-loca/openpiton-fpga/tree/openpiton-dev_upst
 
 2. cd into repo, run these bash commands:
