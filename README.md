@@ -709,9 +709,9 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 #### Synthesizing OpenPiton for ALVEO boards
 
-This section contains descriptions of extensions to OpenPiton added by Barcelona Supercomputing Center (Copyright 2026 - BSC):
+This section contains a description of extensions to OpenPiton developed by Barcelona Supercomputing Center (Copyright 2026 - BSC):
 
-> *Licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use these extensions except in compliance with the License, or, at your option, the Apache License version 2.0. You may obtain a copy of the License at
+> *They are licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use these extensions except in compliance with the License, or, at your option, the Apache License version 2.0. You may obtain a copy of the License at
 > https://solderpad.org/licenses/SHL-2.1/
 > Unless required by applicable law or agreed to in writing, any work distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.*
 
@@ -804,4 +804,4 @@ EMiX relies on the OpenPiton research platform as the tiled many-core/NoC-based 
 
 EMiX cuts a tiled many-core RTL design along NoC edges and assigns groups of tiles to different FPGAs. Cross-FPGA NoC traffic is converted into a unified AXI-Stream transport and carried over two complementary links: Aurora-based QSFP-1 direct point-to-point channels for adjacent FPGAs, and CMAC-based 100 Gb Ethernet over QSFP-0 for scalable cross-cluster connectivity. NoC-Aurora and NoC-CMAC bridges translate packets between the emulated on-chip network and the physical FPGA links The framework supports different partitioning strategies, such as horizontal or vertical cuts, and can scale by changing the number of cores, tiles, and FPGAs.
 
-More details about EMiX are provided in paper [EMiX: Emulating Beyond Single-FPGA Limits](https://arxiv.org/abs/2604.27012)
+More details about EMiX are provided in a paper [EMiX: Emulating Beyond Single-FPGA Limits](https://arxiv.org/abs/2604.27012).
