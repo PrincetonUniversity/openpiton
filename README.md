@@ -707,13 +707,20 @@ The command will tell print the afi and agfi of your image. You can track the sy
 
 8. After the synthesis is done - you can go load it in your F1 instance!
 
-### Synthesizing OpenPiton for ALVEO boards
+#### Synthesizing OpenPiton for ALVEO boards
 
-This section has been added under MEEP project. For an eventual PR to OpenPiton team, we will need to review it.
+This section contains descriptions of extensions to OpenPiton added by Barcelona Supercomputing Center (Copyright 2026 - BSC):
+
+> *Licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use these extensions except in compliance with the License, or, at your option, the Apache License version 2.0. You may obtain a copy of the License at
+> https://solderpad.org/licenses/SHL-2.1/
+> Unless required by applicable law or agreed to in writing, any work distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.*
+
 
 The flow is very simillar to synthesizing image for any other FPGA OpenPiton supports:
 
-1. Clone OpenPiton repo (MEEP version): git clone https://gitlab.bsc.es/hwdesign/frameworks/meep_openpiton.git
+1. Clone OpenPiton repo (BSC version):
+  - from BSC GitLab: git clone https://gitlab.bsc.es/hwdesign/frameworks/meep_openpiton/-/tree/production
+  - from public GitHub: git clone https://github.com/bsc-loca/openpiton-fpga/tree/openpiton-dev_upst
 
 2. cd into repo, run these bash commands:
 
@@ -782,3 +789,19 @@ Issue the next commands inside the downloaded repo:
 ```
 
 You should be able to see Linux booting on the other terminal.
+
+##### Multi-FPGA (EMiX) extension of OpenPiton by BSC
+
+1. Technology Description
+
+EMiX is a scalable multi-FPGA emulation framework for large multi-core RISC-V systems that no longer fit within a single FPGA. It partitions a monolithic tiled many-core RTL design at NoC boundaries and deploys the resulting components across several interconnected FPGAs. This facilitates pre-silicon validation of larger systems while preserving OS-level visibility and software-stack execution. The current prototype targets an OpenPiton-style tiled architecture and demonstrates multi-core configuration distributed across multiple AMD Alveo U55c FPGAs on BSC's Makinote cluster. It supports full-system execution, including Linux boot, and keeps access to UART, HBM memory, and Ethernet through the FPGA hosting the chipset. EMiX bridges the gap between closed industrial multi-FPGA prototyping platforms and accessible academic infrastructure, and is open-sourced under mentioned above Solderpad Hardware License.
+
+2. Dependencies
+
+EMiX relies on the OpenPiton research platform as the tiled many-core/NoC-based architectural substrate. It also uses AMD/Xilinx IP on Alveo U55C devices, including Aurora 64B/66B for low-latency QSFP point-to-point communication, the UltraScale+ Integrated 100G Ethernet Subsystem (CMAC) for scalable Ethernet connectivity, AXI4-Stream infrastructure for multiplexing, channel mapping and clock-domain crossing, and auxiliary IPs such as Binary Counter and Processor System Reset. These are governed by their respective GPL or Xilinx end-user license terms.
+
+3. Functioning
+
+EMiX cuts a tiled many-core RTL design along NoC edges and assigns groups of tiles to different FPGAs. Cross-FPGA NoC traffic is converted into a unified AXI-Stream transport and carried over two complementary links: Aurora-based QSFP-1 direct point-to-point channels for adjacent FPGAs, and CMAC-based 100 Gb Ethernet over QSFP-0 for scalable cross-cluster connectivity. NoC-Aurora and NoC-CMAC bridges translate packets between the emulated on-chip network and the physical FPGA links The framework supports different partitioning strategies, such as horizontal or vertical cuts, and can scale by changing the number of cores, tiles, and FPGAs.
+
+More details about EMiX are provided in paper [EMiX: Emulating Beyond Single-FPGA Limits](https://arxiv.org/abs/2604.27012)
