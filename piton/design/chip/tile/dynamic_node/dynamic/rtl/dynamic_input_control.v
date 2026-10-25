@@ -146,38 +146,38 @@ dynamic_input_route_request_calc tail_calc(.route_req_n(route_req_n_out),
                                            .length(length),
                                            .header_in(header));
 
-always @ (header_last_f or thanks_all_f or count_zero_f)
+always @(*)
 begin
         case({header_last_f, count_zero_f, thanks_all_f})
-        3'b000: header_temp <= 1'b0;
-        3'b001: header_temp <= 1'b0;
-        3'b010: header_temp <= 1'b0;
-        3'b011: header_temp <= 1'b1;
-        3'b100: header_temp <= 1'b1;
+        3'b000: header_temp = 1'b0;
+        3'b001: header_temp = 1'b0;
+        3'b010: header_temp = 1'b0;
+        3'b011: header_temp = 1'b1;
+        3'b100: header_temp = 1'b1;
         //yanqiz change 0->1
-        3'b101: header_temp <= 1'b0;
-        3'b110: header_temp <= 1'b1;
-        3'b111: header_temp <= 1'b1;
+        3'b101: header_temp = 1'b0;
+        3'b110: header_temp = 1'b1;
+        3'b111: header_temp = 1'b1;
         default:
-                header_temp <= 1'b1;
+                header_temp = 1'b1;
         endcase
 end
 
-always @ (header or thanks_all_f or count_f or count_minus_one or length)
+always @(*)
 begin
         if(header)
         begin
-                count_temp <= length;
+                count_temp = length;
         end
         else
         begin
                 if(thanks_all_f)
                 begin
-                        count_temp <= count_minus_one;
+                        count_temp = count_minus_one;
                 end
                 else
                 begin
-                        count_temp <= count_f;
+                        count_temp = count_f;
                 end
         end
 end
