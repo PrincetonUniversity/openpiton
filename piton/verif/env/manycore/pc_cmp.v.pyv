@@ -44,11 +44,7 @@ input rst_l;
 // trap register
 <%
     tt1 = r'''
-    `ifndef VERILATOR
     reg [31:0]   finish_mask;
-    `else
-    integer      finish_mask;
-    `endif
     reg [31:0]   diag_mask;
     reg [31:0]   active_thread;
     reg [31:0]   back_thread, good_delay;
