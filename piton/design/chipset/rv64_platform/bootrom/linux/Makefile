@@ -2,11 +2,18 @@ UART_FREQ ?= 30000000
 MAX_HARTS ?= 1
 CROSSCOMPILE ?= riscv64-unknown-elf-
 CC = ${CROSSCOMPILE}gcc
+GCC_VERSION_GTEQ_12 = $(shell expr `$(CC) -dumpversion | cut -f1 -d.` \>= 12)
 PYTHON=python3
 
-CFLAGS = -DMAX_HARTS=$(MAX_HARTS) -DUART_FREQ=$(UART_FREQ) -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs
+CFLAGS = -DMAX_HARTS=$(MAX_HARTS) -DUART_FREQ=$(UART_FREQ) -Os -ggdb -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs
 CCASFLAGS = -mcmodel=medany -mexplicit-relocs
 LDFLAGS = -nostdlib -nodefaultlibs -nostartfiles
+
+ifeq "$(GCC_VERSION_GTEQ_12)" "1"
+    CFLAGS += -march=rv64ima_zicsr
+else
+	CFLAGS += -march=rv64ima
+endif
 
 INCLUDES = -I./ -I./src
 
@@ -37,7 +44,7 @@ $(MAIN): rv64_platform.dtb $(OBJS_C) $(OBJS_S) linker.lds
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@ 
 	@echo "CC    <= $<"
 
-%.o: %.S
+%.o: %.S rv64_platform.dtb
 	@echo "MAX_HARTS = $(MAX_HARTS)"
 	@$(CC) $(CFLAGS) $(CCASFLAGS) $(INCLUDES) -c $<  -o $@ 
 	@echo "CC    <= $<"

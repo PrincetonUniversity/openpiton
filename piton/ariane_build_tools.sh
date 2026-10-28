@@ -70,7 +70,7 @@ else
   ci/install-verilator.sh
 
   # build the RISCV tests if necessary
-  VERSION="7cc76ea83b4f827596158c8ba0763e93da65de8f"
+  VERSION="master"
   cd tmp
 
   [ -d riscv-tests ] || git clone https://github.com/riscv/riscv-tests.git
@@ -83,8 +83,8 @@ else
   # link in adapted syscalls.c such that the benchmarks can be used in the OpenPiton TB
   cd benchmarks/common/
   rm syscalls.c util.h
-  ln -s ${PITON_ROOT}/piton/verif/diag/assembly/include/riscv/ariane/syscalls.c
-  ln -s ${PITON_ROOT}/piton/verif/diag/assembly/include/riscv/ariane/util.h
+  ln -s ${PITON_ROOT}/piton/verif/diag/riscv/rv64/include/syscalls.c
+  ln -s ${PITON_ROOT}/piton/verif/diag/riscv/rv64/include/util.h
   cd -
 
   cd build
