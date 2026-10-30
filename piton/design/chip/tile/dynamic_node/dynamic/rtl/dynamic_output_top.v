@@ -136,15 +136,15 @@ dynamic_output_control control(.thanks_a(thanks_a_out), .thanks_b(thanks_b_out),
 //really bothers you go open this in emacs and re-tabify everything
 //and don't complain to me
 
-always @ (current_route_connection or route_req_a_in or route_req_b_in or route_req_c_in or route_req_d_in or route_req_x_in)
+always @(*)
 begin
 	case(current_route_connection)
-	`ROUTE_A:	current_route_req <= route_req_a_in;
-	`ROUTE_B:	current_route_req <= route_req_b_in;
-	`ROUTE_C:	current_route_req <= route_req_c_in;
-	`ROUTE_D:	current_route_req <= route_req_d_in;
-	`ROUTE_X:	current_route_req <= route_req_x_in;
-	default:	current_route_req <= 1'bx;
+	`ROUTE_A:	current_route_req = route_req_a_in;
+	`ROUTE_B:	current_route_req = route_req_b_in;
+	`ROUTE_C:	current_route_req = route_req_c_in;
+	`ROUTE_D:	current_route_req = route_req_d_in;
+	`ROUTE_X:	current_route_req = route_req_x_in;
+	default:	current_route_req = 1'bx;
 	endcase
 end
 

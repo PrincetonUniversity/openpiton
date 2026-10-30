@@ -163,12 +163,7 @@ assign valid_out = valid_out_internal;
 //THIS HAS BEEN MOVED to dynamic_output_top
 
 //a mux for current_route_f's tail bit
-<%
-tail_in_cal = "tail_%d_in" % 0
-for a in range (1, DYNAMIC_NODE_PORT):
-  tail_in_cal = tail_in_cal + (" or tail_%d_in" % a)
-%>
-always @ (current_route_f or <%= tail_in_cal%>)
+always @(*)
 begin
 	case(current_route_f) //synopsys parallel_case
 	<%
@@ -177,12 +172,12 @@ begin
 	for a in range (DYNAMIC_NODE_PORT):
 	  print (indent + ("`IO_XBAR_ROUTE_%d:" % a))
 	  print (indent + "begin")
-	  print (indent + indent + ("tail_current_route <= tail_%d_in;" % a))
+	  print (indent + indent + ("tail_current_route = tail_%d_in;" % a))
 	  print (indent + "end")
 	%>
 	default:
 	begin
-		tail_current_route <= 1'bx; //This is probably dangerous, but I
+		tail_current_route = 1'bx; //This is probably dangerous, but I
 					    //really need the speed here and
 					    //I don't want the synthesizer to
 					    //mess me up if I put a real value
@@ -191,7 +186,7 @@ begin
 	endcase
 end
 
-always @ (current_route_f or valid_out_internal)
+always @(*)
 begin
 	case(current_route_f)
 	/*
@@ -214,9 +209,9 @@ begin
 	  for b in range (DYNAMIC_NODE_PORT):
 	    s = indent
 	    if a == b:
-	      s = s + indent + ("thanks_%d <= valid_out_internal;" % b)
+	      s = s + indent + ("thanks_%d = valid_out_internal;" % b)
 	    else:
-	      s = s + indent + ("thanks_%d <= 1'b0;" % b)
+	      s = s + indent + ("thanks_%d = 1'b0;" % b)
 	    print(s)
 	  print (indent + "end")	  
 	%>
@@ -225,7 +220,7 @@ begin
 	<%
 	print("")
 	for a in range (DYNAMIC_NODE_PORT):
-	  print ("\t\tthanks_%d <= 1'bx;" % a)
+	  print ("\t\tthanks_%d = 1'bx;" % a)
 	%>
 	/*
 	//original
@@ -278,7 +273,7 @@ end
 //end the rotating priority encoder
 
 //this is the rotating priority encoder
-always @(<%= io_xbar_node_define.string_ports_oneline("current_route_f", " or route_req_%d_in")%>)
+always @(*)
 begin
 	case(current_route_f)
 	/*
@@ -293,7 +288,7 @@ begin
 	indent = "	"
 	for a in range (DYNAMIC_NODE_PORT):
 	  term_str = "`IO_XBAR_ROUTE_%d" % 0
-	  new_route_cal = indent + "new_route <= "
+	  new_route_cal = indent + "new_route = "
 	  for b in range (DYNAMIC_NODE_PORT - 1):
 	    c = (a + b + 1) % DYNAMIC_NODE_PORT
 	    new_route_cal = new_route_cal + "(route_req_%d_in)?`IO_XBAR_ROUTE_%d:(" % (c, c)
@@ -306,14 +301,14 @@ begin
 	%>
 	default:
 	begin
-		new_route <= <%= "`IO_XBAR_ROUTE_%d" % 0%>;
+		new_route = <%= "`IO_XBAR_ROUTE_%d" % 0%>;
 			//this one I am not willing to chince on
 	end
 	endcase
 end
 //end the rotating priority encoder
 
-always @(current_route_f or planned_f)
+always @(*)
 begin
 	if(planned_f)
 	begin
@@ -325,14 +320,14 @@ begin
 		  print("\t\t\tbegin")
 		  for b in range (DYNAMIC_NODE_PORT):
 		    if a == b:
-		      print ("\t\t\t\troute_req_%d_mask <= 1'b0;" % b)
+		      print ("\t\t\t\troute_req_%d_mask = 1'b0;" % b)
 		    else:
-		      print ("\t\t\t\troute_req_%d_mask <= 1'b1;" % b)
+		      print ("\t\t\t\troute_req_%d_mask = 1'b1;" % b)
 		  print("\t\t\tend")
 		print("\t\tdefault:")
 		print("\t\t\tbegin")
 		for a in range (DYNAMIC_NODE_PORT):
-		  print ("\t\t\t\troute_req_%d_mask <= 1'b1;" % a)
+		  print ("\t\t\t\troute_req_%d_mask = 1'b1;" % a)
 		print("\t\t\tend")
 		%>
 		/*
@@ -361,7 +356,7 @@ begin
 	<%
 	print("")
 	for a in range (DYNAMIC_NODE_PORT):
-	  print ("\t\troute_req_%d_mask <= 1'b1;" % a)
+	  print ("\t\troute_req_%d_mask = 1'b1;" % a)
 	%>
 	/*
 	//original
@@ -375,83 +370,83 @@ begin
 end
 
 //calculation of new_route_needed
-always @ (planned_f or tail_current_route or valid_out_internal or default_ready)
+always @(*)
 begin
 	case({default_ready, valid_out_internal, tail_current_route, planned_f}) //synopsys parallel_case
-	4'b0000:	new_route_needed <= 1'b1;
-	4'b0001:	new_route_needed <= 1'b0;
-	4'b0010:	new_route_needed <= 1'b1;
-	4'b0011:	new_route_needed <= 1'b0;
-	4'b0100:	new_route_needed <= 1'b0;	//This line should probably be turned to a 1 if we are to implement "Mikes fairness" schema
-	4'b0101:	new_route_needed <= 1'b0;	//This line should probably be turned to a 1 if we are to implement "Mikes fairness" schema
-	4'b0110:	new_route_needed <= 1'b1;
-	4'b0111:	new_route_needed <= 1'b1;
+	4'b0000:	new_route_needed = 1'b1;
+	4'b0001:	new_route_needed = 1'b0;
+	4'b0010:	new_route_needed = 1'b1;
+	4'b0011:	new_route_needed = 1'b0;
+	4'b0100:	new_route_needed = 1'b0;	//This line should probably be turned to a 1 if we are to implement "Mikes fairness" schema
+	4'b0101:	new_route_needed = 1'b0;	//This line should probably be turned to a 1 if we are to implement "Mikes fairness" schema
+	4'b0110:	new_route_needed = 1'b1;
+	4'b0111:	new_route_needed = 1'b1;
 
-	4'b1000:	new_route_needed <= 1'b1;
-	4'b1001:	new_route_needed <= 1'b0;
+	4'b1000:	new_route_needed = 1'b1;
+	4'b1001:	new_route_needed = 1'b0;
 //	4'b1010:	new_route_needed <= 1'b0;	//this is scary CHECK THIS BEFORE CHIP SHIPS
-	4'b1010:	new_route_needed <= 1'b1;	//this is the case where there is a zero length message on the default route that is not being sent this cycle therefore we should let something be locked in, but it doesn't necessarily just the default route.  Remember that the default route is the last choice in the priority encoder, but if nothing else is requesting, the default route will be planned and locked in.
+	4'b1010:	new_route_needed = 1'b1;	//this is the case where there is a zero length message on the default route that is not being sent this cycle therefore we should let something be locked in, but it doesn't necessarily just the default route.  Remember that the default route is the last choice in the priority encoder, but if nothing else is requesting, the default route will be planned and locked in.
     //yanqiz change from 0->1
-	4'b1011:	new_route_needed <= 1'b0;
-	4'b1100:	new_route_needed <= 1'b0;
-	4'b1101:	new_route_needed <= 1'b0;
-	4'b1110:	new_route_needed <= 1'b1;
-	4'b1111:	new_route_needed <= 1'b1;
-	default:	new_route_needed <= 1'b1;
+	4'b1011:	new_route_needed = 1'b0;
+	4'b1100:	new_route_needed = 1'b0;
+	4'b1101:	new_route_needed = 1'b0;
+	4'b1110:	new_route_needed = 1'b1;
+	4'b1111:	new_route_needed = 1'b1;
+	default:	new_route_needed = 1'b1;
 			//safest choice should never occur
 	endcase
 end
 
 //calculation of planned_temp
 //random five input function
-always @ (planned_f or tail_current_route or valid_out_internal or default_ready or route_req_all_or_with_planned or route_req_all_but_default)
+always @(*)
 begin
 	case({route_req_all_or_with_planned, default_ready, valid_out_internal, tail_current_route, planned_f}) //synopsys parallel_case
-	5'b00000:	planned_temp <= 1'b0;
-	5'b00001:	planned_temp <= 1'b1;
-	5'b00010:	planned_temp <= 1'b0;
-	5'b00011:	planned_temp <= 1'b1;
-	5'b00100:	planned_temp <= 1'b0;	//error what did we just send
-	5'b00101:	planned_temp <= 1'b1;
-	5'b00110:	planned_temp <= 1'b0;	//error
-	5'b00111:	planned_temp <= 1'b0;
+	5'b00000:	planned_temp = 1'b0;
+	5'b00001:	planned_temp = 1'b1;
+	5'b00010:	planned_temp = 1'b0;
+	5'b00011:	planned_temp = 1'b1;
+	5'b00100:	planned_temp = 1'b0;	//error what did we just send
+	5'b00101:	planned_temp = 1'b1;
+	5'b00110:	planned_temp = 1'b0;	//error
+	5'b00111:	planned_temp = 1'b0;
 
-	5'b01000:	planned_temp <= 1'b0;	//error
-	5'b01001:	planned_temp <= 1'b1;
-	5'b01010:	planned_temp <= 1'b0;	//This actually cannot happen
-	5'b01011:	planned_temp <= 1'b1;
-	5'b01100:	planned_temp <= 1'b0;	//What did we just send?
-	5'b01101:	planned_temp <= 1'b1;
-	5'b01110:	planned_temp <= 1'b0;	//error
-	5'b01111:	planned_temp <= 1'b0;	//The default route is
+	5'b01000:	planned_temp = 1'b0;	//error
+	5'b01001:	planned_temp = 1'b1;
+	5'b01010:	planned_temp = 1'b0;	//This actually cannot happen
+	5'b01011:	planned_temp = 1'b1;
+	5'b01100:	planned_temp = 1'b0;	//What did we just send?
+	5'b01101:	planned_temp = 1'b1;
+	5'b01110:	planned_temp = 1'b0;	//error
+	5'b01111:	planned_temp = 1'b0;	//The default route is
 						//currently planned but
 						//is ending this cycle
 						//and nobody else wants to go
 						//This is a delayed zero length
 						//message on the through route
-	5'b10000:	planned_temp <= 1'b1;
-	5'b10001:	planned_temp <= 1'b1;
-	5'b10010:	planned_temp <= 1'b1;
-	5'b10011:	planned_temp <= 1'b1;
-	5'b10100:	planned_temp <= 1'b1;
-	5'b10101:	planned_temp <= 1'b1;
-	5'b10110:	planned_temp <= 1'b1;
-	5'b10111:	planned_temp <= 1'b1;
-	5'b11000:	planned_temp <= 1'b1;
-	5'b11001:	planned_temp <= 1'b1;
-	5'b11010:	planned_temp <= 1'b1;
-	5'b11011:	planned_temp <= 1'b1;
-	5'b11100:	planned_temp <= 1'b1;
-	5'b11101:	planned_temp <= 1'b1;
+	5'b10000:	planned_temp = 1'b1;
+	5'b10001:	planned_temp = 1'b1;
+	5'b10010:	planned_temp = 1'b1;
+	5'b10011:	planned_temp = 1'b1;
+	5'b10100:	planned_temp = 1'b1;
+	5'b10101:	planned_temp = 1'b1;
+	5'b10110:	planned_temp = 1'b1;
+	5'b10111:	planned_temp = 1'b1;
+	5'b11000:	planned_temp = 1'b1;
+	5'b11001:	planned_temp = 1'b1;
+	5'b11010:	planned_temp = 1'b1;
+	5'b11011:	planned_temp = 1'b1;
+	5'b11100:	planned_temp = 1'b1;
+	5'b11101:	planned_temp = 1'b1;
 //	5'b11110:	planned_temp <= 1'b0;	//This is wrong becasue if
 						//there is a default
 						//route zero length message
 						//that is being sent and
 						//somebody else wants to send
 						//on the next cycle
-	5'b11110:	planned_temp <= route_req_all_but_default;
-	5'b11111:	planned_temp <= 1'b1;
-	default:	planned_temp <= 1'b0;
+	5'b11110:	planned_temp = route_req_all_but_default;
+	5'b11111:	planned_temp = 1'b1;
+	default:	planned_temp = 1'b0;
 	endcase
 end
 

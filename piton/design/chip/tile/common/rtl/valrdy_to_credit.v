@@ -97,37 +97,37 @@ assign ready_in = is_two_or_more_f;
 assign up = yummy_out_f & ~valid_temp_f;
 assign down = ~yummy_out_f & valid_temp_f;
 
-always @ (count_f or count_plus_1 or count_minus_1 or up or down)
+always @(*)
 begin
 	case (count_f)
 	0:
 		begin
 			if(up)
 			begin
-				count_temp <= count_plus_1;
+				count_temp = count_plus_1;
 			end
 			else
 			begin
-				count_temp <= count_f;
+				count_temp = count_f;
 			end
 		end
 	BUFFER_SIZE:
 		begin
 			if(down)
 			begin
-				count_temp <= count_minus_1;
+				count_temp = count_minus_1;
 			end
 			else
 			begin
-				count_temp <= count_f;
+				count_temp = count_f;
 			end
 		end
 	default:
 		begin
 			case ({up, down})
-				2'b10:	count_temp <= count_plus_1;
-				2'b01:	count_temp <= count_minus_1;
-				default:	count_temp <= count_f;
+				2'b10:	count_temp = count_plus_1;
+				2'b01:	count_temp = count_minus_1;
+				default:	count_temp = count_f;
 			endcase
 		end
 	endcase

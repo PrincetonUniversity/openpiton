@@ -166,13 +166,13 @@ io_xbar_output_control control(<%= thanks%>
 //NOTE TO READER.  I like the way that these instantiations look so if it
 //really bothers you go open this in emacs and re-tabify everything
 //and don't complain to me
-always @ (current_route_connection<%= io_xbar_node_define.string_ports_oneline("", " or route_req_%d_in")%>)
+always @(*)
 begin
 	case(current_route_connection)
     <%
     print("")
     for a in range(DYNAMIC_NODE_PORT):
-      print ("\t`IO_XBAR_ROUTE_%d:    current_route_req <= route_req_%d_in;" % (a,a))
+      print ("\t`IO_XBAR_ROUTE_%d:    current_route_req = route_req_%d_in;" % (a,a))
     %>
     /*
     //original
@@ -182,7 +182,7 @@ begin
 	`ROUTE_D:	current_route_req <= route_req_d_in;
 	`ROUTE_X:	current_route_req <= route_req_x_in;
     */
-	default:	current_route_req <= 1'bx;
+	default:	current_route_req = 1'bx;
 	endcase
 end
 
