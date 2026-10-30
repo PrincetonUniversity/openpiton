@@ -30,6 +30,9 @@
 
 # Boiler plate startup
 set DV_ROOT $::env(DV_ROOT)
+set OST1_ROOT $::env(OST1_ROOT)
+set ARIANE_ROOT $::env(ARIANE_ROOT)
+
 source $DV_ROOT/tools/src/proto/vivado/setup.tcl
 
 # Get additional protosyn runtime defines

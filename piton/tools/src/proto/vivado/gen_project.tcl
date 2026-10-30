@@ -30,6 +30,9 @@
 
 # Boiler plate startup
 set DV_ROOT $::env(DV_ROOT)
+set OST1_ROOT $::env(OST1_ROOT)
+set ARIANE_ROOT $::env(ARIANE_ROOT)
+
 source $DV_ROOT/tools/src/proto/vivado/setup.tcl
 
 # Create project
@@ -264,7 +267,6 @@ set_property STEPS.SYNTH_DESIGN.ARGS.FSM_EXTRACTION auto [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.KEEP_EQUIVALENT_REGISTERS false [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.RESOURCE_SHARING auto [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.NO_LC false [get_runs synth_1]
-set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.CONTROL_SET_OPT_THRESHOLD auto [get_runs synth_1]
 
 #set_property "incremental_checkpoint" "" $fileset_obj

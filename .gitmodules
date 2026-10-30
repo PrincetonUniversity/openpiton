@@ -7,3 +7,9 @@
 [submodule "piton/design/chipset/rv64_platform/bootrom/u-boot/uboot"]
 	path = piton/design/chipset/rv64_platform/bootrom/u-boot/uboot
 	url = git@github.com:u-boot/u-boot.git
+[submodule "piton/verif/diag/sparcv9"]
+    path = piton/verif/diag/sparcv9
+    url = git@github.com:openpiton/sparcv9-ost1-tests.git
+[submodule "piton/design/chip/tile/sparc"]
+    path = piton/design/chip/tile/sparc
+    url = git@github.com:openpiton/ost1-core.git

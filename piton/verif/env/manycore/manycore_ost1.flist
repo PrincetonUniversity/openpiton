@@ -1,0 +1,24 @@
+
+-v sas_intf.v
+// //-v tlb_mon.v
+-v sas_tasks.v
+-v sas_task.v
+-v l_cache_mon.v
+-v thrfsm_mon.v // monitors for X's in the processor states
+-v sparc_pipe_flow.v
+-v multicycle_mon.v
+-v cmp_pcxandcpx.v
+-v tso_mon.v
+-v lsu_mon.v
+-v lsu_mon2.v
+-v exu_mon.v
+// -v err_inject.v
+-v mask_mon.v
+-v pc_muxsel_mon.v
+-v nukeint_mon.v
+-v stb_ovfl_mon.v
+-v icache_mutex_mon.v
+-v nc_inv_chk.v
+-v tlu_mon.v
+-v softint_mon.v
+ -v slam_init.v

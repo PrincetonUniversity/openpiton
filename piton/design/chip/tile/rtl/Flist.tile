@@ -26,7 +26,4 @@
 // ========== Copyright Header End ============================================
 
 config_regs.v
-cpx_arbitrator.v
 tile.v
-ccx_l15_transducer.v
-pico_l15_transducer.v

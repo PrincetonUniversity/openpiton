@@ -1,2 +1,6 @@
 picorv32.v
 pico_reset.v
+
+pico_l15_transducer.v
+pico_decoder.v
+l15_picoencoder.v

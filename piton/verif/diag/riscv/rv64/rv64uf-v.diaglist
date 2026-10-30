@@ -1,0 +1,18 @@
+<rv64uf-v sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    // note: we have to offset the trap here since the core operates in VM
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled -trap_offset=0x80000000 -rtl_timeout=1000000>
+    rv64uf-v-fadd       rv64uf-v-fadd.S
+    rv64uf-v-fclass     rv64uf-v-fclass.S
+    rv64uf-v-fcmp       rv64uf-v-fcmp.S
+    rv64uf-v-fcvt       rv64uf-v-fcvt.S
+    rv64uf-v-fcvt_w     rv64uf-v-fcvt_w.S
+    rv64uf-v-fdiv       rv64uf-v-fdiv.S
+    rv64uf-v-fmadd      rv64uf-v-fmadd.S
+    rv64uf-v-fmin       rv64uf-v-fmin.S
+    rv64uf-v-ldst       rv64uf-v-ldst.S
+    rv64uf-v-move       rv64uf-v-move.S
+    rv64uf-v-recoding   rv64uf-v-recoding.S
+    </runargs>
+</rv64uf-v>

@@ -46,9 +46,9 @@ print(tt)
 %>
 );
 //temp. memory.
-reg [`CPX_WIDTH-1:0] 	    fake_iob_out_data;
+reg [159:0] 	    fake_iob_out_data;
 
-wire [`CPX_WIDTH-1:0]       cpx_data = fake_iob_out_data;
+wire [159:0]       cpx_data = fake_iob_out_data;
 
 // Output buffer
 // The output buffer need to be asynchronous and cannot ever be overflowed.

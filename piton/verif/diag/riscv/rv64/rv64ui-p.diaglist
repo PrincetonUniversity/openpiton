@@ -1,0 +1,57 @@
+<rv64ui-p sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled>
+    rv64ui-p-add       rv64ui-p-add.S
+    rv64ui-p-addi      rv64ui-p-addi.S
+    rv64ui-p-addiw     rv64ui-p-addiw.S
+    rv64ui-p-addw      rv64ui-p-addw.S
+    rv64ui-p-and       rv64ui-p-and.S
+    rv64ui-p-andi      rv64ui-p-andi.S
+    rv64ui-p-auipc     rv64ui-p-auipc.S
+    rv64ui-p-beq       rv64ui-p-beq.S
+    rv64ui-p-bge       rv64ui-p-bge.S
+    rv64ui-p-bgeu      rv64ui-p-bgeu.S
+    rv64ui-p-blt       rv64ui-p-blt.S
+    rv64ui-p-bltu      rv64ui-p-bltu.S
+    rv64ui-p-bne       rv64ui-p-bne.S
+    rv64ui-p-fence_i   rv64ui-p-fence_i.S
+    rv64ui-p-jal       rv64ui-p-jal.S
+    rv64ui-p-jalr      rv64ui-p-jalr.S
+    rv64ui-p-lb        rv64ui-p-lb.S
+    rv64ui-p-lbu       rv64ui-p-lbu.S
+    rv64ui-p-ld        rv64ui-p-ld.S
+    rv64ui-p-lh        rv64ui-p-lh.S
+    rv64ui-p-lhu       rv64ui-p-lhu.S
+    rv64ui-p-lui       rv64ui-p-lui.S
+    rv64ui-p-lw        rv64ui-p-lw.S
+    rv64ui-p-lwu       rv64ui-p-lwu.S
+    rv64ui-p-or        rv64ui-p-or.S
+    rv64ui-p-ori       rv64ui-p-ori.S
+    rv64ui-p-sb        rv64ui-p-sb.S
+    rv64ui-p-sd        rv64ui-p-sd.S
+    rv64ui-p-sh        rv64ui-p-sh.S
+    // rv64ui-p-simple    rv64ui-p-simple.S
+    rv64ui-p-sll       rv64ui-p-sll.S
+    rv64ui-p-slli      rv64ui-p-slli.S
+    rv64ui-p-slliw     rv64ui-p-slliw.S
+    rv64ui-p-sllw      rv64ui-p-sllw.S
+    rv64ui-p-slt       rv64ui-p-slt.S
+    rv64ui-p-slti      rv64ui-p-slti.S
+    rv64ui-p-sltiu     rv64ui-p-sltiu.S
+    rv64ui-p-sltu      rv64ui-p-sltu.S
+    rv64ui-p-sra       rv64ui-p-sra.S
+    rv64ui-p-srai      rv64ui-p-srai.S
+    rv64ui-p-sraiw     rv64ui-p-sraiw.S
+    rv64ui-p-sraw      rv64ui-p-sraw.S
+    rv64ui-p-srl       rv64ui-p-srl.S
+    rv64ui-p-srli      rv64ui-p-srli.S
+    rv64ui-p-srliw     rv64ui-p-srliw.S
+    rv64ui-p-srlw      rv64ui-p-srlw.S
+    rv64ui-p-sub       rv64ui-p-sub.S
+    rv64ui-p-subw      rv64ui-p-subw.S
+    rv64ui-p-sw        rv64ui-p-sw.S
+    rv64ui-p-xor       rv64ui-p-xor.S
+    rv64ui-p-xori      rv64ui-p-xori.S
+    </runargs>
+</rv64ui-p>

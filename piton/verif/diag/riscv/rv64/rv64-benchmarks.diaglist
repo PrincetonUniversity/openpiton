@@ -1,0 +1,14 @@
+<rv64-benchmarks sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled -rtl_timeout=1000000>
+    dhrystone dhrystone.riscv
+    median    median.riscv
+    multiply  multiply.riscv
+    pmp       pmp.riscv
+    qsort     qsort.riscv
+    rsort     rsort.riscv
+    towers    towers.riscv
+    vvadd     vvadd.riscv
+    </runargs>
+</rv64-benchmarks>

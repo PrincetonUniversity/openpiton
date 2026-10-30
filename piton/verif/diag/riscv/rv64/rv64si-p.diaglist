@@ -1,0 +1,13 @@
+<rv64si-p sys=manycore -x_tiles=1 -y_tiles=1>
+// note: these asm tests assume that the RISCV tests have been precompiled with the
+// correct environment
+    <runargs -x_tiles=1 -y_tiles=1 -rv64 -precompiled>
+    rv64si-p-csr            rv64si-p-csr.S
+    rv64si-p-dirty          rv64si-p-dirty.S
+    rv64si-p-icache-alias   rv64si-p-icache-alias.S
+    rv64si-p-ma_fetch       rv64si-p-ma_fetch.S
+    rv64si-p-sbreak         rv64si-p-sbreak.S
+    rv64si-p-scall          rv64si-p-scall.S
+    rv64si-p-wfi            rv64si-p-wfi.S
+    </runargs>
+</rv64si-p>

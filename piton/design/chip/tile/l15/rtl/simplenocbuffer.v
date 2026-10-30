@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //==================================================================================================
 //simplenocbuffer.v
 
-`include "iop.h"
 `include "l15.tmp.h"
 
 //`default_nettype none

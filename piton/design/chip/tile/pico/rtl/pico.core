@@ -9,6 +9,8 @@ filesets:
         files:
             - picorv32.v
             - pico_reset.v
+            - l15_picoencoder.v
+            - pico_decoder.v
 
         file_type: verilogSource
 
